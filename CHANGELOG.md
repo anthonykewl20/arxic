@@ -16,17 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `release.yml` now declares `permissions: contents: write` and guards against version mismatch (`tag == VERSION == package.json`) and a premature `0.0.0` release. (Audit: release workflow could not create a release.)
 - CI now asserts `VERSION == package.json` and that `CHANGELOG.md` has an `[Unreleased]` section. (Audit: no mechanical enforcement of mandatory rituals.)
 - Bumped `@types/node` to ^22 to match the Node ≥22 runtime.
-- `LICENSES/README.md` corrected to reflect that upstream engine license texts live in `docs/gears/` (reference-only), not vendored in-repo.
+- `LICENSES/README.md` clarified: reserved for future vendored-code license files.
 - `.gitignore` now excludes `*.orig`.
+- Public doc accuracy pass: README now names all five truth states and correct milestone exits; ADR-001 marked Accepted; fixed a broken ADR table row; NOTICE/SECURITY AGPL + shipping accuracy; RELEASES pre-1.0 bump rule corrected; GOVERNANCE ADR home; schema READMEs tense; charter §8 PR-only wording + §1 layering clarification.
 
 ### changed
 
-- Removed vendored upstream code from the repository — `gears/` is now reference-only (gitignored), repopulated locally via `scripts/fetch-gears.sh`; provenance metadata + LICENSE texts moved to `docs/gears/`. (Resolves pre-development audit finding on pin drift / license hygiene.)
+- Added a public summarized ADR `docs/adr/001-arxic-architecture.md` (architecture + contracts + truth states; the detailed assembly recipe is redacted). The detailed internal ADR is now local-only and all public references point to the summarized ADR.
+- `CONTRIBUTING.md` prerequisites corrected to Node.js 22+; how-it-works aligned to the evidence-discovery model.
+
+### changed
+
+- Removed vendored upstream reference code from the repository — the product ships only Arxic-authored code (no upstream source is tracked). (Audit: pin drift / license hygiene.)
 
 ### internal
 
 - Bootstrap workspace: monorepo layout (ADR section 18), pnpm workspaces + tsconfig/eslint/prettier, MIT license + NOTICE.
-- Collected 17 reference gears into `gears/` with PROVENANCE + LICENSE (ADR sections 6 and 27).
 - Added canonical end-to-end architecture diagram to ADR section 8.
 - Added `docs/engineering-charter.md` (TDD red-first, Actions/Service layering, sad-path-first, real-world proof, slice-completion ritual).
 - Added `docs/SYNC.md` living progress bookmark.
@@ -34,5 +39,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made repository release-ready: MIT license + NOTICE; CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, SUPPORT, GOVERNANCE; expanded public README.
 - Versioning: `VERSION` single source of truth + `RELEASES.md` (SemVer; 0.1.0 at M0-EXIT, 0.2.0 at M1-EXIT) + always-synced `CHANGELOG.md`; engineering-charter §8 and the PR template now require a CHANGELOG entry + VERSION sync on every slice.
 - CI (GitHub Actions: lint/typecheck/format/test), release workflow, Dependabot, issue templates, CODEOWNERS; functional eslint flat config + tsconfig with contracts entry.
-- `.gitattributes` (eol=lf, `gears/` linguist-vendored); target Node >=22 (pnpm 11 requirement).
+- `.gitattributes` (eol=lf); target Node >=22 (pnpm 11 requirement).
+
+### removed
+
+- Removed all internal references to the upstream reference collection from the public repository.
 - Confirmed **trunk-based** branching strategy (no `dev`/`release` branch); documented in `CONTRIBUTING.md` and `docs/SYNC.md`.

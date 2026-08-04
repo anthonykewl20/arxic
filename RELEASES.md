@@ -38,9 +38,11 @@ milestone exits:
 
 - **added / changed / removed / fixed / security** at user-observable level
   suggest an API or behavior-impacting release.
-- If the change is a backward compatible behavior-level expansion, bump minor.
-- If it is a compatibility break at the same pre-1.0 cadence, bump major.
-- If it is implementation-only maintenance, bump patch.
+- pre-1.0, backward-incompatible or feature changes bump MINOR (`0.x.0`).
+- fixes and patch-only changes bump PATCH.
+- MAJOR (`1.0.0`) is reserved for the first stable release.
+
+This follows SemVer §4's pre-1.0 convention.
 
 This process stays in sync by requiring `VERSION` and `package.json` updates in
 every release and every user-visible slice.

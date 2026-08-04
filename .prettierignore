@@ -1,9 +1,7 @@
-gears/
 pnpm-lock.yaml
 test-fixtures/
 dist/
 coverage/
-docs/arxic-full-adr.md
 docs/engineering-charter.md
 docs/SYNC.md
 .github/pull_request_template.md

@@ -22,8 +22,7 @@ our normal release process.
 - Scope includes Arxic source code and workflows.
 - Vulnerabilities in upstream engines (for example Playwright, Crawlee, Mailpit,
   otp, and other third-party systems) should be reported upstream.
-- Vendored reference code under `gears/` is for bootstrap and is not shipped with
-  releases.
+- The repository contains no vendored upstream code; only Arxic-authored product code lives here and in releases.
 
 ## Trust boundaries
 

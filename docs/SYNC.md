@@ -2,17 +2,17 @@
 
 > **Read this first when resuming a session. Update it before closing one.**
 > This is the peg. It tells you where we are, where we stopped, and where we pick up.
-> The design source of truth is [`arxic-full-adr.md`](./arxic-full-adr.md). The issues board is at <https://github.com/anthonykewl20/arxic/issues>.
+> The public architecture record is [`001-arxic-architecture.md`](./adr/001-arxic-architecture.md) (summary; the detailed internal ADR is private). The issues board is at <https://github.com/anthonykewl20/arxic/issues>.
 
 ---
 
 ## 🔖 RESUME HERE
 
-**Status:** Workspace bootstrapped. Gears collected. M0 + M1 issues filed. Nothing implemented yet — about to start **Milestone 0**.
+**Status:** Workspace bootstrapped. M0 + M1 issues filed. Nothing implemented yet — about to start **Milestone 0**.
 
 **Next action:** Begin [#1 (M0-00) Monorepo & tooling bootstrap](https://github.com/anthonykewl20/arxic/issues/1) — finish per-package tsconfigs, real ESLint config, CI workflow, then confirm the open decisions below. In parallel start the contract-freeze issues (#2–#6) and **bring [#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13) forward** — they are the real-world-proof surface every spike (#8–#12) and M1 slice must run against.
 
-**Last session:** 2026-08-04 — scaffolded §18 layout, collected 17 gears, filed 27 issues (M0=14, M1=13), added the ADR §8 architecture diagram; then made the repo release-ready (complete MIT licensing, versioning via `VERSION`/`RELEASES.md`/always-synced `CHANGELOG.md`, maturity docs, functional tooling, CI + release workflows, Dependabot, issue/PR templates, GitHub settings + security alerts, `main` branch protection). CI is green.
+**Last session:** 2026-08-04 — scaffolded §18 layout, filed 27 issues (M0=14, M1=13), added the ADR §8 architecture diagram; then made the repo release-ready (complete MIT licensing, versioning via `VERSION`/`RELEASES.md`/always-synced `CHANGELOG.md`, maturity docs, functional tooling, CI + release workflows, Dependabot, issue/PR templates, GitHub settings + security alerts, `main` branch protection). CI is green.
 
 ---
 
@@ -20,9 +20,8 @@
 
 | Thing | Where |
 |---|---|
-| ADR (canonical) | `docs/arxic-full-adr.md` (esp. §6 ledger, §7 seams, §8 architecture diagram, §9 pipeline, §10 contracts, §22 milestones) |
+| ADR (public summary) | `docs/adr/001-arxic-architecture.md` (§2 truth states, §8 diagram, §9 pipeline, §10 contracts, §22 milestones) — detailed internal ADR is private/local |
 | Engineering charter | `docs/engineering-charter.md` — TDD red-first + Actions/Service layering + **mandatory sad-path-first**. Every slice follows this. |
-| Gears (reference parts) | Local-only reference (`gears/`, gitignored) fetched via `scripts/fetch-gears.sh`; in-repo metadata in `docs/gears/` (index + PROVENANCE + LICENSE). |
 | Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` (empty — frozen in #2–#5) |
 | Packages | `packages/*` (14 adapters/engines, scaffolded) — see ADR §18 |
 | Apps | `apps/{cli,worker}/` (scaffolded) |
@@ -83,9 +82,8 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 
 ## Decisions (resolved)
 
-- **License:** **MIT** — confirmed (`LICENSE`, `package.json`). Third-party notices in `NOTICE` + `docs/gears/*/PROVENANCE.md`.
+- **License:** **MIT** — confirmed (`LICENSE`, `package.json`). Third-party notices in `NOTICE`.
 - **Package manager:** **pnpm** workspaces via corepack (`packageManager` field). Node **≥22** (pnpm 11 requirement).
-- **gears/ local-only:** the 17-gear reference collection (~131 MB) is reference-only and gitignored. The actual upstream source is fetched locally via `scripts/fetch-gears.sh`; `docs/gears/` stores metadata (PROVENANCE + LICENSE) used for pin and license decisions.
 - **Git flow (active):** `main` is **protected** — all changes via PR (squash merge), CI check `ci` required, linear history, no force-push. Solo owner: self-merge allowed (0 required reviews).
 - **Branching strategy:** **trunk-based** (confirmed) — no `dev`/`release` branch; short-lived `feat/`·`fix/`·`docs/` branches → PR → `main`; releases cut from `main` via tags. See `CONTRIBUTING.md` → Branching model.
 
@@ -108,7 +106,7 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 
 | Date | What happened |
 |---|---|
-| 2026-08-04 | Bootstrap. Built §18 monorepo layout; collected 17 gears into `gears/` (full clones for feasible repos, key-file fetches for Playwright/Crawlee/ast-grep/Midscene/Stagehand/Hercules/SCIP); wrote root tooling (pnpm, tsconfig.base, eslint/prettier stubs, LICENSE/NOTICE/README); filed milestones + 12 area labels + 27 issues (M0 14, M1 13); saved canonical end-to-end architecture diagram into ADR §8. |
+| 2026-08-04 | Built §18 monorepo layout; wrote root tooling (pnpm, tsconfig.base, eslint/prettier stubs, LICENSE/NOTICE/README); filed milestones + 12 area labels + 27 issues (M0 14, M1 13); saved canonical end-to-end architecture diagram into ADR §8. |
 | 2026-08-04 (2) | Release readiness: complete MIT licensing; versioning (`VERSION` + `RELEASES.md` + always-synced `CHANGELOG.md` wired into charter §8 + PR template); maturity docs (CONTRIBUTING/CODE_OF_CONDUCT/SECURITY/SUPPORT/GOVERNANCE) + expanded README; functional tooling (eslint flat + tsconfig, contracts entry, pnpm-lock); GitHub CI + release workflows, Dependabot, issue templates, CODEOWNERS; repo settings (squash-only, delete-branch-on-merge) + security alerts; **CI green**; `main` branch protection (PR flow). |
 
 ---

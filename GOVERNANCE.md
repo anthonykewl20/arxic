@@ -8,8 +8,8 @@ Arxic is governed by a lightweight maintainer process.
 
 ## Decision process
 
-Architectural and policy decisions are made by ADRs in `docs/adr/`.
-`docs/arxic-full-adr.md` (ADR-001) is the canonical baseline decision record.
+Architectural and policy decisions live in the public ADR `docs/adr/001-arxic-architecture.md`
+(`ADR-001`). Future ADRs are recorded under `docs/adr/`.
 
 The five-truth-state and evidence-first principles are inviolable and take
 precedence over convenience or local optimization.

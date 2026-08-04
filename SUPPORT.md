@@ -2,7 +2,7 @@
 
 If you need help with Arxic, start with this sequence:
 
-1. Read the architecture at `docs/arxic-full-adr.md`.
+1. Read the architecture at `docs/adr/001-arxic-architecture.md`.
 2. Read current status and slice state in `docs/SYNC.md`.
 
 ### Usage questions

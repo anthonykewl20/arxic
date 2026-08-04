@@ -7,5 +7,5 @@ contact_links:
     url: https://github.com/anthonykewl20/arxic/security/advisories/new
     about: Report security issues privately.
   - name: ADR
-    url: https://github.com/anthonykewl20/arxic/blob/main/docs/arxic-full-adr.md
+    url: https://github.com/anthonykewl20/arxic/blob/main/docs/adr/001-arxic-architecture.md
     about: Check the architecture decisions before proposing scope changes.
