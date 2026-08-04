@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arxic.dev/schemas/diagnostics/v1.json",
+  "title": "Diagnostic",
+  "type": "object",
+  "required": ["code", "severity", "subject", "message"],
+  "properties": {
+    "code": { "type": "string", "pattern": "^ARXIC-[A-Z0-9][A-Z0-9-]*$" },
+    "severity": {
+      "enum": ["hypothesized", "observed", "contradicted", "blocked"]
+    },
+    "subject": { "type": "string", "minLength": 1 },
+    "message": { "type": "string", "minLength": 1 },
+    "evidenceRefs": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "supportedFixes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "additionalProperties": false
+}

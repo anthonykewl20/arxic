@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#3 (M0-02) Workflow v1 IR frozen.** `schemas/workflow/workflow.schema.json` + AJV + types (ADR §10.3 + ADR-002). **`status:"verified"` is rejected unless every required transition carries `run:` runtime evidence** (an LLM may never assign verified — ADR §2/§15/ADR-002). #1 + #2 also done. **3/5 contracts frozen** (evidence, workflow); diagnostics + manifest remain.
+**Status:** **#4 (M0-03) Diagnostics frozen.** `schemas/diagnostics/diagnostics.schema.json` + AJV + `Diagnostic`/`DiagnosticSeverity` types (ADR §10.4). `severity` = 4 non-`verified` truth states; **loop-closing test validates every `ARXIC-*` code** as a frozen Diagnostic code. #1–#3 done. **4/5 contracts frozen** (evidence, workflow, diagnostics); Bundle manifest remains (#5).
 
-**Next action:** [#4 (M0-03) Freeze Diagnostics](https://github.com/anthonykewl20/arxic/issues/4) — `schemas/diagnostics/` (ADR §10.4: `code`/`severity`/`subject`/`message`/`evidenceRefs`/`supportedFixes`) + AJV + types; closes the loop on the `ARXIC-EVIDENCE-*`/`ARXIC-WORKFLOW-*` codes emitted by #2/#3. Then #5 (Bundle manifest) + #6 (Adapter interfaces) → contract freeze complete. **[#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13)** is the parallel real-world surface for spikes #8–#12 (checkpoint before starting it).
+**Next action:** [#5 (M0-04) Freeze Bundle manifest](https://github.com/anthonykewl20/arxic/issues/5) — `schemas/manifest/` per ADR §14 (`manifest.json`: scope/versions/provenance/verification results/gate outcomes/blockers/hashes) + AJV + types. Then #6 (Adapter interfaces) → **contract freeze complete (M0 goal 1)**. After contracts: **[#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13)** — checkpoint before starting (the real-world surface for spikes #8–#12 + M1).
 
-**Last session:** 2026-08-04 — **#3 (M0-02) Workflow v1 IR frozen**: `schemas/workflow/workflow.schema.json` + AJV + types; **`status:"verified"` rejected unless every required transition has `run:` evidence** (LLM may never assign verified); transitions `required:true` default; 5 truth states; `ARXIC-WORKFLOW-*` diagnostics; 46 tests green. 3/5 contracts done. Next: #4 Diagnostics.
+**Last session:** 2026-08-04 — **#4 (M0-03) Diagnostics frozen**: `schemas/diagnostics/` (§10.4) + AJV + widened `Diagnostic` types; `severity` = 4 non-`verified` truth states; loop-closing test validates every `ARXIC-*` code; 55 tests green. 4/5 contracts done. Next: #5 Bundle manifest.
 
 ---
 
@@ -22,7 +22,7 @@
 |---|---|
 | ADR (public summary) | `docs/adr/001-arxic-architecture.md` (§2 truth states, §8 diagram, §9 pipeline, §10 contracts, §22 milestones) — detailed internal ADR is private/local |
 | Engineering charter | `docs/engineering-charter.md` — TDD red-first + Actions/Service layering + **mandatory sad-path-first**. Every slice follows this. |
-| Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` — **evidence + workflow frozen** (#2, #3: schemas + AJV validators + `@arxic/contracts` types); `manifest`/`diagnostics` pending (#4, #5) |
+| Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` — **evidence + workflow + diagnostics frozen** (#2, #3, #4: schemas + AJV validators + `@arxic/contracts` types); `manifest` pending (#5) |
 | Packages | `packages/*` (14 adapters/engines, scaffolded) — see ADR §18 |
 | Apps | `apps/{cli,worker}/` (scaffolded) |
 | Rule packs | `rulepacks/{nextjs,react,express}/` (empty — built in #9, #22) |
@@ -45,8 +45,8 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #1 | [M0-00] Monorepo & tooling bootstrap | ☑ done |
 | #2 | [M0-01] Freeze contract: EvidenceRef | ☑ done |
 | #3 | [M0-02] Freeze contract: Workflow v1 IR | ☑ done |
-| #4 | [M0-03] Freeze contract: Diagnostics | ☐ next |
-| #5 | [M0-04] Freeze contract: Bundle manifest | ☐ |
+| #4 | [M0-03] Freeze contract: Diagnostics | ☑ done |
+| #5 | [M0-04] Freeze contract: Bundle manifest | ☐ next |
 | #6 | [M0-05] Freeze contract: Adapter interfaces | ☐ |
 | #7 | [M0-06] License gate + SBOM automation | ☐ |
 | #8 | [M0-07] Spike: Understand-Anything subset extraction | ☐ |
@@ -121,6 +121,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-04 (4) | **#1 (M0-00) tooling bootstrap DONE.** Per-package `tsconfig.json` + `typecheck` script across all 16 workspace packages; root `typecheck:packages` (`pnpm -r typecheck`); ESLint bans `it.only`/`skip`/`xit`/`xdescribe` (ADR §13.1); `.env.example`; structural test guards the per-package tooling contract. **ADR-003: M0 source-only (no emit).** Gates green (lint/typecheck/typecheck:packages/format/test). Starting contract freeze (#2). |
 | 2026-08-04 (5) | **#2 (M0-01) EvidenceRef contract frozen.** `schemas/evidence/{evidence-ref,source-revision,evidence-index}.schema.json` (JSON Schema 2020-12) + AJV 2020-12 strict validators + hand-written TS types in `@arxic/contracts`. Discriminated union (ADR §10.2), `SourceRevision` (§10.1), `evidence/index.json` + id grammar (ADR-002). `startLine≤endLine` via AJV `$data` (schema-pure). Stable diagnostics `ARXIC-EVIDENCE-*`. Sad-path-first + tautology guard; 30 tests green. **Scope boundaries:** runtime network/console gating → #21; dirty-tree blob-link manufacturing → #8. |
 | 2026-08-04 (6) | **#3 (M0-02) Workflow v1 IR frozen.** `schemas/workflow/workflow.schema.json` (2020-12) + AJV validator + TS types (`Workflow`/`WorkflowTransition`/`TruthState`). **`status:"verified"` rejected unless every required transition carries `run:` runtime evidence** (ADR §2/§15/ADR-002 — an LLM may never assign verified); transitions `required:true` by default; optional non-blocking; 5 truth states; confidence descriptive-only. Stable diagnostics `ARXIC-WORKFLOW-*`; ADR §10.3 literal + sad-paths + tautology guard; 46 tests green. |
+| 2026-08-04 (7) | **#4 (M0-03) Diagnostics frozen.** `schemas/diagnostics/diagnostics.schema.json` (2020-12) + AJV + widened `Diagnostic`/`DiagnosticSeverity` types (ADR §10.4). `severity` enum = 4 non-`verified` truth states; `code` pattern `^ARXIC-[A-Z0-9][A-Z0-9-]*$`; `evidenceRefs` accept arbitrary refs (ADR `config:idp-provider`). **Loop-closing contract test dynamically iterates every exported `ARXIC-*` code and validates each.** Sad-paths + tautology guard; 55 tests green. 4/5 contracts frozen. |
 
 ---
 
