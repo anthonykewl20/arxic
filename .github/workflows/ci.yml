@@ -13,16 +13,6 @@ concurrency:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    services:
-      mailpit:
-        image: axllent/mailpit:latest
-        ports:
-          - 1025:1025
-          - 8025:8025
-        # Disable the image's built-in healthcheck (it goes "unhealthy" on the
-        # runner). The fixture boot tests self-poll Mailpit at /api/v1/info and
-        # fail clearly if it is down — a stronger gate than a container healthcheck.
-        options: --no-healthcheck
     steps:
       - uses: actions/checkout@v4
 
@@ -58,6 +48,9 @@ jobs:
 
       - name: Fixture apps typecheck
         run: pnpm --filter reference-auth-app typecheck && pnpm --filter vulnerable-auth-app typecheck
+
+      - name: Start Mailpit
+        run: docker run -d --name mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit:latest
 
       - name: Fixture apps test (real Mailpit)
         run: pnpm --filter reference-auth-app test && pnpm --filter vulnerable-auth-app test
