@@ -1,0 +1,12 @@
+{
+  "name": "arxic",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.base.json --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "echo no tests yet"
+  }
+}

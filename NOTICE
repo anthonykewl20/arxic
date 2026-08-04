@@ -1,0 +1,3 @@
+Arxic is MIT-licensed.
+It assembles MIT and Apache-2.0 open-source components, including those in `gears/*` and third-party notices under `LICENSES/`.
+Vendored code retains upstream notices, licenses, and copyright statements.

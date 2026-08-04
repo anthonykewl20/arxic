@@ -1,0 +1,15 @@
+node_modules
+dist
+build
+.turbo
+.next
+coverage
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+.vscode
+playwright-report
+test-results
+.cache
