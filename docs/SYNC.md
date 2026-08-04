@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#9 (M0-08) ast-grep rule fixtures DONE.** `@arxic/ast-grep-adapter` runs the real 0.45 CLI against versioned Next.js and Express auth packs, emits committed frozen-contract evidence, and advisory-connects route → handler → guard for both fixture apps; malformed/conflicting/dirty/unsupported inputs fail closed. **10/17 M0 issues done.** Remaining M0 = **spikes #10–#12** + #40/#41/#44 + #14 (M0-EXIT).
+**Status:** **#10 (M0-09) PlaywrightAgentAdapter handshake + fallback DONE.** `@arxic/playwright-agent-adapter` exactly pins Playwright Test 1.62.1, fail-closed negotiates its nine-tool MCP contract, rejects unsafe healing, and generates a direct Workflow IR fallback; real agent and fallback runs drive real Chromium through the reference-app login. **11/17 M0 issues done.** Remaining M0 = **spikes #11–#12** + #40/#41/#44 + #14 (M0-EXIT).
 
-**Next action:** [#10 (M0-09) Spike: PlaywrightAgentAdapter handshake + fallback](https://github.com/anthonykewl20/arxic/issues/10) — real Chromium process boundary. Then #11 (atomic promotion + last-known-good), #12 (threat model + target-attestation) → then #14 (M0-EXIT gate).
+**Next action:** [#11 (M0-10) Spike: Atomic promotion + last-known-good](https://github.com/anthonykewl20/arxic/issues/11). Then #12 (threat model + target-attestation) → then #14 (M0-EXIT gate).
 
-**Last session:** 2026-08-05 — **#9 (M0-08) ast-grep rule fixtures DONE**: real ast-grep 0.45 scans both fixture apps through an execFile boundary; versioned Next.js + Express packs cover route/form/handler/guard/password/token/mail/session/TOTP evidence; connected login chains remain `hypothesized`. Dirty trees, bad packs, conflicts, engine failures, incomplete chains, and regex-only decorator fallback fail closed. Next: #10 PlaywrightAgentAdapter spike.
+**Last session:** 2026-08-05 — **#10 (M0-09) PlaywrightAgentAdapter handshake + fallback DONE**: the real pinned MCP process exposes the expected nine tools, real `test_list` and `test_run` execute the seeded reference login in Chromium, and the deterministic frozen-IR fallback lists and runs the same workflow as `observed`. Missing/drifted tools, unavailable processes, shell metacharacters, invalid workflows, and unsafe healing fail closed. Next: #11 atomic promotion + last-known-good.
 
 ---
 
@@ -51,7 +51,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #7 | [M0-06] License gate + SBOM automation | ☑ done |
 | #8 | [M0-07] Spike: Understand-Anything subset extraction | ☑ done |
 | #9 | [M0-08] Spike: ast-grep rule fixtures (Next.js + Express) | ☑ done |
-| #10 | [M0-09] Spike: PlaywrightAgentAdapter handshake + fallback | ☐ |
+| #10 | [M0-09] Spike: PlaywrightAgentAdapter handshake + fallback | ☑ done |
 | #11 | [M0-10] Spike: Atomic promotion + last-known-good | ☐ |
 | #12 | [M0-11] Threat model + target-attestation | ☐ |
 | #13 | [M0-12] Test-fixture apps scaffold | ☑ done |
@@ -128,6 +128,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-04 (11) | **#7 (M0-06) License gate + SBOM DONE.** `scripts/license-gate.mjs` scans the real pnpm graph (440 pkgs) against an allowlist (permissive + weak-copyleft MPL/LGPL) and rejects GPL/AGPL/SSPL/Commons-Clause/BSL/EUPL/CC-BY-SA/PolyForm/Unknown. `license-exceptions.json` (`thirty-two` → MIT upstream). CI: license gate + CycloneDX SBOM artifact + `third_party/` vendored-code guard. TDD sad-paths (AGPL/GPL/SSPL rejected; **LGPL allowed — distinguished from GPL**) + real-graph assertion (0 rejected). 93 tests green. 8/17 M0 done. |
 | 2026-08-05 | **#8 (M0-07) Understand-Anything subset extraction DONE.** `@arxic/source-ua-adapter` adapts the reviewed deterministic scanner/structure seams behind frozen `SourceIndexer`: full Git SHA, bytewise manifest + SHA-256, dirty provenance guard, fail-closed gaps, and real native Tree-sitter symbols/imports/calls/Next.js+Express routes. Canonical output is byte-identical pre-timestamp; ADR §23.14 contract gate + separate MIT grammar-license test. Real proof scans both fixture-app source trees. 106 tests green. 9/17 M0 done. |
 | 2026-08-05 (2) | **#9 (M0-08) ast-grep rule fixtures DONE.** Real ast-grep 0.45 process scans versioned Next.js and Express packs; committed source refs and stable diagnostics validate through frozen contracts. Real fixture-app login route→handler→guard chains connect as advisory `hypothesized`; per-rule positive/negative fixtures and fail-closed sad paths cover the seam. 10/17 M0 done. |
+| 2026-08-05 (3) | **#10 (M0-09) PlaywrightAgentAdapter handshake + fallback DONE.** Exactly pinned Playwright Test 1.62.1 MCP handshake and nine-tool schema gate fail closed on seam drift; healer policy rejects weakening and unsafe boundaries. Real agent and generated fallback both execute seeded login against the reference app in real Chromium; runtime disposition remains `observed`. 11/17 M0 done. |
 
 ---
 
