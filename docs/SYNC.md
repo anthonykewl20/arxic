@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **🎯 M0 goal 1 COMPLETE — all 6 contracts frozen** (#1 tooling, #2 EvidenceRef, #3 Workflow IR, #4 Diagnostics, #5 Bundle manifest, #6 Adapter interfaces). `@arxic/contracts` is the frozen capability boundary. 72 tests green. Next M0 phase: real-world-proof surface + spikes.
+**Status:** **#13 (M0-12) Test-fixture apps DONE.** Two REAL auth apps (Next.js `reference-auth-app` + Express `vulnerable-auth-app`) booting with real Mailpit + attestation + seed API — Arxic's canonical real-world surface (charter §6). **Spikes #8–#12 are now UNBLOCKED.** M0 goal 1 (contracts) + fixtures both done; 7/17 M0 issues complete.
 
-**Next action:** [#13 (M0-12) Test-fixture apps scaffold](https://github.com/anthonykewl20/arxic/issues/13) — Next.js `reference-auth-app` + Express `vulnerable-auth-app` (the real-world surface every spike #8–#12 + M1 must run against — charter §6 hard dependency). **Large standalone slice — checkpoint here.** Also available in parallel: #7 (license gate + SBOM). After #13: spikes #8–#12 (each runs against the fixture apps with real engines).
+**Next action:** [#7 (M0-06) License gate + SBOM](https://github.com/anthonykewl20/arxic/issues/7) — the last independent M0 infrastructure piece (referenced as a gate in charter §8). OR begin the spikes **[#8–#12](https://github.com/anthonykewl20/arxic/issues/8)** — now unblocked by #13; each must prove itself against the real fixture apps + real engines (real `sg` / real Chromium / real Tree-sitter). Then #14 (M0-EXIT gate).
 
-**Last session:** 2026-08-04 — **#6 (M0-05) Adapter interfaces frozen → M0 goal 1 (contract freeze) COMPLETE.** 7 §10.5 interfaces + supporting types in `@arxic/contracts`; `@ts-expect-error` type test enforces no upstream-type leakage; `VerificationResult.outcome` = 5 TruthStates (flaky → #21); 72 tests green. All 6 contracts frozen. Next: #13 fixture apps (large, checkpoint).
+**Last session:** 2026-08-04 — **#13 (M0-12) Test-fixture apps DONE**: real Next.js `reference-auth-app` (full §12.1 incl. MFA/change-password) + real Express `vulnerable-auth-app` (documented weaknesses); real Mailpit delivery; attestation; seed API. Real boot tests green against real Mailpit. CI gates both apps. Spikes #8–#12 unblocked. Next: #7 license gate OR spikes.
 
 ---
 
@@ -26,7 +26,7 @@
 | Packages | `packages/*` (14 adapters/engines, scaffolded) — see ADR §18 |
 | Apps | `apps/{cli,worker}/` (scaffolded) |
 | Rule packs | `rulepacks/{nextjs,react,express}/` (empty — built in #9, #22) |
-| Test fixture apps | `test-fixtures/{vulnerable-auth-app,reference-auth-app}/` (scaffolded in #13) |
+| Test fixture apps | `test-fixtures/{reference-auth-app (Next.js 15 + sqlite + Mailpit + otplib),vulnerable-auth-app (Express + sqlite)}/` — **DONE (#13)**: real booting apps, real Mailpit, attestation, seed API; the §6 real-world surface for spikes #8–#12 + M1 |
 | Issues | <https://github.com/anthonykewl20/arxic/issues> — milestones "Milestone 0" / "Milestone 1" |
 | Tooling | pnpm workspaces (Node ≥22 via corepack `packageManager` pnpm 11), TS strict, ESLint flat-config, Prettier; **per-package `tsconfig.json` + `typecheck` across all 16 packages**; gates `pnpm lint/typecheck/typecheck:packages/format:check/test` are CI-green; **source-only — no build/emit in M0** (ADR-003) |
 | Versioning | `VERSION` (0.0.0) is single source of truth → `package.json`; `RELEASES.md` (SemVer; 0.1.0=M0-EXIT #14, 0.2.0=M1-EXIT #27); `CHANGELOG.md` updated EVERY slice |
@@ -54,7 +54,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #10 | [M0-09] Spike: PlaywrightAgentAdapter handshake + fallback | ☐ |
 | #11 | [M0-10] Spike: Atomic promotion + last-known-good | ☐ |
 | #12 | [M0-11] Threat model + target-attestation | ☐ |
-| #13 | [M0-12] Test-fixture apps scaffold | ☐ |
+| #13 | [M0-12] Test-fixture apps scaffold | ☑ done |
 | #40 | [M0-13] Spike: ModelAdapter | ☐ |
 | #41 | [M0-14] Policy engine: action classes + fail-closed | ☐ |
 | #44 | [M0-15] Arxic target-attestation accepts reference apps (depends #12, #13) | ☐ |
@@ -124,6 +124,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-04 (7) | **#4 (M0-03) Diagnostics frozen.** `schemas/diagnostics/diagnostics.schema.json` (2020-12) + AJV + widened `Diagnostic`/`DiagnosticSeverity` types (ADR §10.4). `severity` enum = 4 non-`verified` truth states; `code` pattern `^ARXIC-[A-Z0-9][A-Z0-9-]*$`; `evidenceRefs` accept arbitrary refs (ADR `config:idp-provider`). **Loop-closing contract test dynamically iterates every exported `ARXIC-*` code and validates each.** Sad-paths + tautology guard; 55 tests green. 4/5 contracts frozen. |
 | 2026-08-04 (8) | **#5 (M0-04) Bundle manifest frozen.** `schemas/manifest/manifest.schema.json` (2020-12) + AJV + `BundleManifest` types (ADR §14 + issue #5 field list). `blockers` inline the frozen Diagnostic shape; loop-closing test proves a manifest blocker validates via `validateDiagnostic` (#4). Sad-paths (missing digest/commit/hashes, gate-missing, denominator-invalid, bad lengths, blocker `severity:"verified"`, extra property) + tautology guard; 70 tests green. **All JSON-Schema contracts frozen.** Boundary: cross-field totals + denominator immutability → #23/#24. |
 | 2026-08-04 (9) | **#6 (M0-05) Adapter interfaces frozen → 🎯 M0 goal 1 (contract freeze) COMPLETE.** 7 ADR §10.5 TS interfaces + minimal supporting types in `@arxic/contracts` (reusing #2–#5 frozen types). Compile-time `@ts-expect-error` test (`adapters.test-d.ts`) proves adapters can't leak upstream types (fail-closed at type level — gate reds if an interface widens). `VerificationResult.outcome` = 5 `TruthState`s (no 6th "flaky" — verifier-internal #21, derivable from `runs[]`). Boundary-double runtime test exercises all 7 interfaces. 72 tests green. **All 6 contracts frozen.** Next: #13 fixture apps (large slice, checkpoint). |
+| 2026-08-04 (10) | **#13 (M0-12) Test-fixture apps DONE.** Two REAL structurally-different auth apps: `reference-auth-app` (Next.js 15 App Router + better-sqlite3 + bcryptjs + nodemailer→Mailpit + otplib) — full §12.1 (login/logout/forgot-reset/change-password/MFA enroll+challenge), HMAC sessions, CSRF, rate limit; `vulnerable-auth-app` (Express + ejs + sqlite) — login/logout/reset with documented weaknesses (enumerating login, reused + 7-day tokens, no CSRF, no rate limit, verbose errors). Both serve attestation `environmentClass:"local-test"` + seed/reset API. Real Mailpit via `docker-compose.yml`. **REAL boot tests green against real Mailpit** (reset email delivered + token extracted; reference MFA needs real otplib TOTP; vulnerable enumeration + token-reuse weaknesses proven). Per-app typecheck/lint/test excluded from root gate; CI `ci` job gates both apps with a Mailpit service. `pnpm-workspace.yaml allowBuilds` for native deps. **Spikes #8–#12 unblocked.** |
 
 ---
 
