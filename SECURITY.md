@@ -54,5 +54,5 @@ These are best-effort targets for a pre-1.0, maintainer-run project.
 
 ## Hardening roadmap
 
-Continued hardening (adversarial prompt-injection, origin-escape, secret-leakage,
-and destructive-action tests) is tracked under Milestone 2 (ADR §22).
+See ADR §16. Adversarial prompt-injection, origin-escape, secret-leakage, and
+destructive-action test hardening is planned for Milestone 2 (not yet filed).

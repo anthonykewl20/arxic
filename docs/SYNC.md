@@ -12,7 +12,7 @@
 
 **Next action:** Begin [#1 (M0-00) Monorepo & tooling bootstrap](https://github.com/anthonykewl20/arxic/issues/1) — finish per-package tsconfigs, real ESLint config, CI workflow, then confirm the open decisions below. In parallel start the contract-freeze issues (#2–#6) and **bring [#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13) forward** — they are the real-world-proof surface every spike (#8–#12) and M1 slice must run against.
 
-**Last session:** 2026-08-04 — pre-development audit (3 reviewers) + remediation: purged vendored gears (tree + history) and masked the ADR (public summary at `docs/adr/001-arxic-architecture.md`; detailed ADR is local-only); fixed release workflow, CI metadata guards, doc accuracy; added ADR-002 (EvidenceRef = opaque IDs via `evidence/index.json`); filed 5 more issues (#40–44: ModelAdapter, policy engine, stage-4 inference, stage-8 exploration, attestation-acceptance) → **32 total (M0=17, M1=15)**. CI green. Nothing implemented yet.
+**Last session:** 2026-08-04 — pre-development audit (3 reviewers) + remediation: removed vendored reference code from the tree and masked the ADR (public summary at `docs/adr/001-arxic-architecture.md`; detailed ADR is local-only). **GitHub's immutable PR refs still expose pre-mask history, so the repo is now PRIVATE during pre-1.0 (owner-only); a history purge will be done before going public.** Fixed release workflow, CI metadata guards, doc accuracy; added ADR-002 (EvidenceRef = opaque IDs via `evidence/index.json`); filed 5 more issues (#40–44) → **32 total (M0=17, M1=15)**; filled real-world/layering in #1–#14. CI green. Nothing implemented yet.
 
 ---
 
@@ -83,6 +83,8 @@ _Goal: end-to-end evidence-driven auth bundles. Exit: two structurally different
 
 _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred until contracts stabilize (ADR §22)._
 
+_Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #10's healer-policy rejection and #43's exploration policy touch it today). M1 issue keys skip `M1-13` by design — the M1 gate is `M1-EXIT` = #27._
+
 ---
 
 ## Decisions (resolved)
@@ -91,6 +93,7 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 - **Package manager:** **pnpm** workspaces via corepack (`packageManager` field). Node **≥22** (pnpm 11 requirement).
 - **Git flow (active):** `main` is **protected** — all changes via PR (squash merge), CI check `ci` required, linear history, no force-push. Solo owner: self-merge allowed (0 required reviews).
 - **Branching strategy:** **trunk-based** (confirmed) — no `dev`/`release` branch; short-lived `feat/`·`fix/`·`docs/` branches → PR → `main`; releases cut from `main` via tags. See `CONTRIBUTING.md` → Branching model.
+- **Repo visibility:** **PRIVATE during pre-1.0 development** — history still contains pre-mask content (visible only to the owner); the masked public ADR is already in place, and a history purge (GitHub Support or repo recreate) will be performed before the repo is made public.
 
 ---
 
@@ -113,7 +116,7 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 |---|---|
 | 2026-08-04 | Built §18 monorepo layout; wrote root tooling (pnpm, tsconfig.base, eslint/prettier stubs, LICENSE/NOTICE/README); filed milestones + 12 area labels + 27 issues (M0 14, M1 13); saved canonical end-to-end architecture diagram into ADR §8. |
 | 2026-08-04 (2) | Release readiness: complete MIT licensing; versioning (`VERSION` + `RELEASES.md` + always-synced `CHANGELOG.md` wired into charter §8 + PR template); maturity docs (CONTRIBUTING/CODE_OF_CONDUCT/SECURITY/SUPPORT/GOVERNANCE) + expanded README; functional tooling (eslint flat + tsconfig, contracts entry, pnpm-lock); GitHub CI + release workflows, Dependabot, issue templates, CODEOWNERS; repo settings (squash-only, delete-branch-on-merge) + security alerts; **CI green**; `main` branch protection (PR flow). |
-| 2026-08-04 (3) | Pre-dev audit (3 reviewers) + remediation: PRs #36 (release perms), #37 (CI metadata guards + hygiene), #38 (mask ADR + scrub gears), #39 (SECURITY SLA + ADR-002). Purged vendored gears from tree+history; full ADR → local-only (`../arxic-private/`), public summary in `docs/adr/001-…`; ADR-002 (EvidenceRef = opaque IDs). Filed #40–44 (ModelAdapter, policy engine, stage-4, stage-8, attestation-acceptance); split #13; §23.14 contract-suite acceptance added to adapter issues. Totals now M0=17, M1=15. **CI green.** |
+| 2026-08-04 (3) | Pre-dev audit (3 reviewers) + remediation: PRs #36 (release perms), #37 (CI guards + hygiene), #38 (mask ADR + remove reference-collection docs), #39 (SECURITY SLA + ADR-002), #45 (sync). Removed vendored reference code from the tree; full ADR → local-only (outside the repo), public summary in `docs/adr/001-…`; ADR-002 (EvidenceRef = opaque IDs). **Repo set PRIVATE during pre-1.0** — GitHub PR refs still expose pre-mask history, so purge deferred to go-public. Filed #40–44; split #13; §23.14 acceptance in adapter issues; filled real-world/layering in #1–#14. Totals M0=17, M1=15. **CI green.** |
 
 ---
 
