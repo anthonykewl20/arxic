@@ -1,12 +1,8 @@
 Arxic is MIT-licensed.
 
-This project assembles and orchestrates open-source engines primarily under MIT
-and Apache-2.0 licenses, as recorded in the ADR design ledger and component
-provenance docs in `gears/*/PROVENANCE.md`.
+Arxic ships no vendored upstream code in the repository. Reference collections are
+kept in `gears/` locally, fetched on demand via `scripts/fetch-gears.sh`, and are
+gitignored. Upstream LICENSE texts and provenance decisions are recorded in
+`docs/gears/`.
 
-Vendored reference code in `gears/` is for bootstrap and review only. Each
-vendored reference folder preserves upstream license and provenance files.
-Production vendored dependencies will be relocated to `third_party/` before
-release.
-
-See `gears/README.md` for the current vendor inventory and source pointers.
+Third-party notices are tracked via `NOTICE` and `docs/gears/*/PROVENANCE.md`.

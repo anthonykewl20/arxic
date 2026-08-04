@@ -9,6 +9,10 @@ coverage
 .env
 .env.*
 !.env.example
+
+# Local-only engine reference trees
+/gears/
+
 .vscode
 playwright-report
 test-results

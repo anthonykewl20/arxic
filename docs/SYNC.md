@@ -22,7 +22,7 @@
 |---|---|
 | ADR (canonical) | `docs/arxic-full-adr.md` (esp. §6 ledger, §7 seams, §8 architecture diagram, §9 pipeline, §10 contracts, §22 milestones) |
 | Engineering charter | `docs/engineering-charter.md` — TDD red-first + Actions/Service layering + **mandatory sad-path-first**. Every slice follows this. |
-| Gears (reference parts) | `gears/` — index at `gears/README.md`; each gear has `PROVENANCE.md` + `LICENSE` |
+| Gears (reference parts) | Local-only reference (`gears/`, gitignored) fetched via `scripts/fetch-gears.sh`; in-repo metadata in `docs/gears/` (index + PROVENANCE + LICENSE). |
 | Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` (empty — frozen in #2–#5) |
 | Packages | `packages/*` (14 adapters/engines, scaffolded) — see ADR §18 |
 | Apps | `apps/{cli,worker}/` (scaffolded) |
@@ -83,9 +83,9 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 
 ## Decisions (resolved)
 
-- **License:** **MIT** — confirmed (`LICENSE`, `package.json`). Third-party notices in `NOTICE` + `gears/*/PROVENANCE.md`.
+- **License:** **MIT** — confirmed (`LICENSE`, `package.json`). Third-party notices in `NOTICE` + `docs/gears/*/PROVENANCE.md`.
 - **Package manager:** **pnpm** workspaces via corepack (`packageManager` field). Node **≥22** (pnpm 11 requirement).
-- **gears/ in git:** the full 17-gear reference collection (~131 MB) is committed intentionally ("exhaustive everything"). Production vendored code goes under `third_party/` (ADR §18), not `gears/`.
+- **gears/ local-only:** the 17-gear reference collection (~131 MB) is reference-only and gitignored. The actual upstream source is fetched locally via `scripts/fetch-gears.sh`; `docs/gears/` stores metadata (PROVENANCE + LICENSE) used for pin and license decisions.
 - **Git flow (active):** `main` is **protected** — all changes via PR (squash merge), CI check `ci` required, linear history, no force-push. Solo owner: self-merge allowed (0 required reviews).
 - **Branching strategy:** **trunk-based** (confirmed) — no `dev`/`release` branch; short-lived `feat/`·`fix/`·`docs/` branches → PR → `main`; releases cut from `main` via tags. See `CONTRIBUTING.md` → Branching model.
 

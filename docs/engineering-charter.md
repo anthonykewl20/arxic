@@ -143,10 +143,11 @@ A slice is **not** "Done" when the code works. It is "Done" only after this ritu
    - `docs/SYNC.md`: flip this slice's tracker checkbox; move 🔖 **RESUME HERE** to the next slice; add a one-line session-log entry (what shipped + disposition: verified / contradicted / blocked).
    - **`CHANGELOG.md` — ALWAYS updated, every slice, no exceptions.** Add an entry under `## [Unreleased]` using [Keep a Changelog](https://keepachangelog.com/) verbs (`added`/`changed`/`deprecated`/`removed`/`fixed`/`security`, plus `internal` for non-user-facing work). If the change is user-observable, that determines the next bump (see `RELEASES.md`).
    - **Version:** if the change is user-observable, bump per `RELEASES.md` — `VERSION` + root `package.json` `version` MUST stay identical (single source of truth = `VERSION`). During pre-1.0 (`0.x.y`), milestone exits are minor bumps (0.1.0 = M0-EXIT #14, 0.2.0 = M1-EXIT #27), fixes are patch.
-   - `docs/arxic-full-adr.md`: if a *decision* changed, add a dated addendum or a new ADR under `docs/adr/`. Never silently edit the frozen §10 contracts — they change only via a new ADR.
-   - `docs/engineering-charter.md`: if the process/method changed, update it.
-   - `gears/README.md` + the gear's `PROVENANCE.md`: if a gear was upgraded, re-pinned, or added.
-   - Affected `packages/*/README.md`, `schemas/*`, `rulepacks/*` versions.
+    - `docs/arxic-full-adr.md`: if a *decision* changed, add a dated addendum or a new ADR under `docs/adr/`. Never silently edit the frozen §10 contracts — they change only via a new ADR.
+    - `docs/engineering-charter.md`: if the process/method changed, update it.
+    - `docs/gears/README.md` + the gear's `docs/gears/*/PROVENANCE.md`: if a gear was upgraded, re-pinned, or added.
+    - In section 8, `gears/` code is local-only reference (gitignored), fetched via `scripts/fetch-gears.sh`; committed metadata lives in `docs/gears/`.
+    - Affected `packages/*/README.md`, `schemas/*`, `rulepacks/*` versions.
 4. **Staleness sweep.** `rg -n "<slice id, e.g. M0-03>" <issue number> TODO FIXME` across the repo; resolve or document every hit. No doc may still describe this work as pending/planned.
 5. **Close the loop on GitHub.** Link the PR to the issue; post a completion comment with the dispositions + evidence/artifact pointers; close the issue.
 6. **Commit the doc updates with the code** (or an immediate follow-up on the same branch) and **push**. If it isn't on `main`, it isn't saved.
