@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#2 (M0-01) EvidenceRef contract frozen.** `schemas/evidence/{evidence-ref,source-revision,evidence-index}.schema.json` (JSON Schema 2020-12) + AJV validators + `@arxic/contracts` types (ADR §10.1/§10.2 + ADR-002). #1 tooling also done. Starting **Workflow v1 IR** (#3).
+**Status:** **#3 (M0-02) Workflow v1 IR frozen.** `schemas/workflow/workflow.schema.json` + AJV + types (ADR §10.3 + ADR-002). **`status:"verified"` is rejected unless every required transition carries `run:` runtime evidence** (an LLM may never assign verified — ADR §2/§15/ADR-002). #1 + #2 also done. **3/5 contracts frozen** (evidence, workflow); diagnostics + manifest remain.
 
-**Next action:** [#3 (M0-02) Freeze Workflow v1 IR](https://github.com/anthonykewl20/arxic/issues/3) — `schemas/workflow/workflow.schema.json` + AJV + types per ADR §10.3 + ADR-002 (transitions `required:true` by default; optional non-blocking but coverage-reported; **`status:verified` REJECTED when any required transition is hypothesized-only — an LLM may never assign verified**). Sad-path-first. Then #4 (Diagnostics) + #5 (Bundle manifest) + #6 (Adapter interfaces); **bring [#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13) forward** in parallel — the real-world surface for spikes #8–#12 + M1.
+**Next action:** [#4 (M0-03) Freeze Diagnostics](https://github.com/anthonykewl20/arxic/issues/4) — `schemas/diagnostics/` (ADR §10.4: `code`/`severity`/`subject`/`message`/`evidenceRefs`/`supportedFixes`) + AJV + types; closes the loop on the `ARXIC-EVIDENCE-*`/`ARXIC-WORKFLOW-*` codes emitted by #2/#3. Then #5 (Bundle manifest) + #6 (Adapter interfaces) → contract freeze complete. **[#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13)** is the parallel real-world surface for spikes #8–#12 (checkpoint before starting it).
 
-**Last session:** 2026-08-04 — **#2 (M0-01) EvidenceRef contract frozen**: `schemas/evidence/{evidence-ref,source-revision,evidence-index}.schema.json` (2020-12) + AJV 2020-12 validators + `@arxic/contracts` types; `startLine≤endLine` via `$data`; stable `ARXIC-EVIDENCE-*` diagnostics; 30 tests green. Runtime network/console gating → #21; dirty-tree blob-linking → #8 (deferred by design). Next: #3 Workflow IR.
+**Last session:** 2026-08-04 — **#3 (M0-02) Workflow v1 IR frozen**: `schemas/workflow/workflow.schema.json` + AJV + types; **`status:"verified"` rejected unless every required transition has `run:` evidence** (LLM may never assign verified); transitions `required:true` default; 5 truth states; `ARXIC-WORKFLOW-*` diagnostics; 46 tests green. 3/5 contracts done. Next: #4 Diagnostics.
 
 ---
 
@@ -22,7 +22,7 @@
 |---|---|
 | ADR (public summary) | `docs/adr/001-arxic-architecture.md` (§2 truth states, §8 diagram, §9 pipeline, §10 contracts, §22 milestones) — detailed internal ADR is private/local |
 | Engineering charter | `docs/engineering-charter.md` — TDD red-first + Actions/Service layering + **mandatory sad-path-first**. Every slice follows this. |
-| Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` — **evidence frozen** (#2: `evidence-ref`/`source-revision`/`evidence-index` + AJV validators + `@arxic/contracts` types); `workflow`/`manifest`/`diagnostics` pending (#3–#5) |
+| Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` — **evidence + workflow frozen** (#2, #3: schemas + AJV validators + `@arxic/contracts` types); `manifest`/`diagnostics` pending (#4, #5) |
 | Packages | `packages/*` (14 adapters/engines, scaffolded) — see ADR §18 |
 | Apps | `apps/{cli,worker}/` (scaffolded) |
 | Rule packs | `rulepacks/{nextjs,react,express}/` (empty — built in #9, #22) |
@@ -44,8 +44,8 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 |---|---|---|
 | #1 | [M0-00] Monorepo & tooling bootstrap | ☑ done |
 | #2 | [M0-01] Freeze contract: EvidenceRef | ☑ done |
-| #3 | [M0-02] Freeze contract: Workflow v1 IR | ☐ next |
-| #4 | [M0-03] Freeze contract: Diagnostics | ☐ |
+| #3 | [M0-02] Freeze contract: Workflow v1 IR | ☑ done |
+| #4 | [M0-03] Freeze contract: Diagnostics | ☐ next |
 | #5 | [M0-04] Freeze contract: Bundle manifest | ☐ |
 | #6 | [M0-05] Freeze contract: Adapter interfaces | ☐ |
 | #7 | [M0-06] License gate + SBOM automation | ☐ |
@@ -120,6 +120,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-04 (3) | Pre-dev audit (3 reviewers) + remediation: PRs #36 (release perms), #37 (CI guards + hygiene), #38 (mask ADR + remove reference-collection docs), #39 (SECURITY SLA + ADR-002), #45 (sync). Removed vendored reference code from the tree; full ADR → local-only (outside the repo), public summary in `docs/adr/001-…`; ADR-002 (EvidenceRef = opaque IDs). **Repo set PRIVATE during pre-1.0** — GitHub PR refs still expose pre-mask history, so purge deferred to go-public. Filed #40–44; split #13; §23.14 acceptance in adapter issues; filled real-world/layering in #1–#14. Totals M0=17, M1=15. **CI green.** |
 | 2026-08-04 (4) | **#1 (M0-00) tooling bootstrap DONE.** Per-package `tsconfig.json` + `typecheck` script across all 16 workspace packages; root `typecheck:packages` (`pnpm -r typecheck`); ESLint bans `it.only`/`skip`/`xit`/`xdescribe` (ADR §13.1); `.env.example`; structural test guards the per-package tooling contract. **ADR-003: M0 source-only (no emit).** Gates green (lint/typecheck/typecheck:packages/format/test). Starting contract freeze (#2). |
 | 2026-08-04 (5) | **#2 (M0-01) EvidenceRef contract frozen.** `schemas/evidence/{evidence-ref,source-revision,evidence-index}.schema.json` (JSON Schema 2020-12) + AJV 2020-12 strict validators + hand-written TS types in `@arxic/contracts`. Discriminated union (ADR §10.2), `SourceRevision` (§10.1), `evidence/index.json` + id grammar (ADR-002). `startLine≤endLine` via AJV `$data` (schema-pure). Stable diagnostics `ARXIC-EVIDENCE-*`. Sad-path-first + tautology guard; 30 tests green. **Scope boundaries:** runtime network/console gating → #21; dirty-tree blob-link manufacturing → #8. |
+| 2026-08-04 (6) | **#3 (M0-02) Workflow v1 IR frozen.** `schemas/workflow/workflow.schema.json` (2020-12) + AJV validator + TS types (`Workflow`/`WorkflowTransition`/`TruthState`). **`status:"verified"` rejected unless every required transition carries `run:` runtime evidence** (ADR §2/§15/ADR-002 — an LLM may never assign verified); transitions `required:true` by default; optional non-blocking; 5 truth states; confidence descriptive-only. Stable diagnostics `ARXIC-WORKFLOW-*`; ADR §10.3 literal + sad-paths + tautology guard; 46 tests green. |
 
 ---
 
