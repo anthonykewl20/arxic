@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### fixed
 
 - `release.yml` now declares `permissions: contents: write` and guards against version mismatch (`tag == VERSION == package.json`) and a premature `0.0.0` release. (Audit: release workflow could not create a release.)
+- CI now asserts `VERSION == package.json` and that `CHANGELOG.md` has an `[Unreleased]` section. (Audit: no mechanical enforcement of mandatory rituals.)
+- Bumped `@types/node` to ^22 to match the Node ≥22 runtime.
+- `LICENSES/README.md` corrected to reflect that upstream engine license texts live in `docs/gears/` (reference-only), not vendored in-repo.
+- `.gitignore` now excludes `*.orig`.
 
 ### changed
 
