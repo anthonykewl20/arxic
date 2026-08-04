@@ -125,6 +125,8 @@ Arxic's product IS real-world, replayable, deterministic tests (ADR §15/§23). 
 
 **Acceptance standard** (dogfooded, mirrors ADR §15/§23): deterministic, replayable from clean fixture state; two consecutive clean passes for anything claiming `verified`. Because that is exactly the standard Arxic imposes on the workflows it generates, Arxic must meet it for itself.
 
+**Test stack:** vitest (Node) for unit + contract tests; AJV strict mode for JSON-Schema validation (seed in `packages/contracts/src/__tests__/`, the pattern #2–#5 follow). Tests live next to source as `*.test.ts` / `__tests__/`. TypeScript uses Bundler module resolution; `pnpm test` runs vitest.
+
 ## 7. Slice → PR contract
 
 Every issue/PR must contain:

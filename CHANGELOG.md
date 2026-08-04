@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### added
 
+- M0 test foundation: vitest + AJV wired in; `pnpm test` now runs real tests (non-vacuous). Seed AJV contract-validation test in `packages/contracts/src/__tests__/` (the pattern for #2–#5). TypeScript switched to Bundler module resolution. `pnpm-workspace.yaml` approves the esbuild build.
 - `SECURITY.md` disclosure SLA (ack ≤7d, assessment ≤14d, 90-day coordinated-disclosure window), contact path, explicit in/out-of-scope.
 - ADR-002 (`docs/adr/002-evidenceref-resolution.md`): evidence references are opaque IDs resolved via `evidence/index.json`; defines "required transition" semantics and the SourceRevision schema home. Resolves the §10.2 vs §10.3 contract ambiguity.
 - Filed 5 audit-driven issues (#40 ModelAdapter, #41 policy engine, #42 stage-4 inference, #43 stage-8 exploration, #44 attestation-acceptance); split #13; added §23.14 adapter-contract-suite acceptance to #6/#8/#10/#16/#19/#20; encoded ADR-002 scope in #2/#3; filled real-world-proof + layering in #1–#14. Totals now M0=17, M1=15 (32 total).

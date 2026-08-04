@@ -51,6 +51,7 @@ and the pipeline in section 9.
 pnpm install
 pnpm typecheck
 pnpm lint
+pnpm test
 ```
 
 Note: the CLI and worker are not implemented yet; roadmap items are tracked in
