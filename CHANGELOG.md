@@ -23,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a public summarized ADR `docs/adr/001-arxic-architecture.md` (architecture + contracts + truth states; the detailed assembly recipe is redacted). The detailed internal ADR is local-only; all public references point to the summary.
 - `CONTRIBUTING.md` prerequisites corrected to Node.js 22+; how-it-works aligned to the evidence-discovery model.
 - Confirmed **trunk-based** branching (no `dev`/`release` branch); documented in `CONTRIBUTING.md` and `docs/SYNC.md`.
-- Repository is **PRIVATE during pre-1.0 development** (history still contains pre-mask content, visible only to the owner). A history purge will be performed before the repository is made public.
+- Repository is **PRIVATE during pre-1.0 development** (history still contains pre-mask content, visible only to the owner). Branch protection is **off** (free-tier limit for private repos) → CI enforcement is **discipline-based** (merge only when `ci` is green); re-enable protection on go-public/Pro. A history purge will be performed before the repository is made public.
+- Test stack on vitest 3.x (`@vitest` bumped 2→3).
 
 ### removed
 

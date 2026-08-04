@@ -91,9 +91,9 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 
 - **License:** **MIT** — confirmed (`LICENSE`, `package.json`). Third-party notices in `NOTICE`.
 - **Package manager:** **pnpm** workspaces via corepack (`packageManager` field). Node **≥22** (pnpm 11 requirement).
-- **Git flow (active):** `main` is **protected** — all changes via PR (squash merge), CI check `ci` required, linear history, no force-push. Solo owner: self-merge allowed (0 required reviews).
+- **Git flow (active — discipline-based):** The repo is **private**, so GitHub **branch protection is OFF** (free-tier limit for private repos). Trunk-based: short-lived branches → PR → squash-merge to `main`. **Discipline rule: merge ONLY after the `ci` check is green** (`gh pr checks <N> --watch` → `pass`); rebase stale Dependabot branches onto `main` before evaluating CI. No direct pushes/force-push; linear history. Re-enable branch protection when the repo goes public (post-purge) or upgrades to Pro.
 - **Branching strategy:** **trunk-based** (confirmed) — no `dev`/`release` branch; short-lived `feat/`·`fix/`·`docs/` branches → PR → `main`; releases cut from `main` via tags. See `CONTRIBUTING.md` → Branching model.
-- **Repo visibility:** **PRIVATE during pre-1.0 development** — history still contains pre-mask content (visible only to the owner); the masked public ADR is already in place, and a history purge (GitHub Support or repo recreate) will be performed before the repo is made public.
+- **Repo visibility:** **PRIVATE during pre-1.0** (recipe owner-only; history not purged — see reminder below). Side effect: no branch protection on the free tier → CI enforcement is discipline-based (above). A history purge (Support/recreate) is performed before going public; protection is re-enabled then.
 
 ---
 
