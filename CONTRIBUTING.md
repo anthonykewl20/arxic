@@ -24,7 +24,7 @@ blocked) govern every outcome; an LLM may never assign `verified`. See
 
 ```bash
 pnpm install
-pnpm -r typecheck
+pnpm typecheck
 ```
 
 Optional:
