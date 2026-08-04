@@ -2,7 +2,7 @@
 
 ![CI](https://github.com/anthonykewl20/arxic/actions/workflows/ci.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)
+![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
 ![Status](https://img.shields.io/badge/status-pre--MVP-blue)
 
 Evidence-driven behavioral intent compiler that produces independently replayable

@@ -19,3 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `docs/engineering-charter.md` (TDD red-first, Actions/Service layering, sad-path-first, real-world proof, slice-completion ritual).
 - Added `docs/SYNC.md` living progress bookmark.
 - Added GitHub milestones M0 (14 issues) and M1 (13 issues), labels, and issue templates.
+- Made repository release-ready: MIT license + NOTICE; CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, SUPPORT, GOVERNANCE; expanded public README.
+- Versioning: `VERSION` single source of truth + `RELEASES.md` (SemVer; 0.1.0 at M0-EXIT, 0.2.0 at M1-EXIT) + always-synced `CHANGELOG.md`; engineering-charter §8 and the PR template now require a CHANGELOG entry + VERSION sync on every slice.
+- CI (GitHub Actions: lint/typecheck/format/test), release workflow, Dependabot, issue templates, CODEOWNERS; functional eslint flat config + tsconfig with contracts entry.
+- `.gitattributes` (eol=lf, `gears/` linguist-vendored); target Node >=22 (pnpm 11 requirement).
