@@ -3,10 +3,47 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.17.0",
+  "homepage": "https://github.com/anthonykewl20/arxic#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthonykewl20/arxic.git"
+  },
+  "bugs": {
+    "url": "https://github.com/anthonykewl20/arxic/issues"
+  },
+  "keywords": [
+    "arxic",
+    "playwright",
+    "testing",
+    "evidence",
+    "codegen",
+    "ast-grep",
+    "crawlee",
+    "mailpit",
+    "behavioral",
+    "replay",
+    "provenance",
+    "typescript"
+  ],
   "scripts": {
-    "typecheck": "tsc -p tsconfig.base.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "echo no tests yet"
+    "format:check": "prettier --check .",
+    "test": "pnpm -r --if-present test"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "eslint": "^9.0.0",
+    "@eslint/js": "^9.0.0",
+    "typescript-eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "globals": "^15.0.0",
+    "@types/node": "^20.0.0"
   }
 }

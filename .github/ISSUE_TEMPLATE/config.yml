@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions
+    url: https://github.com/anthonykewl20/arxic/discussions
+    about: Ask general questions and design discussions.
+  - name: Security Advisory
+    url: https://github.com/anthonykewl20/arxic/security/advisories/new
+    about: Report security issues privately.
+  - name: ADR
+    url: https://github.com/anthonykewl20/arxic/blob/main/docs/arxic-full-adr.md
+    about: Check the architecture decisions before proposing scope changes.
