@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a public summarized ADR `docs/adr/001-arxic-architecture.md` (architecture + contracts + truth states; the detailed assembly recipe is redacted). The detailed internal ADR is now local-only and all public references point to the summarized ADR.
 - `CONTRIBUTING.md` prerequisites corrected to Node.js 22+; how-it-works aligned to the evidence-discovery model.
 
+### added
+
+- `SECURITY.md` now has a concrete disclosure SLA (ack ≤7d, assessment ≤14d, 90-day coordinated-disclosure window), contact path, and explicit in/out-of-scope items.
+- ADR-002 (`docs/adr/002-evidenceref-resolution.md`): evidence references resolve as opaque IDs via `evidence/index.json`; defines "required transition" semantics and the SourceRevision schema home. Resolves the §10.2 vs §10.3 contract ambiguity flagged in the audit.
+
 ### changed
 
 - Removed vendored upstream reference code from the repository — the product ships only Arxic-authored code (no upstream source is tracked). (Audit: pin drift / license hygiene.)
