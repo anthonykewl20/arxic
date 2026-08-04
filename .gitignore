@@ -5,6 +5,7 @@ build
 .next
 coverage
 *.log
+*.orig
 .DS_Store
 .env
 .env.*
