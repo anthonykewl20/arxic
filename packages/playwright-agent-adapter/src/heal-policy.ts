@@ -13,14 +13,16 @@ export type HealDecision = { accepted: true } | { accepted: false; diagnostic: D
 
 const forbidden = [
   {
-    expression: /(?:\btest\s*\.\s*(?:skip|fixme|only)\b|\.\s*(?:skip|fixme|only)\s*\()/u,
+    expression:
+      /(?:\btest\s*(?:\.\s*(?:skip|fixme|only)\b|\[\s*[^\]]*\b(?:skip|fixme|only)\b[^\]]*\])|\.\s*(?:skip|fixme|only)\s*\()/u,
     reason: 'forbidden test status directive',
   },
   { expression: /\bquarantin(?:e|ed|ing)\b/iu, reason: 'success-by-quarantine language' },
 ] as const;
 const noOpAssertions = [
-  /expect\s*\([^)]*\)\s*\.\s*(?:toBeTruthy|toBeDefined)\s*\(\s*\)/gu,
-  /expect\s*\(\s*true\s*\)\s*\.\s*toBe\s*\(\s*true\s*\)/gu,
+  /expect\s*\((?:[^()]|\([^()]*\))*\)\s*\.\s*(?:toBeTruthy|toBeDefined)\s*\(\s*\)/gu,
+  /expect\s*\((?:[^()]|\([^()]*\))*\)\s*\.\s*toBe\s*\(\s*true\s*\)/gu,
+  /expect\s*\(\s*1\s*\)\s*\.\s*toBe\s*\(\s*1\s*\)/gu,
 ] as const;
 
 export function evaluateHealProposal(proposal: HealProposal): HealDecision {

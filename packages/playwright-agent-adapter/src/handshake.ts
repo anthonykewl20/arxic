@@ -2,6 +2,7 @@ import type { Diagnostic } from '@arxic/contracts';
 import { ARXIC_AGENT_SCHEMA_DRIFT, ARXIC_AGENT_TOOL_MISSING, agentDiagnostic } from './diagnostics';
 
 export const EXPECTED_SERVER_NAME = 'Playwright Test Runner' as const;
+export const EXPECTED_SERVER_VERSION = '1.62.1' as const;
 
 export const REQUIRED_TOOLS = {
   planner_setup_page: ['project', 'seedFile'],
@@ -65,6 +66,16 @@ export function validateHandshake(
         ARXIC_AGENT_SCHEMA_DRIFT,
         'serverInfo.name',
         `Expected server ${EXPECTED_SERVER_NAME}, received ${serverInfo?.name ?? 'none'}`,
+      ),
+    );
+  }
+  if (serverInfo?.version !== EXPECTED_SERVER_VERSION) {
+    schemaDrift.push('serverInfo.version');
+    diagnostics.push(
+      agentDiagnostic(
+        ARXIC_AGENT_SCHEMA_DRIFT,
+        'serverInfo.version',
+        `Expected server version ${EXPECTED_SERVER_VERSION}, received ${serverInfo?.version ?? 'none'}`,
       ),
     );
   }

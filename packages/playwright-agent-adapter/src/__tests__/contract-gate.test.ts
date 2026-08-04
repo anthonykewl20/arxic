@@ -1,7 +1,16 @@
+import { createRequire } from 'node:module';
 import { validateDiagnostic } from '@arxic/contracts';
 import { describe, expect, it } from 'vitest';
 import * as exports from '..';
-import { AGENT_DIAGNOSTIC_CODES, REQUIRED_TOOLS, validateHandshake } from '..';
+import {
+  AGENT_DIAGNOSTIC_CODES,
+  EXPECTED_SERVER_VERSION,
+  PLAYWRIGHT_VERSION,
+  REQUIRED_TOOLS,
+  validateHandshake,
+} from '..';
+
+const require = createRequire(import.meta.url);
 
 const expected = {
   planner_setup_page: ['project', 'seedFile'],
@@ -23,6 +32,18 @@ const tools = Object.entries(expected).map(([name, keys]) => ({
 describe('ADR §23.14 Playwright 1.62.1 agent contract gate', () => {
   it('keeps the hand-written nine-tool upgrade baseline exact', () => {
     expect(REQUIRED_TOOLS).toEqual(expected);
+  });
+
+  it('keeps the handshake version aligned with the installed exact pin', () => {
+    const installed = require('@playwright/test/package.json') as { version: string };
+    expect(PLAYWRIGHT_VERSION).toBe('1.62.1');
+    expect(EXPECTED_SERVER_VERSION).toBe(PLAYWRIGHT_VERSION);
+    expect(installed.version).toBe(PLAYWRIGHT_VERSION);
+    expect(validateHandshake({ ...server, version: '1.62.2' }, tools)).toMatchObject({
+      ok: false,
+      schemaDrift: ['serverInfo.version'],
+      diagnostics: [{ subject: 'serverInfo.version' }],
+    });
   });
 
   it('loop-closes every exported diagnostic through the frozen validator', () => {

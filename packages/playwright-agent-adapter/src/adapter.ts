@@ -1,7 +1,11 @@
 import { createRequire } from 'node:module';
 import { access } from 'node:fs/promises';
 import type { Diagnostic } from '@arxic/contracts';
-import { ARXIC_AGENT_HANDSHAKE_FAILED, agentDiagnostic } from './diagnostics';
+import {
+  ARXIC_AGENT_HANDSHAKE_FAILED,
+  ARXIC_AGENT_PROCESS_ERROR,
+  agentDiagnostic,
+} from './diagnostics';
 import { type McpServerInfo, type McpTool, validateHandshake } from './handshake';
 import { McpStdioClient } from './protocol';
 
@@ -54,7 +58,7 @@ export class PlaywrightAgentAdapter {
     } catch (error) {
       return this.handshakeFailure([
         agentDiagnostic(
-          'ARXIC-AGENT-PROCESS-ERROR',
+          ARXIC_AGENT_PROCESS_ERROR,
           this.options.configPath,
           error instanceof Error ? error.message : String(error),
         ),
@@ -118,7 +122,7 @@ export class PlaywrightAgentAdapter {
         ok: false,
         output,
         diagnostics: [
-          agentDiagnostic('ARXIC-AGENT-PROCESS-ERROR', name, output || `Tool ${name} failed`),
+          agentDiagnostic(ARXIC_AGENT_PROCESS_ERROR, name, output || `Tool ${name} failed`),
         ],
       };
     return { ok: true, output, diagnostics: [] };

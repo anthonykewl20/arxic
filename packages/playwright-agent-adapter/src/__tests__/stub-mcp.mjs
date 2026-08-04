@@ -12,6 +12,7 @@ const required = {
   test_debug: ['test'],
 };
 const config = process.argv[process.argv.indexOf('--config') + 1] ?? '';
+if (/[;$]/u.test(config)) process.exit(2);
 if (config.includes('missing')) delete required.test_run;
 if (config.includes('drift')) required.test_run = ['changed'];
 const tools = Object.entries(required).map(([name, keys]) => ({

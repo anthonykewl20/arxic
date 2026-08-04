@@ -67,6 +67,10 @@ describe('Playwright agent sad paths resolve blocked', () => {
     ['member-call skip', "test('x', () => test.skip())"],
     ['member-call fixme', "test('x', () => test.fixme())"],
     ['member-call only', "test('x', () => suite.only())"],
+    ['bracket skip', "test['skip']('x', () => expect(1).toBe(1))"],
+    ['bracket fixme', 'test["fixme"](\'x\', () => expect(1).toBe(1))'],
+    ['bracket only', 'test["only"](\'x\', () => expect(1).toBe(1))'],
+    ['computed bracket skip', "test[`${'skip'}`]('x', () => expect(1).toBe(1))"],
     ['quarantine', "test('quarantined x', () => expect(1).toBe(1))"],
   ]) {
     it(`rejects ${name}`, () => {
@@ -95,6 +99,26 @@ describe('Playwright agent sad paths resolve blocked', () => {
       evaluateHealProposal({
         originalSpec: "expect(page).toHaveURL('/')",
         proposedSpec: 'expect(true).toBe(true)',
+        allowedOrigins: [],
+      }),
+    ).toMatchObject({ accepted: false, diagnostic: { severity: 'blocked' } });
+  });
+
+  it('rejects a deleted real assertion replaced by a dummy assertion', () => {
+    expect(
+      evaluateHealProposal({
+        originalSpec: "expect(page).toHaveURL('/')",
+        proposedSpec: 'expect(1).toBe(1)',
+        allowedOrigins: [],
+      }),
+    ).toMatchObject({ accepted: false, diagnostic: { severity: 'blocked' } });
+  });
+
+  it('rejects nested-call input weakened to a truthiness matcher', () => {
+    expect(
+      evaluateHealProposal({
+        originalSpec: "expect(page).toHaveURL('/')",
+        proposedSpec: 'expect(page.url()).toBeTruthy()',
         allowedOrigins: [],
       }),
     ).toMatchObject({ accepted: false, diagnostic: { severity: 'blocked' } });
@@ -132,10 +156,19 @@ describe('Playwright agent sad paths resolve blocked', () => {
   it('passes shell metacharacters literally without creating a marker', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'arxic-agent-shell-'));
     const marker = join(directory, 'pwned');
-    const configPath = `nonexistent; touch ${marker}; $(touch ${marker})`;
-    const adapter = new PlaywrightAgentAdapter({ configPath, timeoutMs: 10_000 });
-    expect(await adapter.handshake()).toMatchObject({ ok: false });
+    const configPath = join(directory, 'config; $(touch $ARXIC_SHELL_MARKER); $HOME.config.ts');
+    await writeFile(configPath, '');
+    process.env.ARXIC_SHELL_MARKER = marker;
+    const adapter = new PlaywrightAgentAdapter({ configPath, cliPath: stub, timeoutMs: 10_000 });
+    const handshake = await adapter.handshake();
+    expect(handshake.ok).toBe(false);
+    expect(handshake.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'ARXIC-AGENT-PROCESS-ERROR', severity: 'blocked' }),
+      ]),
+    );
     await adapter.close();
+    delete process.env.ARXIC_SHELL_MARKER;
     await expect(access(marker)).rejects.toThrow();
   });
 

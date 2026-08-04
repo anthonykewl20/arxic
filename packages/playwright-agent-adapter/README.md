@@ -30,17 +30,21 @@ The tool contract was transcribed from Playwright 1.62.1 upstream source (Apache
 | `test_run`             | `locations`, `projects`                  |
 | `test_debug`           | `test`                                   |
 
-The server name must be `Playwright Test Runner`. Any missing tool, added/removed schema key, or server-name drift fails closed. `REQUIRED_TOOLS` plus `contract-gate.test.ts` is the ADR §23.14 upgrade contract: an engine upgrade cannot pass until this baseline is intentionally reviewed and changed.
+The server name must be `Playwright Test Runner` and its version must be exactly `1.62.1`. Any missing tool, added/removed schema key, server-name drift, or server-version drift fails closed. `REQUIRED_TOOLS` plus `contract-gate.test.ts` is the ADR §23.14 upgrade contract: an engine upgrade cannot pass until this baseline is intentionally reviewed and changed.
 
 ## Healer override
 
 Arxic never accepts `skip`, `fixme`, `only`, deleted assertions, the explicit pass-through matchers `toBeTruthy`/`toBeDefined` or `expect(true).toBe(true)`, quarantine language, an origin outside the allowlist, or destructive/external-side-effect action classes. This deliberately overrides the upstream healer behavior that permits `fixme`. Locator-only swaps with the same assertion count and unchanged boundaries are accepted (ADR §13.1).
+
+This M0 policy is a lexical and structural guard for the enumerated weakening forms, not a semantic-equivalence proof. Full AST-level healing analysis remains deferred to M2.
 
 ## Fallback mapping
 
 `generateSpecFromWorkflow` first validates the frozen Workflow IR. For each required transition, it maps the `from` state to a kebab-case path (`login-page` → `/login`), maps each `action.inputRefs` entry to its accessible label and an `ARXIC_INPUT_<REF>` environment variable, submits through a semantic button locator, and maps assertion intents prefixed by `url:` or `text:` to literal Playwright assertions. Other assertion intents become body-text checks. Each transition emits a named screenshot; config enables Chromium, headless execution, one worker, and retained failure traces. Invalid IR emits no spec.
 
 `runFallback` invokes the pinned CLI with argument arrays, first with `test --list` and then `test`. A successful runtime result is `observed`, never `verified` (ADR §2).
+
+The fallback runner creates a directory symlink to the pinned Playwright package for temporary projects. This spike assumes the Linux execution environment used locally and in CI; cross-platform module linking is deferred.
 
 ## ADR §7.3 requirements
 

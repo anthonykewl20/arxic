@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { createServer } from 'node:net';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { access, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
@@ -28,6 +28,7 @@ describe('real Playwright agent and Chromium proof', () => {
     const port = await freePort();
     origin = `http://127.0.0.1:${port}`;
     const directory = await mkdtemp(join(tmpdir(), 'arxic-agent-real-'));
+    temporaryProjects.push(directory);
     database = join(directory, 'auth.db');
     const { spawn } = await import('node:child_process');
     app = spawn(process.execPath, [nextCli, 'start', '-p', String(port)], {
@@ -53,13 +54,17 @@ describe('real Playwright agent and Chromium proof', () => {
   afterAll(async () => {
     await stop(app);
     await Promise.all(temporaryProjects.map((path) => rm(path, { recursive: true, force: true })));
+    for (const path of temporaryProjects) await expect(access(path)).rejects.toThrow();
   });
 
   it('handshakes twice deterministically and runs login in real Chromium through the real agent', async () => {
-    const project = await mkdtemp(
-      join(process.cwd(), 'packages/playwright-agent-adapter/agent-real-'),
-    );
+    const project = await mkdtemp(join(tmpdir(), 'arxic-agent-project-'));
     temporaryProjects.push(project);
+    expect(
+      await generateSpecFromWorkflow(loginWorkflow(), { origin, testDir: project }),
+    ).toMatchObject({
+      ok: true,
+    });
     const configPath = join(project, 'playwright.config.ts');
     await writeFile(
       configPath,
