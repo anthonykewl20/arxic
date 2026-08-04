@@ -52,7 +52,11 @@ importers:
         specifier: ^0.45.0
         version: 0.45.0
 
-  packages/bundle-promoter: {}
+  packages/bundle-promoter:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
 
   packages/contracts: {}
 
