@@ -4,7 +4,7 @@
 |---|---|
 | Status | Proposed |
 | Decision date | 2026-08-04 |
-| Owners | Arxic maintainers |
+| Owners | Arxic maintainers | Anthony Garces
 | Scope | Initial architecture, reuse strategy, contracts, security model, and authentication vertical slice |
 | First supported ecosystem | TypeScript/JavaScript; React, Next.js, Express; Chromium |
 | Primary output | Independently replayable Playwright workflow bundles with screenshots, traces, provenance, and coverage status |
