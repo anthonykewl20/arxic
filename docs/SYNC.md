@@ -87,6 +87,7 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 - **Package manager:** **pnpm** workspaces via corepack (`packageManager` field). Node **≥22** (pnpm 11 requirement).
 - **gears/ in git:** the full 17-gear reference collection (~131 MB) is committed intentionally ("exhaustive everything"). Production vendored code goes under `third_party/` (ADR §18), not `gears/`.
 - **Git flow (active):** `main` is **protected** — all changes via PR (squash merge), CI check `ci` required, linear history, no force-push. Solo owner: self-merge allowed (0 required reviews).
+- **Branching strategy:** **trunk-based** (confirmed) — no `dev`/`release` branch; short-lived `feat/`·`fix/`·`docs/` branches → PR → `main`; releases cut from `main` via tags. See `CONTRIBUTING.md` → Branching model.
 
 ---
 
