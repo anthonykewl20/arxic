@@ -159,4 +159,13 @@ A slice is **not** "Done" when the code works. It is "Done" only after this ritu
 
 **Banned anti-patterns:** "I'll update SYNC later"; merging code without the doc sync; merging a slice without a `CHANGELOG.md` entry; **`VERSION` and `package.json` `version` disagreeing**; closing an issue whose docs still say "todo"; leaving a TODO a future agent must rediscover.
 
+## 9. Skills & guardrails (applied automatically)
+
+These opencode skills (`.opencode/skills/`, registered in `opencode.json`, mandated in `AGENTS.md`) govern how work is done:
+
+- **code-structure** — AUTOMATIC on every implementation: Actions vs Service layering (§1).
+- **evidence-driven-testing** — AUTOMATIC on any UI/behavior verification: attach annotated proof (recording, or Playwright trace + named screenshots in headless) + a pass/fail-per-test summary to the PR + tracker issue (§6).
+- **global-agent-guardrails** — AUTOMATIC via the repo plugin `.opencode/plugins/command-guard.ts` (blocks catastrophic shell commands, fail-open; force-push intentionally allowed). Validated in CI by `.opencode/plugins/test-guard.sh`.
+- **remind** — ON-DEMAND only (`/remind`): rewrite the last response simpler/shorter with a TLDR.
+
 > **Agent rule (hard):** if you are completing a slice, steps 3–6 are non-negotiable *even if the code already works*. Stale docs are a defect.

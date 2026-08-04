@@ -2,6 +2,7 @@ pnpm-lock.yaml
 test-fixtures/
 dist/
 coverage/
+.opencode/
 docs/engineering-charter.md
 docs/SYNC.md
 .github/pull_request_template.md

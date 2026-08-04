@@ -13,6 +13,7 @@ Closes #<issue number>  ·  Slice id: `<M0-03>`  ·  Milestone: `<Milestone 0 - 
 - [ ] **Seams agreed** before testing (list them)
 - [ ] **Sad paths & edge cases written RED-FIRST**, each mapped to a truth state (§2) — enumerated before happy path
 - [ ] **Real-world proof**: ≥1 non-synthetic user-level test against the real reference apps + real engines (§6). No "works on my mock".
+- [ ] **Evidence-driven-testing**: for UI/behavior changes, attached annotated proof (recording, or Playwright trace + named screenshots) + a pass/fail-per-test summary to this PR + the tracker issue
 - [ ] Happy path written **last**
 - [ ] **Layering**: orchestration (actions) vs capability blocks (services) is explicit; no premature abstraction
 - [ ] No `skip`/`fixme`/`only`, no assertion weakening, no success-by-quarantine (ADR §13.1)

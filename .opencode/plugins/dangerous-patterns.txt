@@ -1,0 +1,25 @@
+# Arxic command-guard denylist.
+# Catastrophic, irreversible commands only. This is a SEATBELT, not a sandbox.
+# Fail-open: if a pattern is malformed the plugin allows the command (never bricks bash).
+# Force-push is INTENTIONALLY ALLOWED (this repo uses it for history hygiene).
+# One POSIX-ERE per line; [[:space:]] is auto-converted to \s by the plugin.
+
+# rm -rf targeting root, home (with optional trailing / or *), or glob at root
+rm[[:space:]]+-[a-z]*r[a-z]*f?[[:space:]]+(/( |$|[*])|~( |$|[/]))
+
+# any sudo rm
+(^|[[:space:]])sudo[[:space:]]+rm[[:space:]]
+
+# filesystem/device wipe
+(^|[[:space:]])mkfs([[:space:]]|\.|$)
+(^|[[:space:]])dd[[:space:]].*of=/dev/
+(^|[[:space:]])>+[[:space:]]*/dev/(sd|nvme|hd|disk)
+
+# remote-script execution
+(curl|wget)[[:space:]].*\|[[:space:]]*(sh|bash|zsh)
+
+# repository deletion
+gh[[:space:]]+(repo|repository)[[:space:]]+delete
+
+# fork bomb (e.g. :(){ :|:& };:)
+:[(][)]\{[[:space:]]*:
