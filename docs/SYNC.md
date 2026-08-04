@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#11 (M0-10) Atomic promotion + last-known-good DONE.** `@arxic/bundle-promoter` deterministically freezes real staged bundle bytes, validates and hash-verifies private same-directory staging, serializes writers with an exclusive lock, atomically replaces the public bundle, and preserves the prior bytes in `.lkg`; injected failures leave public bytes intact as `blocked`. **12/17 M0 issues done.** Remaining M0 = **spike #12** + #40/#41/#44 + #14 (M0-EXIT).
+**Status:** **#12 (M0-11) Threat model + target-attestation DONE.** `@arxic/environment` performs the real stage-zero handshake, fails closed on production-looking targets, origin/environment/nonce/receipt failures, and accepts production-shaped targets only with static recorded human approval. The worker threat model specifies isolation, prompt-injection, action, privacy, and Docker/Testcontainers boundaries. **13/17 M0 issues done.** Remaining M0 = **#40/#41/#44** + #14 (M0-EXIT). **#44 is unblocked by #12 and #13.**
 
-**Next action:** [#12 (M0-11) Threat model + target-attestation](https://github.com/anthonykewl20/arxic/issues/12). Then #40/#41/#44 → then #14 (M0-EXIT gate).
+**Next action:** [#40 (M0-13) ModelAdapter spike](https://github.com/anthonykewl20/arxic/issues/40). Then #41/#44 → then #14 (M0-EXIT gate).
 
-**Last session:** 2026-08-05 — **#11 (M0-10) Atomic promotion + last-known-good DONE**: real prior-slice login workflow, evidence, source artifact bytes, and SHA-256 are canonically frozen and promoted through real same-directory filesystem operations. Independent hash recomputation, deterministic bytes, `.lkg` recovery, lock contention, malformed manifests, failed gates, hash mismatch, and an injected pre-replace failure prove blocked runs preserve public bytes. Next: #12 threat model + target-attestation.
+**Last session:** 2026-08-05 — **#12 (M0-11) Threat model + target-attestation DONE**: exact origin/environment/nonce/receipt policy and production-looking default refusal emit blocked diagnostics and an auditable decision; both real fixture endpoints are allowed, while a locally served production-shaped endpoint is refused until static recorded human approval is present. The threat model specifies that Docker daemon authority remains in the trusted control plane and is never delegated to the untrusted worker; M1 #26 must prove that enforcement in the live worker. Next: #40 ModelAdapter spike.
 
 ---
 
@@ -53,7 +53,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #9 | [M0-08] Spike: ast-grep rule fixtures (Next.js + Express) | ☑ done |
 | #10 | [M0-09] Spike: PlaywrightAgentAdapter handshake + fallback | ☑ done |
 | #11 | [M0-10] Spike: Atomic promotion + last-known-good | ☑ done |
-| #12 | [M0-11] Threat model + target-attestation | ☐ |
+| #12 | [M0-11] Threat model + target-attestation | ☑ done |
 | #13 | [M0-12] Test-fixture apps scaffold | ☑ done |
 | #40 | [M0-13] Spike: ModelAdapter | ☐ |
 | #41 | [M0-14] Policy engine: action classes + fail-closed | ☐ |
@@ -130,6 +130,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-05 (2) | **#9 (M0-08) ast-grep rule fixtures DONE.** Real ast-grep 0.45 process scans versioned Next.js and Express packs; committed source refs and stable diagnostics validate through frozen contracts. Real fixture-app login route→handler→guard chains connect as advisory `hypothesized`; per-rule positive/negative fixtures and fail-closed sad paths cover the seam. 10/17 M0 done. |
 | 2026-08-05 (3) | **#10 (M0-09) PlaywrightAgentAdapter handshake + fallback DONE.** Exactly pinned Playwright Test 1.62.1 MCP handshake and nine-tool schema gate fail closed on seam drift; healer policy rejects weakening and unsafe boundaries. Real agent and generated fallback both execute seeded login against the reference app in real Chromium; runtime disposition remains `observed`. 11/17 M0 done. |
 | 2026-08-05 (4) | **#11 (M0-10) Atomic promotion + last-known-good DONE.** Deterministic canonical bundle bytes, frozen manifest validation, staged SHA-256 and byte-count checks, same-directory atomic rename, `.lkg` snapshots, and exclusive locking ship behind the frozen `BundlePromoter`; real filesystem failures and contention are `blocked` without corrupting public bytes. 12/17 M0 done. |
+| 2026-08-05 (5) | **#12 (M0-11) Threat model + target-attestation DONE.** Real HTTP handshakes against both fixture apps allow exact local-test attestations; production-looking, origin, nonce, and unsigned-receipt failures are `blocked`, while only static recorded human approval permits the production-shaped proof target. Worker, prompt-injection, action, privacy, and Docker/Testcontainers isolation requirements are documented. 13/17 M0 done; #44 unblocked. |
 
 ---
 
