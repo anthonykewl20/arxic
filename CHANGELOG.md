@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `SECURITY.md` now has a concrete disclosure SLA (ack ≤7d, assessment ≤14d, 90-day coordinated-disclosure window), contact path, and explicit in/out-of-scope items.
 - ADR-002 (`docs/adr/002-evidenceref-resolution.md`): evidence references resolve as opaque IDs via `evidence/index.json`; defines "required transition" semantics and the SourceRevision schema home. Resolves the §10.2 vs §10.3 contract ambiguity flagged in the audit.
+- Filed 5 audit-driven issues closing pipeline-coverage gaps: #40 ModelAdapter, #41 policy engine, #42 stage-4 (LLM inference), #43 stage-8 (intent exploration + human-approval), #44 target-attestation acceptance. Split #13; added §23.14 adapter-contract-suite acceptance to #8/#10/#16/#19/#20. Issue totals now M0=17, M1=15 (32 total).
 
 ### changed
 
