@@ -36,9 +36,13 @@ pnpm test
 
 ## Branching model
 
-- `main` is protected.
-- Use short-lived feature branches.
-- Open pull requests against `main`.
+**Strategy: trunk-based development** (confirmed decision). There is no long-lived `dev` or `release` branch.
+
+- `main` is the single integration branch; it is **protected** (`enforce_admins` on) — no direct pushes, no force-push, no deletion; linear history required.
+- All work lands via **short-lived branches** named by intent: `feat/<scope>`, `fix/<scope>`, `docs/<scope>`, `chore/<scope>`, `spike/<scope>`.
+- Open a PR against `main`; the required CI check `ci` must pass (and the branch be up-to-date) before merge. Solo maintainers may self-merge (0 required reviews). Merge style: **squash**.
+- `main` is always shippable. **Releases are cut from `main` via tags** (`v0.1.0`, `v0.2.0`, …) per `RELEASES.md` — never via a release branch.
+- Conventional Commits are expected (`feat(contracts): …`, `fix(verifier): …`).
 
 ## Slice workflow (mandatory)
 

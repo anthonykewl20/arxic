@@ -23,3 +23,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versioning: `VERSION` single source of truth + `RELEASES.md` (SemVer; 0.1.0 at M0-EXIT, 0.2.0 at M1-EXIT) + always-synced `CHANGELOG.md`; engineering-charter §8 and the PR template now require a CHANGELOG entry + VERSION sync on every slice.
 - CI (GitHub Actions: lint/typecheck/format/test), release workflow, Dependabot, issue templates, CODEOWNERS; functional eslint flat config + tsconfig with contracts entry.
 - `.gitattributes` (eol=lf, `gears/` linguist-vendored); target Node >=22 (pnpm 11 requirement).
+- Confirmed **trunk-based** branching strategy (no `dev`/`release` branch); documented in `CONTRIBUTING.md` and `docs/SYNC.md`.
