@@ -4,11 +4,9 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "composite": false,
     "noEmit": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "allowJs": false
-  },
-  "include": []
+    "types": ["node"]
+  }
 }
