@@ -13,7 +13,7 @@ import { ARXIC_RULES_DIRTY_TREE, ARXIC_RULES_FALLBACK, rulesDiagnostic } from '.
 import { committedRevision, sourceFiles } from './git';
 import { interpretMatches, type EvidencedRuleMatch, type FeatureChain } from './interpret';
 import { loadPacks, type LoadedPack } from './packs';
-import { runRules, type RuleMatch } from './runner';
+import { codepointCompare, runRules, type RuleMatch } from './runner';
 
 export * from './diagnostics';
 export * from './interpret';
@@ -22,7 +22,11 @@ export * from './runner';
 export const PACKAGE_NAME = '@arxic/ast-grep-adapter' as const;
 
 export type AstGrepAdapterOptions = { packs: string[]; sgBinary?: string; now?: () => string };
-export type AstGrepScanInput = { revision: SourceRevision; features?: string[] };
+export type AstGrepScanInput = {
+  revision: SourceRevision;
+  features?: string[];
+  framework?: string;
+};
 export type AstGrepScanResult = {
   events: EvidenceEvent[];
   matches: EvidencedRuleMatch[];
@@ -65,10 +69,19 @@ export class AstGrepAdapter {
       return { events, matches: [], chains: [], packs: packs.packs, generatedAt: this.now() };
     }
     const files = await sourceFiles(root);
+    const selectedPackIds = input.framework
+      ? new Set(
+          packs.packs
+            .filter((pack) => pack.framework.name === input.framework)
+            .map((pack) => pack.id),
+        )
+      : undefined;
     const runner = await runRules({
       binary: this.options.sgBinary,
       cwd: root,
-      rules: packs.rules,
+      rules: selectedPackIds
+        ? packs.rules.filter((rule) => selectedPackIds.has(rule.packId))
+        : packs.rules,
       paths: files,
     });
     events.push(...runner.diagnostics.map((diagnostic) => eventDiagnostic(diagnostic)));
@@ -108,7 +121,7 @@ export class AstGrepAdapter {
     }
     const interpreted = interpretMatches(matches, input.features);
     events.push(...interpreted.diagnostics.map((diagnostic) => eventDiagnostic(diagnostic)));
-    events.sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+    events.sort((left, right) => codepointCompare(JSON.stringify(left), JSON.stringify(right)));
     return {
       events,
       matches,
@@ -144,7 +157,7 @@ function sortValue(value: unknown): unknown {
   if (value && typeof value === 'object')
     return Object.fromEntries(
       Object.entries(value)
-        .sort(([a], [b]) => a.localeCompare(b))
+        .sort(([a], [b]) => codepointCompare(a, b))
         .map(([key, item]) => [key, sortValue(item)]),
     );
   return value;

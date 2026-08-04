@@ -8,6 +8,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@ast-grep/cli": "^0.45.0",
     "@arxic/contracts": "workspace:*"
   }
 }

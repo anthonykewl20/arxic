@@ -1,6 +1,6 @@
 # Next.js auth rule pack
 
-Pack `nextjs-auth@0.1.0` targets Next.js `>=15 <16`. All rules are original Arxic work, MIT licensed, with provenance `original-arxic`. App Router routes are connected by the deterministic `app/<feature>/page.tsx|route.ts` path convention; this path interpretation is not regex discovery.
+Pack `nextjs-auth@0.1.0` declares framework metadata `nextjs` with version range `>=15 <16`; callers select it with `framework: 'nextjs'`. Version-range enforcement is deferred to M1 orchestration. All rules are original Arxic work, MIT licensed, with provenance `original-arxic`. App Router routes are connected by the deterministic `app/<feature>/page.tsx|route.ts` path convention; this path interpretation is not regex discovery.
 
 | Rule id                 | Category       | Language   | Semver | Precision / fallback note                                                           |
 | ----------------------- | -------------- | ---------- | ------ | ----------------------------------------------------------------------------------- |

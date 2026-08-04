@@ -1,6 +1,6 @@
 import type { Diagnostic, EvidenceRefSource } from '@arxic/contracts';
 import { ARXIC_RULES_CHAIN_INCOMPLETE, rulesDiagnostic } from './diagnostics';
-import type { RuleMatch } from './runner';
+import { codepointCompare, type RuleMatch } from './runner';
 
 export type EvidencedRuleMatch = RuleMatch & { evidence: EvidenceRefSource };
 export type FeatureChain = {
@@ -88,7 +88,8 @@ export function interpretMatches(
     });
   }
   chains.sort(
-    (a, b) => a.framework.localeCompare(b.framework) || a.routePath.localeCompare(b.routePath),
+    (a, b) =>
+      codepointCompare(a.framework, b.framework) || codepointCompare(a.routePath, b.routePath),
   );
   return { chains, diagnostics };
 }

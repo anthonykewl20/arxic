@@ -24,6 +24,10 @@ export type RuleMatch = RuleRange & {
 };
 export type RunnerResult = { matches: RuleMatch[]; diagnostics: Diagnostic[] };
 
+export function codepointCompare(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
 export async function resolveSgBinary(override?: string): Promise<string> {
   if (override) return override;
   let current = resolve(import.meta.dirname);
@@ -119,10 +123,10 @@ export async function runRules(input: {
   }
   matches.sort(
     (a, b) =>
-      a.file.localeCompare(b.file) ||
+      codepointCompare(a.file, b.file) ||
       a.startLine - b.startLine ||
       a.startColumn - b.startColumn ||
-      a.ruleId.localeCompare(b.ruleId),
+      codepointCompare(a.ruleId, b.ruleId),
   );
   return { matches, diagnostics };
 }

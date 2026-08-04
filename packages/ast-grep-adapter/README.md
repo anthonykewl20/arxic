@@ -10,10 +10,10 @@ All static interpretation is advisory `hypothesized` evidence. Final truth-state
 
 ## CLI
 
-The root pins `@ast-grep/cli` `^0.45.0` (MIT). pnpm is configured to symlink native executables, so the compatibility command works:
+The adapter declares `@ast-grep/cli` `^0.45.0` (MIT) as its runtime dependency. pnpm is configured to symlink native executables, so the compatibility command works:
 
 ```sh
-pnpm exec sg --version
+pnpm --filter @arxic/ast-grep-adapter exec ast-grep --version
 ```
 
 Version 0.45.0 warns that `sg` is deprecated and delegates to `ast-grep`. The adapter resolves the installed native `ast-grep` binary directly, avoiding shell interpolation and pnpm's JavaScript shim. Set `ARXIC_SG_BIN=/absolute/path/to/ast-grep` or pass `sgBinary` to test another engine build.
@@ -22,6 +22,8 @@ Version 0.45.0 warns that `sg` is deprecated and delegates to `ast-grep`. The ad
 
 ## API
 
-`new AstGrepAdapter({ packs, sgBinary?, now? })` exposes `scan({ revision, features? })` and an `AsyncIterable` `index()` method. A dirty or mismatched Git revision, malformed pack/rule, process failure, parse failure, or duplicate rule id fails closed. Source refs use committed file bytes and rule ids shaped as `<pack>/<rule>@<semver>`.
+`new AstGrepAdapter({ packs, sgBinary?, now? })` exposes `scan({ revision, features?, framework? })` and an `AsyncIterable` `index()` method. The optional `framework` is the caller's pack-selection policy input and runs only packs whose declared framework name matches. Pack version ranges remain declarative metadata; enforcement against a detected target framework belongs to M1 orchestration (#17). This spike proves the selection seam.
+
+A dirty or mismatched Git revision, malformed pack/rule, process failure, parse failure, or duplicate rule id fails closed. Conflicts are checked globally across loaded packs before framework selection. Source refs use committed file bytes and rule ids shaped as `<pack>/<rule>@<semver>`.
 
 The regex detector is deliberately narrow and labeled `ARXIC-RULES-FALLBACK`; it emits no primary evidence (ADR §6.1).

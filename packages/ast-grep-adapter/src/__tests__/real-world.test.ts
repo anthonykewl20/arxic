@@ -26,10 +26,21 @@ describe('real sg CLI proof against the auth fixture apps', () => {
         packs: packDirs,
         now: () => '2026-08-05T12:00:00.000Z',
       });
-      const first = await adapter.scan({ revision: repo.revision, features: ['login'] });
-      const second = await adapter.scan({ revision: repo.revision, features: ['login'] });
+      const first = await adapter.scan({
+        revision: repo.revision,
+        features: ['login'],
+        framework,
+      });
+      const second = await adapter.scan({
+        revision: repo.revision,
+        features: ['login'],
+        framework,
+      });
       const login = first.chains.find(
         (chain) => chain.framework === framework && chain.feature === 'login',
+      );
+      expect(new Set(first.matches.map((match) => match.packId))).toEqual(
+        new Set([`${framework}-auth`]),
       );
       expect(login).toMatchObject({
         routePath: '/login',
@@ -46,18 +57,42 @@ describe('real sg CLI proof against the auth fixture apps', () => {
       );
       if (framework === 'nextjs') {
         const loginGuards = first.matches.filter(
-          (match) => match.category === 'guard' && match.file.includes('/login/'),
+          (match) =>
+            match.packId === 'nextjs-auth' &&
+            match.category === 'guard' &&
+            match.file === 'app/login/actions.ts',
         );
         expect([...new Set(loginGuards.map((match) => match.fields.GUARD))]).toEqual(
           expect.arrayContaining(['verifyCsrf', 'consumeRateLimit']),
         );
-        expect(loginGuards.some((match) => 'PASSWORD' in match.fields)).toBe(true);
-      } else {
-        const loginGuards = first.matches.filter(
-          (match) => match.category === 'guard' && 'PASSWORD' in match.fields,
+        const passwordEvidence = first.matches.find(
+          (match) =>
+            match.packId === 'nextjs-auth' &&
+            match.category === 'password-hash' &&
+            match.file === 'app/login/actions.ts' &&
+            'PASSWORD' in match.fields,
         );
-        const linkedGuard = loginGuards.find(
-          (match) => match.evidence.startLine === login?.evidence.at(-1)?.startLine,
+        expect(passwordEvidence?.fields).toMatchObject({
+          PASSWORD: 'password',
+          HASH: 'user.passwordHash',
+        });
+      } else {
+        const loginRoute = first.matches.find(
+          (match) =>
+            match.packId === 'express-auth' &&
+            match.category === 'route' &&
+            match.fields.METHOD === 'post' &&
+            match.fields.PATH === "'/login'",
+        );
+        expect(loginRoute).toBeDefined();
+        const linkedGuard = first.matches.find(
+          (match) =>
+            match.packId === 'express-auth' &&
+            match.category === 'guard' &&
+            'PASSWORD' in match.fields &&
+            match.file === loginRoute?.file &&
+            match.startLine >= loginRoute.startLine &&
+            match.endLine <= loginRoute.endLine,
         );
         expect(linkedGuard?.fields).toMatchObject({
           PASSWORD: 'password',

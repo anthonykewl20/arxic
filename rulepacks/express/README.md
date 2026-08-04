@@ -1,6 +1,6 @@
 # Express auth rule pack
 
-Pack `express-auth@0.1.0` targets Express `>=4 <6`. All rules are original Arxic work, MIT licensed, with provenance `original-arxic`.
+Pack `express-auth@0.1.0` declares framework metadata `express` with version range `>=4 <6`; callers select it with `framework: 'express'`. Version-range enforcement is deferred to M1 orchestration. All rules are original Arxic work, MIT licensed, with provenance `original-arxic`.
 
 | Rule id                  | Category       | Language   | Semver | Precision / fallback note                                                        |
 | ------------------------ | -------------- | ---------- | ------ | -------------------------------------------------------------------------------- |
