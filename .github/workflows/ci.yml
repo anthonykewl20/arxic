@@ -45,3 +45,6 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Command-guard denylist test
+        run: bash .opencode/plugins/test-guard.sh
