@@ -1,0 +1,17 @@
+{
+  "name": "@arxic/m0-pipeline",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@arxic/contracts": "workspace:*",
+    "@arxic/environment": "workspace:*",
+    "@arxic/ast-grep-adapter": "workspace:*",
+    "@arxic/playwright-agent-adapter": "workspace:*",
+    "@arxic/bundle-promoter": "workspace:*"
+  }
+}

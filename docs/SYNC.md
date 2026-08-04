@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#44 (M0-15) PREFLIGHT target-attestation acceptance DONE.** `@arxic/environment` composes the existing real target-attestation handshake across target sets, accepts both reference apps as `local-test`, refuses production-styled and missing or malformed attestations with blocked diagnostics, and records every target decision in deterministic canonical run-artifact JSON. **16/17 M0 issues done.** Remaining M0 = **#14 (M0-EXIT) only.**
+**Status:** **Milestone 0 COMPLETE.** #14 (M0-EXIT) composes every M0 adapter into one login vertical: local-test attestation, committed route→handler→guard evidence, Workflow compilation, two consecutive clean-fixture passes in real Chromium, evidence packaging, and atomic promotion with last-known-good preservation. The deterministic verifier produced `verified`; screenshots, traces, spec, NOTICE, provenance, and independent hashes passed. **17/17 M0 issues done.** M0 exit criteria are met; the `0.1.0` release is pending, so `VERSION` remains `0.0.0`.
 
-**Next action:** [#14 (M0-EXIT) Gate: login candidate verifies twice + promotes](https://github.com/anthonykewl20/arxic/issues/14).
+**Next action:** Milestone 1 begins with [#15 (M1-01) Static inventory + evidence graph](https://github.com/anthonykewl20/arxic/issues/15).
 
-**Last session:** 2026-08-05 (8) — **#44 (M0-15) PREFLIGHT target-attestation acceptance DONE**: the existing live handshake now runs across target sets; both real reference apps are accepted as `local-test`; a production-styled target and missing or malformed attestations are refused with blocked diagnostics; and deterministic canonical run artifacts record every target decision. **16/17 M0 done.** Next: #14 M0-EXIT.
+**Last session:** 2026-08-05 (9) — **#14 (M0-EXIT) Milestone 0 capstone DONE**: `@arxic/m0-pipeline` composes stages 0→12 across the environment, ast-grep, Playwright, and bundle-promoter adapters. The real login candidate passed two consecutive clean-fixture Chromium runs; the promoted bundle's screenshots, trace, spec, NOTICE, provenance, manifest, and hashes were independently checked; and an injected third-run source-evidence failure left the second last-known-good bundle untouched. Deterministic disposition: `verified`. **17/17 M0 done.** Next: #15 M1-01.
 
 ---
 
@@ -23,12 +23,12 @@
 | ADR (public summary) | `docs/adr/001-arxic-architecture.md` (§2 truth states, §8 diagram, §9 pipeline, §10 contracts, §22 milestones) — detailed internal ADR is private/local |
 | Engineering charter | `docs/engineering-charter.md` — TDD red-first + Actions/Service layering + **mandatory sad-path-first**. Every slice follows this. |
 | Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` + adapter TS interfaces — **ALL contracts frozen** (#2–#6); `@arxic/contracts` is the capability boundary (ADR §10.5) |
-| Packages | `packages/*` (14 adapters/engines, scaffolded) — see ADR §18 |
+| Packages | `packages/*` (15 adapters/engines, including the M0 capstone pipeline) — see ADR §18 |
 | Apps | `apps/{cli,worker}/` (scaffolded) |
 | Rule packs | `rulepacks/{nextjs,express}/` versioned auth AST rules **DONE (#9)**; `rulepacks/react` remains empty until #22 |
 | Test fixture apps | `test-fixtures/{reference-auth-app (Next.js 15 + sqlite + Mailpit + otplib),vulnerable-auth-app (Express + sqlite)}/` — **DONE (#13)**: real booting apps, real Mailpit, attestation, seed API; the §6 real-world surface for spikes #8–#12 + M1 |
 | Issues | <https://github.com/anthonykewl20/arxic/issues> — milestones "Milestone 0" / "Milestone 1" |
-| Tooling | pnpm workspaces (Node ≥22 via corepack `packageManager` pnpm 11), TS strict, ESLint flat-config, Prettier; **per-package `tsconfig.json` + `typecheck` across all 16 packages**; gates `pnpm lint/typecheck/typecheck:packages/format:check/test` are CI-green; **source-only — no build/emit in M0** (ADR-003) |
+| Tooling | pnpm workspaces (Node ≥22 via corepack `packageManager` pnpm 11), TS strict, ESLint flat-config, Prettier; **per-workspace `tsconfig.json` + `typecheck` across all 19 package/app workspaces**; gates `pnpm lint/typecheck/typecheck:packages/format:check/test` are CI-green; **source-only — no build/emit in M0** (ADR-003) |
 | Versioning | `VERSION` (0.0.0) is single source of truth → `package.json`; `RELEASES.md` (SemVer; 0.1.0=M0-EXIT #14, 0.2.0=M1-EXIT #27); `CHANGELOG.md` updated EVERY slice |
 | Repo & CI | GitHub: squash-only merges + delete-branch-on-merge, Dependabot + security alerts ON, `main` protected (PR flow). CI `ci.yml` (required check `ci`): lint/typecheck/format/test + metadata guards + **license gate** (`scripts/license-gate.mjs`, rejects GPL/AGPL/SSPL) + **CycloneDX SBOM** artifact + fixture-app tests (real Mailpit); issue/PR templates; `CODEOWNERS`=@anthonykewl20 |
 | Maturity docs | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`, `GOVERNANCE.md` |
@@ -37,7 +37,7 @@
 
 ## Milestone tracker
 
-### Milestone 0 — Contracts & Spikes  (issue milestone "Milestone 0 - Contracts and Spikes")
+### Milestone 0 — Contracts & Spikes — COMPLETE (17/17)  (issue milestone "Milestone 0 - Contracts and Spikes")
 _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; threat model. Exit: one manually-supplied login candidate compiles, verifies twice, and promotes with evidence (ADR §22)._
 
 | # | Issue | Status |
@@ -58,7 +58,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #40 | [M0-13] Spike: ModelAdapter | ☑ done |
 | #41 | [M0-14] Policy engine: action classes + fail-closed | ☑ done |
 | #44 | [M0-15] Arxic target-attestation accepts reference apps (depends #12, #13) | ☑ done |
-| #14 | [M0-EXIT] Gate: login candidate verifies twice + promotes | ☐ (blocks M1) |
+| #14 | [M0-EXIT] Gate: login candidate verifies twice + promotes | ☑ done |
 
 ### Milestone 1 — Authentication Vertical Slice  (issue milestone "Milestone 1 - Authentication Vertical Slice")
 _Goal: end-to-end evidence-driven auth bundles. Exit: two structurally different reference apps produce independently replayable bundles without app-specific generator code (ADR §22, §23)._
@@ -134,6 +134,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-05 (6) | **#40 (M0-13) ModelAdapter DONE.** Credentials resolve-at-call-time Bearer-only, structured output is schema-bound + real-AJV-validated, invalid output retries then blocks with no promotion, schema-version drift fails closed, content-as-data injection is blocked without policy mutation, and run records carry only request id/schema version/token+provider metadata behind a redaction gate; stable `ARXIC-MODEL-*` diagnostics loop-close; real local OpenAI-compatible stub + real AJV prove it. 14/17 M0 done. |
 | 2026-08-05 (7) | **#41 (M0-14) Policy engine DONE.** One-argument `authorize(PolicyAuthorization)` plus configured `PolicyEngine.decide` enforce six registered actions across the four frozen action classes; exact origin allowlists, caller-owned lease and budget state, sandbox presence, and exact recorded approvals fail closed with stable `ARXIC-POLICY-*` diagnostics. Canonical snapshots hash full inputs, and live reference-app attestation covers all five required decisions. 15/17 M0 done. |
 | 2026-08-05 (8) | **#44 (M0-15) PREFLIGHT target-attestation acceptance DONE.** The existing real handshake now runs across target sets; both real reference apps are accepted as `local-test`; production-styled and missing or malformed attestations are refused with blocked diagnostics; deterministic canonical run artifacts record every decision; and artifact write failures fail closed. 16/17 M0 done. |
+| 2026-08-05 (9) | **#14 (M0-EXIT) Milestone 0 capstone DONE.** The thin `@arxic/m0-pipeline` orchestrator composes target attestation, committed login source evidence, Workflow compilation, two clean-fixture real-Chromium verification passes, and atomic promotion. The deterministic verifier produced `verified`; promoted screenshots, trace, spec, NOTICE, provenance, manifest, and hashes were independently checked; an injected third-run source-evidence failure preserved the second last-known-good bundle. **17/17 M0 complete; 0.1.0 release pending.** Next: #15 M1-01. |
 
 ---
 
