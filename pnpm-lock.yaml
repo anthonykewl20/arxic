@@ -62,7 +62,11 @@ importers:
 
   packages/crawlee-adapter: {}
 
-  packages/environment: {}
+  packages/environment:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
 
   packages/evidence-graph: {}
 
