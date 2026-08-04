@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#40 (M0-13) ModelAdapter DONE.** `@arxic/model-adapter` owns all model-provider mechanics — credentials resolve at call time and appear only as a Bearer header, structured output is schema-bound + validated by real AJV before any downstream action, invalid output retries then blocks with no promotion, schema-version drift fails closed, model output is content-as-data with no policy mutation, and run records carry only request id/schema version/token+provider metadata (never prompt bytes) behind a redaction gate. **14/17 M0 issues done.** Remaining M0 = **#41/#44** + #14 (M0-EXIT). **#44 is unblocked by #12 and #13.**
+**Status:** **#41 (M0-14) Policy engine DONE.** `@arxic/policy-engine` owns the pure one-input AUTHZ decision node and configured `PolicyEngine`: a frozen registry maps six actions to the four frozen action classes; exact origin allowlists apply to every action; caller-supplied lease state gates reversible mutation; sandbox plus exact action-and-origin approval gates external effects; exact action-and-origin approval gates destructive work; unknown actions and missing or mismatched classes fail closed; and every result carries a canonical full-input `PolicySnapshot.inputSha256` plus stable diagnostics. **15/17 M0 issues done.** Remaining M0 = **#44** + #14 (M0-EXIT). **#41 is done and #44 is unblocked by #12 and #13.**
 
-**Next action:** [#41 (M0-14) Policy engine: action classes + fail-closed](https://github.com/anthonykewl20/arxic/issues/41). Then #44 → then #14 (M0-EXIT gate).
+**Next action:** [#44 (M0-15) Arxic target-attestation accepts reference apps](https://github.com/anthonykewl20/arxic/issues/44). Then #14 (M0-EXIT gate).
 
-**Last session:** 2026-08-05 (6) — **#40 (M0-13) ModelAdapter DONE**: credentials resolve at call time and remain Bearer-only, structured output is schema-bound and real-AJV-validated, invalid output retries then blocks with no promotion, schema-version drift fails closed, content-as-data injection cannot mutate policy, and metadata-only run records sit behind a credential/prompt redaction gate. Stable blocked diagnostics loop-close through frozen contracts; a real local OpenAI-compatible endpoint proves the wire and validation boundary. Next: #41 policy engine.
+**Last session:** 2026-08-05 (7) — **#41 (M0-14) Policy engine DONE**: one-argument `authorize(PolicyAuthorization)` and configured `PolicyEngine.decide` enforce the frozen six-action registry; pure caller-owned lease and budget state gate bounded work; external and destructive approvals use exact action-and-origin keys; snapshots hash canonical full inputs; stable `ARXIC-POLICY-*` diagnostics loop-close; and live reference-app attestation exercises all five required decisions. **15/17 M0 done.** Next: #44, then #14.
 
 ---
 
@@ -56,7 +56,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #12 | [M0-11] Threat model + target-attestation | ☑ done |
 | #13 | [M0-12] Test-fixture apps scaffold | ☑ done |
 | #40 | [M0-13] Spike: ModelAdapter | ☑ done |
-| #41 | [M0-14] Policy engine: action classes + fail-closed | ☐ |
+| #41 | [M0-14] Policy engine: action classes + fail-closed | ☑ done |
 | #44 | [M0-15] Arxic target-attestation accepts reference apps (depends #12, #13) | ☐ |
 | #14 | [M0-EXIT] Gate: login candidate verifies twice + promotes | ☐ (blocks M1) |
 
@@ -132,6 +132,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-05 (4) | **#11 (M0-10) Atomic promotion + last-known-good DONE.** Deterministic canonical bundle bytes, frozen manifest validation, staged SHA-256 and byte-count checks, same-directory atomic rename, `.lkg` snapshots, and exclusive locking ship behind the frozen `BundlePromoter`; real filesystem failures and contention are `blocked` without corrupting public bytes. 12/17 M0 done. |
 | 2026-08-05 (5) | **#12 (M0-11) Threat model + target-attestation DONE.** Real HTTP handshakes against both fixture apps allow exact local-test attestations; production-looking, origin, nonce, and unsigned-receipt failures are `blocked`, while only static recorded human approval permits the production-shaped proof target. Worker, prompt-injection, action, privacy, and Docker/Testcontainers isolation requirements are documented. 13/17 M0 done; #44 unblocked. |
 | 2026-08-05 (6) | **#40 (M0-13) ModelAdapter DONE.** Credentials resolve-at-call-time Bearer-only, structured output is schema-bound + real-AJV-validated, invalid output retries then blocks with no promotion, schema-version drift fails closed, content-as-data injection is blocked without policy mutation, and run records carry only request id/schema version/token+provider metadata behind a redaction gate; stable `ARXIC-MODEL-*` diagnostics loop-close; real local OpenAI-compatible stub + real AJV prove it. 14/17 M0 done. |
+| 2026-08-05 (7) | **#41 (M0-14) Policy engine DONE.** One-argument `authorize(PolicyAuthorization)` plus configured `PolicyEngine.decide` enforce six registered actions across the four frozen action classes; exact origin allowlists, caller-owned lease and budget state, sandbox presence, and exact recorded approvals fail closed with stable `ARXIC-POLICY-*` diagnostics. Canonical snapshots hash full inputs, and live reference-app attestation covers all five required decisions. 15/17 M0 done. |
 
 ---
 
