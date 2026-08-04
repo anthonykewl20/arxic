@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** Workspace bootstrapped. M0 + M1 issues filed. Nothing implemented yet — about to start **Milestone 0**.
+**Status:** Workspace bootstrapped + audit-remediated. 32 issues filed (M0=17, M1=15). Nothing implemented yet — about to start **Milestone 0**.
 
 **Next action:** Begin [#1 (M0-00) Monorepo & tooling bootstrap](https://github.com/anthonykewl20/arxic/issues/1) — finish per-package tsconfigs, real ESLint config, CI workflow, then confirm the open decisions below. In parallel start the contract-freeze issues (#2–#6) and **bring [#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13) forward** — they are the real-world-proof surface every spike (#8–#12) and M1 slice must run against.
 
-**Last session:** 2026-08-04 — scaffolded §18 layout, filed 27 issues (M0=14, M1=13), added the ADR §8 architecture diagram; then made the repo release-ready (complete MIT licensing, versioning via `VERSION`/`RELEASES.md`/always-synced `CHANGELOG.md`, maturity docs, functional tooling, CI + release workflows, Dependabot, issue/PR templates, GitHub settings + security alerts, `main` branch protection). CI is green.
+**Last session:** 2026-08-04 — pre-development audit (3 reviewers) + remediation: purged vendored gears (tree + history) and masked the ADR (public summary at `docs/adr/001-arxic-architecture.md`; detailed ADR is local-only); fixed release workflow, CI metadata guards, doc accuracy; added ADR-002 (EvidenceRef = opaque IDs via `evidence/index.json`); filed 5 more issues (#40–44: ModelAdapter, policy engine, stage-4 inference, stage-8 exploration, attestation-acceptance) → **32 total (M0=17, M1=15)**. CI green. Nothing implemented yet.
 
 ---
 
@@ -55,6 +55,9 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #11 | [M0-10] Spike: Atomic promotion + last-known-good | ☐ |
 | #12 | [M0-11] Threat model + target-attestation | ☐ |
 | #13 | [M0-12] Test-fixture apps scaffold | ☐ |
+| #40 | [M0-13] Spike: ModelAdapter | ☐ |
+| #41 | [M0-14] Policy engine: action classes + fail-closed | ☐ |
+| #44 | [M0-15] Arxic target-attestation accepts reference apps (depends #12, #13) | ☐ |
 | #14 | [M0-EXIT] Gate: login candidate verifies twice + promotes | ☐ (blocks M1) |
 
 ### Milestone 1 — Authentication Vertical Slice  (issue milestone "Milestone 1 - Authentication Vertical Slice")
@@ -74,6 +77,8 @@ _Goal: end-to-end evidence-driven auth bundles. Exit: two structurally different
 | #24 | [M1-10] Bundle packaging (hashes/NOTICE/provenance) | ☐ |
 | #25 | [M1-11] CLI app | ☐ |
 | #26 | [M1-12] Worker (ephemeral isolated) | ☐ |
+| #42 | [M1-14] Stage 4: LLM candidate inference (no promotion) | ☐ |
+| #43 | [M1-15] Stage 8: intent exploration + human-approval | ☐ |
 | #27 | [M1-EXIT] Gate: two apps replay, no app-specific code | ☐ |
 
 _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred until contracts stabilize (ADR §22)._
@@ -108,6 +113,7 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 |---|---|
 | 2026-08-04 | Built §18 monorepo layout; wrote root tooling (pnpm, tsconfig.base, eslint/prettier stubs, LICENSE/NOTICE/README); filed milestones + 12 area labels + 27 issues (M0 14, M1 13); saved canonical end-to-end architecture diagram into ADR §8. |
 | 2026-08-04 (2) | Release readiness: complete MIT licensing; versioning (`VERSION` + `RELEASES.md` + always-synced `CHANGELOG.md` wired into charter §8 + PR template); maturity docs (CONTRIBUTING/CODE_OF_CONDUCT/SECURITY/SUPPORT/GOVERNANCE) + expanded README; functional tooling (eslint flat + tsconfig, contracts entry, pnpm-lock); GitHub CI + release workflows, Dependabot, issue templates, CODEOWNERS; repo settings (squash-only, delete-branch-on-merge) + security alerts; **CI green**; `main` branch protection (PR flow). |
+| 2026-08-04 (3) | Pre-dev audit (3 reviewers) + remediation: PRs #36 (release perms), #37 (CI metadata guards + hygiene), #38 (mask ADR + scrub gears), #39 (SECURITY SLA + ADR-002). Purged vendored gears from tree+history; full ADR → local-only (`../arxic-private/`), public summary in `docs/adr/001-…`; ADR-002 (EvidenceRef = opaque IDs). Filed #40–44 (ModelAdapter, policy engine, stage-4, stage-8, attestation-acceptance); split #13; §23.14 contract-suite acceptance added to adapter issues. Totals now M0=17, M1=15. **CI green.** |
 
 ---
 
