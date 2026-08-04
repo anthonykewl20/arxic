@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#10 (M0-09) PlaywrightAgentAdapter handshake + fallback DONE.** `@arxic/playwright-agent-adapter` exactly pins Playwright Test 1.62.1, fail-closed negotiates its nine-tool MCP contract, rejects unsafe healing, and generates a direct Workflow IR fallback; real agent and fallback runs drive real Chromium through the reference-app login. **11/17 M0 issues done.** Remaining M0 = **spikes #11–#12** + #40/#41/#44 + #14 (M0-EXIT).
+**Status:** **#11 (M0-10) Atomic promotion + last-known-good DONE.** `@arxic/bundle-promoter` deterministically freezes real staged bundle bytes, validates and hash-verifies private same-directory staging, serializes writers with an exclusive lock, atomically replaces the public bundle, and preserves the prior bytes in `.lkg`; injected failures leave public bytes intact as `blocked`. **12/17 M0 issues done.** Remaining M0 = **spike #12** + #40/#41/#44 + #14 (M0-EXIT).
 
-**Next action:** [#11 (M0-10) Spike: Atomic promotion + last-known-good](https://github.com/anthonykewl20/arxic/issues/11). Then #12 (threat model + target-attestation) → then #14 (M0-EXIT gate).
+**Next action:** [#12 (M0-11) Threat model + target-attestation](https://github.com/anthonykewl20/arxic/issues/12). Then #40/#41/#44 → then #14 (M0-EXIT gate).
 
-**Last session:** 2026-08-05 — **#10 (M0-09) PlaywrightAgentAdapter handshake + fallback DONE**: the real pinned MCP process exposes the expected nine tools, real `test_list` and `test_run` execute the seeded reference login in Chromium, and the deterministic frozen-IR fallback lists and runs the same workflow as `observed`. Missing/drifted tools, unavailable processes, shell metacharacters, invalid workflows, and unsafe healing fail closed. Next: #11 atomic promotion + last-known-good.
+**Last session:** 2026-08-05 — **#11 (M0-10) Atomic promotion + last-known-good DONE**: real prior-slice login workflow, evidence, source artifact bytes, and SHA-256 are canonically frozen and promoted through real same-directory filesystem operations. Independent hash recomputation, deterministic bytes, `.lkg` recovery, lock contention, malformed manifests, failed gates, hash mismatch, and an injected pre-replace failure prove blocked runs preserve public bytes. Next: #12 threat model + target-attestation.
 
 ---
 
@@ -52,7 +52,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #8 | [M0-07] Spike: Understand-Anything subset extraction | ☑ done |
 | #9 | [M0-08] Spike: ast-grep rule fixtures (Next.js + Express) | ☑ done |
 | #10 | [M0-09] Spike: PlaywrightAgentAdapter handshake + fallback | ☑ done |
-| #11 | [M0-10] Spike: Atomic promotion + last-known-good | ☐ |
+| #11 | [M0-10] Spike: Atomic promotion + last-known-good | ☑ done |
 | #12 | [M0-11] Threat model + target-attestation | ☐ |
 | #13 | [M0-12] Test-fixture apps scaffold | ☑ done |
 | #40 | [M0-13] Spike: ModelAdapter | ☐ |
@@ -129,6 +129,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-05 | **#8 (M0-07) Understand-Anything subset extraction DONE.** `@arxic/source-ua-adapter` adapts the reviewed deterministic scanner/structure seams behind frozen `SourceIndexer`: full Git SHA, bytewise manifest + SHA-256, dirty provenance guard, fail-closed gaps, and real native Tree-sitter symbols/imports/calls/Next.js+Express routes. Canonical output is byte-identical pre-timestamp; ADR §23.14 contract gate + separate MIT grammar-license test. Real proof scans both fixture-app source trees. 106 tests green. 9/17 M0 done. |
 | 2026-08-05 (2) | **#9 (M0-08) ast-grep rule fixtures DONE.** Real ast-grep 0.45 process scans versioned Next.js and Express packs; committed source refs and stable diagnostics validate through frozen contracts. Real fixture-app login route→handler→guard chains connect as advisory `hypothesized`; per-rule positive/negative fixtures and fail-closed sad paths cover the seam. 10/17 M0 done. |
 | 2026-08-05 (3) | **#10 (M0-09) PlaywrightAgentAdapter handshake + fallback DONE.** Exactly pinned Playwright Test 1.62.1 MCP handshake and nine-tool schema gate fail closed on seam drift; healer policy rejects weakening and unsafe boundaries. Real agent and generated fallback both execute seeded login against the reference app in real Chromium; runtime disposition remains `observed`. 11/17 M0 done. |
+| 2026-08-05 (4) | **#11 (M0-10) Atomic promotion + last-known-good DONE.** Deterministic canonical bundle bytes, frozen manifest validation, staged SHA-256 and byte-count checks, same-directory atomic rename, `.lkg` snapshots, and exclusive locking ship behind the frozen `BundlePromoter`; real filesystem failures and contention are `blocked` without corrupting public bytes. 12/17 M0 done. |
 
 ---
 
