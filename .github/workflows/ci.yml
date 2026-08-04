@@ -19,11 +19,10 @@ jobs:
         ports:
           - 1025:1025
           - 8025:8025
-        # Disable the image's built-in healthcheck (it fails on the runner — the
-        # axllent/mailpit image lacks wget). The fixture boot tests self-poll
-        # Mailpit reachability at /api/v1/info and fail clearly if it is down,
-        # which is a stronger gate than a container healthcheck.
-        options: --health-cmd none
+        # Disable the image's built-in healthcheck (it goes "unhealthy" on the
+        # runner). The fixture boot tests self-poll Mailpit at /api/v1/info and
+        # fail clearly if it is down — a stronger gate than a container healthcheck.
+        options: --no-healthcheck
     steps:
       - uses: actions/checkout@v4
 
