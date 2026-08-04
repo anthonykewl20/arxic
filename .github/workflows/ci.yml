@@ -19,8 +19,11 @@ jobs:
         ports:
           - 1025:1025
           - 8025:8025
-        env:
-          MP_SMTP_AUTH_ACCEPT_ANY: 1
+        # Disable the image's built-in healthcheck (it fails on the runner — the
+        # axllent/mailpit image lacks wget). The fixture boot tests self-poll
+        # Mailpit reachability at /api/v1/info and fail clearly if it is down,
+        # which is a stronger gate than a container healthcheck.
+        options: --health-cmd none
     steps:
       - uses: actions/checkout@v4
 
