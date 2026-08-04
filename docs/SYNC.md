@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** Workspace bootstrapped + audit-remediated. 32 issues filed (M0=17, M1=15). Nothing implemented yet — about to start **Milestone 0**.
+**Status:** **#1 (M0-00) tooling bootstrap DONE.** Per-package `tsconfig.json` + `typecheck` across all 16 workspace packages; ESLint bans skip/only; `.env.example`; source-only per ADR-003. 32 issues filed (M0=17, M1=15). Starting **contract freeze** (#2 EvidenceRef).
 
-**Next action:** Begin [#1 (M0-00) Monorepo & tooling bootstrap](https://github.com/anthonykewl20/arxic/issues/1) — finish per-package tsconfigs, real ESLint config, CI workflow, then confirm the open decisions below. In parallel start the contract-freeze issues (#2–#6) and **bring [#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13) forward** — they are the real-world-proof surface every spike (#8–#12) and M1 slice must run against.
+**Next action:** [#2 (M0-01) Freeze EvidenceRef](https://github.com/anthonykewl20/arxic/issues/2) — `schemas/evidence/{evidence-ref,source-revision}.schema.json` + the `evidence/index.json` shape + AJV strict validators + TS types per ADR §10.2 + ADR-002. Sad-path-first (malformed refs → stable diagnostics; dirty tree → no manufactured blob links; tautology guard). In parallel **bring [#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13) forward** — they are the real-world-proof surface every spike (#8–#12) and M1 slice must run against. Pattern: the AJV seed test in `packages/contracts/src/__tests__/`.
 
-**Last session:** 2026-08-04 — pre-development audit (3 reviewers) + remediation: removed vendored reference code from the tree and masked the ADR (public summary at `docs/adr/001-arxic-architecture.md`; detailed ADR is local-only). **GitHub's immutable PR refs still expose pre-mask history, so the repo is now PRIVATE during pre-1.0 (owner-only); a history purge will be done before going public.** Fixed release workflow, CI metadata guards, doc accuracy; added ADR-002 (EvidenceRef = opaque IDs via `evidence/index.json`); filed 5 more issues (#40–44) → **32 total (M0=17, M1=15)**; filled real-world/layering in #1–#14. CI green. Nothing implemented yet.
+**Last session:** 2026-08-04 — **#1 (M0-00) tooling bootstrap landed**: per-package `tsconfig.json` + `typecheck` across all 16 workspace packages; root `pnpm typecheck:packages` (`pnpm -r typecheck`); ESLint bans `it.only`/`skip`/`xit`/`xdescribe` (ADR §13.1); `.env.example`; structural test guards the tooling contract; **ADR-003 (M0 source-only, no emit)**. Gates green. Next: contract freeze #2 (EvidenceRef).
 
 ---
 
@@ -28,7 +28,7 @@
 | Rule packs | `rulepacks/{nextjs,react,express}/` (empty — built in #9, #22) |
 | Test fixture apps | `test-fixtures/{vulnerable-auth-app,reference-auth-app}/` (scaffolded in #13) |
 | Issues | <https://github.com/anthonykewl20/arxic/issues> — milestones "Milestone 0" / "Milestone 1" |
-| Tooling | pnpm workspaces (Node ≥22 via corepack `packageManager` pnpm 11), TS strict, ESLint flat-config, Prettier; gates `pnpm lint/typecheck/format:check/test` are CI-green |
+| Tooling | pnpm workspaces (Node ≥22 via corepack `packageManager` pnpm 11), TS strict, ESLint flat-config, Prettier; **per-package `tsconfig.json` + `typecheck` across all 16 packages**; gates `pnpm lint/typecheck/typecheck:packages/format:check/test` are CI-green; **source-only — no build/emit in M0** (ADR-003) |
 | Versioning | `VERSION` (0.0.0) is single source of truth → `package.json`; `RELEASES.md` (SemVer; 0.1.0=M0-EXIT #14, 0.2.0=M1-EXIT #27); `CHANGELOG.md` updated EVERY slice |
 | Repo & CI | GitHub: squash-only merges + delete-branch-on-merge, Dependabot + security alerts ON, `main` protected (PR flow). CI `ci.yml` (required check `ci`); issue/PR templates; `CODEOWNERS`=@anthonykewl20 |
 | Maturity docs | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`, `GOVERNANCE.md` |
@@ -42,8 +42,8 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 
 | # | Issue | Status |
 |---|---|---|
-| #1 | [M0-00] Monorepo & tooling bootstrap | ☐ next |
-| #2 | [M0-01] Freeze contract: EvidenceRef | ☐ |
+| #1 | [M0-00] Monorepo & tooling bootstrap | ☑ done |
+| #2 | [M0-01] Freeze contract: EvidenceRef | ☐ next |
 | #3 | [M0-02] Freeze contract: Workflow v1 IR | ☐ |
 | #4 | [M0-03] Freeze contract: Diagnostics | ☐ |
 | #5 | [M0-04] Freeze contract: Bundle manifest | ☐ |
@@ -91,6 +91,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 
 - **License:** **MIT** — confirmed (`LICENSE`, `package.json`). Third-party notices in `NOTICE`.
 - **Package manager:** **pnpm** workspaces via corepack (`packageManager` field). Node **≥22** (pnpm 11 requirement).
+- **Build strategy (M0):** **source-only — no emit.** Packages consume each other via `main: src/index.ts` (raw `.ts`), checked by `tsc --noEmit` and compiled on demand by vitest. No `build`/`dist` in M0; emit deferred to when a package ships a published artifact (ADR-003).
 - **Git flow (active — discipline-based):** The repo is **private**, so GitHub **branch protection is OFF** (free-tier limit for private repos). Trunk-based: short-lived branches → PR → squash-merge to `main`. **Discipline rule: merge ONLY after the `ci` check is green** (`gh pr checks <N> --watch` → `pass`); rebase stale Dependabot branches onto `main` before evaluating CI. No direct pushes/force-push; linear history. Re-enable branch protection when the repo goes public (post-purge) or upgrades to Pro.
 - **Branching strategy:** **trunk-based** (confirmed) — no `dev`/`release` branch; short-lived `feat/`·`fix/`·`docs/` branches → PR → `main`; releases cut from `main` via tags. See `CONTRIBUTING.md` → Branching model.
 - **Repo visibility:** **PRIVATE during pre-1.0** (recipe owner-only; history not purged — see reminder below). Side effect: no branch protection on the free tier → CI enforcement is discipline-based (above). A history purge (Support/recreate) is performed before going public; protection is re-enabled then.
@@ -117,6 +118,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-04 | Built §18 monorepo layout; wrote root tooling (pnpm, tsconfig.base, eslint/prettier stubs, LICENSE/NOTICE/README); filed milestones + 12 area labels + 27 issues (M0 14, M1 13); saved canonical end-to-end architecture diagram into ADR §8. |
 | 2026-08-04 (2) | Release readiness: complete MIT licensing; versioning (`VERSION` + `RELEASES.md` + always-synced `CHANGELOG.md` wired into charter §8 + PR template); maturity docs (CONTRIBUTING/CODE_OF_CONDUCT/SECURITY/SUPPORT/GOVERNANCE) + expanded README; functional tooling (eslint flat + tsconfig, contracts entry, pnpm-lock); GitHub CI + release workflows, Dependabot, issue templates, CODEOWNERS; repo settings (squash-only, delete-branch-on-merge) + security alerts; **CI green**; `main` branch protection (PR flow). |
 | 2026-08-04 (3) | Pre-dev audit (3 reviewers) + remediation: PRs #36 (release perms), #37 (CI guards + hygiene), #38 (mask ADR + remove reference-collection docs), #39 (SECURITY SLA + ADR-002), #45 (sync). Removed vendored reference code from the tree; full ADR → local-only (outside the repo), public summary in `docs/adr/001-…`; ADR-002 (EvidenceRef = opaque IDs). **Repo set PRIVATE during pre-1.0** — GitHub PR refs still expose pre-mask history, so purge deferred to go-public. Filed #40–44; split #13; §23.14 acceptance in adapter issues; filled real-world/layering in #1–#14. Totals M0=17, M1=15. **CI green.** |
+| 2026-08-04 (4) | **#1 (M0-00) tooling bootstrap DONE.** Per-package `tsconfig.json` + `typecheck` script across all 16 workspace packages; root `typecheck:packages` (`pnpm -r typecheck`); ESLint bans `it.only`/`skip`/`xit`/`xdescribe` (ADR §13.1); `.env.example`; structural test guards the per-package tooling contract. **ADR-003: M0 source-only (no emit).** Gates green (lint/typecheck/typecheck:packages/format/test). Starting contract freeze (#2). |
 
 ---
 
