@@ -99,6 +99,12 @@ importers:
 
   packages/playwright-compiler: {}
 
+  packages/policy-engine:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
   packages/reconciler: {}
 
   packages/source-ua-adapter:
