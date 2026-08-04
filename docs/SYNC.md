@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#5 (M0-04) Bundle manifest frozen.** `schemas/manifest/manifest.schema.json` + AJV + `BundleManifest` types (ADR §14 + issue field list). #1–#4 done. **All JSON-Schema contracts frozen** (evidence, workflow, diagnostics, manifest). Last contract remaining: #6 (Adapter interfaces — TS, ADR §10.5).
+**Status:** **🎯 M0 goal 1 COMPLETE — all 6 contracts frozen** (#1 tooling, #2 EvidenceRef, #3 Workflow IR, #4 Diagnostics, #5 Bundle manifest, #6 Adapter interfaces). `@arxic/contracts` is the frozen capability boundary. 72 tests green. Next M0 phase: real-world-proof surface + spikes.
 
-**Next action:** [#6 (M0-05) Freeze Adapter interfaces](https://github.com/anthonykewl20/arxic/issues/6) — the §10.5 TS interfaces (`SourceIndexer`/`SurfaceDiscoverer`/`FixtureProvider`/`WorkflowPlanner`/`WorkflowCompiler`/`WorkflowVerifier`/`BundlePromoter`) + shared types in `@arxic/contracts`; adapters return contracts, not upstream types (ADR §10.5/§23.14). → **M0 goal 1 (contract freeze) COMPLETE.** After that: **[#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13)** — checkpoint before starting (the real-world surface for spikes #8–#12 + M1).
+**Next action:** [#13 (M0-12) Test-fixture apps scaffold](https://github.com/anthonykewl20/arxic/issues/13) — Next.js `reference-auth-app` + Express `vulnerable-auth-app` (the real-world surface every spike #8–#12 + M1 must run against — charter §6 hard dependency). **Large standalone slice — checkpoint here.** Also available in parallel: #7 (license gate + SBOM). After #13: spikes #8–#12 (each runs against the fixture apps with real engines).
 
-**Last session:** 2026-08-04 — **#5 (M0-04) Bundle manifest frozen**: §14 schema + AJV + `BundleManifest` types; blockers link to #4 Diagnostic (loop-closing test); 70 tests green. **All JSON-Schema contracts frozen.** Next: #6 Adapter interfaces → contract freeze complete.
+**Last session:** 2026-08-04 — **#6 (M0-05) Adapter interfaces frozen → M0 goal 1 (contract freeze) COMPLETE.** 7 §10.5 interfaces + supporting types in `@arxic/contracts`; `@ts-expect-error` type test enforces no upstream-type leakage; `VerificationResult.outcome` = 5 TruthStates (flaky → #21); 72 tests green. All 6 contracts frozen. Next: #13 fixture apps (large, checkpoint).
 
 ---
 
@@ -22,7 +22,7 @@
 |---|---|
 | ADR (public summary) | `docs/adr/001-arxic-architecture.md` (§2 truth states, §8 diagram, §9 pipeline, §10 contracts, §22 milestones) — detailed internal ADR is private/local |
 | Engineering charter | `docs/engineering-charter.md` — TDD red-first + Actions/Service layering + **mandatory sad-path-first**. Every slice follows this. |
-| Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` — **all JSON-Schema contracts frozen** (#2–#5: schemas + AJV validators + `@arxic/contracts` types); #6 (adapter TS interfaces) pending |
+| Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` + adapter TS interfaces — **ALL contracts frozen** (#2–#6); `@arxic/contracts` is the capability boundary (ADR §10.5) |
 | Packages | `packages/*` (14 adapters/engines, scaffolded) — see ADR §18 |
 | Apps | `apps/{cli,worker}/` (scaffolded) |
 | Rule packs | `rulepacks/{nextjs,react,express}/` (empty — built in #9, #22) |
@@ -47,7 +47,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #3 | [M0-02] Freeze contract: Workflow v1 IR | ☑ done |
 | #4 | [M0-03] Freeze contract: Diagnostics | ☑ done |
 | #5 | [M0-04] Freeze contract: Bundle manifest | ☑ done |
-| #6 | [M0-05] Freeze contract: Adapter interfaces | ☐ next |
+| #6 | [M0-05] Freeze contract: Adapter interfaces | ☑ done |
 | #7 | [M0-06] License gate + SBOM automation | ☐ |
 | #8 | [M0-07] Spike: Understand-Anything subset extraction | ☐ |
 | #9 | [M0-08] Spike: ast-grep rule fixtures (Next.js + Express) | ☐ |
@@ -123,6 +123,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-04 (6) | **#3 (M0-02) Workflow v1 IR frozen.** `schemas/workflow/workflow.schema.json` (2020-12) + AJV validator + TS types (`Workflow`/`WorkflowTransition`/`TruthState`). **`status:"verified"` rejected unless every required transition carries `run:` runtime evidence** (ADR §2/§15/ADR-002 — an LLM may never assign verified); transitions `required:true` by default; optional non-blocking; 5 truth states; confidence descriptive-only. Stable diagnostics `ARXIC-WORKFLOW-*`; ADR §10.3 literal + sad-paths + tautology guard; 46 tests green. |
 | 2026-08-04 (7) | **#4 (M0-03) Diagnostics frozen.** `schemas/diagnostics/diagnostics.schema.json` (2020-12) + AJV + widened `Diagnostic`/`DiagnosticSeverity` types (ADR §10.4). `severity` enum = 4 non-`verified` truth states; `code` pattern `^ARXIC-[A-Z0-9][A-Z0-9-]*$`; `evidenceRefs` accept arbitrary refs (ADR `config:idp-provider`). **Loop-closing contract test dynamically iterates every exported `ARXIC-*` code and validates each.** Sad-paths + tautology guard; 55 tests green. 4/5 contracts frozen. |
 | 2026-08-04 (8) | **#5 (M0-04) Bundle manifest frozen.** `schemas/manifest/manifest.schema.json` (2020-12) + AJV + `BundleManifest` types (ADR §14 + issue #5 field list). `blockers` inline the frozen Diagnostic shape; loop-closing test proves a manifest blocker validates via `validateDiagnostic` (#4). Sad-paths (missing digest/commit/hashes, gate-missing, denominator-invalid, bad lengths, blocker `severity:"verified"`, extra property) + tautology guard; 70 tests green. **All JSON-Schema contracts frozen.** Boundary: cross-field totals + denominator immutability → #23/#24. |
+| 2026-08-04 (9) | **#6 (M0-05) Adapter interfaces frozen → 🎯 M0 goal 1 (contract freeze) COMPLETE.** 7 ADR §10.5 TS interfaces + minimal supporting types in `@arxic/contracts` (reusing #2–#5 frozen types). Compile-time `@ts-expect-error` test (`adapters.test-d.ts`) proves adapters can't leak upstream types (fail-closed at type level — gate reds if an interface widens). `VerificationResult.outcome` = 5 `TruthState`s (no 6th "flaky" — verifier-internal #21, derivable from `runs[]`). Boundary-double runtime test exercises all 7 interfaces. 72 tests green. **All 6 contracts frozen.** Next: #13 fixture apps (large slice, checkpoint). |
 
 ---
 
