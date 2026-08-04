@@ -1,0 +1,33 @@
+import type { Diagnostic } from '@arxic/contracts';
+
+export const ARXIC_SOURCE_UNSUPPORTED_LANGUAGE = 'ARXIC-SOURCE-UNSUPPORTED-LANGUAGE' as const;
+export const ARXIC_SOURCE_BINARY_FILE = 'ARXIC-SOURCE-BINARY-FILE' as const;
+export const ARXIC_SOURCE_FILE_OVERSIZE = 'ARXIC-SOURCE-FILE-OVERSIZE' as const;
+export const ARXIC_SOURCE_PARSE_ERROR = 'ARXIC-SOURCE-PARSE-ERROR' as const;
+export const ARXIC_SOURCE_DIRTY_TREE = 'ARXIC-SOURCE-DIRTY-TREE' as const;
+export const ARXIC_SOURCE_NO_COMMIT = 'ARXIC-SOURCE-NO-COMMIT' as const;
+export const ARXIC_SOURCE_SHALLOW_CLONE = 'ARXIC-SOURCE-SHALLOW-CLONE' as const;
+export const ARXIC_SOURCE_REVISION_MISMATCH = 'ARXIC-SOURCE-REVISION-MISMATCH' as const;
+export const ARXIC_SOURCE_REPOSITORY_UNAVAILABLE = 'ARXIC-SOURCE-REPOSITORY-UNAVAILABLE' as const;
+
+export const SOURCE_DIAGNOSTIC_CODES = [
+  ARXIC_SOURCE_UNSUPPORTED_LANGUAGE,
+  ARXIC_SOURCE_BINARY_FILE,
+  ARXIC_SOURCE_FILE_OVERSIZE,
+  ARXIC_SOURCE_PARSE_ERROR,
+  ARXIC_SOURCE_DIRTY_TREE,
+  ARXIC_SOURCE_NO_COMMIT,
+  ARXIC_SOURCE_SHALLOW_CLONE,
+  ARXIC_SOURCE_REVISION_MISMATCH,
+  ARXIC_SOURCE_REPOSITORY_UNAVAILABLE,
+] as const;
+
+export type SourceDiagnosticCode = (typeof SOURCE_DIAGNOSTIC_CODES)[number];
+
+export function sourceDiagnostic(
+  code: SourceDiagnosticCode,
+  subject: string,
+  message: string,
+): Diagnostic {
+  return { code, severity: 'blocked', subject, message };
+}

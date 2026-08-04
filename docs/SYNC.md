@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#7 (M0-06) License gate + SBOM DONE.** `scripts/license-gate.mjs` rejects GPL/AGPL/SSPL on the real dependency graph (0 rejected now); CycloneDX SBOM generated + uploaded in CI. **8/17 M0 issues done.** Remaining M0 = **spikes #8–#12** (runnable against the fixture apps with real engines) + #40/#41/#44 + #14 (M0-EXIT).
+**Status:** **#8 (M0-07) Understand-Anything subset extraction DONE.** `@arxic/source-ua-adapter` deterministically manifests Git bytes and emits frozen-contract source evidence from real native Tree-sitter parsing of both fixture apps; dirty/shallow/no-commit and bounded-file gaps fail closed. **9/17 M0 issues done.** Remaining M0 = **spikes #9–#12** + #40/#41/#44 + #14 (M0-EXIT).
 
-**Next action:** [#8 (M0-07) Spike: Understand-Anything subset extraction](https://github.com/anthonykewl20/arxic/issues/8) — first spike; real Tree-sitter parsing of the real fixture apps' source. Then #9 (ast-grep `sg` CLI on the fixture apps), #10 (PlaywrightAgentAdapter / real Chromium), #11 (atomic promotion + last-known-good), #12 (threat model + target-attestation) → then #14 (M0-EXIT gate).
+**Next action:** [#9 (M0-08) Spike: ast-grep rule fixtures](https://github.com/anthonykewl20/arxic/issues/9) — real `sg` CLI on the fixture apps. Then #10 (PlaywrightAgentAdapter / real Chromium), #11 (atomic promotion + last-known-good), #12 (threat model + target-attestation) → then #14 (M0-EXIT gate).
 
-**Last session:** 2026-08-04 — **#7 (M0-06) License gate + SBOM DONE**: `scripts/license-gate.mjs` scans the real pnpm graph (allowlist incl. MPL/LGPL; reject GPL/AGPL/SSPL/Unknown); `thirty-two` excepted (MIT upstream). CI runs the gate + CycloneDX SBOM artifact. LGPL distinguished from GPL. 93 tests green. Next: spikes #8–#12.
+**Last session:** 2026-08-04 — **#8 (M0-07) Understand-Anything subset extraction DONE**: real native Tree-sitter scans both fixture apps; full Git SHA + deterministic byte manifest; symbols/imports/calls/Next.js+Express routes carry validated source refs. Dirty bytes get no committed refs; unsupported/binary/oversize/parse/no-commit/shallow paths are blocked. 105 tests green. Next: #9 ast-grep spike.
 
 ---
 
@@ -49,7 +49,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #5 | [M0-04] Freeze contract: Bundle manifest | ☑ done |
 | #6 | [M0-05] Freeze contract: Adapter interfaces | ☑ done |
 | #7 | [M0-06] License gate + SBOM automation | ☑ done |
-| #8 | [M0-07] Spike: Understand-Anything subset extraction | ☐ |
+| #8 | [M0-07] Spike: Understand-Anything subset extraction | ☑ done |
 | #9 | [M0-08] Spike: ast-grep rule fixtures (Next.js + Express) | ☐ |
 | #10 | [M0-09] Spike: PlaywrightAgentAdapter handshake + fallback | ☐ |
 | #11 | [M0-10] Spike: Atomic promotion + last-known-good | ☐ |
@@ -126,6 +126,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-04 (9) | **#6 (M0-05) Adapter interfaces frozen → 🎯 M0 goal 1 (contract freeze) COMPLETE.** 7 ADR §10.5 TS interfaces + minimal supporting types in `@arxic/contracts` (reusing #2–#5 frozen types). Compile-time `@ts-expect-error` test (`adapters.test-d.ts`) proves adapters can't leak upstream types (fail-closed at type level — gate reds if an interface widens). `VerificationResult.outcome` = 5 `TruthState`s (no 6th "flaky" — verifier-internal #21, derivable from `runs[]`). Boundary-double runtime test exercises all 7 interfaces. 72 tests green. **All 6 contracts frozen.** Next: #13 fixture apps (large slice, checkpoint). |
 | 2026-08-04 (10) | **#13 (M0-12) Test-fixture apps DONE.** Two REAL structurally-different auth apps: `reference-auth-app` (Next.js 15 App Router + better-sqlite3 + bcryptjs + nodemailer→Mailpit + otplib) — full §12.1 (login/logout/forgot-reset/change-password/MFA enroll+challenge), HMAC sessions, CSRF, rate limit; `vulnerable-auth-app` (Express + ejs + sqlite) — login/logout/reset with documented weaknesses (enumerating login, reused + 7-day tokens, no CSRF, no rate limit, verbose errors). Both serve attestation `environmentClass:"local-test"` + seed/reset API. Real Mailpit via `docker-compose.yml`. **REAL boot tests green against real Mailpit** (reset email delivered + token extracted; reference MFA needs real otplib TOTP; vulnerable enumeration + token-reuse weaknesses proven). Per-app typecheck/lint/test excluded from root gate; CI `ci` job gates both apps with a Mailpit service. `pnpm-workspace.yaml allowBuilds` for native deps. **Spikes #8–#12 unblocked.** |
 | 2026-08-04 (11) | **#7 (M0-06) License gate + SBOM DONE.** `scripts/license-gate.mjs` scans the real pnpm graph (440 pkgs) against an allowlist (permissive + weak-copyleft MPL/LGPL) and rejects GPL/AGPL/SSPL/Commons-Clause/BSL/EUPL/CC-BY-SA/PolyForm/Unknown. `license-exceptions.json` (`thirty-two` → MIT upstream). CI: license gate + CycloneDX SBOM artifact + `third_party/` vendored-code guard. TDD sad-paths (AGPL/GPL/SSPL rejected; **LGPL allowed — distinguished from GPL**) + real-graph assertion (0 rejected). 93 tests green. 8/17 M0 done. |
+| 2026-08-04 (12) | **#8 (M0-07) Understand-Anything subset extraction DONE.** `@arxic/source-ua-adapter` adapts the reviewed deterministic scanner/structure seams behind frozen `SourceIndexer`: full Git SHA, bytewise manifest + SHA-256, dirty provenance guard, fail-closed gaps, and real native Tree-sitter symbols/imports/calls/Next.js+Express routes. Canonical output is byte-identical pre-timestamp; ADR §23.14 contract gate + separate MIT grammar-license test. Real proof scans both fixture-app source trees. 105 tests green. 9/17 M0 done. |
 
 ---
 
