@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><title>Vulnerable Auth App</title></head>
+  <body>
+    <main>
+      <h1>Vulnerable Auth App</h1>
+      <% if (message) { %><p class="message"><%= message %></p><% } %>
+      <% if (error) { %><p class="error"><%= error %></p><% } %>
+      <h2>Login</h2>
+      <form action="/login" method="post">
+        <label>Email <input name="email" type="email" required></label>
+        <label>Password <input name="password" type="password" required></label>
+        <button type="submit">Login</button>
+      </form>
+      <form action="/logout" method="post"><button type="submit">Logout</button></form>
+      <h2>Forgot password</h2>
+      <form action="/forgot" method="post">
+        <label>Email <input name="email" type="email" required></label>
+        <button type="submit">Send reset link</button>
+      </form>
+      <h2>Reset password</h2>
+      <form action="/reset" method="post">
+        <label>Token <input name="token" required></label>
+        <label>New password <input name="password" type="password" required></label>
+        <button type="submit">Reset password</button>
+      </form>
+    </main>
+  </body>
+</html>

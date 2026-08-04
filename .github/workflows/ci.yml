@@ -13,6 +13,14 @@ concurrency:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    services:
+      mailpit:
+        image: axllent/mailpit:latest
+        ports:
+          - 1025:1025
+          - 8025:8025
+        env:
+          MP_SMTP_AUTH_ACCEPT_ANY: 1
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +53,15 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Fixture apps typecheck
+        run: pnpm --filter reference-auth-app typecheck && pnpm --filter vulnerable-auth-app typecheck
+
+      - name: Fixture apps test (real Mailpit)
+        run: pnpm --filter reference-auth-app test && pnpm --filter vulnerable-auth-app test
+        env:
+          ARXIC_MAILPIT_SMTP: localhost:1025
+          ARXIC_MAILPIT_API: http://localhost:8025
 
       - name: Command-guard denylist test
         run: bash .opencode/plugins/test-guard.sh

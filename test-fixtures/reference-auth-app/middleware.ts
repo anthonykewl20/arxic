@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-const protectedPaths = ['/change-password', '/logout'];
+const protectedPaths = ['/change-password', '/mfa/enroll', '/logout'];
 const csrfCookie = 'arxic_csrf';
 const sessionSecret = process.env.ARXIC_SESSION_SECRET || 'arxic-reference-fixture-secret';
 

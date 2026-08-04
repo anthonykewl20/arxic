@@ -11,6 +11,7 @@ export default async function HomePage() {
         <Link href="/login">Login</Link>
         <Link href="/forgot-password">Forgot password</Link>
         <Link href="/change-password">Change password</Link>
+        <Link href="/mfa/enroll">Enroll MFA</Link>
       </nav>
       {email ? (
         <form action="/logout" method="post">

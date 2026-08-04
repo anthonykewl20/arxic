@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { authenticator } from 'otplib';
 
 const baseUrl = process.env.ARXIC_TEST_BASE_URL || 'http://localhost:4012';
 const mailpitApi = process.env.ARXIC_MAILPIT_API || 'http://localhost:8025';
@@ -78,7 +79,7 @@ async function findResetToken(): Promise<string> {
 }
 
 describe('real reference auth app', () => {
-  test('runs seeded login, reset email, password reset, attestation, and logout', async () => {
+  test('keeps the Phase 1 login, reset email, password reset, attestation, and logout flow green', async () => {
     const state: BrowserState = { cookies: new Map() };
     const forgedSession: BrowserState = { cookies: new Map([['arxic_session', 'malformed.!']]) };
     const protectedRoute = await browserFetch(forgedSession, '/logout');
@@ -118,6 +119,20 @@ describe('real reference auth app', () => {
     expect(passwordReset.status).toBe(303);
     expect(passwordReset.headers.get('location')).toContain('Password%20reset%20successfully');
 
+    state.cookies.clear();
+    const reauthenticated = await submitServerAction(state, '/login', {
+      email: 'user@example.test',
+      password: 'NewHunter3!',
+    });
+    expect(reauthenticated.headers.get('location')).toBe('/');
+    const changePassword = await submitServerAction(state, '/change-password', {
+      currentPassword: 'NewHunter3!',
+      newPassword: 'Changed4!',
+    });
+    expect(changePassword.status).toBe(303);
+    expect(changePassword.headers.get('location')).toContain('Password%20changed%20successfully');
+    console.log('[reference-flow] authenticated change-password succeeded');
+
     const attestation = await browserFetch(state, '/.well-known/arxic-test-target.json');
     expect(attestation.headers.get('content-type')).toContain('application/json');
     const target = await attestation.json() as Record<string, unknown>;
@@ -130,5 +145,55 @@ describe('real reference auth app', () => {
     const logout = await browserFetch(state, '/logout', { method: 'POST' });
     expect(logout.status).toBe(303);
     expect(state.cookies.has('arxic_session')).toBe(false);
+
+    const oldPassword = await submitServerAction({ cookies: new Map() }, '/login', {
+      email: 'user@example.test',
+      password: 'NewHunter3!',
+    });
+    expect(oldPassword.headers.get('location')).toContain('Invalid%20credentials');
+    const newPasswordState: BrowserState = { cookies: new Map() };
+    const newPassword = await submitServerAction(newPasswordState, '/login', {
+      email: 'user@example.test',
+      password: 'Changed4!',
+    });
+    expect(newPassword.headers.get('location')).toBe('/');
+    expect(newPasswordState.cookies.has('arxic_session')).toBe(true);
+    console.log('[reference-flow] old password rejected and changed password accepted');
+  });
+
+  test('requires a real TOTP challenge before creating a full session', async () => {
+    const state: BrowserState = { cookies: new Map() };
+    expect((await browserFetch(state, '/__arxic/reset', { method: 'POST' })).status).toBe(204);
+    const secret = authenticator.generateSecret();
+    const seed = await browserFetch(state, '/__arxic/seed', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        personaId: 'mfa-user',
+        email: 'mfa@example.test',
+        password: 'MfaHunter2!',
+        mfaSecret: secret,
+      }),
+    });
+    expect(seed.status).toBe(201);
+
+    const login = await submitServerAction(state, '/login', {
+      email: 'mfa@example.test',
+      password: 'MfaHunter2!',
+    });
+    expect(login.status).toBe(303);
+    expect(login.headers.get('location')).toBe('/mfa/challenge');
+    expect(state.cookies.has('arxic_mfa_pending')).toBe(true);
+    expect(state.cookies.has('arxic_session')).toBe(false);
+
+    const challenge = await submitServerAction(state, '/mfa/challenge', {
+      token: authenticator.generate(secret),
+    });
+    expect(challenge.status).toBe(303);
+    expect(challenge.headers.get('location')).toBe('/');
+    expect(state.cookies.has('arxic_mfa_pending')).toBe(false);
+    expect(state.cookies.has('arxic_session')).toBe(true);
+    const home = await browserFetch(state, '/');
+    expect(await home.text()).toContain('Logged in as mfa@example.test');
+    console.log('[reference-flow] password login stopped at MFA challenge; real otplib TOTP created full session');
   });
 });

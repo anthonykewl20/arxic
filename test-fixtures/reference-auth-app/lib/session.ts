@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { db } from './db';
 
 export const SESSION_COOKIE = 'arxic_session';
+export const MFA_PENDING_COOKIE = 'arxic_mfa_pending';
 const secret = process.env.ARXIC_SESSION_SECRET || 'arxic-reference-fixture-secret';
 
 function sign(value: string): string {
@@ -36,6 +37,46 @@ export async function createSession(email: string): Promise<void> {
     secure: process.env.NODE_ENV === 'production' && process.env.ARXIC_COOKIE_SECURE === '1',
     path: '/',
   });
+}
+
+export async function createMfaChallenge(email: string): Promise<void> {
+  const id = randomBytes(32).toString('base64url');
+  db.prepare('INSERT INTO mfa_challenges (id, email, createdAt) VALUES (?, ?, ?)').run(
+    id,
+    email,
+    Date.now(),
+  );
+  const store = await cookies();
+  const payload = `${id}.${Buffer.from(email).toString('base64url')}`;
+  store.set(MFA_PENDING_COOKIE, `${payload}.${sign(payload)}`, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production' && process.env.ARXIC_COOKIE_SECURE === '1',
+    path: '/',
+    maxAge: 5 * 60,
+  });
+}
+
+export async function readMfaChallenge(): Promise<string | null> {
+  const store = await cookies();
+  const challenge = unpack(store.get(MFA_PENDING_COOKIE)?.value);
+  if (!challenge) return null;
+  const row = db.prepare('SELECT email, createdAt FROM mfa_challenges WHERE id = ?').get(challenge.id) as
+    | { email: string; createdAt: number }
+    | undefined;
+  if (!row || row.email !== challenge.email || row.createdAt + 5 * 60_000 <= Date.now()) return null;
+  return row.email;
+}
+
+export async function completeMfaChallenge(): Promise<string | null> {
+  const email = await readMfaChallenge();
+  if (!email) return null;
+  const store = await cookies();
+  const challenge = unpack(store.get(MFA_PENDING_COOKIE)?.value);
+  if (challenge) db.prepare('DELETE FROM mfa_challenges WHERE id = ?').run(challenge.id);
+  store.set(MFA_PENDING_COOKIE, '', { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 0 });
+  await createSession(email);
+  return email;
 }
 
 export async function readCurrentSession(): Promise<string | null> {
