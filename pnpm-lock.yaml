@@ -74,6 +74,24 @@ importers:
 
   packages/fixture-otplib: {}
 
+  packages/m0-pipeline:
+    dependencies:
+      '@arxic/ast-grep-adapter':
+        specifier: workspace:*
+        version: link:../ast-grep-adapter
+      '@arxic/bundle-promoter':
+        specifier: workspace:*
+        version: link:../bundle-promoter
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@arxic/environment':
+        specifier: workspace:*
+        version: link:../environment
+      '@arxic/playwright-agent-adapter':
+        specifier: workspace:*
+        version: link:../playwright-agent-adapter
+
   packages/model-adapter:
     dependencies:
       '@arxic/contracts':
