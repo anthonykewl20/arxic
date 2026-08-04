@@ -12,9 +12,16 @@ A production-looking target can pass only through `humanApprovals[origin]` in st
 
 Live fetches fail closed after `attestationTimeoutMs`, which defaults to 10 seconds. Timeout, network, HTTP, JSON, and shape failures return `ARXIC-ATTESTATION-FETCH-FAILED` and a refused decision.
 
+## PREFLIGHT
+
+`runPreflightAttestation()` composes `EnvironmentHandshake.attest()` across a target set and classifies target IDs into `accepted` and `refused`. It writes deterministic canonical JSON to `preflight-attestation.json` under the requested artifacts directory, recording every target's origin, environment class, disposition, reason, policy version, timestamp, and any recorded override. Artifact write failures return `ARXIC-ATTESTATION-ARTIFACT-WRITE-FAILED` as a blocked diagnostic without changing the handshake decisions.
+
+The PREFLIGHT acceptance gate admits both real reference apps as `local-test` under exact-origin and nonce policy. Production-styled targets remain refused by default and are recorded as refused in the same run artifact.
+
 ## Public API
 
 - `EnvironmentHandshake.attest(request, policy)` fetches and evaluates the live endpoint.
+- `runPreflightAttestation(input)` runs the handshake for all targets and records their decisions.
 - `verifyAttestation(attestation, request, policy)` is the pure policy action.
 - `classifyTarget(target)` exposes the deterministic production-looking heuristic.
 - `ATTESTATION_DIAGNOSTIC_CODES` enumerates every stable `ARXIC-ATTESTATION-*` diagnostic.

@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#41 (M0-14) Policy engine DONE.** `@arxic/policy-engine` owns the pure one-input AUTHZ decision node and configured `PolicyEngine`: a frozen registry maps six actions to the four frozen action classes; exact origin allowlists apply to every action; caller-supplied lease state gates reversible mutation; sandbox plus exact action-and-origin approval gates external effects; exact action-and-origin approval gates destructive work; unknown actions and missing or mismatched classes fail closed; and every result carries a canonical full-input `PolicySnapshot.inputSha256` plus stable diagnostics. **15/17 M0 issues done.** Remaining M0 = **#44** + #14 (M0-EXIT). **#41 is done and #44 is unblocked by #12 and #13.**
+**Status:** **#44 (M0-15) PREFLIGHT target-attestation acceptance DONE.** `@arxic/environment` composes the existing real target-attestation handshake across target sets, accepts both reference apps as `local-test`, refuses production-styled and missing or malformed attestations with blocked diagnostics, and records every target decision in deterministic canonical run-artifact JSON. **16/17 M0 issues done.** Remaining M0 = **#14 (M0-EXIT) only.**
 
-**Next action:** [#44 (M0-15) Arxic target-attestation accepts reference apps](https://github.com/anthonykewl20/arxic/issues/44). Then #14 (M0-EXIT gate).
+**Next action:** [#14 (M0-EXIT) Gate: login candidate verifies twice + promotes](https://github.com/anthonykewl20/arxic/issues/14).
 
-**Last session:** 2026-08-05 (7) — **#41 (M0-14) Policy engine DONE**: one-argument `authorize(PolicyAuthorization)` and configured `PolicyEngine.decide` enforce the frozen six-action registry; pure caller-owned lease and budget state gate bounded work; external and destructive approvals use exact action-and-origin keys; snapshots hash canonical full inputs; stable `ARXIC-POLICY-*` diagnostics loop-close; and live reference-app attestation exercises all five required decisions. **15/17 M0 done.** Next: #44, then #14.
+**Last session:** 2026-08-05 (8) — **#44 (M0-15) PREFLIGHT target-attestation acceptance DONE**: the existing live handshake now runs across target sets; both real reference apps are accepted as `local-test`; a production-styled target and missing or malformed attestations are refused with blocked diagnostics; and deterministic canonical run artifacts record every target decision. **16/17 M0 done.** Next: #14 M0-EXIT.
 
 ---
 
@@ -57,7 +57,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #13 | [M0-12] Test-fixture apps scaffold | ☑ done |
 | #40 | [M0-13] Spike: ModelAdapter | ☑ done |
 | #41 | [M0-14] Policy engine: action classes + fail-closed | ☑ done |
-| #44 | [M0-15] Arxic target-attestation accepts reference apps (depends #12, #13) | ☐ |
+| #44 | [M0-15] Arxic target-attestation accepts reference apps (depends #12, #13) | ☑ done |
 | #14 | [M0-EXIT] Gate: login candidate verifies twice + promotes | ☐ (blocks M1) |
 
 ### Milestone 1 — Authentication Vertical Slice  (issue milestone "Milestone 1 - Authentication Vertical Slice")
@@ -133,6 +133,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-05 (5) | **#12 (M0-11) Threat model + target-attestation DONE.** Real HTTP handshakes against both fixture apps allow exact local-test attestations; production-looking, origin, nonce, and unsigned-receipt failures are `blocked`, while only static recorded human approval permits the production-shaped proof target. Worker, prompt-injection, action, privacy, and Docker/Testcontainers isolation requirements are documented. 13/17 M0 done; #44 unblocked. |
 | 2026-08-05 (6) | **#40 (M0-13) ModelAdapter DONE.** Credentials resolve-at-call-time Bearer-only, structured output is schema-bound + real-AJV-validated, invalid output retries then blocks with no promotion, schema-version drift fails closed, content-as-data injection is blocked without policy mutation, and run records carry only request id/schema version/token+provider metadata behind a redaction gate; stable `ARXIC-MODEL-*` diagnostics loop-close; real local OpenAI-compatible stub + real AJV prove it. 14/17 M0 done. |
 | 2026-08-05 (7) | **#41 (M0-14) Policy engine DONE.** One-argument `authorize(PolicyAuthorization)` plus configured `PolicyEngine.decide` enforce six registered actions across the four frozen action classes; exact origin allowlists, caller-owned lease and budget state, sandbox presence, and exact recorded approvals fail closed with stable `ARXIC-POLICY-*` diagnostics. Canonical snapshots hash full inputs, and live reference-app attestation covers all five required decisions. 15/17 M0 done. |
+| 2026-08-05 (8) | **#44 (M0-15) PREFLIGHT target-attestation acceptance DONE.** The existing real handshake now runs across target sets; both real reference apps are accepted as `local-test`; production-styled and missing or malformed attestations are refused with blocked diagnostics; deterministic canonical run artifacts record every decision; and artifact write failures fail closed. 16/17 M0 done. |
 
 ---
 
