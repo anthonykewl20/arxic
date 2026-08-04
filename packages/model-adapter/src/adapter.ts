@@ -118,6 +118,26 @@ export class ModelAdapter {
         ...request.messages.map((message) => message.content),
         ...(this.options.canaries ?? []),
       ].filter(Boolean);
+      const finalize = (
+        candidate: StructuredOutputResult,
+        gateOutput?: unknown,
+      ): StructuredOutputResult => {
+        const output = gateOutput ?? (candidate.ok ? candidate.output : undefined);
+        const gate = redactionGate(
+          {
+            record: candidate.runRecord,
+            output,
+            diagnostics: candidate.ok ? undefined : candidate.diagnostics,
+          },
+          forbidden,
+        );
+        if (gate.ok) return candidate;
+        return {
+          ok: false,
+          diagnostics: gate.diagnostics,
+          runRecord: sanitizeRunRecord(candidate.runRecord, forbidden),
+        };
+      };
       const maxRetries = request.maxRetries ?? 2;
       if (!Number.isSafeInteger(maxRetries) || maxRetries < 0) {
         return blocked(
@@ -142,18 +162,22 @@ export class ModelAdapter {
         });
         if (!result.ok) {
           if (result.diagnostics[0]?.code === ARXIC_MODEL_PROVIDER_TIMEOUT) {
-            return blocked(
-              ARXIC_MODEL_PROVIDER_TIMEOUT,
-              'model-provider',
-              'Model provider request timed out',
-              lastResponse,
+            return finalize(
+              blocked(
+                ARXIC_MODEL_PROVIDER_TIMEOUT,
+                'model-provider',
+                'Model provider request timed out',
+                lastResponse,
+              ),
             );
           }
-          return blocked(
-            ARXIC_MODEL_PROVIDER_ERROR,
-            'model-provider',
-            'Model provider request failed',
-            lastResponse,
+          return finalize(
+            blocked(
+              ARXIC_MODEL_PROVIDER_ERROR,
+              'model-provider',
+              'Model provider request failed',
+              lastResponse,
+            ),
           );
         }
 
@@ -166,11 +190,13 @@ export class ModelAdapter {
             messages.push({ ...RETRY_SYSTEM_NOTE });
             continue;
           }
-          return blocked(
-            ARXIC_MODEL_RETRIES_EXHAUSTED,
-            'structured-output',
-            'Structured output remained invalid; retries exhausted',
-            lastResponse,
+          return finalize(
+            blocked(
+              ARXIC_MODEL_RETRIES_EXHAUSTED,
+              'structured-output',
+              'Structured output remained invalid; retries exhausted',
+              lastResponse,
+            ),
           );
         }
 
@@ -180,11 +206,14 @@ export class ModelAdapter {
             messages.push({ ...RETRY_SYSTEM_NOTE });
             continue;
           }
-          return blocked(
-            ARXIC_MODEL_SCHEMA_VERSION_DRIFT,
-            'structured-output.schemaVersion',
-            'Model output schema version does not match the expected version',
-            lastResponse,
+          return finalize(
+            blocked(
+              ARXIC_MODEL_SCHEMA_VERSION_DRIFT,
+              'structured-output.schemaVersion',
+              'Model output schema version does not match the expected version',
+              lastResponse,
+            ),
+            parsed,
           );
         }
 
@@ -194,25 +223,20 @@ export class ModelAdapter {
             messages.push({ ...RETRY_SYSTEM_NOTE });
             continue;
           }
-          return blocked(
-            ARXIC_MODEL_RETRIES_EXHAUSTED,
-            'structured-output',
-            'Structured output remained invalid; retries exhausted',
-            lastResponse,
+          return finalize(
+            blocked(
+              ARXIC_MODEL_RETRIES_EXHAUSTED,
+              'structured-output',
+              'Structured output remained invalid; retries exhausted',
+              lastResponse,
+            ),
+            parsed,
           );
         }
 
         const record = recordFrom(lastResponse);
-        const gate = redactionGate({ record, output: parsed }, forbidden);
-        if (!gate.ok) {
-          return {
-            ok: false,
-            diagnostics: gate.diagnostics,
-            runRecord: sanitizeRunRecord(record, forbidden),
-          };
-        }
         if (INSTRUCTION_LIKE_OUTPUT.test(JSON.stringify(parsed))) {
-          return {
+          const candidate: StructuredOutputResult = {
             ok: false,
             diagnostics: [
               modelDiagnostic(
@@ -223,15 +247,18 @@ export class ModelAdapter {
             ],
             runRecord: record,
           };
+          return finalize(candidate, parsed);
         }
-        return { ok: true, output: parsed, runRecord: record };
+        return finalize({ ok: true, output: parsed, runRecord: record }, parsed);
       }
 
-      return blocked(
-        ARXIC_MODEL_RETRIES_EXHAUSTED,
-        'structured-output',
-        'Structured output remained invalid; retries exhausted',
-        lastResponse,
+      return finalize(
+        blocked(
+          ARXIC_MODEL_RETRIES_EXHAUSTED,
+          'structured-output',
+          'Structured output remained invalid; retries exhausted',
+          lastResponse,
+        ),
       );
     } catch {
       let timestamp: string;

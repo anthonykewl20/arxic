@@ -83,11 +83,12 @@ export function assertSchemaVersion(
   output: unknown,
   expected: string,
 ): { ok: true } | { ok: false; diagnostics: Diagnostic[] } {
-  if (typeof output !== 'object' || output === null || Array.isArray(output)) {
-    return { ok: true };
-  }
-  const declared = (output as Record<string, unknown>).schemaVersion;
-  if (declared === undefined || declared === expected) {
+  if (
+    typeof output === 'object' &&
+    output !== null &&
+    !Array.isArray(output) &&
+    (output as Record<string, unknown>).schemaVersion === expected
+  ) {
     return { ok: true };
   }
   return {

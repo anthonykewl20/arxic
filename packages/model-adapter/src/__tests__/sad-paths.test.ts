@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { ModelAdapter } from '..';
-import { adapterRequest, BEARER_TOKEN, completion, startStub, validOutput } from './stub';
+import {
+  adapterRequest,
+  BEARER_TOKEN,
+  completion,
+  EXPECTED_SCHEMA_VERSION,
+  startStub,
+  validOutput,
+} from './stub';
 
 describe('ModelAdapter sad paths', () => {
   it('malformed output is retried then blocked (default maxRetries=2 = 3 total requests)', async () => {
@@ -53,6 +60,26 @@ describe('ModelAdapter sad paths', () => {
     }
   });
 
+  it('missing response schemaVersion retries then fails closed', async () => {
+    const output = { candidates: validOutput().candidates };
+    const stub = await startStub(() => ({ completion: completion(JSON.stringify(output)) }));
+    try {
+      const result = await new ModelAdapter({
+        baseUrl: stub.baseUrl,
+        credentials: () => BEARER_TOKEN,
+      }).requestStructuredOutput(adapterRequest());
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected blocked result');
+      expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+        'ARXIC-MODEL-SCHEMA-VERSION-DRIFT',
+      ]);
+      expect(stub.requests).toHaveLength(3);
+      expect('output' in result).toBe(false);
+    } finally {
+      await stub.close();
+    }
+  });
+
   it('credential or prompt leak into an artifact is blocked and every emitted artifact is canary-free', async () => {
     const promptCanary = 'PROMPT-CANARY-9Z';
     const stub = await startStub(() => ({
@@ -79,6 +106,93 @@ describe('ModelAdapter sad paths', () => {
       expect(JSON.stringify(result.diagnostics).includes(BEARER_TOKEN)).toBe(false);
       expect(JSON.stringify(result.diagnostics).includes(promptCanary)).toBe(false);
       expect('output' in result).toBe(false);
+    } finally {
+      await stub.close();
+    }
+  });
+
+  it('malformed output every attempt with a credential-poisoned id is blocked as a leak', async () => {
+    const promptCanary = 'PROMPT-CANARY-9Z';
+    const stub = await startStub(() => ({
+      completion: completion('{not valid json', { id: `leak-${BEARER_TOKEN}` }),
+    }));
+    try {
+      const result = await new ModelAdapter({
+        baseUrl: stub.baseUrl,
+        credentials: () => BEARER_TOKEN,
+      }).requestStructuredOutput({
+        ...adapterRequest(),
+        messages: [{ role: 'user', content: promptCanary }],
+      });
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected blocked result');
+      expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+        'ARXIC-MODEL-CREDENTIAL-LEAK-DETECTED',
+      ]);
+      expect('output' in result).toBe(false);
+      expect(JSON.stringify(result)).not.toContain(BEARER_TOKEN);
+      expect(JSON.stringify(result)).not.toContain(promptCanary);
+    } finally {
+      await stub.close();
+    }
+  });
+
+  it('schema-version drift every attempt with a canary-poisoned id and model is blocked as a leak', async () => {
+    const promptCanary = 'PROMPT-CANARY-9Z';
+    const stub = await startStub(() => ({
+      completion: completion(
+        JSON.stringify({ ...validOutput(), schemaVersion: 'arxic-stage4-inference-v9' }),
+        { id: `leak-${promptCanary}`, model: `leak-${promptCanary}` },
+      ),
+    }));
+    try {
+      const result = await new ModelAdapter({
+        baseUrl: stub.baseUrl,
+        credentials: () => BEARER_TOKEN,
+      }).requestStructuredOutput({
+        ...adapterRequest(),
+        messages: [{ role: 'user', content: promptCanary }],
+      });
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected blocked result');
+      expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+        'ARXIC-MODEL-CREDENTIAL-LEAK-DETECTED',
+      ]);
+      expect('output' in result).toBe(false);
+      expect(JSON.stringify(result)).not.toContain(BEARER_TOKEN);
+      expect(JSON.stringify(result)).not.toContain(promptCanary);
+    } finally {
+      await stub.close();
+    }
+  });
+
+  it('AJV-invalid output every attempt with a canary-poisoned model is blocked as a leak', async () => {
+    const promptCanary = 'PROMPT-CANARY-9Z';
+    const stub = await startStub(() => ({
+      completion: completion(
+        JSON.stringify({
+          schemaVersion: EXPECTED_SCHEMA_VERSION,
+          candidates: [{ id: 'auth.login' }],
+        }),
+        { model: `leak-${promptCanary}` },
+      ),
+    }));
+    try {
+      const result = await new ModelAdapter({
+        baseUrl: stub.baseUrl,
+        credentials: () => BEARER_TOKEN,
+      }).requestStructuredOutput({
+        ...adapterRequest(),
+        messages: [{ role: 'user', content: promptCanary }],
+      });
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected blocked result');
+      expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+        'ARXIC-MODEL-CREDENTIAL-LEAK-DETECTED',
+      ]);
+      expect('output' in result).toBe(false);
+      expect(JSON.stringify(result)).not.toContain(BEARER_TOKEN);
+      expect(JSON.stringify(result)).not.toContain(promptCanary);
     } finally {
       await stub.close();
     }
@@ -130,6 +244,52 @@ describe('ModelAdapter sad paths', () => {
       await stub.close();
     }
   }, 5000);
+
+  it('HTTP 500 provider error is not retried', async () => {
+    const stub = await startStub(() => ({ status: 500, body: { error: 'internal' } }));
+    try {
+      const result = await new ModelAdapter({
+        baseUrl: stub.baseUrl,
+        credentials: () => BEARER_TOKEN,
+      }).requestStructuredOutput(adapterRequest());
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected blocked result');
+      expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+        'ARXIC-MODEL-PROVIDER-ERROR',
+      ]);
+      expect(stub.requests).toHaveLength(1);
+      expect('output' in result).toBe(false);
+      expect(result.runRecord).toBeDefined();
+    } finally {
+      await stub.close();
+    }
+  });
+
+  it('valid JSON missing choices is a provider error and is not retried', async () => {
+    const stub = await startStub(() => ({
+      body: {
+        id: 'chatcmpl-x',
+        model: 'test-model-v1',
+        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+      },
+    }));
+    try {
+      const result = await new ModelAdapter({
+        baseUrl: stub.baseUrl,
+        credentials: () => BEARER_TOKEN,
+      }).requestStructuredOutput(adapterRequest());
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected blocked result');
+      expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+        'ARXIC-MODEL-PROVIDER-ERROR',
+      ]);
+      expect(stub.requests).toHaveLength(1);
+      expect('output' in result).toBe(false);
+      expect(result.runRecord).toBeDefined();
+    } finally {
+      await stub.close();
+    }
+  });
 
   it('credential resolution failure blocks before any HTTP request', async () => {
     const stub = await startStub(() => ({ completion: completion(JSON.stringify(validOutput())) }));

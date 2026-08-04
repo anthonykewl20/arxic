@@ -33,7 +33,7 @@ Model output is untrusted data. The adapter owns no policy, allowlist, or action
 
 ## Redaction
 
-`redactAndSerialize` emits canonical sorted-key JSON for a run record. `redactionGate` checks the record, output, and diagnostic messages against credential and prompt canaries. A leak blocks with `ARXIC-MODEL-CREDENTIAL-LEAK-DETECTED`; emitted blocked run records are sanitized so they contain no canary.
+`canonicalizeRecord` emits canonical sorted-key JSON for a run record. `redactionGate` checks the record, optional output, and diagnostic messages against credential and prompt canaries. `sanitizeRunRecord` redacts canaries. A leak blocks with `ARXIC-MODEL-CREDENTIAL-LEAK-DETECTED`, and the blocked run record is sanitized. Every provider-derived emission path, including success, retries exhausted, schema-version drift, AJV-invalid output, and provider error or timeout after a prior response, runs the redaction gate before emitting.
 
 ## Layering
 

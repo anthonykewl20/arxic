@@ -68,7 +68,7 @@ export function buildRunRecord(input: {
   return record;
 }
 
-export function redactAndSerialize(record: ModelRunRecord): string {
+export function canonicalizeRecord(record: ModelRunRecord): string {
   return canonicalStringify(record);
 }
 
@@ -96,7 +96,7 @@ export function redactionGate(
   forbidden: string[],
 ): { ok: true } | { ok: false; diagnostics: Diagnostic[] } {
   const artifacts = [
-    redactAndSerialize(input.record),
+    canonicalizeRecord(input.record),
     ...(input.output !== undefined ? [JSON.stringify(input.output)] : []),
     ...(input.diagnostics ?? []).map((diagnostic) => diagnostic.message),
   ];

@@ -12,15 +12,17 @@ import {
 describe('real local OpenAI-compatible endpoint with real AJV', () => {
   it('returns schema-bound output and an exact flat metadata-only run record', async () => {
     const output = {
+      schemaVersion: EXPECTED_SCHEMA_VERSION,
       feature: 'login',
       route: '/login',
       confidence: 0.97,
     };
     const loginCandidateSchema = {
       type: 'object',
-      required: ['feature', 'route', 'confidence'],
+      required: ['schemaVersion', 'feature', 'route', 'confidence'],
       additionalProperties: false,
       properties: {
+        schemaVersion: { type: 'string' },
         feature: { type: 'string' },
         route: { type: 'string' },
         confidence: { type: 'number', minimum: 0, maximum: 1 },

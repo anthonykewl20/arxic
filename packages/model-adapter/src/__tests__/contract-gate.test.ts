@@ -4,10 +4,10 @@ import addFormats from 'ajv-formats';
 import { describe, expect, it } from 'vitest';
 import * as exports from '..';
 import {
+  canonicalizeRecord,
   computeSchemaSha256,
   MODEL_DIAGNOSTIC_CODES,
   ModelAdapter,
-  redactAndSerialize,
   redactionGate,
   RUN_RECORD_SCHEMA,
   validateRunRecord,
@@ -70,7 +70,7 @@ describe('ModelAdapter contract gate', () => {
       expect(validate(invalid)).toBe(false);
       expect(validateRunRecord(invalid).ok).toBe(false);
     }
-    expect(redactAndSerialize(runRecord)).toBe(
+    expect(canonicalizeRecord(runRecord)).toBe(
       JSON.stringify({
         model: 'test-model-v1',
         region: 'local-test',
