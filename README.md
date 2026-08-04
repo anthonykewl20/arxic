@@ -36,7 +36,7 @@ AST-grep, and related orchestrators.
 ## Repo map
 
 - `docs/` - ADR, engineering charter, SYNC, RELEASES, CHANGELOG
-- `gears/` - reference parts with provenance and license metadata
+- `gears/` - LOCAL-ONLY reference (gitignored); fetch via `scripts/fetch-gears.sh`. In-repo metadata: `docs/gears/`.
 - `packages/` - package implementations
 - `apps/` - application-layer entry points
 - `schemas/` - schema artifacts
@@ -74,5 +74,5 @@ in `RELEASES.md`, and all notable changes are tracked in `CHANGELOG.md`.
 
 ## License
 
-MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE` and in
-`gears/*/PROVENANCE.md`.
+MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE` and
+in `docs/gears/*/PROVENANCE.md`.
