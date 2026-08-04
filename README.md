@@ -49,7 +49,7 @@ and the pipeline in section 9.
 
 ```bash
 pnpm install
-pnpm -r typecheck
+pnpm typecheck
 pnpm lint
 ```
 
