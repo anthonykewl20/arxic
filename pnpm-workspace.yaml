@@ -2,5 +2,5 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'test-fixtures/*'
-onlyBuiltDependencies:
-  - esbuild
+allowBuilds:
+  esbuild: true
