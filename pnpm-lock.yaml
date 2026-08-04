@@ -74,6 +74,18 @@ importers:
 
   packages/fixture-otplib: {}
 
+  packages/model-adapter:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      ajv:
+        specifier: ^8.17.1
+        version: 8.20.0
+      ajv-formats:
+        specifier: ^3.0.1
+        version: 3.0.1(ajv@8.20.0)
+
   packages/orchestrator-langgraph: {}
 
   packages/playwright-agent-adapter:
