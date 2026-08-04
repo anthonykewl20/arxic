@@ -28,6 +28,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify metadata (VERSION == package.json; CHANGELOG present)
+        run: |
+          set -euo pipefail
+          [ "$(cat VERSION)" = "$(node -p 'require("./package.json").version')" ] || { echo "::error::VERSION and package.json version disagree"; exit 1; }
+          grep -q "## \[Unreleased\]" CHANGELOG.md || { echo "::error::CHANGELOG.md missing [Unreleased] section"; exit 1; }
+
       - name: Lint
         run: pnpm lint
 
