@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arxic.dev/schemas/evidence/evidence-index.v1.json",
+  "title": "EvidenceIndex",
+  "type": "object",
+  "minProperties": 1,
+  "patternProperties": {
+    "^(src|run|doc):[A-Za-z0-9._#-]+(?::[A-Za-z0-9._#-]+)?$": {
+      "$ref": "evidence-ref.v1.json"
+    }
+  },
+  "additionalProperties": false
+}

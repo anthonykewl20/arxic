@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arxic.dev/schemas/evidence/evidence-ref.v1.json",
+  "title": "EvidenceRef",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "repo",
+        "commit",
+        "path",
+        "startLine",
+        "endLine",
+        "blobSha256",
+        "extractor"
+      ],
+      "properties": {
+        "kind": { "const": "source" },
+        "repo": { "type": "string" },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "path": { "type": "string", "minLength": 1 },
+        "startLine": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": { "$data": "1/startLine" } },
+        "blobSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "extractor": { "type": "string" },
+        "ruleId": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "kind",
+        "runId",
+        "appBuildDigest",
+        "browser",
+        "browserVersion",
+        "url",
+        "timestamp"
+      ],
+      "properties": {
+        "kind": { "const": "runtime" },
+        "runId": { "type": "string" },
+        "appBuildDigest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "browser": { "type": "string" },
+        "browserVersion": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "accessibilitySnapshotSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "screenshotRef": { "type": "string" },
+        "traceRef": { "type": "string" },
+        "networkRefs": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["kind", "artifactRef", "sha256"],
+      "properties": {
+        "kind": { "const": "document" },
+        "artifactRef": { "type": "string" },
+        "section": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
