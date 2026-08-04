@@ -37,8 +37,8 @@ export async function enumerateFiles(root: string): Promise<string[]> {
 
 export async function dirtyPaths(root: string): Promise<string[]> {
   const outputs = await Promise.all([
-    git(root, ['diff', '--name-only', '-z', '--diff-filter=ACDMRTUXB']),
-    git(root, ['diff', '--cached', '--name-only', '-z', '--diff-filter=ACDMRTUXB']),
+    git(root, ['diff', '--name-only', '-z']),
+    git(root, ['diff', '--cached', '--name-only', '-z']),
     git(root, ['ls-files', '-z', '--others', '--exclude-standard']),
   ]);
   return [...new Set(outputs.flatMap(nulPaths))].sort(bytewiseCompare);

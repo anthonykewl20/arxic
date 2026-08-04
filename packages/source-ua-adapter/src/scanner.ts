@@ -99,16 +99,26 @@ export async function scanRepository(
   for (const path of (await enumerateFiles(root)).filter(
     (item) => !isExtraIgnored(item, policy.extraIgnores),
   )) {
-    const bytes = await readManifestBytes(root, path);
-    const language = detectLanguage(path);
+    let bytes: Buffer;
+    try {
+      bytes = await readManifestBytes(root, path);
+    } catch (error) {
+      if (dirtySet.has(path)) continue;
+      throw error;
+    }
     const base: ManifestFile = {
       path,
       blobSha256: sha256(bytes),
       sizeBytes: bytes.byteLength,
-      language,
+      language: detectLanguage(path),
       category: detectCategory(path),
       status: 'skipped',
     };
+    if (dirtySet.has(path)) {
+      base.reason = 'dirty';
+      manifest.push(base);
+      continue;
+    }
     if (bytes.byteLength > policy.maxFileSizeBytes) {
       base.reason = 'oversize';
       manifest.push(base);
@@ -135,8 +145,8 @@ export async function scanRepository(
     }
     const requestedLanguages = input.languages ?? policy.supportedLanguages;
     if (
-      !policy.supportedLanguages.includes(language as SupportedSourceLanguage) ||
-      !(requestedLanguages as readonly string[]).includes(language)
+      !policy.supportedLanguages.includes(base.language as SupportedSourceLanguage) ||
+      !(requestedLanguages as readonly string[]).includes(base.language)
     ) {
       base.reason = 'unsupported-language';
       manifest.push(base);
@@ -144,18 +154,17 @@ export async function scanRepository(
         diagnostic: policy.classifyFailure(
           'unsupported-language',
           path,
-          `Language ${language} is outside scan policy.`,
+          `Language ${base.language} is outside scan policy.`,
         ),
       });
       continue;
     }
-    if (dirtySet.has(path)) {
-      base.reason = 'dirty';
-      manifest.push(base);
-      continue;
-    }
 
-    const parsed = parser.parse(path, language as SupportedSourceLanguage, bytes.toString('utf8'));
+    const parsed = parser.parse(
+      path,
+      base.language as SupportedSourceLanguage,
+      bytes.toString('utf8'),
+    );
     try {
       if (parsed.hasError) {
         base.reason = 'parse-error';

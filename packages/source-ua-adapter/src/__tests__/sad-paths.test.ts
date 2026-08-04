@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -52,6 +52,25 @@ describe('SourceUaAdapter sad paths', () => {
       document.events.some(
         (event) =>
           'ref' in event && event.ref.kind === 'source' && event.ref.path === 'src/dirty.ts',
+      ),
+    ).toBe(false);
+  });
+
+  it('fails closed without crashing when a tracked file is deleted from the working tree', async () => {
+    const repo = await makeRepository(undefined, {
+      'src/gone.ts': 'export const value = 1;\n',
+    });
+    await rm(join(repo.root, 'src/gone.ts'));
+    const document = await new SourceUaAdapter().collect(repo.request);
+    expect(document.revision.dirty).toBe(true);
+    expect(document.manifest.some((file) => file.path === 'src/gone.ts')).toBe(false);
+    expect(
+      diagnosticsOf(document.events).find((item) => item.code === ARXIC_SOURCE_DIRTY_TREE)?.message,
+    ).toContain('src/gone.ts');
+    expect(
+      document.events.some(
+        (event) =>
+          'ref' in event && event.ref.kind === 'source' && event.ref.path === 'src/gone.ts',
       ),
     ).toBe(false);
   });
