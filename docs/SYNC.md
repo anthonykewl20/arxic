@@ -12,7 +12,7 @@
 
 **Next action:** Begin [#1 (M0-00) Monorepo & tooling bootstrap](https://github.com/anthonykewl20/arxic/issues/1) — finish per-package tsconfigs, real ESLint config, CI workflow, then confirm the open decisions below. In parallel start the contract-freeze issues (#2–#6) and **bring [#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13) forward** — they are the real-world-proof surface every spike (#8–#12) and M1 slice must run against.
 
-**Last session:** 2026-08-04 — scaffolded full §18 monorepo layout, collected all 17 gears into `gears/`, filed 27 issues (M0=14, M1=13), added the canonical end-to-end architecture diagram to ADR §8.
+**Last session:** 2026-08-04 — scaffolded §18 layout, collected 17 gears, filed 27 issues (M0=14, M1=13), added the ADR §8 architecture diagram; then made the repo release-ready (complete MIT licensing, versioning via `VERSION`/`RELEASES.md`/always-synced `CHANGELOG.md`, maturity docs, functional tooling, CI + release workflows, Dependabot, issue/PR templates, GitHub settings + security alerts, `main` branch protection). CI is green.
 
 ---
 
@@ -29,7 +29,10 @@
 | Rule packs | `rulepacks/{nextjs,react,express}/` (empty — built in #9, #22) |
 | Test fixture apps | `test-fixtures/{vulnerable-auth-app,reference-auth-app}/` (scaffolded in #13) |
 | Issues | <https://github.com/anthonykewl20/arxic/issues> — milestones "Milestone 0" / "Milestone 1" |
-| Tooling | pnpm workspaces (`apps/*`, `packages/*`, `test-fixtures/*`), TS strict, ESLint flat-config stub, Prettier |
+| Tooling | pnpm workspaces (Node ≥22 via corepack `packageManager` pnpm 11), TS strict, ESLint flat-config, Prettier; gates `pnpm lint/typecheck/format:check/test` are CI-green |
+| Versioning | `VERSION` (0.0.0) is single source of truth → `package.json`; `RELEASES.md` (SemVer; 0.1.0=M0-EXIT #14, 0.2.0=M1-EXIT #27); `CHANGELOG.md` updated EVERY slice |
+| Repo & CI | GitHub: squash-only merges + delete-branch-on-merge, Dependabot + security alerts ON, `main` protected (PR flow). CI `ci.yml` (required check `ci`); issue/PR templates; `CODEOWNERS`=@anthonykewl20 |
+| Maturity docs | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`, `GOVERNANCE.md` |
 
 ---
 
@@ -78,12 +81,12 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 
 ---
 
-## Open decisions (confirm before/during #1)
+## Decisions (resolved)
 
-- **License:** defaulted to **MIT** (`LICENSE`). Needs owner confirmation. ADR does not specify Arxic's own license; most gears are MIT/Apache-2.0.
-- **Package manager:** **pnpm workspaces** chosen. Optional turbo later. Confirm.
-- **gears/ in git:** the full 17-gear reference collection (~131 MB) is committed intentionally ("exhaustive everything"). Production vendored code still goes under `third_party/` (ADR §18), not `gears/`.
-- **Node version:** `.nvmrc` = 20 (lts/hydroen). Confirm.
+- **License:** **MIT** — confirmed (`LICENSE`, `package.json`). Third-party notices in `NOTICE` + `gears/*/PROVENANCE.md`.
+- **Package manager:** **pnpm** workspaces via corepack (`packageManager` field). Node **≥22** (pnpm 11 requirement).
+- **gears/ in git:** the full 17-gear reference collection (~131 MB) is committed intentionally ("exhaustive everything"). Production vendored code goes under `third_party/` (ADR §18), not `gears/`.
+- **Git flow (active):** `main` is **protected** — all changes via PR (squash merge), CI check `ci` required, linear history, no force-push. Solo owner: self-merge allowed (0 required reviews).
 
 ---
 
@@ -94,6 +97,7 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 - **Evidence everywhere:** output-influencing graph edges carry ≥1 `EvidenceRef` (ADR §8.4). No evidence → no `verified`.
 - **Safety:** untrusted repo + adversarial web content are hostile. Default-deny egress, leased fixtures, content-is-data (prompt-injection defense), redact PII/secrets (ADR §16).
 - **Never weaken to pass:** no skip/fixme/only, no assertion weakening, no success-by-quarantine (ADR §7.3, §13.1, §15).
+- **Git flow:** `main` is protected — every change is a PR (squash merge), CI check `ci` must pass, linear history, no force-push. Follow `.github/pull_request_template.md` + charter §8 on every slice.
 - **Engineering method:** see [`engineering-charter.md`](./engineering-charter.md). TDD red-first in vertical slices (mock only at system boundaries); Actions vs Service layering (§10.5 adapters = service capability blocks; RunState/pipeline = orchestration that owns failure classification). **Sad-path-first** — every slice enumerates sad/edge cases mapped to a truth state before happy path.
 - **Real-world proof (dogfooded):** every slice must prove itself with real, non-synthetic user-level tests against the reference apps + real engines (real Chromium / real `sg` CLI / real Mailpit+otplib / real Tree-sitter). "Works on my mock" is banned. Hard dependency: **#13 (reference fixture apps) must land before spikes #8–#12 or any M1 slice can claim real-world proof.**
 
@@ -104,6 +108,7 @@ _Milestones 2 (hardening) & 3 (service mode) are NOT yet filed — deferred unti
 | Date | What happened |
 |---|---|
 | 2026-08-04 | Bootstrap. Built §18 monorepo layout; collected 17 gears into `gears/` (full clones for feasible repos, key-file fetches for Playwright/Crawlee/ast-grep/Midscene/Stagehand/Hercules/SCIP); wrote root tooling (pnpm, tsconfig.base, eslint/prettier stubs, LICENSE/NOTICE/README); filed milestones + 12 area labels + 27 issues (M0 14, M1 13); saved canonical end-to-end architecture diagram into ADR §8. |
+| 2026-08-04 (2) | Release readiness: complete MIT licensing; versioning (`VERSION` + `RELEASES.md` + always-synced `CHANGELOG.md` wired into charter §8 + PR template); maturity docs (CONTRIBUTING/CODE_OF_CONDUCT/SECURITY/SUPPORT/GOVERNANCE) + expanded README; functional tooling (eslint flat + tsconfig, contracts entry, pnpm-lock); GitHub CI + release workflows, Dependabot, issue templates, CODEOWNERS; repo settings (squash-only, delete-branch-on-merge) + security alerts; **CI green**; `main` branch protection (PR flow). |
 
 ---
 
