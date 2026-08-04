@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#1 (M0-00) tooling bootstrap DONE.** Per-package `tsconfig.json` + `typecheck` across all 16 workspace packages; ESLint bans skip/only; `.env.example`; source-only per ADR-003. 32 issues filed (M0=17, M1=15). Starting **contract freeze** (#2 EvidenceRef).
+**Status:** **#2 (M0-01) EvidenceRef contract frozen.** `schemas/evidence/{evidence-ref,source-revision,evidence-index}.schema.json` (JSON Schema 2020-12) + AJV validators + `@arxic/contracts` types (ADR §10.1/§10.2 + ADR-002). #1 tooling also done. Starting **Workflow v1 IR** (#3).
 
-**Next action:** [#2 (M0-01) Freeze EvidenceRef](https://github.com/anthonykewl20/arxic/issues/2) — `schemas/evidence/{evidence-ref,source-revision}.schema.json` + the `evidence/index.json` shape + AJV strict validators + TS types per ADR §10.2 + ADR-002. Sad-path-first (malformed refs → stable diagnostics; dirty tree → no manufactured blob links; tautology guard). In parallel **bring [#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13) forward** — they are the real-world-proof surface every spike (#8–#12) and M1 slice must run against. Pattern: the AJV seed test in `packages/contracts/src/__tests__/`.
+**Next action:** [#3 (M0-02) Freeze Workflow v1 IR](https://github.com/anthonykewl20/arxic/issues/3) — `schemas/workflow/workflow.schema.json` + AJV + types per ADR §10.3 + ADR-002 (transitions `required:true` by default; optional non-blocking but coverage-reported; **`status:verified` REJECTED when any required transition is hypothesized-only — an LLM may never assign verified**). Sad-path-first. Then #4 (Diagnostics) + #5 (Bundle manifest) + #6 (Adapter interfaces); **bring [#13 (M0-12) fixture apps](https://github.com/anthonykewl20/arxic/issues/13) forward** in parallel — the real-world surface for spikes #8–#12 + M1.
 
-**Last session:** 2026-08-04 — **#1 (M0-00) tooling bootstrap landed**: per-package `tsconfig.json` + `typecheck` across all 16 workspace packages; root `pnpm typecheck:packages` (`pnpm -r typecheck`); ESLint bans `it.only`/`skip`/`xit`/`xdescribe` (ADR §13.1); `.env.example`; structural test guards the tooling contract; **ADR-003 (M0 source-only, no emit)**. Gates green. Next: contract freeze #2 (EvidenceRef).
+**Last session:** 2026-08-04 — **#2 (M0-01) EvidenceRef contract frozen**: `schemas/evidence/{evidence-ref,source-revision,evidence-index}.schema.json` (2020-12) + AJV 2020-12 validators + `@arxic/contracts` types; `startLine≤endLine` via `$data`; stable `ARXIC-EVIDENCE-*` diagnostics; 30 tests green. Runtime network/console gating → #21; dirty-tree blob-linking → #8 (deferred by design). Next: #3 Workflow IR.
 
 ---
 
@@ -22,7 +22,7 @@
 |---|---|
 | ADR (public summary) | `docs/adr/001-arxic-architecture.md` (§2 truth states, §8 diagram, §9 pipeline, §10 contracts, §22 milestones) — detailed internal ADR is private/local |
 | Engineering charter | `docs/engineering-charter.md` — TDD red-first + Actions/Service layering + **mandatory sad-path-first**. Every slice follows this. |
-| Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` (empty — frozen in #2–#5) |
+| Contracts schemas | `schemas/{evidence,workflow,manifest,diagnostics}/` — **evidence frozen** (#2: `evidence-ref`/`source-revision`/`evidence-index` + AJV validators + `@arxic/contracts` types); `workflow`/`manifest`/`diagnostics` pending (#3–#5) |
 | Packages | `packages/*` (14 adapters/engines, scaffolded) — see ADR §18 |
 | Apps | `apps/{cli,worker}/` (scaffolded) |
 | Rule packs | `rulepacks/{nextjs,react,express}/` (empty — built in #9, #22) |
@@ -43,8 +43,8 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | # | Issue | Status |
 |---|---|---|
 | #1 | [M0-00] Monorepo & tooling bootstrap | ☑ done |
-| #2 | [M0-01] Freeze contract: EvidenceRef | ☐ next |
-| #3 | [M0-02] Freeze contract: Workflow v1 IR | ☐ |
+| #2 | [M0-01] Freeze contract: EvidenceRef | ☑ done |
+| #3 | [M0-02] Freeze contract: Workflow v1 IR | ☐ next |
 | #4 | [M0-03] Freeze contract: Diagnostics | ☐ |
 | #5 | [M0-04] Freeze contract: Bundle manifest | ☐ |
 | #6 | [M0-05] Freeze contract: Adapter interfaces | ☐ |
@@ -119,6 +119,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-04 (2) | Release readiness: complete MIT licensing; versioning (`VERSION` + `RELEASES.md` + always-synced `CHANGELOG.md` wired into charter §8 + PR template); maturity docs (CONTRIBUTING/CODE_OF_CONDUCT/SECURITY/SUPPORT/GOVERNANCE) + expanded README; functional tooling (eslint flat + tsconfig, contracts entry, pnpm-lock); GitHub CI + release workflows, Dependabot, issue templates, CODEOWNERS; repo settings (squash-only, delete-branch-on-merge) + security alerts; **CI green**; `main` branch protection (PR flow). |
 | 2026-08-04 (3) | Pre-dev audit (3 reviewers) + remediation: PRs #36 (release perms), #37 (CI guards + hygiene), #38 (mask ADR + remove reference-collection docs), #39 (SECURITY SLA + ADR-002), #45 (sync). Removed vendored reference code from the tree; full ADR → local-only (outside the repo), public summary in `docs/adr/001-…`; ADR-002 (EvidenceRef = opaque IDs). **Repo set PRIVATE during pre-1.0** — GitHub PR refs still expose pre-mask history, so purge deferred to go-public. Filed #40–44; split #13; §23.14 acceptance in adapter issues; filled real-world/layering in #1–#14. Totals M0=17, M1=15. **CI green.** |
 | 2026-08-04 (4) | **#1 (M0-00) tooling bootstrap DONE.** Per-package `tsconfig.json` + `typecheck` script across all 16 workspace packages; root `typecheck:packages` (`pnpm -r typecheck`); ESLint bans `it.only`/`skip`/`xit`/`xdescribe` (ADR §13.1); `.env.example`; structural test guards the per-package tooling contract. **ADR-003: M0 source-only (no emit).** Gates green (lint/typecheck/typecheck:packages/format/test). Starting contract freeze (#2). |
+| 2026-08-04 (5) | **#2 (M0-01) EvidenceRef contract frozen.** `schemas/evidence/{evidence-ref,source-revision,evidence-index}.schema.json` (JSON Schema 2020-12) + AJV 2020-12 strict validators + hand-written TS types in `@arxic/contracts`. Discriminated union (ADR §10.2), `SourceRevision` (§10.1), `evidence/index.json` + id grammar (ADR-002). `startLine≤endLine` via AJV `$data` (schema-pure). Stable diagnostics `ARXIC-EVIDENCE-*`. Sad-path-first + tautology guard; 30 tests green. **Scope boundaries:** runtime network/console gating → #21; dirty-tree blob-link manufacturing → #8. |
 
 ---
 
