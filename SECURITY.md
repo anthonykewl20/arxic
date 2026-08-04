@@ -1,36 +1,58 @@
 # Security Policy
 
 Arxic executes untrusted repositories and reads potentially adversarial web
-content. This is core to the design in ADR section 16 and part of the threat
-model.
+content. Security is core to the design (ADR §16), not an afterthought.
 
-Supported versions: pre-1.0 development against `main` branch.
+## Supported versions
+
+Pre-1.0 development against the `main` branch only. There are no tagged releases
+yet; fixes land on `main`.
 
 ## Reporting a vulnerability
 
-Please report security issues through GitHub Private Vulnerability Reporting or
-use the repository Security Advisory flow. Do not open a public issue for security
-reports.
+**Please do not open a public issue.** Report privately via
+[GitHub Private Vulnerability Reporting / Security Advisories](https://github.com/anthonykewl20/arxic/security/advisories/new).
+Include: a description, impact, reproduction steps, and any affected
+commit/version. Acknowledgment of valid reports is made in the advisory.
 
-## Response
+## Response SLA (best-effort)
 
-We provide best-effort triage and remediation and will disclose fixes through
-our normal release process.
+| Stage                         | Target                                                 |
+| ----------------------------- | ------------------------------------------------------ |
+| Acknowledgment of report      | ≤ 7 days                                               |
+| Initial assessment + severity | ≤ 14 days                                              |
+| Coordinated disclosure window | ≤ 90 days from report (adjustable by mutual agreement) |
+| Fix release                   | per severity, via the normal release process           |
+
+These are best-effort targets for a pre-1.0, maintainer-run project.
 
 ## Scope
 
-- Scope includes Arxic source code and workflows.
-- Vulnerabilities in upstream engines (for example Playwright, Crawlee, Mailpit,
-  otp, and other third-party systems) should be reported upstream.
-- The repository contains no vendored upstream code; only Arxic-authored product code lives here and in releases.
+**In scope** — Arxic's own product code and generated workflows:
 
-## Trust boundaries
+- worker isolation or sandbox escape;
+- test-target attestation bypass (accepting an unapproved/production target);
+- policy-engine bypass (origin, action-class, or fail-closed checks);
+- secret / PII leakage into bundles, screenshots, traces, or reports;
+- promotion-gate bypass or last-known-good corruption.
 
-- Workers run in isolated non-root environments.
-- Default-deny egress is expected for workers.
-- Fixtures are leased and scoped per run.
-- All external content is treated as data and validated before use.
+**Out of scope** — report these upstream, not here:
+
+- vulnerabilities in upstream third-party engines Arxic consumes (they are not
+  vendored in this repository);
+- vulnerabilities in dependencies of the reference fixture test apps;
+- findings that require already-privileged local execution of the tool itself.
+
+## Trust boundaries (design intent)
+
+- Workers run in isolated, non-root, ephemeral environments on a job-scoped network.
+- Worker egress is default-deny (declared origins only).
+- Fixtures are leased, scoped per run, and destroyed on completion.
+- All external content (source, pages, mail, accessibility snapshots) is treated
+  as data and validated; it cannot change system policy or authorize actions.
+- An LLM may never assign `verified`; only deterministic replay verification can.
 
 ## Hardening roadmap
 
-See ADR section 16 and milestone M2 planning for continued hardening work.
+Continued hardening (adversarial prompt-injection, origin-escape, secret-leakage,
+and destructive-action tests) is tracked under Milestone 2 (ADR §22).
