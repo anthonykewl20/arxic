@@ -4,10 +4,11 @@ message: Authentication guard call
 severity: info
 rule:
   any:
-    - pattern: verifyCsrf($$$ARGS)
-    - pattern: consumeRateLimit($$$ARGS)
-    - pattern: readSession($$$ARGS)
+    - pattern: $GUARD($$$ARGS)
     - pattern: bcrypt.compare($$$ARGS)
+constraints:
+  GUARD:
+    regex: ^(verifyCsrf|consumeRateLimit|readSession)$
 metadata:
   arxic:
     category: guard

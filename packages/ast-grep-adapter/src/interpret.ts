@@ -36,20 +36,22 @@ export function interpretMatches(
         match.startLine === route.startLine &&
         match.endLine === route.endLine,
     );
-    const guard = matches.find(
+    const guards = matches.filter(
       (match) =>
+        match.packId === route.packId &&
         match.category === 'guard' &&
         match.file === route.file &&
         match.startLine >= route.startLine &&
         match.endLine <= route.endLine,
     );
+    const guard = guards.find((match) => 'PASSWORD' in match.fields) ?? guards[0];
     addChain(chains, diagnostics, {
       feature,
       routePath,
       framework: 'express',
       route,
       handler,
-      guard,
+      guards: guard ? [guard] : [],
     });
   }
   const nextRoutes = matches.filter(
@@ -68,18 +70,21 @@ export function interpretMatches(
         candidate.category === 'handler' &&
         candidate.file.startsWith(`${directory}/`),
     );
-    const guard =
-      handler &&
-      matches.find(
-        (candidate) => candidate.category === 'guard' && candidate.file === handler.file,
-      );
+    const guards = handler
+      ? matches.filter(
+          (candidate) =>
+            candidate.packId === route.packId &&
+            candidate.category === 'guard' &&
+            candidate.file === handler.file,
+        )
+      : [];
     addChain(chains, diagnostics, {
       feature,
       routePath,
       framework: 'nextjs',
       route,
       handler,
-      guard,
+      guards,
     });
   }
   chains.sort(
@@ -97,17 +102,21 @@ function addChain(
     framework: string;
     route: EvidencedRuleMatch;
     handler?: EvidencedRuleMatch;
-    guard?: EvidencedRuleMatch;
+    guards: EvidencedRuleMatch[];
   },
 ) {
-  if (input.handler && input.guard) {
+  if (input.handler && input.guards.length > 0) {
     chains.push({
       feature: input.feature,
       routePath: input.routePath,
       framework: input.framework,
       status: 'connected',
       truthState: 'hypothesized',
-      evidence: [input.route.evidence, input.handler.evidence, input.guard.evidence],
+      evidence: [
+        input.route.evidence,
+        input.handler.evidence,
+        ...input.guards.map((guard) => guard.evidence),
+      ],
     });
     return;
   }

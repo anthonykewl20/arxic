@@ -36,7 +36,7 @@ describe('real sg CLI proof against the auth fixture apps', () => {
         status: 'connected',
         truthState: 'hypothesized',
       });
-      expect(login?.evidence).toHaveLength(3);
+      expect(login?.evidence.length).toBeGreaterThanOrEqual(3);
       expect(
         new Set(login?.evidence.map((ref) => ref.ruleId!.split('/')[1]?.split('@')[0])),
       ).toEqual(
@@ -44,6 +44,26 @@ describe('real sg CLI proof against the auth fixture apps', () => {
           ? new Set(['nextjs-page-route', 'nextjs-server-action', 'nextjs-auth-guard'])
           : new Set(['express-route', 'express-inline-handler', 'express-auth-guard']),
       );
+      if (framework === 'nextjs') {
+        const loginGuards = first.matches.filter(
+          (match) => match.category === 'guard' && match.file.includes('/login/'),
+        );
+        expect([...new Set(loginGuards.map((match) => match.fields.GUARD))]).toEqual(
+          expect.arrayContaining(['verifyCsrf', 'consumeRateLimit']),
+        );
+        expect(loginGuards.some((match) => 'PASSWORD' in match.fields)).toBe(true);
+      } else {
+        const loginGuards = first.matches.filter(
+          (match) => match.category === 'guard' && 'PASSWORD' in match.fields,
+        );
+        const linkedGuard = loginGuards.find(
+          (match) => match.evidence.startLine === login?.evidence.at(-1)?.startLine,
+        );
+        expect(linkedGuard?.fields).toMatchObject({
+          PASSWORD: 'password',
+          HASH: 'user.passwordHash',
+        });
+      }
       for (const category of categories)
         expect(first.matches.some((match) => match.category === category)).toBe(true);
       expect(canonicalJson(first)).toBe(canonicalJson(second));
