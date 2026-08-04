@@ -1,0 +1,18 @@
+id: nextjs-auth-form
+language: Tsx
+message: JSX form with captured attributes and children
+severity: info
+rule:
+  pattern: <$TAG $$$ATTRS>$$$CHILDREN</$TAG>
+constraints:
+  TAG:
+    regex: ^form$
+metadata:
+  arxic:
+    category: form
+    semver: 1.0.0
+    frameworkVersions: '>=15 <16'
+    precision: Structural JSX form only; fields are exposed through CHILDREN
+    fallback: Component-composed forms are not primary evidence
+    license: MIT
+    provenance: original-arxic

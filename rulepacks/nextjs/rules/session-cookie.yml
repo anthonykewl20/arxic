@@ -1,0 +1,15 @@
+id: nextjs-session-cookie
+language: TypeScript
+message: Next cookie store mutation
+severity: info
+rule:
+  pattern: $STORE.set($NAME, $VALUE, $OPTIONS)
+metadata:
+  arxic:
+    category: session-cookie
+    semver: 1.0.0
+    frameworkVersions: '>=15 <16'
+    precision: Captures cookie name value and options including httpOnly
+    fallback: Cookie wrapper methods require another rule
+    license: MIT
+    provenance: original-arxic

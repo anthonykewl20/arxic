@@ -1,0 +1,20 @@
+id: nextjs-auth-guard
+language: TypeScript
+message: Authentication guard call
+severity: info
+rule:
+  any:
+    - pattern: $GUARD($$$ARGS)
+    - pattern: bcrypt.compare($$$ARGS)
+constraints:
+  GUARD:
+    regex: ^(verifyCsrf|consumeRateLimit|readSession)$
+metadata:
+  arxic:
+    category: guard
+    semver: 1.0.0
+    frameworkVersions: '>=15 <16'
+    precision: Named fixture guard and credential calls
+    fallback: Aliases and wrappers require evidence reconciliation
+    license: MIT
+    provenance: original-arxic

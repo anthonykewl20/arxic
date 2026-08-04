@@ -1,0 +1,18 @@
+id: express-auth-guard
+language: TypeScript
+message: Express credential or session guard
+severity: info
+rule:
+  any:
+    - pattern: bcrypt.compare($PASSWORD, $HASH)
+    - pattern: findUserByEmail($EMAIL)
+    - pattern: $REQUEST.session.$FIELD
+metadata:
+  arxic:
+    category: guard
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Direct fixture credential lookup compare or session field
+    fallback: Custom middleware aliases require another rule
+    license: MIT
+    provenance: original-arxic

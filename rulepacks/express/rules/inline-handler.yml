@@ -1,0 +1,20 @@
+id: express-inline-handler
+language: TypeScript
+message: Express inline route handler
+severity: info
+rule:
+  pattern: app.$METHOD($PATH, $$$ARGS)
+constraints:
+  METHOD:
+    regex: ^(get|post|put|patch|delete)$
+  PATH:
+    regex: ^["']
+metadata:
+  arxic:
+    category: handler
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Range is the containing route call so nested guards connect deterministically
+    fallback: Referenced middleware arrays need data-flow reconciliation
+    license: MIT
+    provenance: original-arxic

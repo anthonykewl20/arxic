@@ -1,0 +1,15 @@
+id: nextjs-page-route
+language: Tsx
+message: Next.js App Router page export
+severity: info
+rule:
+  pattern: export default async function $NAME($$$ARGS) { $$$BODY }
+metadata:
+  arxic:
+    category: route
+    semver: 1.0.0
+    frameworkVersions: '>=15 <16'
+    precision: App Router route is completed by deterministic app path convention
+    fallback: Route handlers and non-async pages require another structural rule
+    license: MIT
+    provenance: original-arxic
