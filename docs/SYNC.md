@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#12 (M0-11) Threat model + target-attestation DONE.** `@arxic/environment` performs the real stage-zero handshake, fails closed on production-looking targets, origin/environment/nonce/receipt failures, and accepts production-shaped targets only with static recorded human approval. The worker threat model specifies isolation, prompt-injection, action, privacy, and Docker/Testcontainers boundaries. **13/17 M0 issues done.** Remaining M0 = **#40/#41/#44** + #14 (M0-EXIT). **#44 is unblocked by #12 and #13.**
+**Status:** **#40 (M0-13) ModelAdapter DONE.** `@arxic/model-adapter` owns all model-provider mechanics — credentials resolve at call time and appear only as a Bearer header, structured output is schema-bound + validated by real AJV before any downstream action, invalid output retries then blocks with no promotion, schema-version drift fails closed, model output is content-as-data with no policy mutation, and run records carry only request id/schema version/token+provider metadata (never prompt bytes) behind a redaction gate. **14/17 M0 issues done.** Remaining M0 = **#41/#44** + #14 (M0-EXIT). **#44 is unblocked by #12 and #13.**
 
-**Next action:** [#40 (M0-13) ModelAdapter spike](https://github.com/anthonykewl20/arxic/issues/40). Then #41/#44 → then #14 (M0-EXIT gate).
+**Next action:** [#41 (M0-14) Policy engine: action classes + fail-closed](https://github.com/anthonykewl20/arxic/issues/41). Then #44 → then #14 (M0-EXIT gate).
 
-**Last session:** 2026-08-05 — **#12 (M0-11) Threat model + target-attestation DONE**: exact origin/environment/nonce/receipt policy and production-looking default refusal emit blocked diagnostics and an auditable decision; both real fixture endpoints are allowed, while a locally served production-shaped endpoint is refused until static recorded human approval is present. The threat model specifies that Docker daemon authority remains in the trusted control plane and is never delegated to the untrusted worker; M1 #26 must prove that enforcement in the live worker. Next: #40 ModelAdapter spike.
+**Last session:** 2026-08-05 (6) — **#40 (M0-13) ModelAdapter DONE**: credentials resolve at call time and remain Bearer-only, structured output is schema-bound and real-AJV-validated, invalid output retries then blocks with no promotion, schema-version drift fails closed, content-as-data injection cannot mutate policy, and metadata-only run records sit behind a credential/prompt redaction gate. Stable blocked diagnostics loop-close through frozen contracts; a real local OpenAI-compatible endpoint proves the wire and validation boundary. Next: #41 policy engine.
 
 ---
 
@@ -55,7 +55,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #11 | [M0-10] Spike: Atomic promotion + last-known-good | ☑ done |
 | #12 | [M0-11] Threat model + target-attestation | ☑ done |
 | #13 | [M0-12] Test-fixture apps scaffold | ☑ done |
-| #40 | [M0-13] Spike: ModelAdapter | ☐ |
+| #40 | [M0-13] Spike: ModelAdapter | ☑ done |
 | #41 | [M0-14] Policy engine: action classes + fail-closed | ☐ |
 | #44 | [M0-15] Arxic target-attestation accepts reference apps (depends #12, #13) | ☐ |
 | #14 | [M0-EXIT] Gate: login candidate verifies twice + promotes | ☐ (blocks M1) |
@@ -131,6 +131,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-05 (3) | **#10 (M0-09) PlaywrightAgentAdapter handshake + fallback DONE.** Exactly pinned Playwright Test 1.62.1 MCP handshake and nine-tool schema gate fail closed on seam drift; healer policy rejects weakening and unsafe boundaries. Real agent and generated fallback both execute seeded login against the reference app in real Chromium; runtime disposition remains `observed`. 11/17 M0 done. |
 | 2026-08-05 (4) | **#11 (M0-10) Atomic promotion + last-known-good DONE.** Deterministic canonical bundle bytes, frozen manifest validation, staged SHA-256 and byte-count checks, same-directory atomic rename, `.lkg` snapshots, and exclusive locking ship behind the frozen `BundlePromoter`; real filesystem failures and contention are `blocked` without corrupting public bytes. 12/17 M0 done. |
 | 2026-08-05 (5) | **#12 (M0-11) Threat model + target-attestation DONE.** Real HTTP handshakes against both fixture apps allow exact local-test attestations; production-looking, origin, nonce, and unsigned-receipt failures are `blocked`, while only static recorded human approval permits the production-shaped proof target. Worker, prompt-injection, action, privacy, and Docker/Testcontainers isolation requirements are documented. 13/17 M0 done; #44 unblocked. |
+| 2026-08-05 (6) | **#40 (M0-13) ModelAdapter DONE.** Credentials resolve-at-call-time Bearer-only, structured output is schema-bound + real-AJV-validated, invalid output retries then blocks with no promotion, schema-version drift fails closed, content-as-data injection is blocked without policy mutation, and run records carry only request id/schema version/token+provider metadata behind a redaction gate; stable `ARXIC-MODEL-*` diagnostics loop-close; real local OpenAI-compatible stub + real AJV prove it. 14/17 M0 done. |
 
 ---
 
