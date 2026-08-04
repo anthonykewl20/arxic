@@ -1,0 +1,34 @@
+name: Feature request
+description: Propose a new capability.
+title: 'feat: '
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For current slice work, route requests through the roadmap milestones.
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What behavior should Arxic support?
+      placeholder: Describe intent and expected evidence shape.
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Why now
+      description: Why this is needed and what slice or milestone it advances.
+      placeholder: Tie to ADR and milestone goals.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you consider?
+      placeholder: List alternatives and trade-offs.

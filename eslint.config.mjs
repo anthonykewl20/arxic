@@ -1,8 +1,23 @@
-import js from '@eslint/js'
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import globals from 'globals';
 
-/**
- * Minimal ESLint flat config placeholder.
- */
-export default [
+export default tseslint.config(
+  {
+    ignores: [
+      'gears/**',
+      'test-fixtures/**',
+      'dist/**',
+      'coverage/**',
+      'pnpm-lock.yaml',
+      '**/*.config.{js,mjs,cjs,ts}',
+    ],
+  },
   js.configs.recommended,
-]
+  ...tseslint.configs.recommended,
+  {
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
+);

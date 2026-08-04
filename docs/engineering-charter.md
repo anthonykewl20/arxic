@@ -141,6 +141,8 @@ A slice is **not** "Done" when the code works. It is "Done" only after this ritu
 2. **Real-world proof present.** At least one non-synthetic user-level test against the real reference apps + real engines (§6). If missing → not Done.
 3. **Sync the docs — never leave a doc describing the old state.**
    - `docs/SYNC.md`: flip this slice's tracker checkbox; move 🔖 **RESUME HERE** to the next slice; add a one-line session-log entry (what shipped + disposition: verified / contradicted / blocked).
+   - **`CHANGELOG.md` — ALWAYS updated, every slice, no exceptions.** Add an entry under `## [Unreleased]` using [Keep a Changelog](https://keepachangelog.com/) verbs (`added`/`changed`/`deprecated`/`removed`/`fixed`/`security`, plus `internal` for non-user-facing work). If the change is user-observable, that determines the next bump (see `RELEASES.md`).
+   - **Version:** if the change is user-observable, bump per `RELEASES.md` — `VERSION` + root `package.json` `version` MUST stay identical (single source of truth = `VERSION`). During pre-1.0 (`0.x.y`), milestone exits are minor bumps (0.1.0 = M0-EXIT #14, 0.2.0 = M1-EXIT #27), fixes are patch.
    - `docs/arxic-full-adr.md`: if a *decision* changed, add a dated addendum or a new ADR under `docs/adr/`. Never silently edit the frozen §10 contracts — they change only via a new ADR.
    - `docs/engineering-charter.md`: if the process/method changed, update it.
    - `gears/README.md` + the gear's `PROVENANCE.md`: if a gear was upgraded, re-pinned, or added.
@@ -150,6 +152,6 @@ A slice is **not** "Done" when the code works. It is "Done" only after this ritu
 6. **Commit the doc updates with the code** (or an immediate follow-up on the same branch) and **push**. If it isn't on `main`, it isn't saved.
 7. **Final verify (disk + remote).** Checkbox flipped, RESUME HERE moved, issue closed, `main` green.
 
-**Banned anti-patterns:** "I'll update SYNC later"; merging code without the doc sync; closing an issue whose docs still say "todo"; leaving a TODO a future agent must rediscover.
+**Banned anti-patterns:** "I'll update SYNC later"; merging code without the doc sync; merging a slice without a `CHANGELOG.md` entry; **`VERSION` and `package.json` `version` disagreeing**; closing an issue whose docs still say "todo"; leaving a TODO a future agent must rediscover.
 
 > **Agent rule (hard):** if you are completing a slice, steps 3–6 are non-negotiable *even if the code already works*. Stale docs are a defect.
