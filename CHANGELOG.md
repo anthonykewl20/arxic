@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### added
 
+- M0-00 tooling bootstrap (#1): per-package `tsconfig.json` + `typecheck` script across all 16 workspace packages; root `pnpm typecheck:packages` (`pnpm -r typecheck`); ESLint `no-restricted-syntax` ban on `it.only`/`test.only`/`*.skip`/`xit`/`xdescribe`/`xtest` (ADR §13.1 — no skip/fixme/only); `.env.example` runtime-config stub. New structural test (`packages/contracts/src/__tests__/workspace-contracts.test.ts`) guards the per-package tooling contract by reading real `package.json`/`tsconfig.json` from disk.
 - M0 test foundation: vitest + AJV wired in; `pnpm test` now runs real tests (non-vacuous). Seed AJV contract-validation test in `packages/contracts/src/__tests__/` (the pattern for #2–#5). TypeScript switched to Bundler module resolution. `pnpm-workspace.yaml` approves the esbuild build.
 - opencode skills + guardrails installed and mandated: `code-structure` + `evidence-driven-testing` (automatic), `global-agent-guardrails` (repo `command-guard` plugin + skill), `remind` (`/remind`, on-demand). Registered via `opencode.json`; mandated in `AGENTS.md` + charter §9. CI runs the guard test.
 - `SECURITY.md` disclosure SLA (ack ≤7d, assessment ≤14d, 90-day coordinated-disclosure window), contact path, explicit in/out-of-scope.
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### internal
 
+- ADR-003 (`docs/adr/003-m0-source-only-build.md`): M0 is **source-only (no emit)** — packages consume each other via `main: src/index.ts`; the gates are typecheck/lint/test, with no `build`/`dist`. Resolves #1's `pnpm -r build` line as deferred to when a package needs to ship a published artifact.
 - Bootstrap workspace: monorepo layout (ADR §18), pnpm workspaces + tsconfig/eslint/prettier, MIT license + NOTICE.
 - Canonical end-to-end architecture diagram in ADR §8.
 - `docs/engineering-charter.md` (TDD red-first, Actions/Service layering, sad-path-first, real-world proof, slice-completion ritual).
