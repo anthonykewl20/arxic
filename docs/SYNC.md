@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **#13 (M0-12) Test-fixture apps DONE.** Two REAL auth apps (Next.js `reference-auth-app` + Express `vulnerable-auth-app`) booting with real Mailpit + attestation + seed API — Arxic's canonical real-world surface (charter §6). **Spikes #8–#12 are now UNBLOCKED.** M0 goal 1 (contracts) + fixtures both done; 7/17 M0 issues complete.
+**Status:** **#7 (M0-06) License gate + SBOM DONE.** `scripts/license-gate.mjs` rejects GPL/AGPL/SSPL on the real dependency graph (0 rejected now); CycloneDX SBOM generated + uploaded in CI. **8/17 M0 issues done.** Remaining M0 = **spikes #8–#12** (runnable against the fixture apps with real engines) + #40/#41/#44 + #14 (M0-EXIT).
 
-**Next action:** [#7 (M0-06) License gate + SBOM](https://github.com/anthonykewl20/arxic/issues/7) — the last independent M0 infrastructure piece (referenced as a gate in charter §8). OR begin the spikes **[#8–#12](https://github.com/anthonykewl20/arxic/issues/8)** — now unblocked by #13; each must prove itself against the real fixture apps + real engines (real `sg` / real Chromium / real Tree-sitter). Then #14 (M0-EXIT gate).
+**Next action:** [#8 (M0-07) Spike: Understand-Anything subset extraction](https://github.com/anthonykewl20/arxic/issues/8) — first spike; real Tree-sitter parsing of the real fixture apps' source. Then #9 (ast-grep `sg` CLI on the fixture apps), #10 (PlaywrightAgentAdapter / real Chromium), #11 (atomic promotion + last-known-good), #12 (threat model + target-attestation) → then #14 (M0-EXIT gate).
 
-**Last session:** 2026-08-04 — **#13 (M0-12) Test-fixture apps DONE**: real Next.js `reference-auth-app` (full §12.1 incl. MFA/change-password) + real Express `vulnerable-auth-app` (documented weaknesses); real Mailpit delivery; attestation; seed API. Real boot tests green against real Mailpit. CI gates both apps. Spikes #8–#12 unblocked. Next: #7 license gate OR spikes.
+**Last session:** 2026-08-04 — **#7 (M0-06) License gate + SBOM DONE**: `scripts/license-gate.mjs` scans the real pnpm graph (allowlist incl. MPL/LGPL; reject GPL/AGPL/SSPL/Unknown); `thirty-two` excepted (MIT upstream). CI runs the gate + CycloneDX SBOM artifact. LGPL distinguished from GPL. 93 tests green. Next: spikes #8–#12.
 
 ---
 
@@ -30,7 +30,7 @@
 | Issues | <https://github.com/anthonykewl20/arxic/issues> — milestones "Milestone 0" / "Milestone 1" |
 | Tooling | pnpm workspaces (Node ≥22 via corepack `packageManager` pnpm 11), TS strict, ESLint flat-config, Prettier; **per-package `tsconfig.json` + `typecheck` across all 16 packages**; gates `pnpm lint/typecheck/typecheck:packages/format:check/test` are CI-green; **source-only — no build/emit in M0** (ADR-003) |
 | Versioning | `VERSION` (0.0.0) is single source of truth → `package.json`; `RELEASES.md` (SemVer; 0.1.0=M0-EXIT #14, 0.2.0=M1-EXIT #27); `CHANGELOG.md` updated EVERY slice |
-| Repo & CI | GitHub: squash-only merges + delete-branch-on-merge, Dependabot + security alerts ON, `main` protected (PR flow). CI `ci.yml` (required check `ci`); issue/PR templates; `CODEOWNERS`=@anthonykewl20 |
+| Repo & CI | GitHub: squash-only merges + delete-branch-on-merge, Dependabot + security alerts ON, `main` protected (PR flow). CI `ci.yml` (required check `ci`): lint/typecheck/format/test + metadata guards + **license gate** (`scripts/license-gate.mjs`, rejects GPL/AGPL/SSPL) + **CycloneDX SBOM** artifact + fixture-app tests (real Mailpit); issue/PR templates; `CODEOWNERS`=@anthonykewl20 |
 | Maturity docs | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`, `GOVERNANCE.md` |
 
 ---
@@ -48,7 +48,7 @@ _Goal: freeze contracts; prove each gear behind an adapter; atomic promotion; th
 | #4 | [M0-03] Freeze contract: Diagnostics | ☑ done |
 | #5 | [M0-04] Freeze contract: Bundle manifest | ☑ done |
 | #6 | [M0-05] Freeze contract: Adapter interfaces | ☑ done |
-| #7 | [M0-06] License gate + SBOM automation | ☐ |
+| #7 | [M0-06] License gate + SBOM automation | ☑ done |
 | #8 | [M0-07] Spike: Understand-Anything subset extraction | ☐ |
 | #9 | [M0-08] Spike: ast-grep rule fixtures (Next.js + Express) | ☐ |
 | #10 | [M0-09] Spike: PlaywrightAgentAdapter handshake + fallback | ☐ |
@@ -125,6 +125,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-04 (8) | **#5 (M0-04) Bundle manifest frozen.** `schemas/manifest/manifest.schema.json` (2020-12) + AJV + `BundleManifest` types (ADR §14 + issue #5 field list). `blockers` inline the frozen Diagnostic shape; loop-closing test proves a manifest blocker validates via `validateDiagnostic` (#4). Sad-paths (missing digest/commit/hashes, gate-missing, denominator-invalid, bad lengths, blocker `severity:"verified"`, extra property) + tautology guard; 70 tests green. **All JSON-Schema contracts frozen.** Boundary: cross-field totals + denominator immutability → #23/#24. |
 | 2026-08-04 (9) | **#6 (M0-05) Adapter interfaces frozen → 🎯 M0 goal 1 (contract freeze) COMPLETE.** 7 ADR §10.5 TS interfaces + minimal supporting types in `@arxic/contracts` (reusing #2–#5 frozen types). Compile-time `@ts-expect-error` test (`adapters.test-d.ts`) proves adapters can't leak upstream types (fail-closed at type level — gate reds if an interface widens). `VerificationResult.outcome` = 5 `TruthState`s (no 6th "flaky" — verifier-internal #21, derivable from `runs[]`). Boundary-double runtime test exercises all 7 interfaces. 72 tests green. **All 6 contracts frozen.** Next: #13 fixture apps (large slice, checkpoint). |
 | 2026-08-04 (10) | **#13 (M0-12) Test-fixture apps DONE.** Two REAL structurally-different auth apps: `reference-auth-app` (Next.js 15 App Router + better-sqlite3 + bcryptjs + nodemailer→Mailpit + otplib) — full §12.1 (login/logout/forgot-reset/change-password/MFA enroll+challenge), HMAC sessions, CSRF, rate limit; `vulnerable-auth-app` (Express + ejs + sqlite) — login/logout/reset with documented weaknesses (enumerating login, reused + 7-day tokens, no CSRF, no rate limit, verbose errors). Both serve attestation `environmentClass:"local-test"` + seed/reset API. Real Mailpit via `docker-compose.yml`. **REAL boot tests green against real Mailpit** (reset email delivered + token extracted; reference MFA needs real otplib TOTP; vulnerable enumeration + token-reuse weaknesses proven). Per-app typecheck/lint/test excluded from root gate; CI `ci` job gates both apps with a Mailpit service. `pnpm-workspace.yaml allowBuilds` for native deps. **Spikes #8–#12 unblocked.** |
+| 2026-08-04 (11) | **#7 (M0-06) License gate + SBOM DONE.** `scripts/license-gate.mjs` scans the real pnpm graph (440 pkgs) against an allowlist (permissive + weak-copyleft MPL/LGPL) and rejects GPL/AGPL/SSPL/Commons-Clause/BSL/EUPL/CC-BY-SA/PolyForm/Unknown. `license-exceptions.json` (`thirty-two` → MIT upstream). CI: license gate + CycloneDX SBOM artifact + `third_party/` vendored-code guard. TDD sad-paths (AGPL/GPL/SSPL rejected; **LGPL allowed — distinguished from GPL**) + real-graph assertion (0 rejected). 93 tests green. 8/17 M0 done. |
 
 ---
 
