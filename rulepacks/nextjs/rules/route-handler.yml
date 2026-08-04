@@ -1,0 +1,20 @@
+id: nextjs-route-handler
+language: TypeScript
+message: Next.js App Router route handler export
+severity: info
+rule:
+  any:
+    - pattern: export async function $METHOD($$$ARGS) { $$$BODY }
+    - pattern: 'export async function $METHOD($$$ARGS): $RETURN { $$$BODY }'
+constraints:
+  METHOD:
+    regex: ^(GET|POST|PUT|PATCH|DELETE)$
+metadata:
+  arxic:
+    category: route
+    semver: 1.0.0
+    frameworkVersions: '>=15 <16'
+    precision: Named HTTP export completed by deterministic App Router route file convention
+    fallback: Re-exported or generated route handlers require another rule
+    license: MIT
+    provenance: original-arxic

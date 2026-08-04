@@ -1,0 +1,17 @@
+id: express-session-cookie
+language: TypeScript
+message: Express session cookie mutation
+severity: info
+rule:
+  any:
+    - pattern: $RESPONSE.cookie($NAME, $VALUE, $OPTIONS)
+    - pattern: $RESPONSE.clearCookie($NAME)
+metadata:
+  arxic:
+    category: session-cookie
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Captures response cookie set and clear calls
+    fallback: Cookie middleware wrappers require another rule
+    license: MIT
+    provenance: original-arxic

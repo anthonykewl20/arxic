@@ -1,1 +1,152 @@
+import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import type {
+  Diagnostic,
+  EvidenceEvent,
+  EvidenceRefSource,
+  SourceRevision,
+} from '@arxic/contracts';
+import { validateDiagnostic, validateEvidenceRef } from '@arxic/contracts';
+import { ARXIC_RULES_DIRTY_TREE, ARXIC_RULES_FALLBACK, rulesDiagnostic } from './diagnostics';
+import { committedRevision, sourceFiles } from './git';
+import { interpretMatches, type EvidencedRuleMatch, type FeatureChain } from './interpret';
+import { loadPacks, type LoadedPack } from './packs';
+import { runRules, type RuleMatch } from './runner';
+
+export * from './diagnostics';
+export * from './interpret';
+export * from './packs';
+export * from './runner';
 export const PACKAGE_NAME = '@arxic/ast-grep-adapter' as const;
+
+export type AstGrepAdapterOptions = { packs: string[]; sgBinary?: string; now?: () => string };
+export type AstGrepScanInput = { revision: SourceRevision; features?: string[] };
+export type AstGrepScanResult = {
+  events: EvidenceEvent[];
+  matches: EvidencedRuleMatch[];
+  chains: FeatureChain[];
+  packs: LoadedPack[];
+  generatedAt: string;
+};
+
+export class AstGrepAdapter {
+  private readonly options: AstGrepAdapterOptions;
+  constructor(options: AstGrepAdapterOptions) {
+    this.options = options;
+  }
+  async *index(input: AstGrepScanInput): AsyncIterable<EvidenceEvent> {
+    yield* (await this.scan(input)).events;
+  }
+  async scan(input: AstGrepScanInput): Promise<AstGrepScanResult> {
+    const events: EvidenceEvent[] = [];
+    const root = input.revision.repository.startsWith('file:')
+      ? fileURLToPath(input.revision.repository)
+      : input.revision.repository;
+    const packs = await loadPacks(this.options.packs);
+    events.push(...packs.diagnostics.map((diagnostic) => eventDiagnostic(diagnostic)));
+    const provenance = await committedRevision(root);
+    if (
+      !provenance.commit ||
+      provenance.dirty ||
+      provenance.commit !== input.revision.commit ||
+      input.revision.dirty
+    ) {
+      events.push(
+        eventDiagnostic(
+          rulesDiagnostic(
+            ARXIC_RULES_DIRTY_TREE,
+            root,
+            'A clean committed revision matching the request is required; zero source refs emitted',
+          ),
+        ),
+      );
+      return { events, matches: [], chains: [], packs: packs.packs, generatedAt: this.now() };
+    }
+    const files = await sourceFiles(root);
+    const runner = await runRules({
+      binary: this.options.sgBinary,
+      cwd: root,
+      rules: packs.rules,
+      paths: files,
+    });
+    events.push(...runner.diagnostics.map((diagnostic) => eventDiagnostic(diagnostic)));
+    const matches: EvidencedRuleMatch[] = [];
+    if (runner.diagnostics.length === 0) {
+      for (const match of runner.matches) {
+        const bytes = await readFile(join(root, match.file));
+        const evidence: EvidenceRefSource = {
+          kind: 'source',
+          repo: pathToFileURL(root).href,
+          commit: provenance.commit,
+          path: match.file,
+          startLine: match.startLine,
+          endLine: match.endLine,
+          blobSha256: createHash('sha256').update(bytes).digest('hex'),
+          extractor: PACKAGE_NAME,
+          ruleId: `${match.packId}/${match.ruleId}@${match.ruleVersion}`,
+        };
+        if (!validateEvidenceRef(evidence).ok)
+          throw new Error('adapter manufactured invalid EvidenceRef');
+        matches.push({ ...match, evidence });
+        events.push({ ref: evidence });
+      }
+    }
+    for (const path of files) {
+      const text = await readFile(join(root, path), 'utf8');
+      if (/@(?:Get|Post|Put|Patch|Delete)\s*\(\s*['"][^'"]+['"]\s*\)/u.test(text))
+        events.push(
+          eventDiagnostic(
+            rulesDiagnostic(
+              ARXIC_RULES_FALLBACK,
+              path,
+              'regex-fallback detected decorator route syntax; this is never primary evidence',
+            ),
+          ),
+        );
+    }
+    const interpreted = interpretMatches(matches, input.features);
+    events.push(...interpreted.diagnostics.map((diagnostic) => eventDiagnostic(diagnostic)));
+    events.sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+    return {
+      events,
+      matches,
+      chains: interpreted.chains,
+      packs: packs.packs,
+      generatedAt: this.now(),
+    };
+  }
+  private now() {
+    return (this.options.now ?? (() => new Date().toISOString()))();
+  }
+}
+
+function eventDiagnostic(diagnostic: Diagnostic): EvidenceEvent {
+  if (!validateDiagnostic(diagnostic).ok)
+    throw new Error('adapter manufactured invalid Diagnostic');
+  return { diagnostic };
+}
+
+export function diagnosticsOf(events: EvidenceEvent[]): Diagnostic[] {
+  return events.flatMap((event) => ('diagnostic' in event ? [event.diagnostic] : []));
+}
+export function sourceRefsOf(events: EvidenceEvent[]): EvidenceRefSource[] {
+  return events.flatMap((event) =>
+    'ref' in event && event.ref.kind === 'source' ? [event.ref] : [],
+  );
+}
+export function canonicalJson(value: unknown): string {
+  return JSON.stringify(sortValue(value));
+}
+function sortValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortValue);
+  if (value && typeof value === 'object')
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, item]) => [key, sortValue(item)]),
+    );
+  return value;
+}
+export type { RuleMatch };

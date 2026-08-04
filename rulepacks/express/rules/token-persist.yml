@@ -1,0 +1,15 @@
+id: express-token-persist
+language: TypeScript
+message: Database prepared statement persistence
+severity: info
+rule:
+  pattern: db.prepare($QUERY).run($$$ARGS)
+metadata:
+  arxic:
+    category: token-persist
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Captures prepared write statement and values for SQL classification
+    fallback: ORM persistence requires provider-specific rules
+    license: MIT
+    provenance: original-arxic

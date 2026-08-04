@@ -1,0 +1,8 @@
+{
+  "id": "express-auth",
+  "version": "0.1.0",
+  "framework": { "name": "express", "versions": ">=4 <6" },
+  "license": "MIT",
+  "provenance": "original-arxic",
+  "ruleDir": "rules"
+}

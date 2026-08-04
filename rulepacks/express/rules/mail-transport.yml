@@ -1,0 +1,17 @@
+id: express-mail-transport
+language: TypeScript
+message: Nodemailer transport or send
+severity: info
+rule:
+  any:
+    - pattern: nodemailer.createTransport($CONFIG)
+    - pattern: $TRANSPORT.sendMail($MESSAGE)
+metadata:
+  arxic:
+    category: mail-transport
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Direct nodemailer construction or send with payload capture
+    fallback: Mail abstraction calls require data-flow reconciliation
+    license: MIT
+    provenance: original-arxic

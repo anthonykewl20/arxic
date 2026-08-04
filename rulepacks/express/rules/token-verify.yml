@@ -1,0 +1,15 @@
+id: express-token-verify
+language: TypeScript
+message: Reset token lookup
+severity: info
+rule:
+  pattern: findResetToken($TOKEN)
+metadata:
+  arxic:
+    category: token-verify
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Direct reset-token lookup with token capture
+    fallback: Hashed token repositories need another rule
+    license: MIT
+    provenance: original-arxic

@@ -1,0 +1,15 @@
+id: nextjs-token-create
+language: TypeScript
+message: Random token material creation
+severity: info
+rule:
+  pattern: randomBytes($SIZE).toString($ENCODING)
+metadata:
+  arxic:
+    category: token-create
+    semver: 1.0.0
+    frameworkVersions: '>=15 <16'
+    precision: Direct cryptographic random byte token with size and encoding captures
+    fallback: Provider-issued tokens require another rule
+    license: MIT
+    provenance: original-arxic

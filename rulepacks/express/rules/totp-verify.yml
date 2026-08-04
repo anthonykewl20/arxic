@@ -1,0 +1,17 @@
+id: express-totp-verify
+language: TypeScript
+message: otplib TOTP verification
+severity: info
+rule:
+  any:
+    - pattern: authenticator.verify($OPTIONS)
+    - pattern: authenticator.check($TOKEN, $SECRET)
+metadata:
+  arxic:
+    category: totp-verify
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Direct otplib authenticator verification call
+    fallback: Wrapped OTP providers require another rule
+    license: MIT
+    provenance: original-arxic

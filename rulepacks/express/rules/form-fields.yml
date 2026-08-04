@@ -1,0 +1,15 @@
+id: express-form-fields
+language: TypeScript
+message: Express request body field
+severity: info
+rule:
+  pattern: $REQUEST.body.$FIELD
+metadata:
+  arxic:
+    category: form
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Captures body-backed form field access in TypeScript handlers
+    fallback: Dynamic keys and parser wrappers need runtime reconciliation
+    license: MIT
+    provenance: original-arxic

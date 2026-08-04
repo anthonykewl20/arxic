@@ -1,0 +1,20 @@
+id: express-route
+language: TypeScript
+message: Express route registration
+severity: info
+rule:
+  pattern: app.$METHOD($PATH, $$$ARGS)
+constraints:
+  METHOD:
+    regex: ^(get|post|put|patch|delete)$
+  PATH:
+    regex: ^["']
+metadata:
+  arxic:
+    category: route
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Direct app HTTP method with literal path and complete handler range
+    fallback: Routers and decorator routes are labeled fallback only
+    license: MIT
+    provenance: original-arxic
