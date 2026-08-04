@@ -8,16 +8,17 @@ independent runs.
 
 ## How Arxic works
 
-It translates behavioral intents into independently replayable Playwright workflow
-bundles using verified evidence and provenance, grounded in the architecture and
-truth-state model in `docs/arxic-full-adr.md`.
-
-See also `docs/engineering-charter.md` for project-specific process.
+Arxic is an evidence-driven compiler: it discovers behavioral capabilities from
+pinned source and a safe test deployment, reconciles them into a coverage matrix,
+and verifies them as independently replayable Playwright workflow bundles with
+provenance. Five truth states (hypothesized / observed / verified / contradicted /
+blocked) govern every outcome; an LLM may never assign `verified`. See
+`docs/adr/001-arxic-architecture.md` and `docs/engineering-charter.md`.
 
 ## Prerequisites
 
-- Node.js 20+
-- pnpm 11
+- Node.js 22+
+- pnpm 11 (via corepack; `packageManager` is pinned in `package.json`)
 
 ## Getting started
 

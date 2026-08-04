@@ -1,4 +1,5 @@
-ADR index for this repo lives here.
+ADR index for this repo.
 
-ADR-001 is at `../arxic-full-adr.md` (canonical).
-Future ADRs go in `docs/adr/`.
+- ADR-001: [Public summary record](./001-arxic-architecture.md)
+- A more detailed internal ADR is maintained privately.
+- Future ADRs go in `docs/adr/`.

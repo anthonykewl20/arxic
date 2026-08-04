@@ -9,34 +9,36 @@ Evidence-driven behavioral intent compiler that produces independently replayabl
 Playwright workflow bundles with explicit evidence, provenance, and verifiable
 coverage.
 
-Status: Proposed, pre-MVP (bootstrap complete; M0 in progress)
+Status: Accepted, pre-MVP (bootstrap complete; M0 in progress)
 
 ## What is Arxic?
 
-Arxic turns behavioral requirements into replayable, evidence-backed Playwright
-workflow bundles. It combines static, dynamic, and workflow-level checks so a
-single slice outcome is documented with explicit evidence from each layer.
+Arxic is an evidence-discovery + verification compiler for behavioral capabilities.
+It discovers capabilities from pinned source, then runs a safe test deployment and
+verifies discoverable behavior with replayable Playwright runs before promotion.
+It does not compile user-specified requirements.
 
-The core feasibility principle is blunt: passing one test is not enough. Arxic
-classifies each result as verified, hypothesized, or blocked, and it keeps that
-certainty visible through the entire pipeline.
+ADR §2 defines five truth states: hypothesized, observed, verified, contradicted,
+and blocked. The core feasibility principle is blunt: passing one test is not
+enough. An LLM may never assign `verified`; only deterministic replay verification can.
 
 ## How it works
 
-1. Slice-level behavior requirements are specified as composable intents.
-2. Static and runtime engines from the `gears/` reference set are assembled to
-   produce execution artifacts.
-3. Outputs are converted into replayable Playwright bundles.
-4. Promotion gates keep only evidence-backed results.
+1. Discover source and runtime evidence for candidate behaviors.
+2. Reconcile evidence into a bounded coverage matrix.
+3. Compile evidence-backed workflows into staged Playwright bundles.
+4. Replay and verify them with policy-constrained runs and required gates (ADR §8/§9/§15).
+5. Promote only when evidence, policy, coverage, and replay gates pass.
 
-For the canonical architecture, see `docs/arxic-full-adr.md` section 8 and the
-pipeline in section 9. Current gear set includes Crawlee, Playwright, Mailpit,
-AST-grep, and related orchestrators.
+Arxic assembles proven open-source engines at their public seams — Playwright,
+Crawlee, ast-grep, LangGraph.js, Graphology, AJV, Testcontainers, Mailpit, and
+otplib. For the canonical architecture, see `docs/adr/001-arxic-architecture.md` section 8
+and the pipeline in section 9.
 
 ## Repo map
 
-- `docs/` - ADR, engineering charter, SYNC, RELEASES, CHANGELOG
-- `gears/` - LOCAL-ONLY reference (gitignored); fetch via `scripts/fetch-gears.sh`. In-repo metadata: `docs/gears/`.
+- `docs/` - ADR, engineering charter, SYNC
+- `CHANGELOG.md` and `RELEASES.md` - root-level release and version policy
 - `packages/` - package implementations
 - `apps/` - application-layer entry points
 - `schemas/` - schema artifacts
@@ -58,8 +60,8 @@ the milestones and slices.
 
 Milestones are tracked on GitHub: https://github.com/anthonykewl20/arxic/milestones
 
-- M0-EXIT (`#14`) - bootstrap and baseline architecture milestones
-- M1-EXIT (`#27`) - contract stabilization and slice-to-slice verification
+- M0-EXIT (`#14`) - one manually-supplied login candidate compiles, verifies twice, and promotes with evidence
+- M1-EXIT (`#27`) - two structurally different reference apps produce independently replayable bundles without app-specific generator code
 
 ## Contributing
 
@@ -74,5 +76,4 @@ in `RELEASES.md`, and all notable changes are tracked in `CHANGELOG.md`.
 
 ## License
 
-MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE` and
-in `docs/gears/*/PROVENANCE.md`.
+MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE`.

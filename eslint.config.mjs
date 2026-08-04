@@ -5,7 +5,6 @@ import globals from 'globals';
 export default tseslint.config(
   {
     ignores: [
-      'gears/**',
       'test-fixtures/**',
       'dist/**',
       'coverage/**',

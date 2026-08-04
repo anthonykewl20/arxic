@@ -6,4 +6,3 @@
 *.md eol=lf
 *.png binary
 *.trace binary
-gears/** linguist-vendored=true

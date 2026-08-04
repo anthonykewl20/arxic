@@ -29,9 +29,8 @@ Closes #<issue number>  ·  Slice id: `<M0-03>`  ·  Milestone: `<Milestone 0 - 
 - [ ] `docs/SYNC.md`: flipped this slice's checkbox, moved 🔖 RESUME HERE to next slice, added a session-log line (disposition: verified / contradicted / blocked)
 - [ ] **`CHANGELOG.md`: added an `## [Unreleased]` entry (Keep a Changelog verb) for this slice — ALWAYS, no exceptions**
 - [ ] **Version**: if user-observable, bumped per `RELEASES.md` and `VERSION` == `package.json` `version`
-- [ ] `docs/arxic-full-adr.md` / `docs/adr/`: added a dated addendum or new ADR if any decision changed (frozen §10 contracts change only via ADR)
+- [ ] `docs/adr/`: added a dated addendum or new ADR if any decision changed (frozen §10 contracts change only via ADR)
 - [ ] `docs/engineering-charter.md` updated if process changed
-- [ ] `docs/gears/README.md` + `docs/gears/*/PROVENANCE.md` updated if a gear changed
 - [ ] Affected `packages/*/README.md`, `schemas/*`, `rulepacks/*` versions bumped
 - [ ] **Staleness sweep**: `rg -n "<slice id> TODO FIXME"` — no doc still describes this as pending/planned
 - [ ] PR linked to the issue; completion comment posted with dispositions + evidence pointers; **issue will be closed on merge**
