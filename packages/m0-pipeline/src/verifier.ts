@@ -45,6 +45,9 @@ export type VerifyStagedSuiteResult = {
 export async function verifyStagedSuite(
   input: VerifyStagedSuiteInput,
 ): Promise<VerifyStagedSuiteResult> {
+  if (!Number.isInteger(input.policy.requiredRuns) || input.policy.requiredRuns < 1) {
+    return blockedResult([], [], 'Verification requires at least one clean-fixture run');
+  }
   const requiredTransitions = input.workflow.transitions
     .filter((transition) => transition.required !== false)
     .map((transition) => `${transition.from}->${transition.to}`);

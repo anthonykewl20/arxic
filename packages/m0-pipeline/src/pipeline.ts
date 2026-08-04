@@ -46,7 +46,14 @@ export type M0VerticalResult = {
   diagnostics: Diagnostic[];
 };
 
-export async function runM0Vertical(input: RunM0VerticalInput): Promise<M0VerticalResult> {
+export type M0PipelineServices = {
+  generateSpec: typeof generateSpecFromWorkflow;
+};
+
+export async function runM0Vertical(
+  input: RunM0VerticalInput,
+  services: Partial<M0PipelineServices> = {},
+): Promise<M0VerticalResult> {
   const now = input.now ?? (() => new Date().toISOString());
   const requiredRuns = input.requiredRuns ?? 2;
   const diagnostics: Diagnostic[] = [];
@@ -98,9 +105,7 @@ export async function runM0Vertical(input: RunM0VerticalInput): Promise<M0Vertic
       (chain) =>
         chain.framework === 'nextjs' && chain.feature === 'login' && chain.status === 'connected',
     );
-    (loginChain?.evidence ?? []).forEach((ref, index) => {
-      evidenceIndex[`src:login-${index + 1}`] = ref;
-    });
+    indexSourceEvidence(input.candidate, loginChain?.evidence ?? [], evidenceIndex);
   } catch (error) {
     diagnostics.push(
       exitDiagnostic(
@@ -112,7 +117,7 @@ export async function runM0Vertical(input: RunM0VerticalInput): Promise<M0Vertic
     );
   }
   const testDir = join(input.artifactsDir, 'staged', input.candidate.id, runId);
-  const generated = await generateSpecFromWorkflow(input.candidate, {
+  const generated = await (services.generateSpec ?? generateSpecFromWorkflow)(input.candidate, {
     origin: input.target.origin,
     testDir,
   });
@@ -146,13 +151,16 @@ export async function runM0Vertical(input: RunM0VerticalInput): Promise<M0Vertic
     artifactsDir: join(input.artifactsDir, 'runs', runId),
   });
   diagnostics.push(...verification.diagnostics);
-  if (Object.keys(evidenceIndex).length === 0 && verification.outcome === 'verified') {
+  const unresolvedEvidence = workflowEvidenceIds(input.candidate).filter(
+    (evidenceId) => evidenceIndex[evidenceId] === undefined,
+  );
+  if (unresolvedEvidence.length > 0 && verification.outcome === 'verified') {
     diagnostics.push(
       exitDiagnostic(
         ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
         'blocked',
         input.candidate.id,
-        'No committed source evidence was available for promotion',
+        `Workflow evidence references are unresolved: ${unresolvedEvidence.join(', ')}`,
       ),
     );
     return skipped('blocked', verification.runs, diagnostics, input.candidate.id);
@@ -254,16 +262,65 @@ async function prepareGeneratedSuite(
   forbidNetworkErrors: boolean,
 ): Promise<void> {
   const config = await readFile(configPath, 'utf8');
-  await writeFile(configPath, config.replace("trace: 'retain-on-failure'", "trace: 'on'"));
+  const traceTarget = "trace: 'retain-on-failure'";
+  if (!config.includes(traceTarget))
+    throw new Error('Generated config lacks the retained-trace seam');
+  await writeFile(configPath, config.replace(traceTarget, "trace: 'on'"));
   if (!forbidNetworkErrors) return;
   const spec = await readFile(specPath, 'utf8');
+  const instrumentationTarget = '\n\ntest(';
+  if (!spec.includes(instrumentationTarget))
+    throw new Error('Generated spec lacks the network instrumentation seam');
   const instrumentation = [
     'const arxicNetworkErrors = new WeakMap<object, string[]>();',
     "test.beforeEach(async ({ page }) => { const errors: string[] = []; arxicNetworkErrors.set(page, errors); page.on('requestfailed', request => { const failure = request.failure()?.errorText; if (failure && !/ERR_ABORTED|NS_BINDING_ABORTED/u.test(failure)) errors.push(`${failure} ${request.url()}`); }); });",
     'test.afterEach(async ({ page }) => { expect(arxicNetworkErrors.get(page) ?? []).toEqual([]); });',
     '',
   ].join('\n');
-  await writeFile(specPath, spec.replace('\n\ntest(', `\n\n${instrumentation}test(`));
+  await writeFile(specPath, spec.replace(instrumentationTarget, `\n\n${instrumentation}test(`));
+}
+
+function indexSourceEvidence(
+  workflow: Workflow,
+  refs: Array<EvidenceIndex[string]>,
+  evidenceIndex: EvidenceIndex,
+): void {
+  const remaining = [...refs];
+  for (const evidenceId of workflowEvidenceIds(workflow)) {
+    const preferred = preferredSourceEvidence(evidenceId, remaining);
+    if (!preferred) continue;
+    evidenceIndex[evidenceId] = preferred;
+    remaining.splice(remaining.indexOf(preferred), 1);
+  }
+  let generatedIndex = 1;
+  for (const ref of remaining) {
+    while (evidenceIndex[`src:login-${generatedIndex}`]) generatedIndex += 1;
+    evidenceIndex[`src:login-${generatedIndex}`] = ref;
+    generatedIndex += 1;
+  }
+}
+
+function workflowEvidenceIds(workflow: Workflow): string[] {
+  return [
+    ...new Set(
+      [
+        ...workflow.evidenceRefs,
+        ...workflow.transitions.flatMap(({ evidenceRefs }) => evidenceRefs),
+      ].filter((evidenceId) => evidenceId.startsWith('src:')),
+    ),
+  ];
+}
+
+function preferredSourceEvidence(
+  evidenceId: string,
+  refs: Array<EvidenceIndex[string]>,
+): EvidenceIndex[string] | undefined {
+  const category = evidenceId.match(/(?:route|handler|guard)$/u)?.[0];
+  let marker: RegExp | undefined;
+  if (category === 'route') marker = /(?:page-route|express-route)/u;
+  if (category === 'handler') marker = /(?:server-action|inline-handler)/u;
+  if (category === 'guard') marker = /auth-guard/u;
+  return refs.find((ref) => ref.kind === 'source' && marker?.test(ref.ruleId ?? '')) ?? refs[0];
 }
 
 async function writeSupportingArtifacts(

@@ -71,4 +71,25 @@ describe('M0 exit contract gate', () => {
     });
     expect(result.outcome).toBe(expected);
   });
+
+  it('blocks a zero-run policy even when every transition is optional', async () => {
+    const workflow = loginWorkflow();
+    workflow.transitions = workflow.transitions.map((transition) => ({
+      ...transition,
+      required: false,
+    }));
+    const result = await verifyStagedSuite({
+      workflow,
+      origin: 'http://127.0.0.1:1',
+      testDir: '/suite-is-not-read-for-zero-runs',
+      artifactsDir: '/artifacts-are-not-read-for-zero-runs',
+      persona: { email: 'user@example.test', password: 'Hunter2!' },
+      policy: { requiredRuns: 0, forbidNetworkErrors: true },
+    });
+    expect(result.outcome).toBe('blocked');
+    expect(result.runs).toEqual([]);
+    expect(result.diagnostics.map(({ code }) => code)).toContain(
+      'ARXIC-EXIT-EVIDENCE-GATE-BLOCKED',
+    );
+  });
 });

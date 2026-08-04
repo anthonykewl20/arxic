@@ -93,6 +93,13 @@ describe('real M0 login vertical', () => {
     );
     const promoted = JSON.parse(promotedBytes.toString('utf8')) as StagedBundle;
     expect(validateManifest(promoted.manifest)).toEqual(expect.objectContaining({ ok: true }));
+    for (const evidenceId of promoted.workflow.evidenceRefs) {
+      expect(promoted.evidenceIndex[evidenceId]).toBeDefined();
+    }
+    expect(promoted.evidenceIndex['src:login-handler']).toMatchObject({
+      kind: 'source',
+      ruleId: expect.stringContaining('nextjs-server-action'),
+    });
     expect(promoted.manifest).toMatchObject({
       workflow: { id: 'authentication.login', status: 'verified' },
       commit,
