@@ -5,11 +5,35 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Verify release metadata (tag == VERSION == package.json)
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME#v}"
+          VERSION="$(cat VERSION)"
+          PKG="$(node -p 'require("./package.json").version')"
+          echo "tag=$TAG version=$VERSION package.json=$PKG"
+          if [ "$VERSION" = "0.0.0" ]; then
+            echo "::error::VERSION is 0.0.0 (no release cut yet); refusing to publish."
+            exit 1
+          fi
+          if [ "$TAG" != "$VERSION" ] || [ "$TAG" != "$PKG" ] || [ "$VERSION" != "$PKG" ]; then
+            echo "::error::Version mismatch: tag=$TAG VERSION=$VERSION package.json=$PKG must all agree."
+            exit 1
+          fi
+          if ! grep -q "## \[Unreleased\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no [Unreleased] section to finalize."
+            exit 1
+          fi
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
