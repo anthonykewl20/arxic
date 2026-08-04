@@ -26,7 +26,8 @@ async function stopServer(server: ChildProcess): Promise<void> {
 export default async function globalSetup(): Promise<() => Promise<void>> {
   const mailpitApi = process.env.ARXIC_MAILPIT_API || 'http://localhost:8025';
   await assertMailpit(mailpitApi);
-  const port = process.env.PORT || '4011';
+  const port = process.env.ARXIC_TEST_PORT || process.env.PORT || '4011';
+  process.env.PORT = port;
   const baseUrl = `http://localhost:${port}`;
   process.env.ARXIC_TEST_BASE_URL = baseUrl;
   process.env.ARXIC_TARGET_ORIGIN = baseUrl;
