@@ -8,7 +8,9 @@ The request origin must exactly equal the attested origin and occur in both the 
 
 When `requireSignedReceipt` is enabled, the target must supply `signedReceipt`, encoded as lowercase or uppercase hexadecimal HMAC-SHA256 over `<buildDigest>.<nonce>` using `receiptKey`. The canonical fixture apps use static test nonces and therefore use `expectedNonce` rather than signed receipts.
 
-A production-looking target can pass only through `humanApprovals[origin]` in static policy. The record must include `approver`, `approvedAt`, and `reason`; the accepted override is copied into the decision record. Models receive no API that can populate approvals. Origin, nonce, and receipt checks remain fail-closed when an approval exists.
+A production-looking target can pass only through `humanApprovals[origin]` in static policy. The record must include string values for `approver`, `approvedAt`, and `reason`; malformed records fail as missing approvals. The accepted override is copied into the decision record. Models receive no API that can populate approvals. Origin, nonce, and receipt checks remain fail-closed when an approval exists.
+
+Live fetches fail closed after `attestationTimeoutMs`, which defaults to 10 seconds. Timeout, network, HTTP, JSON, and shape failures return `ARXIC-ATTESTATION-FETCH-FAILED` and a refused decision.
 
 ## Public API
 

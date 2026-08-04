@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { cp, mkdtemp, rm, symlink } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -45,20 +45,17 @@ async function waitFor(origin: string, process: ChildProcess): Promise<void> {
 async function bootReference(): Promise<string> {
   const temporaryRoot = await mkdtemp(join(tmpdir(), 'arxic-attestation-reference-'));
   temporaryDirectories.push(temporaryRoot);
-  const appDir = join(temporaryRoot, 'app');
-  await cp(referenceDir, appDir, {
-    recursive: true,
-    filter: (source) => !['.next', 'node_modules'].includes(source.split('/').at(-1) ?? ''),
+  await execute('pnpm', ['--filter', 'reference-auth-app', 'build'], {
+    cwd: root,
+    timeout: 120_000,
   });
-  await symlink(resolve(referenceDir, 'node_modules'), resolve(appDir, 'node_modules'), 'dir');
-  await execute('pnpm', ['build'], { cwd: appDir });
   const port = await freePort();
   const origin = `http://127.0.0.1:${port}`;
   const process = spawn(
     processPath(),
-    [resolve(appDir, 'node_modules/next/dist/bin/next'), 'start', '-p', String(port)],
+    [resolve(referenceDir, 'node_modules/next/dist/bin/next'), 'start', '-p', String(port)],
     {
-      cwd: appDir,
+      cwd: referenceDir,
       env: {
         ...processEnv(),
         ARXIC_TARGET_ORIGIN: origin,
@@ -66,6 +63,7 @@ async function bootReference(): Promise<string> {
         ARXIC_DB_PATH: join(temporaryRoot, 'auth.db'),
       },
       stdio: 'ignore',
+      shell: false,
     },
   );
   processes.push(process);
@@ -74,7 +72,10 @@ async function bootReference(): Promise<string> {
 }
 
 async function bootVulnerable(): Promise<string> {
-  await execute('pnpm', ['build'], { cwd: vulnerableDir });
+  await execute('pnpm', ['--filter', 'vulnerable-auth-app', 'build'], {
+    cwd: root,
+    timeout: 120_000,
+  });
   const temporaryRoot = await mkdtemp(join(tmpdir(), 'arxic-attestation-vulnerable-'));
   temporaryDirectories.push(temporaryRoot);
   const port = await freePort();
@@ -89,6 +90,7 @@ async function bootVulnerable(): Promise<string> {
       ARXIC_DB_PATH: join(temporaryRoot, 'auth.db'),
     },
     stdio: 'ignore',
+    shell: false,
   });
   processes.push(process);
   await waitFor(origin, process);

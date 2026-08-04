@@ -1,5 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
+export const DEFAULT_ATTESTATION_TIMEOUT_MS = 10_000;
+
 export type TargetAttestation = {
   environmentClass: string;
   origin: string;
@@ -30,11 +32,15 @@ export function parseAttestation(input: unknown): TargetAttestation {
   return value as TargetAttestation;
 }
 
-export async function fetchAttestation(origin: string): Promise<TargetAttestation> {
+export async function fetchAttestation(
+  origin: string,
+  timeoutMs = DEFAULT_ATTESTATION_TIMEOUT_MS,
+): Promise<TargetAttestation> {
   const endpoint = new URL('/.well-known/arxic-test-target.json', origin);
   const response = await fetch(endpoint, {
     headers: { accept: 'application/json' },
     redirect: 'manual',
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) throw new Error(`Attestation endpoint returned HTTP ${response.status}`);
   return parseAttestation(await response.json());

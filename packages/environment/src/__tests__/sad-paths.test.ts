@@ -1,6 +1,12 @@
 import { createHash } from 'node:crypto';
+import { createServer } from 'node:http';
 import { describe, expect, it } from 'vitest';
-import { verifyAttestation, type AttestationPolicy, type TargetAttestation } from '..';
+import {
+  EnvironmentHandshake,
+  verifyAttestation,
+  type AttestationPolicy,
+  type TargetAttestation,
+} from '..';
 
 const origin = 'http://localhost:4312';
 const digest = createHash('sha256').update('build-1').digest('hex');
@@ -67,6 +73,18 @@ describe('target-attestation sad paths resolve to blocked diagnostics', () => {
     });
   });
 
+  it('refuses a forged well-formed build receipt as blocked', () => {
+    const result = verifyAttestation(
+      attestation({ signedReceipt: 'a'.repeat(64) }),
+      { origin },
+      policy({ requireSignedReceipt: true, receiptKey: 'test-key' }),
+    );
+    expect(result).toMatchObject({
+      disposition: 'refused',
+      diagnostics: [{ code: 'ARXIC-ATTESTATION-RECEIPT-UNSIGNED', severity: 'blocked' }],
+    });
+  });
+
   it('refuses any request, attestation, target list, or policy origin mismatch as blocked', () => {
     const result = verifyAttestation(
       attestation({ allowedOrigins: ['http://localhost:9999'] }),
@@ -90,5 +108,44 @@ describe('target-attestation sad paths resolve to blocked diagnostics', () => {
       'ARXIC-ATTESTATION-OVERRIDE-MISSING',
     );
     expect(result.decision.override).toBeUndefined();
+  });
+
+  it('refuses a malformed approval record as override-missing instead of fetch-failed', () => {
+    const malformedPolicy = policy({
+      allowedEnvironmentClasses: ['local-test', 'production'],
+      humanApprovals: { [origin]: { approver: undefined } } as unknown as Record<
+        string,
+        { approver: string; approvedAt: string; reason: string }
+      >,
+    });
+    const result = verifyAttestation(
+      attestation({ environmentClass: 'production' }),
+      { origin },
+      malformedPolicy,
+    );
+    expect(result.disposition).toBe('refused');
+    expect(result.diagnostics.map(({ code }) => code)).toContain(
+      'ARXIC-ATTESTATION-OVERRIDE-MISSING',
+    );
+  });
+
+  it('refuses a hanging attestation endpoint after the configured timeout', async () => {
+    const server = createServer(() => undefined);
+    await new Promise<void>((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+    const address = server.address();
+    if (!address || typeof address === 'string') throw new Error('Could not allocate a port');
+    const hangingOrigin = `http://127.0.0.1:${address.port}`;
+    try {
+      const result = await new EnvironmentHandshake().attest(
+        { origin: hangingOrigin },
+        { allowedOrigins: [hangingOrigin], attestationTimeoutMs: 20 },
+      );
+      expect(result).toMatchObject({
+        disposition: 'refused',
+        diagnostics: [{ code: 'ARXIC-ATTESTATION-FETCH-FAILED', severity: 'blocked' }],
+      });
+    } finally {
+      await new Promise<void>((resolveClose) => server.close(() => resolveClose()));
+    }
   });
 });

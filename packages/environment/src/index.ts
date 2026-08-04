@@ -27,6 +27,7 @@ export type AttestationPolicy = {
   requireSignedReceipt?: boolean;
   receiptKey?: string;
   humanApprovals?: Record<string, HumanApproval>;
+  attestationTimeoutMs?: number;
   now?: () => string;
 };
 
@@ -126,6 +127,19 @@ function decision(
   };
 }
 
+function isHumanApproval(value: unknown): value is HumanApproval {
+  if (typeof value !== 'object' || value === null) return false;
+  const approval = value as Record<string, unknown>;
+  return (
+    typeof approval.approver === 'string' &&
+    approval.approver.length > 0 &&
+    typeof approval.approvedAt === 'string' &&
+    approval.approvedAt.length > 0 &&
+    typeof approval.reason === 'string' &&
+    approval.reason.length > 0
+  );
+}
+
 export function verifyAttestation(
   attestation: TargetAttestation,
   request: AttestationRequest,
@@ -133,14 +147,8 @@ export function verifyAttestation(
 ): AttestationResult {
   const diagnostics: Diagnostic[] = [];
   const classification = classifyTarget(attestation);
-  const override = policy.humanApprovals?.[request.origin];
-  const validOverride =
-    override &&
-    override.approver.length > 0 &&
-    override.approvedAt.length > 0 &&
-    override.reason.length > 0
-      ? override
-      : undefined;
+  const override: unknown = policy.humanApprovals?.[request.origin];
+  const validOverride = isHumanApproval(override) ? override : undefined;
   const approvedProductionOverride = classification.productionLooking ? validOverride : undefined;
   if (classification.productionLooking && !approvedProductionOverride) {
     diagnostics.push(
@@ -233,7 +241,11 @@ export class EnvironmentHandshake {
     policy: AttestationPolicy,
   ): Promise<Omit<AttestationResult, 'ok'>> {
     try {
-      const result = verifyAttestation(await fetchAttestation(request.origin), request, policy);
+      const result = verifyAttestation(
+        await fetchAttestation(request.origin, policy.attestationTimeoutMs),
+        request,
+        policy,
+      );
       return {
         disposition: result.disposition,
         decision: result.decision,

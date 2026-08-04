@@ -12,7 +12,7 @@
 
 **Next action:** [#40 (M0-13) ModelAdapter spike](https://github.com/anthonykewl20/arxic/issues/40). Then #41/#44 → then #14 (M0-EXIT gate).
 
-**Last session:** 2026-08-05 — **#12 (M0-11) Threat model + target-attestation DONE**: exact origin/environment/nonce/receipt policy and production-looking default refusal emit blocked diagnostics and an auditable decision; both real fixture endpoints are allowed, while a locally served production-shaped endpoint is refused until static recorded human approval is present. Docker daemon authority remains in the trusted control plane and is never delegated to the untrusted worker. Next: #40 ModelAdapter spike.
+**Last session:** 2026-08-05 — **#12 (M0-11) Threat model + target-attestation DONE**: exact origin/environment/nonce/receipt policy and production-looking default refusal emit blocked diagnostics and an auditable decision; both real fixture endpoints are allowed, while a locally served production-shaped endpoint is refused until static recorded human approval is present. The threat model specifies that Docker daemon authority remains in the trusted control plane and is never delegated to the untrusted worker; M1 #26 must prove that enforcement in the live worker. Next: #40 ModelAdapter spike.
 
 ---
 
