@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
 
+### fixed
+
+- `release.yml` now declares `permissions: contents: write` and guards against version mismatch (`tag == VERSION == package.json`) and a premature `0.0.0` release. (Audit: release workflow could not create a release.)
+
 ### changed
 
 - Removed vendored upstream code from the repository — `gears/` is now reference-only (gitignored), repopulated locally via `scripts/fetch-gears.sh`; provenance metadata + LICENSE texts moved to `docs/gears/`. (Resolves pre-development audit finding on pin drift / license hygiene.)
