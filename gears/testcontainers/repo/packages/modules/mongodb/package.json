@@ -1,0 +1,38 @@
+{
+  "name": "@testcontainers/mongodb",
+  "version": "12.0.4",
+  "license": "MIT",
+  "keywords": [
+    "mongodb",
+    "testing",
+    "docker",
+    "testcontainers"
+  ],
+  "description": "MongoDB module for Testcontainers",
+  "homepage": "https://github.com/testcontainers/testcontainers-node#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/testcontainers/testcontainers-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/testcontainers/testcontainers-node/issues"
+  },
+  "main": "build/index.js",
+  "files": [
+    "build"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "shx cp ../../../README.md . && shx cp ../../../LICENSE .",
+    "build": "tsc --project tsconfig.build.json"
+  },
+  "devDependencies": {
+    "mongoose": "^9.8.0"
+  },
+  "dependencies": {
+    "compare-versions": "^6.1.1",
+    "testcontainers": "^12.0.4"
+  }
+}

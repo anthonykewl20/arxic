@@ -1,0 +1,35 @@
+{
+  "name": "@testcontainers/toxiproxy",
+  "version": "12.0.4",
+  "license": "MIT",
+  "keywords": [
+    "toxiproxy",
+    "testing",
+    "docker",
+    "testcontainers"
+  ],
+  "description": "Toxiproxy module for Testcontainers",
+  "homepage": "https://github.com/testcontainers/testcontainers-node#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/testcontainers/testcontainers-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/testcontainers/testcontainers-node/issues"
+  },
+  "main": "build/index.js",
+  "files": [
+    "build"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "shx cp ../../../README.md . && shx cp ../../../LICENSE .",
+    "build": "tsc --project tsconfig.build.json"
+  },
+  "dependencies": {
+    "testcontainers": "^12.0.4",
+    "toxiproxy-node-client": "^4.1.0"
+  }
+}

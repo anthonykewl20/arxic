@@ -1,0 +1,98 @@
+site_name: Testcontainers for NodeJS
+site_url: https://node.testcontainers.org
+repo_name: "testcontainers-node"
+repo_url: "https://github.com/testcontainers/testcontainers-node"
+edit_uri: edit/main/docs/
+
+theme:
+  name: "material"
+  custom_dir: "docs/site/theme"
+  palette:
+    scheme: testcontainers
+  font:
+    text: Roboto
+    code: Roboto Mono
+  logo: "site/logo.svg"
+  favicon: "site/favicon.ico"
+  features:
+    - content.code.copy
+
+extra_css:
+  - "site/css/extra.css"
+  - "site/css/tc-header.css"
+
+plugins:
+  - search
+  - codeinclude
+  - markdownextradata
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Quickstart:
+      - Install: quickstart/install.md
+      - Usage: quickstart/usage.md
+      - Global setup: quickstart/global-setup.md
+      - Logging: quickstart/logging.md
+  - Supported container runtimes: supported-container-runtimes.md
+  - Features:
+      - Containers: features/containers.md
+      - Images: features/images.md
+      - Networking: features/networking.md
+      - Compose: features/compose.md
+      - Wait strategies: features/wait-strategies.md
+      - Advanced: features/advanced.md
+  - Modules:
+      - ArangoDB: modules/arangodb.md
+      - Azure Service Bus: modules/azureservicebus.md
+      - Azurite: modules/azurite.md
+      - Cassandra: modules/cassandra.md
+      - ChromaDB: modules/chromadb.md
+      - ClickHouse: modules/clickhouse.md
+      - CockroachDB: modules/cockroachdb.md
+      - CosmosDB: modules/cosmosdb.md
+      - Couchbase: modules/couchbase.md
+      - CouchDB: modules/couchdb.md
+      - Elasticsearch: modules/elasticsearch.md
+      - Etcd: modules/etcd.md
+      - GCloud: modules/gcloud.md
+      - HiveMQ: modules/hivemq.md
+      - K3s: modules/k3s.md
+      - Kafka: modules/kafka.md
+      - KurrentDB: modules/kurrentdb.md
+      - Localstack: modules/localstack.md
+      - MariaDB: modules/mariadb.md
+      - MinIO: modules/minio.md
+      - Mockserver: modules/mockserver.md
+      - MongoDB: modules/mongodb.md
+      - Mosquitto: modules/mosquitto.md
+      - MSSQLServer: modules/mssqlserver.md
+      - MySQL: modules/mysql.md
+      - Nats: modules/nats.md
+      - Neo4J: modules/neo4j.md
+      - Ollama: modules/ollama.md
+      - OpenSearch: modules/opensearch.md
+      - Oracle Free: modules/oraclefree.md
+      - PostgreSQL: modules/postgresql.md
+      - Qdrant: modules/qdrant.md
+      - RabbitMQ: modules/rabbitmq.md
+      - Redis: modules/redis.md
+      - Redpanda: modules/redpanda.md
+      - S3Mock: modules/s3mock.md
+      - ScyllaDB: modules/scylladb.md
+      - Selenium: modules/selenium.md
+      - ToxiProxy: modules/toxiproxy.md
+      - Valkey: modules/valkey.md
+      - Vault: modules/vault.md
+      - Weaviate: modules/weaviate.md
+  - Configuration: configuration.md

@@ -1,0 +1,66 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      group:
+        description: "Release group"
+        required: true
+        type: choice
+        options:
+          - packages
+      bump:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions: {}
+
+concurrency:
+  group: "prepare-release"
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION_TARGET: "24"
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  prepare-release:
+    environment: general
+    name: Prepare Release (Create PR)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required for creating/updating release branch
+      pull-requests: write # Required for creating PR
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        # persist-credentials intentionally left enabled — this job
+        # needs git push access to create the release branch and PR.
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION_TARGET }}
+
+      - name: Create release PR for ${{ inputs.group }}
+        id: release
+        uses: ./.github/actions/version-release-pr
+        with:
+          group: ${{ inputs.group }}
+          bump: ${{ inputs.bump }}
+          title: "release(${{ inputs.group }}): v{version}"
+          label: ci-release
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## Release PR Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Group:** ${{ inputs.group }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.release.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**PR:** ${{ steps.release.outputs.pr-url }}" >> $GITHUB_STEP_SUMMARY

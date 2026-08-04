@@ -1,0 +1,46 @@
+{
+  "name": "graphology-cores",
+  "version": "0.0.1",
+  "description": "Graphology utilities related to k-cores.",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "*.d.ts"
+  ],
+  "types": "./index.d.ts",
+  "scripts": {
+    "prepublishOnly": "npm test",
+    "test": "mocha test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/graphology/graphology.git"
+  },
+  "keywords": [
+    "graph",
+    "graphology",
+    "core"
+  ],
+  "contributors": [
+    {
+      "name": "Guillaume Plique",
+      "url": "http://github.com/Yomguithereal"
+    },
+    {
+      "name": "César Pichon",
+      "url": "http://github.com/16arpi"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/graphology/graphology/issues"
+  },
+  "homepage": "https://github.com/graphology/graphology#readme",
+  "peerDependencies": {
+    "graphology-operators": "^1.6.0",
+    "graphology-types": ">=0.19.0"
+  },
+  "dependencies": {
+    "graphology-utils": "^2.5.2"
+  }
+}

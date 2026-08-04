@@ -1,0 +1,58 @@
+name: Smoke Test (Packages)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "otplib version to test (e.g., 13.0.0, latest)"
+        required: false
+        default: "latest"
+
+permissions: {}
+
+env:
+  NODE_VERSION_TARGET: "24"
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  # Note:
+  # This workflow uses `npm` instead of `pnpm` for package management
+  # My assumption is that more users are on npm.
+  smoke-test-packages:
+    environment: general
+    name: Smoke Test (Packages)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required for checkout
+      checks: write # Required for uploading test results
+    steps:
+      - name: Set version
+        run: echo "OTPLIB_VERSION=${{ github.event.inputs.version || 'latest' }}" >> $GITHUB_ENV
+
+      - name: Checkout smoke tests
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: smoke-tests
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION_TARGET }}
+          cache: "npm"
+          cache-dependency-path: package.json
+
+      - name: Wait for npm to propagate
+        run: sleep 60
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install otplib packages
+        run: npm run install:packages
+
+      - name: Run smoke tests
+        run: npm run test:all
+
+      - name: Run TypeScript type check
+        run: npm run test:typecheck

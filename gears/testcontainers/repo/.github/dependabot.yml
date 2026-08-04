@@ -1,0 +1,95 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    cooldown:
+      default-days: 7
+    labels:
+      - "dependencies"
+      - "javascript"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+    ignore:
+      # archiver v8 is ESM-only; keep CommonJS-compatible major versions.
+      - dependency-name: "archiver"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "@types/archiver"
+        update-types:
+          - "version-update:semver-major"
+      # get-port v6+ is ESM-only; keep CommonJS-compatible major versions.
+      - dependency-name: "get-port"
+        update-types:
+          - "version-update:semver-major"
+
+  - package-ecosystem: "docker"
+    directories:
+      - "/packages/modules/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "github_actions"
+    groups:
+      actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "devcontainers"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "devcontainers"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker_compose"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "pip"
+    groups:
+      dependencies:
+        patterns:
+          - "*"

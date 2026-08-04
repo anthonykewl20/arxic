@@ -1,0 +1,7 @@
+packages:
+  - "apps/*"
+  - "internal/*"
+  - "packages/*"
+
+# Delay installing newly published versions to reduce risk of compromised packages
+minimumReleaseAge: 10080

@@ -1,0 +1,133 @@
+import { describe, it, expect } from "vitest";
+import { TOTP } from "./class";
+import { createGuardrails } from "@otplib/core";
+import { NodeCryptoPlugin } from "@otplib/plugin-crypto-node";
+import { ScureBase32Plugin } from "@otplib/plugin-base32-scure";
+import { TEST_SECRET_HOTP_BASE32 } from "@repo/testing";
+
+describe("TOTP Class", () => {
+  const crypto = new NodeCryptoPlugin();
+  const base32 = new ScureBase32Plugin();
+
+  it("should generate a secret", () => {
+    const totp = new TOTP({ crypto, base32 });
+    const secret = totp.generateSecret();
+
+    expect(secret).toBeTruthy();
+    expect(typeof secret).toBe("string");
+    expect(secret.length).toBeGreaterThan(0);
+  });
+
+  it("should generate a token", async () => {
+    const totp = new TOTP({
+      secret: TEST_SECRET_HOTP_BASE32,
+      crypto,
+      base32,
+    });
+
+    const token = await totp.generate();
+
+    expect(token).toBeTruthy();
+    expect(typeof token).toBe("string");
+    expect(token.length).toBe(6);
+  });
+
+  it("should generate a URI", () => {
+    const totp = new TOTP({
+      issuer: "MyService",
+      label: "user@example.com",
+      secret: TEST_SECRET_HOTP_BASE32,
+      crypto,
+      base32,
+    });
+
+    const uri = totp.toURI();
+
+    expect(uri).toContain("otpauth://totp/");
+    expect(uri).toContain(`secret=${TEST_SECRET_HOTP_BASE32}`);
+    expect(uri).toContain("issuer=MyService");
+  });
+
+  it("should allow options override in generate", async () => {
+    const totp = new TOTP({
+      secret: TEST_SECRET_HOTP_BASE32,
+      algorithm: "sha1",
+      digits: 6,
+      crypto,
+      base32,
+    });
+
+    const token = await totp.generate({ digits: 8 });
+
+    expect(token.length).toBe(8);
+  });
+
+  it("should allow options override in verify", async () => {
+    const totp = new TOTP({
+      secret: TEST_SECRET_HOTP_BASE32,
+      crypto,
+      base32,
+    });
+
+    const token = await totp.generate();
+    const result = await totp.verify(token, { epochTolerance: 30 });
+
+    expect(result.valid).toBe(true);
+  });
+
+  it("should support Uint8Array secret without Base32 plugin", async () => {
+    const secret = new Uint8Array(20).fill(1);
+    const epoch = 1234567890;
+    const totp = new TOTP({ secret, crypto });
+
+    const token = await totp.generate({ epoch });
+    const result = await totp.verify(token, { epoch });
+
+    expect(token).toMatch(/^\d{6}$/);
+    expect(result.valid).toBe(true);
+  });
+
+  it("should create instance with no options (testing default parameter)", () => {
+    const totp = new TOTP();
+    expect(totp).toBeInstanceOf(TOTP);
+  });
+
+  it("should create instance with empty options (testing default parameter)", () => {
+    const totp = new TOTP({});
+    expect(totp).toBeInstanceOf(TOTP);
+  });
+
+  it("should allow options override with partial options in generate", async () => {
+    const totp = new TOTP({
+      secret: TEST_SECRET_HOTP_BASE32,
+      algorithm: "sha1",
+      crypto,
+      base32,
+    });
+
+    // Should use instance's secret and crypto, override digits
+    const token = await totp.generate({ digits: 8 });
+    expect(token.length).toBe(8);
+  });
+
+  describe("per-call guardrails override", () => {
+    // The instance is created with default guardrails. Passing `guardrails` per call
+    // must take precedence over the instance guardrails (`options?.guardrails ?? this.guardrails`).
+    const strict = createGuardrails({ MIN_SECRET_BYTES: 1, MAX_SECRET_BYTES: 1 });
+
+    it("should apply a per-call guardrails override in generate", async () => {
+      const totp = new TOTP({ secret: TEST_SECRET_HOTP_BASE32, crypto, base32 });
+
+      await expect(totp.generate()).resolves.toBeTruthy();
+      await expect(totp.generate({ guardrails: strict })).rejects.toThrow();
+    });
+
+    it("should apply a per-call guardrails override in verify", async () => {
+      const totp = new TOTP({ secret: TEST_SECRET_HOTP_BASE32, crypto, base32 });
+      const token = await totp.generate();
+
+      await expect(totp.verify(token)).resolves.toMatchObject({ valid: true });
+      await expect(totp.verify(token, { guardrails: strict })).rejects.toThrow();
+    });
+  });
+});

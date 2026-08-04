@@ -1,0 +1,4 @@
+services:
+  container:
+    environment:
+      IS_OVERRIDDEN: "true"

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gexf version="1.3" xmlns="http://gexf.net/1.3" xmlns:viz="http://gexf.net/1.3/viz" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://gexf.net/1.3 http://gexf.net/1.3/gexf.xsd">
+  <meta/>
+  <graph defaultedgetype="directed">
+    <attributes class="node">
+      <attribute id="booleans" title="booleans" type="listboolean"/>
+      <attribute id="numbers" title="numbers" type="listdouble"/>
+      <attribute id="colors" title="colors" type="liststring"/>
+    </attributes>
+    <nodes>
+      <node id="john">
+        <attvalues>
+          <attvalue for="booleans" value="[true, false]"/>
+          <attvalue for="numbers" value="[1, 3.5]"/>
+          <attvalue for="colors" value="[yellow, red, '&quot;blue&quot;', &quot;'orange'&quot;, &quot;'purple\&quot;&quot;, &quot;\n\r\t&quot;]"/>
+        </attvalues>
+        <viz:color hex="#fff"/>
+      </node>
+      <node id="suzy"/>
+    </nodes>
+    <edges>
+      <edge id="js" source="john" target="suzy" kind="likes"/>
+    </edges>
+  </graph>
+</gexf>

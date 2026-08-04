@@ -1,0 +1,37 @@
+{
+  "name": "@examples/ui-react",
+  "private": true,
+  "type": "module",
+  "version": "0.0.29",
+  "scripts": {
+    "dev": "turbo dev:client dev:server",
+    "dev:client": "vite",
+    "dev:server": "tsx --env-file-if-exists=.env ../../libs/langgraph-cli/src/cli/cli.mts dev --no-browser",
+    "build:internal": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@langchain/anthropic": "^1.5.1",
+    "@langchain/core": "^1.2.3",
+    "@langchain/langgraph": "workspace:*",
+    "@langchain/langgraph-sdk": "workspace:*",
+    "@langchain/quickjs": "^0.6.0",
+    "@langchain/react": "workspace:*",
+    "@uiw/react-json-view": "^2.0.0-alpha.38",
+    "deepagents": "^1.10.5",
+    "langchain": "^1.5.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "streamdown": "^2.5.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@langchain/langgraph-cli": "workspace:*",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.4.5",
+    "vite": "^8.2.0"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "@testcontainers/redpanda",
+  "version": "12.0.4",
+  "license": "MIT",
+  "keywords": [
+    "redpanda",
+    "testing",
+    "docker",
+    "testcontainers"
+  ],
+  "description": "Redpanda module for Testcontainers",
+  "homepage": "https://github.com/testcontainers/testcontainers-node#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/testcontainers/testcontainers-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/testcontainers/testcontainers-node/issues"
+  },
+  "main": "build/index.js",
+  "files": [
+    "build"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "shx cp ../../../README.md . && shx cp ../../../LICENSE .",
+    "build": "tsc --project tsconfig.build.json",
+    "postbuild": "shx cp -r src/assets build"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.9",
+    "testcontainers": "^12.0.4"
+  },
+  "devDependencies": {
+    "@confluentinc/kafka-javascript": "^1.10.0"
+  }
+}

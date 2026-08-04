@@ -1,0 +1,88 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
+import { defineConfig, defineProject } from "vitest/config";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const alias = {
+  "@otplib/core": path.resolve(__dirname, "packages/core/src"),
+  "@otplib/hotp": path.resolve(__dirname, "packages/hotp/src"),
+  "@otplib/totp": path.resolve(__dirname, "packages/totp/src"),
+  "@otplib/uri": path.resolve(__dirname, "packages/uri/src"),
+  "@otplib/plugin-crypto-node": path.resolve(__dirname, "packages/plugin-crypto-node/src"),
+  "@otplib/plugin-crypto-web": path.resolve(__dirname, "packages/plugin-crypto-web/src"),
+  "@otplib/plugin-crypto-noble": path.resolve(__dirname, "packages/plugin-crypto-noble/src"),
+  "@otplib/plugin-base32-alt": path.resolve(__dirname, "packages/plugin-base32-alt/src"),
+  "@otplib/plugin-base32-scure": path.resolve(__dirname, "packages/plugin-base32-scure/src"),
+  "@otplib/preset-v11": path.resolve(__dirname, "packages/v11-adapter/src"),
+  "@otplib/v12-adapter": path.resolve(__dirname, "packages/v12-adapter/src"),
+  "@repo/testing": path.resolve(__dirname, "internal/testing/src"),
+  otplib: path.resolve(__dirname, "packages/otplib/src"),
+};
+
+export default defineConfig({
+  test: {
+    // Use default, github-actions and junit reporters in CI for better integration, default for local CLI
+    reporters: process.env.CI ? ["default", "github-actions", "junit"] : ["default"],
+    outputFile: {
+      junit: "reports/junit.xml",
+    },
+    // Define multiple projects in the workspace
+    projects: [
+      // Library packages project (inline)
+      defineProject({
+        resolve: {
+          alias,
+        },
+        test: {
+          name: "packages",
+          root: path.resolve(__dirname, "packages"),
+          globals: true,
+          environment: "node",
+          include: ["**/*.test.ts"],
+          exclude: ["**/node_modules/**", "dist/**", "**/*.bun.test.ts", "**/*.deno.test.ts"],
+        },
+      }),
+      defineProject({
+        resolve: {
+          alias,
+        },
+        test: {
+          name: "internal",
+          root: path.resolve(__dirname, "internal"),
+          globals: true,
+          environment: "node",
+          include: ["testing/**/*.test.ts"],
+          exclude: ["**/node_modules/**", "dist/**"],
+        },
+      }),
+    ],
+    // Global coverage settings
+    coverage: {
+      provider: "v8",
+      reporter: process.env.CI
+        ? ["text", "json", "lcov", "json-summary"]
+        : ["text", "json", "html", "lcov", "json-summary"],
+      include: ["packages/*/src/**/*.ts"],
+      exclude: [
+        "node_modules/",
+        "dist/**",
+        "**/*.test.{ts,tsx}",
+        "**/index-test.ts",
+        "**/*.spec.ts",
+        "**/*.d.ts",
+        "tests/**",
+        // CLI entry points (shebang wrappers that call program.parse) — not unit-testable
+        "packages/otplib-cli/src/**/cli.ts",
+      ],
+      thresholds: {
+        "packages/*/src/**": {
+          lines: 100,
+          branches: 100,
+          functions: 100,
+          statements: 100,
+        },
+      },
+    },
+  },
+});

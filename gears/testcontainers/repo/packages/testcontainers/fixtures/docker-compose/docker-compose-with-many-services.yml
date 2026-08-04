@@ -1,0 +1,9 @@
+services:
+  service-a:
+    image: cristianrgreco/testcontainer:1.1.14
+    ports:
+      - 8080
+  service-b:
+    image: cristianrgreco/testcontainer:1.1.14
+    ports:
+      - 8080

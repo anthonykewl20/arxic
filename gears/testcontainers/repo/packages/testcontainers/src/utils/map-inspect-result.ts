@@ -1,0 +1,59 @@
+import { ContainerInspectInfo } from "dockerode";
+import { HealthCheckStatus, InspectResult, NetworkSettings, Ports } from "../types";
+import { getHealthCheckStatusFromInspect } from "../wait-strategies/utils/health-check";
+
+export function mapInspectResult(inspectResult: ContainerInspectInfo): InspectResult {
+  const finishedAt = new Date(inspectResult.State.FinishedAt);
+
+  return {
+    name: inspectResult.Name,
+    hostname: inspectResult.Config.Hostname,
+    ports: mapPorts(inspectResult),
+    healthCheckStatus: mapHealthCheckStatus(inspectResult),
+    networkSettings: mapNetworkSettings(inspectResult),
+    state: {
+      status: inspectResult.State.Status,
+      running: inspectResult.State.Running,
+      startedAt: new Date(inspectResult.State.StartedAt),
+      finishedAt: finishedAt.getTime() < 0 ? undefined : finishedAt,
+    },
+    labels: inspectResult.Config.Labels,
+  };
+}
+
+function mapPorts(inspectInfo: ContainerInspectInfo): Ports {
+  return Object.entries(inspectInfo.NetworkSettings.Ports)
+    .filter(([, hostPorts]) => hostPorts !== null)
+    .map(([containerPortAndProtocol, hostPorts]) => {
+      const [port, protocol] = containerPortAndProtocol.split("/");
+      const containerPort = parseInt(port);
+      return {
+        [`${containerPort}/${protocol}`]: hostPorts.map((hostPort) => ({
+          hostIp: hostPort.HostIp,
+          hostPort: parseInt(hostPort.HostPort),
+        })),
+      };
+    })
+    .reduce((acc, curr) => ({ ...acc, ...curr }), {});
+}
+
+function mapHealthCheckStatus(inspectResult: ContainerInspectInfo): HealthCheckStatus {
+  const status = getHealthCheckStatusFromInspect(inspectResult);
+
+  if (status === undefined) {
+    return "none";
+  } else {
+    return status;
+  }
+}
+
+function mapNetworkSettings(inspectResult: ContainerInspectInfo): { [networkName: string]: NetworkSettings } {
+  return Object.entries(inspectResult.NetworkSettings.Networks)
+    .map(([networkName, network]) => ({
+      [networkName]: {
+        networkId: network.NetworkID,
+        ipAddress: network.IPAddress,
+      },
+    }))
+    .reduce((prev, next) => ({ ...prev, ...next }), {});
+}

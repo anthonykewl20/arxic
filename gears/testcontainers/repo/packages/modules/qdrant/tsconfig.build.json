@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "build",
+    "src/**/*.test.ts",
+    "src/test_config.yaml"
+  ],
+  "references": [
+    {
+      "path": "../../testcontainers"
+    }
+  ]
+}

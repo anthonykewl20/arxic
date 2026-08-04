@@ -1,0 +1,49 @@
+on:
+  release:
+    types: [created]
+
+name: Build & release
+jobs:
+  releases-matrix:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64, arm, arm64]
+        exclude:
+          - goarch: "386"
+            goos: darwin
+          - goarch: "386"
+            goos: windows
+          - goarch: arm
+            goos: darwin
+          - goarch: arm
+            goos: windows
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    # build the assets
+    - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: 22
+    - run: echo "Building assets for ${GITHUB_REF_NAME}"
+    - run: npm ci
+    - run: npm run package
+
+    # build the binaries
+    - uses: wangyoucao577/go-release-action@279495102627de7960cbc33434ab01a12bae144b # v1.55
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        binary_name: "mailpit"
+        pre_command: export CGO_ENABLED=0
+        asset_name: mailpit-${{ matrix.goos }}-${{ matrix.goarch }}
+        extra_files: LICENSE README.md
+        md5sum: false
+        overwrite: true
+        retry: 5
+        ldflags: -w -X "github.com/axllent/mailpit/config.Version=${{ github.ref_name }}"

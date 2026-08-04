@@ -1,0 +1,8 @@
+services:
+  container:
+    image: cristianrgreco/testcontainer:1.1.14
+    ports:
+      - 8080
+    healthcheck:
+      test: "sleep 10"
+      timeout: 10s

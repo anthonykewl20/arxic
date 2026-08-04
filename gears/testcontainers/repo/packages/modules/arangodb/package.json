@@ -1,0 +1,37 @@
+{
+  "name": "@testcontainers/arangodb",
+  "version": "12.0.4",
+  "license": "MIT",
+  "keywords": [
+    "arangodb",
+    "testing",
+    "docker",
+    "testcontainers"
+  ],
+  "description": "ArangoDB module for Testcontainers",
+  "homepage": "https://github.com/testcontainers/testcontainers-node#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/testcontainers/testcontainers-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/testcontainers/testcontainers-node/issues"
+  },
+  "main": "build/index.js",
+  "files": [
+    "build"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepack": "shx cp ../../../README.md . && shx cp ../../../LICENSE .",
+    "build": "tsc --project tsconfig.build.json"
+  },
+  "devDependencies": {
+    "arangojs": "^10.3.1"
+  },
+  "dependencies": {
+    "testcontainers": "^12.0.4"
+  }
+}
