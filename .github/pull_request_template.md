@@ -1,0 +1,36 @@
+<!-- PR template — every slice must satisfy this. Source of truth: docs/engineering-charter.md §6–§8. -->
+
+## Slice
+
+Closes #<issue number>  ·  Slice id: `<M0-03>`  ·  Milestone: `<Milestone 0 - Contracts and Spikes>`
+
+## What & why
+
+<!-- One paragraph: what capability this adds and why, in the domain language of the ADR. -->
+
+## Engineering checklist (charter §3–§6)
+
+- [ ] **Seams agreed** before testing (list them)
+- [ ] **Sad paths & edge cases written RED-FIRST**, each mapped to a truth state (§2) — enumerated before happy path
+- [ ] **Real-world proof**: ≥1 non-synthetic user-level test against the real reference apps + real engines (§6). No "works on my mock".
+- [ ] Happy path written **last**
+- [ ] **Layering**: orchestration (actions) vs capability blocks (services) is explicit; no premature abstraction
+- [ ] No `skip`/`fixme`/`only`, no assertion weakening, no success-by-quarantine (ADR §13.1)
+
+## Gates
+
+- [ ] `pnpm typecheck` green
+- [ ] `pnpm lint` green
+- [ ] `pnpm -r test` green
+- [ ] License gate (#7) green
+
+## Slice completion ritual (charter §8 — MANDATORY, do not skip)
+
+- [ ] `docs/SYNC.md`: flipped this slice's checkbox, moved 🔖 RESUME HERE to next slice, added a session-log line (disposition: verified / contradicted / blocked)
+- [ ] `docs/arxic-full-adr.md` / `docs/adr/`: added a dated addendum or new ADR if any decision changed (frozen §10 contracts change only via ADR)
+- [ ] `docs/engineering-charter.md` updated if process changed
+- [ ] `gears/README.md` + `gears/*/PROVENANCE.md` updated if a gear changed
+- [ ] Affected `packages/*/README.md`, `schemas/*`, `rulepacks/*` versions bumped
+- [ ] **Staleness sweep**: `rg -n "<slice id> TODO FIXME"` — no doc still describes this as pending/planned
+- [ ] PR linked to the issue; completion comment posted with dispositions + evidence pointers; **issue will be closed on merge**
+- [ ] Doc updates committed with the code and **pushed to `main`** (unsaved = undone)
