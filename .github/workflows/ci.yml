@@ -46,6 +46,19 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: License gate
+        run: node scripts/license-gate.mjs
+
+      - name: SBOM (CycloneDX)
+        run: pnpm sbom --sbom-format cyclonedx --out sbom.cdx.json
+
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+
       - name: Fixture apps typecheck
         run: pnpm --filter reference-auth-app typecheck && pnpm --filter vulnerable-auth-app typecheck
 
