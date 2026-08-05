@@ -8,11 +8,11 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **Milestone 0 COMPLETE.** #14 (M0-EXIT) composes every M0 adapter into one login vertical: local-test attestation, committed route→handler→guard evidence, Workflow compilation, two consecutive clean-fixture passes in real Chromium, evidence packaging, and atomic promotion with last-known-good preservation. The deterministic verifier produced `verified`; screenshots, traces, spec, NOTICE, provenance, and independent hashes passed. **17/17 M0 issues done.** M0 exit criteria are met; the `0.1.0` release is pending, so `VERSION` remains `0.0.0`.
+**Status:** **Milestone 1 IN PROGRESS (1/15).** #15 (M1-01) ships `@arxic/evidence-graph`, a Graphology-backed service container that ingests static evidence (real `SourceUaAdapter` + real `AstGrepAdapter`) into a typed, content-addressed graph (ADR §8.4). Output-influencing edges require ≥1 `EvidenceRef` at compile time + runtime (`ARXIC-GRAPH-001` `blocked`); conflicting node/edge structure is `contradicted` (`ARXIC-GRAPH-002`/`-003`). Real-world proof builds the graph from both real fixture apps with real Tree-sitter + real `sg`, proving `/login` route→handler→guard chains carry real source EvidenceRefs. Canonical JSON/JSONL is byte-identical across runs (property test + real-fixture rebuild). The frozen §10 contracts are unchanged (local `GraphIngestEvent` bridges the semantics gap).
 
-**Next action:** Milestone 1 begins with [#15 (M1-01) Static inventory + evidence graph](https://github.com/anthonykewl20/arxic/issues/15).
+**Next action:** [#16 (M1-02) Crawlee breadth surface map](https://github.com/anthonykewl20/arxic/issues/16) — real `PlaywrightCrawler` against the reference apps within origin/depth budgets; observed surfaces feed the graph's `RuntimeSurface` nodes.
 
-**Last session:** 2026-08-05 (9) — **#14 (M0-EXIT) Milestone 0 capstone DONE**: `@arxic/m0-pipeline` composes stages 0→12 across the environment, ast-grep, Playwright, and bundle-promoter adapters. The real login candidate passed two consecutive clean-fixture Chromium runs; the promoted bundle's screenshots, trace, spec, NOTICE, provenance, manifest, and hashes were independently checked; and an injected third-run source-evidence failure left the second last-known-good bundle untouched. Deterministic disposition: `verified`. **17/17 M0 done.** Next: #15 M1-01.
+**Last session:** 2026-08-05 (10) — **#15 (M1-01) Static inventory + evidence graph DONE**: `@arxic/evidence-graph` (Graphology) ingests static adapter outputs into a typed graph; output-influencing edges fail closed without ≥1 EvidenceRef (compile-time tuple + runtime `ARXIC-GRAPH-001`); node/edge conflicts surface `contradicted`; canonical JSON/JSONL is SHA-256 content-addressed and byte-identical across rebuilds. Real Tree-sitter + real `sg` connect both real fixture apps' `/login` route→handler→guard with real source EvidenceRefs. Gates green (typecheck/lint/format/test 262 tests). Dispositions: `contradicted` (conflicts), `blocked` (zero-evidence edge, unsupported language). Final classification deferred to orchestrator/reconciler. Next: #16 M1-02.
 
 ---
 
@@ -65,7 +65,7 @@ _Goal: end-to-end evidence-driven auth bundles. Exit: two structurally different
 
 | # | Issue | Status |
 |---|---|---|
-| #15 | [M1-01] Static inventory + evidence graph | ☐ |
+| #15 | [M1-01] Static inventory + evidence graph | ☑ done |
 | #16 | [M1-02] Crawlee breadth surface map | ☐ |
 | #17 | [M1-03] LangGraph orchestrator (pipeline 0-12) | ☐ |
 | #18 | [M1-04] Candidate reconciliation + coverage matrix | ☐ |
@@ -135,6 +135,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 | 2026-08-05 (7) | **#41 (M0-14) Policy engine DONE.** One-argument `authorize(PolicyAuthorization)` plus configured `PolicyEngine.decide` enforce six registered actions across the four frozen action classes; exact origin allowlists, caller-owned lease and budget state, sandbox presence, and exact recorded approvals fail closed with stable `ARXIC-POLICY-*` diagnostics. Canonical snapshots hash full inputs, and live reference-app attestation covers all five required decisions. 15/17 M0 done. |
 | 2026-08-05 (8) | **#44 (M0-15) PREFLIGHT target-attestation acceptance DONE.** The existing real handshake now runs across target sets; both real reference apps are accepted as `local-test`; production-styled and missing or malformed attestations are refused with blocked diagnostics; deterministic canonical run artifacts record every decision; and artifact write failures fail closed. 16/17 M0 done. |
 | 2026-08-05 (9) | **#14 (M0-EXIT) Milestone 0 capstone DONE.** The thin `@arxic/m0-pipeline` orchestrator composes target attestation, committed login source evidence, Workflow compilation, two clean-fixture real-Chromium verification passes, and atomic promotion. The deterministic verifier produced `verified`; promoted screenshots, trace, spec, NOTICE, provenance, manifest, and hashes were independently checked; an injected third-run source-evidence failure preserved the second last-known-good bundle. **17/17 M0 complete; 0.1.0 release pending.** Next: #15 M1-01. |
+| 2026-08-05 (10) | **#15 (M1-01) Static inventory + evidence graph DONE.** `@arxic/evidence-graph` (Graphology) ingests real `SourceUaAdapter` (Tree-sitter) + real `AstGrepAdapter` (`sg`) outputs into a typed, content-addressed graph (ADR §8.4). Output-influencing edges require ≥1 EvidenceRef at compile time (non-empty tuple) + runtime (`ARXIC-GRAPH-001` `blocked`); conflicting node/edge structure surfaces `ARXIC-GRAPH-002`/`-003` `contradicted`. Canonical sorted JSON/JSONL is SHA-256-addressed and byte-identical across rebuilds (property + real-fixture determinism tests). Real-world proof connects both real fixture apps' `/login` route→handler→guard with ≥2 real source EvidenceRefs per edge. The frozen §10 contracts are unchanged (local `GraphIngestEvent` bridges the semantics gap). Gates green (typecheck/lint/format/test, 262 tests). Dispositions: `contradicted`, `blocked`. Final classification deferred to orchestrator (#17)/reconciler (#18). **M1 1/15.** Next: #16 M1-02. |
 
 ---
 
