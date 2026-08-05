@@ -6,5 +6,16 @@
   "main": "src/index.ts",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@arxic/ast-grep-adapter": "workspace:*",
+    "@arxic/bundle-promoter": "workspace:*",
+    "@arxic/contracts": "workspace:*",
+    "@arxic/crawlee-adapter": "workspace:*",
+    "@arxic/environment": "workspace:*",
+    "@arxic/playwright-agent-adapter": "workspace:*",
+    "@arxic/source-ua-adapter": "workspace:*",
+    "@langchain/core": "1.2.4",
+    "@langchain/langgraph": "1.4.9"
   }
 }
