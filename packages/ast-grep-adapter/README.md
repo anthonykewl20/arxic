@@ -6,7 +6,7 @@ M0-08 proves that versioned Next.js and Express auth rule packs can cross the re
 
 `runner.ts`, `packs.ts`, and `git.ts` are service capability blocks: they load and validate packs, execute an argument-array-only `execFile` boundary, parse JSON-stream records, and resolve committed provenance. `interpret.ts` is the Actions-style interpretation layer: it selects framework conventions, connects route → handler → guard, and classifies missing links and regex fallback diagnostics.
 
-All static interpretation is advisory `hypothesized` evidence. Final truth-state ownership remains with M1 orchestration (#17); this package never assigns `verified` (ADR §2, §9 stage 3, §12.1/§12.2, §23.14).
+All static interpretation is advisory `hypothesized` evidence. Final truth-state ownership is in `@arxic/orchestrator-langgraph` (#17); this package never assigns `verified` (ADR §2, §9 stage 3, §12.1/§12.2, §23.14).
 
 ## CLI
 
@@ -22,7 +22,7 @@ Version 0.45.0 warns that `sg` is deprecated and delegates to `ast-grep`. The ad
 
 ## API
 
-`new AstGrepAdapter({ packs, sgBinary?, now? })` exposes `scan({ revision, features?, framework? })` and an `AsyncIterable` `index()` method. The optional `framework` is the caller's pack-selection policy input and runs only packs whose declared framework name matches. Pack version ranges remain declarative metadata; enforcement against a detected target framework belongs to M1 orchestration (#17). This spike proves the selection seam.
+`new AstGrepAdapter({ packs, sgBinary?, now? })` exposes `scan({ revision, features?, framework? })` and an `AsyncIterable` `index()` method. The optional `framework` is the caller's pack-selection policy input and runs only packs whose declared framework name matches. Pack version ranges remain declarative metadata; `@arxic/orchestrator-langgraph` owns the stage-3 selection policy. This spike proves the selection seam.
 
 A dirty or mismatched Git revision, malformed pack/rule, process failure, parse failure, or duplicate rule id fails closed. Conflicts are checked globally across loaded packs before framework selection. Source refs use committed file bytes and rule ids shaped as `<pack>/<rule>@<semver>`.
 

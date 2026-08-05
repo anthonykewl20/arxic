@@ -1,0 +1,101 @@
+import type {
+  Diagnostic,
+  EvidenceRef,
+  GateResult,
+  PromotionReceipt,
+  StagedBundle,
+  TruthState,
+  Workflow,
+} from '@arxic/contracts';
+
+export type RunStatus =
+  'queued' | 'running' | 'awaiting-approval' | 'completed' | 'partial' | 'failed';
+
+export type StageId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+export type StageStatus = 'completed' | 'awaiting-approval' | 'skipped' | 'deferred' | 'failed';
+
+export type ImmutableArtifactRef = Readonly<{ id: string; sha256: string }>;
+
+export type StageCheckpoint = Readonly<{
+  stage: StageId;
+  name: string;
+  status: StageStatus;
+  startedAt: string;
+  finishedAt: string;
+  adapter: Readonly<{ name: string; version: string }>;
+  orchestratorVersion: string;
+  artifacts: readonly ImmutableArtifactRef[];
+  toolVersions: Readonly<Record<string, string>>;
+  modelRequestId?: string;
+  decisions: readonly string[];
+  approvals: readonly string[];
+  gateResults: readonly GateResult[];
+  redaction: Readonly<{ passed: boolean; redactedFields: readonly string[] }>;
+}>;
+
+export type RunState = Readonly<{
+  runId: string;
+  status: RunStatus;
+  outcome: TruthState;
+  activeStage?: StageId;
+  completedStages: readonly StageId[];
+  artifacts: Readonly<Partial<Record<StageId, ImmutableArtifactRef>>>;
+  checkpoints: readonly StageCheckpoint[];
+  diagnostics: readonly Diagnostic[];
+  promotionEligible: boolean;
+  receipt?: PromotionReceipt;
+}>;
+
+export type Candidate = Readonly<{
+  id: string;
+  title: string;
+  evidenceRefs: readonly string[];
+  workflow?: Workflow;
+}>;
+
+export type InferenceResult = Readonly<{
+  requestId: string;
+  candidates: readonly Candidate[];
+}>;
+
+export type CoverageMatrix = Readonly<{
+  denominator: number;
+  rows: readonly Readonly<{
+    candidateId: string;
+    staticEvidence: number;
+    runtimeEvidence: number;
+    outcome: Exclude<TruthState, 'verified'>;
+  }>[];
+}>;
+
+export type FixturePreparation = Readonly<{
+  requirements: readonly Readonly<{
+    kind: string;
+    parameters?: Readonly<Record<string, unknown>>;
+  }>[];
+  provisioned: false;
+}>;
+
+export type ExplorationResult = Readonly<{
+  approved: boolean;
+  evidenceRefs: readonly EvidenceRef[];
+  decisions: readonly string[];
+}>;
+
+export type CompilationResult = Readonly<{
+  compiled: boolean;
+  plan: string;
+  workflow?: Workflow;
+  stagedBundle?: StagedBundle;
+}>;
+
+export type VerificationNodeResult = Readonly<{
+  outcome: TruthState;
+  diagnostics: readonly Diagnostic[];
+  artifacts: readonly Readonly<{ kind: string; path: string; sha256: string }>[];
+  runs: readonly Readonly<{ passed: boolean }>[];
+  stagedBundle?: StagedBundle;
+  gates: readonly GateResult[];
+}>;
+
+export type StageArtifact = unknown;

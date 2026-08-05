@@ -12,6 +12,8 @@ allowBuilds:
   tree-sitter-typescript: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
+  - '@langchain/core@1.2.4'
+  - '@langchain/langgraph@1.4.9'
   - '@crawlee/basic@3.18.0'
   - '@crawlee/browser-pool@3.18.0'
   - '@crawlee/browser@3.18.0'

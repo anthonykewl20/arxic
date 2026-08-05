@@ -1,6 +1,6 @@
 # @arxic/m0-pipeline
 
-`@arxic/m0-pipeline` is the thin Milestone 0 capstone orchestrator for one manually supplied login `Workflow`. It composes the M0 capability adapters and is explicitly superseded by the Milestone 1 LangGraph orchestrator in issue #17.
+`@arxic/m0-pipeline` is the thin Milestone 0 capstone orchestrator for one manually supplied login `Workflow`. It composes the M0 capability adapters and is superseded by the shipped `@arxic/orchestrator-langgraph` Milestone 1 control plane (#17).
 
 | Stage | Capability                                                                   |
 | ----- | ---------------------------------------------------------------------------- |
