@@ -36,6 +36,7 @@ import {
   type NormalizedSourceIndex,
 } from '@arxic/source-ua-adapter';
 import { artifactHash, type StageCheckpointer } from './checkpointer';
+import { FixtureCoordinator } from './fixture-coordinator';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
   ARXIC_ORCH_HASH_MISMATCH,
@@ -453,7 +454,16 @@ export class LangGraphOrchestrator {
     return {
       artifact: result,
       adapter: '@arxic/fixture-adapters:seam',
-      decisions: ['Fixture requirements recorded; provisioning is deferred to M1-05'],
+      diagnostics: result.diagnostics,
+      blocked: !result.provisioned,
+      partial: !result.provisioned,
+      promotionEligible: result.provisioned,
+      decisions: [
+        result.provisioned
+          ? `Provisioned ${result.leases.length} disposable fixture leases`
+          : 'Fixture provisioning blocked; no fixture was fabricated',
+      ],
+      gates: [{ gate: 'fixtures', passed: result.provisioned }],
     };
   }
 
@@ -874,16 +884,7 @@ async function defaultReconcile(input: {
 async function defaultFixturePreparation(input: {
   candidates: readonly Candidate[];
 }): Promise<FixturePreparation> {
-  return {
-    requirements: input.candidates.flatMap(
-      (candidate) =>
-        candidate.workflow?.preconditions.map((requirement) => ({
-          kind: requirement.fixture,
-          ...(requirement.parameters ? { parameters: requirement.parameters } : {}),
-        })) ?? [],
-    ),
-    provisioned: false,
-  };
+  return new FixtureCoordinator([]).prepare(input);
 }
 
 async function defaultExploration(input: {
