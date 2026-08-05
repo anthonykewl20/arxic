@@ -8,6 +8,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@arxic/contracts": "workspace:*"
+    "@arxic/contracts": "workspace:*",
+    "testcontainers": "^11.5.1"
   }
 }

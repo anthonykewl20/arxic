@@ -1,6 +1,8 @@
 import type {
   Diagnostic,
   EvidenceRef,
+  FixtureLease,
+  FixtureRequirement,
   GateResult,
   PromotionReceipt,
   StagedBundle,
@@ -69,12 +71,11 @@ export type CoverageMatrix = Readonly<{
 }>;
 
 export type FixturePreparation = Readonly<{
-  requirements: readonly Readonly<{
-    kind: string;
-    parameters?: Readonly<Record<string, unknown>>;
-  }>[];
-  provisioned: false;
-}>;
+  requirements: readonly FixtureRequirement[];
+  leases: readonly FixtureLease[];
+  diagnostics: readonly Diagnostic[];
+}> &
+  Readonly<{ provisioned: true } | { provisioned: false }>;
 
 export type ExplorationResult = Readonly<{
   approved: boolean;
