@@ -2,5 +2,9 @@
   "thirty-two": {
     "license": "MIT",
     "reason": "MIT per upstream npm package.json; pnpm does not detect the license field (otplib transitive). Verified on the npm registry."
+  },
+  "map-stream": {
+    "license": "MIT",
+    "reason": "MIT per the upstream repository package.json; the 0.1.0 npm metadata omits its license field (Crawlee transitive). Verified against the npm registry and upstream repository."
   }
 }

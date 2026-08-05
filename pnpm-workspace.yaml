@@ -11,3 +11,20 @@ allowBuilds:
   tree-sitter-javascript: true
   tree-sitter-typescript: true
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - '@crawlee/basic@3.18.0'
+  - '@crawlee/browser-pool@3.18.0'
+  - '@crawlee/browser@3.18.0'
+  - '@crawlee/cheerio@3.18.0'
+  - '@crawlee/cli@3.18.0'
+  - '@crawlee/core@3.18.0'
+  - '@crawlee/http@3.18.0'
+  - '@crawlee/jsdom@3.18.0'
+  - '@crawlee/linkedom@3.18.0'
+  - '@crawlee/memory-storage@3.18.0'
+  - '@crawlee/playwright@3.18.0'
+  - '@crawlee/puppeteer@3.18.0'
+  - '@crawlee/templates@3.18.0'
+  - '@crawlee/types@3.18.0'
+  - '@crawlee/utils@3.18.0'
+  - crawlee@3.18.0
