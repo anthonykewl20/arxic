@@ -4,11 +4,22 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Group only minor + patch updates (safe to batch). Major updates are NOT
+    # grouped, so each opens its own PR for deliberate evaluation against the
+    # contract suites (charter §6 / ADR §23.14) — never a batch merge.
     groups:
-      production-dependencies:
-        patterns:
-          - '*'
-    open-pull-requests-limit: 10
+      minor-patch:
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-patch
+    ignore:
+      # Exactly pinned + governed by hand-transcribed upgrade-contract gates
+      # (#9 ast-grep, #10 playwright). Bump deliberately and re-baseline the
+      # contract suite (ADR §23.14). `ignore` suppresses scheduled version PRs
+      # only; Dependabot SECURITY alerts still fire for CVEs.
+      - dependency-name: '@ast-grep/cli'
+      - dependency-name: '@playwright/test'
+    open-pull-requests-limit: 15
     commit-message:
       prefix: 'chore(deps)'
 
@@ -17,9 +28,10 @@ updates:
     schedule:
       interval: weekly
     groups:
-      github-actions:
-        patterns:
-          - '*'
-    open-pull-requests-limit: 10
+      minor-patch:
+        update-types:
+          - version-update:semver-minor
+          - version-update:semver-patch
+    open-pull-requests-limit: 15
     commit-message:
       prefix: 'chore(deps)'
