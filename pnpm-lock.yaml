@@ -174,7 +174,30 @@ importers:
         specifier: workspace:*
         version: link:../contracts
 
-  packages/reconciler: {}
+  packages/reconciler:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@arxic/crawlee-adapter':
+        specifier: workspace:*
+        version: link:../crawlee-adapter
+      '@arxic/evidence-graph':
+        specifier: workspace:*
+        version: link:../evidence-graph
+      graphology:
+        specifier: ^0.26.0
+        version: 0.26.0(graphology-types@0.24.8)
+    devDependencies:
+      '@arxic/ast-grep-adapter':
+        specifier: workspace:*
+        version: link:../ast-grep-adapter
+      '@arxic/orchestrator-langgraph':
+        specifier: workspace:*
+        version: link:../orchestrator-langgraph
+      '@arxic/source-ua-adapter':
+        specifier: workspace:*
+        version: link:../source-ua-adapter
 
   packages/source-ua-adapter:
     dependencies:
