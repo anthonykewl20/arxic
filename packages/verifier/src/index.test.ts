@@ -16,6 +16,7 @@ import {
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
   ARXIC_VERIFY_TRANSITIONS_MISSING,
   PlaywrightVerifier,
+  classifyVerification,
 } from './index';
 
 const temporaryDirectories: string[] = [];
@@ -38,7 +39,7 @@ describe('PlaywrightVerifier', () => {
       }),
     });
 
-    const result = await verifier.verify(fixture.bundle, policy(2));
+    const result = await verifier.verify(fixture.bundle, { ...policy(2), trace: 'retain' });
 
     expect(result.outcome).toBe('contradicted');
     expect(result.runs).toEqual([{ passed: true }, { passed: false }]);
@@ -100,6 +101,7 @@ describe('PlaywrightVerifier', () => {
         output: 'net::ERR_CONNECTION_RESET',
         exitCode: 0,
         networkErrors: ['net::ERR_CONNECTION_RESET'],
+        observedTransitions: ['login-page->home'],
       }),
     });
 
@@ -123,20 +125,13 @@ describe('PlaywrightVerifier', () => {
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_ARTIFACT_MISSING });
   });
 
-  test('blocks when required transitions are not observed', async () => {
-    const fixture = await stagedFixture();
-    const verifier = verifierFor(fixture, {
-      runSuite: async () => ({
-        passed: true,
-        output: '',
-        exitCode: 0,
-        networkErrors: [],
-        observedTransitions: [],
-      }),
+  test('classifyVerification blocks when required transitions are missing on a clean pass', () => {
+    const result = classifyVerification({
+      subject: 'authentication.login',
+      runs: [{ passed: true }, { passed: true }],
+      policy: { requiredRuns: 2, forbidNetworkErrors: true },
+      missingTransitions: ['login-page->home'],
     });
-
-    const result = await verifier.verify(fixture.bundle, policy(1));
-
     expect(result.outcome).toBe('blocked');
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
   });
@@ -159,7 +154,13 @@ describe('PlaywrightVerifier', () => {
     const verifier = verifierFor(fixture, {
       runSuite: async (run) => {
         await writeRunArtifacts(fixture.outputDirectory, run);
-        return { passed: true, output: '', exitCode: 0, networkErrors: [] };
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: ['login-page->home'],
+        };
       },
     });
 
@@ -212,7 +213,13 @@ function verifierFor(
     origin: 'http://127.0.0.1:3000',
     ensurePlaywrightModule: false,
     resetAndSeed: async () => undefined,
-    runSuite: async () => ({ passed: true, output: '', exitCode: 0, networkErrors: [] }),
+    runSuite: async () => ({
+      passed: true,
+      output: '',
+      exitCode: 0,
+      networkErrors: [],
+      observedTransitions: ['login-page->home'],
+    }),
     ...options,
   });
 }

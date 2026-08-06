@@ -140,7 +140,7 @@ export class PlaywrightCompiler implements WorkflowCompiler {
       generator: { id: '@arxic/playwright-compiler', version: '0.0.0' },
       verification: {
         requiredRuns: workflow.verification.requiredRuns,
-        runs: [{ startedAt: timestamp, finishedAt: timestamp, passed: true }],
+        runs: [{ startedAt: timestamp, finishedAt: timestamp, passed: false }],
       },
       fileHashes: artifacts.map(({ path, sha256: digest }) => ({ path, sha256: digest })),
       gateResults: [

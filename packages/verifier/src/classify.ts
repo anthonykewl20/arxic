@@ -39,33 +39,6 @@ export function classifyVerification(input: ClassificationInput): Classification
   if (input.executionDiagnostics?.length) {
     return { outcome: 'blocked', diagnostics: input.executionDiagnostics };
   }
-  if (input.policy.forbidNetworkErrors && input.networkErrors?.length) {
-    return {
-      outcome: 'blocked',
-      diagnostics: [
-        verifyDiagnostic(
-          ARXIC_VERIFY_BLOCKED_NETWORK,
-          'blocked',
-          input.subject,
-          `Network or console errors violated verification policy: ${input.networkErrors.join(', ')}`,
-        ),
-      ],
-    };
-  }
-  if (input.artifactFailures?.length) {
-    const mismatch = input.artifactFailures.some(({ reason }) => reason === 'mismatch');
-    return {
-      outcome: 'blocked',
-      diagnostics: [
-        verifyDiagnostic(
-          mismatch ? ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH : ARXIC_VERIFY_ARTIFACT_MISSING,
-          'blocked',
-          input.subject,
-          `Verification artifacts failed the gate: ${input.artifactFailures.map(({ detail }) => detail).join('; ')}`,
-        ),
-      ],
-    };
-  }
   const passed = input.runs.filter((run) => run.passed).length;
   if (passed > 0 && passed < input.runs.length) {
     return {
@@ -89,6 +62,33 @@ export function classifyVerification(input: ClassificationInput): Classification
           'contradicted',
           input.subject,
           'Runtime disproved the candidate in every clean-fixture run',
+        ),
+      ],
+    };
+  }
+  if (input.policy.forbidNetworkErrors && input.networkErrors?.length) {
+    return {
+      outcome: 'blocked',
+      diagnostics: [
+        verifyDiagnostic(
+          ARXIC_VERIFY_BLOCKED_NETWORK,
+          'blocked',
+          input.subject,
+          `Network or console errors violated verification policy: ${input.networkErrors.join(', ')}`,
+        ),
+      ],
+    };
+  }
+  if (input.artifactFailures?.length) {
+    const mismatch = input.artifactFailures.some(({ reason }) => reason === 'mismatch');
+    return {
+      outcome: 'blocked',
+      diagnostics: [
+        verifyDiagnostic(
+          mismatch ? ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH : ARXIC_VERIFY_ARTIFACT_MISSING,
+          'blocked',
+          input.subject,
+          `Verification artifacts failed the gate: ${input.artifactFailures.map(({ detail }) => detail).join('; ')}`,
         ),
       ],
     };

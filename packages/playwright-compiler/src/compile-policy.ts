@@ -68,13 +68,23 @@ function sensitiveValues(workflow: Workflow): string[] {
   for (const precondition of workflow.preconditions) {
     collectSensitiveValues(precondition.parameters, values);
   }
+  for (const transition of workflow.transitions) {
+    collectSensitiveValues(transition.action.intent, values, 'action');
+    for (const assertion of transition.assertions) {
+      collectSensitiveValues(assertion.intent, values, 'assertion');
+    }
+  }
   return values.filter((value) => value.length >= 3);
 }
 
 function collectSensitiveValues(value: unknown, target: string[], key = ''): void {
   if (typeof value === 'string') {
-    if (/email|password|secret|token|phone|name/iu.test(key) || value.includes('@'))
-      target.push(value);
+    const keySensitive = /email|password|secret|token|phone|name/iu.test(key);
+    const assignments =
+      value.match(/(?:token|password|secret|apikey|api_key|credential)\s*[=:]\s*[^\s'"`]+/giu) ??
+      [];
+    if (keySensitive || value.includes('@')) target.push(value);
+    target.push(...assignments);
     return;
   }
   if (!value || typeof value !== 'object' || Array.isArray(value)) return;
