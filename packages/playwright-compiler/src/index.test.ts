@@ -79,6 +79,21 @@ describe('Playwright compiler sad paths', () => {
       diagnostics: [{ code: ARXIC_COMPILE_SECRET_EXPOSURE, severity: 'blocked' }],
     });
   });
+
+  test.each([
+    ['assertion', 'text:Your token=abc123'],
+    ['action', 'Click credential=abc123'],
+  ] as const)('blocks secret literals embedded in a workflow %s intent', (kind, intent) => {
+    const workflow = loginWorkflow();
+    if (kind === 'assertion') workflow.transitions[0]!.assertions = [{ intent }];
+    else workflow.transitions[0]!.action = { intent };
+    const generatedLiteral = kind === 'assertion' ? 'Your token=abc123' : 'credential=abc123';
+    const result = enforceCompilePolicy({ spec: generatedLiteral, fixture: '', workflow });
+    expect(result).toMatchObject({
+      passed: false,
+      diagnostics: [{ code: ARXIC_COMPILE_SECRET_EXPOSURE, severity: 'blocked' }],
+    });
+  });
 });
 
 describe('Playwright compiler contracts', () => {
@@ -104,6 +119,13 @@ describe('Playwright compiler contracts', () => {
     }).compile(workflow, observations());
 
     expect(validateManifest(bundle.manifest).ok).toBe(true);
+    expect(bundle.manifest.verification.runs).toEqual([
+      {
+        startedAt: '2026-08-06T12:00:00.000Z',
+        finishedAt: '2026-08-06T12:00:00.000Z',
+        passed: false,
+      },
+    ]);
     expect(bundle.manifest.coverage.denominator).toBe(1);
     expect(bundle.artifacts).toHaveLength(4);
     expect(bundle.plan).toContain('login-page → home');

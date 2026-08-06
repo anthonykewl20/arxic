@@ -82,5 +82,5 @@ function isTestFailure(error: unknown): boolean {
     killed?: boolean;
     signal?: string | null;
   };
-  return typeof value.code === 'number' && value.killed !== true && !value.signal;
+  return value.code === 1 && value.killed !== true && !value.signal;
 }

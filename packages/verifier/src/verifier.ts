@@ -190,7 +190,10 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       }
       runs.push({ passed: result.passed });
       networkErrors.push(...result.networkErrors.map((item) => `run ${run}: ${item}`));
-      for (const transition of result.observedTransitions ?? requiredTransitions) {
+      if (result.passed) {
+        for (const transition of requiredTransitions) observed.add(transition);
+      }
+      for (const transition of result.observedTransitions ?? []) {
         observed.add(transition);
       }
       let captured: ArtifactRef[];
