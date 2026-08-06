@@ -6,5 +6,13 @@
   "main": "src/index.ts",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@arxic/contracts": "workspace:*",
+    "@arxic/playwright-agent-adapter": "workspace:*",
+    "@playwright/test": "1.62.1"
+  },
+  "devDependencies": {
+    "@arxic/playwright-compiler": "workspace:*"
   }
 }
