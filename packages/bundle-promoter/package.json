@@ -9,5 +9,9 @@
   },
   "dependencies": {
     "@arxic/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@arxic/playwright-compiler": "workspace:*",
+    "@arxic/verifier": "workspace:*"
   }
 }

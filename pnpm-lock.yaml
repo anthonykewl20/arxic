@@ -69,6 +69,13 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+    devDependencies:
+      '@arxic/playwright-compiler':
+        specifier: workspace:*
+        version: link:../playwright-compiler
+      '@arxic/verifier':
+        specifier: workspace:*
+        version: link:../verifier
 
   packages/contracts: {}
 

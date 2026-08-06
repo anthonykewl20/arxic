@@ -12,8 +12,10 @@ import { freezeBundle } from './freeze';
 import { sha256, validateGates, validateStagedBundle } from './validator';
 
 export * from './atomic-store';
+export * from './bundle-assembler';
 export * from './diagnostics';
 export * from './freeze';
+export * from './redaction-gate';
 export * from './validator';
 export const PACKAGE_NAME = '@arxic/bundle-promoter' as const;
 
