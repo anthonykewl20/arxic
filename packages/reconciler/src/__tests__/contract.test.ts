@@ -17,7 +17,7 @@ describe('reconciler contracts', () => {
     const codes = (Object.values(reconciler) as unknown[]).filter(
       (value): value is string => typeof value === 'string' && value.startsWith('ARXIC-RECON-'),
     );
-    expect(codes).toHaveLength(5);
+    expect(codes).toHaveLength(6);
     for (const code of codes) {
       const diagnostic = reconDiagnostic(
         code as Parameters<typeof reconDiagnostic>[0],

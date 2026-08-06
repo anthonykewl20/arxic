@@ -15,7 +15,9 @@
   },
   "devDependencies": {
     "@arxic/ast-grep-adapter": "workspace:*",
+    "@arxic/auth-domain-pack": "workspace:*",
     "@arxic/orchestrator-langgraph": "workspace:*",
+    "@arxic/playwright-compiler": "workspace:*",
     "@arxic/source-ua-adapter": "workspace:*"
   }
 }
