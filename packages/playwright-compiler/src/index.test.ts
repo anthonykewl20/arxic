@@ -132,7 +132,7 @@ describe('Playwright compiler contracts', () => {
     const spec = await readFile(join(directory, 'tests/workflow.spec.ts'), 'utf8');
     expect(spec).toMatch(/getByLabel\(['"]Email['"]\)/u);
     expect(spec).toContain("getByRole('button'");
-    expect(spec).toContain('artifacts/screenshots/home.png');
+    expect(spec).toContain('artifacts/screenshots/step-1-login-page-home.png');
     expect(spec).toContain('ARXIC_INPUT_PERSONA_EMAIL');
     expect(spec).not.toContain('waitForTimeout');
     expect(spec).not.toContain('waitForLoadState');
@@ -156,6 +156,48 @@ describe('Playwright compiler contracts', () => {
       compileDiagnostic(ARXIC_COMPILE_WORKFLOW_INVALID, 'workflow', 'Invalid'),
     );
     expect(error.diagnostic.severity).toBe('blocked');
+  });
+
+  test('renders camel-case labels, auth submit buttons, and unique transition screenshots', async () => {
+    const directory = await temporaryDirectory();
+    const workflow = loginWorkflow();
+    workflow.states.push({ id: 'change-password-page' });
+    workflow.transitions.push(
+      {
+        from: 'home',
+        to: 'change-password-page',
+        action: { intent: 'Open Change password' },
+        assertions: [{ intent: 'url:/change-password' }],
+        evidenceRefs: ['src:change-password', 'run:change-password'],
+      },
+      {
+        from: 'change-password-page',
+        to: 'change-password-page',
+        action: {
+          intent: 'Submit password change',
+          inputRefs: {
+            currentPassword: 'persona.password',
+            newPassword: 'persona.newPassword',
+          },
+        },
+        assertions: [{ intent: 'text:Password changed successfully' }],
+        evidenceRefs: ['src:change-password-submit', 'run:change-password-submit'],
+      },
+    );
+    workflow.verification.screenshotCheckpoints = ['home', 'change-password-page'];
+
+    await new PlaywrightCompiler({
+      outputDirectory: directory,
+      origin: 'http://127.0.0.1:3000',
+    }).compile(workflow, observations());
+
+    const spec = await readFile(join(directory, 'tests/workflow.spec.ts'), 'utf8');
+    expect(spec).toContain('getByLabel("Current password")');
+    expect(spec).toContain('getByLabel("New password")');
+    expect(spec).toContain('ARXIC_INPUT_PERSONA_NEWPASSWORD');
+    expect(spec).toContain('|send|change|reset|verify|confirm|enroll|register|sign up/i');
+    expect(spec).toContain('step-2-home-change-password-page.png');
+    expect(spec).toContain('step-3-change-password-page-change-password-page.png');
   });
 });
 

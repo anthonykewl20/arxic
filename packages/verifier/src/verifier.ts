@@ -1,6 +1,6 @@
 import { mkdir, rm, symlink } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import type {
   ArtifactRef,
   Diagnostic,
@@ -18,7 +18,7 @@ import {
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
   verifyDiagnostic,
 } from './diagnostics';
-import { resetAndSeedFixtures } from './reset';
+import { resetAndSeedFixtures, type VerificationPersona } from './reset';
 import { runPlaywrightSuite, type RunPass } from './runner';
 
 const require = createRequire(import.meta.url);
@@ -27,7 +27,7 @@ export type PlaywrightVerifierOptions = {
   outputDirectory: string;
   origin: string;
   artifactsDir: string;
-  persona?: { email: string; password: string };
+  persona?: VerificationPersona;
   resetAndSeed?: (run: number) => Promise<void>;
   runSuite?: (run: number) => Promise<RunPass>;
   ensurePlaywrightModule?: boolean;
@@ -38,7 +38,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #outputDirectory: string;
   readonly #origin: string;
   readonly #artifactsDirectory: string;
-  readonly #persona: { email: string; password: string } | undefined;
+  readonly #persona: VerificationPersona | undefined;
   readonly #resetAndSeed: ((run: number) => Promise<void>) | undefined;
   readonly #runSuite: ((run: number) => Promise<RunPass>) | undefined;
   readonly #ensureModule: boolean;
@@ -219,7 +219,8 @@ export class PlaywrightVerifier implements WorkflowVerifier {
             (checkpoint) =>
               !captured.some(
                 (artifact) =>
-                  artifact.kind === 'screenshot' && artifact.path.endsWith(`-${checkpoint}.png`),
+                  artifact.kind === 'screenshot' &&
+                  screenshotMatchesCheckpoint(artifact.path, checkpoint),
               ),
           )
         : [];
@@ -252,12 +253,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   }
 
   async #execute(run: number, policy: VerificationPolicy): Promise<RunPass> {
-    const env = this.#persona
-      ? {
-          ARXIC_INPUT_PERSONA_EMAIL: this.#persona.email,
-          ARXIC_INPUT_PERSONA_PASSWORD: this.#persona.password,
-        }
-      : {};
+    const env = personaEnvironment(this.#persona);
     if (!this.#runSuite) {
       return runPlaywrightSuite({
         testDirectory: this.#outputDirectory,
@@ -265,17 +261,12 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         trace: policy.trace,
       });
     }
-    const previousEmail = process.env.ARXIC_INPUT_PERSONA_EMAIL;
-    const previousPassword = process.env.ARXIC_INPUT_PERSONA_PASSWORD;
-    if (this.#persona) {
-      process.env.ARXIC_INPUT_PERSONA_EMAIL = this.#persona.email;
-      process.env.ARXIC_INPUT_PERSONA_PASSWORD = this.#persona.password;
-    }
+    const previous = new Map(Object.keys(env).map((name) => [name, process.env[name]] as const));
+    Object.assign(process.env, env);
     try {
       return await this.#runSuite(run);
     } finally {
-      restoreEnvironment('ARXIC_INPUT_PERSONA_EMAIL', previousEmail);
-      restoreEnvironment('ARXIC_INPUT_PERSONA_PASSWORD', previousPassword);
+      for (const [name, value] of previous) restoreEnvironment(name, value);
     }
   }
 }
@@ -305,4 +296,20 @@ function blocked(
 function restoreEnvironment(name: string, value: string | undefined): void {
   if (value === undefined) delete process.env[name];
   else process.env[name] = value;
+}
+
+function personaEnvironment(persona: VerificationPersona | undefined): Record<string, string> {
+  const env: Record<string, string> = {};
+  for (const [key, value] of Object.entries(persona ?? {})) {
+    if (value !== undefined) {
+      env[`ARXIC_INPUT_PERSONA_${key.replace(/[^A-Za-z0-9]+/gu, '_').toUpperCase()}`] = value;
+    }
+  }
+  return env;
+}
+
+function screenshotMatchesCheckpoint(path: string, checkpoint: string): boolean {
+  const normalizedCheckpoint = checkpoint.replace(/[^A-Za-z0-9.-]+/gu, '-');
+  const name = basename(path, '.png');
+  return name === normalizedCheckpoint || name.endsWith(`-${normalizedCheckpoint}`);
 }

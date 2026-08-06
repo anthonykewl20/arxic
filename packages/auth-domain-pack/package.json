@@ -1,0 +1,15 @@
+{
+  "name": "@arxic/auth-domain-pack",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@arxic/contracts": "workspace:*",
+    "@arxic/playwright-compiler": "workspace:*",
+    "@arxic/verifier": "workspace:*"
+  }
+}

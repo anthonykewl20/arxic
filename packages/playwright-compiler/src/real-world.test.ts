@@ -69,8 +69,10 @@ describe('real Playwright compiler proof', () => {
     const output = `${listing.stdout}${listing.stderr}`;
     expect(output).toContain(workflow.id);
     const spec = await readFile(join(outputDirectory, 'tests/workflow.spec.ts'), 'utf8');
-    for (const transition of workflow.transitions) {
-      expect(spec).toContain(`artifacts/screenshots/${transition.to}.png`);
+    for (const [index, transition] of workflow.transitions.entries()) {
+      expect(spec).toContain(
+        `artifacts/screenshots/step-${index + 1}-${transition.from}-${transition.to}.png`,
+      );
     }
   }, 120_000);
 });

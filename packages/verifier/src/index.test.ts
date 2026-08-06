@@ -183,6 +183,53 @@ describe('PlaywrightVerifier', () => {
     }
   });
 
+  test('provides every configured persona value to generated specs and restores the environment', async () => {
+    const fixture = await stagedFixture();
+    const previous = process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD;
+    let observedEnvironment: Record<string, string | undefined> = {};
+    process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD = 'previous-value';
+    try {
+      const verifier = verifierFor(fixture, {
+        persona: {
+          email: 'person@example.test',
+          password: 'Password9!',
+          newPassword: 'Replacement9!',
+          totp: '123456',
+        },
+        runSuite: async () => {
+          observedEnvironment = {
+            email: process.env.ARXIC_INPUT_PERSONA_EMAIL,
+            password: process.env.ARXIC_INPUT_PERSONA_PASSWORD,
+            newPassword: process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD,
+            totp: process.env.ARXIC_INPUT_PERSONA_TOTP,
+          };
+          return {
+            passed: false,
+            output: 'expected test result',
+            exitCode: 1,
+            networkErrors: [],
+          };
+        },
+      });
+
+      await verifier.verify(fixture.bundle, policy(1));
+
+      expect(observedEnvironment).toEqual({
+        email: 'person@example.test',
+        password: 'Password9!',
+        newPassword: 'Replacement9!',
+        totp: '123456',
+      });
+      expect(process.env.ARXIC_INPUT_PERSONA_EMAIL).toBeUndefined();
+      expect(process.env.ARXIC_INPUT_PERSONA_PASSWORD).toBeUndefined();
+      expect(process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD).toBe('previous-value');
+      expect(process.env.ARXIC_INPUT_PERSONA_TOTP).toBeUndefined();
+    } finally {
+      if (previous === undefined) delete process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD;
+      else process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD = previous;
+    }
+  });
+
   test('blocks staged artifact hash corruption', async () => {
     const fixture = await stagedFixture();
     await writeFile(join(fixture.outputDirectory, 'tests/workflow.spec.ts'), 'corrupted');

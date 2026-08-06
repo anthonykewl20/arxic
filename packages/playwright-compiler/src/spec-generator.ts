@@ -16,13 +16,15 @@ export function generateSpec(workflow: Workflow, origin: string): string {
     '',
     `test(${JSON.stringify(workflow.id)}, async ({ page }) => {`,
   ];
-  for (const transition of workflow.transitions.filter((item) => item.required !== false)) {
+  for (const [index, transition] of workflow.transitions
+    .filter((item) => item.required !== false)
+    .entries()) {
     lines.push(
       `  await test.step(${JSON.stringify(`${transition.from} → ${transition.to}`)}, async () => {`,
       `    await page.goto(${JSON.stringify(new URL(statePath(transition.from), origin).href)});`,
       ...renderAction(transition),
       ...renderAssertions(transition, origin),
-      `    await page.screenshot({ path: ${JSON.stringify(`artifacts/screenshots/${transition.to}.png`)} });`,
+      `    await page.screenshot({ path: ${JSON.stringify(`artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`)} });`,
       '  });',
     );
   }
@@ -39,7 +41,7 @@ function renderAction(transition: WorkflowTransition): string[] {
         ([name, reference]) =>
           `    await page.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
       ),
-      "    await page.getByRole('button', { name: /submit|log in|login|sign in|continue/i }).click();",
+      "    await page.getByRole('button', { name: /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i }).click();",
     ];
   }
   const open = intent.match(/^(?:open|go to|navigate to)\s+(.+)$/iu);
@@ -85,7 +87,15 @@ function statePath(state: string): string {
 }
 
 function label(name: string): string {
-  return `${name.slice(0, 1).toUpperCase()}${name.slice(1)}`;
+  const words = name.replace(
+    /([a-z])([A-Z])/gu,
+    (_match, lower: string, upper: string) => `${lower} ${upper.toLowerCase()}`,
+  );
+  return `${words.slice(0, 1).toUpperCase()}${words.slice(1)}`;
+}
+
+function fileNamePart(state: string): string {
+  return state.replace(/[^A-Za-z0-9.-]+/gu, '-');
 }
 
 function environmentName(reference: string): string {

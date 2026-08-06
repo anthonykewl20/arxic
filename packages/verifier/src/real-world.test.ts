@@ -58,7 +58,11 @@ describe('real Playwright verifier proof', () => {
   });
 
   test('verifies two clean real Chromium passes and rejects locator drift', async () => {
-    const persona = { email: 'verifier-proof@example.test', password: 'VerifierProof9!' };
+    const persona = {
+      email: 'verifier-proof@example.test',
+      password: 'VerifierProof9!',
+      newPassword: 'VerifierReplacement9!',
+    };
     const bundle = await new PlaywrightCompiler({ outputDirectory, origin }).compile(
       loginWorkflow(),
       observations(origin),
