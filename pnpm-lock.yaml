@@ -193,7 +193,14 @@ importers:
         specifier: 1.62.1
         version: 1.62.1
 
-  packages/playwright-compiler: {}
+  packages/playwright-compiler:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@playwright/test':
+        specifier: 1.62.1
+        version: 1.62.1
 
   packages/policy-engine:
     dependencies:
