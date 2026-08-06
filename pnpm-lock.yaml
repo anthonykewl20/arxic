@@ -238,9 +238,15 @@ importers:
       '@arxic/ast-grep-adapter':
         specifier: workspace:*
         version: link:../ast-grep-adapter
+      '@arxic/auth-domain-pack':
+        specifier: workspace:*
+        version: link:../auth-domain-pack
       '@arxic/orchestrator-langgraph':
         specifier: workspace:*
         version: link:../orchestrator-langgraph
+      '@arxic/playwright-compiler':
+        specifier: workspace:*
+        version: link:../playwright-compiler
       '@arxic/source-ua-adapter':
         specifier: workspace:*
         version: link:../source-ua-adapter
