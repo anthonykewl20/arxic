@@ -52,6 +52,18 @@ importers:
         specifier: ^0.45.0
         version: 0.45.0
 
+  packages/auth-domain-pack:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@arxic/playwright-compiler':
+        specifier: workspace:*
+        version: link:../playwright-compiler
+      '@arxic/verifier':
+        specifier: workspace:*
+        version: link:../verifier
+
   packages/bundle-promoter:
     dependencies:
       '@arxic/contracts':

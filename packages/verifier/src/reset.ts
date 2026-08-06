@@ -1,6 +1,12 @@
 import type { Diagnostic } from '@arxic/contracts';
 import { ARXIC_VERIFY_BLOCKED_FIXTURE, verifyDiagnostic } from './diagnostics';
 
+export type VerificationPersona = {
+  email: string;
+  password: string;
+  [key: string]: string | undefined;
+};
+
 export class FixtureResetError extends Error {
   readonly diagnostic: Diagnostic;
 
@@ -13,7 +19,7 @@ export class FixtureResetError extends Error {
 
 export async function resetAndSeedFixtures(
   origin: string,
-  persona: { email: string; password: string },
+  persona: VerificationPersona,
 ): Promise<void> {
   const base = new URL(origin);
   try {
