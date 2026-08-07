@@ -1,0 +1,79 @@
+import { mkdtemp, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { describe, expect, it } from 'vitest';
+import type { ParsedConfig } from '../config/types';
+import type { RunResult } from '../executor';
+import { writeRunDirectory } from '../run-directory';
+import { OBSERVED_DIAGNOSTIC, VALID_CONFIG, runState } from './fixtures';
+
+describe('writeRunDirectory', () => {
+  it('writes real canonical observability artifacts without secret-bearing config fields', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-run-directory-'));
+    const state = runState();
+    const result: RunResult = {
+      runId: 'test-run',
+      status: 'completed',
+      outcome: 'observed',
+      diagnostics: [OBSERVED_DIAGNOSTIC],
+      runDirectory: directory,
+      state,
+    };
+    const configWithFutureSecrets = {
+      ...VALID_CONFIG,
+      prompt: 'DO-NOT-PERSIST-PROMPT',
+      credentialBytes: ['DO-NOT-PERSIST-CREDENTIAL'],
+    } as ParsedConfig;
+
+    await writeRunDirectory(directory, {
+      runId: 'test-run',
+      config: configWithFutureSecrets,
+      result,
+      startedAt: '2026-08-07T10:00:00.000Z',
+      finishedAt: '2026-08-07T10:00:02.000Z',
+      now: () => '2026-08-07T10:00:03.000Z',
+    });
+
+    const runBytes = await readFile(join(directory, 'test-run', 'run.json'), 'utf8');
+    const run = JSON.parse(runBytes) as Record<string, unknown>;
+    expect(run).toMatchObject({
+      schemaVersion: 1,
+      runId: 'test-run',
+      generator: { id: '@arxic/cli', version: '0.0.0' },
+      target: { origin: 'http://127.0.0.1:1', environmentClass: 'local-test' },
+      status: 'completed',
+      outcome: 'observed',
+      startedAt: '2026-08-07T10:00:00.000Z',
+      finishedAt: '2026-08-07T10:00:02.000Z',
+      artifactHashes: [{ id: 'stage:0', sha256: 'a'.repeat(64) }],
+      toolVersions: { chromium: '1.2.3', node: '22.0.0' },
+      decisions: ['target attestation accepted', 'owner approved local target'],
+      gateResults: [{ gate: 'attestation', passed: true }],
+      redaction: { passed: true, redactedFields: ['request.authorization'] },
+      diagnostics: [OBSERVED_DIAGNOSTIC],
+    });
+    expect((run.stages as unknown[]).length).toBe(1);
+    expect(runBytes).not.toContain('DO-NOT-PERSIST');
+    expect(runBytes.endsWith('\n')).toBe(true);
+    expect(runBytes.startsWith('{"artifactHashes"')).toBe(true);
+
+    const diagnosticLines = (
+      await readFile(join(directory, 'test-run', 'diagnostics.jsonl'), 'utf8')
+    )
+      .trimEnd()
+      .split('\n');
+    expect(diagnosticLines).toHaveLength(1);
+    expect(JSON.parse(diagnosticLines[0])).toEqual(OBSERVED_DIAGNOSTIC);
+    expect(diagnosticLines[0].startsWith('{"code"')).toBe(true);
+
+    const configBytes = await readFile(join(directory, 'test-run', 'config.json'), 'utf8');
+    const echoedConfig = JSON.parse(configBytes) as ParsedConfig;
+    expect(echoedConfig.source.languages).toEqual(['typescript', 'javascript']);
+    expect(echoedConfig.target.origin).toBe('http://127.0.0.1:1');
+    expect(run).not.toHaveProperty('config.prompt');
+    expect(run).not.toHaveProperty('config.credentialBytes');
+    expect(echoedConfig).not.toHaveProperty('prompt');
+    expect(echoedConfig).not.toHaveProperty('credentialBytes');
+    expect(configBytes).not.toContain('DO-NOT-PERSIST');
+  });
+});

@@ -1,0 +1,170 @@
+import { mkdtemp, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { describe, expect, it } from 'vitest';
+import { loadConfig } from '../config/parse';
+import { validateConfig } from '../config/validate';
+import { VALID_CONFIG, VALID_YAML } from './fixtures';
+
+describe('CLI configuration sad paths', () => {
+  it('fails closed with a stable diagnostic when the file is missing', async () => {
+    const result = await loadConfig(join(tmpdir(), `missing-arxic-${process.pid}.yaml`));
+    expect(result).toMatchObject({
+      ok: false,
+      diagnostics: [{ code: 'ARXIC-CONFIG-MISSING', severity: 'blocked' }],
+    });
+  });
+
+  it('fails closed when YAML is malformed', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-config-'));
+    const path = join(directory, 'arxic.yaml');
+    await writeFile(path, 'version: [unterminated\n');
+    const result = await loadConfig(path);
+    expect(result).toMatchObject({ ok: false, diagnostics: [{ code: 'ARXIC-CONFIG-PARSE' }] });
+  });
+
+  it('rejects an unsupported version', () => {
+    expect(codes(validateConfig({ ...VALID_CONFIG, version: 2 }))).toContain(
+      'ARXIC-CONFIG-VERSION',
+    );
+  });
+
+  it('rejects missing model configuration with its dedicated code', () => {
+    const withoutModels = Object.fromEntries(
+      Object.entries(VALID_CONFIG).filter(([key]) => key !== 'models'),
+    );
+    expect(codes(validateConfig(withoutModels))).toContain('ARXIC-CONFIG-MODEL-MISSING');
+  });
+
+  it('refuses production targets by default', () => {
+    const input = {
+      ...VALID_CONFIG,
+      target: { ...VALID_CONFIG.target, environmentClass: 'production' },
+    };
+    expect(codes(validateConfig(input))).toContain('ARXIC-CONFIG-INVALID');
+  });
+
+  it('rejects a target origin that is not an HTTP URL', () => {
+    const input = { ...VALID_CONFIG, target: { ...VALID_CONFIG.target, origin: 'localhost' } };
+    const result = validateConfig(input);
+    expect(result).toMatchObject({
+      ok: false,
+      diagnostics: [{ subject: 'config.target.origin', code: 'ARXIC-CONFIG-INVALID' }],
+    });
+  });
+
+  it('rejects a target origin containing URL credentials', () => {
+    const input = {
+      ...VALID_CONFIG,
+      target: { ...VALID_CONFIG.target, origin: 'http://alice:secret@127.0.0.1:1' },
+    };
+    expect(validateConfig(input)).toMatchObject({
+      ok: false,
+      diagnostics: [{ subject: 'config.target.origin', code: 'ARXIC-CONFIG-INVALID' }],
+    });
+  });
+
+  it('rejects an allowed origin containing URL credentials', () => {
+    const input = {
+      ...VALID_CONFIG,
+      target: {
+        ...VALID_CONFIG.target,
+        allowedOrigins: ['http://alice:secret@127.0.0.1:1'],
+      },
+    };
+    expect(validateConfig(input)).toMatchObject({
+      ok: false,
+      diagnostics: [{ subject: 'config.target.allowedOrigins', code: 'ARXIC-CONFIG-INVALID' }],
+    });
+  });
+
+  it('rejects an origin that is not listed in allowedOrigins', () => {
+    const input = {
+      ...VALID_CONFIG,
+      target: { ...VALID_CONFIG.target, allowedOrigins: ['http://127.0.0.1:2'] },
+    };
+    expect(validateConfig(input)).toMatchObject({
+      ok: false,
+      diagnostics: [
+        {
+          subject: 'config.target.origin',
+          code: 'ARXIC-CONFIG-INVALID',
+          message: 'config.target.origin must be listed in config.target.allowedOrigins',
+        },
+      ],
+    });
+  });
+
+  it('rejects unsupported external network policy', () => {
+    const input = {
+      ...VALID_CONFIG,
+      policy: { ...VALID_CONFIG.policy, externalNetwork: 'public' },
+    };
+    expect(codes(validateConfig(input))).toContain('ARXIC-CONFIG-INVALID');
+  });
+
+  it('rejects missing source languages', () => {
+    const source = Object.fromEntries(
+      Object.entries(VALID_CONFIG.source).filter(([key]) => key !== 'languages'),
+    );
+    expect(codes(validateConfig({ ...VALID_CONFIG, source }))).toContain('ARXIC-CONFIG-INVALID');
+  });
+
+  it('rejects an empty frameworks list', () => {
+    const input = { ...VALID_CONFIG, scope: { ...VALID_CONFIG.scope, frameworks: [] } };
+    expect(validateConfig(input)).toMatchObject({
+      ok: false,
+      diagnostics: [{ subject: 'config.scope.frameworks', code: 'ARXIC-CONFIG-INVALID' }],
+    });
+  });
+
+  it('rejects zero required verification runs', () => {
+    const input = {
+      ...VALID_CONFIG,
+      policy: { ...VALID_CONFIG.policy, requiredVerificationRuns: 0 },
+    };
+    expect(codes(validateConfig(input))).toContain('ARXIC-CONFIG-INVALID');
+  });
+
+  it('consistently rejects unknown top-level keys', () => {
+    const result = validateConfig({ ...VALID_CONFIG, futurePolicyBypass: true });
+    expect(result).toMatchObject({
+      ok: false,
+      diagnostics: [{ code: 'ARXIC-CONFIG-INVALID', subject: 'config.futurePolicyBypass' }],
+    });
+  });
+
+  it('collects all independent violations', () => {
+    const result = validateConfig({ version: 2, models: {} });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.diagnostics.length).toBeGreaterThan(5);
+      expect(result.diagnostics.every((diagnostic) => diagnostic.severity === 'blocked')).toBe(
+        true,
+      );
+    }
+  });
+});
+
+describe('CLI configuration happy path', () => {
+  it('accepts a target origin listed in allowedOrigins', () => {
+    expect(validateConfig(VALID_CONFIG)).toEqual({ ok: true, value: VALID_CONFIG });
+  });
+
+  it('loads the real ADR section 19 YAML shape from a real file', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-config-real-'));
+    const path = join(directory, 'arxic.yaml');
+    await writeFile(path, VALID_YAML);
+    const result = await loadConfig(path);
+    expect(result).toEqual({ ok: true, value: VALID_CONFIG });
+    if (result.ok) {
+      expect(result.value.source.languages).toEqual(['typescript', 'javascript']);
+      expect(result.value.policy.requiredVerificationRuns).toBe(2);
+      expect(result.value.target.origin).toBe('http://127.0.0.1:1');
+    }
+  });
+});
+
+function codes(result: ReturnType<typeof validateConfig>): string[] {
+  return result.ok ? [] : result.diagnostics.map((diagnostic) => diagnostic.code);
+}
