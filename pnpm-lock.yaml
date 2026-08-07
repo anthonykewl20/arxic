@@ -217,6 +217,9 @@ importers:
       '@arxic/playwright-agent-adapter':
         specifier: workspace:*
         version: link:../playwright-agent-adapter
+      '@arxic/policy-engine':
+        specifier: workspace:*
+        version: link:../policy-engine
       '@arxic/source-ua-adapter':
         specifier: workspace:*
         version: link:../source-ua-adapter
