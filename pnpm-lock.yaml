@@ -56,6 +56,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@arxic/environment':
+        specifier: workspace:*
+        version: link:../../packages/environment
 
   packages/ast-grep-adapter:
     dependencies:
