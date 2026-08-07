@@ -1,6 +1,6 @@
 # CONFIG-SEAM-RECONCILE — staged doc updates (charter §10.2)
 
-Issue: #102 · PR: #(pending) · Disposition: mixed
+Issue: #102 · PR: #105 · Disposition: mixed
 
 > The type reconciliation itself is green (typecheck/lint/test all pass, real-world CLI proof unchanged) and would ordinarily be `verified`, but per ADR §2 an LLM may never assign `verified`. `mixed` because the reconciliation also **surfaced a genuine semantic divergence** between the CLI validator and the worker's policy layer; that divergence is reported (not papered over) and tracked in #104, deliberately out of scope here.
 
