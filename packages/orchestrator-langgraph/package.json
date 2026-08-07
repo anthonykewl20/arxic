@@ -13,6 +13,7 @@
     "@arxic/contracts": "workspace:*",
     "@arxic/crawlee-adapter": "workspace:*",
     "@arxic/environment": "workspace:*",
+    "@arxic/model-adapter": "workspace:*",
     "@arxic/playwright-agent-adapter": "workspace:*",
     "@arxic/source-ua-adapter": "workspace:*",
     "@langchain/core": "1.2.4",

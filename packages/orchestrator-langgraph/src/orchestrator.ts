@@ -26,6 +26,7 @@ import {
   PACKAGE_NAME as ENVIRONMENT_PACKAGE,
   type HumanApproval,
 } from '@arxic/environment';
+import type { ModelAdapter } from '@arxic/model-adapter';
 import {
   generateSpecFromWorkflow,
   PACKAGE_NAME as PLAYWRIGHT_PACKAGE,
@@ -37,6 +38,7 @@ import {
 } from '@arxic/source-ua-adapter';
 import { artifactHash, type StageCheckpointer } from './checkpointer';
 import { FixtureCoordinator } from './fixture-coordinator';
+import { selectNeighbourhood, stage4Infer } from './inference';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
   ARXIC_ORCH_HASH_MISMATCH,
@@ -123,6 +125,8 @@ export type OrchestratorOptions = Readonly<{
   checkpointer: StageCheckpointer;
   now?: () => string;
   maxModelAttempts?: number;
+  modelAdapter?: ModelAdapter;
+  model?: string;
   inferCandidates?: (input: InferenceInput) => Promise<unknown>;
   reconcile?: (input: {
     candidates: readonly Candidate[];
@@ -365,12 +369,17 @@ export class LangGraphOrchestrator {
     const evidenceRefs = [...structural.events, ...rules.events].flatMap((event) =>
       'ref' in event && event.ref ? [event.ref] : [],
     );
-    const infer = this.#options.inferCandidates ?? defaultInference;
+    const neighbourhood = selectNeighbourhood(evidenceRefs);
+    const infer =
+      this.#options.inferCandidates ??
+      (this.#options.modelAdapter && this.#options.model
+        ? stage4Infer(this.#options.modelAdapter, this.#options.model)
+        : defaultInference);
     const attempts = Math.max(1, this.#options.maxModelAttempts ?? 2);
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
       const raw = await infer({
         runId: input.runId,
-        evidenceRefs: evidenceRefs.slice(0, 24),
+        evidenceRefs: neighbourhood,
         ...(input.modelPrompt ? { prompt: input.modelPrompt } : {}),
         attempt,
       });
@@ -389,7 +398,7 @@ export class LangGraphOrchestrator {
             : [];
         return {
           artifact: parsed,
-          adapter: '@arxic/orchestrator-langgraph:seeded-inference',
+          adapter: '@arxic/orchestrator-langgraph:inference',
           modelRequestId: parsed.requestId,
           diagnostics,
           partial: parsed.candidates.length === 0,
@@ -400,7 +409,7 @@ export class LangGraphOrchestrator {
     }
     return {
       artifact: { requestId: 'redacted-invalid', candidates: [] },
-      adapter: '@arxic/orchestrator-langgraph:seeded-inference',
+      adapter: '@arxic/orchestrator-langgraph:inference',
       diagnostics: [
         orchDiagnostic(
           ARXIC_ORCH_MODEL_RETRIES,
@@ -779,46 +788,9 @@ function approvalSummary(approval: HumanApproval): string {
 }
 
 async function defaultInference(input: InferenceInput): Promise<InferenceResult> {
-  const first = input.evidenceRefs[0];
-  if (!first) return { requestId: `seeded-${input.runId}-${input.attempt}`, candidates: [] };
-  const evidenceId = 'src:seeded-candidate';
-  const workflow: Workflow = {
-    $schema: 'https://arxic.dev/schemas/workflow/v1.json',
-    id: 'authentication.seeded-candidate',
-    version: 1,
-    title: 'Seeded authentication candidate',
-    domain: 'authentication',
-    persona: 'registered-user',
-    status: 'hypothesized',
-    confidence: 0.5,
-    scope: {
-      commit: first.kind === 'source' ? first.commit : '0'.repeat(40),
-      environment: 'local-test',
-      browser: 'chromium',
-    },
-    preconditions: [],
-    states: [{ id: 'signed-out' }, { id: 'signed-in' }],
-    transitions: [
-      {
-        from: 'signed-out',
-        to: 'signed-in',
-        action: { intent: 'submit login form' },
-        assertions: [{ intent: 'authenticated state is visible' }],
-        evidenceRefs: [evidenceId],
-      },
-    ],
-    negativeCases: [],
-    verification: {
-      requiredRuns: 2,
-      screenshotCheckpoints: ['signed-in'],
-      forbidNetworkErrors: true,
-      trace: 'retain',
-    },
-    evidenceRefs: [evidenceId],
-  };
   return {
-    requestId: `seeded-${input.runId}-${input.attempt}`,
-    candidates: [{ id: workflow.id, title: workflow.title, evidenceRefs: [evidenceId], workflow }],
+    requestId: `stage4-no-model-${input.runId}-${input.attempt}`,
+    candidates: [],
   };
 }
 

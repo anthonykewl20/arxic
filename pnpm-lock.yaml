@@ -190,6 +190,9 @@ importers:
       '@arxic/environment':
         specifier: workspace:*
         version: link:../environment
+      '@arxic/model-adapter':
+        specifier: workspace:*
+        version: link:../model-adapter
       '@arxic/playwright-agent-adapter':
         specifier: workspace:*
         version: link:../playwright-agent-adapter
