@@ -103,6 +103,30 @@ describe('CLI configuration sad paths', () => {
     expect(codes(validateConfig(input))).toContain('ARXIC-CONFIG-INVALID');
   });
 
+  // #104: these values passed CLI validation but are rejected at run time by the worker's
+  // validateWorkerSecurity, and nothing in the pipeline ever read them — so they were
+  // silently inert. A safety setting the CLI cannot honour must fail closed at config time.
+  it.each([
+    ['externalNetwork', 'allow'],
+    ['mutation', 'allow'],
+    ['mutation', 'deny'],
+  ])('rejects policy.%s = %s, which the worker refuses at run time', (field, value) => {
+    const input = { ...VALID_CONFIG, policy: { ...VALID_CONFIG.policy, [field]: value } };
+    expect(codes(validateConfig(input))).toContain('ARXIC-CONFIG-INVALID');
+  });
+
+  it('accepts the ADR §19 policy pair', () => {
+    const input = {
+      ...VALID_CONFIG,
+      policy: {
+        ...VALID_CONFIG.policy,
+        mutation: 'leased-fixtures-only',
+        externalNetwork: 'deny',
+      },
+    };
+    expect(codes(validateConfig(input))).not.toContain('ARXIC-CONFIG-INVALID');
+  });
+
   it('rejects missing source languages', () => {
     const source = Object.fromEntries(
       Object.entries(VALID_CONFIG.source).filter(([key]) => key !== 'languages'),

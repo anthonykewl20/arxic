@@ -57,8 +57,8 @@ export type ArxicConfig = Readonly<{
     maxUrls: number;
     maxDepth: number;
     maxRuntimeMinutes: number;
-    mutation: 'leased-fixtures-only' | 'deny' | 'allow';
-    externalNetwork: 'deny' | 'allow';
+    mutation: 'leased-fixtures-only';
+    externalNetwork: 'deny';
     requiredVerificationRuns: number;
     screenshots: string;
     trace: string;
