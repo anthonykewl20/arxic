@@ -5,7 +5,8 @@
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
-    "@arxic/contracts": "workspace:*"
+    "@arxic/contracts": "workspace:*",
+    "@arxic/environment": "workspace:*"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit"

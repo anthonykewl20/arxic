@@ -6,6 +6,7 @@ import {
   ATTESTATION_DIAGNOSTIC_CODES,
   classifyTarget,
   verifyAttestation,
+  WORKER_DIAGNOSTIC_CODES,
   type TargetAttestation,
 } from '..';
 
@@ -19,6 +20,22 @@ describe('ADR §23.14 target-attestation contract gate', () => {
     );
     expect(codes.sort()).toEqual([...ATTESTATION_DIAGNOSTIC_CODES].sort());
     for (const code of codes) {
+      expect(
+        validateDiagnostic({
+          code,
+          severity: 'blocked',
+          subject: 'contract-gate',
+          message: 'test',
+        }),
+      ).toMatchObject({ ok: true });
+    }
+  });
+
+  it('loop-closes every registered ARXIC-WORKER code through the frozen validator', () => {
+    expect(new Set(WORKER_DIAGNOSTIC_CODES).size).toBe(WORKER_DIAGNOSTIC_CODES.length);
+    expect(WORKER_DIAGNOSTIC_CODES.length).toBeGreaterThan(0);
+    for (const code of WORKER_DIAGNOSTIC_CODES) {
+      expect(code.startsWith('ARXIC-WORKER-')).toBe(true);
       expect(
         validateDiagnostic({
           code,

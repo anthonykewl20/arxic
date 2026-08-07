@@ -1,0 +1,235 @@
+import { resolve } from 'node:path';
+import type { Diagnostic } from '@arxic/contracts';
+import {
+  dockerExec,
+  dockerInspect,
+  dockerKill,
+  dockerRm,
+  dockerRunDetach,
+  networkCreate,
+  networkRm,
+  type DockerResult,
+} from './docker-cli';
+import { workerDiagnostic } from './worker-diagnostics';
+
+export type WorkerQuotas = Readonly<{
+  memoryMb: number;
+  memorySwapMb: number;
+  pidsLimit: number;
+  cpus: number;
+  timeoutMs: number;
+}>;
+
+export function defaultQuotas(maxRuntimeMinutes: number): WorkerQuotas {
+  const minutes =
+    Number.isFinite(maxRuntimeMinutes) && maxRuntimeMinutes > 0 ? maxRuntimeMinutes : 1;
+  return Object.freeze({
+    memoryMb: 512,
+    memorySwapMb: 512,
+    pidsLimit: 256,
+    cpus: 1,
+    timeoutMs: Math.ceil(minutes * 60_000),
+  });
+}
+
+export type WorkerSandboxSpec = Readonly<{
+  jobId: string;
+  sourcePath: string;
+  image?: string;
+  quotas: WorkerQuotas;
+  networkName: string;
+  workerUser?: string;
+  writableTmpFs?: string;
+  env?: Record<string, string>;
+}>;
+
+export type SandboxExecResult = Readonly<{
+  exit: number;
+  stdout: string;
+  stderr: string;
+  oomKilled: boolean;
+  timedOut: boolean;
+}>;
+
+export type SandboxState = Readonly<{ status: string; exitCode: number; oomKilled: boolean }>;
+
+export type WorkerSandbox = Readonly<{
+  jobId: string;
+  networkName: string;
+  containerId: string;
+  quotas: WorkerQuotas;
+  exec: (command: readonly string[] | string) => Promise<SandboxExecResult>;
+  inspect: () => Promise<SandboxState>;
+  stop: () => Promise<{ cleanupDiagnostics: Diagnostic[] }>;
+}>;
+
+function assertSafeSpec(spec: WorkerSandboxSpec): void {
+  if (!/^arxic-[A-Za-z0-9_.-]+$/.test(spec.networkName))
+    throw new Error('Worker network name must be arxic-prefixed');
+  if (!spec.jobId || !/^[A-Za-z0-9_.-]+$/.test(spec.jobId))
+    throw new Error('Worker jobId contains unsafe characters');
+  const requestedUser = spec.workerUser ?? '1000:1000';
+  if (/^(?:root|0)(?::|$)/i.test(requestedUser)) throw new Error('Worker may not run as root');
+  const writable = spec.writableTmpFs ?? '/work';
+  if (!/^\/work(?:\/(?!source(?:\/|$))[A-Za-z0-9_.-]+)*$/.test(writable))
+    throw new Error('Worker writable tmpfs must be scoped below /work and outside /work/source');
+  const { memoryMb, memorySwapMb, pidsLimit, cpus, timeoutMs } = spec.quotas;
+  if (
+    ![memoryMb, memorySwapMb, pidsLimit, cpus, timeoutMs].every(
+      (quota) => Number.isFinite(quota) && quota > 0,
+    ) ||
+    memorySwapMb < memoryMb
+  )
+    throw new Error('Worker quotas must be positive, finite, and memorySwapMb >= memoryMb');
+  for (const [name] of Object.entries(spec.env ?? {})) {
+    if (/^DOCKER_(HOST|CONTEXT|TLS.*|CERT_PATH)$/i.test(name))
+      throw new Error(`Worker daemon environment is forbidden: ${name}`);
+  }
+}
+
+function requireSuccess(operation: string, result: DockerResult): void {
+  if (result.exit !== 0)
+    throw new Error(`${operation} failed: ${result.stderr || `exit ${result.exit}`}`);
+}
+
+export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<WorkerSandbox> {
+  assertSafeSpec(spec);
+  const containerName = `arxic-${spec.jobId}-worker`;
+  const image = spec.image ?? 'node:20-alpine';
+  const user = spec.workerUser ?? '1000:1000';
+  const writable = spec.writableTmpFs ?? '/work';
+  const source = resolve(spec.sourcePath);
+  let networkCreated = false;
+  try {
+    const network = await networkCreate({ name: spec.networkName, internal: true });
+    requireSuccess('docker network create', network);
+    networkCreated = true;
+    const run = await dockerRunDetach([
+      '--name',
+      containerName,
+      '--user',
+      user,
+      '--read-only',
+      '--security-opt',
+      'no-new-privileges:true',
+      '--cap-drop',
+      'ALL',
+      '--tmpfs',
+      `${writable}:rw,size=8m,mode=1777`,
+      '--mount',
+      `type=bind,source=${source},target=/work/source,readonly`,
+      '--memory',
+      `${spec.quotas.memoryMb}m`,
+      '--memory-swap',
+      `${spec.quotas.memorySwapMb}m`,
+      '--pids-limit',
+      String(spec.quotas.pidsLimit),
+      '--cpus',
+      String(spec.quotas.cpus),
+      '--network',
+      spec.networkName,
+      ...Object.entries(spec.env ?? {}).flatMap(([name, value]) => ['--env', `${name}=${value}`]),
+      image,
+      'node',
+      '-e',
+      'setInterval(()=>{},60000)',
+    ]);
+    requireSuccess('docker run', run);
+    const containerId = run.stdout;
+    let stopped = false;
+    const sandbox = {} as WorkerSandbox;
+    const stop = async (): Promise<{ cleanupDiagnostics: Diagnostic[] }> => {
+      if (stopped) return { cleanupDiagnostics: [] };
+      const cleanupDiagnostics: Diagnostic[] = [];
+      const removed = await dockerRm(containerId || containerName);
+      if (removed.exit !== 0) {
+        cleanupDiagnostics.push(
+          workerDiagnostic(
+            'ARXIC-WORKER-CLEANUP-FAILED',
+            spec.jobId,
+            `Could not remove worker container: ${removed.stderr}`,
+          ),
+        );
+      }
+      const networkRemoved = await networkRm(spec.networkName);
+      if (networkRemoved.exit !== 0) {
+        cleanupDiagnostics.push(
+          workerDiagnostic(
+            'ARXIC-WORKER-CLEANUP-FAILED',
+            spec.jobId,
+            `Could not remove worker network: ${networkRemoved.stderr}`,
+          ),
+        );
+      }
+      if (cleanupDiagnostics.length === 0) stopped = true;
+      return { cleanupDiagnostics };
+    };
+    Object.assign(sandbox, {
+      jobId: spec.jobId,
+      networkName: spec.networkName,
+      containerId,
+      quotas: spec.quotas,
+      exec: (command: readonly string[] | string) => execInSandbox(sandbox, command),
+      inspect: () => inspectSandbox(sandbox),
+      stop,
+    });
+    return Object.freeze(sandbox);
+  } catch (error) {
+    const containerCleanup = await dockerRm(containerName);
+    const networkCleanup = networkCreated
+      ? await networkRm(spec.networkName)
+      : { exit: 0, stdout: '', stderr: '' };
+    if (containerCleanup.exit !== 0 || networkCleanup.exit !== 0) {
+      throw new Error(
+        `Worker creation failed and cleanup was incomplete: ${containerCleanup.stderr} ${networkCleanup.stderr}`.trim(),
+        { cause: error },
+      );
+    }
+    throw error;
+  }
+}
+
+export async function inspectSandbox(sandbox: WorkerSandbox): Promise<SandboxState> {
+  const raw = await dockerInspect(
+    sandbox.containerId,
+    '{{.State.Status}} {{.State.ExitCode}} {{.State.OOMKilled}}',
+  );
+  const [status = 'unknown', exitCode = '-1', oomKilled = 'false'] = raw.split(/\s+/);
+  return { status, exitCode: Number(exitCode), oomKilled: oomKilled === 'true' };
+}
+
+export async function execInSandbox(
+  sandbox: WorkerSandbox,
+  command: readonly string[] | string,
+): Promise<SandboxExecResult> {
+  const args = typeof command === 'string' ? ['sh', '-c', command] : command;
+  const result = await dockerExec(sandbox.containerId, args, {
+    timeoutMs: sandbox.quotas.timeoutMs,
+  });
+  const timedOut = result.exit === 124;
+  if (timedOut) await dockerKill(sandbox.containerId);
+  // The container-state OOMKilled flag is the authority for memory-quota
+  // breach; a bare exit 137 is only a fallback signal when the container
+  // disappeared before it could be inspected.
+  let oomKilled = false;
+  try {
+    oomKilled = (await inspectSandbox(sandbox)).oomKilled;
+  } catch {
+    oomKilled = result.exit === 137;
+  }
+  if (oomKilled) {
+    // An OOM during `docker exec` can leave the keepalive PID running. The
+    // supervisor must terminate that surviving process tree so quota failure
+    // is represented by a stopped worker, not a reusable partial sandbox.
+    await dockerKill(sandbox.containerId);
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      try {
+        if ((await inspectSandbox(sandbox)).status !== 'running') break;
+      } catch {
+        break;
+      }
+      await new Promise((resolveDelay) => setTimeout(resolveDelay, 25));
+    }
+  }
+  return { ...result, oomKilled, timedOut };
+}
