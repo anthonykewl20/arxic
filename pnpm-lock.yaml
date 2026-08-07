@@ -63,6 +63,10 @@ importers:
       '@arxic/verifier':
         specifier: workspace:*
         version: link:../verifier
+    devDependencies:
+      '@arxic/real-world-testkit':
+        specifier: workspace:*
+        version: link:../real-world-testkit
 
   packages/bundle-promoter:
     dependencies:
@@ -220,8 +224,18 @@ importers:
       '@playwright/test':
         specifier: 1.62.1
         version: 1.62.1
+    devDependencies:
+      '@arxic/real-world-testkit':
+        specifier: workspace:*
+        version: link:../real-world-testkit
 
   packages/policy-engine:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+
+  packages/real-world-testkit:
     dependencies:
       '@arxic/contracts':
         specifier: workspace:*
@@ -288,6 +302,9 @@ importers:
       '@arxic/playwright-compiler':
         specifier: workspace:*
         version: link:../playwright-compiler
+      '@arxic/real-world-testkit':
+        specifier: workspace:*
+        version: link:../real-world-testkit
 
   test-fixtures/reference-auth-app:
     dependencies:

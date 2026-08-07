@@ -1,88 +1,67 @@
 import { createHash } from 'node:crypto';
-import { execFile, spawn, type ChildProcess } from 'node:child_process';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
-import { promisify } from 'node:util';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { EvidenceRef, StagedBundle, Workflow } from '@arxic/contracts';
+import type { StagedBundle } from '@arxic/contracts';
 import { PlaywrightCompiler } from '@arxic/playwright-compiler';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import {
+  FIXTURE_APPS,
+  bootFixtureApp,
+  loginObservations,
+  loginWorkflow,
+  referenceAuthApp,
+  seedFixture,
+  stopApp,
+  type RunningApp,
+} from '@arxic/real-world-testkit';
 import { PlaywrightVerifier } from './index';
 
-const execute = promisify(execFile);
 const root = fileURLToPath(new URL('../../../', import.meta.url));
-const appDir = resolve(root, 'test-fixtures/reference-auth-app');
-let app: ChildProcess | undefined;
-let origin = '';
-let runtimeDirectory = '';
-let outputDirectory = '';
-let artifactsDirectory = '';
 
-describe('real Playwright verifier proof', () => {
+describe.each(FIXTURE_APPS)('playwright verifier real-world proof: $name', (app) => {
+  let running: RunningApp | undefined;
+  let outputDirectory = '';
+  let artifactsDirectory = '';
+
   beforeAll(async () => {
-    await execute('pnpm', ['--filter', 'reference-auth-app', 'build'], {
-      cwd: root,
-      timeout: 180_000,
-    });
-    runtimeDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-runtime-'));
+    running = await bootFixtureApp(root, app, `arxic-verifier-${app.name}`);
     outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-output-'));
     artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
-    const port = await freePort();
-    origin = `http://127.0.0.1:${port}`;
-    app = spawn(
-      process.execPath,
-      [resolve(appDir, 'node_modules/next/dist/bin/next'), 'start', '-p', String(port)],
-      {
-        cwd: appDir,
-        env: {
-          ...process.env,
-          ARXIC_DB_PATH: join(runtimeDirectory, 'auth.db'),
-          ARXIC_TARGET_ORIGIN: origin,
-        },
-        stdio: 'ignore',
-        shell: false,
-      },
-    );
-    await readiness(origin, app);
+    await seedFixture(running.origin, `verifier-${app.name}`, app.persona);
   }, 240_000);
 
   afterAll(async () => {
-    await stop(app);
+    await stopApp(running?.child);
     await Promise.all(
-      [runtimeDirectory, outputDirectory, artifactsDirectory]
-        .filter(Boolean)
+      [running?.runtimeDirectory, outputDirectory, artifactsDirectory]
+        .filter((path): path is string => Boolean(path))
         .map((path) => rm(path, { recursive: true, force: true })),
     );
   });
 
-  test('verifies two clean real Chromium passes and rejects locator drift', async () => {
-    const persona = {
-      email: 'verifier-proof@example.test',
-      password: 'VerifierProof9!',
-      newPassword: 'VerifierReplacement9!',
-    };
-    const bundle = await new PlaywrightCompiler({ outputDirectory, origin }).compile(
-      loginWorkflow(),
-      observations(origin),
-    );
-    const seed = await fetch(`${origin}/__arxic/seed`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ personaId: 'verifier-proof', ...persona }),
+  test('verifies two clean real Chromium passes', async () => {
+    if (!running) throw new Error(`Fixture app ${app.name} did not start`);
+    const workflow = loginWorkflow(app, {
+      id: `authentication.login.verifier.${app.name}`,
+      title: `Login verifier proof ${app.name}`,
+      dualEvidence: true,
     });
-    expect(seed.status).toBe(201);
+    const bundle = await new PlaywrightCompiler({
+      outputDirectory,
+      origin: running.origin,
+    }).compile(workflow, loginObservations(app, running.origin, `real-world-verifier-${app.name}`));
     const verifier = new PlaywrightVerifier({
       outputDirectory,
-      origin,
+      origin: running.origin,
       artifactsDir: artifactsDirectory,
-      persona,
+      persona: app.persona,
     });
     const policy = {
       requiredRuns: 2,
       forbidNetworkErrors: true,
-      screenshotCheckpoints: ['home'],
+      screenshotCheckpoints: [app.login.toState],
       trace: 'retain' as const,
     };
 
@@ -99,6 +78,59 @@ describe('real Playwright verifier proof', () => {
         .digest('hex');
       expect(digest).toBe(artifact.sha256);
     }
+  }, 240_000);
+});
+
+describe('playwright verifier locator-drift proof', () => {
+  let running: RunningApp | undefined;
+  let outputDirectory = '';
+  let artifactsDirectory = '';
+
+  beforeAll(async () => {
+    running = await bootFixtureApp(root, referenceAuthApp, 'arxic-verifier-locator-drift');
+    outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-output-'));
+    artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    await seedFixture(running.origin, 'verifier-locator-drift', referenceAuthApp.persona);
+  }, 240_000);
+
+  afterAll(async () => {
+    await stopApp(running?.child);
+    await Promise.all(
+      [running?.runtimeDirectory, outputDirectory, artifactsDirectory]
+        .filter((path): path is string => Boolean(path))
+        .map((path) => rm(path, { recursive: true, force: true })),
+    );
+  });
+
+  test('rejects locator drift as contradicted', async () => {
+    if (!running) throw new Error('Reference fixture app did not start');
+    const workflow = loginWorkflow(referenceAuthApp, {
+      id: 'authentication.login.verifier',
+      title: 'Login verifier proof',
+      dualEvidence: true,
+    });
+    const bundle = await new PlaywrightCompiler({
+      outputDirectory,
+      origin: running.origin,
+    }).compile(
+      workflow,
+      loginObservations(referenceAuthApp, running.origin, 'real-world-verifier-locator-drift'),
+    );
+    const verifier = new PlaywrightVerifier({
+      outputDirectory,
+      origin: running.origin,
+      artifactsDir: artifactsDirectory,
+      persona: referenceAuthApp.persona,
+    });
+    const policy = {
+      requiredRuns: 2,
+      forbidNetworkErrors: true,
+      screenshotCheckpoints: [referenceAuthApp.login.toState],
+      trace: 'retain' as const,
+    };
+
+    const clean = await verifier.verify(bundle, policy);
+    expect(clean.outcome, JSON.stringify(clean.diagnostics)).toBe('verified');
 
     const specArtifact = bundle.artifacts.find(({ kind }) => kind === 'playwright-spec');
     if (!specArtifact) throw new Error('Compiled real-world bundle has no spec');
@@ -125,105 +157,5 @@ describe('real Playwright verifier proof', () => {
 
     expect(drifted.outcome).not.toBe('verified');
     expect(drifted.outcome).toBe('contradicted');
-  }, 180_000);
+  }, 240_000);
 });
-
-function loginWorkflow(): Workflow {
-  return {
-    $schema: 'https://arxic.dev/schemas/workflow/v1.json',
-    id: 'authentication.login.verifier',
-    version: 1,
-    title: 'Login verifier proof',
-    domain: 'authentication',
-    persona: 'registered-user',
-    status: 'observed',
-    confidence: 1,
-    scope: {
-      commit: '0123456789abcdef0123456789abcdef01234567',
-      environment: 'local-test',
-      browser: 'chromium',
-    },
-    preconditions: [{ fixture: 'user.exists' }],
-    states: [{ id: 'login-page' }, { id: 'home' }],
-    transitions: [
-      {
-        from: 'login-page',
-        to: 'home',
-        action: {
-          intent: 'Submit login credentials',
-          inputRefs: { email: 'persona.email', password: 'persona.password' },
-        },
-        assertions: [{ intent: 'url:/' }],
-        evidenceRefs: ['src:login-handler', 'run:login'],
-      },
-    ],
-    negativeCases: [],
-    verification: {
-      requiredRuns: 2,
-      screenshotCheckpoints: ['home'],
-      forbidNetworkErrors: true,
-      trace: 'retain',
-    },
-    evidenceRefs: ['src:login-handler', 'run:login'],
-  };
-}
-
-function observations(url: string): EvidenceRef[] {
-  return [
-    {
-      kind: 'source',
-      repo: 'https://github.com/anthonykewl20/arxic',
-      commit: '0123456789abcdef0123456789abcdef01234567',
-      path: 'test-fixtures/reference-auth-app/app/login/page.tsx',
-      startLine: 1,
-      endLine: 10,
-      blobSha256: 'a'.repeat(64),
-      extractor: 'real-world-verifier-test',
-    },
-    {
-      kind: 'runtime',
-      runId: 'run-real-world-verifier',
-      appBuildDigest: 'b'.repeat(64),
-      browser: 'chromium',
-      browserVersion: '1.62.1',
-      url: `${url}/login`,
-      timestamp: new Date().toISOString(),
-    },
-  ];
-}
-
-async function freePort(): Promise<number> {
-  const server = createServer();
-  await new Promise<void>((resolveListen, reject) => {
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', resolveListen);
-  });
-  const address = server.address();
-  if (!address || typeof address === 'string') throw new Error('Could not allocate verifier port');
-  await new Promise<void>((resolveClose) => server.close(() => resolveClose()));
-  return address.port;
-}
-
-async function readiness(url: string, child: ChildProcess): Promise<void> {
-  for (let attempt = 0; attempt < 120; attempt += 1) {
-    if (child.exitCode !== null) throw new Error(`Reference app exited with ${child.exitCode}`);
-    try {
-      if ((await fetch(url)).ok) return;
-    } catch {
-      await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
-      continue;
-    }
-    await new Promise((resolveDelay) => setTimeout(resolveDelay, 250));
-  }
-  throw new Error('Reference app readiness timed out');
-}
-
-async function stop(child: ChildProcess | undefined): Promise<void> {
-  if (!child || child.exitCode !== null) return;
-  child.kill('SIGTERM');
-  await Promise.race([
-    new Promise<void>((resolveExit) => child.once('exit', () => resolveExit())),
-    new Promise<void>((resolveDelay) => setTimeout(resolveDelay, 5_000)),
-  ]);
-  if (child.exitCode === null) child.kill('SIGKILL');
-}

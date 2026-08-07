@@ -11,5 +11,8 @@
     "@arxic/contracts": "workspace:*",
     "@arxic/playwright-compiler": "workspace:*",
     "@arxic/verifier": "workspace:*"
+  },
+  "devDependencies": {
+    "@arxic/real-world-testkit": "workspace:*"
   }
 }

@@ -12,7 +12,7 @@ const workspaceDirectories = ['packages', 'apps'].flatMap((workspaceRoot) =>
 
 describe('workspace tooling contracts', () => {
   it('provides a per-workspace TypeScript typecheck contract', () => {
-    expect(workspaceDirectories).toHaveLength(20);
+    expect(workspaceDirectories).toHaveLength(21);
 
     for (const workspaceDirectory of workspaceDirectories) {
       const packageJsonPath = join(workspaceDirectory, 'package.json');
