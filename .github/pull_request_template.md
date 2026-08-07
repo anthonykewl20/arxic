@@ -27,6 +27,9 @@ Closes #<issue number>  ·  Slice id: `<M0-03>`  ·  Milestone: `<Milestone 0 - 
 
 ## Slice completion ritual (charter §8 — MANDATORY, do not skip)
 
+> **Parallel slice?** If this branch was built in a worktree alongside other in-flight slices, charter §10.2 applies: tick the `_slice-notes` box below and leave the next three boxes to the integrator. Otherwise tick the next three and skip the `_slice-notes` box.
+
+- [ ] **Parallel (§10.2)**: added `docs/_slice-notes/<SLICE-ID>.md` from `_TEMPLATE.md` with the SYNC tracker row, session-log line, CHANGELOG entry, and disposition — and did **not** touch `docs/SYNC.md` / `CHANGELOG.md` / `VERSION`
 - [ ] `docs/SYNC.md`: flipped this slice's checkbox, moved 🔖 RESUME HERE to next slice, added a session-log line (disposition: verified / contradicted / blocked)
 - [ ] **`CHANGELOG.md`: added an `## [Unreleased]` entry (Keep a Changelog verb) for this slice — ALWAYS, no exceptions**
 - [ ] **Version**: if user-observable, bumped per `RELEASES.md` and `VERSION` == `package.json` `version`

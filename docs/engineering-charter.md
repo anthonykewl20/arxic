@@ -169,3 +169,38 @@ These opencode skills (`.opencode/skills/`, registered in `opencode.json`, manda
 - **remind** — ON-DEMAND only (`/remind`): rewrite the last response simpler/shorter with a TLDR.
 
 > **Agent rule (hard):** if you are completing a slice, steps 3–6 are non-negotiable *even if the code already works*. Stale docs are a defect.
+
+## 10. Parallel slice execution (multi-worktree)
+
+Several slices may be built concurrently, **one agent per git worktree**, all branched from `main`. Everything in §1–§9 still applies to each slice unchanged. This section only resolves the collisions that concurrency creates.
+
+### 10.1 Isolation (mandatory)
+
+- **One worktree per concurrent slice**, each with its own `pnpm install`:
+  `git worktree add -b <branch> ../arxic-wt/<slice> origin/main`.
+- **Never run two slices in one working directory.** The real-world suites run `pnpm --filter reference-auth-app build` in `beforeAll` and share `test-fixtures/reference-auth-app/.next` plus the workspace `node_modules`; concurrent runs corrupt each other.
+- **Leave `ARXIC_MAILPIT_SMTP` / `ARXIC_MAILPIT_API` unset.** Unset, every run provisions its own Mailpit Testcontainer on random mapped ports. A shared Mailpit makes reset-token and inbox assertions read each other's mail and go non-deterministic.
+- Real-world suites already allocate ephemeral ports (`freePort()`) and per-run temp sqlite (`ARXIC_DB_PATH` → `mkdtemp`). Any new real-world test MUST do the same — a hardcoded port is a defect under §10.
+
+### 10.2 Deferred doc ritual (replaces §8.3 while parallel slices are in flight)
+
+§8.3 has every slice edit `docs/SYNC.md` and `CHANGELOG.md`. Concurrently that is a guaranteed conflict on every branch, and `🔖 RESUME HERE` is inherently single-writer. Therefore:
+
+- A slice branch **MUST NOT** edit `docs/SYNC.md`, `CHANGELOG.md`, or `VERSION`.
+- It **MUST** instead add `docs/_slice-notes/<slice-id>.md` containing, verbatim and ready to paste: (a) the `docs/SYNC.md` tracker row, (b) the SYNC session-log line, (c) the `CHANGELOG.md` `[Unreleased]` entry, (d) the disposition summary. This file is part of the slice's PR and is reviewed as the slice's doc deliverable.
+- The **integrator** folds each note into `docs/SYNC.md` + `CHANGELOG.md` in merge order, moves `🔖 RESUME HERE`, bumps `VERSION` if the change is user-observable, deletes the note file, and pushes.
+- `docs/_slice-notes/` **MUST be empty on `main` before any milestone exit.**
+
+A missing or incomplete `docs/_slice-notes/<slice-id>.md` is exactly the same defect as a stale `SYNC.md`. §8 steps 1, 2, 4, 5 and 7 are unchanged and remain per-slice.
+
+### 10.3 File ownership
+
+Concurrent slices declare the files they own before starting.
+
+- Overlapping edits to one shared file are allowed only inside **distinct functions**.
+- **Do not** refactor shared helpers, rename exports, reorder imports, or reformat a file another in-flight slice owns.
+- Prefer extracting new behaviour into a **new file** and leaving a single call site in the shared file — this keeps the shared diff to a line or two.
+
+### 10.4 Merge queue (serialized)
+
+Merges are strictly serialized, never concurrent: rebase onto `origin/main` → `gh pr checks <N> --watch` → `pass` → squash-merge → the next branch rebases onto the new `main`. Never merge two PRs whose CI ran against different bases without re-running the second. `main` stays green between every merge.

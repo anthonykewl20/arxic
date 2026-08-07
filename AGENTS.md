@@ -19,6 +19,14 @@ Loaded automatically by opencode (and other agent CLIs) for every agent working 
 - **Secrecy:** the detailed internal ADR + upstream reference trees are **LOCAL-ONLY** (outside the repo). Never commit them or reference them in tracked files.
 - **Catastrophic commands** are blocked by the command-guard plugin; do not attempt to circumvent it.
 
+## Parallel slices (charter §10) — applies whenever you are in a worktree under `../arxic-wt/`
+
+If your `pwd` is a worktree (not `/home/soultransit/devtony/arxic`), other agents are building other slices at the same time. Read [`engineering-charter.md` §10](./docs/engineering-charter.md). The three rules that bite:
+
+- **NEVER edit `docs/SYNC.md`, `CHANGELOG.md`, or `VERSION`.** They conflict on every branch. Write `docs/_slice-notes/<SLICE-ID>.md` from `docs/_slice-notes/_TEMPLATE.md` instead — that file IS your doc deliverable, and the integrator folds it in at merge. The rest of the §8 ritual (gates, real-world proof, staleness sweep, closing the loop) is unchanged.
+- **Stay inside the files your slice owns.** Overlapping edits to a shared file are allowed only inside distinct functions. Do not refactor shared helpers, rename exports, or reformat a file another slice owns — extract into a new file and leave one call site behind.
+- **Leave `ARXIC_MAILPIT_SMTP` / `ARXIC_MAILPIT_API` unset** so each run gets its own Mailpit Testcontainer on random ports. New real-world tests must allocate ephemeral ports (`freePort()`) and per-run temp sqlite (`ARXIC_DB_PATH` → `mkdtemp`), like the existing ones. A hardcoded port is a defect.
+
 ## Start here
 
 `docs/SYNC.md` → 🔖 **RESUME HERE**.
