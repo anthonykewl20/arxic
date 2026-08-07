@@ -1,6 +1,6 @@
 # M1-EXIT — staged doc updates (charter §10.2)
 
-Issue: #27 · PR: (opened with this change) · Disposition: mixed (27/28 measurements MET; 1 UNMET → blocks exit)
+Issue: #27 · PR: #110 · Disposition: mixed (27/28 measurements MET; 1 UNMET → blocks exit)
 
 This is a **gate, not a slice**: it adds no capability. It measures the merged
 tree (`fed2358`) against ADR §23's 14 acceptance criteria for **both** fixture
