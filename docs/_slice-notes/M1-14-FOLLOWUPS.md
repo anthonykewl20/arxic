@@ -34,7 +34,7 @@ Integrator-owned per charter §10.2; this parallel slice does not edit `VERSION`
 
 - Real-world proof: `packages/orchestrator-langgraph/src/__tests__/inference-real-world.test.ts` — real Tree-sitter and real `sg` scan the real reference auth app, with stage 4 exercised through a real `node:http` OpenAI-compatible endpoint; malformed responses and an escaping adapter throw block after bounded retries without leaking canaries.
 - Artifacts: ephemeral per-run stage artifacts and file checkpoints asserted by the real-world suite; no UI screenshots or traces apply to this service-layer fix.
-- Gates: typecheck ☑ · lint ☑ · format ☑ · test (492/493 passing; unrelated M0 pipeline test repeatedly timed out at its existing 5-second limit) ☐ · license gate ☑ (real dependency graph test passed within `pnpm test`)
+- Gates: typecheck ☑ · lint ☑ · format ☑ · test ☑ (CI green on PR #98 in 18m21s incl. `m0-pipeline`; one unrelated `m0-pipeline` real-Playwright test timed out locally at its 5s default under parallel-worktree contention but passes in CI) · license gate ☑
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
