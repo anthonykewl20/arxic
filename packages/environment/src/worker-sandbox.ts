@@ -12,6 +12,30 @@ import {
 } from './docker-cli';
 import { workerDiagnostic } from './worker-diagnostics';
 
+/**
+ * Non-root fallback used where the host exposes no POSIX uid (e.g. Windows,
+ * where `process.getuid` is undefined). Keeps the worker non-root; on those
+ * platforms bind-mount readability is mediated by the container runtime's file
+ * sharing rather than by matching a host uid.
+ */
+const NON_ROOT_FALLBACK_USER = '1000:1000';
+
+/**
+ * Resolve the worker `--user` default to the host uid:gid so a bind-mounted
+ * source stays readable for whoever actually owns it, while the container
+ * remains non-root. On non-POSIX platforms (no `getuid`/`getgid`) falls back to
+ * a conventional non-root uid:gid. If the host process runs as root this
+ * resolves to `0:0`, which `assertSafeSpec` then rejects fail-closed.
+ */
+export function defaultWorkerUser(): string {
+  const getuid = (process as { getuid?: () => number }).getuid;
+  const getgid = (process as { getgid?: () => number }).getgid;
+  if (typeof getuid !== 'function' || typeof getgid !== 'function') {
+    return NON_ROOT_FALLBACK_USER;
+  }
+  return `${getuid.call(process)}:${getgid.call(process)}`;
+}
+
 export type WorkerQuotas = Readonly<{
   memoryMb: number;
   memorySwapMb: number;
@@ -68,8 +92,14 @@ function assertSafeSpec(spec: WorkerSandboxSpec): void {
     throw new Error('Worker network name must be arxic-prefixed');
   if (!spec.jobId || !/^[A-Za-z0-9_.-]+$/.test(spec.jobId))
     throw new Error('Worker jobId contains unsafe characters');
-  const requestedUser = spec.workerUser ?? '1000:1000';
-  if (/^(?:root|0)(?::|$)/i.test(requestedUser)) throw new Error('Worker may not run as root');
+  const requestedUser = spec.workerUser ?? defaultWorkerUser();
+  if (/^(?:root|0)(?::|$)/i.test(requestedUser)) {
+    throw new Error(
+      spec.workerUser
+        ? 'Worker may not run as root'
+        : 'Worker may not run as root: the host process is running as root (uid 0), and the worker must remain non-root; run the host process as a non-root user or set workerUser explicitly',
+    );
+  }
   const writable = spec.writableTmpFs ?? '/work';
   if (!/^\/work(?:\/(?!source(?:\/|$))[A-Za-z0-9_.-]+)*$/.test(writable))
     throw new Error('Worker writable tmpfs must be scoped below /work and outside /work/source');
@@ -96,7 +126,7 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
   assertSafeSpec(spec);
   const containerName = `arxic-${spec.jobId}-worker`;
   const image = spec.image ?? 'node:20-alpine';
-  const user = spec.workerUser ?? '1000:1000';
+  const user = spec.workerUser ?? defaultWorkerUser();
   const writable = spec.writableTmpFs ?? '/work';
   const source = resolve(spec.sourcePath);
   let networkCreated = false;
