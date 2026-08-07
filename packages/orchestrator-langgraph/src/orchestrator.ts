@@ -38,6 +38,7 @@ import {
 } from '@arxic/source-ua-adapter';
 import { artifactHash, type StageCheckpointer } from './checkpointer';
 import { FixtureCoordinator } from './fixture-coordinator';
+import { defaultExploration } from './exploration';
 import { selectNeighbourhood, stage4Infer } from './inference';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
@@ -133,10 +134,7 @@ export type OrchestratorOptions = Readonly<{
     surface: SurfaceMap;
   }) => Promise<CoverageMatrix>;
   prepareFixtures?: (input: { candidates: readonly Candidate[] }) => Promise<FixturePreparation>;
-  explore?: (input: {
-    candidates: readonly Candidate[];
-    approval?: ApprovalInput;
-  }) => Promise<ExplorationResult>;
+  explore?: (input: import('./exploration').ExplorationInput) => Promise<ExplorationResult>;
   compile?: (input: {
     candidates: readonly Candidate[];
     observations: readonly EvidenceRef[];
@@ -491,10 +489,15 @@ export class LangGraphOrchestrator {
         gates: [{ gate: 'exploration-approval', passed: false }],
       };
     }
-    const result = await (this.#options.explore ?? defaultExploration)({
+    const explorationInput: import('./exploration').ExplorationInput = {
+      runId: input.runId,
+      origin: input.origin,
+      ...(input.appBuildDigest ? { appBuildDigest: input.appBuildDigest } : {}),
       candidates: inference.candidates,
       ...(approval ? { approval } : {}),
-    });
+      budget: 8,
+    };
+    const result = await (this.#options.explore ?? defaultExploration)(explorationInput);
     return {
       artifact: result,
       adapter: '@arxic/targeted-exploration:seam',
@@ -857,21 +860,6 @@ async function defaultFixturePreparation(input: {
   candidates: readonly Candidate[];
 }): Promise<FixturePreparation> {
   return new FixtureCoordinator([]).prepare(input);
-}
-
-async function defaultExploration(input: {
-  candidates: readonly Candidate[];
-  approval?: ApprovalInput;
-}): Promise<ExplorationResult> {
-  return {
-    approved: true,
-    evidenceRefs: [],
-    decisions: [
-      input.approval
-        ? `Recorded approval from ${input.approval.approver}`
-        : 'No approval-gated action requested; deterministic stub approved read-only exploration',
-    ],
-  };
 }
 
 async function defaultCompile(input: {

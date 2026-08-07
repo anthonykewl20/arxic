@@ -1,5 +1,6 @@
 export * from './adapter';
 export * from './diagnostics';
+export * from './exploration-driver';
 export * from './fallback-generator';
 export * from './handshake';
 export * from './heal-policy';
