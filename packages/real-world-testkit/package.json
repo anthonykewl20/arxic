@@ -1,5 +1,5 @@
 {
-  "name": "@arxic/bundle-promoter",
+  "name": "@arxic/real-world-testkit",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,10 +9,5 @@
   },
   "dependencies": {
     "@arxic/contracts": "workspace:*"
-  },
-  "devDependencies": {
-    "@arxic/playwright-compiler": "workspace:*",
-    "@arxic/real-world-testkit": "workspace:*",
-    "@arxic/verifier": "workspace:*"
   }
 }

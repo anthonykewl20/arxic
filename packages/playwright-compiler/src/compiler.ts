@@ -15,6 +15,7 @@ import { validateEvidenceRef, validateManifest, validateWorkflow } from '@arxic/
 import { enforceCompilePolicy } from './compile-policy';
 import {
   ARXIC_COMPILE_EVIDENCE_MISSING,
+  ARXIC_COMPILE_LOCATOR_NONSEMANTIC,
   ARXIC_COMPILE_MANIFEST_INVALID,
   ARXIC_COMPILE_UNSUPPORTED_STEP,
   ARXIC_COMPILE_WORKFLOW_INVALID,
@@ -96,8 +97,11 @@ export class PlaywrightCompiler implements WorkflowCompiler {
       );
     }
     let spec: string;
+    let nonSemanticLocatorRationale: string | undefined;
     try {
-      spec = generateSpec(validatedWorkflow.value, this.#origin);
+      const generated = generateSpec(validatedWorkflow.value, this.#origin);
+      spec = generated.spec;
+      nonSemanticLocatorRationale = generated.nonSemanticLocatorRationale;
     } catch (error) {
       if (error instanceof UnsupportedWorkflowStepError) {
         throw new CompileError(
@@ -109,7 +113,22 @@ export class PlaywrightCompiler implements WorkflowCompiler {
     const fixture = generateFixture(validatedWorkflow.value);
     const plan = generatePlan(validatedWorkflow.value);
     const config = generateConfig(validatedWorkflow.value);
-    const policy = enforceCompilePolicy({ spec, fixture, workflow: validatedWorkflow.value });
+    const policy = enforceCompilePolicy({
+      spec,
+      fixture,
+      workflow: validatedWorkflow.value,
+      ...(nonSemanticLocatorRationale
+        ? {
+            nonSemanticLocatorDiagnostics: [
+              compileDiagnostic(
+                ARXIC_COMPILE_LOCATOR_NONSEMANTIC,
+                workflow.id,
+                nonSemanticLocatorRationale,
+              ),
+            ],
+          }
+        : {}),
+    });
     if (!policy.passed) throw new CompileError(policy.diagnostics[0]!);
 
     const files = [

@@ -10,47 +10,78 @@ export class UnsupportedWorkflowStepError extends Error {
   }
 }
 
-export function generateSpec(workflow: Workflow, origin: string): string {
+export function generateSpec(
+  workflow: Workflow,
+  origin: string,
+): { spec: string; nonSemanticLocatorRationale?: string } {
   const lines = [
     "import { test, expect } from '../fixtures/workflow.fixture';",
     '',
     `test(${JSON.stringify(workflow.id)}, async ({ page }) => {`,
   ];
+  let usedFormScope = false;
   for (const [index, transition] of workflow.transitions
     .filter((item) => item.required !== false)
     .entries()) {
+    const action = renderAction(transition);
+    if (action.formScoped) usedFormScope = true;
     lines.push(
       `  await test.step(${JSON.stringify(`${transition.from} → ${transition.to}`)}, async () => {`,
       `    await page.goto(${JSON.stringify(new URL(statePath(transition.from), origin).href)});`,
-      ...renderAction(transition),
+      ...action.lines,
       ...renderAssertions(transition, origin),
       `    await page.screenshot({ path: ${JSON.stringify(`artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`)} });`,
       '  });',
     );
   }
   lines.push('});', '');
-  return lines.join('\n');
+  return {
+    spec: lines.join('\n'),
+    ...(usedFormScope
+      ? {
+          nonSemanticLocatorRationale:
+            "Submit-action inputs are scoped to their containing form via page.locator('form').filter so identically-labelled fields on a single multi-form page resolve unambiguously; semantic getByLabel/getByRole locators are retained within the form scope.",
+        }
+      : {}),
+  };
 }
 
-function renderAction(transition: WorkflowTransition): string[] {
+function renderAction(transition: WorkflowTransition): {
+  lines: string[];
+  formScoped: boolean;
+} {
   const inputRefs = Object.entries(transition.action.inputRefs ?? {});
   const intent = transition.action.intent.trim();
   if (/^(submit|log in|login|sign in)/iu.test(intent) && inputRefs.length > 0) {
-    return [
-      ...inputRefs.map(
-        ([name, reference]) =>
-          `    await page.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
-      ),
-      "    await page.getByRole('button', { name: /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i }).click();",
-    ];
+    const labels = inputRefs.map(([name]) => label(name));
+    const formFilter = labels
+      .map((value) => `.filter({ has: page.getByLabel(${JSON.stringify(value)}) })`)
+      .join('');
+    return {
+      lines: [
+        `    const form = page.locator('form')${formFilter};`,
+        ...inputRefs.map(
+          ([name, reference]) =>
+            `    await form.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
+        ),
+        "    await form.getByRole('button', { name: /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i }).click();",
+      ],
+      formScoped: true,
+    };
   }
   const open = intent.match(/^(?:open|go to|navigate to)\s+(.+)$/iu);
   if (open?.[1] && inputRefs.length === 0) {
-    return [`    await page.getByRole('link', { name: ${JSON.stringify(open[1])} }).click();`];
+    return {
+      lines: [`    await page.getByRole('link', { name: ${JSON.stringify(open[1])} }).click();`],
+      formScoped: false,
+    };
   }
   const click = intent.match(/^(?:click|select|choose)\s+(.+)$/iu);
   if (click?.[1] && inputRefs.length === 0) {
-    return [`    await page.getByRole('button', { name: ${JSON.stringify(click[1])} }).click();`];
+    return {
+      lines: [`    await page.getByRole('button', { name: ${JSON.stringify(click[1])} }).click();`],
+      formScoped: false,
+    };
   }
   throw new UnsupportedWorkflowStepError(
     transition,
