@@ -2,7 +2,7 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
-import type { ParsedConfig } from '../config/types';
+import type { ArxicConfig } from '@arxic/worker';
 import type { RunResult } from '../executor';
 import { writeRunDirectory } from '../run-directory';
 import { OBSERVED_DIAGNOSTIC, VALID_CONFIG, runState } from './fixtures';
@@ -23,7 +23,7 @@ describe('writeRunDirectory', () => {
       ...VALID_CONFIG,
       prompt: 'DO-NOT-PERSIST-PROMPT',
       credentialBytes: ['DO-NOT-PERSIST-CREDENTIAL'],
-    } as ParsedConfig;
+    } as ArxicConfig;
 
     await writeRunDirectory(directory, {
       runId: 'test-run',
@@ -67,7 +67,7 @@ describe('writeRunDirectory', () => {
     expect(diagnosticLines[0].startsWith('{"code"')).toBe(true);
 
     const configBytes = await readFile(join(directory, 'test-run', 'config.json'), 'utf8');
-    const echoedConfig = JSON.parse(configBytes) as ParsedConfig;
+    const echoedConfig = JSON.parse(configBytes) as ArxicConfig;
     expect(echoedConfig.source.languages).toEqual(['typescript', 'javascript']);
     expect(echoedConfig.target.origin).toBe('http://127.0.0.1:1');
     expect(run).not.toHaveProperty('config.prompt');

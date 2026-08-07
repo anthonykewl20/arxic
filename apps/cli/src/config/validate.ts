@@ -1,14 +1,13 @@
 import type { Diagnostic } from '@arxic/contracts';
+import type { ArxicConfig } from '@arxic/worker';
 import {
   ARXIC_CONFIG_INVALID,
   ARXIC_CONFIG_MODEL_MISSING,
   ARXIC_CONFIG_VERSION,
   cliDiagnostic,
 } from '../diagnostics';
-import type { ParsedConfig } from './types';
 
-type ValidationResult =
-  { ok: true; value: ParsedConfig } | { ok: false; diagnostics: Diagnostic[] };
+type ValidationResult = { ok: true; value: ArxicConfig } | { ok: false; diagnostics: Diagnostic[] };
 
 const TOP_LEVEL_KEYS = new Set([
   'version',
@@ -201,7 +200,7 @@ export function validateConfig(input: unknown): ValidationResult {
         ...(personaProvisioner === undefined ? {} : { personaProvisioner }),
       },
       models: { provider: provider!, sourceRetention: sourceRetention! },
-    },
+    } as ArxicConfig,
   };
 }
 

@@ -1,12 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { GateResult } from '@arxic/contracts';
+import type { ArxicConfig } from '@arxic/worker';
 import type { RunResult } from './executor';
-import type { ParsedConfig } from './config/types';
 
 export type RunDirectoryRecord = Readonly<{
   runId: string;
-  config: ParsedConfig;
+  config: ArxicConfig;
   result: RunResult;
   startedAt: string;
   finishedAt: string;
@@ -77,8 +77,8 @@ export async function writeRunDirectory(
   ]);
 }
 
-function redactConfig(config: ParsedConfig): ParsedConfig {
-  return redactValue(config) as ParsedConfig;
+function redactConfig(config: ArxicConfig): ArxicConfig {
+  return redactValue(config) as ArxicConfig;
 }
 
 const SECRET_KEYS = new Set(['credentialbytes', 'prompt', 'modelprompt']);

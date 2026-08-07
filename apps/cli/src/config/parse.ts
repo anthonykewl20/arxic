@@ -2,10 +2,10 @@ import { readFile } from 'node:fs/promises';
 import type { Diagnostic } from '@arxic/contracts';
 import { parseDocument } from 'yaml';
 import { ARXIC_CONFIG_MISSING, ARXIC_CONFIG_PARSE, cliDiagnostic } from '../diagnostics';
-import type { ParsedConfig } from './types';
+import type { ArxicConfig } from '@arxic/worker';
 import { validateConfig } from './validate';
 
-type LoadResult = { ok: true; value: ParsedConfig } | { ok: false; diagnostics: Diagnostic[] };
+type LoadResult = { ok: true; value: ArxicConfig } | { ok: false; diagnostics: Diagnostic[] };
 
 export async function loadConfig(path: string): Promise<LoadResult> {
   let bytes: string;

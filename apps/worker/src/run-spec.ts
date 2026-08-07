@@ -8,8 +8,9 @@
 // pipeline state into this stable external surface, so the CLI depends only
 // on @arxic/contracts + this seam, not on the orchestrator's internals.
 //
-// Scope: M1-12 / #26. The `ArxicConfig` shape mirrors ADR §19 (the
-// configuration YAML). `RunSpec`, `RunHandle`, `RunStreamEvent`, and
+// Scope: M1-12 / #26, reconciled in #102. `ArxicConfig` is the single owned
+// configuration type — the CLI's provisional `ParsedConfig` was removed so the
+// CLI imports this directly. `RunSpec`, `RunHandle`, `RunStreamEvent`, and
 // `WorkerClient` are the seam the CLI (@arxic/cli, T4) codes against.
 
 import type { Diagnostic, TruthState } from '@arxic/contracts';
@@ -22,8 +23,15 @@ export type RunStatus =
   'queued' | 'running' | 'awaiting-approval' | 'completed' | 'partial' | 'failed';
 
 /**
- * Arxic configuration — the typed shape of the ADR §19 configuration YAML.
- * source / scope / target / policy / fixtures / models.
+ * Arxic configuration — the single typed shape of the ADR §19 configuration
+ * YAML, owned by this seam. The CLI (@arxic/cli) imports this directly; the
+ * provisional `ParsedConfig` was removed in #102. The shape mirrors ADR §19;
+ * the policy/models literals below capture the configurable surface the CLI
+ * validator accepts. The worker's fail-closed safe-subset is enforced at
+ * runtime by `validateWorkerSecurity`/`freezePolicy` (worker-policy.ts), not
+ * by this type — `freezePolicy` ignores these fields and freezes the safe
+ * literals regardless of input. source / scope / target / policy / fixtures /
+ * models.
  */
 export type ArxicConfig = Readonly<{
   version: 1;
@@ -37,7 +45,7 @@ export type ArxicConfig = Readonly<{
     frameworks: readonly string[];
     browsers: readonly string[];
     personas: readonly string[];
-    featureFlags: Readonly<Record<string, boolean>>;
+    featureFlags?: Readonly<Record<string, boolean>>;
   }>;
   target: Readonly<{
     origin: string;
@@ -49,21 +57,21 @@ export type ArxicConfig = Readonly<{
     maxUrls: number;
     maxDepth: number;
     maxRuntimeMinutes: number;
-    mutation: 'leased-fixtures-only';
-    externalNetwork: 'deny';
+    mutation: 'leased-fixtures-only' | 'deny' | 'allow';
+    externalNetwork: 'deny' | 'allow';
     requiredVerificationRuns: number;
-    screenshots: 'transition-checkpoints';
-    trace: 'retain' | 'discard';
+    screenshots: string;
+    trace: string;
     humanApproval: readonly string[];
   }>;
   fixtures: Readonly<{
-    inbox: string;
-    otp: string;
-    personaProvisioner: string;
+    inbox?: string;
+    otp?: string;
+    personaProvisioner?: string;
   }>;
   models: Readonly<{
     provider: string;
-    sourceRetention: 'disabled';
+    sourceRetention: 'disabled' | 'retained';
   }>;
 }>;
 
