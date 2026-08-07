@@ -39,7 +39,7 @@ import {
 import { artifactHash, type StageCheckpointer } from './checkpointer';
 import { FixtureCoordinator } from './fixture-coordinator';
 import { defaultExploration } from './exploration';
-import { selectNeighbourhood, stage4Infer } from './inference';
+import { isStage4InferenceFailure, selectNeighbourhood, stage4Infer } from './inference';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
   ARXIC_ORCH_HASH_MISMATCH,
@@ -374,6 +374,7 @@ export class LangGraphOrchestrator {
         ? stage4Infer(this.#options.modelAdapter, this.#options.model)
         : defaultInference);
     const attempts = Math.max(1, this.#options.maxModelAttempts ?? 2);
+    let lastCause: readonly Diagnostic[] = [];
     for (let attempt = 1; attempt <= attempts; attempt += 1) {
       const raw = await infer({
         runId: input.runId,
@@ -381,6 +382,10 @@ export class LangGraphOrchestrator {
         ...(input.modelPrompt ? { prompt: input.modelPrompt } : {}),
         attempt,
       });
+      if (isStage4InferenceFailure(raw)) {
+        lastCause = raw.diagnostics;
+        continue;
+      }
       const parsed = parseInferenceResult(raw);
       if (parsed) {
         const diagnostics =
@@ -404,6 +409,7 @@ export class LangGraphOrchestrator {
           outcome: parsed.candidates.length === 0 ? 'observed' : 'hypothesized',
         };
       }
+      lastCause = [];
     }
     return {
       artifact: { requestId: 'redacted-invalid', candidates: [] },
@@ -413,8 +419,11 @@ export class LangGraphOrchestrator {
           ARXIC_ORCH_MODEL_RETRIES,
           'blocked',
           input.runId,
-          `Structured model output remained invalid after ${attempts} attempts`,
+          lastCause.length > 0
+            ? `Stage-4 inference failed after ${attempts} attempts; see carried cause diagnostics`
+            : `Structured model output remained invalid after ${attempts} attempts`,
         ),
+        ...lastCause,
       ],
       blocked: true,
       fatal: true,
