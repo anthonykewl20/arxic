@@ -1,6 +1,6 @@
 import type { Diagnostic } from '@arxic/contracts';
 import type { RunState } from '@arxic/orchestrator-langgraph';
-import type { ParsedConfig } from '../config/types';
+import type { ArxicConfig } from '@arxic/worker';
 
 export const VALID_YAML = `version: 1
 source:
@@ -39,7 +39,7 @@ models:
   sourceRetention: disabled
 `;
 
-export const VALID_CONFIG: ParsedConfig = {
+export const VALID_CONFIG: ArxicConfig = {
   version: 1,
   source: { repository: '.', revision: 'HEAD', languages: ['typescript', 'javascript'] },
   scope: {

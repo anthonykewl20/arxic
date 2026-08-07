@@ -47,6 +47,9 @@ importers:
       '@arxic/orchestrator-langgraph':
         specifier: workspace:*
         version: link:../../packages/orchestrator-langgraph
+      '@arxic/worker':
+        specifier: workspace:*
+        version: link:../worker
       yaml:
         specifier: ^2.9.0
         version: 2.9.0

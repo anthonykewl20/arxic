@@ -1,6 +1,6 @@
 import type { Diagnostic, PromotionReceipt, TruthState } from '@arxic/contracts';
 import type { RunState } from '@arxic/orchestrator-langgraph';
-import type { ParsedConfig } from './config/types';
+import type { ArxicConfig } from '@arxic/worker';
 
 export interface DiagnosticSink {
   emit(diagnostic: Diagnostic): void;
@@ -8,7 +8,7 @@ export interface DiagnosticSink {
 
 export type RunRequest = Readonly<{
   runId: string;
-  config: ParsedConfig;
+  config: ArxicConfig;
   runDirectory: string;
   rulepacksDir: string;
   now?: () => string;

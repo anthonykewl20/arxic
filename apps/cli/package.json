@@ -10,6 +10,7 @@
   "dependencies": {
     "@arxic/contracts": "workspace:*",
     "@arxic/orchestrator-langgraph": "workspace:*",
+    "@arxic/worker": "workspace:*",
     "yaml": "^2.9.0"
   }
 }
