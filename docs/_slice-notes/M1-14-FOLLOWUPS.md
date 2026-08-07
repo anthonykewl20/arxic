@@ -1,6 +1,6 @@
 # M1-14-FOLLOWUPS — staged doc updates (charter §10.2)
 
-Issue: #97 · PR: #<pending> · Disposition: mixed
+Issue: #97 · PR: #98 · Disposition: mixed
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
