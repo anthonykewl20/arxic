@@ -33,7 +33,7 @@ Yes → patch bump selected by the integrator, because generated navigation, ass
 - Real-world proof: `packages/playwright-compiler/src/generality.real-world.test.ts` — real Playwright 1.62.1 Chromium ran against the vulnerable Express fixture, observed two Email-labelled submit forms, and exercised the residual-ambiguity count failure; the same app's runtime `/` observation drove a workflow whose entry state would otherwise derive `/login`.
 - Regression proof: `packages/playwright-compiler/src/real-world.test.ts` — the real Playwright CLI discovered generated suites for both the reference Next.js app and vulnerable Express app.
 - Artifacts: generated specs in per-run temporary directories; no retained screenshot or trace artifact was added by this compile/locator-mechanic proof.
-- Gates: typecheck ☑ · lint ☑ · format ☑ · test failed outside owned files (`m0-pipeline` timeout; `auth-domain-pack` stale expected `contradicted` after #87 produced `verified`) · compiler package 30/30 passing · license gate not run separately (not requested; the root test script does not invoke it).
+- Gates: typecheck ☑ · lint ☑ · format ☑ · license ☑ (CI). CI `Test`: **503/504 passed** — the single failure is the cross-slice `auth-domain-pack/src/real-world.test.ts:74` (see handoff above). `m0-pipeline` (13/13, incl. capstone) and all other real-world suites are green in CI. Compiler package: 27 unit + 4 real-world = 31 passing. (A `m0-pipeline` 5s-default timeout seen only under local full-suite load was verified identical on clean `main` and did not reproduce in CI.)
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
