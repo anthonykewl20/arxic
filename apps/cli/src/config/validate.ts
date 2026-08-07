@@ -193,8 +193,11 @@ export function validateConfig(input: unknown): ValidationResult {
         maxUrls: maxUrls!,
         maxDepth: maxDepth!,
         maxRuntimeMinutes: maxRuntimeMinutes!,
-        mutation: mutation!,
-        externalNetwork: externalNetwork!,
+        // Reaching here proves both: any other value pushed a diagnostic above, and
+        // `diagnostics.length > 0` already returned. Scoped assertions rather than a
+        // whole-object `as ArxicConfig`, so every other field stays structurally checked.
+        mutation: mutation as 'leased-fixtures-only',
+        externalNetwork: externalNetwork as 'deny',
         requiredVerificationRuns: requiredVerificationRuns!,
         screenshots: screenshots!,
         trace: trace!,
@@ -205,8 +208,13 @@ export function validateConfig(input: unknown): ValidationResult {
         ...(otp === undefined ? {} : { otp }),
         ...(personaProvisioner === undefined ? {} : { personaProvisioner }),
       },
-      models: { provider: provider!, sourceRetention: sourceRetention! },
-    } as ArxicConfig,
+      models: {
+        provider: provider!,
+        // Same reasoning as policy.mutation above: line 169 pushed a diagnostic for any
+        // other value, and line 173 already returned on a non-empty diagnostics list.
+        sourceRetention: sourceRetention as 'disabled' | 'retained',
+      },
+    },
   };
 }
 
