@@ -15,6 +15,7 @@ import {
   PlaywrightCompiler,
   compileDiagnostic,
   enforceCompilePolicy,
+  generateSpec,
 } from './index';
 
 const directories: string[] = [];
@@ -52,16 +53,75 @@ describe('Playwright compiler sad paths', () => {
     });
   });
 
-  test.each(["page.locator('#login')", "page.$('.login')", "page.locator('xpath=//button')"])(
-    'blocks a CSS or XPath locator without diagnostic rationale: %s',
-    (source) => {
-      const result = enforceCompilePolicy({ spec: source, fixture: '', workflow: loginWorkflow() });
+  test.each([
+    "page.locator('#login')",
+    "page.$('.login')",
+    "page.$$('.login')",
+    "page.locator('xpath=//button')",
+  ])('blocks a CSS or XPath locator without diagnostic rationale: %s', (source) => {
+    const result = enforceCompilePolicy({ spec: source, fixture: '', workflow: loginWorkflow() });
+    expect(result).toMatchObject({
+      passed: false,
+      diagnostics: [{ code: ARXIC_COMPILE_LOCATOR_NONSEMANTIC, severity: 'blocked' }],
+    });
+  });
+
+  test('blocks an unrationed CSS locator beside the rationed form scope', () => {
+    const result = enforceCompilePolicy({
+      spec: `
+        const form = page.locator('form').filter({ has: page.getByLabel("Email") });
+        const sidebar = page.locator('#sidebar');
+      `,
+      fixture: '',
+      workflow: loginWorkflow(),
+      nonSemanticLocatorDiagnostics: [formScopeRationale()],
+    });
+    expect(result).toMatchObject({
+      passed: false,
+      diagnostics: [{ code: ARXIC_COMPILE_LOCATOR_NONSEMANTIC, severity: 'blocked' }],
+    });
+  });
+
+  test.each(["page.$('.login')", "page.locator('xpath=//button')", "locator('#sidebar')"])(
+    'does not extend the form-scope rationale to another locator pattern: %s',
+    (unapproved) => {
+      const result = enforceCompilePolicy({
+        spec: `const form = page.locator('form'); ${unapproved};`,
+        fixture: '',
+        workflow: loginWorkflow(),
+        nonSemanticLocatorDiagnostics: [formScopeRationale()],
+      });
       expect(result).toMatchObject({
         passed: false,
         diagnostics: [{ code: ARXIC_COMPILE_LOCATOR_NONSEMANTIC, severity: 'blocked' }],
       });
     },
   );
+
+  test("blocks page.locator('form') without its reviewed rationale", () => {
+    const result = enforceCompilePolicy({
+      spec: "const form = page.locator('form');",
+      fixture: '',
+      workflow: loginWorkflow(),
+    });
+    expect(result).toMatchObject({
+      passed: false,
+      diagnostics: [{ code: ARXIC_COMPILE_LOCATOR_NONSEMANTIC, severity: 'blocked' }],
+    });
+  });
+
+  test('allows only the exact rationed form-scope locator shape', () => {
+    const result = enforceCompilePolicy({
+      spec: `
+        const form = page.locator('form').filter({ has: page.getByLabel("Email") });
+        await form.getByRole('button', { name: /submit/i }).click();
+      `,
+      fixture: '',
+      workflow: loginWorkflow(),
+      nonSemanticLocatorDiagnostics: [formScopeRationale()],
+    });
+    expect(result).toEqual({ passed: true });
+  });
 
   test('blocks secret and PII literals in generated source', () => {
     const workflow = loginWorkflow();
@@ -158,6 +218,72 @@ describe('Playwright compiler contracts', () => {
     expect(error.diagnostic.severity).toBe('blocked');
   });
 
+  test('uses the observed runtime URL for the entry-state goto', () => {
+    const generated = generateSpec(
+      loginWorkflow(),
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3000/',
+    );
+    expect(generated.spec).toContain('await page.goto("http://127.0.0.1:3000/")');
+    expect(generated.spec).not.toContain('await page.goto("http://127.0.0.1:3000/login")');
+  });
+
+  test('uses runtime URL only for the first transition and state paths thereafter', () => {
+    const workflow = loginWorkflow();
+    workflow.states.push({ id: 'change-password-page' });
+    workflow.transitions.push({
+      from: 'home',
+      to: 'change-password-page',
+      action: { intent: 'Open Change password' },
+      assertions: [{ intent: 'url:/change-password' }],
+      evidenceRefs: ['src:change-password'],
+    });
+    const generated = generateSpec(
+      workflow,
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3000/observed-entry',
+    );
+    expect(generated.spec).toContain('await page.goto("http://127.0.0.1:3000/observed-entry")');
+    expect(generated.spec).toContain('await page.goto("http://127.0.0.1:3000/")');
+    expect(generated.spec.match(/observed-entry/gu)).toHaveLength(1);
+  });
+
+  test('renders URL assertions as exact-route regexes that permit query strings and fragments', () => {
+    const workflow = loginWorkflow();
+    workflow.transitions[0]!.assertions = [{ intent: 'url:/' }, { intent: 'url:/change-password' }];
+    const generated = generateSpec(workflow, 'http://127.0.0.1:3000');
+    expect(generated.spec).toContain(
+      'toHaveURL(/^http:\\/\\/127\\.0\\.0\\.1:3000\\/(?:[?#].*)?$/)',
+    );
+    expect(generated.spec).toContain(
+      'toHaveURL(/^http:\\/\\/127\\.0\\.0\\.1:3000\\/change-password(?:[?#].*)?$/)',
+    );
+  });
+
+  test('guards single-input submit form scope with a submit-button filter and exact count', () => {
+    const workflow = loginWorkflow();
+    workflow.transitions[0]!.action = {
+      intent: 'Submit registered email',
+      inputRefs: { email: 'persona.email' },
+    };
+    const generated = generateSpec(workflow, 'http://127.0.0.1:3000');
+    expect(generated.spec).toContain(
+      ".filter({ has: page.getByRole('button', { name: /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i }) })",
+    );
+    expect(generated.spec).toContain('await expect(form).toHaveCount(1);');
+  });
+
+  test('the generated guarded form scope passes the narrowed locator policy', () => {
+    const generated = generateSpec(loginWorkflow(), 'http://127.0.0.1:3000');
+    const result = enforceCompilePolicy({
+      spec: generated.spec,
+      fixture: '',
+      workflow: loginWorkflow(),
+      nonSemanticLocatorDiagnostics: [formScopeRationale()],
+    });
+    expect(result).toEqual({ passed: true });
+  });
+
   test('renders camel-case labels, auth submit buttons, and unique transition screenshots', async () => {
     const directory = await temporaryDirectory();
     const workflow = loginWorkflow();
@@ -194,6 +320,10 @@ describe('Playwright compiler contracts', () => {
     const spec = await readFile(join(directory, 'tests/workflow.spec.ts'), 'utf8');
     expect(spec).toContain('getByLabel("Current password")');
     expect(spec).toContain('getByLabel("New password")');
+    expect(spec).toContain(
+      ".filter({ has: page.getByRole('button', { name: /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i }) })",
+    );
+    expect(spec).toContain('await expect(form).toHaveCount(1);');
     expect(spec).toContain('ARXIC_INPUT_PERSONA_NEWPASSWORD');
     expect(spec).toContain('|send|change|reset|verify|confirm|enroll|register|sign up/i');
     expect(spec).toContain('step-2-home-change-password-page.png');
@@ -277,4 +407,12 @@ function observations(): EvidenceRef[] {
       timestamp: '2026-08-06T12:00:00.000Z',
     },
   ];
+}
+
+function formScopeRationale() {
+  return compileDiagnostic(
+    ARXIC_COMPILE_LOCATOR_NONSEMANTIC,
+    'authentication.login',
+    "Reviewed page.locator('form') form scope",
+  );
 }

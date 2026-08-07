@@ -29,23 +29,19 @@ export function enforceCompilePolicy(input: CompilePolicyInput): CompilePolicyRe
       );
     }
   }
-  const hasNonSemanticLocator =
-    /page\.locator\s*\(/u.test(source) ||
-    /page\.\$\s*\(/u.test(source) ||
-    /xpath\s*=/iu.test(source) ||
-    /locator\s*\(\s*['"`](?:#|\.|\[|\/\/)/u.test(source);
   const hasRationale = input.nonSemanticLocatorDiagnostics?.some(
     (diagnostic) =>
       diagnostic.code === ARXIC_COMPILE_LOCATOR_NONSEMANTIC &&
       diagnostic.severity === 'blocked' &&
       diagnostic.message.trim().length > 0,
   );
-  if (hasNonSemanticLocator && !hasRationale) {
+  const unapprovedLocators = findUnapprovedNonSemanticLocators(source, Boolean(hasRationale));
+  if (unapprovedLocators.length > 0) {
     diagnostics.push(
       compileDiagnostic(
         ARXIC_COMPILE_LOCATOR_NONSEMANTIC,
         'generated-source',
-        'Generated source uses a CSS or XPath locator without a reviewed diagnostic rationale',
+        `Generated source uses unapproved non-semantic locator pattern(s): ${unapprovedLocators.join(', ')}. A reviewed rationale only covers the exact form-scope page.locator('form') shape`,
       ),
     );
   }
@@ -61,6 +57,24 @@ export function enforceCompilePolicy(input: CompilePolicyInput): CompilePolicyRe
     );
   }
   return diagnostics.length === 0 ? { passed: true } : { passed: false, diagnostics };
+}
+
+function findUnapprovedNonSemanticLocators(source: string, hasRationale: boolean): string[] {
+  const usages = new Set<string>();
+  for (const match of source.matchAll(/page\.locator\s*\(\s*([^)]*)\)/gu)) {
+    const argument = match[1]?.trim() ?? '';
+    if (!hasRationale || !/^(['"`])form\1$/u.test(argument)) {
+      usages.add(`page.locator(${argument || '…'})`);
+    }
+  }
+  for (const match of source.matchAll(/(page\.\$\$?)\s*\(\s*([^)]*)\)/gu)) {
+    usages.add(`${match[1]}(${match[2]?.trim() || '…'})`);
+  }
+  if (/xpath\s*=/iu.test(source)) usages.add('xpath=');
+  for (const match of source.matchAll(/(?<![\w.])locator\(\s*(['"`])([#.[/])/gu)) {
+    usages.add(`locator(${match[1]}${match[2]}…)`);
+  }
+  return [...usages];
 }
 
 function sensitiveValues(workflow: Workflow): string[] {
