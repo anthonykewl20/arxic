@@ -1,6 +1,6 @@
 # ROOT-GROUP-REGEX — staged doc updates (charter §10.2)
 
-Issue: #101 · PR: #TBD · Disposition: observed
+Issue: #101 · PR: #106 · Disposition: observed
 
 > Disposition is `observed` per ADR §2 / AGENTS.md: an LLM never assigns
 > `verified`. Real Docker 29 + the official `docker run` reference back the
