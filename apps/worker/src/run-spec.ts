@@ -25,13 +25,16 @@ export type RunStatus =
 /**
  * Arxic configuration — the single typed shape of the ADR §19 configuration
  * YAML, owned by this seam. The CLI (@arxic/cli) imports this directly; the
- * provisional `ParsedConfig` was removed in #102. The shape mirrors ADR §19;
- * the policy/models literals below capture the configurable surface the CLI
- * validator accepts. The worker's fail-closed safe-subset is enforced at
- * runtime by `validateWorkerSecurity`/`freezePolicy` (worker-policy.ts), not
- * by this type — `freezePolicy` ignores these fields and freezes the safe
- * literals regardless of input. source / scope / target / policy / fixtures /
- * models.
+ * provisional `ParsedConfig` was removed in #102. The shape mirrors ADR §19.
+ *
+ * `policy.mutation` and `policy.externalNetwork` are singleton literals: ADR
+ * §19's example config and §575's lease-scoped-mutation invariant admit exactly
+ * one value each, and #104 narrowed the CLI validator to match. Since #104 this
+ * type IS one of the enforcement points — widening it back would let a config
+ * the worker refuses typecheck as valid. `validateWorkerSecurity` still checks
+ * the same pair at run time and `freezePolicy` still freezes the safe literals
+ * regardless of input, so the guarantee is defence-in-depth rather than
+ * type-only. source / scope / target / policy / fixtures / models.
  */
 export type ArxicConfig = Readonly<{
   version: 1;
