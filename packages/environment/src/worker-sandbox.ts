@@ -87,16 +87,40 @@ export type WorkerSandbox = Readonly<{
   stop: () => Promise<{ cleanupDiagnostics: Diagnostic[] }>;
 }>;
 
+/**
+ * A single `workerUser` component (the uid/user or the gid/group half of a
+ * Docker `--user` value) denotes root when it is the `root` account by name, an
+ * empty string, or any integer form Docker parses as 0. Verified against Docker
+ * 29: `0`, `00`, `+0`, and `-0` all resolve to uid/gid 0, and an omitted half
+ * (`1000:` → gid 0, `:`/`` → uid 0) also resolves to 0 — so each is rejected
+ * here. Non-zero integers and other account names are allowed; name aliases
+ * that merely resolve to uid/gid 0 (e.g. `toor`) cannot be detected without
+ * resolving and are intentionally out of scope for pre-flight string validation.
+ */
+function denotesRootComponent(component: string): boolean {
+  if (component === '' || /^root$/i.test(component)) return true;
+  if (/^[+-]?\d+$/.test(component)) return Number.parseInt(component, 10) === 0;
+  return false;
+}
+
 function assertSafeSpec(spec: WorkerSandboxSpec): void {
   if (!/^arxic-[A-Za-z0-9_.-]+$/.test(spec.networkName))
     throw new Error('Worker network name must be arxic-prefixed');
   if (!spec.jobId || !/^[A-Za-z0-9_.-]+$/.test(spec.jobId))
     throw new Error('Worker jobId contains unsafe characters');
   const requestedUser = spec.workerUser ?? defaultWorkerUser();
-  if (/^(?:root|0)(?::|$)/i.test(requestedUser)) {
+  // Docker `--user` is `<name|uid>[:<group|gid>]` (per the docker run
+  // reference): at most a uid/user and an optional gid/group. The worker must
+  // hold no privileged identity, so reject when any component denotes root —
+  // uid 0 is root, and gid 0 is the root group, which on many images grants
+  // write access to system paths. This makes caller-supplied forms such as
+  // `1000:0`, `1000:00`, `1000:+0`, or `nobody:0` fail closed before any Docker
+  // call. Supplementary groups come from `--group-add`, which this sandbox
+  // never exposes.
+  if (requestedUser.split(':').some((component) => denotesRootComponent(component))) {
     throw new Error(
-      spec.workerUser
-        ? 'Worker may not run as root'
+      spec.workerUser != null
+        ? 'Worker may not run as root or in the root group (uid 0 / gid 0)'
         : 'Worker may not run as root: the host process is running as root (uid 0), and the worker must remain non-root; run the host process as a non-root user or set workerUser explicitly',
     );
   }
