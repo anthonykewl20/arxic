@@ -254,6 +254,39 @@ describe('real Docker worker sandbox', () => {
     }
   }, 120_000);
 
+  it('accepts a caller-supplied non-root workerUser and runs as that identity', async ({
+    skip,
+  }) => {
+    if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
+    if (typeof process.getuid !== 'function') skip('POSIX-only uid semantics');
+    const jobId = identity('explicit-user');
+    const source = await sourceFile('source.txt', 'ok');
+    // An explicitly-supplied, non-root workerUser must be accepted — not
+    // over-rejected — and the container must run as exactly that uid:gid. This
+    // pins the allow-side of the root-group rejection so a future widening of
+    // denotesRootComponent (e.g. to reject empty components) cannot silently
+    // break legitimate non-root callers.
+    const sandbox = await createWorkerSandbox({
+      jobId,
+      sourcePath: source,
+      quotas,
+      networkName: `arxic-${jobId}-net`,
+      workerUser: `${process.getuid!()}:${process.getgid!()}`,
+    });
+    try {
+      expect(await execInSandbox(sandbox, ['id', '-u'])).toMatchObject({
+        exit: 0,
+        stdout: String(process.getuid!()),
+      });
+      expect(await execInSandbox(sandbox, ['id', '-g'])).toMatchObject({
+        exit: 0,
+        stdout: String(process.getgid!()),
+      });
+    } finally {
+      await sandbox.stop();
+    }
+  }, 120_000);
+
   it('isolates job networks: a worker cannot reach another job sibling', async ({ skip }) => {
     if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
     const jobA = identity('net-a');
@@ -350,6 +383,41 @@ describe('worker sandbox construction is enforced safe', () => {
   ])('rejects an unsafe sandbox spec before touching Docker: %s', async (_name, spec) => {
     await expect(createWorkerSandbox(spec)).rejects.toThrow();
   });
+
+  // The worker must hold no privileged identity: uid 0 is root and gid 0 is the
+  // root group, which on many images grants write access to system paths. The
+  // rejection runs inside assertSafeSpec, before any Docker call, and must cover
+  // the root-GROUP form (e.g. 1000:0) that a pre-fix regex anchored only on the
+  // uid component let through. The matcher pins the safety message so a Docker
+  // collision/timeout cannot mask a regression as a false pass.
+  it.each([
+    ['root group on a non-root uid', '1000:0'],
+    ['root group by name on a non-root uid', '1000:root'],
+    ['uppercase ROOT group on a non-root uid', '1000:ROOT'],
+    ['root group via leading-zero gid', '1000:00'],
+    ['root group via signed-zero gid', '1000:+0'],
+    ['empty gid component (Docker maps to gid 0)', '1000:'],
+    ['empty uid and gid (Docker maps to uid 0)', ':'],
+    ['empty workerUser (Docker maps to uid 0)', ''],
+    ['root uid via leading-zero uid', '00:1000'],
+    ['root group on a named user', 'nobody:0'],
+    ['root uid alone', '0'],
+    ['root user by name', 'root'],
+    ['root uid and root group', '0:0'],
+    ['root uid with a non-root gid', '0:1000'],
+  ])(
+    'rejects a caller-supplied workerUser holding root uid or root group before Docker: %s',
+    async (_name, workerUser) => {
+      await expect(
+        createWorkerSandbox({
+          ...base,
+          jobId: 'safe',
+          networkName: 'arxic-safe-net',
+          workerUser,
+        }),
+      ).rejects.toThrow(/may not run as root/i);
+    },
+  );
 });
 
 describe('defaultWorkerUser resolves a non-root default', () => {
