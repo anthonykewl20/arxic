@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@arxic/playwright-compiler": "workspace:*",
+    "@arxic/real-world-testkit": "workspace:*",
     "@arxic/verifier": "workspace:*"
   }
 }

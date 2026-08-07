@@ -77,6 +77,9 @@ importers:
       '@arxic/playwright-compiler':
         specifier: workspace:*
         version: link:../playwright-compiler
+      '@arxic/real-world-testkit':
+        specifier: workspace:*
+        version: link:../real-world-testkit
       '@arxic/verifier':
         specifier: workspace:*
         version: link:../verifier

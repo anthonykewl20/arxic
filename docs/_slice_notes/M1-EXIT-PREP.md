@@ -46,12 +46,13 @@ default port 3001; no Mailpit env). The three real-world suites are now paramete
 both apps via `describe.each(FIXTURE_APPS)` — **no app-name branching inside
 `packages/**/src`**; per-app facts live as data in the testkit.
 
-| Stage                                                                     | reference-auth-app        | vulnerable-auth-app                               |
-| ------------------------------------------------------------------------- | ------------------------- | ------------------------------------------------- |
-| Compile (`PlaywrightCompiler`) — spec discoverable by real Playwright CLI | ✅ pass                   | ✅ pass                                           |
-| Verify (`PlaywrightVerifier`) — two clean real-Chromium passes            | ✅ `verified`             | ✅ `verified` (**after the fix below**)           |
-| Verify locator-drift → `contradicted`                                     | ✅ `contradicted`         | (reference-only proof)                            |
-| Auth domain pack (`authCandidates()`)                                     | 3 `verified`, 3 `blocked` | 3 `contradicted`, 3 `blocked` (honest — see gaps) |
+| Stage                                                                             | reference-auth-app                                  | vulnerable-auth-app                                 |
+| --------------------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------- |
+| Compile (`PlaywrightCompiler`) — spec discoverable by real Playwright CLI         | ✅ pass                                             | ✅ pass                                             |
+| Verify (`PlaywrightVerifier`) — two clean real-Chromium passes                    | ✅ `verified`                                       | ✅ `verified` (**after the fix below**)             |
+| Verify locator-drift → `contradicted`                                             | ✅ `contradicted`                                   | (reference-only proof)                              |
+| Bundle assembly (`assembleBundle`) + redaction gate + checksums/provenance/NOTICE | ✅ assembles, redaction passes, checksums validated | ✅ assembles, redaction passes, checksums validated |
+| Auth domain pack (`authCandidates()`)                                             | 3 `verified`, 3 `blocked`                           | 3 `contradicted`, 3 `blocked` (honest — see gaps)   |
 
 Hash-checked screenshots + traces are produced for every verified run (SHA-256 re-validated
 independently in the tests). All `reference-auth-app` proofs remain green — a second app was
@@ -119,22 +120,22 @@ Created in Milestone 1:
 
 ## §23 acceptance-criteria status (Express app, post-fix)
 
-| #   | Criterion                                         | Status for Express                                                                    |
-| --- | ------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| 1   | Deterministic manifest + evidence graph           | ✅ (compile produces a deterministic, validated manifest + evidence index)            |
-| 2   | Evidence-linked or explicit unsupported candidate | ✅ (reset/totp explicit `blocked`; login verified with evidence)                      |
-| 3   | Source-only findings stay `hypothesized`          | ✅ (untouched by this slice)                                                          |
-| 4   | Runtime-only findings stay `observed`             | ⚠️ latent — goto route derived from state name, not runtime obs (gap #5)              |
-| 5   | Verified auth workflows are independent bundles   | ✅ (Express login verifies → independent bundle)                                      |
-| 6   | Password-reset uses real inbox evidence           | ✅ correct `blocked` (no inbox provisioned)                                           |
-| 7   | TOTP uses real fixture behavior                   | ✅ correct `blocked` (no TOTP in app)                                                 |
-| 8   | Suites pass twice from clean fixtures             | ✅ (two clean Chromium passes for Express login)                                      |
-| 9   | Required artifacts hash-verified                  | ✅ (screenshots + traces SHA-256 re-validated)                                        |
-| 10  | Gates reject secrets/unsafe origins/directives    | ✅ (compile-policy + verification gates intact; rationale mechanism used as designed) |
-| 11  | Missing behaviors appear as `blocked`             | ✅ (reset/totp/password-change via candidate set)                                     |
-| 12  | Failed runs preserve prior promoted bundle        | (out of this slice's scope — promoter path)                                           |
-| 13  | Output includes licenses/provenance/versions/SBOM | (out of this slice's scope — bundle assembly)                                         |
-| 14  | Major upgrades pass adapter-contract suites       | (out of this slice's scope)                                                           |
+| #   | Criterion                                         | Status for Express                                                                                        |
+| --- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 1   | Deterministic manifest + evidence graph           | ✅ (compile produces a deterministic, validated manifest + evidence index)                                |
+| 2   | Evidence-linked or explicit unsupported candidate | ✅ (reset/totp explicit `blocked`; login verified with evidence)                                          |
+| 3   | Source-only findings stay `hypothesized`          | ✅ (untouched by this slice)                                                                              |
+| 4   | Runtime-only findings stay `observed`             | ⚠️ latent — goto route derived from state name, not runtime obs (gap #5)                                  |
+| 5   | Verified auth workflows are independent bundles   | ✅ (Express login verifies → independent bundle)                                                          |
+| 6   | Password-reset uses real inbox evidence           | ✅ correct `blocked` (no inbox provisioned)                                                               |
+| 7   | TOTP uses real fixture behavior                   | ✅ correct `blocked` (no TOTP in app)                                                                     |
+| 8   | Suites pass twice from clean fixtures             | ✅ (two clean Chromium passes for Express login)                                                          |
+| 9   | Required artifacts hash-verified                  | ✅ (screenshots + traces SHA-256 re-validated)                                                            |
+| 10  | Gates reject secrets/unsafe origins/directives    | ✅ (compile-policy + verification gates intact; rationale mechanism used as designed)                     |
+| 11  | Missing behaviors appear as `blocked`             | ✅ (reset/totp/password-change via candidate set)                                                         |
+| 12  | Failed runs preserve prior promoted bundle        | (out of this slice's scope — promoter path)                                                               |
+| 13  | Output includes licenses/provenance/versions/SBOM | ✅ (bundle assembly produces NOTICE + provenance.json + checksums.sha256; redaction passes for both apps) |
+| 14  | Major upgrades pass adapter-contract suites       | (out of this slice's scope)                                                                               |
 
 ## What this spike deliberately did NOT do
 
