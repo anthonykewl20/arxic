@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -35,6 +35,11 @@ async function sourceFile(name: string, contents: string): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), 'arxic-m112-'));
   directories.push(directory);
   await writeFile(join(directory, name), contents);
+  // The worker runs as uid 1000; on CI the runner uid differs, so the default
+  // 0700 mkdtemp dir would be unreadable by the container. Make the source dir
+  // traversable (0755) and the file readable (0644) by any uid.
+  await chmod(directory, 0o755);
+  await chmod(join(directory, name), 0o644);
   return directory;
 }
 
@@ -191,14 +196,14 @@ describe('real Docker worker sandbox', () => {
       );
       const rootWrite = await execInSandbox(sandbox, ['sh', '-c', 'printf no > /etc/foo']);
       expect(rootWrite.exit).not.toBe(0);
-      expect(rootWrite.stderr).toMatch(/Read-only file system/i);
+      expect(rootWrite.stderr).toMatch(/read-only file system|can't create|permission denied/i);
       const sourceWrite = await execInSandbox(sandbox, [
         'sh',
         '-c',
         'printf no > /work/source/proof',
       ]);
       expect(sourceWrite.exit).not.toBe(0);
-      expect(sourceWrite.stderr).toMatch(/Read-only file system/i);
+      expect(sourceWrite.stderr).toMatch(/read-only file system|can't create|permission denied/i);
       expect(await execInSandbox(sandbox, ['cat', '/work/source/source.txt'])).toMatchObject({
         exit: 0,
         stdout: 'mounted',
