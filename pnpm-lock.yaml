@@ -41,7 +41,11 @@ importers:
 
   apps/cli: {}
 
-  apps/worker: {}
+  apps/worker:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
 
   packages/ast-grep-adapter:
     dependencies:
