@@ -109,17 +109,23 @@ export function validateConfig(input: unknown): ValidationResult {
           'config.policy.requiredVerificationRuns',
           diagnostics,
         );
+  // ADR §19's example config and §575's lease-scoped-mutation invariant admit exactly one
+  // value each here, and `validateWorkerSecurity` enforces the same pair at run time. The
+  // CLI previously also accepted 'allow' (and, for mutation, 'deny') — values the worker
+  // rejects with ARXIC-WORKER-CONFIG-UNSAFE and that nothing in the pipeline ever read, so
+  // they were silently inert rather than dangerous. Accepting a safety setting that cannot
+  // be honoured is its own defect: fail closed here instead (#104).
   const mutation = nonEmptyString(policy?.mutation, 'config.policy.mutation', diagnostics);
-  if (mutation !== undefined && !['leased-fixtures-only', 'deny', 'allow'].includes(mutation)) {
-    invalid(diagnostics, 'config.policy.mutation', 'must be leased-fixtures-only, deny, or allow');
+  if (mutation !== undefined && mutation !== 'leased-fixtures-only') {
+    invalid(diagnostics, 'config.policy.mutation', 'must be leased-fixtures-only');
   }
   const externalNetwork = nonEmptyString(
     policy?.externalNetwork,
     'config.policy.externalNetwork',
     diagnostics,
   );
-  if (externalNetwork !== undefined && !['deny', 'allow'].includes(externalNetwork)) {
-    invalid(diagnostics, 'config.policy.externalNetwork', 'must be deny or allow');
+  if (externalNetwork !== undefined && externalNetwork !== 'deny') {
+    invalid(diagnostics, 'config.policy.externalNetwork', 'must be deny');
   }
   const screenshots = nonEmptyString(policy?.screenshots, 'config.policy.screenshots', diagnostics);
   const trace = nonEmptyString(policy?.trace, 'config.policy.trace', diagnostics);
@@ -187,8 +193,11 @@ export function validateConfig(input: unknown): ValidationResult {
         maxUrls: maxUrls!,
         maxDepth: maxDepth!,
         maxRuntimeMinutes: maxRuntimeMinutes!,
-        mutation: mutation!,
-        externalNetwork: externalNetwork!,
+        // Reaching here proves both: any other value pushed a diagnostic above, and
+        // `diagnostics.length > 0` already returned. Scoped assertions rather than a
+        // whole-object `as ArxicConfig`, so every other field stays structurally checked.
+        mutation: mutation as 'leased-fixtures-only',
+        externalNetwork: externalNetwork as 'deny',
         requiredVerificationRuns: requiredVerificationRuns!,
         screenshots: screenshots!,
         trace: trace!,
@@ -199,8 +208,13 @@ export function validateConfig(input: unknown): ValidationResult {
         ...(otp === undefined ? {} : { otp }),
         ...(personaProvisioner === undefined ? {} : { personaProvisioner }),
       },
-      models: { provider: provider!, sourceRetention: sourceRetention! },
-    } as ArxicConfig,
+      models: {
+        provider: provider!,
+        // Same reasoning as policy.mutation above: line 169 pushed a diagnostic for any
+        // other value, and line 173 already returned on a non-empty diagnostics list.
+        sourceRetention: sourceRetention as 'disabled' | 'retained',
+      },
+    },
   };
 }
 
