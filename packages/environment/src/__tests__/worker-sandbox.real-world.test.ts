@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
-import { chmod, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   createWorkerSandbox,
+  defaultWorkerUser,
   dockerInspect,
   dockerRm,
   dockerRunDetach,
@@ -35,11 +36,10 @@ async function sourceFile(name: string, contents: string): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), 'arxic-m112-'));
   directories.push(directory);
   await writeFile(join(directory, name), contents);
-  // The worker runs as uid 1000; on CI the runner uid differs, so the default
-  // 0700 mkdtemp dir would be unreadable by the container. Make the source dir
-  // traversable (0755) and the file readable (0644) by any uid.
-  await chmod(directory, 0o755);
-  await chmod(join(directory, name), 0o644);
+  // mkdtemp creates a host-owned 0700 directory; the worker default user now
+  // mirrors the host uid:gid (defaultWorkerUser), so the container can traverse
+  // and read it without any chmod relaxation. This is the real-world fixture
+  // condition the sandbox must handle.
   return directory;
 }
 
@@ -184,7 +184,10 @@ describe('real Docker worker sandbox', () => {
       networkName: `arxic-${jobId}-net`,
     });
     try {
-      expect(await execInSandbox(sandbox, ['id', '-u'])).toMatchObject({ exit: 0, stdout: '1000' });
+      expect(await execInSandbox(sandbox, ['id', '-u'])).toMatchObject({
+        exit: 0,
+        stdout: String(process.getuid!()),
+      });
       const daemonAccess = await execInSandbox(sandbox, [
         'sh',
         '-c',
@@ -196,17 +199,55 @@ describe('real Docker worker sandbox', () => {
       );
       const rootWrite = await execInSandbox(sandbox, ['sh', '-c', 'printf no > /etc/foo']);
       expect(rootWrite.exit).not.toBe(0);
-      expect(rootWrite.stderr).toMatch(/read-only file system|can't create|permission denied/i);
+      expect(rootWrite.stderr).toMatch(/read-only file system/i);
       const sourceWrite = await execInSandbox(sandbox, [
         'sh',
         '-c',
         'printf no > /work/source/proof',
       ]);
       expect(sourceWrite.exit).not.toBe(0);
-      expect(sourceWrite.stderr).toMatch(/read-only file system|can't create|permission denied/i);
+      expect(sourceWrite.stderr).toMatch(/read-only file system/i);
       expect(await execInSandbox(sandbox, ['cat', '/work/source/source.txt'])).toMatchObject({
         exit: 0,
         stdout: 'mounted',
+      });
+    } finally {
+      await sandbox.stop();
+    }
+  }, 120_000);
+
+  it('reads a host-private (0700) source directory under the host-uid default', async ({
+    skip,
+  }) => {
+    if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
+    if (typeof process.getuid !== 'function') skip('POSIX-only uid semantics');
+    const jobId = identity('uid-default');
+    // Deliberately host-private: mkdtemp default is 0700 owned by the host uid,
+    // the file is 0600. No chmod relaxation. Under the old hardcoded 1000:1000
+    // default this read fails on any host whose uid != 1000 (the CI condition);
+    // under the host-uid default the container owns the mount and reads it.
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-m112-uid-'));
+    directories.push(directory);
+    await writeFile(join(directory, 'private.txt'), 'host-owned', { mode: 0o600 });
+    const sandbox = await createWorkerSandbox({
+      jobId,
+      sourcePath: directory,
+      quotas,
+      networkName: `arxic-${jobId}-net`,
+      // workerUser intentionally omitted: the default must mirror the host uid.
+    });
+    try {
+      expect(await execInSandbox(sandbox, ['id', '-u'])).toMatchObject({
+        exit: 0,
+        stdout: String(process.getuid!()),
+      });
+      expect(await execInSandbox(sandbox, ['id', '-g'])).toMatchObject({
+        exit: 0,
+        stdout: String(process.getgid!()),
+      });
+      expect(await execInSandbox(sandbox, ['cat', '/work/source/private.txt'])).toMatchObject({
+        exit: 0,
+        stdout: 'host-owned',
       });
     } finally {
       await sandbox.stop();
@@ -308,5 +349,37 @@ describe('worker sandbox construction is enforced safe', () => {
     ],
   ])('rejects an unsafe sandbox spec before touching Docker: %s', async (_name, spec) => {
     await expect(createWorkerSandbox(spec)).rejects.toThrow();
+  });
+});
+
+describe('defaultWorkerUser resolves a non-root default', () => {
+  it('mirrors the host uid:gid on POSIX', () => {
+    if (typeof process.getuid !== 'function') return; // non-POSIX host
+    expect(defaultWorkerUser()).toBe(`${process.getuid()}:${process.getgid!()}`);
+  });
+
+  it('never resolves to root when the host process is non-root', () => {
+    if (typeof process.getuid !== 'function') return;
+    if (process.getuid() === 0) return; // host is root; root rejection is assertSafeSpec's job
+    expect(/^(?:root|0)(?::|$)/i.test(defaultWorkerUser())).toBe(false);
+  });
+
+  it('falls back to a non-root default when getuid/getgid are unavailable (non-POSIX)', () => {
+    const ownGetuid = Object.getOwnPropertyDescriptor(process, 'getuid');
+    const ownGetgid = Object.getOwnPropertyDescriptor(process, 'getgid');
+    try {
+      // Shadow the POSIX accessors to simulate a non-POSIX host (Windows), where
+      // process.getuid/getgid do not exist.
+      Object.defineProperty(process, 'getuid', { value: undefined, configurable: true });
+      Object.defineProperty(process, 'getgid', { value: undefined, configurable: true });
+      const fallback = defaultWorkerUser();
+      expect(fallback).toBe('1000:1000');
+      expect(/^(?:root|0)(?::|$)/i.test(fallback)).toBe(false);
+    } finally {
+      if (ownGetuid) Object.defineProperty(process, 'getuid', ownGetuid);
+      else delete (process as { getuid?: unknown }).getuid;
+      if (ownGetgid) Object.defineProperty(process, 'getgid', ownGetgid);
+      else delete (process as { getgid?: unknown }).getgid;
+    }
   });
 });
