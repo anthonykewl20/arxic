@@ -13,9 +13,37 @@ export type FixtureBlocker = {
   reason: string;
 };
 
+export type CapabilityBlocker = { reason: string };
+
 export type AuthCandidate = {
   workflow: Workflow;
   fixtureBlocker?: FixtureBlocker;
+  capabilityBlocker?: CapabilityBlocker;
+};
+
+export type AuthCapabilityId =
+  | 'authentication.login'
+  | 'authentication.logout'
+  | 'authentication.reset-request'
+  | 'authentication.reset-complete'
+  | 'authentication.password-change'
+  | 'authentication.totp';
+
+/**
+ * Per-target-app observed auth surface. Candidates are derived from this evidence
+ * rather than from hardcoded reference-app routes, so one pack produces sensible
+ * candidates for structurally different apps. Per-app facts (the states the compiler
+ * maps to routes, observed success assertions, and which capabilities an app supports)
+ * belong in test data (`@arxic/real-world-testkit`); `authCandidates()` combines them
+ * with app-agnostic auth domain knowledge and never branches on an app name.
+ */
+export type AuthSurface = {
+  login: { entryState: string; successState: string; assertion: string };
+  logout: { assertion: string };
+  passwordChange:
+    | { supported: true; state: string; assertion: string; routeAssertion: string }
+    | { supported: false; reason: string };
+  totp: { supported: true } | { supported: false; reason: string };
 };
 
 export type AuthDomainPackOptions = {

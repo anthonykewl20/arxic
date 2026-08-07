@@ -4,6 +4,7 @@ import type { EvidenceRef } from '@arxic/contracts';
 import { PlaywrightCompiler } from '@arxic/playwright-compiler';
 import { PlaywrightVerifier } from '@arxic/verifier';
 import {
+  ARXIC_AUTH_CAPABILITY_UNSUPPORTED,
   ARXIC_AUTH_COMPILE_BLOCKED,
   ARXIC_AUTH_FIXTURE_UNAVAILABLE,
   ARXIC_AUTH_NO_EVIDENCE,
@@ -57,6 +58,20 @@ export class AuthDomainPackAssembler {
     const evidenceRefs = candidateEvidence(candidate);
     const outputDirectory = join(this.#options.outputDirectory, workflow.id);
     await mkdir(outputDirectory, { recursive: true });
+    if (candidate.capabilityBlocker) {
+      return {
+        ...base,
+        outcome: 'blocked',
+        diagnostics: [
+          authDiagnostic(
+            ARXIC_AUTH_CAPABILITY_UNSUPPORTED,
+            workflow.id,
+            `Capability unsupported by target app: ${candidate.capabilityBlocker.reason}`,
+            evidenceRefs,
+          ),
+        ],
+      };
+    }
     if (
       !evidenceRefs.some((id) => id.startsWith('src:')) ||
       !evidenceRefs.some((id) => id.startsWith('run:'))

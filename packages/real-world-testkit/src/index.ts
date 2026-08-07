@@ -25,6 +25,23 @@ export type LoginFacts = {
   loginRoute: string;
 };
 
+/**
+ * Per-target-app observed auth surface. This is plain per-app DATA (which states an
+ * app uses, observed success assertions, which capabilities it supports) consumed by
+ * `@arxic/auth-domain-pack`'s `authCandidates(surface)`. It MUST stay structurally
+ * compatible with that package's exported `AuthSurface` type — compatibility is
+ * enforced at the auth-domain-pack typecheck, where a value of this type is passed
+ * into `authCandidates`. No app-name branching lives in the pack; the facts live here.
+ */
+export type AuthSurfaceData = {
+  login: { entryState: string; successState: string; assertion: string };
+  logout: { assertion: string };
+  passwordChange:
+    | { supported: true; state: string; assertion: string; routeAssertion: string }
+    | { supported: false; reason: string };
+  totp: { supported: true } | { supported: false; reason: string };
+};
+
 export type FixtureApp = {
   name: string;
   build: (root: string) => Promise<void>;
@@ -36,6 +53,7 @@ export type FixtureApp = {
   }) => ChildProcess;
   persona: Persona;
   login: LoginFacts;
+  authSurface: AuthSurfaceData;
 };
 
 export type RunningApp = {
@@ -203,6 +221,17 @@ export const referenceAuthApp: FixtureApp = {
     sourceRange: [1, 23],
     loginRoute: '/login',
   },
+  authSurface: {
+    login: { entryState: 'login-page', successState: 'home', assertion: 'url:/' },
+    logout: { assertion: 'text:Logged out' },
+    passwordChange: {
+      supported: true,
+      state: 'change-password-page',
+      assertion: 'text:Password changed successfully',
+      routeAssertion: 'url:/change-password',
+    },
+    totp: { supported: true },
+  },
 };
 
 export const vulnerableAuthApp: FixtureApp = {
@@ -240,6 +269,12 @@ export const vulnerableAuthApp: FixtureApp = {
     sourcePath: 'test-fixtures/vulnerable-auth-app/src/server.ts',
     sourceRange: [34, 48],
     loginRoute: '/',
+  },
+  authSurface: {
+    login: { entryState: 'home', successState: 'home', assertion: 'text:Logged in' },
+    logout: { assertion: 'text:Logged out' },
+    passwordChange: { supported: false, reason: 'no password-change route' },
+    totp: { supported: false, reason: 'no TOTP/MFA implementation' },
   },
 };
 
