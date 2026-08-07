@@ -37,6 +37,28 @@ jobs:
           [ "$(cat VERSION)" = "$(node -p 'require("./package.json").version')" ] || { echo "::error::VERSION and package.json version disagree"; exit 1; }
           grep -q "## \[Unreleased\]" CHANGELOG.md || { echo "::error::CHANGELOG.md missing [Unreleased] section"; exit 1; }
 
+      - name: Verify slice notes (charter §10.2 path + template shape)
+        run: |
+          set -euo pipefail
+          # The directory is docs/_slice-notes (HYPHEN). Three agents in the first
+          # parallel batch wrote docs/_slice_notes; the format gate caught two of
+          # them only because their notes happened to be prettier-dirty.
+          if [ -e docs/_slice_notes ]; then
+            echo "::error file=docs/_slice_notes::Slice notes live in docs/_slice-notes (hyphen), not docs/_slice_notes (underscore). See charter §10.2."
+            exit 1
+          fi
+          for note in docs/_slice-notes/*.md; do
+            base="$(basename "$note")"
+            case "$base" in README.md|_TEMPLATE.md) continue ;; esac
+            # A note built from _TEMPLATE.md carries all six numbered sections.
+            for n in 1 2 3 4 5 6; do
+              grep -qE "^## $n\." "$note" || {
+                echo "::error file=$note::Slice note is missing section $n. Build it from docs/_slice-notes/_TEMPLATE.md (all six sections)."
+                exit 1
+              }
+            done
+          done
+
       - name: Lint
         run: pnpm lint
 

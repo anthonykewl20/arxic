@@ -27,6 +27,18 @@ If your `pwd` is a worktree (not `/home/soultransit/devtony/arxic`), other agent
 - **Stay inside the files your slice owns.** Overlapping edits to a shared file are allowed only inside distinct functions. Do not refactor shared helpers, rename exports, or reformat a file another slice owns — extract into a new file and leave one call site behind.
 - **Leave `ARXIC_MAILPIT_SMTP` / `ARXIC_MAILPIT_API` unset** so each run gets its own Mailpit Testcontainer on random ports. New real-world tests must allocate ephemeral ports (`freePort()`) and per-run temp sqlite (`ARXIC_DB_PATH` → `mkdtemp`), like the existing ones. A hardcoded port is a defect.
 
+## Reporting discipline — learned the hard way in the first parallel batch
+
+Every agent in that batch reported `STATUS: done` at least once before it was true, and four of five needed a fix round. These are the specific failures; do not repeat them.
+
+- **"Done" means `gh pr checks <N>` printed `pass`.** Not "gates green locally". If CI has not run to completion against your current head, you are not done — say so.
+- **Run `pnpm format:check` on the FULL repo AFTER writing your slice note, and paste its last line into your report.** Two agents ran it before authoring the note, reported `format ✓`, and shipped a prettier-dirty note. Never write a bare checkmark for format.
+- **Format is CI step 10.** If it fails, `Test`, `License gate` and the fixture-app suites are **skipped** — so a red format makes every downstream gate claim in your report unverified, no matter what passed locally. Two slices merged with suites that had never once executed in CI.
+- **`ls docs/_slice-notes/` before you write the note.** Copy the path from that output. Three agents wrote `_slice_notes` (underscore) from memory; CI now rejects it outright.
+- **A test that passes locally and fails in CI is a bug until proven otherwise.** In this batch it was a real portability defect: the sandbox hardcoded `--user 1000:1000` and the dev host uid happened to be 1000, so `0700` fixture dirs were readable locally and unreadable on the runner. Reproduce the CI condition; do not re-run until green.
+- **Never resolve a red assertion by loosening it without saying so, in the report and in the PR.** Widening a matcher can make the test stop checking the property it exists to check.
+- **Report what you did NOT do.** Deferrals, provisional types, and known-weak spots are more useful to the integrator than a clean-looking summary. The most valuable output of that batch was a spike's honest gap list.
+
 ## Start here
 
 `docs/SYNC.md` → 🔖 **RESUME HERE**.
