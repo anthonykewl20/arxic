@@ -212,6 +212,42 @@ describe('real stage-4 candidate inference proof', () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_MODEL_RETRIES, severity: 'blocked' }),
     );
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: 'ARXIC-MODEL-RETRIES-EXHAUSTED' }),
+    );
+  }, 180_000);
+
+  it('attributes a thrown adapter as inference-error without leaking the cause message', async () => {
+    const throwCanary = 'PRIVATE-THROW-CANARY-M1-14';
+    let modelAttempts = 0;
+    const modelAdapter = {
+      requestStructuredOutput: async () => {
+        modelAttempts += 1;
+        throw new Error(`provider exploded ${throwCanary}`);
+      },
+    } as unknown as ModelAdapter;
+    const runId = 'm1-14-thrown';
+    const result = await new LangGraphOrchestrator({
+      checkpointer: new FileStageCheckpointer(runsDirectory),
+      modelAdapter,
+      model: 'test-model-v1',
+      maxModelAttempts: 2,
+    }).run(orchestratorInput(runId));
+
+    expect(result.status).toBe('failed');
+    expect(result.outcome).toBe('blocked');
+    expect(result.completedStages).not.toContain(4);
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: 'ARXIC-ORCH-INFERENCE-ERROR', severity: 'blocked' }),
+    );
+    expect(result.diagnostics.some((diagnostic) => diagnostic.message.includes(throwCanary))).toBe(
+      false,
+    );
+    const persisted = await persistedRunBytes(runId);
+    expect(persisted).not.toContain(throwCanary);
+    expect(persisted).not.toContain(promptCanary);
+    expect(persisted).not.toContain('REAL-TOKEN');
+    expect(modelAttempts).toBe(2);
   }, 180_000);
 });
 

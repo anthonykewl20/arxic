@@ -1,5 +1,6 @@
 import type { Diagnostic, EvidenceRef, Workflow } from '@arxic/contracts';
 import { ModelAdapter, type OpenAIMessage } from '@arxic/model-adapter';
+import { ARXIC_ORCH_INFERENCE_ERROR, orchDiagnostic } from './diagnostics';
 import type { InferenceResult } from './types';
 
 export const STAGE4_SCHEMA_VERSION = 'arxic-stage4-inference-v1' as const;
@@ -17,8 +18,8 @@ export const STAGE4_STRUCTURED_OUTPUT_SCHEMA = {
         required: ['id', 'intent'],
         additionalProperties: false,
         properties: {
-          id: { type: 'string' },
-          intent: { type: 'string' },
+          id: { type: 'string', minLength: 1 },
+          intent: { type: 'string', minLength: 1 },
         },
       },
     },
@@ -90,15 +91,27 @@ export function mapStage4Candidates(
   neighbourhood: readonly EvidenceRef[],
 ): InferenceResult {
   const empty: InferenceResult = { requestId: 'stage4-inference', candidates: [] };
+  // Defence-in-depth for a direct caller: through runStage4Inference the adapter's
+  // assertSchemaVersion rejects version drift before this point.
   if (!isRecord(output) || output.schemaVersion !== STAGE4_SCHEMA_VERSION) return empty;
+  // Defence-in-depth: the adapter's AJV validation (schema: candidates.type=array)
+  // rejects non-arrays first.
   if (!Array.isArray(output.candidates)) return empty;
   const candidates = output.candidates.flatMap((value) => {
-    if (!isRecord(value) || typeof value.id !== 'string' || typeof value.intent !== 'string') {
+    // Defence-in-depth: the adapter's AJV validation (items require id/intent
+    // strings, minLength 1) rejects malformed/empty entries first.
+    if (
+      !isRecord(value) ||
+      typeof value.id !== 'string' ||
+      typeof value.intent !== 'string' ||
+      value.id === '' ||
+      value.intent === ''
+    ) {
       return [];
     }
-    const id = value.id || 'authentication.inferred';
-    const intent = value.intent || 'submit form';
-    const title = value.intent || id;
+    const id = value.id;
+    const intent = value.intent;
+    const title = value.intent;
     const source = neighbourhood.find((ref) => ref.kind === 'source');
     const neighbourhoodIds =
       neighbourhood.length > 0
@@ -114,6 +127,9 @@ export function mapStage4Candidates(
       status: 'hypothesized',
       confidence: 0.5,
       scope: {
+        // Sentinel for a candidate whose neighbourhood has no source ref;
+        // mapStage4Candidates is only called with a non-empty source neighbourhood
+        // through runStage4Inference, so this is defence-in-depth for a direct caller.
         commit: source?.kind === 'source' ? source.commit : '0'.repeat(40),
         environment: 'local-test',
         browser: 'chromium',
@@ -146,6 +162,23 @@ export function mapStage4Candidates(
 export type Stage4InferenceOutcome = Readonly<
   { ok: true; result: InferenceResult } | { ok: false; diagnostics: readonly Diagnostic[] }
 >;
+
+export const STAGE4_INFERENCE_FAILED = 'stage4-inference-failed' as const;
+
+export type Stage4InferenceFailure = Readonly<{
+  stage4InferenceFailed: typeof STAGE4_INFERENCE_FAILED;
+  diagnostics: readonly Diagnostic[];
+}>;
+
+export function isStage4InferenceFailure(value: unknown): value is Stage4InferenceFailure {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    (value as Record<string, unknown>).stage4InferenceFailed === STAGE4_INFERENCE_FAILED &&
+    Array.isArray((value as Record<string, unknown>).diagnostics)
+  );
+}
 
 export async function runStage4Inference(input: {
   adapter: ModelAdapter;
@@ -197,9 +230,26 @@ export function stage4Infer(
         runId: input.runId,
         ...(input.attempt ? { attempt: input.attempt } : {}),
       });
-      return outcome.ok ? outcome.result : undefined;
+      if (outcome.ok) return outcome.result;
+      // Adapter failures have already passed finalize() -> redactionGate(), which
+      // scans diagnostic messages and output against credentials, prompts, and canaries.
+      return {
+        stage4InferenceFailed: STAGE4_INFERENCE_FAILED,
+        diagnostics: outcome.diagnostics,
+      };
     } catch {
-      return undefined;
+      // Do not preserve the thrown message: it may contain prompt or credential bytes.
+      return {
+        stage4InferenceFailed: STAGE4_INFERENCE_FAILED,
+        diagnostics: [
+          orchDiagnostic(
+            ARXIC_ORCH_INFERENCE_ERROR,
+            'blocked',
+            input.runId,
+            'Stage-4 inference threw an unexpected error; cause redacted',
+          ),
+        ],
+      };
     }
   };
 }

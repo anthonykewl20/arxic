@@ -1,8 +1,10 @@
 import type { Diagnostic, EvidenceRef } from '@arxic/contracts';
 import { validateWorkflow } from '@arxic/contracts';
 import type { ModelAdapter } from '@arxic/model-adapter';
+import Ajv2020 from 'ajv/dist/2020';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  ARXIC_ORCH_INFERENCE_ERROR,
   buildInferenceMessages,
   evidenceId,
   mapStage4Candidates,
@@ -10,6 +12,7 @@ import {
   selectNeighbourhood,
   STAGE4_NEIGHBOURHOOD_LIMIT,
   STAGE4_SCHEMA_VERSION,
+  STAGE4_STRUCTURED_OUTPUT_SCHEMA,
   stage4Infer,
 } from '..';
 
@@ -120,6 +123,39 @@ describe('stage-4 inference service sad paths', () => {
     ).toEqual({ requestId: 'stage4-inference', candidates: [] });
   });
 
+  it('rejects empty candidate ids and intents at the real AJV schema boundary', () => {
+    const validate = new Ajv2020({ strict: true }).compile(STAGE4_STRUCTURED_OUTPUT_SCHEMA);
+
+    expect(
+      validate({
+        schemaVersion: STAGE4_SCHEMA_VERSION,
+        candidates: [{ id: '', intent: '' }],
+      }),
+    ).toBe(false);
+    expect(
+      validate({
+        schemaVersion: STAGE4_SCHEMA_VERSION,
+        candidates: [{ id: 'authentication.login', intent: 'submit the login form' }],
+      }),
+    ).toBe(true);
+  });
+
+  it('drops empty candidate fields instead of fabricating content for direct callers', () => {
+    const result = mapStage4Candidates(
+      {
+        schemaVersion: STAGE4_SCHEMA_VERSION,
+        candidates: [
+          { id: '', intent: '' },
+          { id: 'authentication.login', intent: 'x' },
+        ],
+      },
+      [source()],
+    );
+
+    expect(result.candidates).toHaveLength(1);
+    expect(result.candidates[0]?.id).toBe('authentication.login');
+  });
+
   it('deduplicates evidence ids when distinct rules match the same code span', () => {
     const refs = [
       { ...source(), ruleId: 'nextjs-login-route' },
@@ -206,24 +242,41 @@ describe('stage-4 inference service sad paths', () => {
     expect(outcome).toEqual({ ok: false, diagnostics: [diagnostic] });
   });
 
-  it('converts adapter failure and thrown provider errors to undefined for bounded retries', async () => {
+  it('preserves adapter failures and attributes thrown provider errors without their messages', async () => {
+    const diagnostic: Diagnostic = {
+      code: 'ARXIC-MODEL-PROVIDER-TIMEOUT',
+      severity: 'blocked',
+      subject: 'model-provider',
+      message: 'Model provider request timed out',
+    };
     const blocked = stage4Infer(
-      adapterWith({ ok: false, diagnostics: [], runRecord: {} }),
+      adapterWith({ ok: false, diagnostics: [diagnostic], runRecord: {} }),
       'test-model-v1',
     );
     const throwing = stage4Infer(
       {
         requestStructuredOutput: async () => {
-          throw new Error('provider disconnected');
+          throw new Error('provider disconnected PRIVATE-THROW-CANARY');
         },
       } as unknown as ModelAdapter,
       'test-model-v1',
     );
 
-    await expect(blocked({ runId: 'blocked', evidenceRefs: [source()] })).resolves.toBeUndefined();
-    await expect(
-      throwing({ runId: 'throwing', evidenceRefs: [source()] }),
-    ).resolves.toBeUndefined();
+    await expect(blocked({ runId: 'blocked', evidenceRefs: [source()] })).resolves.toEqual({
+      stage4InferenceFailed: 'stage4-inference-failed',
+      diagnostics: [diagnostic],
+    });
+    await expect(throwing({ runId: 'throwing', evidenceRefs: [source()] })).resolves.toEqual({
+      stage4InferenceFailed: 'stage4-inference-failed',
+      diagnostics: [
+        {
+          code: ARXIC_ORCH_INFERENCE_ERROR,
+          severity: 'blocked',
+          subject: 'throwing',
+          message: 'Stage-4 inference threw an unexpected error; cause redacted',
+        },
+      ],
+    });
   });
 });
 
