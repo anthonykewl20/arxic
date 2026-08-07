@@ -11,6 +11,7 @@ import type {
 import { validateDiagnostic } from '@arxic/contracts';
 import { afterEach, describe, expect, test } from 'vitest';
 import {
+  ARXIC_AUTH_CAPABILITY_UNSUPPORTED,
   ARXIC_AUTH_COMPILE_BLOCKED,
   ARXIC_AUTH_DIAGNOSTIC_CODES,
   ARXIC_AUTH_FIXTURE_UNAVAILABLE,
@@ -19,6 +20,28 @@ import {
   authCandidates,
   authDiagnostic,
 } from './index';
+import type { AuthSurface } from './types';
+
+const supportedSurface: AuthSurface = {
+  login: { entryState: 'login-page', successState: 'home', assertion: 'url:/' },
+  logout: { assertion: 'text:Logged out' },
+  passwordChange: {
+    supported: true,
+    state: 'change-password-page',
+    assertion: 'text:Password changed successfully',
+    routeAssertion: 'url:/change-password',
+  },
+  totp: { supported: true },
+};
+
+// A structurally different app: login on `/` (home -> home), text success indicator,
+// and no password-change route or TOTP support — mirrors vulnerable-auth-app.
+const singlePageSurface: AuthSurface = {
+  login: { entryState: 'home', successState: 'home', assertion: 'text:Logged in' },
+  logout: { assertion: 'text:Logged out' },
+  passwordChange: { supported: false, reason: 'no password-change route' },
+  totp: { supported: false, reason: 'no TOTP/MFA implementation' },
+};
 
 const temporaryDirectories: string[] = [];
 
@@ -30,7 +53,7 @@ afterEach(async () => {
 
 describe('AuthDomainPackAssembler sad paths', () => {
   test('blocks and does not compile a candidate without source and runtime evidence', async () => {
-    const candidate = authCandidates()[0]!;
+    const candidate = authCandidates(supportedSurface)[0]!;
     candidate.workflow.evidenceRefs = [];
     candidate.workflow.transitions.forEach((transition) => {
       transition.evidenceRefs = [];
@@ -56,7 +79,7 @@ describe('AuthDomainPackAssembler sad paths', () => {
   });
 
   test('classifies an unsupported compiler step as blocked and continues', async () => {
-    const candidates = authCandidates().slice(0, 2);
+    const candidates = authCandidates(supportedSurface).slice(0, 2);
     const assembler = await testAssembler(
       {
         compiler: () => ({
@@ -78,7 +101,7 @@ describe('AuthDomainPackAssembler sad paths', () => {
   });
 
   test('reports verifier outcomes and fixture blockers in the coverage matrix', async () => {
-    const candidates = authCandidates();
+    const candidates = authCandidates(supportedSurface);
     const outcomes = new Map<string, VerificationResult['outcome']>([
       ['authentication.login', 'verified'],
       ['authentication.logout', 'contradicted'],
@@ -106,8 +129,8 @@ describe('AuthDomainPackAssembler sad paths', () => {
       pack.coverageMatrix.rows.find(({ workflowId }) => workflowId === 'authentication.totp'),
     ).toMatchObject({
       outcome: 'blocked',
-      staticEvidence: 4,
-      runtimeEvidence: 4,
+      staticEvidence: 1,
+      runtimeEvidence: 1,
       blockerReason: expect.stringContaining('totp fixture unavailable'),
     });
     expect(
@@ -117,14 +140,12 @@ describe('AuthDomainPackAssembler sad paths', () => {
       pack.workflows.filter(({ bundle: staged }) => staged).map(({ outcome }) => outcome),
     ).toEqual(['verified', 'verified']);
 
-    const resetRequest = authCandidates().find(
+    const resetRequest = authCandidates(supportedSurface).find(
       ({ workflow }) => workflow.id === 'authentication.reset-request',
     );
     expect(resetRequest).toMatchObject({ fixtureBlocker: { fixture: 'inbox' } });
     expect(resetRequest?.workflow.transitions.map(({ from, to }) => `${from}->${to}`)).toEqual([
       'login-page->home',
-      'home->forgot-password-page',
-      'forgot-password-page->reset-request-accepted',
     ]);
 
     const manifest = JSON.parse(
@@ -133,6 +154,83 @@ describe('AuthDomainPackAssembler sad paths', () => {
     expect(manifest).toEqual(pack.manifest);
   });
 });
+
+describe('authCandidates evidence-driven derivation', () => {
+  test('derives login/logout transitions from the observed surface, not hardcoded routes', () => {
+    const login = authCandidates(singlePageSurface).find(
+      ({ workflow }) => workflow.id === 'authentication.login',
+    );
+    // Single-page app: login is on `/` (home -> home) with a text success indicator.
+    // These come from the surface, not from reference-app routes like `/login`.
+    expect(
+      login?.workflow.transitions.map(({ from, to, assertions }) => ({
+        from,
+        to,
+        assertion: assertions[0]!.intent,
+      })),
+    ).toEqual([{ from: 'home', to: 'home', assertion: 'text:Logged in' }]);
+  });
+
+  test('an app that lacks a capability surfaces it as an explicit blocked candidate', async () => {
+    const candidates = authCandidates(singlePageSurface);
+    const assembler = await testAssembler({
+      compiler: () => ({ compile: async (workflow) => bundle(workflow) }),
+      verifier: () => ({ verify: async () => verification('verified') }),
+    });
+
+    const pack = await assembler.assemble(candidates, observations());
+
+    const passwordChange = workflow(pack, 'authentication.password-change');
+    expect(passwordChange).toMatchObject({
+      outcome: 'blocked',
+      diagnostics: [{ code: ARXIC_AUTH_CAPABILITY_UNSUPPORTED }],
+    });
+    expect(passwordChange.diagnostics[0]!.message).toContain('no password-change route');
+    const totp = workflow(pack, 'authentication.totp');
+    expect(totp).toMatchObject({
+      outcome: 'blocked',
+      diagnostics: [{ code: ARXIC_AUTH_CAPABILITY_UNSUPPORTED }],
+    });
+    // An unsupported capability is never compiled: the compiler is never asked to compile it.
+    expect(passwordChange.bundle).toBeUndefined();
+  });
+
+  test('every candidate is hypothesized — never observed or verified at generation', () => {
+    for (const candidate of authCandidates(supportedSurface)) {
+      expect(candidate.workflow.status).toBe('hypothesized');
+    }
+    for (const candidate of authCandidates(singlePageSurface)) {
+      expect(candidate.workflow.status).toBe('hypothesized');
+    }
+  });
+
+  test('a supported password-change capability carries observed states and assertions', () => {
+    const passwordChange = authCandidates(supportedSurface).find(
+      ({ workflow }) => workflow.id === 'authentication.password-change',
+    );
+    expect(
+      passwordChange?.workflow.transitions.map(({ from, to, assertions }) => ({
+        from,
+        to,
+        assertion: assertions[0]!.intent,
+      })),
+    ).toEqual([
+      { from: 'login-page', to: 'home', assertion: 'url:/' },
+      { from: 'home', to: 'change-password-page', assertion: 'url:/change-password' },
+      {
+        from: 'change-password-page',
+        to: 'change-password-page',
+        assertion: 'text:Password changed successfully',
+      },
+    ]);
+  });
+});
+
+function workflow(pack: Awaited<ReturnType<AuthDomainPackAssembler['assemble']>>, id: string) {
+  const result = pack.workflows.find((item) => item.id === id);
+  if (!result) throw new Error(`Missing workflow ${id}`);
+  return result;
+}
 
 test('all auth diagnostic codes loop-close through the frozen validator', () => {
   for (const code of ARXIC_AUTH_DIAGNOSTIC_CODES) {

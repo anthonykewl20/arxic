@@ -36,19 +36,21 @@ describe.each(FIXTURE_APPS)('authentication domain pack real-world proof: $name'
     );
   });
 
-  test('assembles independent real Chromium auth results and explicit fixture blockers', async () => {
+  test('derives honest real-Chromium dispositions for either app from observed evidence', async () => {
     if (!running) throw new Error(`Fixture app ${app.name} did not start`);
+    const candidates = authCandidates(app.authSurface);
     const pack = await new AuthDomainPackAssembler({
       origin: running.origin,
       outputDirectory,
       artifactsDir: artifactsDirectory,
       persona: app.persona,
     }).assemble(
-      authCandidates(),
+      candidates,
       loginObservations(app, running.origin, `real-world-auth-domain-pack-${app.name}`),
     );
 
     expect(pack.coverageMatrix.denominator).toBe(6);
+    // Capabilities that require a fixture are honestly fixture-blocked on every app:
     expect(workflow(pack, 'authentication.reset-request')).toMatchObject({
       outcome: 'blocked',
       diagnostics: [{ code: 'ARXIC-AUTH-FIXTURE-UNAVAILABLE' }],
@@ -57,25 +59,33 @@ describe.each(FIXTURE_APPS)('authentication domain pack real-world proof: $name'
       outcome: 'blocked',
       diagnostics: [{ code: 'ARXIC-AUTH-FIXTURE-UNAVAILABLE' }],
     });
-    expect(workflow(pack, 'authentication.totp')).toMatchObject({
-      outcome: 'blocked',
-      diagnostics: [{ code: 'ARXIC-AUTH-FIXTURE-UNAVAILABLE' }],
-    });
 
-    if (app.name === 'reference-auth-app') {
-      expect(workflow(pack, 'authentication.login').outcome).toBe('verified');
-      expect(workflow(pack, 'authentication.logout').outcome).toBe('verified');
-      expect(workflow(pack, 'authentication.password-change').outcome).toBe('verified');
-      expect(pack.manifest).toMatchObject({ verified: 3, blocked: 3, contradicted: 0 });
-      expect(
-        pack.workflows.every((result) => result.outcome === 'verified' || !result.bundle),
-      ).toBe(true);
-    } else {
-      expect(workflow(pack, 'authentication.login').outcome).toBe('contradicted');
-      expect(workflow(pack, 'authentication.logout').outcome).toBe('contradicted');
-      expect(workflow(pack, 'authentication.password-change').outcome).toBe('contradicted');
-      expect(pack.manifest.verified ?? 0).toBe(0);
+    // Expected verified count is derived independently from the observed surface — not
+    // from the candidate builder under test — so a builder regression (e.g. login no
+    // longer generated) is caught. A capability verifies iff it is supported and needs
+    // no fixture: login and logout always verify; password-change only when supported.
+    const expectedVerified = 2 + (app.authSurface.passwordChange.supported ? 1 : 0);
+    for (const candidate of candidates) {
+      const result = workflow(pack, candidate.workflow.id);
+      if (candidate.capabilityBlocker) {
+        expect(result.outcome).toBe('blocked');
+        expect(result.diagnostics[0]?.code).toBe('ARXIC-AUTH-CAPABILITY-UNSUPPORTED');
+      } else if (candidate.fixtureBlocker) {
+        expect(result.outcome).toBe('blocked');
+        expect(result.diagnostics[0]?.code).toBe('ARXIC-AUTH-FIXTURE-UNAVAILABLE');
+      } else {
+        expect(result.outcome).toBe('verified');
+      }
     }
+    // The over-fit is gone: a structurally different app no longer yields contradictions
+    // that hide missing capabilities — every disposition is verified or honestly blocked.
+    expect(pack.manifest).toMatchObject({
+      verified: expectedVerified,
+      contradicted: 0,
+    });
+    expect(pack.workflows.every((result) => result.outcome === 'verified' || !result.bundle)).toBe(
+      true,
+    );
 
     expect(
       pack.coverageMatrix.rows.filter(({ outcome }) => outcome === 'blocked'),

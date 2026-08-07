@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { AuthDomainPackAssembler, authCandidates } from '@arxic/auth-domain-pack';
 import type { EvidenceRef } from '@arxic/contracts';
+import { referenceAuthApp } from '@arxic/real-world-testkit';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import {
   compileCoverageReport,
@@ -62,7 +63,7 @@ describe('real coverage and blocker report proof', () => {
   });
 
   test('combines real Chromium verification outcomes with actionable blockers', async () => {
-    const candidates = authCandidates();
+    const candidates = authCandidates(referenceAuthApp.authSurface);
     const persona = {
       email: 'coverage-report-proof@example.test',
       password: 'CoverageReportProof9!',
