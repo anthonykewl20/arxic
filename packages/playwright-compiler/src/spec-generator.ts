@@ -1,5 +1,8 @@
 import type { Workflow, WorkflowTransition } from '@arxic/contracts';
 
+const SUBMIT_BUTTON_NAME =
+  '/submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i';
+
 export class UnsupportedWorkflowStepError extends Error {
   readonly transition: WorkflowTransition;
 
@@ -13,6 +16,7 @@ export class UnsupportedWorkflowStepError extends Error {
 export function generateSpec(
   workflow: Workflow,
   origin: string,
+  runtimeUrl?: string,
 ): { spec: string; nonSemanticLocatorRationale?: string } {
   const lines = [
     "import { test, expect } from '../fixtures/workflow.fixture';",
@@ -27,7 +31,7 @@ export function generateSpec(
     if (action.formScoped) usedFormScope = true;
     lines.push(
       `  await test.step(${JSON.stringify(`${transition.from} → ${transition.to}`)}, async () => {`,
-      `    await page.goto(${JSON.stringify(new URL(statePath(transition.from), origin).href)});`,
+      `    await page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)});`,
       ...action.lines,
       ...renderAssertions(transition, origin),
       `    await page.screenshot({ path: ${JSON.stringify(`artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`)} });`,
@@ -57,14 +61,16 @@ function renderAction(transition: WorkflowTransition): {
     const formFilter = labels
       .map((value) => `.filter({ has: page.getByLabel(${JSON.stringify(value)}) })`)
       .join('');
+    const submitButtonFilter = `.filter({ has: page.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }) })`;
     return {
       lines: [
-        `    const form = page.locator('form')${formFilter};`,
+        `    const form = page.locator('form')${formFilter}${submitButtonFilter};`,
+        '    await expect(form).toHaveCount(1);',
         ...inputRefs.map(
           ([name, reference]) =>
             `    await form.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
         ),
-        "    await form.getByRole('button', { name: /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i }).click();",
+        `    await form.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }).click();`,
       ],
       formScoped: true,
     };
@@ -94,7 +100,9 @@ function renderAssertions(transition: WorkflowTransition, origin: string): strin
     if (assertion.intent.startsWith('url:')) {
       const expected = assertion.intent.slice(4).trim();
       if (!expected) throw unsupportedAssertion(transition);
-      return `    await expect(page).toHaveURL(${JSON.stringify(new URL(expected, origin).href)});`;
+      const expectedUrl = new URL(expected, origin).href;
+      const expectedRoute = new RegExp(`^${escapeRegExp(expectedUrl)}(?:[?#].*)?$`);
+      return `    await expect(page).toHaveURL(${expectedRoute.toString()});`;
     }
     if (assertion.intent.startsWith('text:')) {
       const expected = assertion.intent.slice(5).trim();
@@ -103,6 +111,10 @@ function renderAssertions(transition: WorkflowTransition, origin: string): strin
     }
     throw unsupportedAssertion(transition);
   });
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
 
 function unsupportedAssertion(transition: WorkflowTransition): UnsupportedWorkflowStepError {

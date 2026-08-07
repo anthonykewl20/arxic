@@ -99,7 +99,7 @@ export class PlaywrightCompiler implements WorkflowCompiler {
     let spec: string;
     let nonSemanticLocatorRationale: string | undefined;
     try {
-      const generated = generateSpec(validatedWorkflow.value, this.#origin);
+      const generated = generateSpec(validatedWorkflow.value, this.#origin, runtime.url);
       spec = generated.spec;
       nonSemanticLocatorRationale = generated.nonSemanticLocatorRationale;
     } catch (error) {
