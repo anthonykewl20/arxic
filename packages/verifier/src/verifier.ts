@@ -1,6 +1,6 @@
 import { mkdir, rm, symlink } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { basename, dirname, join } from 'node:path';
+import { dirname, join } from 'node:path';
 import type {
   ArtifactRef,
   Diagnostic,
@@ -236,15 +236,9 @@ export class PlaywrightVerifier implements WorkflowVerifier {
           detail: `run ${run} ${artifact.path} (${reason})`,
         })),
       );
+      const screenshotCount = captured.filter(({ kind }) => kind === 'screenshot').length;
       const missingScreenshots = result.passed
-        ? (policy.screenshotCheckpoints ?? []).filter(
-            (checkpoint) =>
-              !captured.some(
-                (artifact) =>
-                  artifact.kind === 'screenshot' &&
-                  screenshotMatchesCheckpoint(artifact.path, checkpoint),
-              ),
-          )
+        ? (policy.screenshotCheckpoints ?? []).slice(screenshotCount)
         : [];
       if (missingScreenshots.length > 0) {
         artifactFailures.push({
@@ -328,10 +322,4 @@ function personaEnvironment(persona: VerificationPersona | undefined): Record<st
     }
   }
   return env;
-}
-
-function screenshotMatchesCheckpoint(path: string, checkpoint: string): boolean {
-  const normalizedCheckpoint = checkpoint.replace(/[^A-Za-z0-9.-]+/gu, '-');
-  const name = basename(path, '.png');
-  return name === normalizedCheckpoint || name.endsWith(`-${normalizedCheckpoint}`);
 }

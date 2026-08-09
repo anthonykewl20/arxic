@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { chmod, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ArtifactRef, StagedBundle, Workflow } from '@arxic/contracts';
@@ -60,20 +60,105 @@ describe('PlaywrightVerifier', () => {
           ? rawTrace
           : variant === 'png-trailing-zip'
             ? Buffer.concat([validPng(), rawTrace])
-            : pngWithAncillaryPayloads([
-                rawTrace.subarray(0, split),
-                rawTrace.subarray(split),
-              ]);
+            : pngWithAncillaryPayloads([rawTrace.subarray(0, split), rawTrace.subarray(split)]);
       await mkdir(results, { recursive: true });
+      await writeFile(join(results, '00-safe.png'), validPng());
       await writeFile(source, bytes);
 
       await expect(captureRunArtifacts(outputDirectory, artifactsDirectory, 1)).rejects.toThrow(
         'strict trace-carrier-free PNG',
       );
       await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
-      await expect(readdir(join(artifactsDirectory, 'verification', 'run-1'))).resolves.toEqual([]);
+      await expect(
+        readdir(join(artifactsDirectory, 'verification', 'run-1')),
+      ).rejects.toMatchObject({ code: 'ENOENT' });
     },
   );
+
+  test('retains the exact bounded bytes read through a screenshot symlink', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-symlink-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    const screenshots = join(outputDirectory, 'artifacts', 'screenshots');
+    const sourceBytes = validPng();
+    const backing = join(outputDirectory, 'screenshot-source.bin');
+    const source = join(screenshots, 'proof.png');
+    await mkdir(screenshots, { recursive: true });
+    await writeFile(backing, sourceBytes);
+    await symlink(backing, source);
+
+    const artifacts = await captureRunArtifacts(outputDirectory, artifactsDirectory, 1);
+    await writeFile(backing, await traceZip(1));
+
+    expect(artifacts.map(({ kind }) => kind)).toEqual(['screenshot']);
+    await expect(readFile(artifacts[0]!.path)).resolves.toEqual(sourceBytes);
+  });
+
+  test.each([
+    {
+      label: 'missing',
+      fileNames: ['step-1-login-page-profile.png'],
+      checkpoints: ['home'],
+      code: 'missing-source',
+    },
+    {
+      label: 'duplicate declaration',
+      fileNames: ['home.png'],
+      checkpoints: ['home', 'home'],
+      code: 'duplicate-checkpoint',
+    },
+    {
+      label: 'ambiguous duplicate source',
+      fileNames: ['home.png', 'step-1-login-page-home.png'],
+      checkpoints: ['home'],
+      code: 'ambiguous-source',
+    },
+  ])('rejects a $label screenshot checkpoint mapping transactionally', async (scenario) => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-checkpoint-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    const screenshots = join(outputDirectory, 'artifacts', 'screenshots');
+    await mkdir(screenshots, { recursive: true });
+    for (const fileName of scenario.fileNames) {
+      await writeFile(join(screenshots, fileName), validPng());
+    }
+
+    await expect(
+      captureRunArtifacts(outputDirectory, artifactsDirectory, 1, {
+        screenshotCheckpoints: scenario.checkpoints,
+      }),
+    ).rejects.toThrow(`Screenshot checkpoint mapping failed (${scenario.code})`);
+    await expect(readdir(join(artifactsDirectory, 'verification', 'run-1'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  test('maps a rejected screenshot trace carrier to blocked without retained refs', async () => {
+    const fixture = await stagedFixture();
+    const source = join(fixture.outputDirectory, 'artifacts', 'screenshots', 'proof.png');
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await mkdir(join(fixture.outputDirectory, 'artifacts', 'screenshots'), {
+          recursive: true,
+        });
+        await writeFile(source, await traceZip(1));
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: ['login-page->home'],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, {
+      ...policy(1),
+      screenshotCheckpoints: ['home'],
+    });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.artifacts).toEqual([]);
+    await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
 
   test('maps a passing and failing split to contradicted rather than verified', async () => {
     const fixture = await stagedFixture();
@@ -458,7 +543,7 @@ function validPng(): Buffer {
 
 function pngWithAncillaryPayloads(payloads: readonly Buffer[]): Buffer {
   const png = validPng();
-  const type = Buffer.from('tEXt');
+  const type = Buffer.from('raWx');
   const chunks = payloads.map((payload) => {
     const length = Buffer.alloc(4);
     length.writeUInt32BE(payload.byteLength);

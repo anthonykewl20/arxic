@@ -48,34 +48,37 @@ re-evaluate only if release policy changes before merge.
   with capture provenance, and a README recording their limited semantics/manual
   visual review. `docs/evidence/M1-15/exploration-trace.zip` and sidecar were
   regenerated through the same final projector.
-- Current local proof on the candidate freeze: focused boundary
-  suites passed 104/104, including canonical JSONL/sidecar/ZIP fixed points,
-  cleanup-failure precedence, artifact classification, verifier, and M0 paths.
+- Current local proof on the candidate freeze: focused boundary suites passed
+  117/117, including canonical JSONL/sidecar/ZIP fixed points, cleanup-failure
+  precedence, bounded exact-byte artifact classification, transactional
+  verifier/M0 capture, and raw-trace carrier rejection before retention.
   The verifier real-world suite passed 6/6 in 59.63s, including both apps,
   all retained-ZIP inspection, neutral-name inventory, and the migrated
   M1-15 Viewer. Exploration real-world proof passed 4/4 in 13.35s after routing
-  capture through the shared sanitizer. Full repository gates and current-head
-  CI remain pending.
-- Gates: typecheck ☐ · lint ☐ · format ☐ · test ☐ · license gate ☐
+  capture through the shared sanitizer. The isolated full repository test run
+  passed 82 files / 621 tests in 421.10s. Current-head CI remains pending.
+- Gates: typecheck ☐ · lint ☑ · format ☐ · test ☑ · license gate ☐
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
-| Trigger                                                                                                                                     | Expected disposition                                                     | Test                                                              |
-| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| Malformed/truncated/unsafe-path/normalized-duplicate ZIP                                                                                    | blocked                                                                  | `packages/playwright-trace-sanitizer/src/trace-sanitizer.test.ts` |
-| Entry/count/expanded-byte/compression/archive-size bomb                                                                                     | blocked                                                                  | sanitizer archive-limit tests                                     |
-| Oversized line, deep JSON, wide nodes, newline flood, too many values/actions                                                               | blocked                                                                  | sanitizer structural-limit tests                                  |
-| Orphan `after`, unknown-only action member, invented class/method pair, no complete action                                                  | blocked                                                                  | sanitizer projection tests                                        |
-| Cookie/auth/session headers, cookies, query/post bodies, DOM/forms, resources, base64/data URLs, snapshots, sources/stacks/logs/attachments | omitted before retention                                                 | sanitizer hostile-input projection tests                          |
-| Arbitrary string IDs/apiName/class/method and numeric timing/viewport channels                                                              | remapped or omitted; observed timeline only                              | sanitizer fixed-projection tests                                  |
-| Forged sidecar/digest/extra fields/deep or oversized provenance                                                                             | blocked                                                                  | independent-inspection tests                                      |
-| Non-canonical JSONL/sidecar lexical forms and ZIP comments/extras/header/order/attribute channels                                           | blocked by semantic fixed point plus exact canonical-byte reconstruction | sanitizer and promoter no-public-write tests                      |
-| Raw ZIP renamed `.png`, PNG prefix plus trailing ZIP, mismatched kind/path                                                                  | blocked with prior output/public bytes unchanged                         | bundle-promoter assembly/sad-path tests                           |
-| Valid PNG containing legal `PK` bytes inside a CRC-valid text chunk                                                                         | accepted screenshot control                                              | assembly test                                                     |
-| Sensitive source-derived trace/screenshot filename                                                                                          | blocked; raw generated artifact removed                                  | verifier/M0/assembly filename tests                               |
-| Sanitizer failure at verifier or M0 capture                                                                                                 | blocked; no eligible timeline                                            | verifier/M0 sad-path tests                                        |
-| Exploration capture/sanitization failure                                                                                                    | blocked; raw temp source deleted and no eligible timeline retained       | exploration driver + orchestrator real-world proof                |
-| Current sanitized timeline + matching sidecar                                                                                               | eligible after independent inspection                                    | assembly/promotion happy controls                                 |
+| Trigger                                                                                                                                     | Expected disposition                                                           | Test                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Malformed/truncated/unsafe-path/normalized-duplicate ZIP                                                                                    | blocked                                                                        | `packages/playwright-trace-sanitizer/src/trace-sanitizer.test.ts` |
+| Entry/count/expanded-byte/compression/archive-size bomb                                                                                     | blocked                                                                        | sanitizer archive-limit tests                                     |
+| Oversized line, deep JSON, wide nodes, newline flood, too many values/actions                                                               | blocked                                                                        | sanitizer structural-limit tests                                  |
+| Orphan `after`, unknown-only action member, invented class/method pair, no complete action                                                  | blocked                                                                        | sanitizer projection tests                                        |
+| Cookie/auth/session headers, cookies, query/post bodies, DOM/forms, resources, base64/data URLs, snapshots, sources/stacks/logs/attachments | omitted before retention                                                       | sanitizer hostile-input projection tests                          |
+| Arbitrary string IDs/apiName/class/method and numeric timing/viewport channels                                                              | remapped or omitted; observed timeline only                                    | sanitizer fixed-projection tests                                  |
+| Forged sidecar/digest/extra fields/deep or oversized provenance                                                                             | blocked                                                                        | independent-inspection tests                                      |
+| Non-canonical JSONL/sidecar lexical forms and ZIP comments/extras/header/order/attribute channels                                           | blocked by semantic fixed point plus exact canonical-byte reconstruction       | sanitizer and promoter no-public-write tests                      |
+| Raw ZIP renamed `.png`, PNG prefix plus trailing ZIP, mismatched kind/path                                                                  | blocked with prior output/public bytes unchanged                               | bundle-promoter assembly/sad-path tests                           |
+| Raw ZIP split directly across CRC-valid private ancillary chunks                                                                            | blocked by the bounded shared classifier                                       | assembly/verifier/M0 carrier tests                                |
+| Valid PNG containing isolated `PK` bytes in a CRC-valid private ancillary chunk                                                             | accepted non-container control                                                 | assembly test                                                     |
+| Arbitrary sensitive source filename                                                                                                         | blocked and removed; policy-owned checkpoint source uses numeric retained name | verifier/M0/assembly filename tests                               |
+| Later invalid artifact after an earlier valid artifact                                                                                      | blocked; whole run destination removed                                         | verifier/M0 transactional capture tests                           |
+| Sanitizer failure at verifier or M0 capture                                                                                                 | blocked; no eligible timeline                                                  | verifier/M0 sad-path tests                                        |
+| Exploration capture/sanitization failure                                                                                                    | blocked; raw temp source deleted and no eligible timeline retained             | exploration driver + orchestrator real-world proof                |
+| Current sanitized timeline + matching sidecar                                                                                               | eligible after independent inspection                                          | assembly/promotion happy controls                                 |
 
 ## 7. Documentation and retained-evidence staleness sweep
 
@@ -94,7 +97,9 @@ Direct changes in this slice:
 - `packages/playwright-trace-sanitizer/README.md` documents ownership, exact
   projection, limits, STORED canonical-byte fixed points, output-derived action
   counts, capture-reported (not origin-authenticated) source digest, and
-  fail-closed use.
+  fail-closed use. It also documents the bounded direct trace-carrier classifier,
+  exact validated-byte handoff, and the explicit non-claim for encoded metadata,
+  valid IDAT, and pixel privacy owned by #115.
 - `packages/m0-pipeline/README.md` replaces stale “retained traces” wording with
   sanitized action timelines + provenance and does not overclaim screenshot
   safety. `packages/bundle-promoter/README.md` documents bounded content
@@ -111,7 +116,8 @@ Direct changes in this slice:
 - Root `README.md` had no numeric package-count claim; its stale “M0 in progress”
   status is changed to M1 exit hardening. ADR §18's explicit package list now
   includes `playwright-trace-sanitizer`. There are currently 20 package
-  directories; do not invent a count in root docs.
+  directories (22 workspaces including the two apps); do not invent a count in
+  root docs.
 
 Integrator-only changes (not permitted in this parallel worktree):
 

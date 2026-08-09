@@ -43,3 +43,15 @@ success. If unlink fails, it attempts truncation, removes the eligible output
 and sidecar, and returns the primary sanitizer failure plus a separate cleanup
 disposition (or `TRACE_SOURCE_CLEANUP_FAILED` after otherwise successful
 projection); callers must classify either result as blocked.
+
+The package also owns the narrow, bounded trace-carrier classifier used at
+screenshot artifact boundaries. Capture reads each candidate once, rejects a
+raw Playwright ZIP regardless of its extension, requires a complete decodable
+PNG with no trailing container, and rejects complete raw trace bytes carried
+directly in one or more ancillary chunk payloads. Callers retain the exact
+validated buffer under a generated numeric name; they do not reopen or copy the
+source path. This is a type-confusion boundary, not screenshot attestation: it
+does not decode semantic metadata carriers or establish privacy for valid IDAT
+or pixel content. #115 owns that separate screenshot privacy service. Verifier
+and M0 capture are transactional: any later artifact failure removes the whole
+run destination before the Action reports the run blocked.

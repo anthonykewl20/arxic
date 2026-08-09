@@ -5,15 +5,20 @@ import { readBoundedFile } from './zip';
 export const TRACE_CARRIER_PNG_MAX_BYTES = 32 * 1024 * 1024;
 
 export type TraceCarrierPngClassification =
-  | 'safe-png'
-  | 'embedded-playwright-trace'
-  | 'not-strict-png';
+  'safe-png' | 'embedded-playwright-trace' | 'not-strict-png';
 
 export type TraceCarrierPngReadResult =
   | Readonly<{ ok: true; bytes: Buffer }>
   | Readonly<{
       ok: false;
       classification: Exclude<TraceCarrierPngClassification, 'safe-png'> | 'unreadable';
+    }>;
+
+export type ScreenshotCheckpointValidation =
+  | Readonly<{ ok: true }>
+  | Readonly<{
+      ok: false;
+      code: 'invalid-checkpoint' | 'duplicate-checkpoint' | 'missing-source' | 'ambiguous-source';
     }>;
 
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -46,6 +51,60 @@ export async function readTraceCarrierFreePng(path: string): Promise<TraceCarrie
   } catch {
     return { ok: false, classification: 'unreadable' };
   }
+}
+
+export function isSafeScreenshotCheckpoint(
+  checkpoint: string,
+  forbiddenSubstrings: readonly string[] = [],
+): boolean {
+  return (
+    /^[a-z][a-z0-9-]{0,63}$/u.test(checkpoint) &&
+    !forbiddenSubstrings.some((value) => value.length > 0 && checkpoint.includes(value)) &&
+    !/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/iu.test(checkpoint)
+  );
+}
+
+export function isPolicyOwnedScreenshotFilename(
+  fileName: string,
+  checkpoints: readonly string[] = [],
+): boolean {
+  return checkpoints.some(
+    (checkpoint) =>
+      isSafeScreenshotCheckpoint(checkpoint) &&
+      screenshotFilenameMatchesCheckpoint(fileName, checkpoint),
+  );
+}
+
+export function validateScreenshotCheckpointFilenames(
+  fileNames: readonly string[],
+  checkpoints: readonly string[] = [],
+  forbiddenSubstrings: readonly string[] = [],
+): ScreenshotCheckpointValidation {
+  const declared = new Set<string>();
+  const matched = new Set<string>();
+  for (const checkpoint of checkpoints) {
+    if (!isSafeScreenshotCheckpoint(checkpoint, forbiddenSubstrings)) {
+      return { ok: false, code: 'invalid-checkpoint' };
+    }
+    if (declared.has(checkpoint)) return { ok: false, code: 'duplicate-checkpoint' };
+    declared.add(checkpoint);
+    const sources = fileNames.filter((fileName) =>
+      screenshotFilenameMatchesCheckpoint(fileName, checkpoint),
+    );
+    if (sources.length === 0) return { ok: false, code: 'missing-source' };
+    if (sources.length !== 1 || matched.has(sources[0]!)) {
+      return { ok: false, code: 'ambiguous-source' };
+    }
+    matched.add(sources[0]!);
+  }
+  return { ok: true };
+}
+
+function screenshotFilenameMatchesCheckpoint(fileName: string, checkpoint: string): boolean {
+  return (
+    fileName === `${checkpoint}.png` ||
+    (/^step-\d+-[a-z0-9-]+\.png$/u.test(fileName) && fileName.endsWith(`-${checkpoint}.png`))
+  );
 }
 
 function strictPngAncillaryPayloads(bytes: Buffer): readonly Buffer[] | undefined {

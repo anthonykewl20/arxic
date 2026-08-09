@@ -149,7 +149,7 @@ describe('bundle assembly and redaction gate', () => {
     await expect(readFile(marker, 'utf8')).resolves.toBe('prior output');
   });
 
-  it('accepts a structurally complete PNG even when a text chunk contains ZIP magic', async () => {
+  it('accepts a structurally complete PNG when private ancillary bytes only resemble ZIP magic', async () => {
     const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
     const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
     const screenshotDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-screenshot-'));
@@ -202,7 +202,7 @@ describe('bundle assembly and redaction gate', () => {
     ).resolves.toEqual(bytes);
   });
 
-  it('rejects a complete raw trace ZIP carried inside valid PNG ancillary data', async () => {
+  it('rejects a complete raw trace ZIP carried inside a private PNG ancillary chunk', async () => {
     const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
     const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
     const screenshotDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-embedded-zip-'));
@@ -227,7 +227,7 @@ describe('bundle assembly and redaction gate', () => {
     await expect(readFile(marker, 'utf8')).resolves.toBe('prior output');
   });
 
-  it('rejects a raw trace ZIP split across valid PNG ancillary chunks', async () => {
+  it('rejects a raw trace ZIP split across private PNG ancillary chunks', async () => {
     const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
     const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
     const screenshotDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-split-zip-'));
@@ -547,7 +547,7 @@ function pngWithAncillaryPayload(payload: Buffer): Buffer {
 
 function pngWithAncillaryPayloads(payloads: readonly Buffer[]): Buffer {
   const png = validPng();
-  const type = Buffer.from('tEXt');
+  const type = Buffer.from('raWx');
   const chunks = payloads.map((payload) => {
     const length = Buffer.alloc(4);
     length.writeUInt32BE(payload.byteLength);

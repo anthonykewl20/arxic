@@ -11,9 +11,11 @@ import type {
 import { runFallback } from '@arxic/playwright-agent-adapter';
 import {
   discardCapturedArtifact,
+  isPolicyOwnedScreenshotFilename,
   isSensitiveArtifactFilename,
   readTraceCarrierFreePng,
   sanitizeCapturedPlaywrightTrace,
+  validateScreenshotCheckpointFilenames,
 } from '@arxic/playwright-trace-sanitizer';
 import {
   ARXIC_EXIT_APP_DEFECT_CONTRADICTED,
@@ -96,13 +98,8 @@ export async function verifyStagedSuite(
     diagnostics.push(...(pass.diagnostics ?? []));
     for (const transition of pass.observedTransitions ?? []) observed.add(transition);
     const runArtifacts = pass.artifacts ?? [];
-    const missingScreenshots = (input.policy.screenshotCheckpoints ?? []).filter(
-      (checkpoint) =>
-        !runArtifacts.some(
-          (artifact) =>
-            artifact.kind === 'screenshot' && artifact.path.endsWith(`-${checkpoint}.png`),
-        ),
-    );
+    const screenshotCount = runArtifacts.filter(({ kind }) => kind === 'screenshot').length;
+    const missingScreenshots = (input.policy.screenshotCheckpoints ?? []).slice(screenshotCount);
     const missingTrace =
       input.policy.trace === 'retain' &&
       !runArtifacts.some((artifact) => artifact.kind === 'trace');
@@ -175,6 +172,7 @@ async function executeFallbackRun(
     input.artifactsDir,
     run,
     Object.values(input.persona),
+    input.policy.screenshotCheckpoints,
   );
   const networkErrors =
     result.output.match(/(?:net::ERR_[A-Z_]+|requestfailed|network error)/giu) ?? [];
@@ -207,6 +205,7 @@ export async function retainRunArtifacts(
   artifactsDir: string,
   run: number,
   forbiddenSubstrings: readonly string[],
+  screenshotCheckpoints: readonly string[] = [],
 ): Promise<ArtifactRef[]> {
   const destination = join(artifactsDir, 'verification', `run-${run}`);
   await rm(destination, { recursive: true, force: true });
@@ -216,44 +215,80 @@ export async function retainRunArtifacts(
   for (const candidate of candidates) files.push(...(await filesUnder(candidate)));
   const refs: ArtifactRef[] = [];
   const sequences = { screenshot: 0, trace: 0 };
-  for (const source of files.filter((path) => /\.(?:png|zip)$/u.test(path)).sort()) {
-    const kind = source.endsWith('.png') ? 'screenshot' : 'trace';
-    if (isSensitiveArtifactFilename(basename(source), forbiddenSubstrings)) {
-      await rejectCapturedSource(source, 'Artifact source filename rejected by retention policy');
-    }
-    const screenshot = kind === 'screenshot' ? await readTraceCarrierFreePng(source) : undefined;
-    if (screenshot && !screenshot.ok) {
-      await rejectCapturedSource(
-        source,
-        'Screenshot source is not a strict trace-carrier-free PNG',
+  const screenshotSourceNames: string[] = [];
+  try {
+    for (const source of files.filter((path) => /\.(?:png|zip)$/u.test(path)).sort()) {
+      const kind = source.endsWith('.png') ? 'screenshot' : 'trace';
+      if (
+        isSensitiveArtifactFilename(basename(source), forbiddenSubstrings) &&
+        !(
+          kind === 'screenshot' &&
+          isPolicyOwnedScreenshotFilename(basename(source), screenshotCheckpoints)
+        )
+      ) {
+        await rejectCapturedSource(source, 'Artifact source filename rejected by retention policy');
+      }
+      let screenshotBytes: Buffer | undefined;
+      if (kind === 'screenshot') {
+        const screenshot = await readTraceCarrierFreePng(source);
+        if (!screenshot.ok) {
+          await rejectCapturedSource(
+            source,
+            'Screenshot source is not a strict trace-carrier-free PNG',
+          );
+        } else {
+          screenshotBytes = screenshot.bytes;
+          screenshotSourceNames.push(basename(source));
+        }
+      }
+      sequences[kind] += 1;
+      const target = join(
+        destination,
+        `${kind}-${String(sequences[kind]).padStart(3, '0')}.${kind === 'screenshot' ? 'png' : 'zip'}`,
+      );
+      if (kind === 'screenshot') {
+        await writeFile(target, screenshotBytes!);
+        refs.push(await artifactRef(kind, target));
+        continue;
+      }
+      const provenancePath = `${target}.sanitization.json`;
+      const sanitized = await sanitizeCapturedPlaywrightTrace({
+        sourcePath: source,
+        outputPath: target,
+        provenancePath,
+        forbiddenSubstrings,
+      });
+      if (!sanitized.ok) {
+        throw new Error(`Trace sanitization failed (${sanitized.code}: ${sanitized.message})`);
+      }
+      refs.push(
+        await artifactRef('trace', target),
+        await artifactRef('trace-sanitization-report', provenancePath),
       );
     }
-    sequences[kind] += 1;
-    const target = join(
-      destination,
-      `${kind}-${String(sequences[kind]).padStart(3, '0')}.${kind === 'screenshot' ? 'png' : 'zip'}`,
-    );
-    if (kind === 'screenshot') {
-      await writeFile(target, screenshot!.ok ? screenshot!.bytes : Buffer.alloc(0));
-      refs.push(await artifactRef(kind, target));
-      continue;
-    }
-    const provenancePath = `${target}.sanitization.json`;
-    const sanitized = await sanitizeCapturedPlaywrightTrace({
-      sourcePath: source,
-      outputPath: target,
-      provenancePath,
+    const screenshotCheckpointMapping = validateScreenshotCheckpointFilenames(
+      screenshotSourceNames,
+      screenshotCheckpoints,
       forbiddenSubstrings,
-    });
-    if (!sanitized.ok) {
-      throw new Error(`Trace sanitization failed (${sanitized.code}: ${sanitized.message})`);
-    }
-    refs.push(
-      await artifactRef('trace', target),
-      await artifactRef('trace-sanitization-report', provenancePath),
     );
+    if (!screenshotCheckpointMapping.ok) {
+      throw new Error(`Screenshot checkpoint mapping failed (${screenshotCheckpointMapping.code})`);
+    }
+  } catch (error) {
+    await removeCaptureDestination(destination, error);
   }
   return refs;
+}
+
+async function removeCaptureDestination(destination: string, primary: unknown): Promise<never> {
+  try {
+    await rm(destination, { recursive: true, force: true });
+  } catch (cleanup) {
+    throw new Error('Artifact capture destination cleanup failed', {
+      cause: { primary, cleanup },
+    });
+  }
+  throw primary;
 }
 
 async function rejectCapturedSource(source: string, message: string): Promise<never> {

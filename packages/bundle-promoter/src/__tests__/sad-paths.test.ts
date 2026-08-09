@@ -466,7 +466,7 @@ function pngWithAncillaryPayloads(payloads: readonly Buffer[]): Buffer {
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
     'base64',
   );
-  const type = Buffer.from('tEXt');
+  const type = Buffer.from('raWx');
   const chunks = payloads.map((payload) => {
     const length = Buffer.alloc(4);
     length.writeUInt32BE(payload.byteLength);

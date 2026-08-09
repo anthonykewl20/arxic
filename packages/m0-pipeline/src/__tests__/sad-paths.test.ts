@@ -88,20 +88,70 @@ describe('M0 exit sad paths', () => {
           ? rawTrace
           : variant === 'png-trailing-zip'
             ? Buffer.concat([validPng(), rawTrace])
-            : pngWithAncillaryPayloads([
-                rawTrace.subarray(0, split),
-                rawTrace.subarray(split),
-              ]);
+            : pngWithAncillaryPayloads([rawTrace.subarray(0, split), rawTrace.subarray(split)]);
       await mkdir(resultDirectory, { recursive: true });
+      await writeFile(join(resultDirectory, '00-safe.png'), validPng());
       await writeFile(source, bytes);
 
       await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
         'strict trace-carrier-free PNG',
       );
       await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
-      await expect(readdir(join(artifactsDir, 'verification', 'run-1'))).resolves.toEqual([]);
+      await expect(readdir(join(artifactsDir, 'verification', 'run-1'))).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
     },
   );
+
+  it('maps a rejected screenshot trace carrier to blocked without retained refs', async () => {
+    const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-carrier-action-'));
+    const artifactsDir = await mkdtemp(join(tmpdir(), 'arxic-exit-carrier-action-retained-'));
+    const source = join(testDir, 'artifacts', 'screenshots', 'proof.png');
+    await writeFile(join(testDir, 'workflow.spec.ts'), 'test');
+
+    const result = await verifyStagedSuite({
+      workflow: loginWorkflow(),
+      origin: 'http://127.0.0.1:1',
+      testDir,
+      artifactsDir,
+      persona: { email: 'user@example.test', password: 'Hunter2!' },
+      policy: {
+        requiredRuns: 1,
+        forbidNetworkErrors: true,
+        screenshotCheckpoints: ['home'],
+        trace: 'discard',
+      },
+      resetAndSeed: async () => undefined,
+      executeRun: async () => {
+        await mkdir(join(testDir, 'artifacts', 'screenshots'), { recursive: true });
+        await writeFile(source, await sensitiveTrace('carrier-value'));
+        return {
+          passed: true,
+          artifacts: await retainRunArtifacts(testDir, artifactsDir, 1, []),
+          observedTransitions: ['login-page->home'],
+        };
+      },
+    });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.artifacts.map(({ kind }) => kind)).toEqual(['spec']);
+    await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  it('rejects a safe but unrelated screenshot as required-checkpoint evidence', async () => {
+    const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-checkpoint-source-'));
+    const artifactsDir = await mkdtemp(join(tmpdir(), 'arxic-exit-checkpoint-retained-'));
+    const screenshotDirectory = join(testDir, 'artifacts', 'screenshots');
+    await mkdir(screenshotDirectory, { recursive: true });
+    await writeFile(join(screenshotDirectory, 'step-1-login-page-profile.png'), validPng());
+
+    await expect(retainRunArtifacts(testDir, artifactsDir, 1, [], ['home'])).rejects.toThrow(
+      'Screenshot checkpoint mapping failed (missing-source)',
+    );
+    await expect(readdir(join(artifactsDir, 'verification', 'run-1'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
 
   it('removes a malformed raw M0 trace and retains nothing when sanitization blocks', async () => {
     const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-trace-source-'));
@@ -235,7 +285,7 @@ function validPng(): Buffer {
 
 function pngWithAncillaryPayloads(payloads: readonly Buffer[]): Buffer {
   const png = validPng();
-  const type = Buffer.from('tEXt');
+  const type = Buffer.from('raWx');
   const chunks = payloads.map((payload) => {
     const length = Buffer.alloc(4);
     length.writeUInt32BE(payload.byteLength);
