@@ -18,6 +18,7 @@ const artifact = (kind: 'screenshot' | 'trace', run: number) => ({
 async function scriptedVerifier(
   passes: boolean[],
   observations: string[][] = passes.map((passed) => (passed ? ['login-page->home'] : [])),
+  browserVersions: Array<string | undefined> = [],
 ) {
   const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-sad-'));
   await writeFile(join(testDir, 'workflow.spec.ts'), 'test');
@@ -31,6 +32,7 @@ async function scriptedVerifier(
     resetAndSeed: async () => undefined,
     executeRun: async (run): Promise<StagedSuitePass> => ({
       passed: passes[run - 1] ?? false,
+      ...(browserVersions[run - 1] ? { browserVersion: browserVersions[run - 1] } : {}),
       artifacts: [artifact('screenshot', run), artifact('trace', run)],
       observedTransitions: observations[run - 1] ?? [],
     }),
@@ -334,6 +336,22 @@ describe('M0 exit sad paths', () => {
     expect(result).not.toHaveProperty('receipt');
   });
 
+  it.each([
+    { name: 'missing', versions: [undefined, undefined] },
+    { name: 'inconsistent', versions: ['140.0.0', '141.0.0'] },
+  ])('blocks otherwise-clean runs with $name browser version evidence', async ({ versions }) => {
+    const result = await scriptedVerifier([true, true], undefined, versions);
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'ARXIC-EXIT-EVIDENCE-GATE-BLOCKED',
+        severity: 'blocked',
+      }),
+    );
+    expect(result).not.toHaveProperty('receipt');
+  });
+
   it.each(['config', 'spec'] as const)(
     'blocks when the generated %s instrumentation seam drifts',
     async (drift) => {
@@ -362,6 +380,43 @@ describe('M0 exit sad paths', () => {
         expect(result.outcome).toBe('blocked');
         expect(result.diagnostics.map(({ code }) => code)).toContain('ARXIC-EXIT-COMPILE-FAILED');
         expect(result.runs).toEqual([]);
+      });
+    },
+  );
+
+  it.each(['doc:bogus', 'run:bogus'])(
+    'blocks unresolved pre-verification evidence %s without replacing public bytes',
+    async (unresolvedId) => {
+      await withAttestedTarget(async (origin, artifactsDir) => {
+        const candidate = loginWorkflow();
+        candidate.verification.requiredRuns = 1;
+        candidate.evidenceRefs = [unresolvedId];
+        candidate.transitions = candidate.transitions.map((transition) => ({
+          ...transition,
+          evidenceRefs: [unresolvedId],
+        }));
+        const publicPath = join(artifactsDir, 'promoted', `${candidate.id}.bundle.json`);
+        const prior = Buffer.from('prior promoted bundle');
+        await mkdir(join(artifactsDir, 'promoted'), { recursive: true });
+        await writeFile(publicPath, prior);
+        const pipeline = new M0Pipeline();
+
+        const result = await pipeline.run({
+          ...pipelineInput(origin, artifactsDir),
+          candidate,
+          requiredRuns: 1,
+        });
+
+        expect(result.outcome).toBe('blocked');
+        expect(result.receipt).toBeUndefined();
+        expect(result.diagnostics).toContainEqual(
+          expect.objectContaining({
+            code: 'ARXIC-EXIT-EVIDENCE-GATE-BLOCKED',
+            severity: 'blocked',
+          }),
+        );
+        expect(JSON.stringify(result.diagnostics)).not.toContain(unresolvedId);
+        expect(await readFile(publicPath)).toEqual(prior);
       });
     },
   );
@@ -451,16 +506,37 @@ async function withAttestedTarget(
 ): Promise<void> {
   const artifactsDir = await mkdtemp(join(tmpdir(), 'arxic-exit-pipeline-sad-'));
   let origin = '';
-  const server = createServer((_request, response) => {
-    response.setHeader('content-type', 'application/json');
+  const server = createServer((request, response) => {
+    if (request.url === '/.well-known/arxic-test-target.json') {
+      response.setHeader('content-type', 'application/json');
+      response.end(
+        JSON.stringify({
+          environmentClass: 'local-test',
+          origin,
+          allowedOrigins: [origin],
+          buildDigest: 'a'.repeat(64),
+          nonce: 'reference-auth-app-fixture-v1',
+        }),
+      );
+      return;
+    }
+    if (request.url?.startsWith('/api/__arxic/')) {
+      response.setHeader('content-type', 'application/json');
+      response.end('{}');
+      return;
+    }
+    if (request.method === 'POST') {
+      request.resume();
+      response.statusCode = 303;
+      response.setHeader('location', '/');
+      response.end();
+      return;
+    }
+    response.setHeader('content-type', 'text/html');
     response.end(
-      JSON.stringify({
-        environmentClass: 'local-test',
-        origin,
-        allowedOrigins: [origin],
-        buildDigest: 'a'.repeat(64),
-        nonce: 'reference-auth-app-fixture-v1',
-      }),
+      request.url === '/login'
+        ? '<h1>Reference Auth App</h1><form action="/" method="post"><label>Email<input name="email"></label><label>Password<input name="password" type="password"></label><button>Login</button></form>'
+        : '<h1>Reference Auth App</h1>',
     );
   });
   await new Promise<void>((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));

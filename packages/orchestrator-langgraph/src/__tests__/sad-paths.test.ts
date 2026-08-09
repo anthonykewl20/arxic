@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
+import type { StagedBundle, Workflow } from '@arxic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
@@ -246,9 +247,11 @@ describe('orchestrator sad paths', () => {
   }, 60_000);
 
   it('promotes a verifier-confirmed staged bundle', async () => {
-    const stagedBundle = {} as never;
+    const stagedBundle = coherentObservedBundle();
+    const original = structuredClone(stagedBundle);
     const checkpointer = new InMemoryStageCheckpointer();
     let promotionEligible = false;
+    let promotedBundle: StagedBundle | undefined;
     const result = await new LangGraphOrchestrator({
       checkpointer,
       inferCandidates: async () => validInference('positive-request'),
@@ -257,14 +260,15 @@ describe('orchestrator sad paths', () => {
         outcome: 'verified',
         stagedBundle,
         diagnostics: [],
-        artifacts: [],
+        artifacts: [{ kind: 'screenshot', path: '/safe/signed-in.png', sha256: 'e'.repeat(64) }],
         runs: [{ passed: true }, { passed: true }],
         gates: [{ gate: 'verify', passed: true }],
       }),
-      promote: async () => {
+      promote: async (bundle) => {
         promotionEligible = true;
+        promotedBundle = bundle;
         return {
-          manifest: {} as never,
+          manifest: bundle.manifest,
           promotedAt: '2026-08-05T12:00:00.000Z',
           location: 'test://promoted',
           checksumSha256: 'a'.repeat(64),
@@ -277,10 +281,83 @@ describe('orchestrator sad paths', () => {
     expect((await checkpointer.load('positive-promotion'))?.status).toBe('completed');
     expect(result.receipt).toBeDefined();
     expect(promotionEligible).toBe(true);
+    expect(promotedBundle?.workflow.status).toBe('verified');
+    expect(promotedBundle?.manifest.workflow).toEqual({
+      id: promotedBundle?.workflow.id,
+      status: 'verified',
+    });
+    expect(promotedBundle?.manifest.fileHashes).toEqual(
+      promotedBundle?.artifacts.map(({ path, sha256 }) => ({ path, sha256 })),
+    );
+    expect(stagedBundle).toEqual(original);
   }, 60_000);
 
+  it('blocks a forged verified result with incomplete deterministic evidence', async () => {
+    const stagedBundle = coherentObservedBundle();
+    let promoted = false;
+    const result = await new LangGraphOrchestrator({
+      checkpointer: new InMemoryStageCheckpointer(),
+      inferCandidates: async () => validInference('forged-verified-request'),
+      compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+      verify: async () => ({
+        outcome: 'verified',
+        stagedBundle,
+        diagnostics: [],
+        artifacts: [],
+        runs: [{ passed: false }],
+        gates: [{ gate: 'verify', passed: true }],
+      }),
+      promote: async () => {
+        promoted = true;
+        throw new Error('Forged verified output must not promote');
+      },
+    }).run(input('forged-verified'));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: 'ARXIC-ORCH-STAGE-BLOCKED', severity: 'blocked' }),
+    );
+    expect(result.receipt).toBeUndefined();
+    expect(promoted).toBe(false);
+  }, 60_000);
+
+  it.each([
+    { name: 'missing', gates: [] },
+    { name: 'failed', gates: [{ gate: 'verify', passed: false }] },
+  ])(
+    'blocks all-pass verifier output when its verify gate is $name',
+    async ({ gates }) => {
+      const stagedBundle = coherentObservedBundle();
+      let promoted = false;
+      const result = await new LangGraphOrchestrator({
+        checkpointer: new InMemoryStageCheckpointer(),
+        inferCandidates: async () => validInference('failed-verify-gate-request'),
+        compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+        verify: async () => ({
+          outcome: 'verified',
+          stagedBundle,
+          diagnostics: [],
+          artifacts: [],
+          runs: [{ passed: true }, { passed: true }],
+          gates,
+        }),
+        promote: async () => {
+          promoted = true;
+          throw new Error('A failed verifier gate must block before promotion');
+        },
+      }).run(input(`invalid-verify-gate-${gates.length}`));
+
+      expect(result.outcome).toBe('blocked');
+      expect(result.diagnostics).toContainEqual(
+        expect.objectContaining({ code: 'ARXIC-ORCH-STAGE-BLOCKED', severity: 'blocked' }),
+      );
+      expect(promoted).toBe(false);
+    },
+    60_000,
+  );
+
   it('completes a usable soft-blocked stage but suppresses promotion', async () => {
-    const stagedBundle = {} as never;
+    const stagedBundle = coherentObservedBundle();
     let promoted = false;
     const result = await new LangGraphOrchestrator({
       checkpointer: new InMemoryStageCheckpointer(),
@@ -312,7 +389,7 @@ describe('orchestrator sad paths', () => {
 
   it('allows a resumed verified run to promote with an observed resume diagnostic', async () => {
     const runs = await temporaryDirectory('resume-promote-runs-');
-    const stagedBundle = {} as never;
+    const stagedBundle = coherentObservedBundle();
     await expect(
       new LangGraphOrchestrator({
         checkpointer: new FileStageCheckpointer(runs),
@@ -533,6 +610,73 @@ function validInference(
       },
     ],
   } as const;
+}
+
+function coherentObservedBundle(): StagedBundle {
+  const workflow = structuredClone(
+    validInference('bundle').candidates[0]!.workflow,
+  ) as unknown as Workflow;
+  const runtimeId = 'run:deterministic-verifier';
+  workflow.evidenceRefs = [...workflow.evidenceRefs, runtimeId];
+  workflow.transitions = workflow.transitions.map((transition) => ({
+    ...transition,
+    evidenceRefs: [...transition.evidenceRefs, runtimeId],
+  }));
+  const artifact = {
+    kind: 'playwright-spec',
+    path: 'tests/workflow.spec.ts',
+    sha256: 'd'.repeat(64),
+  };
+  return {
+    workflow,
+    evidenceIndex: {
+      'src:test-candidate': {
+        kind: 'source',
+        repo: pathToFileURL(repository).href,
+        commit,
+        path: 'page.tsx',
+        startLine: 1,
+        endLine: 1,
+        blobSha256: 'b'.repeat(64),
+        extractor: 'orchestrator-test',
+      },
+      [runtimeId]: {
+        kind: 'runtime',
+        runId: 'deterministic-verifier',
+        appBuildDigest: 'a'.repeat(64),
+        browser: 'chromium',
+        browserVersion: '140.0.0',
+        url: origin,
+        timestamp: '2026-08-05T12:00:00.000Z',
+      },
+    },
+    artifacts: [artifact],
+    plan: 'Replay the observed workflow.',
+    manifest: {
+      schemaVersion: 1,
+      bundleVersion: 1,
+      workflow: { id: workflow.id, status: workflow.status },
+      repository: pathToFileURL(repository).href,
+      commit,
+      appBuildDigest: 'a'.repeat(64),
+      environment: { class: 'local-test', browser: 'chromium' },
+      generator: { id: '@arxic/playwright-compiler', version: '0.0.0' },
+      verification: {
+        requiredRuns: 2,
+        runs: [
+          {
+            startedAt: '2026-08-05T12:00:00.000Z',
+            finishedAt: '2026-08-05T12:00:00.000Z',
+            passed: false,
+          },
+        ],
+      },
+      fileHashes: [{ path: artifact.path, sha256: artifact.sha256 }],
+      gateResults: [{ gate: 'compile', passed: true }],
+      coverage: { denominator: 1, uncovered: 1 },
+      runId: 'deterministic-verifier',
+    },
+  };
 }
 
 async function persistedBytes(runs: string, runId: string): Promise<string> {

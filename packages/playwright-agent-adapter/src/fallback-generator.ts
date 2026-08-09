@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import type { Diagnostic, TruthState, Workflow } from '@arxic/contracts';
 import { validateWorkflow } from '@arxic/contracts';
 import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
+import { chromium } from '@playwright/test';
 import {
   ARXIC_AGENT_FALLBACK_FAILED,
   ARXIC_AGENT_WORKFLOW_INVALID,
@@ -118,6 +119,15 @@ export async function runFallback({ testDir }: { testDir: string }): Promise<Fal
     };
   } catch (error) {
     return failedFallback(error, listOutput);
+  }
+}
+
+export async function installedChromiumVersion(): Promise<string> {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    return browser.version();
+  } finally {
+    await browser.close();
   }
 }
 

@@ -20,6 +20,7 @@ import {
   BundlePromoterAdapter,
   freezeBundle,
   PromotionError,
+  projectVerifiedBundle,
 } from '..';
 import { stagedBundle } from './bundle-fixture';
 
@@ -98,6 +99,166 @@ describe('promotion sad paths map to blocked', () => {
     expect(await readFile(publicPath)).toEqual(prior);
   });
 
+  it.each([
+    {
+      name: 'workflow id mismatch',
+      mutate: (bundle: StagedBundle) => {
+        bundle.workflow.id = 'authentication.other';
+      },
+    },
+    {
+      name: 'manifest observed but workflow verified',
+      mutate: (bundle: StagedBundle) => {
+        bundle.workflow.status = 'verified';
+      },
+    },
+    {
+      name: 'manifest verified but workflow hypothesized',
+      mutate: (bundle: StagedBundle) => {
+        bundle.manifest.workflow.status = 'verified';
+        bundle.workflow.status = 'hypothesized';
+      },
+    },
+    {
+      name: 'verified status without deterministic verifier evidence',
+      mutate: (bundle: StagedBundle) => {
+        bundle.manifest.workflow.status = 'verified';
+        bundle.workflow.status = 'verified';
+      },
+    },
+    {
+      name: 'artifact hash mismatch',
+      mutate: (bundle: StagedBundle) => {
+        bundle.manifest.fileHashes[0]!.sha256 = 'f'.repeat(64);
+      },
+    },
+    {
+      name: 'undeclared artifact reference',
+      mutate: (bundle: StagedBundle) => {
+        bundle.manifest.fileHashes = [];
+      },
+    },
+  ])('blocks $name before replacing public bytes', async ({ mutate }) => {
+    const publicPath = await promotionPath();
+    const prior = Buffer.from('prior promoted bundle');
+    await writeFile(publicPath, prior);
+    const bundle = await stagedBundle();
+    mutate(bundle);
+
+    const result = await new BundlePromoterAdapter({ publicPath }).promoteWithDiagnostics(bundle, [
+      { gate: 'delivery', passed: true },
+    ]);
+
+    expect(result).toMatchObject({
+      diagnostics: [{ code: ARXIC_PROMOTION_VALIDATION_FAILED, severity: 'blocked' }],
+    });
+    expect(await readFile(publicPath)).toEqual(prior);
+  });
+
+  it('redacts contradictory workflow values from its stable loop-closed diagnostic', async () => {
+    const publicPath = await promotionPath();
+    const bundle = await stagedBundle();
+    const canary = 'credential-canary@example.com';
+    bundle.workflow.id = canary;
+
+    const result = await new BundlePromoterAdapter({ publicPath }).promoteWithDiagnostics(bundle, [
+      { gate: 'delivery', passed: true },
+    ]);
+
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: ARXIC_PROMOTION_VALIDATION_FAILED,
+        severity: 'blocked',
+        subject: 'bundle.workflow',
+      }),
+    ]);
+    expect(JSON.stringify(result.diagnostics)).not.toContain(canary);
+  });
+
+  it.each([
+    {
+      name: 'empty evidence index',
+      mutate: (bundle: StagedBundle) => {
+        bundle.evidenceIndex = {};
+      },
+    },
+    {
+      name: 'run id mapped to non-runtime evidence',
+      mutate: (bundle: StagedBundle) => {
+        bundle.evidenceIndex['run:login'] = {
+          kind: 'source',
+          repo: 'https://github.com/anthonykewl20/arxic',
+          commit: '0123456789abcdef0123456789abcdef01234567',
+          path: 'app/login/actions.ts',
+          startLine: 1,
+          endLine: 1,
+          blobSha256: 'a'.repeat(64),
+          extractor: 'forged-runtime',
+        };
+      },
+    },
+    {
+      name: 'failed non-verifier gate',
+      mutate: (bundle: StagedBundle) => {
+        bundle.manifest.gateResults.unshift({ gate: 'policy', passed: false });
+      },
+    },
+    {
+      name: 'retained blocker',
+      mutate: (bundle: StagedBundle) => {
+        bundle.manifest.blockers = [
+          {
+            code: 'ARXIC-TEST-BLOCKER',
+            severity: 'blocked',
+            subject: 'bundle',
+            message: 'A blocker remains',
+          },
+        ];
+      },
+    },
+    {
+      name: 'contradictory verified coverage',
+      mutate: (bundle: StagedBundle) => {
+        bundle.manifest.coverage = { denominator: 1, verified: 0, uncovered: 1 };
+      },
+    },
+  ])('rejects verified bytes with $name and preserves prior public bytes', async ({ mutate }) => {
+    const publicPath = await promotionPath();
+    const prior = Buffer.from('prior promoted bundle');
+    await writeFile(publicPath, prior);
+    const bundle = await verifiedBundle();
+    mutate(bundle);
+
+    const result = await new BundlePromoterAdapter({ publicPath }).promoteWithDiagnostics(bundle, [
+      { gate: 'delivery', passed: true },
+    ]);
+
+    expect(result).toMatchObject({
+      diagnostics: [{ code: ARXIC_PROMOTION_VALIDATION_FAILED, severity: 'blocked' }],
+    });
+    expect(await readFile(publicPath)).toEqual(prior);
+  });
+
+  it('rejects an incomplete verified projection without manufacturing partial verified state', async () => {
+    const bundle = await stagedBundle();
+    const original = structuredClone(bundle);
+
+    const result = projectVerifiedBundle(
+      bundle,
+      {
+        outcome: 'verified',
+        diagnostics: [],
+        artifacts: [],
+        runs: [{ passed: false }],
+        gates: [{ gate: 'verify', passed: true }],
+      },
+      '2026-08-05T13:00:00.000Z',
+    );
+
+    expect(result).toEqual({ ok: false, reason: 'verification-evidence-incomplete' });
+    expect(bundle).toEqual(original);
+  });
+
   it('blocks a concurrent contender and leaves one complete canonical bundle', async () => {
     const publicPath = await promotionPath();
     const first = await stagedBundle('concurrent-1');
@@ -122,12 +283,14 @@ describe('promotion sad paths map to blocked', () => {
   it('blocks a failed gate before any filesystem write', async () => {
     const publicPath = await promotionPath();
     const adapter = new BundlePromoterAdapter({ publicPath });
+    const canary = 'credential-canary@example.com';
     const result = await adapter.promoteWithDiagnostics(await stagedBundle(), [
-      { gate: 'execution', passed: false },
+      { gate: canary, passed: false },
     ]);
     expect(result).toMatchObject({
       diagnostics: [{ code: ARXIC_PROMOTION_GATE_FAILED, severity: 'blocked' }],
     });
+    expect(JSON.stringify(result.diagnostics)).not.toContain(canary);
     await expect(readFile(publicPath)).rejects.toMatchObject({ code: 'ENOENT' });
     await expect(
       adapter.promote(await stagedBundle(), [{ gate: 'execution', passed: false }]),
@@ -156,6 +319,7 @@ describe('promotion sad paths map to blocked', () => {
         sha256: digest(await readFile(reportPath)),
       },
     );
+    synchronizeArtifactHashes(bundle);
     await expect(
       new BundlePromoterAdapter({ publicPath: join(directory, 'accepted.json') }).promote(bundle, [
         { gate: 'execution', passed: true },
@@ -165,6 +329,7 @@ describe('promotion sad paths map to blocked', () => {
     const changedBytes = Buffer.concat([await readFile(tracePath), Buffer.from([0])]);
     await writeFile(tracePath, changedBytes);
     bundle.artifacts.find(({ kind }) => kind === 'trace')!.sha256 = digest(changedBytes);
+    synchronizeArtifactHashes(bundle);
     const publicPath = join(directory, 'blocked.json');
     const result = await new BundlePromoterAdapter({ publicPath }).promoteWithDiagnostics(bundle, [
       { gate: 'execution', passed: true },
@@ -217,6 +382,7 @@ describe('promotion sad paths map to blocked', () => {
         { kind: 'trace', path: tracePath, sha256: digest(trace) },
         { kind: 'trace-sanitization-report', path: reportPath, sha256: digest(report) },
       );
+      synchronizeArtifactHashes(bundle);
       const publicPath = join(directory, 'public.json');
       await writeFile(publicPath, 'prior public bytes');
 
@@ -244,6 +410,7 @@ describe('promotion sad paths map to blocked', () => {
       { kind: 'trace', path: tracePath, sha256: '0'.repeat(64) },
       { kind: 'trace-sanitization-report', path: reportPath, sha256: digest('{}') },
     );
+    synchronizeArtifactHashes(bundle);
     const publicPath = join(directory, 'public.json');
 
     const result = await new BundlePromoterAdapter({ publicPath }).promoteWithDiagnostics(bundle, [
@@ -277,6 +444,7 @@ describe('promotion sad paths map to blocked', () => {
       { kind: 'trace', path: tracePath, sha256: digest(await readFile(tracePath)) },
       { kind: 'trace-sanitization-report', path: reportPath, sha256: '0'.repeat(64) },
     );
+    synchronizeArtifactHashes(bundle);
     const publicPath = join(directory, 'public.json');
 
     const result = await new BundlePromoterAdapter({ publicPath }).promoteWithDiagnostics(bundle, [
@@ -299,6 +467,7 @@ describe('promotion sad paths map to blocked', () => {
       path: rawPath,
       sha256: digest(await readFile(rawPath)),
     });
+    synchronizeArtifactHashes(bundle);
     const publicPath = join(directory, 'public.json');
     await writeFile(publicPath, 'prior public bytes');
 
@@ -325,6 +494,7 @@ describe('promotion sad paths map to blocked', () => {
       path: screenshotPath,
       sha256: digest(bytes),
     });
+    synchronizeArtifactHashes(bundle);
     const publicPath = join(directory, 'public.json');
     await writeFile(publicPath, 'prior public bytes');
 
@@ -351,6 +521,7 @@ describe('promotion sad paths map to blocked', () => {
       path: screenshotPath,
       sha256: digest(bytes),
     });
+    synchronizeArtifactHashes(bundle);
     const publicPath = join(directory, 'public.json');
     await writeFile(publicPath, 'prior public bytes');
 
@@ -485,4 +656,24 @@ function testCrc32(bytes: Buffer): number {
     for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
   }
   return (crc ^ 0xffffffff) >>> 0;
+}
+
+async function verifiedBundle(): Promise<StagedBundle> {
+  const projection = projectVerifiedBundle(
+    await stagedBundle(),
+    {
+      outcome: 'verified',
+      diagnostics: [],
+      artifacts: [],
+      runs: [{ passed: true }],
+      gates: [{ gate: 'verify', passed: true }],
+    },
+    '2026-08-05T13:00:00.000Z',
+  );
+  if (!projection.ok) throw new Error(projection.reason);
+  return projection.value;
+}
+
+function synchronizeArtifactHashes(bundle: StagedBundle): void {
+  bundle.manifest.fileHashes = bundle.artifacts.map(({ path, sha256 }) => ({ path, sha256 }));
 }

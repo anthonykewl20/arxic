@@ -62,6 +62,7 @@ describe('M0 exit contract gate', () => {
       resetAndSeed: async () => undefined,
       executeRun: async (run) => ({
         passed: passes[run - 1] ?? false,
+        browserVersion: '140.0.0',
         artifacts: [
           { kind: 'screenshot', path: `/run-${run}.png`, sha256: 'c'.repeat(64) },
           { kind: 'trace', path: `/run-${run}.zip`, sha256: 'd'.repeat(64) },

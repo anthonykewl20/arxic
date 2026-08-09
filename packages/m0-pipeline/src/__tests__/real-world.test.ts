@@ -7,7 +7,7 @@ import { basename, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import type { StagedBundle } from '@arxic/contracts';
-import { validateManifest } from '@arxic/contracts';
+import { validateManifest, validateWorkflow } from '@arxic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runM0Vertical } from '..';
 import { loginWorkflow, screenshotPrivacyPolicy } from './workflow-fixture';
@@ -103,6 +103,14 @@ describe('real M0 login vertical', () => {
     );
     const promoted = JSON.parse(promotedBytes.toString('utf8')) as StagedBundle;
     expect(validateManifest(promoted.manifest)).toEqual(expect.objectContaining({ ok: true }));
+    expect(validateWorkflow(promoted.workflow)).toEqual(expect.objectContaining({ ok: true }));
+    expect(promoted.workflow).toMatchObject({
+      id: promoted.manifest.workflow.id,
+      status: 'verified',
+    });
+    expect(promoted.manifest.fileHashes).toEqual(
+      promoted.artifacts.map(({ path, sha256 }) => ({ path, sha256 })),
+    );
     for (const evidenceId of promoted.workflow.evidenceRefs) {
       expect(promoted.evidenceIndex[evidenceId]).toBeDefined();
     }

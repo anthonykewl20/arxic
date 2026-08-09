@@ -15,7 +15,11 @@ import {
   PACKAGE_NAME as AST_GREP_PACKAGE,
   type AstGrepScanResult,
 } from '@arxic/ast-grep-adapter';
-import { BundlePromoterAdapter, PACKAGE_NAME as PROMOTER_PACKAGE } from '@arxic/bundle-promoter';
+import {
+  BundlePromoterAdapter,
+  PACKAGE_NAME as PROMOTER_PACKAGE,
+  projectVerifiedBundle,
+} from '@arxic/bundle-promoter';
 import {
   CrawleeSurfaceDiscoverer,
   PACKAGE_NAME as CRAWLEE_PACKAGE,
@@ -542,13 +546,58 @@ export class LangGraphOrchestrator {
   async #verify(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
     const compilation = await this.#artifact<CompilationResult>(state, input, 9);
     const result = await (this.#options.verify ?? defaultVerify)(compilation);
+    if (result.outcome === 'verified') {
+      const projection = result.stagedBundle
+        ? projectVerifiedBundle(result.stagedBundle, result, this.#now())
+        : { ok: false as const, reason: 'verification-evidence-incomplete' as const };
+      if (!projection.ok) {
+        const diagnostic = orchDiagnostic(
+          ARXIC_ORCH_STAGE_BLOCKED,
+          'blocked',
+          'stage-10',
+          'Deterministic verifier output could not produce one coherent staged bundle',
+        );
+        const blocked: VerificationNodeResult = {
+          ...result,
+          outcome: 'blocked',
+          diagnostics: [...result.diagnostics, diagnostic],
+          gates: [
+            ...result.gates.filter(({ gate }) => gate !== 'verify'),
+            { gate: 'verify', passed: false, diagnostics: [diagnostic] },
+          ],
+        };
+        return {
+          artifact: blocked,
+          adapter: '@arxic/verifier:seam',
+          diagnostics: blocked.diagnostics,
+          blocked: true,
+          partial: true,
+          promotionEligible: false,
+          outcome: 'blocked',
+          gates: blocked.gates,
+        };
+      }
+      const projected: VerificationNodeResult = {
+        ...result,
+        stagedBundle: projection.value,
+      };
+      return {
+        artifact: projected,
+        adapter: '@arxic/verifier:seam',
+        diagnostics: projected.diagnostics,
+        partial: false,
+        promotionEligible: true,
+        outcome: 'verified',
+        gates: projected.gates,
+      };
+    }
     return {
       artifact: result,
       adapter: '@arxic/verifier:seam',
       diagnostics: [...result.diagnostics],
       blocked: result.outcome === 'blocked',
-      partial: result.outcome !== 'verified',
-      promotionEligible: result.outcome === 'verified' && result.stagedBundle !== undefined,
+      partial: true,
+      promotionEligible: false,
       outcome: result.outcome,
       gates: [...result.gates],
     };
