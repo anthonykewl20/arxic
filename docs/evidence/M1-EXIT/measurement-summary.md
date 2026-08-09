@@ -36,3 +36,13 @@ reference-auth-app 14/14 MET · vulnerable-auth-app 13/14 MET, §23.12 UNMET
 (test gap, filed as #109). Full table in `docs/_slice-notes/M1-EXIT.md` §6.
 Verdict recorded: **M1 does not exit** pending §23.12 Express coverage — the
 integrator's call on this evidence.
+
+## Supersession note (2026-08-09)
+
+Issue #109's `M1-EXIT-23-12` slice supersedes only the §23.12 gap recorded above:
+`packages/bundle-promoter/src/__tests__/promotion-real-world.test.ts` now runs one
+generic compile → two-pass real-Chromium verification → promotion → blocked
+subsequent-promotion proof over both `FIXTURE_APPS` entries and asserts exact prior
+public bytes. Retained screenshots, traces, and the per-test summary live under
+`docs/evidence/M1-EXIT-23-12/`. This file remains the historical baseline for the
+other thirteen criteria; the integrator still owns the final #27 gate remeasurement.
