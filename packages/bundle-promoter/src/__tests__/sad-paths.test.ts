@@ -343,10 +343,7 @@ describe('promotion sad paths map to blocked', () => {
     const screenshotPath = join(directory, 'proof.png');
     const rawTrace = await sensitiveTrace();
     const split = Math.floor(rawTrace.byteLength / 2);
-    const bytes = pngWithAncillaryPayloads([
-      rawTrace.subarray(0, split),
-      rawTrace.subarray(split),
-    ]);
+    const bytes = pngWithAncillaryPayloads([rawTrace.subarray(0, split), rawTrace.subarray(split)]);
     await writeFile(screenshotPath, bytes);
     const bundle = await stagedBundle('split-trace');
     bundle.artifacts.push({

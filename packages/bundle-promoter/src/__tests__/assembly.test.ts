@@ -235,10 +235,7 @@ describe('bundle assembly and redaction gate', () => {
     const marker = join(outputDirectory, 'prior-output.txt');
     const rawTrace = await sensitiveTrace('split-credential');
     const split = Math.floor(rawTrace.byteLength / 2);
-    const bytes = pngWithAncillaryPayloads([
-      rawTrace.subarray(0, split),
-      rawTrace.subarray(split),
-    ]);
+    const bytes = pngWithAncillaryPayloads([rawTrace.subarray(0, split), rawTrace.subarray(split)]);
     await writeFile(screenshot, bytes);
     await writeFile(marker, 'prior output');
     const bundle = await stagedAssemblyBundle(stagedDirectory);
