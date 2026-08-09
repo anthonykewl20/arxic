@@ -5,6 +5,7 @@ import {
   classifyTraceCarrierPng,
   DEFAULT_TRACE_ARCHIVE_LIMITS,
   inspectPlaywrightTrace,
+  isRetainedScreenshotCheckpointFilename,
   isBoundedPlaywrightTraceArchive,
   isSensitiveArtifactFilename,
   readBoundedFile,
@@ -47,7 +48,11 @@ export async function validateTraceArtifacts(
         (artifact.kind === 'trace' ||
           artifact.kind === 'screenshot' ||
           artifact.kind === 'trace-sanitization-report') &&
-        isSensitiveArtifactFilename(basename(artifact.path))
+        isSensitiveArtifactFilename(basename(artifact.path)) &&
+        !(
+          artifact.kind === 'screenshot' &&
+          isRetainedScreenshotCheckpointFilename(basename(artifact.path))
+        )
       ) {
         return { ok: false, reason: 'Artifact filename contains sensitive context' };
       }

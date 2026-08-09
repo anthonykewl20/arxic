@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve, sep } from 'node:path';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import type { ArtifactRef, StagedBundle } from '@arxic/contracts';
 import { validateTraceArtifacts } from './trace-artifact-gate';
 
@@ -105,7 +105,10 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
   for (const artifact of verificationArtifacts) {
     const kind = artifact.kind === 'trace' ? 'trace' : 'screenshot';
     artifactSequences[kind] += 1;
-    const name = `${String(artifactSequences[kind]).padStart(3, '0')}-${kind}.${kind === 'trace' ? 'zip' : 'png'}`;
+    const name =
+      kind === 'trace'
+        ? `${String(artifactSequences.trace).padStart(3, '0')}-trace.zip`
+        : `${String(artifactSequences.screenshot).padStart(3, '0')}-${basename(artifact.path)}`;
     const kindDirectory = kind === 'screenshot' ? 'screenshots' : 'traces';
     if (kind === 'trace') {
       const validated = validatedTraces.get(artifact.path);

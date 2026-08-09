@@ -154,6 +154,45 @@ describe('M0 exit sad paths', () => {
     });
   });
 
+  it('fails closed on injected screenshots whose count matches but checkpoint binding does not', async () => {
+    const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-injected-checkpoint-'));
+    await writeFile(join(testDir, 'workflow.spec.ts'), 'test');
+
+    const result = await verifyStagedSuite({
+      workflow: loginWorkflow(),
+      origin: 'http://127.0.0.1:1',
+      testDir,
+      artifactsDir: testDir,
+      persona: { email: 'user@example.test', password: 'Hunter2!' },
+      policy: {
+        requiredRuns: 1,
+        forbidNetworkErrors: true,
+        screenshotCheckpoints: ['step-2', 'step-10'],
+        trace: 'discard',
+      },
+      resetAndSeed: async () => undefined,
+      executeRun: async () => ({
+        passed: true,
+        artifacts: [
+          {
+            kind: 'screenshot',
+            path: '/runtime/001-step-1-login-page-step-10.png',
+            sha256: '1'.repeat(64),
+          },
+          {
+            kind: 'screenshot',
+            path: '/runtime/002-step-2-login-page-step-10.png',
+            sha256: '2'.repeat(64),
+          },
+        ],
+        observedTransitions: ['login-page->home'],
+      }),
+    });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics.at(-1)?.message).toContain('screenshots step-2');
+  });
+
   it('rejects an external screenshot symlink at the M0 capture boundary', async () => {
     const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-symlink-source-'));
     const artifactsDir = await mkdtemp(join(tmpdir(), 'arxic-exit-symlink-retained-'));

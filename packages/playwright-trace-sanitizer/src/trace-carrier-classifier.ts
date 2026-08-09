@@ -19,6 +19,7 @@ export type ScreenshotCheckpointValidation =
   | Readonly<{
       ok: false;
       code: 'invalid-checkpoint' | 'duplicate-checkpoint' | 'missing-source';
+      missingCheckpoint?: string;
     }>;
 
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -75,6 +76,13 @@ export function isPolicyOwnedScreenshotFilename(
   );
 }
 
+export function isRetainedScreenshotCheckpointFilename(fileName: string): boolean {
+  const match = /^\d{3}-(.+)\.png$/u.exec(fileName);
+  if (!match) return false;
+  const sourceStem = match[1]!;
+  return isSafeScreenshotCheckpoint(sourceStem) || /^step-\d+-[a-z0-9-]+$/u.test(sourceStem);
+}
+
 export function validateScreenshotCheckpointFilenames(
   fileNames: readonly string[],
   checkpoints: readonly string[] = [],
@@ -97,7 +105,7 @@ export function validateScreenshotCheckpointFilenames(
       (fileName) =>
         !matched.has(fileName) && screenshotFilenameMatchesCheckpoint(fileName, checkpoint),
     );
-    if (!source) return { ok: false, code: 'missing-source' };
+    if (!source) return { ok: false, code: 'missing-source', missingCheckpoint: checkpoint };
     matched.add(source);
   }
   return { ok: true };

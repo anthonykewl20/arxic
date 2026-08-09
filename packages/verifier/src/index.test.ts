@@ -222,8 +222,8 @@ describe('PlaywrightVerifier', () => {
 
     expect(artifacts.map(({ kind }) => kind)).toEqual(['screenshot', 'screenshot']);
     expect(artifacts.map(({ path }) => path)).toEqual([
-      join(artifactsDirectory, 'verification', 'run-1', 'screenshot-001.png'),
-      join(artifactsDirectory, 'verification', 'run-1', 'screenshot-002.png'),
+      join(artifactsDirectory, 'verification', 'run-1', '001-step-1-login-page-home.png'),
+      join(artifactsDirectory, 'verification', 'run-1', '002-step-2-home-home.png'),
     ]);
   });
 

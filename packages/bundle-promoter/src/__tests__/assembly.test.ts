@@ -167,7 +167,36 @@ describe('bundle assembly and redaction gate', () => {
     });
 
     await expect(
-      readFile(join(assembly.directory, 'artifacts', 'screenshots', '001-screenshot.png')),
+      readFile(join(assembly.directory, 'artifacts', 'screenshots', '001-proof.png')),
+    ).resolves.toEqual(bytes);
+  });
+
+  it('propagates a safe checkpoint binding that contains a sensitive domain word', async () => {
+    const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
+    const screenshotDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-screenshot-'));
+    const screenshot = join(screenshotDirectory, '001-step-1-home-change-password-page.png');
+    const bytes = pngWithZipSignatureChunk();
+    await writeFile(screenshot, bytes);
+    const bundle = await stagedAssemblyBundle(stagedDirectory);
+
+    const assembly = await assembleBundle({
+      bundle,
+      stagedDirectory,
+      outputDirectory,
+      verificationArtifacts: [{ kind: 'screenshot', path: screenshot, sha256: hash(bytes) }],
+      provenance: provenanceFor(bundle),
+    });
+
+    await expect(
+      readFile(
+        join(
+          assembly.directory,
+          'artifacts',
+          'screenshots',
+          '001-001-step-1-home-change-password-page.png',
+        ),
+      ),
     ).resolves.toEqual(bytes);
   });
 
@@ -198,7 +227,7 @@ describe('bundle assembly and redaction gate', () => {
     });
 
     await expect(
-      readFile(join(assembly.directory, 'artifacts', 'screenshots', '001-screenshot.png')),
+      readFile(join(assembly.directory, 'artifacts', 'screenshots', '001-proof.png')),
     ).resolves.toEqual(bytes);
   });
 

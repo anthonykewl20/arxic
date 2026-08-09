@@ -64,25 +64,22 @@ describe('screenshot checkpoint source binding', () => {
       label: 'duplicate checkpoint declaration',
       fileNames: ['step-1-login-page-home.png', 'step-2-home-home.png'],
       checkpoints: ['home', 'home'],
-      code: 'duplicate-checkpoint',
+      expected: { ok: false, code: 'duplicate-checkpoint' },
     },
     {
       label: 'safe nonmatching source',
       fileNames: ['step-1-login-page-profile.png'],
       checkpoints: ['home'],
-      code: 'missing-source',
+      expected: { ok: false, code: 'missing-source', missingCheckpoint: 'home' },
     },
     {
       label: 'overlapping checkpoints with no unused source',
       fileNames: ['step-1-start-login-home.png'],
       checkpoints: ['home', 'login-home'],
-      code: 'missing-source',
+      expected: { ok: false, code: 'missing-source', missingCheckpoint: 'home' },
     },
-  ])('rejects $label', ({ fileNames, checkpoints, code }) => {
-    expect(validateScreenshotCheckpointFilenames(fileNames, checkpoints)).toEqual({
-      ok: false,
-      code,
-    });
+  ])('rejects $label', ({ fileNames, checkpoints, expected }) => {
+    expect(validateScreenshotCheckpointFilenames(fileNames, checkpoints)).toEqual(expected);
   });
 });
 

@@ -8,6 +8,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@arxic/contracts": "workspace:*",
     "yauzl": "3.4.0",
     "yazl": "3.3.1"
   },

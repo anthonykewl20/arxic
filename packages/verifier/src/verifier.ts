@@ -236,16 +236,6 @@ export class PlaywrightVerifier implements WorkflowVerifier {
           detail: `run ${run} ${artifact.path} (${reason})`,
         })),
       );
-      const screenshotCount = captured.filter(({ kind }) => kind === 'screenshot').length;
-      const missingScreenshots = result.passed
-        ? (policy.screenshotCheckpoints ?? []).slice(screenshotCount)
-        : [];
-      if (missingScreenshots.length > 0) {
-        artifactFailures.push({
-          reason: 'missing',
-          detail: `run ${run} lacks screenshots ${missingScreenshots.join(', ')}`,
-        });
-      }
       if (policy.trace === 'retain' && !captured.some(({ kind }) => kind === 'trace')) {
         artifactFailures.push({ reason: 'missing', detail: `run ${run} lacks a trace` });
       }

@@ -285,6 +285,9 @@ importers:
 
   packages/playwright-trace-sanitizer:
     dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       yauzl:
         specifier: 3.4.0
         version: 3.4.0
