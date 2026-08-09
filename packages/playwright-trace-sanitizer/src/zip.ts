@@ -1,3 +1,4 @@
+import { constants } from 'node:fs';
 import { open } from 'node:fs/promises';
 import { posix } from 'node:path';
 import { fromBufferPromise, type Entry, type ZipFile as UnzipFile } from 'yauzl';
@@ -105,7 +106,7 @@ export async function readArchive(
 
 export async function readBoundedFile(path: string, maxBytes: number): Promise<Buffer> {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) throw new BoundedFileLimitError();
-  const handle = await open(path, 'r');
+  const handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   try {
     const metadata = await handle.stat();
     if (!metadata.isFile() || metadata.size > maxBytes) throw new BoundedFileLimitError();

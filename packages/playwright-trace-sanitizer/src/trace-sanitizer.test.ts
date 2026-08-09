@@ -10,6 +10,7 @@ import {
   sanitizePlaywrightTrace,
   type TraceSanitizationFailureCode,
 } from './trace-sanitizer';
+import { validateScreenshotCheckpointFilenames } from './trace-carrier-classifier';
 import { readArchive, writeDeterministicArchive } from './zip';
 
 const temporaryDirectories: string[] = [];
@@ -26,6 +27,63 @@ afterEach(async () => {
   await Promise.all(
     temporaryDirectories.splice(0).map((path) => rm(path, { recursive: true, force: true })),
   );
+});
+
+describe('screenshot checkpoint source binding', () => {
+  test.each([
+    {
+      label: 'logout with repeated home screenshots',
+      fileNames: ['step-1-login-page-home.png', 'step-2-home-home.png'],
+      checkpoints: ['home'],
+    },
+    {
+      label: 'password change with repeated destination screenshots',
+      fileNames: [
+        'step-1-login-page-home.png',
+        'step-2-home-change-password-page.png',
+        'step-3-change-password-page-change-password-page.png',
+      ],
+      checkpoints: ['home', 'change-password-page'],
+    },
+    {
+      label: 'source order permutation',
+      fileNames: ['step-2-home-home.png', 'step-1-login-page-home.png'],
+      checkpoints: ['home'],
+    },
+    {
+      label: 'overlapping checkpoint suffixes',
+      fileNames: ['step-1-start-login-home.png', 'step-2-login-home-home.png'],
+      checkpoints: ['home', 'login-home'],
+    },
+  ])('accepts an injective mapping for $label', ({ fileNames, checkpoints }) => {
+    expect(validateScreenshotCheckpointFilenames(fileNames, checkpoints)).toEqual({ ok: true });
+  });
+
+  test.each([
+    {
+      label: 'duplicate checkpoint declaration',
+      fileNames: ['step-1-login-page-home.png', 'step-2-home-home.png'],
+      checkpoints: ['home', 'home'],
+      code: 'duplicate-checkpoint',
+    },
+    {
+      label: 'safe nonmatching source',
+      fileNames: ['step-1-login-page-profile.png'],
+      checkpoints: ['home'],
+      code: 'missing-source',
+    },
+    {
+      label: 'overlapping checkpoints with no unused source',
+      fileNames: ['step-1-start-login-home.png'],
+      checkpoints: ['home', 'login-home'],
+      code: 'missing-source',
+    },
+  ])('rejects $label', ({ fileNames, checkpoints, code }) => {
+    expect(validateScreenshotCheckpointFilenames(fileNames, checkpoints)).toEqual({
+      ok: false,
+      code,
+    });
+  });
 });
 
 describe('Playwright trace sanitization service', () => {

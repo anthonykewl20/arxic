@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import type {
   ArtifactRef,
@@ -10,6 +10,7 @@ import type {
 } from '@arxic/contracts';
 import { runFallback } from '@arxic/playwright-agent-adapter';
 import {
+  discoverCaptureArtifactCandidates,
   discardCapturedArtifact,
   isPolicyOwnedScreenshotFilename,
   isSensitiveArtifactFilename,
@@ -167,16 +168,16 @@ async function executeFallbackRun(
     restoreEnvironment('ARXIC_INPUT_PERSONA_EMAIL', previousEmail);
     restoreEnvironment('ARXIC_INPUT_PERSONA_PASSWORD', previousPassword);
   }
+  const passed = result.failed === 0 && result.passed > 0;
   const runArtifacts = await retainRunArtifacts(
     input.testDir,
     input.artifactsDir,
     run,
     Object.values(input.persona),
-    input.policy.screenshotCheckpoints,
+    passed ? input.policy.screenshotCheckpoints : [],
   );
   const networkErrors =
     result.output.match(/(?:net::ERR_[A-Z_]+|requestfailed|network error)/giu) ?? [];
-  const passed = result.failed === 0 && result.passed > 0;
   return {
     passed,
     artifacts: runArtifacts,
@@ -211,13 +212,12 @@ export async function retainRunArtifacts(
   await rm(destination, { recursive: true, force: true });
   await mkdir(destination, { recursive: true });
   const candidates = [join(testDir, 'artifacts'), join(testDir, 'test-results')];
-  const files: string[] = [];
-  for (const candidate of candidates) files.push(...(await filesUnder(candidate)));
   const refs: ArtifactRef[] = [];
   const sequences = { screenshot: 0, trace: 0 };
   const screenshotSourceNames: string[] = [];
   try {
-    for (const source of files.filter((path) => /\.(?:png|zip)$/u.test(path)).sort()) {
+    const files = await discoverCaptureArtifactCandidates(candidates);
+    for (const source of files) {
       const kind = source.endsWith('.png') ? 'screenshot' : 'trace';
       if (
         isSensitiveArtifactFilename(basename(source), forbiddenSubstrings) &&
@@ -297,21 +297,6 @@ async function rejectCapturedSource(source: string, message: string): Promise<ne
     throw new Error(`${message}; source cleanup ${discarded.sourceDisposition}`);
   }
   throw new Error(message);
-}
-
-async function filesUnder(root: string): Promise<string[]> {
-  try {
-    const entries = await readdir(root, { withFileTypes: true });
-    const nested = await Promise.all(
-      entries.map((entry) => {
-        const path = join(root, entry.name);
-        return entry.isDirectory() ? filesUnder(path) : Promise.resolve([path]);
-      }),
-    );
-    return nested.flat();
-  } catch {
-    return [];
-  }
 }
 
 export async function artifactRef(kind: string, path: string): Promise<ArtifactRef> {

@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import type { ArtifactRef } from '@arxic/contracts';
 import {
+  discoverCaptureArtifactCandidates,
   discardCapturedArtifact,
   isPolicyOwnedScreenshotFilename,
   isSensitiveArtifactFilename,
@@ -40,12 +41,12 @@ export async function captureRunArtifacts(
   await rm(destination, { recursive: true, force: true });
   await mkdir(destination, { recursive: true });
   const roots = [join(testDirectory, 'artifacts'), join(testDirectory, 'test-results')];
-  const files = (await Promise.all(roots.map((root) => filesUnder(root)))).flat();
   const refs: ArtifactRef[] = [];
   const sequences = { screenshot: 0, trace: 0 };
   const screenshotSourceNames: string[] = [];
   try {
-    for (const source of files.filter((path) => /\.(?:png|zip)$/u.test(path)).sort()) {
+    const files = await discoverCaptureArtifactCandidates(roots);
+    for (const source of files) {
       const kind = source.endsWith('.png') ? 'screenshot' : 'trace';
       if (
         isSensitiveArtifactFilename(basename(source), options.forbiddenSubstrings) &&
@@ -158,19 +159,4 @@ export function resolveArtifactPath(baseDirectory: string, path: string): string
     throw new Error(`Artifact path escapes the staged directory: ${path}`);
   }
   return candidate;
-}
-
-async function filesUnder(root: string): Promise<string[]> {
-  try {
-    const entries = await readdir(root, { withFileTypes: true });
-    const nested = await Promise.all(
-      entries.map((entry) => {
-        const path = join(root, entry.name);
-        return entry.isDirectory() ? filesUnder(path) : Promise.resolve([path]);
-      }),
-    );
-    return nested.flat();
-  } catch {
-    return [];
-  }
 }

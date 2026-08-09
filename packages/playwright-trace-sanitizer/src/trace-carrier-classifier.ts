@@ -18,7 +18,7 @@ export type ScreenshotCheckpointValidation =
   | Readonly<{ ok: true }>
   | Readonly<{
       ok: false;
-      code: 'invalid-checkpoint' | 'duplicate-checkpoint' | 'missing-source' | 'ambiguous-source';
+      code: 'invalid-checkpoint' | 'duplicate-checkpoint' | 'missing-source';
     }>;
 
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -81,21 +81,24 @@ export function validateScreenshotCheckpointFilenames(
   forbiddenSubstrings: readonly string[] = [],
 ): ScreenshotCheckpointValidation {
   const declared = new Set<string>();
-  const matched = new Set<string>();
   for (const checkpoint of checkpoints) {
     if (!isSafeScreenshotCheckpoint(checkpoint, forbiddenSubstrings)) {
       return { ok: false, code: 'invalid-checkpoint' };
     }
     if (declared.has(checkpoint)) return { ok: false, code: 'duplicate-checkpoint' };
     declared.add(checkpoint);
-    const sources = fileNames.filter((fileName) =>
-      screenshotFilenameMatchesCheckpoint(fileName, checkpoint),
+  }
+  const available = [...fileNames].sort();
+  const matched = new Set<string>();
+  for (const checkpoint of [...checkpoints].sort(
+    (left, right) => right.length - left.length || (left < right ? -1 : left > right ? 1 : 0),
+  )) {
+    const source = available.find(
+      (fileName) =>
+        !matched.has(fileName) && screenshotFilenameMatchesCheckpoint(fileName, checkpoint),
     );
-    if (sources.length === 0) return { ok: false, code: 'missing-source' };
-    if (sources.length !== 1 || matched.has(sources[0]!)) {
-      return { ok: false, code: 'ambiguous-source' };
-    }
-    matched.add(sources[0]!);
+    if (!source) return { ok: false, code: 'missing-source' };
+    matched.add(source);
   }
   return { ok: true };
 }

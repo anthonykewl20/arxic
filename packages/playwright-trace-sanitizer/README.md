@@ -55,3 +55,19 @@ does not decode semantic metadata carriers or establish privacy for valid IDAT
 or pixel content. #115 owns that separate screenshot privacy service. Verifier
 and M0 capture are transactional: any later artifact failure removes the whole
 run destination before the Action reports the run blocked.
+
+Capture discovery is sequential and fail-closed. Only a missing root is empty;
+other traversal errors block. The shared service rejects static symlinks and
+non-regular entries and bounds roots (8), depth (16), total entries (1,024),
+candidate files (256), individual name/path bytes (240/4,096), and aggregate
+path bytes (256 KiB). Candidate reads open the final component with
+`O_NOFOLLOW | O_NONBLOCK`, require a regular file, enforce a byte cap before and
+during the read, and retain bytes from that same handle.
+
+Those controls have a caller precondition: artifact roots are freshly
+Action-owned output roots, and the Action must establish that no writer remains
+before discovery (normally after its controlled runner completes). Node path
+operations do not make an intermediate directory race-safe against a concurrent
+same-UID writer. That concurrent mutation/containment case is UNVERIFIED and
+belongs to worker/process isolation; the exported helper must not be described
+as protecting arbitrary caller-owned paths from active replacement.

@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, readdir, symlink, writeFile } from 'node:fs/promises';
+import { createServer as createNetServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -153,6 +154,103 @@ describe('M0 exit sad paths', () => {
     });
   });
 
+  it('rejects an external screenshot symlink at the M0 capture boundary', async () => {
+    const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-symlink-source-'));
+    const artifactsDir = await mkdtemp(join(tmpdir(), 'arxic-exit-symlink-retained-'));
+    const externalDir = await mkdtemp(join(tmpdir(), 'arxic-exit-symlink-external-'));
+    const screenshotDirectory = join(testDir, 'artifacts', 'screenshots');
+    const backing = join(externalDir, 'proof.png');
+    await mkdir(screenshotDirectory, { recursive: true });
+    await writeFile(backing, validPng());
+    await symlink(backing, join(screenshotDirectory, 'proof.png'));
+
+    await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+      'rejects symbolic links',
+    );
+    await expect(readFile(backing)).resolves.toEqual(validPng());
+    await expect(readdir(join(artifactsDir, 'verification', 'run-1'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  it('rejects a non-regular M0 screenshot entry without blocking on its bytes', async () => {
+    const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-special-source-'));
+    const artifactsDir = await mkdtemp(join(tmpdir(), 'arxic-exit-special-retained-'));
+    const screenshotDirectory = join(testDir, 'artifacts', 'screenshots');
+    const socketPath = join(screenshotDirectory, 'proof.png');
+    await mkdir(screenshotDirectory, { recursive: true });
+    const server = createNetServer();
+    await new Promise<void>((resolveListen, rejectListen) => {
+      server.once('error', rejectListen);
+      server.listen(socketPath, resolveListen);
+    });
+    try {
+      await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+        'rejects non-regular entries',
+      );
+    } finally {
+      await new Promise<void>((resolveClose, rejectClose) =>
+        server.close((error) => (error ? rejectClose(error) : resolveClose())),
+      );
+    }
+    await expect(readdir(join(artifactsDir, 'verification', 'run-1'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  it('fails closed on an unreadable M0 artifact child and removes the destination', async () => {
+    const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-unreadable-source-'));
+    const artifactsDir = await mkdtemp(join(tmpdir(), 'arxic-exit-unreadable-retained-'));
+    const locked = join(testDir, 'artifacts', 'locked');
+    await mkdir(locked, { recursive: true });
+    await writeFile(join(locked, 'proof.png'), validPng());
+    await chmod(locked, 0o000);
+    try {
+      await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+        'could not inspect the owned workspace safely',
+      );
+    } finally {
+      await chmod(locked, 0o700);
+    }
+    await expect(readdir(join(artifactsDir, 'verification', 'run-1'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  it.each(['depth', 'entries', 'candidates'] as const)(
+    'fails closed on the M0 artifact discovery %s bound and removes the destination',
+    async (limit) => {
+      const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-discovery-limit-'));
+      const artifactsDir = await mkdtemp(join(tmpdir(), 'arxic-exit-discovery-retained-'));
+      const artifacts = join(testDir, 'artifacts');
+      await mkdir(artifacts, { recursive: true });
+      if (limit === 'depth') {
+        let directory = artifacts;
+        for (let depth = 0; depth < 17; depth += 1) {
+          directory = join(directory, `d${depth}`);
+          await mkdir(directory);
+        }
+      } else {
+        const directory = join(artifacts, 'wide');
+        await mkdir(directory);
+        const count = limit === 'entries' ? 1_024 : 257;
+        const extension = limit === 'entries' ? 'txt' : 'png';
+        await Promise.all(
+          Array.from({ length: count }, (_, index) =>
+            writeFile(join(directory, `entry-${String(index).padStart(4, '0')}.${extension}`), ''),
+          ),
+        );
+      }
+
+      await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+        'exceeded a configured safety limit',
+      );
+      await expect(readdir(join(artifactsDir, 'verification', 'run-1'))).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
+    },
+  );
+
   it('removes a malformed raw M0 trace and retains nothing when sanitization blocks', async () => {
     const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-trace-source-'));
     const artifactsDir = await mkdtemp(join(tmpdir(), 'arxic-exit-trace-retained-'));
@@ -238,7 +336,7 @@ describe('M0 exit sad paths', () => {
           await mkdir(testDir, { recursive: true });
           await writeFile(
             specPath,
-            `import { test, expect } from '@playwright/test';\n\ntest('x', async ({ page }) => { await page.goto(${JSON.stringify(origin)}); expect(false).toBe(true); });\n`,
+            `import { test, expect } from '@playwright/test';\n\ntest('x', async ({ page }) => { await page.goto(${JSON.stringify(origin)}); await page.screenshot({ path: 'artifacts/screenshots/step-1-login-page-profile.png' }); expect(false).toBe(true); });\n`,
           );
           await writeFile(configPath, "export default { use: { trace: 'retain-on-failure' } };\n");
           return { ok: true, specPath, configPath, diagnostics: [] };

@@ -48,16 +48,25 @@ re-evaluate only if release policy changes before merge.
   with capture provenance, and a README recording their limited semantics/manual
   visual review. `docs/evidence/M1-15/exploration-trace.zip` and sidecar were
   regenerated through the same final projector.
-- Current local proof on the candidate freeze: focused boundary suites passed
-  117/117, including canonical JSONL/sidecar/ZIP fixed points, cleanup-failure
-  precedence, bounded exact-byte artifact classification, transactional
-  verifier/M0 capture, and raw-trace carrier rejection before retention.
-  The verifier real-world suite passed 6/6 in 59.63s, including both apps,
-  all retained-ZIP inspection, neutral-name inventory, and the migrated
-  M1-15 Viewer. Exploration real-world proof passed 4/4 in 13.35s after routing
-  capture through the shared sanitizer. The isolated full repository test run
-  passed 82 files / 621 tests in 421.10s. Current-head CI remains pending.
-- Gates: typecheck ☐ · lint ☑ · format ☐ · test ☑ · license gate ☐
+- Current local proof on the candidate state: focused boundary suites passed
+  140/140, including canonical JSONL/sidecar/ZIP fixed points, cleanup-failure
+  precedence, bounded exact-byte artifact classification, injective screenshot
+  checkpoint binding, bounded fail-closed discovery, transactional verifier/M0
+  capture, and raw-trace carrier rejection before retention. The affected real
+  Chromium suites passed 4/4 in 89.51s across both auth apps, M0, and the
+  reconciler report. The full current-tree test run passed 82/82 files and
+  644/644 tests in 411.45s; the verifier's 6/6 proof includes all retained-ZIP
+  inspection and pinned Viewer loading, and exploration passed 4/4. Retained
+  evidence was visually reviewed again without exposing credential/identity
+  values. Current-head CI remains pending.
+- Gates: typecheck ☑ · recursive package/fixture typecheck ☑ · lint ☑ · format ☐ ·
+  test ☑ · license gate (757 packages, 0 rejected) ☑ · CycloneDX SBOM ☑ ·
+  fixture apps ☑ · command guard ☑
+- Fixture gate note: the first standalone reference-fixture invocation correctly
+  failed because no Mailpit endpoint was provisioned. The actual gate then passed
+  against a slice-owned Mailpit container on random host ports (reference 2/2;
+  vulnerable 1/1) with command-scoped environment and cleanup. The failed
+  prerequisite attempt is preserved here rather than omitted.
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
@@ -76,6 +85,8 @@ re-evaluate only if release policy changes before merge.
 | Valid PNG containing isolated `PK` bytes in a CRC-valid private ancillary chunk                                                             | accepted non-container control                                                 | assembly test                                                     |
 | Arbitrary sensitive source filename                                                                                                         | blocked and removed; policy-owned checkpoint source uses numeric retained name | verifier/M0/assembly filename tests                               |
 | Later invalid artifact after an earlier valid artifact                                                                                      | blocked; whole run destination removed                                         | verifier/M0 transactional capture tests                           |
+| Static symlink, non-regular entry, unreadable child, or depth/entry/candidate traversal bomb                                                 | blocked; whole run destination removed                                         | verifier/M0 bounded-discovery tests                               |
+| Failed browser run with a safe screenshot that misses a required passed-run checkpoint                                                      | contradicted; not misclassified as a capture block                              | verifier + actual M0 fallback sad paths                           |
 | Sanitizer failure at verifier or M0 capture                                                                                                 | blocked; no eligible timeline                                                  | verifier/M0 sad-path tests                                        |
 | Exploration capture/sanitization failure                                                                                                    | blocked; raw temp source deleted and no eligible timeline retained             | exploration driver + orchestrator real-world proof                |
 | Current sanitized timeline + matching sidecar                                                                                               | eligible after independent inspection                                          | assembly/promotion happy controls                                 |
@@ -97,9 +108,9 @@ Direct changes in this slice:
 - `packages/playwright-trace-sanitizer/README.md` documents ownership, exact
   projection, limits, STORED canonical-byte fixed points, output-derived action
   counts, capture-reported (not origin-authenticated) source digest, and
-  fail-closed use. It also documents the bounded direct trace-carrier classifier,
-  exact validated-byte handoff, and the explicit non-claim for encoded metadata,
-  valid IDAT, and pixel privacy owned by #115.
+  fail-closed use. It also documents sequential bounded discovery, the bounded
+  direct trace-carrier classifier, exact validated-byte handoff, and the explicit
+  non-claims for encoded metadata, valid IDAT, and pixel privacy owned by #115.
 - `packages/m0-pipeline/README.md` replaces stale “retained traces” wording with
   sanitized action timelines + provenance and does not overclaim screenshot
   safety. `packages/bundle-promoter/README.md` documents bounded content
@@ -116,8 +127,9 @@ Direct changes in this slice:
 - Root `README.md` had no numeric package-count claim; its stale “M0 in progress”
   status is changed to M1 exit hardening. ADR §18's explicit package list now
   includes `playwright-trace-sanitizer`. There are currently 20 package
-  directories (22 workspaces including the two apps); do not invent a count in
-  root docs.
+  directories plus two app directories; the root and two test fixtures are
+  separate workspace entries. Do not invent a single ambiguous count in root
+  docs.
 
 Integrator-only changes (not permitted in this parallel worktree):
 
@@ -144,5 +156,12 @@ Integrator-only changes (not permitted in this parallel worktree):
   authenticity; independent inspection attests only the retained canonical
   bytes and output-derived counts. Any future origin-signing requirement is a
   separate security control.
+- Artifact discovery assumes freshly Action-owned roots, and the Action must
+  establish that no writer remains before discovery (normally after its
+  controlled runner completes). Static links/special entries and bounded reads
+  fail closed, but concurrent same-UID intermediate-directory replacement
+  remains UNVERIFIED and belongs to worker/process isolation; do not call the
+  helper race-safe or use it to claim containment for arbitrary active caller
+  paths.
 - Re-run the full staleness search after merging parallel slices; dispose any
   newly landed wording that treats raw/full-fidelity traces as attachable proof.

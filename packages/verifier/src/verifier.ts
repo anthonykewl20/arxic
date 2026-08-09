@@ -208,7 +208,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
           forbiddenSubstrings: Object.values(this.#persona ?? {}).filter(
             (value): value is string => typeof value === 'string' && value.length > 0,
           ),
-          screenshotCheckpoints: policy.screenshotCheckpoints,
+          screenshotCheckpoints: result.passed ? policy.screenshotCheckpoints : [],
         });
       } catch (error) {
         if (error instanceof TraceSanitizationError) {
