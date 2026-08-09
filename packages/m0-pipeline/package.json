@@ -12,6 +12,11 @@
     "@arxic/environment": "workspace:*",
     "@arxic/ast-grep-adapter": "workspace:*",
     "@arxic/playwright-agent-adapter": "workspace:*",
+    "@arxic/playwright-trace-sanitizer": "workspace:*",
     "@arxic/bundle-promoter": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/yazl": "3.3.1",
+    "yazl": "3.3.1"
   }
 }

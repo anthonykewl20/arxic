@@ -12,7 +12,7 @@ metadata:
 
 # Evidence-Driven Testing
 
-> **Arxic application (charter §6 / ADR §15):** "evidence" is Arxic's whole product. In headless/CI contexts the "screen recording" is the **Playwright trace + named screenshots**; in interactive contexts use a real recording. Either way: attach the artifacts + a pass/fail-per-test summary to the PR + tracker issue. Never claim a UI behavior works without attached evidence.
+> **Arxic application (charter §6 / ADR §15):** "evidence" is Arxic's whole product. In headless/CI contexts the "screen recording" is the **sanitized Playwright action timeline + adjacent sanitization provenance + named screenshots**; raw trace ZIPs must never be retained or attached. The timeline proves action order, not DOM/network/replay fidelity. Screenshots require capture-time masking or a persona-free state plus visual review. In interactive contexts use a real recording. Either way: attach only safe artifacts + a pass/fail-per-test summary to the PR + tracker issue. Never claim a UI behavior works without attached evidence.
 
 Record annotated screen-recording proof of UI behavior, then attach it to the PR and tracker issue.
 

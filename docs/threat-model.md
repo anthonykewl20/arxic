@@ -47,22 +47,22 @@ security claim.
 
 ## Threat-to-control map
 
-| Threat                                               | Boundary and consequence                         | Required mitigation                                                                                 | Reference        |
-| ---------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------- | ---------------- |
-| Malicious repository executes on the host            | Worker/host; host takeover                       | Ephemeral non-root sandbox, no host shell, read-only source, scoped writes                          | ADR §16.1, §24   |
-| Cross-run source or artifact access                  | Run/run; confidentiality and evidence corruption | One worker and writable namespace per run; no shared mutable workspace; deterministic cleanup       | ADR §16.1        |
-| Package or browser process exhausts resources        | Worker/host; denial of service                   | CPU, memory, process, file, browser-frontier, and wall-clock quotas with bounded termination        | ADR §16.1, §21   |
-| Worker reaches arbitrary external services           | Worker/network; data loss or unsafe mutation     | Default-deny egress, explicit target and fixture allowlists, redirect revalidation                  | ADR §16.1, §16.4 |
-| Worker controls Docker or another container daemon   | Worker/control plane; host-equivalent compromise | Daemon access remains only in trusted control plane; no socket, endpoint, or CLI in worker          | ADR §16.1        |
-| Target claims to be test while routing to production | Target/preflight; production mutation            | Exact origin checks, environment class, nonce or signed build receipt, production-looking heuristic | ADR §16.2        |
-| Model or content overrides safety policy             | Content/model; unsafe action or exfiltration     | Content-is-data, immutable policy, fixed scope, tool allowlist, structured-output validation        | ADR §16.3, §24   |
-| Redirect or generated URL escapes origin             | Browser/network; external side effect            | Exact attested origin and per-request origin enforcement; deny unapproved redirects                 | ADR §16.2, §16.3 |
-| Read-only discovery triggers mutation                | Browser/application; corrupted fixture           | Action classification before execution; reversible writes require a lease                           | ADR §16.4        |
-| External or destructive action runs autonomously     | Browser/application; irreversible harm           | Dedicated policy and recorded human approval; default refusal                                       | ADR §16.4        |
-| Secret enters model prompt or evidence               | Secret/model/artifact; disclosure                | Opaque references, last-boundary injection, field-aware redaction, non-production sinks             | ADR §16.5, §24   |
-| PII appears in logs, traces, or network bodies       | Runtime/artifact; privacy breach                 | Synthetic fixture identities, redaction before persistence, bounded artifact retention              | ADR §16.5        |
-| Attestation or decision is not auditable             | Preflight/control plane; unsafe ambiguity        | Always emit decision record with policy version, timestamp, disposition, reason, and override       | ADR §16.2, §20.1 |
-| Cleanup fails after timeout or crash                 | Worker/host; leaked state and processes          | Supervisor-owned kill and teardown, lease expiry, idempotent cleanup, leak detection                | ADR §16.1, §24   |
+| Threat                                               | Boundary and consequence                         | Required mitigation                                                                                       | Reference        |
+| ---------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------- | ---------------- |
+| Malicious repository executes on the host            | Worker/host; host takeover                       | Ephemeral non-root sandbox, no host shell, read-only source, scoped writes                                | ADR §16.1, §24   |
+| Cross-run source or artifact access                  | Run/run; confidentiality and evidence corruption | One worker and writable namespace per run; no shared mutable workspace; deterministic cleanup             | ADR §16.1        |
+| Package or browser process exhausts resources        | Worker/host; denial of service                   | CPU, memory, process, file, browser-frontier, and wall-clock quotas with bounded termination              | ADR §16.1, §21   |
+| Worker reaches arbitrary external services           | Worker/network; data loss or unsafe mutation     | Default-deny egress, explicit target and fixture allowlists, redirect revalidation                        | ADR §16.1, §16.4 |
+| Worker controls Docker or another container daemon   | Worker/control plane; host-equivalent compromise | Daemon access remains only in trusted control plane; no socket, endpoint, or CLI in worker                | ADR §16.1        |
+| Target claims to be test while routing to production | Target/preflight; production mutation            | Exact origin checks, environment class, nonce or signed build receipt, production-looking heuristic       | ADR §16.2        |
+| Model or content overrides safety policy             | Content/model; unsafe action or exfiltration     | Content-is-data, immutable policy, fixed scope, tool allowlist, structured-output validation              | ADR §16.3, §24   |
+| Redirect or generated URL escapes origin             | Browser/network; external side effect            | Exact attested origin and per-request origin enforcement; deny unapproved redirects                       | ADR §16.2, §16.3 |
+| Read-only discovery triggers mutation                | Browser/application; corrupted fixture           | Action classification before execution; reversible writes require a lease                                 | ADR §16.4        |
+| External or destructive action runs autonomously     | Browser/application; irreversible harm           | Dedicated policy and recorded human approval; default refusal                                             | ADR §16.4        |
+| Secret enters model prompt or evidence               | Secret/model/artifact; disclosure                | Opaque references, last-boundary injection, minimal allowlisted trace projection, non-production sinks    | ADR §16.5, §24   |
+| PII appears in logs, traces, or network bodies       | Runtime/artifact; privacy breach                 | Never retain raw traces; retain only independently inspected action timelines; bounded artifact retention | ADR §16.5        |
+| Attestation or decision is not auditable             | Preflight/control plane; unsafe ambiguity        | Always emit decision record with policy version, timestamp, disposition, reason, and override             | ADR §16.2, §20.1 |
+| Cleanup fails after timeout or crash                 | Worker/host; leaked state and processes          | Supervisor-owned kill and teardown, lease expiry, idempotent cleanup, leak detection                      | ADR §16.1, §24   |
 
 ## Worker isolation
 
@@ -185,12 +185,18 @@ values. The trusted fixture or secret boundary resolves a reference immediately
 before the specific operation that needs it. Values are scoped to one run and
 one purpose, are not returned to a model, and are revoked or expire at cleanup.
 
-Redaction occurs before persistence or transmission, not as a later cosmetic
-pass. It covers structured logs, exception causes, URLs and headers, request and
-response bodies, browser traces, screenshots where feasible, network captures,
-model prompts and responses, and diagnostic messages. Redaction itself is
-recorded without preserving the removed value. Artifacts that cannot be safely
-redacted are blocked from promotion.
+Sanitization occurs before persistence or transmission, not as a later cosmetic
+pass. Raw browser traces are never retained: a bounded shared service requires
+at least one exact Chromium context per archive, keeps the pinned test-runner
+member neutral, rejects other/missing browser identities, and emits only fixed context
+plus known completed action metadata with remapped identifiers,
+synthetic ordering, empty params, deterministic ZIP bytes, and adjacent
+projection/checksum provenance. Network/DOM/frame snapshots, all resources and
+screencasts, stacks/sources, attachments, logs/stdio, errors/results, free-form
+values, and source-derived names are omitted. Promotion independently validates
+the bytes and sidecar. Screenshots require capture-time masks or a persona-free
+state plus visual review; trace scans do not establish pixel privacy. Artifacts
+that cannot meet their boundary are blocked from promotion.
 
 Fixture identities are synthetic and all mail, OTP, webhook, payment, and
 similar effects terminate in non-production sinks. No real customer account,

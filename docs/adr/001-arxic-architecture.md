@@ -1,14 +1,14 @@
 # ADR-001: Arxic — Evidence-Driven Behavioral Intent Compiler for Playwright
 
-| Field                     | Value                                                                                                          |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Status                    | Accepted (2026-08-04)                                                                                          |
-| Decision date             | 2026-08-04                                                                                                     |
-| Owners                    | Arxic maintainers                                                                                              |
-| Scope                     | Initial architecture, reuse strategy, contracts, security model, and authentication vertical slice             |
-| First supported ecosystem | TypeScript and JavaScript; React, Next.js, Express; Chromium                                                   |
-| Primary output            | Independently replayable Playwright workflow bundles with screenshots, traces, provenance, and coverage status |
-| Research basis            | Public project and documentation review summarized in an internal source ledger                                |
+| Field                     | Value                                                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                    | Accepted (2026-08-04)                                                                                                                       |
+| Decision date             | 2026-08-04                                                                                                                                  |
+| Owners                    | Arxic maintainers                                                                                                                           |
+| Scope                     | Initial architecture, reuse strategy, contracts, security model, and authentication vertical slice                                          |
+| First supported ecosystem | TypeScript and JavaScript; React, Next.js, Express; Chromium                                                                                |
+| Primary output            | Independently replayable Playwright workflow bundles with screenshots, privacy-preserving action timelines, provenance, and coverage status |
+| Research basis            | Public project and documentation review summarized in an internal source ledger                                                             |
 
 ## 1. Decision
 
@@ -75,7 +75,7 @@ The existing ecosystem splits across: source-only knowledge tools, diagram workf
 - Chromium execution
 - local/preview/dedicated test targets
 - authentication reference domain
-- static evidence, targeted execution, verification, screenshots/traces, bundle packaging
+- static evidence, targeted execution, verification, screenshots/sanitized action timelines, bundle packaging
 - incremental invalidation by graph impact
 
 ### 5.2 Non-goals
@@ -233,7 +233,7 @@ flowchart TD
       POLICY["Secret/origin/assertion policy"]
       PPASS{"Policy pass?"}
       REPLAY["Run clean fixtures"]
-      ARTIFACTS["Capture screenshots/traces/reports"]
+      ARTIFACTS["Capture screenshots/sanitized timelines/reports"]
       EXPECTED{"Expected transitions pass?"]
       RUNCOUNT{"Required clean runs complete?"]
       RESET["Reset and retry"]
@@ -573,7 +573,7 @@ Hypothesized/contradicted/blocked candidates remain in coverage reporting with e
 6. Minimal `page.evaluate`.
 7. No secrets or real personal data.
 8. Lease-scoped state mutation only.
-9. Checkpointed screenshots and traces.
+9. Checkpointed screenshots and sanitized action timelines with adjacent provenance; raw Playwright traces are never retained.
 10. Independent tests and clean fixture reset.
 
 ### 13.1 Healing policy
@@ -604,19 +604,19 @@ Manifest includes scope, versions, provenance, verification results, gate outcom
 
 ## 15. Quality gates
 
-| Gate            | Requirement                                             |
-| --------------- | ------------------------------------------------------- |
-| Schema          | All JSON valid in strict mode                           |
-| Provenance      | Links resolve to pinned commit/range                    |
-| Compilation     | TypeScript compiles and generated suite is discoverable |
-| Policy          | No forbidden directives, APIs, origins, or secrets      |
-| Fixtures        | Provision/reset/release succeeds                        |
-| Execution       | Required runs pass from clean state                     |
-| Evidence        | Required transitions are evidenced                      |
-| Artifact        | Screenshots/traces/reports and hashes exist             |
-| Network/console | Unexpected failures block promotion                     |
-| Coverage        | Disposition and blocker matrix present                  |
-| Delivery        | Frozen bytes and atomic promotion                       |
+| Gate            | Requirement                                                                                                            |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Schema          | All JSON valid in strict mode                                                                                          |
+| Provenance      | Links resolve to pinned commit/range                                                                                   |
+| Compilation     | TypeScript compiles and generated suite is discoverable                                                                |
+| Policy          | No forbidden directives, APIs, origins, or secrets                                                                     |
+| Fixtures        | Provision/reset/release succeeds                                                                                       |
+| Execution       | Required runs pass from clean state                                                                                    |
+| Evidence        | Required transitions are evidenced                                                                                     |
+| Artifact        | Screenshots and sanitized action timelines have hashes; every timeline has independently validated adjacent provenance |
+| Network/console | Unexpected failures block promotion                                                                                    |
+| Coverage        | Disposition and blocker matrix present                                                                                 |
+| Delivery        | Frozen bytes and atomic promotion                                                                                      |
 
 One pass plus one failure is flaky, not verified.
 
@@ -647,7 +647,7 @@ Model outputs are data, not policy. Agents get fixed task scope, tool allowlist,
 
 ### 16.5 Secrets and privacy
 
-Use references, inject at the last boundary, redact logs/traces/network bodies/model prompts, and keep test content in non-production sinks.
+Use references, inject at the last boundary, and keep test content in non-production sinks. Raw Playwright traces are never retained: a shared fail-closed boundary requires at least one exact Chromium context per archive and projects the input into deterministic, privacy-preserving action timelines containing only fixed context and known completed action metadata. The pinned neutral test-runner member remains neutral and cannot establish the Chromium requirement; other or missing browser identities are rejected rather than relabeled. The projection omits network/DOM/frame snapshots, resources and screencasts, stacks/sources, attachments, logs/stdio, errors/results, free-form params, source identifiers, and source-derived names. Each retained timeline requires adjacent checksum/projection provenance and independent canonical-byte inspection before assembly or promotion. A sanitized timeline is action-order evidence, not replay-, DOM-, screenshot-, source-, or network-complete evidence. Screenshot privacy is enforced separately at capture and visual-review boundaries.
 
 ## 17. Incremental operation
 
@@ -658,7 +658,7 @@ Cache keys include revision, extractor/version, environment/build, persona, and 
 ```text
 arxic/
   apps/{cli,worker}
-  packages/{contracts,orchestrator,source-indexer-adapter,rulepack-adapter,crawler-adapter,browser-automation-adapter,compiler,evidence-graph,reconciler,verifier,bundle-promoter,environment,fixture-adapters}
+  packages/{contracts,orchestrator,source-indexer-adapter,rulepack-adapter,crawler-adapter,browser-automation-adapter,compiler,evidence-graph,reconciler,verifier,playwright-trace-sanitizer,bundle-promoter,environment,fixture-adapters}
   rulepacks/{nextjs,react,express}
   schemas/{evidence,workflow,manifest,diagnostics}
   third_party/{reused-capabilities}

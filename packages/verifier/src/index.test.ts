@@ -1,10 +1,13 @@
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ArtifactRef, StagedBundle, Workflow } from '@arxic/contracts';
 import { validateDiagnostic } from '@arxic/contracts';
 import { afterEach, describe, expect, test } from 'vitest';
+import { ZipFile } from 'yazl';
+import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import {
   ARXIC_VERIFY_APP_DEFECT,
   ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH,
@@ -15,7 +18,9 @@ import {
   ARXIC_VERIFY_FLAKY_RUNS,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
   ARXIC_VERIFY_TRANSITIONS_MISSING,
+  ARXIC_VERIFY_TRACE_SANITIZATION_FAILED,
   PlaywrightVerifier,
+  captureRunArtifacts,
   classifyVerification,
 } from './index';
 
@@ -28,6 +33,254 @@ afterEach(async () => {
 });
 
 describe('PlaywrightVerifier', () => {
+  test('rejects source-derived sensitive artifact filenames without retaining raw bytes', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-sensitive-name-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    const results = join(outputDirectory, 'test-results', 'run');
+    const rawTrace = join(results, 'sessionOpaqueFilenameCanary.zip');
+    await mkdir(results, { recursive: true });
+    await writeFile(rawTrace, await traceZip(1));
+
+    await expect(captureRunArtifacts(outputDirectory, artifactsDirectory, 1)).rejects.toThrow(
+      'filename rejected',
+    );
+    await expect(readFile(rawTrace)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  test.each(['renamed-zip', 'png-trailing-zip', 'png-split-zip'] as const)(
+    'rejects a %s trace carrier before screenshot retention',
+    async (variant) => {
+      const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-carrier-'));
+      const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+      const results = join(outputDirectory, 'artifacts', 'screenshots');
+      const source = join(results, 'proof.png');
+      const rawTrace = await traceZip(1);
+      const split = Math.floor(rawTrace.byteLength / 2);
+      const bytes =
+        variant === 'renamed-zip'
+          ? rawTrace
+          : variant === 'png-trailing-zip'
+            ? Buffer.concat([validPng(), rawTrace])
+            : pngWithAncillaryPayloads([rawTrace.subarray(0, split), rawTrace.subarray(split)]);
+      await mkdir(results, { recursive: true });
+      await writeFile(join(results, '00-safe.png'), validPng());
+      await writeFile(source, bytes);
+
+      await expect(captureRunArtifacts(outputDirectory, artifactsDirectory, 1)).rejects.toThrow(
+        'strict trace-carrier-free PNG',
+      );
+      await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(
+        readdir(join(artifactsDirectory, 'verification', 'run-1')),
+      ).rejects.toMatchObject({ code: 'ENOENT' });
+    },
+  );
+
+  test('rejects an external screenshot symlink without retaining its target', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-symlink-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    const screenshots = join(outputDirectory, 'artifacts', 'screenshots');
+    const sourceBytes = validPng();
+    const externalDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-external-'));
+    const backing = join(externalDirectory, 'screenshot-source.png');
+    const source = join(screenshots, 'proof.png');
+    await mkdir(screenshots, { recursive: true });
+    await writeFile(backing, sourceBytes);
+    await symlink(backing, source);
+
+    await expect(captureRunArtifacts(outputDirectory, artifactsDirectory, 1)).rejects.toThrow(
+      'rejects symbolic links',
+    );
+
+    await expect(readFile(backing)).resolves.toEqual(sourceBytes);
+    await expect(readdir(join(artifactsDirectory, 'verification', 'run-1'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  test('rejects a non-regular screenshot entry without blocking on its bytes', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-special-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    const screenshots = join(outputDirectory, 'artifacts', 'screenshots');
+    const socketPath = join(screenshots, 'proof.png');
+    await mkdir(screenshots, { recursive: true });
+    const server = createServer();
+    await new Promise<void>((resolveListen, rejectListen) => {
+      server.once('error', rejectListen);
+      server.listen(socketPath, resolveListen);
+    });
+    try {
+      await expect(captureRunArtifacts(outputDirectory, artifactsDirectory, 1)).rejects.toThrow(
+        'rejects non-regular entries',
+      );
+    } finally {
+      await new Promise<void>((resolveClose, rejectClose) =>
+        server.close((error) => (error ? rejectClose(error) : resolveClose())),
+      );
+    }
+    await expect(readdir(join(artifactsDirectory, 'verification', 'run-1'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  test('fails closed on an unreadable artifact child and removes the destination', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-unreadable-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    const locked = join(outputDirectory, 'artifacts', 'locked');
+    await mkdir(locked, { recursive: true });
+    await writeFile(join(locked, 'proof.png'), validPng());
+    await chmod(locked, 0o000);
+    try {
+      await expect(captureRunArtifacts(outputDirectory, artifactsDirectory, 1)).rejects.toThrow(
+        'could not inspect the owned workspace safely',
+      );
+    } finally {
+      await chmod(locked, 0o700);
+    }
+    await expect(readdir(join(artifactsDirectory, 'verification', 'run-1'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  test.each(['depth', 'entries', 'candidates'] as const)(
+    'fails closed on the artifact discovery %s bound and removes the destination',
+    async (limit) => {
+      const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-discovery-limit-'));
+      const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+      const artifacts = join(outputDirectory, 'artifacts');
+      await mkdir(artifacts, { recursive: true });
+      if (limit === 'depth') {
+        let directory = artifacts;
+        for (let depth = 0; depth < 17; depth += 1) {
+          directory = join(directory, `d${depth}`);
+          await mkdir(directory);
+        }
+      } else {
+        const directory = join(artifacts, 'wide');
+        await mkdir(directory);
+        const count = limit === 'entries' ? 1_024 : 257;
+        const extension = limit === 'entries' ? 'txt' : 'png';
+        await Promise.all(
+          Array.from({ length: count }, (_, index) =>
+            writeFile(join(directory, `entry-${String(index).padStart(4, '0')}.${extension}`), ''),
+          ),
+        );
+      }
+
+      await expect(captureRunArtifacts(outputDirectory, artifactsDirectory, 1)).rejects.toThrow(
+        'exceeded a configured safety limit',
+      );
+      await expect(
+        readdir(join(artifactsDirectory, 'verification', 'run-1')),
+      ).rejects.toMatchObject({ code: 'ENOENT' });
+    },
+  );
+
+  test.each([
+    {
+      label: 'missing',
+      fileNames: ['step-1-login-page-profile.png'],
+      checkpoints: ['home'],
+      code: 'missing-source',
+    },
+    {
+      label: 'duplicate declaration',
+      fileNames: ['home.png'],
+      checkpoints: ['home', 'home'],
+      code: 'duplicate-checkpoint',
+    },
+  ])('rejects a $label screenshot checkpoint mapping transactionally', async (scenario) => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-checkpoint-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    const screenshots = join(outputDirectory, 'artifacts', 'screenshots');
+    await mkdir(screenshots, { recursive: true });
+    for (const fileName of scenario.fileNames) {
+      await writeFile(join(screenshots, fileName), validPng());
+    }
+
+    await expect(
+      captureRunArtifacts(outputDirectory, artifactsDirectory, 1, {
+        screenshotCheckpoints: scenario.checkpoints,
+      }),
+    ).rejects.toThrow(`Screenshot checkpoint mapping failed (${scenario.code})`);
+    await expect(readdir(join(artifactsDirectory, 'verification', 'run-1'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+  });
+
+  test('retains extra safe screenshots after injectively binding a required checkpoint', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-checkpoint-extra-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    const screenshots = join(outputDirectory, 'artifacts', 'screenshots');
+    await mkdir(screenshots, { recursive: true });
+    await writeFile(join(screenshots, 'step-1-login-page-home.png'), validPng());
+    await writeFile(join(screenshots, 'step-2-home-home.png'), validPng());
+
+    const artifacts = await captureRunArtifacts(outputDirectory, artifactsDirectory, 1, {
+      screenshotCheckpoints: ['home'],
+    });
+
+    expect(artifacts.map(({ kind }) => kind)).toEqual(['screenshot', 'screenshot']);
+    expect(artifacts.map(({ path }) => path)).toEqual([
+      join(artifactsDirectory, 'verification', 'run-1', '001-step-1-login-page-home.png'),
+      join(artifactsDirectory, 'verification', 'run-1', '002-step-2-home-home.png'),
+    ]);
+  });
+
+  test('maps a rejected screenshot trace carrier to blocked without retained refs', async () => {
+    const fixture = await stagedFixture();
+    const source = join(fixture.outputDirectory, 'artifacts', 'screenshots', 'proof.png');
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await mkdir(join(fixture.outputDirectory, 'artifacts', 'screenshots'), {
+          recursive: true,
+        });
+        await writeFile(source, await traceZip(1));
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: ['login-page->home'],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, {
+      ...policy(1),
+      screenshotCheckpoints: ['home'],
+    });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.artifacts).toEqual([]);
+    await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  test('keeps a failed run contradicted when its safe screenshot misses the required checkpoint', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        const screenshots = join(fixture.outputDirectory, 'artifacts', 'screenshots');
+        await mkdir(screenshots, { recursive: true });
+        await writeFile(join(screenshots, 'step-1-login-page-profile.png'), validPng());
+        return {
+          passed: false,
+          output: 'assertion failed',
+          exitCode: 1,
+          networkErrors: [],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, {
+      ...policy(1),
+      screenshotCheckpoints: ['home'],
+    });
+
+    expect(result.outcome).toBe('contradicted');
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_APP_DEFECT);
+  });
+
   test('maps a passing and failing split to contradicted rather than verified', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
@@ -125,6 +378,89 @@ describe('PlaywrightVerifier', () => {
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_ARTIFACT_MISSING });
   });
 
+  test('blocks and retains no eligible trace when sanitization fails', async () => {
+    const fixture = await stagedFixture();
+    const rawTrace = join(fixture.outputDirectory, 'test-results', 'invalid-trace', 'trace.zip');
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        const results = join(fixture.outputDirectory, 'test-results', 'invalid-trace');
+        await mkdir(results, { recursive: true });
+        await writeFile(rawTrace, 'malformed trace archive');
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: ['login-page->home'],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, { ...policy(1), trace: 'retain' });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRACE_SANITIZATION_FAILED });
+    expect(result.artifacts.some(({ kind }) => kind === 'trace')).toBe(false);
+    await expect(readFile(rawTrace)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  test('blocks and removes eligible output when raw trace cleanup cannot unlink the source', async () => {
+    const fixture = await stagedFixture();
+    const results = join(fixture.outputDirectory, 'test-results', 'locked-trace');
+    const rawTrace = join(results, 'trace.zip');
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await mkdir(results, { recursive: true });
+        await writeFile(rawTrace, await traceZip(1));
+        await chmod(results, 0o500);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: ['login-page->home'],
+        };
+      },
+    });
+
+    try {
+      const result = await verifier.verify(fixture.bundle, { ...policy(1), trace: 'retain' });
+      expect(result.outcome).toBe('blocked');
+      expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRACE_SANITIZATION_FAILED });
+      expect(result.artifacts.some(({ kind }) => kind === 'trace')).toBe(false);
+      await expect(readFile(rawTrace)).resolves.toHaveLength(0);
+    } finally {
+      await chmod(results, 0o700);
+    }
+  });
+
+  test('gives trace sanitization failure blocked precedence over mixed runtime results', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async (run) => {
+        const results = join(fixture.outputDirectory, 'test-results', `run-${run}`);
+        await mkdir(results, { recursive: true });
+        await writeFile(
+          join(results, 'trace.zip'),
+          run === 1 ? await traceZip(run) : 'malformed trace archive',
+        );
+        return {
+          passed: run === 2,
+          output: '',
+          exitCode: run === 2 ? 0 : 1,
+          networkErrors: [],
+          observedTransitions: ['login-page->home'],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, { ...policy(2), trace: 'retain' });
+
+    expect(result.runs).toEqual([{ passed: false }, { passed: true }]);
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRACE_SANITIZATION_FAILED });
+  });
+
   test('classifyVerification blocks when required transitions are missing on a clean pass', () => {
     const result = classifyVerification({
       subject: 'authentication.login',
@@ -170,16 +506,24 @@ describe('PlaywrightVerifier', () => {
       trace: 'retain',
     });
 
-    expect(result.outcome).toBe('verified');
+    expect(result.outcome, JSON.stringify(result.diagnostics)).toBe('verified');
     expect(result.runs).toEqual([{ passed: true }, { passed: true }]);
     expect(result.artifacts.map(({ kind }) => kind)).toEqual(
-      expect.arrayContaining(['screenshot', 'trace']),
+      expect.arrayContaining(['screenshot', 'trace', 'trace-sanitization-report']),
     );
     for (const artifact of result.artifacts) {
       const digest = createHash('sha256')
         .update(await readFile(artifact.path))
         .digest('hex');
       expect(digest).toBe(artifact.sha256);
+    }
+    for (const trace of result.artifacts.filter(({ kind }) => kind === 'trace')) {
+      await expect(
+        inspectPlaywrightTrace({
+          tracePath: trace.path,
+          provenancePath: `${trace.path}.sanitization.json`,
+        }),
+      ).resolves.toMatchObject({ ok: true });
     }
   });
 
@@ -306,9 +650,66 @@ async function writeRunArtifacts(outputDirectory: string, run: number): Promise<
   const results = join(outputDirectory, 'test-results', `run-${run}`);
   await Promise.all([mkdir(screenshots, { recursive: true }), mkdir(results, { recursive: true })]);
   await Promise.all([
-    writeFile(join(screenshots, 'home.png'), `screenshot-${run}`),
-    writeFile(join(results, 'trace.zip'), `trace-${run}`),
+    writeFile(join(screenshots, 'home.png'), validPng()),
+    writeFile(join(results, 'trace.zip'), await traceZip(run)),
   ]);
+}
+
+function validPng(): Buffer {
+  return Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+    'base64',
+  );
+}
+
+function pngWithAncillaryPayloads(payloads: readonly Buffer[]): Buffer {
+  const png = validPng();
+  const type = Buffer.from('raWx');
+  const chunks = payloads.map((payload) => {
+    const length = Buffer.alloc(4);
+    length.writeUInt32BE(payload.byteLength);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(testCrc32(Buffer.concat([type, payload])));
+    return Buffer.concat([length, type, payload, crc]);
+  });
+  return Buffer.concat([
+    png.subarray(0, png.byteLength - 12),
+    ...chunks,
+    png.subarray(png.byteLength - 12),
+  ]);
+}
+
+function testCrc32(bytes: Buffer): number {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+async function traceZip(run: number): Promise<Buffer> {
+  const archive = new ZipFile();
+  archive.addBuffer(
+    Buffer.from(
+      `${JSON.stringify({ type: 'context-options', version: 8, browserName: 'chromium', title: `verification run ${run}` })}\n${JSON.stringify(
+        {
+          type: 'action',
+          callId: `call@${run}`,
+          startTime: 1,
+          endTime: 2,
+          class: 'Frame',
+          method: 'click',
+          params: {},
+        },
+      )}\n`,
+    ),
+    'trace.trace',
+  );
+  archive.end();
+  const chunks: Buffer[] = [];
+  for await (const chunk of archive.outputStream) chunks.push(Buffer.from(chunk));
+  return Buffer.concat(chunks);
 }
 
 function policy(requiredRuns: number) {

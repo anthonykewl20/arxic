@@ -7,8 +7,13 @@ import type {
 } from '@arxic/contracts';
 import { resolve } from 'node:path';
 import { atomicReplace } from './atomic-store';
-import { ARXIC_PROMOTION_FREEZE_FAILED, promotionDiagnostic } from './diagnostics';
+import {
+  ARXIC_PROMOTION_FREEZE_FAILED,
+  ARXIC_PROMOTION_REDACTION_FAILED,
+  promotionDiagnostic,
+} from './diagnostics';
 import { freezeBundle } from './freeze';
+import { validateTraceArtifacts } from './trace-artifact-gate';
 import { sha256, validateGates, validateStagedBundle } from './validator';
 
 export * from './atomic-store';
@@ -16,6 +21,7 @@ export * from './bundle-assembler';
 export * from './diagnostics';
 export * from './freeze';
 export * from './redaction-gate';
+export * from './trace-artifact-gate';
 export * from './validator';
 export const PACKAGE_NAME = '@arxic/bundle-promoter' as const;
 
@@ -56,6 +62,20 @@ export class BundlePromoterAdapter implements BundlePromoter {
   ): Promise<PromotionResult> {
     const gateResult = validateGates(gates);
     if (!gateResult.ok) return gateResult;
+    const validation = validateStagedBundle(bundle);
+    if (!validation.ok) return validation;
+    const traceGate = await validateTraceArtifacts(bundle.artifacts);
+    if (!traceGate.ok) {
+      return {
+        diagnostics: [
+          promotionDiagnostic(
+            ARXIC_PROMOTION_REDACTION_FAILED,
+            'bundle.artifacts',
+            traceGate.reason,
+          ),
+        ],
+      };
+    }
     let frozen: Uint8Array;
     try {
       frozen = freezeBundle(bundle);
@@ -70,8 +90,6 @@ export class BundlePromoterAdapter implements BundlePromoter {
         ],
       };
     }
-    const validation = validateStagedBundle(bundle);
-    if (!validation.ok) return validation;
     const checksumSha256 = sha256(frozen);
     let receipt: PromotionReceipt;
     try {

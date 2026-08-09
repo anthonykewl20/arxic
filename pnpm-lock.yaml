@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  yazl@3.3.1: 0828e6163503647010829ccd73424bf2cdca0f59a7db3a03714ac23911e6cad4
+
 importers:
 
   .:
@@ -93,6 +96,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/playwright-trace-sanitizer':
+        specifier: workspace:*
+        version: link:../playwright-trace-sanitizer
     devDependencies:
       '@arxic/playwright-compiler':
         specifier: workspace:*
@@ -103,6 +109,12 @@ importers:
       '@arxic/verifier':
         specifier: workspace:*
         version: link:../verifier
+      '@types/yazl':
+        specifier: 3.3.1
+        version: 3.3.1
+      yazl:
+        specifier: 3.3.1
+        version: 3.3.1(patch_hash=0828e6163503647010829ccd73424bf2cdca0f59a7db3a03714ac23911e6cad4)
 
   packages/contracts: {}
 
@@ -187,6 +199,16 @@ importers:
       '@arxic/playwright-agent-adapter':
         specifier: workspace:*
         version: link:../playwright-agent-adapter
+      '@arxic/playwright-trace-sanitizer':
+        specifier: workspace:*
+        version: link:../playwright-trace-sanitizer
+    devDependencies:
+      '@types/yazl':
+        specifier: 3.3.1
+        version: 3.3.1
+      yazl:
+        specifier: 3.3.1
+        version: 3.3.1(patch_hash=0828e6163503647010829ccd73424bf2cdca0f59a7db3a03714ac23911e6cad4)
 
   packages/model-adapter:
     dependencies:
@@ -223,6 +245,9 @@ importers:
       '@arxic/playwright-agent-adapter':
         specifier: workspace:*
         version: link:../playwright-agent-adapter
+      '@arxic/playwright-trace-sanitizer':
+        specifier: workspace:*
+        version: link:../playwright-trace-sanitizer
       '@arxic/policy-engine':
         specifier: workspace:*
         version: link:../policy-engine
@@ -241,6 +266,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/playwright-trace-sanitizer':
+        specifier: workspace:*
+        version: link:../playwright-trace-sanitizer
       '@playwright/test':
         specifier: 1.62.1
         version: 1.62.1
@@ -257,6 +285,25 @@ importers:
       '@arxic/real-world-testkit':
         specifier: workspace:*
         version: link:../real-world-testkit
+
+  packages/playwright-trace-sanitizer:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      yauzl:
+        specifier: 3.4.0
+        version: 3.4.0
+      yazl:
+        specifier: 3.3.1
+        version: 3.3.1(patch_hash=0828e6163503647010829ccd73424bf2cdca0f59a7db3a03714ac23911e6cad4)
+    devDependencies:
+      '@types/yauzl':
+        specifier: 3.4.0
+        version: 3.4.0
+      '@types/yazl':
+        specifier: 3.3.1
+        version: 3.3.1
 
   packages/policy-engine:
     dependencies:
@@ -327,6 +374,9 @@ importers:
       '@arxic/playwright-agent-adapter':
         specifier: workspace:*
         version: link:../playwright-agent-adapter
+      '@arxic/playwright-trace-sanitizer':
+        specifier: workspace:*
+        version: link:../playwright-trace-sanitizer
       '@playwright/test':
         specifier: 1.62.1
         version: 1.62.1
@@ -337,6 +387,12 @@ importers:
       '@arxic/real-world-testkit':
         specifier: workspace:*
         version: link:../real-world-testkit
+      '@types/yazl':
+        specifier: 3.3.1
+        version: 3.3.1
+      yazl:
+        specifier: 3.3.1
+        version: 3.3.1(patch_hash=0828e6163503647010829ccd73424bf2cdca0f59a7db3a03714ac23911e6cad4)
 
   test-fixtures/reference-auth-app:
     dependencies:
@@ -1543,6 +1599,12 @@ packages:
 
   '@types/tough-cookie@4.0.5':
     resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
+
+  '@types/yauzl@3.4.0':
+    resolution: {integrity: sha512-NRPn5w6h8dhcnmx3YIRQcqMywY/+nND/uOkJessedcrowO3C0AssHp3tMJpxKAwOhFOo0OV1y9VtsC5hbKKBAw==}
+
+  '@types/yazl@3.3.1':
+    resolution: {integrity: sha512-DIWfCKpsTp6hE5BDBHV3+fIL/bLUF9Bv13iDrWnMlmhQpH67buNvI291ZauQ1xcccxK3FqQ9honnXpq4R8NMuQ==}
 
   '@typescript-eslint/eslint-plugin@8.65.0':
     resolution: {integrity: sha512-IEgob78X12rHpUmtcwFsXhZdVGJtwTVP8FiCLZkR6GlYVrl2PcuB+KhCE5BlVC/eQpQnu8WXRtkHZuPar+gCRA==}
@@ -3665,6 +3727,9 @@ packages:
   pause-stream@0.0.11:
     resolution: {integrity: sha512-e3FBlXLmN/D1S+zHzanP4E/4Z60oFAa3O051qt1pxa7DEJWKAyil6upYVXCWadEnuoqa4Pkc9oUx9zsxYeRv8A==}
 
+  pend@1.2.0:
+    resolution: {integrity: sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==}
+
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
 
@@ -4583,6 +4648,13 @@ packages:
   yargs@17.7.3:
     resolution: {integrity: sha512-GZtjxm/J/4TSxuL3FNYjCmLktBTnIw/rVmKSIyKeYAZpmJB2ig9VauCC5xsa82GNKVKDAqpOn3KVzNt0zmrU0g==}
     engines: {node: '>=12'}
+
+  yauzl@3.4.0:
+    resolution: {integrity: sha512-jIH9yLR9wqr0wOS0TpBvo/g/2UgZH5qePVbjgRliiF0BYvOZyaBknKsF+x9Iht0O6sqgnB93rCICdOZFecJuDw==}
+    engines: {node: '>=12'}
+
+  yazl@3.3.1:
+    resolution: {integrity: sha512-BbETDVWG+VcMUle37k5Fqp//7SDOK2/1+T7X8TD96M3D9G8jK5VLUdQVdVjGi8im7FGkazX7kk5hkU8X4L5Bng==}
 
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
@@ -5632,6 +5704,14 @@ snapshots:
       '@types/node': 18.19.130
 
   '@types/tough-cookie@4.0.5': {}
+
+  '@types/yauzl@3.4.0':
+    dependencies:
+      '@types/node': 24.13.3
+
+  '@types/yazl@3.3.1':
+    dependencies:
+      '@types/node': 24.13.3
 
   '@typescript-eslint/eslint-plugin@8.65.0(@typescript-eslint/parser@8.65.0(eslint@9.39.5(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@9.39.5(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)':
     dependencies:
@@ -8014,6 +8094,8 @@ snapshots:
     dependencies:
       through: 2.3.8
 
+  pend@1.2.0: {}
+
   picocolors@1.1.1: {}
 
   picomatch@2.3.2: {}
@@ -9232,6 +9314,14 @@ snapshots:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.1.1
+
+  yauzl@3.4.0:
+    dependencies:
+      pend: 1.2.0
+
+  yazl@3.3.1(patch_hash=0828e6163503647010829ccd73424bf2cdca0f59a7db3a03714ac23911e6cad4):
+    dependencies:
+      buffer-crc32: 1.0.0
 
   yocto-queue@0.1.0: {}
 

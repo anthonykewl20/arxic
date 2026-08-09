@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { PlaywrightExplorationDriver } from '@arxic/playwright-agent-adapter';
+import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ARXIC_EXPLORATION_APPROVAL_DENIED,
@@ -81,7 +82,21 @@ describe('real stage-8 exploration proof', () => {
       budget: 8,
       driver: new PlaywrightExplorationDriver({ headless: true, evidenceDir }),
     });
-    await access(join(evidenceDir, 'exploration-trace.zip'));
+    const tracePath = join(evidenceDir, 'exploration-trace.zip');
+    const provenancePath = `${tracePath}.sanitization.json`;
+    await Promise.all([access(tracePath), access(provenancePath)]);
+    const inspection = await inspectPlaywrightTrace({
+      tracePath,
+      provenancePath,
+      forbiddenSubstrings: ['exploration@example.test', 'Hunter2!', 'exploration-real-world-proof'],
+    });
+    expect(inspection).toMatchObject({
+      ok: true,
+      provenance: {
+        logicalMembers: expect.arrayContaining(['trace-001.trace']),
+        residualScan: { passed: true },
+      },
+    });
     const screenshots = (await readdir(evidenceDir)).filter((file) => file.endsWith('.png'));
     expect(screenshots.length).toBeGreaterThanOrEqual(1);
     const evidence = result.evidenceRefs.find(
@@ -99,7 +114,7 @@ describe('real stage-8 exploration proof', () => {
     if (evidence?.kind === 'runtime') {
       expect(screenshots).toContain(evidence.screenshotRef);
       process.stdout.write(
-        `Exploration proof: trace ${join(evidenceDir, 'exploration-trace.zip')}; screenshots ${screenshots.join(', ')}\n`,
+        `Exploration proof: sanitized action timeline and provenance retained; screenshots ${screenshots.length}\n`,
       );
     }
   }, 120_000);

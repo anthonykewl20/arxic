@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "capture": "live-playwright-screenshot",
+  "app": "vulnerable-auth-app",
+  "assertion": "text:Logged in",
+  "screenshotSha256": "311f732d2ff90ea4219ad91c8f68f10207184a6ba233ebafc266d802c36ad3a6",
+  "masks": ["all input elements", "rendered synthetic persona email text"],
+  "maskColor": "#000000",
+  "postProcessing": false
+}

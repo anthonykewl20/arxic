@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
-import { basename, dirname, extname, join, resolve, sep } from 'node:path';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import type { ArtifactRef, StagedBundle } from '@arxic/contracts';
+import { validateTraceArtifacts } from './trace-artifact-gate';
 
 export type ProvenanceInput = Readonly<{
   repository: string;
@@ -49,6 +50,10 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
   ) {
     throw new Error('Bundle output directory must not contain the staged directory or be a root');
   }
+  const traceGate = await validateTraceArtifacts(input.verificationArtifacts ?? []);
+  if (!traceGate.ok) throw new Error(traceGate.reason);
+  const validatedTraces = traceGate.traces;
+  const validatedScreenshots = traceGate.screenshots;
   await rm(directory, { recursive: true, force: true });
   await Promise.all([
     mkdir(join(directory, 'tests'), { recursive: true }),
@@ -56,6 +61,7 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
     mkdir(join(directory, 'evidence'), { recursive: true }),
     mkdir(join(directory, 'artifacts', 'screenshots'), { recursive: true }),
     mkdir(join(directory, 'artifacts', 'traces'), { recursive: true }),
+    mkdir(join(directory, 'artifacts', 'reports'), { recursive: true }),
   ]);
 
   const generatedAt = (input.now ?? (() => new Date().toISOString()))();
@@ -68,7 +74,7 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
     generator: { id: '@arxic/bundle-promoter', version: '0.0.0' },
     ...(input.provenance.toolVersions ? { toolVersions: input.provenance.toolVersions } : {}),
   });
-  const notice = `Arxic verified workflow bundle.\nWorkflow: ${input.bundle.workflow.id}\nGenerated: ${generatedAt}\nLicense: MIT\nThis bundle contains independently replayable Playwright test artifacts.\n`;
+  const notice = `Arxic verified workflow bundle.\nWorkflow: ${input.bundle.workflow.id}\nGenerated: ${generatedAt}\nLicense: MIT\nThis bundle contains independently inspectable privacy-preserving Playwright action timelines.\n`;
 
   await Promise.all([
     writeFile(join(directory, 'manifest.json'), canonicalJson(input.bundle.manifest), 'utf8'),
@@ -95,13 +101,30 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
   const verificationArtifacts = [...(input.verificationArtifacts ?? [])]
     .filter(({ kind }) => kind === 'screenshot' || kind === 'trace')
     .sort((left, right) => compareCodepoints(left.path, right.path));
-  for (const [index, artifact] of verificationArtifacts.entries()) {
-    const bytes = await readFile(artifact.path);
-    assertHash(artifact, bytes);
-    const extension = extname(artifact.path);
-    const name = `${String(index + 1).padStart(3, '0')}-${basename(artifact.path, extension)}${extension}`;
-    const kindDirectory = artifact.kind === 'screenshot' ? 'screenshots' : 'traces';
-    await copyFile(artifact.path, join(directory, 'artifacts', kindDirectory, name));
+  const artifactSequences = { screenshot: 0, trace: 0 };
+  for (const artifact of verificationArtifacts) {
+    const kind = artifact.kind === 'trace' ? 'trace' : 'screenshot';
+    artifactSequences[kind] += 1;
+    const name =
+      kind === 'trace'
+        ? `${String(artifactSequences.trace).padStart(3, '0')}-trace.zip`
+        : `${String(artifactSequences.screenshot).padStart(3, '0')}-${basename(artifact.path)}`;
+    const kindDirectory = kind === 'screenshot' ? 'screenshots' : 'traces';
+    if (kind === 'trace') {
+      const validated = validatedTraces.get(artifact.path);
+      if (!validated) throw new Error('Validated trace disappeared after preflight');
+      await Promise.all([
+        writeFile(join(directory, 'artifacts', kindDirectory, name), validated.traceBytes),
+        writeFile(
+          join(directory, 'artifacts', 'reports', `${name}.sanitization.json`),
+          validated.provenanceBytes,
+        ),
+      ]);
+      continue;
+    }
+    const validated = validatedScreenshots.get(artifact.path);
+    if (!validated) throw new Error('Validated screenshot disappeared after preflight');
+    await writeFile(join(directory, 'artifacts', kindDirectory, name), validated.bytes);
   }
 
   const files = await assembledFiles(directory, false);

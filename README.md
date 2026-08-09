@@ -9,7 +9,7 @@ Evidence-driven behavioral intent compiler that produces independently replayabl
 Playwright workflow bundles with explicit evidence, provenance, and verifiable
 coverage.
 
-Status: Accepted, pre-MVP (bootstrap complete; M0 in progress)
+Status: Accepted, pre-MVP (Milestone 1 exit hardening in progress)
 
 ## What is Arxic?
 

@@ -1,36 +1,45 @@
 import { createHash } from 'node:crypto';
-import { cp, mkdir, readFile, readdir, rm } from 'node:fs/promises';
-import { basename, join, resolve } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 import type { ArtifactRef } from '@arxic/contracts';
+import {
+  retainCaptureArtifacts,
+  type TraceSanitizationFailure,
+} from '@arxic/playwright-trace-sanitizer';
 
 export type ArtifactHashFailure = {
   artifact: ArtifactRef;
   reason: 'missing' | 'mismatch';
 };
 
+export class TraceSanitizationError extends Error {
+  readonly failure: TraceSanitizationFailure;
+
+  constructor(failure: TraceSanitizationFailure) {
+    super(`Trace sanitization failed (${failure.code})`);
+    this.name = 'TraceSanitizationError';
+    this.failure = failure;
+  }
+}
+
 export async function captureRunArtifacts(
   testDirectory: string,
   artifactsDirectory: string,
   run: number,
+  options: {
+    forbiddenSubstrings?: readonly string[];
+    screenshotCheckpoints?: readonly string[];
+  } = {},
 ): Promise<ArtifactRef[]> {
-  const destination = join(artifactsDirectory, 'verification', `run-${run}`);
-  await rm(destination, { recursive: true, force: true });
-  await mkdir(destination, { recursive: true });
-  const roots = [join(testDirectory, 'artifacts'), join(testDirectory, 'test-results')];
-  const files = (await Promise.all(roots.map((root) => filesUnder(root)))).flat();
-  const refs: ArtifactRef[] = [];
-  let sequence = 0;
-  for (const source of files.filter((path) => /\.(?:png|zip)$/u.test(path)).sort()) {
-    sequence += 1;
-    const kind = source.endsWith('.png') ? 'screenshot' : 'trace';
-    const target = join(
-      destination,
-      `${String(sequence).padStart(3, '0')}-${kind}-${basename(source)}`,
-    );
-    await cp(source, target);
-    refs.push(await artifactRef(kind, target));
-  }
-  return refs;
+  const retained = await retainCaptureArtifacts({
+    roots: [join(testDirectory, 'artifacts'), join(testDirectory, 'test-results')],
+    destination: join(artifactsDirectory, 'verification', `run-${run}`),
+    forbiddenSubstrings: options.forbiddenSubstrings,
+    screenshotCheckpoints: options.screenshotCheckpoints,
+  });
+  if (retained.ok) return retained.refs;
+  if (retained.traceFailure) throw new TraceSanitizationError(retained.traceFailure);
+  throw new Error(`${retained.code}: ${retained.message}`);
 }
 
 export async function verifyArtifactHashes(
@@ -64,19 +73,4 @@ export function resolveArtifactPath(baseDirectory: string, path: string): string
     throw new Error(`Artifact path escapes the staged directory: ${path}`);
   }
   return candidate;
-}
-
-async function filesUnder(root: string): Promise<string[]> {
-  try {
-    const entries = await readdir(root, { withFileTypes: true });
-    const nested = await Promise.all(
-      entries.map((entry) => {
-        const path = join(root, entry.name);
-        return entry.isDirectory() ? filesUnder(path) : Promise.resolve([path]);
-      }),
-    );
-    return nested.flat();
-  } catch {
-    return [];
-  }
 }

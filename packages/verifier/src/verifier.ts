@@ -1,6 +1,6 @@
 import { mkdir, rm, symlink } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { basename, dirname, join } from 'node:path';
+import { dirname, join } from 'node:path';
 import type {
   ArtifactRef,
   Diagnostic,
@@ -9,13 +9,19 @@ import type {
   VerificationResult,
   WorkflowVerifier,
 } from '@arxic/contracts';
-import { captureRunArtifacts, resolveArtifactPath, verifyArtifactHashes } from './artifacts';
+import {
+  captureRunArtifacts,
+  resolveArtifactPath,
+  TraceSanitizationError,
+  verifyArtifactHashes,
+} from './artifacts';
 import { classifyVerification } from './classify';
 import {
   ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH,
   ARXIC_VERIFY_ARTIFACT_MISSING,
   ARXIC_VERIFY_BLOCKED_FIXTURE,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
+  ARXIC_VERIFY_TRACE_SANITIZATION_FAILED,
   verifyDiagnostic,
 } from './diagnostics';
 import { resetAndSeedFixtures, type VerificationPersona } from './reset';
@@ -198,8 +204,24 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       }
       let captured: ArtifactRef[];
       try {
-        captured = await captureRunArtifacts(this.#outputDirectory, this.#artifactsDirectory, run);
+        captured = await captureRunArtifacts(this.#outputDirectory, this.#artifactsDirectory, run, {
+          forbiddenSubstrings: Object.values(this.#persona ?? {}).filter(
+            (value): value is string => typeof value === 'string' && value.length > 0,
+          ),
+          screenshotCheckpoints: result.passed ? policy.screenshotCheckpoints : [],
+        });
       } catch (error) {
+        if (error instanceof TraceSanitizationError) {
+          executionDiagnostics.push(
+            verifyDiagnostic(
+              ARXIC_VERIFY_TRACE_SANITIZATION_FAILED,
+              'blocked',
+              subject,
+              `Trace sanitization blocked verification run ${run} (${error.failure.code})`,
+            ),
+          );
+          break;
+        }
         artifactFailures.push({
           reason: 'missing',
           detail: `run ${run} artifacts could not be retained: ${error instanceof Error ? error.message : String(error)}`,
@@ -214,22 +236,6 @@ export class PlaywrightVerifier implements WorkflowVerifier {
           detail: `run ${run} ${artifact.path} (${reason})`,
         })),
       );
-      const missingScreenshots = result.passed
-        ? (policy.screenshotCheckpoints ?? []).filter(
-            (checkpoint) =>
-              !captured.some(
-                (artifact) =>
-                  artifact.kind === 'screenshot' &&
-                  screenshotMatchesCheckpoint(artifact.path, checkpoint),
-              ),
-          )
-        : [];
-      if (missingScreenshots.length > 0) {
-        artifactFailures.push({
-          reason: 'missing',
-          detail: `run ${run} lacks screenshots ${missingScreenshots.join(', ')}`,
-        });
-      }
       if (policy.trace === 'retain' && !captured.some(({ kind }) => kind === 'trace')) {
         artifactFailures.push({ reason: 'missing', detail: `run ${run} lacks a trace` });
       }
@@ -306,10 +312,4 @@ function personaEnvironment(persona: VerificationPersona | undefined): Record<st
     }
   }
   return env;
-}
-
-function screenshotMatchesCheckpoint(path: string, checkpoint: string): boolean {
-  const normalizedCheckpoint = checkpoint.replace(/[^A-Za-z0-9.-]+/gu, '-');
-  const name = basename(path, '.png');
-  return name === normalizedCheckpoint || name.endsWith(`-${normalizedCheckpoint}`);
 }

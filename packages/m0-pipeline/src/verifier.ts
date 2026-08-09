@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
-import { cp, mkdir, readFile, readdir, rm } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { readFile, rm } from 'node:fs/promises';
+import { join } from 'node:path';
 import type {
   ArtifactRef,
   Diagnostic,
@@ -9,6 +9,7 @@ import type {
   Workflow,
 } from '@arxic/contracts';
 import { runFallback } from '@arxic/playwright-agent-adapter';
+import { retainCaptureArtifacts } from '@arxic/playwright-trace-sanitizer';
 import {
   ARXIC_EXIT_APP_DEFECT_CONTRADICTED,
   ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
@@ -164,10 +165,16 @@ async function executeFallbackRun(
     restoreEnvironment('ARXIC_INPUT_PERSONA_EMAIL', previousEmail);
     restoreEnvironment('ARXIC_INPUT_PERSONA_PASSWORD', previousPassword);
   }
-  const runArtifacts = await retainRunArtifacts(input.testDir, input.artifactsDir, run);
+  const passed = result.failed === 0 && result.passed > 0;
+  const runArtifacts = await retainRunArtifacts(
+    input.testDir,
+    input.artifactsDir,
+    run,
+    Object.values(input.persona),
+    passed ? input.policy.screenshotCheckpoints : [],
+  );
   const networkErrors =
     result.output.match(/(?:net::ERR_[A-Z_]+|requestfailed|network error)/giu) ?? [];
-  const passed = result.failed === 0 && result.passed > 0;
   return {
     passed,
     artifacts: runArtifacts,
@@ -191,39 +198,21 @@ async function resetAndSeed(
   if (!seed.ok) throw new Error(`Fixture seed returned ${seed.status}`);
 }
 
-async function retainRunArtifacts(
+export async function retainRunArtifacts(
   testDir: string,
   artifactsDir: string,
   run: number,
+  forbiddenSubstrings: readonly string[],
+  screenshotCheckpoints: readonly string[] = [],
 ): Promise<ArtifactRef[]> {
-  const destination = join(artifactsDir, 'verification', `run-${run}`);
-  await mkdir(destination, { recursive: true });
-  const candidates = [join(testDir, 'artifacts'), join(testDir, 'test-results')];
-  const files: string[] = [];
-  for (const candidate of candidates) files.push(...(await filesUnder(candidate)));
-  const refs: ArtifactRef[] = [];
-  for (const source of files.filter((path) => /\.(?:png|zip)$/u.test(path))) {
-    const kind = source.endsWith('.png') ? 'screenshot' : 'trace';
-    const target = join(destination, `${kind}-${basename(source)}`);
-    await cp(source, target);
-    refs.push(await artifactRef(kind, target));
-  }
-  return refs;
-}
-
-async function filesUnder(root: string): Promise<string[]> {
-  try {
-    const entries = await readdir(root, { withFileTypes: true });
-    const nested = await Promise.all(
-      entries.map((entry) => {
-        const path = join(root, entry.name);
-        return entry.isDirectory() ? filesUnder(path) : Promise.resolve([path]);
-      }),
-    );
-    return nested.flat();
-  } catch {
-    return [];
-  }
+  const retained = await retainCaptureArtifacts({
+    roots: [join(testDir, 'artifacts'), join(testDir, 'test-results')],
+    destination: join(artifactsDir, 'verification', `run-${run}`),
+    forbiddenSubstrings,
+    screenshotCheckpoints,
+  });
+  if (retained.ok) return retained.refs;
+  throw new Error(`${retained.code}: ${retained.message}`);
 }
 
 export async function artifactRef(kind: string, path: string): Promise<ArtifactRef> {

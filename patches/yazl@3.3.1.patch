@@ -1,0 +1,39 @@
+diff --git a/index.js b/index.js
+index 6fddbbfb19d274b1e26de7efd0c01ece5513fcbc..8da5063e5d3d5800f4b3330a03c43b9d07fe5087 100644
+--- a/index.js
++++ b/index.js
+@@ -690,24 +690,24 @@ Entry.prototype.getCompressionMethod = function() {
+   return this.compressionLevel === 0 ? NO_COMPRESSION : DEFLATE_COMPRESSION;
+ };
+ 
+-// These are intentionally computed in the current system timezone
+-// to match how the DOS encoding operates in this library.
+-var minDosDate = new Date(1980, 0, 1);
+-var maxDosDate = new Date(2107, 11, 31, 23, 59, 58);
++// Use UTC for DOS timestamp bounds and components so identical dates produce
++// deterministic archive bytes in every system timezone.
++var minDosDate = new Date(Date.UTC(1980, 0, 1, 0, 0, 0));
++var maxDosDate = new Date(Date.UTC(2107, 11, 31, 23, 59, 58));
+ function dateToDosDateTime(jsDate) {
+   // Clamp out of bounds timestamps.
+   if (jsDate < minDosDate) jsDate = minDosDate;
+   else if (jsDate > maxDosDate) jsDate = maxDosDate;
+ 
+   var date = 0;
+-  date |= jsDate.getDate() & 0x1f; // 1-31
+-  date |= ((jsDate.getMonth() + 1) & 0xf) << 5; // 0-11, 1-12
+-  date |= ((jsDate.getFullYear() - 1980) & 0x7f) << 9; // 0-128, 1980-2108
++  date |= jsDate.getUTCDate() & 0x1f; // 1-31
++  date |= ((jsDate.getUTCMonth() + 1) & 0xf) << 5; // 0-11, 1-12
++  date |= ((jsDate.getUTCFullYear() - 1980) & 0x7f) << 9; // 0-128, 1980-2108
+ 
+   var time = 0;
+-  time |= Math.floor(jsDate.getSeconds() / 2); // 0-59, 0-29 (lose odd numbers)
+-  time |= (jsDate.getMinutes() & 0x3f) << 5; // 0-59
+-  time |= (jsDate.getHours() & 0x1f) << 11; // 0-23
++  time |= Math.floor(jsDate.getUTCSeconds() / 2); // 0-59, 0-29 (lose odd numbers)
++  time |= (jsDate.getUTCMinutes() & 0x3f) << 5; // 0-59
++  time |= (jsDate.getUTCHours() & 0x1f) << 11; // 0-23
+ 
+   return {date: date, time: time};
+ }
