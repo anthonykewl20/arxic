@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
-import { mkdir } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { sanitizeCapturedPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import {
   chromium,
   type Browser,
@@ -146,13 +148,42 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     this.#browser = undefined;
     this.#cdp = undefined;
     this.#tracingStarted = false;
+    let traceFailure: Error | undefined;
     if (tracingStarted && context && this.#options.evidenceDir) {
+      let temporaryTraceDirectory: string | undefined;
+      const tracePath = join(this.#options.evidenceDir, 'exploration-trace.zip');
+      const provenancePath = `${tracePath}.sanitization.json`;
       try {
-        await context.tracing.stop({
-          path: join(this.#options.evidenceDir, 'exploration-trace.zip'),
+        await Promise.all([rm(tracePath, { force: true }), rm(provenancePath, { force: true })]);
+        temporaryTraceDirectory = await mkdtemp(join(tmpdir(), 'arxic-exploration-trace-'));
+        const rawTracePath = join(temporaryTraceDirectory, 'trace.zip');
+        await context.tracing.stop({ path: rawTracePath });
+        const result = await sanitizeCapturedPlaywrightTrace({
+          sourcePath: rawTracePath,
+          outputPath: tracePath,
+          provenancePath,
         });
-      } catch {
-        // Closing must remain best-effort even when trace persistence fails.
+        if (!result.ok) {
+          traceFailure = new Error(`Exploration trace sanitization failed (${result.code})`);
+        }
+      } catch (error) {
+        traceFailure = new Error('Exploration trace capture or sanitization failed', {
+          cause: error,
+        });
+      } finally {
+        if (temporaryTraceDirectory) {
+          try {
+            await rm(temporaryTraceDirectory, { recursive: true, force: true });
+          } catch (error) {
+            traceFailure = new Error('Exploration raw trace cleanup failed', { cause: error });
+          }
+        }
+        if (traceFailure) {
+          await Promise.all([
+            rm(tracePath, { force: true }),
+            rm(provenancePath, { force: true }),
+          ]).catch(() => undefined);
+        }
       }
     }
     try {
@@ -175,6 +206,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     } catch {
       // Closing must never mask the exploration result.
     }
+    if (traceFailure) throw traceFailure;
   }
 
   async #getPage(): Promise<Page> {

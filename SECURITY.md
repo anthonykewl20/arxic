@@ -51,6 +51,7 @@ These are best-effort targets for a pre-1.0, maintainer-run project.
 - All external content (source, pages, mail, accessibility snapshots) is treated
   as data and validated; it cannot change system policy or authorize actions.
 - An LLM may never assign `verified`; only deterministic replay verification can.
+- Raw Playwright trace ZIPs are prohibited retained evidence. Only the shared sanitizer's independently inspected action timeline plus adjacent provenance may reach assembly or promotion; screenshots have a separate capture-time masking and visual-review boundary.
 
 ## Hardening roadmap
 

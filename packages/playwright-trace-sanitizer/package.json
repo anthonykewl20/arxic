@@ -1,5 +1,5 @@
 {
-  "name": "@arxic/playwright-agent-adapter",
+  "name": "@arxic/playwright-trace-sanitizer",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,8 +8,11 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@arxic/contracts": "workspace:*",
-    "@arxic/playwright-trace-sanitizer": "workspace:*",
-    "@playwright/test": "1.62.1"
+    "yauzl": "3.4.0",
+    "yazl": "3.3.1"
+  },
+  "devDependencies": {
+    "@types/yauzl": "3.4.0",
+    "@types/yazl": "3.3.1"
   }
 }

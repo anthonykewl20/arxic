@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { cp, mkdir, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import type {
   ArtifactRef,
@@ -9,6 +9,12 @@ import type {
   Workflow,
 } from '@arxic/contracts';
 import { runFallback } from '@arxic/playwright-agent-adapter';
+import {
+  discardCapturedArtifact,
+  isSensitiveArtifactFilename,
+  readTraceCarrierFreePng,
+  sanitizeCapturedPlaywrightTrace,
+} from '@arxic/playwright-trace-sanitizer';
 import {
   ARXIC_EXIT_APP_DEFECT_CONTRADICTED,
   ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
@@ -164,7 +170,12 @@ async function executeFallbackRun(
     restoreEnvironment('ARXIC_INPUT_PERSONA_EMAIL', previousEmail);
     restoreEnvironment('ARXIC_INPUT_PERSONA_PASSWORD', previousPassword);
   }
-  const runArtifacts = await retainRunArtifacts(input.testDir, input.artifactsDir, run);
+  const runArtifacts = await retainRunArtifacts(
+    input.testDir,
+    input.artifactsDir,
+    run,
+    Object.values(input.persona),
+  );
   const networkErrors =
     result.output.match(/(?:net::ERR_[A-Z_]+|requestfailed|network error)/giu) ?? [];
   const passed = result.failed === 0 && result.passed > 0;
@@ -191,24 +202,66 @@ async function resetAndSeed(
   if (!seed.ok) throw new Error(`Fixture seed returned ${seed.status}`);
 }
 
-async function retainRunArtifacts(
+export async function retainRunArtifacts(
   testDir: string,
   artifactsDir: string,
   run: number,
+  forbiddenSubstrings: readonly string[],
 ): Promise<ArtifactRef[]> {
   const destination = join(artifactsDir, 'verification', `run-${run}`);
+  await rm(destination, { recursive: true, force: true });
   await mkdir(destination, { recursive: true });
   const candidates = [join(testDir, 'artifacts'), join(testDir, 'test-results')];
   const files: string[] = [];
   for (const candidate of candidates) files.push(...(await filesUnder(candidate)));
   const refs: ArtifactRef[] = [];
-  for (const source of files.filter((path) => /\.(?:png|zip)$/u.test(path))) {
+  const sequences = { screenshot: 0, trace: 0 };
+  for (const source of files.filter((path) => /\.(?:png|zip)$/u.test(path)).sort()) {
     const kind = source.endsWith('.png') ? 'screenshot' : 'trace';
-    const target = join(destination, `${kind}-${basename(source)}`);
-    await cp(source, target);
-    refs.push(await artifactRef(kind, target));
+    if (isSensitiveArtifactFilename(basename(source), forbiddenSubstrings)) {
+      await rejectCapturedSource(source, 'Artifact source filename rejected by retention policy');
+    }
+    const screenshot = kind === 'screenshot' ? await readTraceCarrierFreePng(source) : undefined;
+    if (screenshot && !screenshot.ok) {
+      await rejectCapturedSource(
+        source,
+        'Screenshot source is not a strict trace-carrier-free PNG',
+      );
+    }
+    sequences[kind] += 1;
+    const target = join(
+      destination,
+      `${kind}-${String(sequences[kind]).padStart(3, '0')}.${kind === 'screenshot' ? 'png' : 'zip'}`,
+    );
+    if (kind === 'screenshot') {
+      await writeFile(target, screenshot!.ok ? screenshot!.bytes : Buffer.alloc(0));
+      refs.push(await artifactRef(kind, target));
+      continue;
+    }
+    const provenancePath = `${target}.sanitization.json`;
+    const sanitized = await sanitizeCapturedPlaywrightTrace({
+      sourcePath: source,
+      outputPath: target,
+      provenancePath,
+      forbiddenSubstrings,
+    });
+    if (!sanitized.ok) {
+      throw new Error(`Trace sanitization failed (${sanitized.code}: ${sanitized.message})`);
+    }
+    refs.push(
+      await artifactRef('trace', target),
+      await artifactRef('trace-sanitization-report', provenancePath),
+    );
   }
   return refs;
+}
+
+async function rejectCapturedSource(source: string, message: string): Promise<never> {
+  const discarded = await discardCapturedArtifact(source);
+  if (!discarded.ok) {
+    throw new Error(`${message}; source cleanup ${discarded.sourceDisposition}`);
+  }
+  throw new Error(message);
 }
 
 async function filesUnder(root: string): Promise<string[]> {

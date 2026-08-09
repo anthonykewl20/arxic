@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ArtifactRef, StagedBundle, Workflow } from '@arxic/contracts';
 import { validateDiagnostic } from '@arxic/contracts';
 import { afterEach, describe, expect, test } from 'vitest';
+import { ZipFile } from 'yazl';
+import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import {
   ARXIC_VERIFY_APP_DEFECT,
   ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH,
@@ -15,7 +17,9 @@ import {
   ARXIC_VERIFY_FLAKY_RUNS,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
   ARXIC_VERIFY_TRANSITIONS_MISSING,
+  ARXIC_VERIFY_TRACE_SANITIZATION_FAILED,
   PlaywrightVerifier,
+  captureRunArtifacts,
   classifyVerification,
 } from './index';
 
@@ -28,6 +32,49 @@ afterEach(async () => {
 });
 
 describe('PlaywrightVerifier', () => {
+  test('rejects source-derived sensitive artifact filenames without retaining raw bytes', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-sensitive-name-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+    const results = join(outputDirectory, 'test-results', 'run');
+    const rawTrace = join(results, 'sessionOpaqueFilenameCanary.zip');
+    await mkdir(results, { recursive: true });
+    await writeFile(rawTrace, await traceZip(1));
+
+    await expect(captureRunArtifacts(outputDirectory, artifactsDirectory, 1)).rejects.toThrow(
+      'filename rejected',
+    );
+    await expect(readFile(rawTrace)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  test.each(['renamed-zip', 'png-trailing-zip', 'png-split-zip'] as const)(
+    'rejects a %s trace carrier before screenshot retention',
+    async (variant) => {
+      const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-carrier-'));
+      const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
+      const results = join(outputDirectory, 'artifacts', 'screenshots');
+      const source = join(results, 'proof.png');
+      const rawTrace = await traceZip(1);
+      const split = Math.floor(rawTrace.byteLength / 2);
+      const bytes =
+        variant === 'renamed-zip'
+          ? rawTrace
+          : variant === 'png-trailing-zip'
+            ? Buffer.concat([validPng(), rawTrace])
+            : pngWithAncillaryPayloads([
+                rawTrace.subarray(0, split),
+                rawTrace.subarray(split),
+              ]);
+      await mkdir(results, { recursive: true });
+      await writeFile(source, bytes);
+
+      await expect(captureRunArtifacts(outputDirectory, artifactsDirectory, 1)).rejects.toThrow(
+        'strict trace-carrier-free PNG',
+      );
+      await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(readdir(join(artifactsDirectory, 'verification', 'run-1'))).resolves.toEqual([]);
+    },
+  );
+
   test('maps a passing and failing split to contradicted rather than verified', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
@@ -125,6 +172,89 @@ describe('PlaywrightVerifier', () => {
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_ARTIFACT_MISSING });
   });
 
+  test('blocks and retains no eligible trace when sanitization fails', async () => {
+    const fixture = await stagedFixture();
+    const rawTrace = join(fixture.outputDirectory, 'test-results', 'invalid-trace', 'trace.zip');
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        const results = join(fixture.outputDirectory, 'test-results', 'invalid-trace');
+        await mkdir(results, { recursive: true });
+        await writeFile(rawTrace, 'malformed trace archive');
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: ['login-page->home'],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, { ...policy(1), trace: 'retain' });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRACE_SANITIZATION_FAILED });
+    expect(result.artifacts.some(({ kind }) => kind === 'trace')).toBe(false);
+    await expect(readFile(rawTrace)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  test('blocks and removes eligible output when raw trace cleanup cannot unlink the source', async () => {
+    const fixture = await stagedFixture();
+    const results = join(fixture.outputDirectory, 'test-results', 'locked-trace');
+    const rawTrace = join(results, 'trace.zip');
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await mkdir(results, { recursive: true });
+        await writeFile(rawTrace, await traceZip(1));
+        await chmod(results, 0o500);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: ['login-page->home'],
+        };
+      },
+    });
+
+    try {
+      const result = await verifier.verify(fixture.bundle, { ...policy(1), trace: 'retain' });
+      expect(result.outcome).toBe('blocked');
+      expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRACE_SANITIZATION_FAILED });
+      expect(result.artifacts.some(({ kind }) => kind === 'trace')).toBe(false);
+      await expect(readFile(rawTrace)).resolves.toHaveLength(0);
+    } finally {
+      await chmod(results, 0o700);
+    }
+  });
+
+  test('gives trace sanitization failure blocked precedence over mixed runtime results', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async (run) => {
+        const results = join(fixture.outputDirectory, 'test-results', `run-${run}`);
+        await mkdir(results, { recursive: true });
+        await writeFile(
+          join(results, 'trace.zip'),
+          run === 1 ? await traceZip(run) : 'malformed trace archive',
+        );
+        return {
+          passed: run === 2,
+          output: '',
+          exitCode: run === 2 ? 0 : 1,
+          networkErrors: [],
+          observedTransitions: ['login-page->home'],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, { ...policy(2), trace: 'retain' });
+
+    expect(result.runs).toEqual([{ passed: false }, { passed: true }]);
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRACE_SANITIZATION_FAILED });
+  });
+
   test('classifyVerification blocks when required transitions are missing on a clean pass', () => {
     const result = classifyVerification({
       subject: 'authentication.login',
@@ -170,16 +300,24 @@ describe('PlaywrightVerifier', () => {
       trace: 'retain',
     });
 
-    expect(result.outcome).toBe('verified');
+    expect(result.outcome, JSON.stringify(result.diagnostics)).toBe('verified');
     expect(result.runs).toEqual([{ passed: true }, { passed: true }]);
     expect(result.artifacts.map(({ kind }) => kind)).toEqual(
-      expect.arrayContaining(['screenshot', 'trace']),
+      expect.arrayContaining(['screenshot', 'trace', 'trace-sanitization-report']),
     );
     for (const artifact of result.artifacts) {
       const digest = createHash('sha256')
         .update(await readFile(artifact.path))
         .digest('hex');
       expect(digest).toBe(artifact.sha256);
+    }
+    for (const trace of result.artifacts.filter(({ kind }) => kind === 'trace')) {
+      await expect(
+        inspectPlaywrightTrace({
+          tracePath: trace.path,
+          provenancePath: `${trace.path}.sanitization.json`,
+        }),
+      ).resolves.toMatchObject({ ok: true });
     }
   });
 
@@ -306,9 +444,66 @@ async function writeRunArtifacts(outputDirectory: string, run: number): Promise<
   const results = join(outputDirectory, 'test-results', `run-${run}`);
   await Promise.all([mkdir(screenshots, { recursive: true }), mkdir(results, { recursive: true })]);
   await Promise.all([
-    writeFile(join(screenshots, 'home.png'), `screenshot-${run}`),
-    writeFile(join(results, 'trace.zip'), `trace-${run}`),
+    writeFile(join(screenshots, 'home.png'), validPng()),
+    writeFile(join(results, 'trace.zip'), await traceZip(run)),
   ]);
+}
+
+function validPng(): Buffer {
+  return Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+    'base64',
+  );
+}
+
+function pngWithAncillaryPayloads(payloads: readonly Buffer[]): Buffer {
+  const png = validPng();
+  const type = Buffer.from('tEXt');
+  const chunks = payloads.map((payload) => {
+    const length = Buffer.alloc(4);
+    length.writeUInt32BE(payload.byteLength);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(testCrc32(Buffer.concat([type, payload])));
+    return Buffer.concat([length, type, payload, crc]);
+  });
+  return Buffer.concat([
+    png.subarray(0, png.byteLength - 12),
+    ...chunks,
+    png.subarray(png.byteLength - 12),
+  ]);
+}
+
+function testCrc32(bytes: Buffer): number {
+  let crc = 0xffffffff;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+async function traceZip(run: number): Promise<Buffer> {
+  const archive = new ZipFile();
+  archive.addBuffer(
+    Buffer.from(
+      `${JSON.stringify({ type: 'context-options', version: 8, browserName: 'chromium', title: `verification run ${run}` })}\n${JSON.stringify(
+        {
+          type: 'action',
+          callId: `call@${run}`,
+          startTime: 1,
+          endTime: 2,
+          class: 'Frame',
+          method: 'click',
+          params: {},
+        },
+      )}\n`,
+    ),
+    'trace.trace',
+  );
+  archive.end();
+  const chunks: Buffer[] = [];
+  for await (const chunk of archive.outputStream) chunks.push(Buffer.from(chunk));
+  return Buffer.concat(chunks);
 }
 
 function policy(requiredRuns: number) {

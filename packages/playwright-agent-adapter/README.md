@@ -40,7 +40,11 @@ This M0 policy is a lexical and structural guard for the enumerated weakening fo
 
 ## Fallback mapping
 
-`generateSpecFromWorkflow` first validates the frozen Workflow IR. For each required transition, it maps the `from` state to a kebab-case path (`login-page` → `/login`), maps each `action.inputRefs` entry to its accessible label and an `ARXIC_INPUT_<REF>` environment variable, submits through a semantic button locator, and maps assertion intents prefixed by `url:` or `text:` to literal Playwright assertions. Other assertion intents become body-text checks. Each transition emits a named screenshot; config enables Chromium, headless execution, one worker, and retained failure traces. Invalid IR emits no spec.
+`generateSpecFromWorkflow` first validates the frozen Workflow IR. For each required transition, it maps the `from` state to a kebab-case path (`login-page` → `/login`), maps each `action.inputRefs` entry to its accessible label and an `ARXIC_INPUT_<REF>` environment variable, submits through a semantic button locator, and maps assertion intents prefixed by `url:` or `text:` to literal Playwright assertions. Other assertion intents become body-text checks. Each transition emits a named screenshot; config enables Chromium, headless execution, one worker, and trace capture on failure. A raw capture is never eligible retained evidence: its caller must project it through `@arxic/playwright-trace-sanitizer`, retain the adjacent sidecar, and delete the source ZIP. Invalid IR emits no spec.
+
+`PlaywrightExplorationDriver` applies that same boundary directly. It stops tracing into an ephemeral directory, emits only the fixed-name privacy-preserving action timeline plus adjacent provenance into the requested evidence directory, deletes the raw source in `finally`, and makes `close()` fail when capture, sanitization, or raw cleanup fails so orchestration can classify the run as blocked. The timeline proves action order only; exploration screenshots remain subject to a separate capture-time masking and visual-review policy.
+
+This slice does not attest the exploration driver's existing full-page screenshot capture. #115 owns the shared screenshot-attestation service and must wire that separate boundary after the trace sanitizer lands; trace inspection must not be described as pixel privacy.
 
 `runFallback` invokes the pinned CLI with argument arrays, first with `test --list` and then `test`. A successful runtime result is `observed`, never `verified` (ADR §2).
 

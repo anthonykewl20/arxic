@@ -9,13 +9,19 @@ import type {
   VerificationResult,
   WorkflowVerifier,
 } from '@arxic/contracts';
-import { captureRunArtifacts, resolveArtifactPath, verifyArtifactHashes } from './artifacts';
+import {
+  captureRunArtifacts,
+  resolveArtifactPath,
+  TraceSanitizationError,
+  verifyArtifactHashes,
+} from './artifacts';
 import { classifyVerification } from './classify';
 import {
   ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH,
   ARXIC_VERIFY_ARTIFACT_MISSING,
   ARXIC_VERIFY_BLOCKED_FIXTURE,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
+  ARXIC_VERIFY_TRACE_SANITIZATION_FAILED,
   verifyDiagnostic,
 } from './diagnostics';
 import { resetAndSeedFixtures, type VerificationPersona } from './reset';
@@ -198,8 +204,24 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       }
       let captured: ArtifactRef[];
       try {
-        captured = await captureRunArtifacts(this.#outputDirectory, this.#artifactsDirectory, run);
+        captured = await captureRunArtifacts(this.#outputDirectory, this.#artifactsDirectory, run, {
+          forbiddenSubstrings: Object.values(this.#persona ?? {}).filter(
+            (value): value is string => typeof value === 'string' && value.length > 0,
+          ),
+          screenshotCheckpoints: policy.screenshotCheckpoints,
+        });
       } catch (error) {
+        if (error instanceof TraceSanitizationError) {
+          executionDiagnostics.push(
+            verifyDiagnostic(
+              ARXIC_VERIFY_TRACE_SANITIZATION_FAILED,
+              'blocked',
+              subject,
+              `Trace sanitization blocked verification run ${run} (${error.failure.code})`,
+            ),
+          );
+          break;
+        }
         artifactFailures.push({
           reason: 'missing',
           detail: `run ${run} artifacts could not be retained: ${error instanceof Error ? error.message : String(error)}`,

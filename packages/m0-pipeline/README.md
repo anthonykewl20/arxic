@@ -10,7 +10,7 @@
 | 10    | Deterministic verifier using the adapter fallback runner in real Chromium    |
 | 12    | `@arxic/bundle-promoter` atomic publication                                  |
 
-The deterministic verifier is the only component that assigns `verified`. It requires the configured number of consecutive clean-fixture passes, runtime observations for every required transition, retained screenshots and traces, and compliance with the network-error policy. A pass/fail split and all-failed runs are `contradicted`; missing runtime evidence is `blocked`.
+The deterministic verifier is the only component that assigns `verified`. It requires the configured number of consecutive clean-fixture passes, runtime observations for every required transition, retained screenshots, independently inspected privacy-preserving action timelines with adjacent provenance, and compliance with the network-error policy. Raw Playwright traces are deleted at capture and are never eligible evidence. A pass/fail split and all-failed runs are `contradicted`; missing runtime evidence or failed sanitization is `blocked`. Screenshot privacy remains a separate capture/review obligation.
 
 Promotion happens only after `verified`. The bundle promoter atomically replaces public bytes and preserves the prior last-known-good bundle if a later run or promotion fails. Promoted metadata includes the frozen manifest, workflow, source evidence index, artifact hashes, NOTICE, provenance, and replay plan.
 

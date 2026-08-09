@@ -1,6 +1,7 @@
 import { readFile, readdir } from 'node:fs/promises';
-import { extname, join, relative } from 'node:path';
+import { basename, extname, join, relative } from 'node:path';
 import type { Diagnostic } from '@arxic/contracts';
+import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import { ARXIC_PROMOTION_REDACTION_FAILED, promotionDiagnostic } from './diagnostics';
 
 export type RedactionFinding = Readonly<{
@@ -36,7 +37,8 @@ const patterns = [
 ] as const;
 
 export async function scanBundleForSensitiveData(directory: string): Promise<RedactionResult> {
-  const files = (await filesUnder(directory)).filter((path) => textExtensions.has(extname(path)));
+  const allFiles = await filesUnder(directory);
+  const files = allFiles.filter((path) => textExtensions.has(extname(path)));
   const findings: RedactionFinding[] = [];
   for (const file of files) {
     const content = allowlisted(await readFile(file, 'utf8'));
@@ -44,6 +46,20 @@ export async function scanBundleForSensitiveData(directory: string): Promise<Red
       if (pattern.expression.test(content)) {
         findings.push({ file: relative(directory, file), pattern: pattern.name });
       }
+    }
+  }
+  const traces = allFiles.filter((path) => extname(path) === '.zip');
+  for (const trace of traces) {
+    const report = join(directory, 'artifacts', 'reports', `${basename(trace)}.sanitization.json`);
+    const inspected = await inspectPlaywrightTrace({
+      tracePath: trace,
+      provenancePath: report,
+    });
+    if (!inspected.ok) {
+      findings.push({
+        file: relative(directory, trace),
+        pattern: `playwright-trace-${inspected.code.toLowerCase()}`,
+      });
     }
   }
   return {
@@ -55,7 +71,7 @@ export async function scanBundleForSensitiveData(directory: string): Promise<Red
         `Sensitive data matched ${finding.pattern}`,
       ),
     ),
-    scannedFiles: files.length,
+    scannedFiles: files.length + traces.length,
     findings,
   };
 }

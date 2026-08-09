@@ -16,6 +16,8 @@ An exclusive `O_EXCL` lock file serializes publishers. `lockTimeoutMs` controls 
 
 `promote()` implements the frozen `BundlePromoter` interface and throws `PromotionError` with structured diagnostics when blocked. `promoteWithDiagnostics()` exposes the same flow as `{ receipt?, diagnostics }` for orchestration and testing.
 
+Before assembly or promotion, `trace-artifact-gate.ts` classifies bounded artifact bytes rather than trusting `ArtifactRef.kind` or an extension. ZIP content is eligible only as an independently inspected sanitized Playwright action timeline with its exact adjacent sidecar. Screenshots must be structurally complete, bounded, decodable PNGs with no trailing payload or complete raw-trace ZIP hidden in ancillary data; isolated ZIP-magic bytes are not treated as a container. This content classification does not attest pixels, metadata privacy, or steganographic carriers—#115 owns the separate screenshot privacy boundary. The gate returns the validated bytes so assembly does not perform a second unbounded or time-of-check/time-of-use read. Any mismatch preserves prior output/public bytes.
+
 ## Frozen contracts
 
 The package does not modify or extend `StagedBundle`, `GateResult`, or `PromotionReceipt`. In particular, byte counts are checked internally but are not added to the receipt; the frozen receipt contains only `manifest`, `promotedAt`, `location`, and `checksumSha256`.

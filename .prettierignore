@@ -6,3 +6,4 @@ coverage/
 docs/engineering-charter.md
 docs/SYNC.md
 .github/pull_request_template.md
+docs/evidence/**/*.sanitization.json
