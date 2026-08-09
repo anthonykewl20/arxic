@@ -6,10 +6,12 @@ import type {
   StagedBundle,
 } from '@arxic/contracts';
 import { resolve } from 'node:path';
+import { validateScreenshotArtifactSet } from '@arxic/playwright-screenshot-privacy';
 import { atomicReplace } from './atomic-store';
 import {
   ARXIC_PROMOTION_FREEZE_FAILED,
   ARXIC_PROMOTION_REDACTION_FAILED,
+  ARXIC_PROMOTION_SCREENSHOT_PRIVACY_FAILED,
   promotionDiagnostic,
 } from './diagnostics';
 import { freezeBundle } from './freeze';
@@ -72,6 +74,19 @@ export class BundlePromoterAdapter implements BundlePromoter {
             ARXIC_PROMOTION_REDACTION_FAILED,
             'bundle.artifacts',
             traceGate.reason,
+          ),
+        ],
+      };
+    }
+    try {
+      await validateScreenshotArtifactSet({ artifacts: bundle.artifacts });
+    } catch {
+      return {
+        diagnostics: [
+          promotionDiagnostic(
+            ARXIC_PROMOTION_SCREENSHOT_PRIVACY_FAILED,
+            'bundle.artifacts',
+            'Screenshot artifacts failed the independent privacy/provenance gate',
           ),
         ],
       };

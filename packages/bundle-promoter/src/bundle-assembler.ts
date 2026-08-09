@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import type { ArtifactRef, StagedBundle } from '@arxic/contracts';
+import { validateScreenshotArtifactSet } from '@arxic/playwright-screenshot-privacy';
 import { validateTraceArtifacts } from './trace-artifact-gate';
 
 export type ProvenanceInput = Readonly<{
@@ -52,6 +53,8 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
   }
   const traceGate = await validateTraceArtifacts(input.verificationArtifacts ?? []);
   if (!traceGate.ok) throw new Error(traceGate.reason);
+  const allArtifacts = [...input.bundle.artifacts, ...(input.verificationArtifacts ?? [])];
+  await validateScreenshotArtifactSet({ artifacts: allArtifacts, baseDirectory: stagedDirectory });
   const validatedTraces = traceGate.traces;
   const validatedScreenshots = traceGate.screenshots;
   await rm(directory, { recursive: true, force: true });
@@ -97,6 +100,15 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
     assertHash(artifact, bytes);
     await copyFile(source, join(directory, relativePath));
   }
+  const screenshotRuntime = input.bundle.artifacts.find(
+    ({ path }) => path === 'fixtures/screenshot-privacy.ts',
+  );
+  if (screenshotRuntime) {
+    const source = safeResolve(stagedDirectory, screenshotRuntime.path);
+    const bytes = await readFile(source);
+    assertHash(screenshotRuntime, bytes);
+    await copyFile(source, join(directory, screenshotRuntime.path));
+  }
 
   const verificationArtifacts = [...(input.verificationArtifacts ?? [])]
     .filter(({ kind }) => kind === 'screenshot' || kind === 'trace')
@@ -124,8 +136,41 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
     }
     const validated = validatedScreenshots.get(artifact.path);
     if (!validated) throw new Error('Validated screenshot disappeared after preflight');
-    await writeFile(join(directory, 'artifacts', kindDirectory, name), validated.bytes);
+    const provenanceArtifact = input.verificationArtifacts?.find(
+      ({ kind: artifactKind, path }) =>
+        artifactKind === 'screenshot-privacy-report' && path === `${artifact.path}.privacy.json`,
+    );
+    if (!provenanceArtifact) throw new Error('Validated screenshot privacy report disappeared');
+    const provenanceBytes = await readFile(provenanceArtifact.path);
+    assertHash(provenanceArtifact, provenanceBytes);
+    const target = join(
+      directory,
+      'artifacts',
+      kindDirectory,
+      String(artifactSequences.screenshot).padStart(3, '0'),
+      basename(artifact.path),
+    );
+    await mkdir(dirname(target), { recursive: true });
+    await Promise.all([
+      writeFile(target, validated.bytes),
+      writeFile(`${target}.privacy.json`, provenanceBytes),
+    ]);
   }
+
+  const assembledArtifactPaths = await filesUnder(directory);
+  await validateScreenshotArtifactSet({
+    baseDirectory: directory,
+    artifacts: await Promise.all(
+      assembledArtifactPaths.map(async (path) => {
+        const bytes = await readFile(join(directory, path));
+        return {
+          kind: assembledArtifactKind(path),
+          path,
+          sha256: createHash('sha256').update(bytes).digest('hex'),
+        };
+      }),
+    ),
+  });
 
   const files = await assembledFiles(directory, false);
   const checksumsSha256 = `${files.map((file) => `${file.sha256}  ${file.path}`).join('\n')}\n`;
@@ -137,6 +182,12 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
     notice,
     provenance,
   };
+}
+
+function assembledArtifactKind(path: string): string {
+  if (path.endsWith('.png')) return 'screenshot';
+  if (path.endsWith('.png.privacy.json')) return 'screenshot-privacy-report';
+  return 'bundle-file';
 }
 
 function canonicalJson(value: unknown): string {

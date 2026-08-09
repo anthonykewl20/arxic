@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import type { Diagnostic, TruthState, Workflow } from '@arxic/contracts';
 import { validateWorkflow } from '@arxic/contracts';
+import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
 import {
   ARXIC_AGENT_FALLBACK_FAILED,
   ARXIC_AGENT_WORKFLOW_INVALID,
@@ -26,6 +27,7 @@ export type GeneratedFallback = {
   ok: boolean;
   specPath?: string;
   configPath?: string;
+  runtimePath?: string;
   spec?: string;
   config?: string;
   diagnostics: Diagnostic[];
@@ -57,14 +59,19 @@ export async function generateSpecFromWorkflow(
     };
   }
   try {
-    const spec = renderSpec(validated.value, target.origin);
-    const config = renderConfig();
+    const spec = renderFallbackSpec(validated.value, target.origin);
+    const config = renderFallbackConfig();
     const specPath = join(target.testDir, 'workflow.spec.ts');
     const configPath = join(target.testDir, 'playwright.config.ts');
+    const runtimePath = join(target.testDir, 'screenshot-privacy.ts');
     await mkdir(target.testDir, { recursive: true });
     await ensurePlaywrightModule(target.testDir);
-    await Promise.all([writeFile(specPath, spec), writeFile(configPath, config)]);
-    return { ok: true, specPath, configPath, spec, config, diagnostics: [] };
+    await Promise.all([
+      writeFile(specPath, spec),
+      writeFile(configPath, config),
+      writeFile(runtimePath, screenshotPrivacyRuntimeSource()),
+    ]);
+    return { ok: true, specPath, configPath, runtimePath, spec, config, diagnostics: [] };
   } catch (error) {
     return {
       ok: false,
@@ -127,9 +134,10 @@ async function ensurePlaywrightModule(testDir: string): Promise<void> {
   }
 }
 
-function renderSpec(workflow: Workflow, origin: string): string {
+export function renderFallbackSpec(workflow: Workflow, origin: string): string {
   const lines = [
     "import { test, expect } from '@playwright/test';",
+    "import { capturePolicyScreenshot } from './screenshot-privacy';",
     '',
     `test(${JSON.stringify(workflow.id)}, async ({ page }) => {`,
   ];
@@ -163,7 +171,7 @@ function renderSpec(workflow: Workflow, origin: string): string {
       }
     }
     lines.push(
-      `    await page.screenshot({ path: ${JSON.stringify(`artifacts/${transition.to}.png`)} });`,
+      `    await capturePolicyScreenshot(page, ${JSON.stringify(`artifacts/${transition.to}.png`)});`,
     );
     lines.push('  });');
   }
@@ -171,7 +179,7 @@ function renderSpec(workflow: Workflow, origin: string): string {
   return lines.join('\n');
 }
 
-function renderConfig(): string {
+export function renderFallbackConfig(): string {
   return [
     "import { defineConfig } from '@playwright/test';",
     '',

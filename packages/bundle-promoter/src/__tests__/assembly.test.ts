@@ -149,7 +149,7 @@ describe('bundle assembly and redaction gate', () => {
     await expect(readFile(marker, 'utf8')).resolves.toBe('prior output');
   });
 
-  it('accepts a structurally complete PNG when private ancillary bytes only resemble ZIP magic', async () => {
+  it('rejects a structurally complete but unattested PNG even when ancillary bytes only resemble ZIP magic', async () => {
     const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
     const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
     const screenshotDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-screenshot-'));
@@ -158,20 +158,18 @@ describe('bundle assembly and redaction gate', () => {
     await writeFile(screenshot, bytes);
     const bundle = await stagedAssemblyBundle(stagedDirectory);
 
-    const assembly = await assembleBundle({
-      bundle,
-      stagedDirectory,
-      outputDirectory,
-      verificationArtifacts: [{ kind: 'screenshot', path: screenshot, sha256: hash(bytes) }],
-      provenance: provenanceFor(bundle),
-    });
-
     await expect(
-      readFile(join(assembly.directory, 'artifacts', 'screenshots', '001-proof.png')),
-    ).resolves.toEqual(bytes);
+      assembleBundle({
+        bundle,
+        stagedDirectory,
+        outputDirectory,
+        verificationArtifacts: [{ kind: 'screenshot', path: screenshot, sha256: hash(bytes) }],
+        provenance: provenanceFor(bundle),
+      }),
+    ).rejects.toThrow('raw, mislabeled, or orphaned artifacts');
   });
 
-  it('propagates a safe checkpoint binding that contains a sensitive domain word', async () => {
+  it('rejects an unattested checkpoint-bound screenshot', async () => {
     const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
     const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
     const screenshotDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-screenshot-'));
@@ -180,27 +178,18 @@ describe('bundle assembly and redaction gate', () => {
     await writeFile(screenshot, bytes);
     const bundle = await stagedAssemblyBundle(stagedDirectory);
 
-    const assembly = await assembleBundle({
-      bundle,
-      stagedDirectory,
-      outputDirectory,
-      verificationArtifacts: [{ kind: 'screenshot', path: screenshot, sha256: hash(bytes) }],
-      provenance: provenanceFor(bundle),
-    });
-
     await expect(
-      readFile(
-        join(
-          assembly.directory,
-          'artifacts',
-          'screenshots',
-          '001-001-step-1-home-change-password-page.png',
-        ),
-      ),
-    ).resolves.toEqual(bytes);
+      assembleBundle({
+        bundle,
+        stagedDirectory,
+        outputDirectory,
+        verificationArtifacts: [{ kind: 'screenshot', path: screenshot, sha256: hash(bytes) }],
+        provenance: provenanceFor(bundle),
+      }),
+    ).rejects.toThrow('raw, mislabeled, or orphaned artifacts');
   });
 
-  it('accepts a bounded invalid ZIP lookalike inside a valid ancillary chunk', async () => {
+  it('rejects an unattested PNG containing a bounded invalid ZIP lookalike', async () => {
     const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
     const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
     const screenshotDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-lookalike-'));
@@ -218,17 +207,15 @@ describe('bundle assembly and redaction gate', () => {
     await writeFile(screenshot, bytes);
     const bundle = await stagedAssemblyBundle(stagedDirectory);
 
-    const assembly = await assembleBundle({
-      bundle,
-      stagedDirectory,
-      outputDirectory,
-      verificationArtifacts: [{ kind: 'screenshot', path: screenshot, sha256: hash(bytes) }],
-      provenance: provenanceFor(bundle),
-    });
-
     await expect(
-      readFile(join(assembly.directory, 'artifacts', 'screenshots', '001-proof.png')),
-    ).resolves.toEqual(bytes);
+      assembleBundle({
+        bundle,
+        stagedDirectory,
+        outputDirectory,
+        verificationArtifacts: [{ kind: 'screenshot', path: screenshot, sha256: hash(bytes) }],
+        provenance: provenanceFor(bundle),
+      }),
+    ).rejects.toThrow('raw, mislabeled, or orphaned artifacts');
   });
 
   it('rejects a complete raw trace ZIP carried inside a private PNG ancillary chunk', async () => {

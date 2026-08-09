@@ -20,6 +20,7 @@ export function generateSpec(
 ): { spec: string; nonSemanticLocatorRationale?: string } {
   const lines = [
     "import { test, expect } from '../fixtures/workflow.fixture';",
+    "import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';",
     '',
     `test(${JSON.stringify(workflow.id)}, async ({ page }) => {`,
   ];
@@ -34,7 +35,7 @@ export function generateSpec(
       `    await page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)});`,
       ...action.lines,
       ...renderAssertions(transition, origin),
-      `    await page.screenshot({ path: ${JSON.stringify(`artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`)} });`,
+      `    await capturePolicyScreenshot(page, ${JSON.stringify(`artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`)});`,
       '  });',
     );
   }

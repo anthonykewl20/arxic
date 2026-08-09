@@ -11,6 +11,17 @@ import type {
 import { runFallback } from '@arxic/playwright-agent-adapter';
 import { retainCaptureArtifacts } from '@arxic/playwright-trace-sanitizer';
 import {
+  SCREENSHOT_CAPTURE_CORRELATION_ENV,
+  SCREENSHOT_CAPTURED_AT_ENV,
+  SCREENSHOT_PRIVACY_POLICY_ENV,
+  SCREENSHOT_PRIVACY_POLICY_SHA256_ENV,
+  establishTrustedScreenshotCaptureBinding,
+  expectedScreenshotPathsFromTrustedSpec,
+  serializeScreenshotPrivacyPolicy,
+  type ScreenshotPrivacyPolicy,
+  type TrustedScreenshotCaptureBinding,
+} from '@arxic/playwright-screenshot-privacy';
+import {
   ARXIC_EXIT_APP_DEFECT_CONTRADICTED,
   ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
   ARXIC_EXIT_FLAKY_RUNS,
@@ -23,6 +34,18 @@ export type StagedSuitePass = {
   diagnostics?: Diagnostic[];
   networkErrors?: string[];
   observedTransitions?: string[];
+  artifactFailures?: string[];
+};
+
+type ScreenshotPrivacyAction = {
+  policy: ScreenshotPrivacyPolicy;
+  expectedSpec: string;
+  specPath: string;
+  runtimePath: string;
+  allowedSourcePaths: readonly string[];
+  trustedSourceContents: Readonly<Record<string, string>>;
+  correlation: (run: number) => string;
+  now: () => string;
 };
 
 export type VerifyStagedSuiteInput = {
@@ -34,6 +57,7 @@ export type VerifyStagedSuiteInput = {
   artifactsDir: string;
   resetAndSeed?: (run: number) => Promise<void>;
   executeRun?: (run: number) => Promise<StagedSuitePass>;
+  screenshotPrivacy?: ScreenshotPrivacyAction;
 };
 
 export type VerifyStagedSuiteResult = {
@@ -67,6 +91,38 @@ export async function verifyStagedSuite(
       `The staged suite is unavailable: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
+  let screenshot:
+    | {
+        binding: TrustedScreenshotCaptureBinding;
+        policy: ReturnType<typeof serializeScreenshotPrivacyPolicy>;
+        action: ScreenshotPrivacyAction;
+      }
+    | undefined;
+  if (!input.executeRun || input.screenshotPrivacy) {
+    try {
+      if (!input.screenshotPrivacy) {
+        throw new Error('An explicit action-owned screenshot privacy policy is required');
+      }
+      const action = input.screenshotPrivacy;
+      const privacyPolicy = serializeScreenshotPrivacyPolicy(action.policy);
+      const binding = await establishTrustedScreenshotCaptureBinding({
+        testDirectory: input.testDir,
+        specPath: action.specPath,
+        runtimePath: action.runtimePath,
+        expectedSpec: action.expectedSpec,
+        allowedSourcePaths: action.allowedSourcePaths,
+        trustedSourceContents: action.trustedSourceContents,
+        expectedScreenshots: expectedScreenshotPathsFromTrustedSpec(action.expectedSpec),
+      });
+      screenshot = { binding, policy: privacyPolicy, action };
+    } catch (error) {
+      return blockedResult(
+        runs,
+        artifacts,
+        `Screenshot privacy binding failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
   for (let run = 1; run <= input.policy.requiredRuns; run += 1) {
     let pass: StagedSuitePass;
     try {
@@ -77,7 +133,7 @@ export async function verifyStagedSuite(
       await (input.resetAndSeed ?? (() => resetAndSeed(input.origin, input.persona)))(run);
       pass = input.executeRun
         ? await input.executeRun(run)
-        : await executeFallbackRun(input, run, requiredTransitions);
+        : await executeFallbackRun(input, run, requiredTransitions, screenshot!);
     } catch (error) {
       return blockedResult(
         runs,
@@ -89,6 +145,7 @@ export async function verifyStagedSuite(
     runs.push({ passed: pass.passed && !networkFailed });
     artifacts.push(...(pass.artifacts ?? []));
     diagnostics.push(...(pass.diagnostics ?? []));
+    artifactFailures.push(...(pass.artifactFailures ?? []).map((item) => `pass ${run} ${item}`));
     for (const transition of pass.observedTransitions ?? []) observed.add(transition);
     const runArtifacts = pass.artifacts ?? [];
     const missingScreenshots = (input.policy.screenshotCheckpoints ?? []).filter(
@@ -153,26 +210,52 @@ async function executeFallbackRun(
   input: VerifyStagedSuiteInput,
   run: number,
   requiredTransitions: string[],
+  screenshot: {
+    binding: TrustedScreenshotCaptureBinding;
+    policy: ReturnType<typeof serializeScreenshotPrivacyPolicy>;
+    action: ScreenshotPrivacyAction;
+  },
 ): Promise<StagedSuitePass> {
-  const previousEmail = process.env.ARXIC_INPUT_PERSONA_EMAIL;
-  const previousPassword = process.env.ARXIC_INPUT_PERSONA_PASSWORD;
-  process.env.ARXIC_INPUT_PERSONA_EMAIL = input.persona.email;
-  process.env.ARXIC_INPUT_PERSONA_PASSWORD = input.persona.password;
+  const correlation = screenshot.action.correlation(run);
+  const capturedAt = screenshot.action.now();
+  const env = {
+    ARXIC_INPUT_PERSONA_EMAIL: input.persona.email,
+    ARXIC_INPUT_PERSONA_PASSWORD: input.persona.password,
+    [SCREENSHOT_PRIVACY_POLICY_ENV]: screenshot.policy.json,
+    [SCREENSHOT_PRIVACY_POLICY_SHA256_ENV]: screenshot.policy.sha256,
+    [SCREENSHOT_CAPTURE_CORRELATION_ENV]: correlation,
+    [SCREENSHOT_CAPTURED_AT_ENV]: capturedAt,
+  };
+  const previous = new Map(Object.keys(env).map((name) => [name, process.env[name]] as const));
+  Object.assign(process.env, env);
   let result: Awaited<ReturnType<typeof runFallback>>;
   try {
     result = await runFallback({ testDir: input.testDir });
   } finally {
-    restoreEnvironment('ARXIC_INPUT_PERSONA_EMAIL', previousEmail);
-    restoreEnvironment('ARXIC_INPUT_PERSONA_PASSWORD', previousPassword);
+    for (const [name, value] of previous) restoreEnvironment(name, value);
   }
   const passed = result.failed === 0 && result.passed > 0;
-  const runArtifacts = await retainRunArtifacts(
-    input.testDir,
-    input.artifactsDir,
-    run,
-    Object.values(input.persona),
-    passed ? input.policy.screenshotCheckpoints : [],
-  );
+  let runArtifacts: ArtifactRef[] = [];
+  const artifactFailures: string[] = [];
+  try {
+    runArtifacts = await retainRunArtifacts(
+      input.testDir,
+      input.artifactsDir,
+      run,
+      Object.values(input.persona),
+      passed ? input.policy.screenshotCheckpoints : [],
+      {
+        binding: screenshot.binding,
+        policy: screenshot.policy.policy,
+        correlation,
+        attestedAt: screenshot.action.now(),
+      },
+    );
+  } catch (error) {
+    artifactFailures.push(
+      `screenshot artifacts failed closed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
   const networkErrors =
     result.output.match(/(?:net::ERR_[A-Z_]+|requestfailed|network error)/giu) ?? [];
   return {
@@ -181,6 +264,7 @@ async function executeFallbackRun(
     diagnostics: result.listed === 0 ? result.diagnostics : [],
     networkErrors,
     observedTransitions: result.listed > 0 ? requiredTransitions : [],
+    artifactFailures,
   };
 }
 
@@ -204,12 +288,25 @@ export async function retainRunArtifacts(
   run: number,
   forbiddenSubstrings: readonly string[],
   screenshotCheckpoints: readonly string[] = [],
+  screenshotPrivacy?: Readonly<{
+    binding: TrustedScreenshotCaptureBinding;
+    policy: ScreenshotPrivacyPolicy;
+    correlation: string;
+    attestedAt: string;
+  }>,
 ): Promise<ArtifactRef[]> {
   const retained = await retainCaptureArtifacts({
     roots: [join(testDir, 'artifacts'), join(testDir, 'test-results')],
     destination: join(artifactsDir, 'verification', `run-${run}`),
     forbiddenSubstrings,
     screenshotCheckpoints,
+    screenshotPrivacy: screenshotPrivacy
+      ? {
+          testDirectory: testDir,
+          ...screenshotPrivacy,
+          attester: '@arxic/m0-pipeline',
+        }
+      : undefined,
   });
   if (retained.ok) return retained.refs;
   throw new Error(`${retained.code}: ${retained.message}`);

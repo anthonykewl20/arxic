@@ -6,6 +6,10 @@ import {
   retainCaptureArtifacts,
   type TraceSanitizationFailure,
 } from '@arxic/playwright-trace-sanitizer';
+import type {
+  ScreenshotPrivacyPolicy,
+  TrustedScreenshotCaptureBinding,
+} from '@arxic/playwright-screenshot-privacy';
 
 export type ArtifactHashFailure = {
   artifact: ArtifactRef;
@@ -29,6 +33,13 @@ export async function captureRunArtifacts(
   options: {
     forbiddenSubstrings?: readonly string[];
     screenshotCheckpoints?: readonly string[];
+    screenshotPrivacy?: Readonly<{
+      binding: TrustedScreenshotCaptureBinding;
+      policy: ScreenshotPrivacyPolicy;
+      correlation: string;
+      attester: '@arxic/verifier';
+      attestedAt: string;
+    }>;
   } = {},
 ): Promise<ArtifactRef[]> {
   const retained = await retainCaptureArtifacts({
@@ -36,6 +47,9 @@ export async function captureRunArtifacts(
     destination: join(artifactsDirectory, 'verification', `run-${run}`),
     forbiddenSubstrings: options.forbiddenSubstrings,
     screenshotCheckpoints: options.screenshotCheckpoints,
+    screenshotPrivacy: options.screenshotPrivacy
+      ? { testDirectory, ...options.screenshotPrivacy }
+      : undefined,
   });
   if (retained.ok) return retained.refs;
   if (retained.traceFailure) throw new TraceSanitizationError(retained.traceFailure);

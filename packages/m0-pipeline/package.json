@@ -12,6 +12,7 @@
     "@arxic/environment": "workspace:*",
     "@arxic/ast-grep-adapter": "workspace:*",
     "@arxic/playwright-agent-adapter": "workspace:*",
+    "@arxic/playwright-screenshot-privacy": "workspace:*",
     "@arxic/playwright-trace-sanitizer": "workspace:*",
     "@arxic/bundle-promoter": "workspace:*"
   },

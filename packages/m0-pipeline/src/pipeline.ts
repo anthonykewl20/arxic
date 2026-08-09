@@ -16,7 +16,15 @@ import { validateManifest, validateWorkflow } from '@arxic/contracts';
 import { AstGrepAdapter, diagnosticsOf } from '@arxic/ast-grep-adapter';
 import { BundlePromoterAdapter } from '@arxic/bundle-promoter';
 import { EnvironmentHandshake } from '@arxic/environment';
-import { generateSpecFromWorkflow } from '@arxic/playwright-agent-adapter';
+import {
+  generateSpecFromWorkflow,
+  renderFallbackConfig,
+  renderFallbackSpec,
+} from '@arxic/playwright-agent-adapter';
+import {
+  screenshotPrivacyRuntimeSource,
+  type ScreenshotPrivacyPolicy,
+} from '@arxic/playwright-screenshot-privacy';
 import {
   ARXIC_EXIT_COMPILE_FAILED,
   ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
@@ -36,6 +44,7 @@ export type RunM0VerticalInput = {
   persona: { email: string; password: string };
   requiredRuns?: number;
   now?: () => string;
+  screenshotPrivacyPolicy: ScreenshotPrivacyPolicy;
 };
 
 export type M0VerticalResult = {
@@ -121,13 +130,16 @@ export async function runM0Vertical(
     origin: input.target.origin,
     testDir,
   });
-  if (!generated.ok || !generated.specPath || !generated.configPath) {
+  if (!generated.ok || !generated.specPath || !generated.configPath || !generated.runtimePath) {
     return compileFailure(input.candidate.id, [...diagnostics, ...generated.diagnostics]);
   }
+  let prepared: { spec: string; config: string };
   try {
-    await prepareGeneratedSuite(
+    prepared = await prepareGeneratedSuite(
       generated.configPath,
       generated.specPath,
+      renderFallbackConfig(),
+      renderFallbackSpec(input.candidate, input.target.origin),
       input.candidate.verification.forbidNetworkErrors,
     );
   } catch (error) {
@@ -149,6 +161,20 @@ export async function runM0Vertical(
       trace: 'retain',
     },
     artifactsDir: join(input.artifactsDir, 'runs', runId),
+    screenshotPrivacy: {
+      policy: input.screenshotPrivacyPolicy,
+      expectedSpec: prepared.spec,
+      specPath: 'workflow.spec.ts',
+      runtimePath: 'screenshot-privacy.ts',
+      allowedSourcePaths: ['workflow.spec.ts', 'playwright.config.ts', 'screenshot-privacy.ts'],
+      trustedSourceContents: {
+        'workflow.spec.ts': prepared.spec,
+        'playwright.config.ts': prepared.config,
+        'screenshot-privacy.ts': screenshotPrivacyRuntimeSource(),
+      },
+      correlation: (run) => `${runId}-run-${run}`,
+      now,
+    },
   });
   diagnostics.push(...verification.diagnostics);
   const unresolvedEvidence = workflowEvidenceIds(input.candidate).filter(
@@ -259,17 +285,22 @@ export async function runM0Vertical(
 async function prepareGeneratedSuite(
   configPath: string,
   specPath: string,
+  generatedConfig: string,
+  generatedSpec: string,
   forbidNetworkErrors: boolean,
-): Promise<void> {
+): Promise<{ config: string; spec: string }> {
   const config = await readFile(configPath, 'utf8');
+  if (config !== generatedConfig) throw new Error('Generated config differs from returned bytes');
   const traceTarget = "trace: 'retain-on-failure'";
-  if (!config.includes(traceTarget))
+  if (!generatedConfig.includes(traceTarget))
     throw new Error('Generated config lacks the retained-trace seam');
-  await writeFile(configPath, config.replace(traceTarget, "trace: 'on'"));
-  if (!forbidNetworkErrors) return;
+  const preparedConfig = generatedConfig.replace(traceTarget, "trace: 'on'");
+  await writeFile(configPath, preparedConfig);
   const spec = await readFile(specPath, 'utf8');
+  if (spec !== generatedSpec) throw new Error('Generated spec differs from returned bytes');
+  if (!forbidNetworkErrors) return { config: preparedConfig, spec: generatedSpec };
   const instrumentationTarget = '\n\ntest(';
-  if (!spec.includes(instrumentationTarget))
+  if (!generatedSpec.includes(instrumentationTarget))
     throw new Error('Generated spec lacks the network instrumentation seam');
   const instrumentation = [
     'const arxicNetworkErrors = new WeakMap<object, string[]>();',
@@ -277,7 +308,9 @@ async function prepareGeneratedSuite(
     'test.afterEach(async ({ page }) => { expect(arxicNetworkErrors.get(page) ?? []).toEqual([]); });',
     '',
   ].join('\n');
-  await writeFile(specPath, spec.replace(instrumentationTarget, `\n\n${instrumentation}test(`));
+  const preparedSpec = generatedSpec.replace(instrumentationTarget, `\n\n${instrumentation}test(`);
+  await writeFile(specPath, preparedSpec);
+  return { config: preparedConfig, spec: preparedSpec };
 }
 
 function indexSourceEvidence(

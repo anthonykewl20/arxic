@@ -1,0 +1,65 @@
+{
+  "attestedAt": "2026-08-09T15:08:23.204Z",
+  "attestedBy": "@arxic/verifier",
+  "binding": {
+    "runtime": {
+      "path": "fixtures/screenshot-privacy.ts",
+      "sha256": "89dc71225329450044baa837e69aefe462bf34f026a85f54f1b5c2f52967b03b"
+    },
+    "sources": [
+      {
+        "path": "fixtures/screenshot-privacy.ts",
+        "sha256": "89dc71225329450044baa837e69aefe462bf34f026a85f54f1b5c2f52967b03b"
+      },
+      {
+        "path": "fixtures/workflow.fixture.ts",
+        "sha256": "69fd5d47527a9bc9bbc9e666a332940110c7c78aae6989e2ef3c9911855b543d"
+      },
+      {
+        "path": "playwright.config.ts",
+        "sha256": "01328bc5587d40f9abab86d5dd9ccf2250d0fd85f6e73436ac4fe033b9e0731d"
+      },
+      {
+        "path": "tests/workflow.spec.ts",
+        "sha256": "81b6438353841b87ee129db0569d00afd8c205b4830cf211b1a7c99b64fa438b"
+      }
+    ],
+    "spec": {
+      "path": "tests/workflow.spec.ts",
+      "sha256": "81b6438353841b87ee129db0569d00afd8c205b4830cf211b1a7c99b64fa438b"
+    }
+  },
+  "capture": {
+    "browserVersion": "151.0.7922.34",
+    "capturedAt": "2026-08-09T15:08:20.367Z",
+    "correlationSha256": "2cb83b0a132602713cae8b5dd967f9f2b1216ca58b9a4f03d5e52da05ef4e688",
+    "mode": "approved-region",
+    "playwrightVersion": "1.62.1",
+    "receiptSha256": "e0d98b38507262dc2035994041ceb5faf2b1b2292748911749278dd05dad29ae",
+    "sourcePath": "artifacts/screenshots/step-1-login-page-home.png"
+  },
+  "kind": "arxic-screenshot-privacy-attestation",
+  "policy": {
+    "authority": {
+      "kind": "repository-policy",
+      "recordedAt": "2026-08-09T12:00:00.000Z",
+      "reference": "docs/evidence/M1-SCREENSHOT-PRIVACY/README.md"
+    },
+    "capture": {
+      "masks": [],
+      "mode": "approved-region",
+      "region": { "exact": true, "kind": "role", "name": "Reference Auth App", "role": "heading" }
+    },
+    "id": "bundle-reference-auth-app-home-heading",
+    "schemaVersion": 1
+  },
+  "policySha256": "64b7acc24f3ad5fe27d7c71a6a9f39ef0fbb50b680fe523cd956df42d0acf10c",
+  "schemaVersion": 1,
+  "screenshot": {
+    "bytes": 5482,
+    "file": "001-step-1-login-page-home.png",
+    "height": 38,
+    "sha256": "cb77c1fb9c21e2a8f2b64bcf75395f9c4c0e1dba3957a60c98585e0b42212cf0",
+    "width": 606
+  }
+}

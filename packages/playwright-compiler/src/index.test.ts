@@ -17,6 +17,7 @@ import {
   enforceCompilePolicy,
   generateSpec,
 } from './index';
+import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
 
 const directories: string[] = [];
 
@@ -187,12 +188,14 @@ describe('Playwright compiler contracts', () => {
       },
     ]);
     expect(bundle.manifest.coverage.denominator).toBe(1);
-    expect(bundle.artifacts).toHaveLength(4);
+    expect(bundle.artifacts).toHaveLength(5);
     expect(bundle.plan).toContain('login-page → home');
     const spec = await readFile(join(directory, 'tests/workflow.spec.ts'), 'utf8');
     expect(spec).toMatch(/getByLabel\(['"]Email['"]\)/u);
     expect(spec).toContain("getByRole('button'");
     expect(spec).toContain('artifacts/screenshots/step-1-login-page-home.png');
+    expect(spec).toContain('capturePolicyScreenshot(page,');
+    expect(spec).not.toContain('page.screenshot(');
     expect(spec).toContain('ARXIC_INPUT_PERSONA_EMAIL');
     expect(spec).not.toContain('waitForTimeout');
     expect(spec).not.toContain('waitForLoadState');
@@ -208,6 +211,9 @@ describe('Playwright compiler contracts', () => {
     );
     expect(await readFile(join(directory, 'fixtures/workflow.fixture.ts'), 'utf8')).toContain(
       'test.afterEach',
+    );
+    expect(await readFile(join(directory, 'fixtures/screenshot-privacy.ts'), 'utf8')).toBe(
+      screenshotPrivacyRuntimeSource(),
     );
   });
 

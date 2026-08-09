@@ -10,11 +10,12 @@
   "dependencies": {
     "@arxic/contracts": "workspace:*",
     "@arxic/playwright-agent-adapter": "workspace:*",
+    "@arxic/playwright-compiler": "workspace:*",
+    "@arxic/playwright-screenshot-privacy": "workspace:*",
     "@arxic/playwright-trace-sanitizer": "workspace:*",
     "@playwright/test": "1.62.1"
   },
   "devDependencies": {
-    "@arxic/playwright-compiler": "workspace:*",
     "@arxic/real-world-testkit": "workspace:*",
     "@types/yazl": "3.3.1",
     "yazl": "3.3.1"
