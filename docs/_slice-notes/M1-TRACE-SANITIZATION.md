@@ -59,7 +59,16 @@ re-evaluate only if release policy changes before merge.
   inspection and pinned Viewer loading, and exploration passed 4/4. Retained
   evidence was visually reviewed again without exposing credential/identity
   values. Current-head CI remains pending.
-- Gates: typecheck ☑ · recursive package/fixture typecheck ☑ · lint ☑ · format ☐ ·
+- CI determinism correction: `yazl@3.3.1` is patched so DOS date bounds and
+  date/time components use UTC rather than the host timezone. A red-first
+  cross-timezone fixed-point test now compares identical logical entries with
+  the inherited timezone and `TZ=UTC`, restoring `process.env.TZ` in
+  `finally`. All three committed sanitized timeline ZIPs were re-emitted with
+  unchanged entry bytes and updated canonical sidecars; independent inspection
+  returned `ok:true` for each with `TZ=UTC` and with `TZ` unset.
+- Determinism-fix focused unit gates passed 148/148: sanitizer 57, verifier 30,
+  M0 pipeline sad paths 21, and bundle-promoter 40.
+- Gates: typecheck ☑ · recursive package/fixture typecheck ☑ · lint ☑ · format ☑ ·
   test ☑ · license gate (757 packages, 0 rejected) ☑ · CycloneDX SBOM ☑ ·
   fixture apps ☑ · command guard ☑
 - Fixture gate note: the first standalone reference-fixture invocation correctly

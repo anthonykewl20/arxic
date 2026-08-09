@@ -176,6 +176,20 @@ describe('Playwright trace sanitization service', () => {
     expect((await readFile(fixture.sanitized)).readUInt16LE(8)).toBe(0);
   });
 
+  test('produces identical canonical archive bytes across timezones', async () => {
+    const entries = new Map([['trace.trace', Buffer.from('{"type":"context-options"}\n')]]);
+    const originalTimezone = process.env.TZ;
+    try {
+      const localBytes = await writeDeterministicArchive(entries);
+      process.env.TZ = 'UTC';
+      const utcBytes = await writeDeterministicArchive(entries);
+      expect(utcBytes).toEqual(localBytes);
+    } finally {
+      if (originalTimezone === undefined) delete process.env.TZ;
+      else process.env.TZ = originalTimezone;
+    }
+  });
+
   test('strips ZIP container metadata from raw input and emits one canonical stored archive', async () => {
     const fixture = await emptyFixture();
     const raw = withArchiveComment(await validArchive(), Buffer.from('source-only-metadata'));
