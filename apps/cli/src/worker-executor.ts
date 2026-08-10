@@ -1,0 +1,161 @@
+import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
+import type { RunState } from '@arxic/orchestrator-langgraph';
+import type { RunHandle, WorkerClient } from '@arxic/worker';
+import {
+  ARXIC_EXEC_WORKER_APPROVAL_REQUIRED,
+  ARXIC_EXEC_WORKER_INTERRUPTED,
+  ARXIC_EXEC_WORKER_PROTOCOL,
+  cliDiagnostic,
+} from './diagnostics';
+import { type DiagnosticSink, type RunExecutor, type RunRequest, type RunResult } from './executor';
+
+/**
+ * CLI action adapter for the WorkerClient lifecycle. Pipeline mechanics stay
+ * in the isolated runtime; this action owns failure classification. Until the
+ * worker exposes a structured pipeline result, lifecycle completion is blocked
+ * rather than being mistaken for completion of stages 0–12.
+ */
+export class WorkerRunExecutor implements RunExecutor {
+  constructor(private readonly client: WorkerClient) {}
+
+  async execute(request: RunRequest, sink: DiagnosticSink): Promise<RunResult> {
+    const diagnostics: Diagnostic[] = [];
+    const record = (diagnostic: Diagnostic): void => {
+      if (
+        !diagnostics.some((existing) => JSON.stringify(existing) === JSON.stringify(diagnostic))
+      ) {
+        diagnostics.push(diagnostic);
+        sink.emit(diagnostic);
+      }
+    };
+    const emitWorker = (diagnostic: Diagnostic): void =>
+      record(safeWorkerDiagnostic(diagnostic, request.runId));
+
+    let handle: RunHandle;
+    try {
+      handle = await this.client.start({
+        runId: request.runId,
+        config: request.config,
+      });
+    } catch {
+      record(interrupted(request.runId));
+      return failedResult(request, diagnostics);
+    }
+    handle.diagnostics.forEach(emitWorker);
+    if (handle.status === 'failed') {
+      if (diagnostics.length === 0) record(interrupted(request.runId));
+      return failedResult(request, diagnostics);
+    }
+
+    let finished: RunHandle | undefined;
+    try {
+      for await (const event of this.client.stream(handle)) {
+        if (event.type === 'diagnostic') emitWorker(event.diagnostic);
+        if (event.type === 'awaiting-approval') {
+          record(
+            cliDiagnostic(
+              ARXIC_EXEC_WORKER_APPROVAL_REQUIRED,
+              'blocked',
+              request.runId,
+              'Worker execution requires an explicit approval workflow that this CLI invocation did not provide',
+            ),
+          );
+          await this.cancelAndCollect(handle, emitWorker);
+          return failedResult(request, diagnostics);
+        }
+        if (event.type === 'finished') finished = event.handle;
+      }
+      if (finished !== undefined) finished = await this.client.inspect(finished);
+    } catch {
+      record(interrupted(request.runId));
+      await this.cancelAndCollect(handle, emitWorker);
+      return failedResult(request, diagnostics);
+    }
+
+    if (finished === undefined) {
+      record(interrupted(request.runId));
+      await this.cancelAndCollect(handle, emitWorker);
+      return failedResult(request, diagnostics);
+    }
+    finished.diagnostics.forEach(emitWorker);
+    record(protocolFailure(request.runId));
+    return failedResult(request, diagnostics);
+  }
+
+  private async cancelAndCollect(
+    handle: RunHandle,
+    emit: (diagnostic: Diagnostic) => void,
+  ): Promise<void> {
+    try {
+      const canceled = await this.client.cancel(handle);
+      canceled.diagnostics.forEach(emit);
+    } catch {
+      // The interruption diagnostic already records the fail-closed outcome;
+      // cancellation errors must not expose provider or worker prose.
+    }
+  }
+}
+
+function safeWorkerDiagnostic(diagnostic: Diagnostic, runId: string): Diagnostic {
+  if (!validateDiagnostic(diagnostic).ok) return interrupted(runId);
+  const message = safeWorkerMessage(diagnostic.code);
+  if (message === undefined) return interrupted(runId);
+  return {
+    code: diagnostic.code,
+    severity: diagnostic.severity,
+    subject: runId,
+    message,
+  };
+}
+
+function safeWorkerMessage(code: string): string | undefined {
+  const messages: Readonly<Record<string, string>> = {
+    'ARXIC-WORKER-CLEANUP-FAILED': 'Worker cleanup did not complete',
+    'ARXIC-WORKER-CONFIG-UNSAFE': 'Worker configuration was rejected by isolation policy',
+    'ARXIC-WORKER-INJECTION-NEUTRALIZED': 'Injection-shaped source content was treated as data',
+    'ARXIC-WORKER-ISOLATION-VIOLATED': 'The isolated worker could not be started safely',
+    'ARXIC-WORKER-QUOTA-EXCEEDED': 'Worker execution exceeded an enforced quota',
+    'ARXIC-WORKER-RUN-FAILED': 'Worker execution failed',
+    'ARXIC-WORKER-TIMEOUT': 'Worker execution exceeded its wall-clock quota',
+  };
+  return messages[code];
+}
+
+function protocolFailure(runId: string): Diagnostic {
+  return cliDiagnostic(
+    ARXIC_EXEC_WORKER_PROTOCOL,
+    'blocked',
+    runId,
+    'Worker pipeline result protocol is unavailable; lifecycle completion is not pipeline completion',
+  );
+}
+
+function interrupted(runId: string): Diagnostic {
+  return cliDiagnostic(
+    ARXIC_EXEC_WORKER_INTERRUPTED,
+    'blocked',
+    runId,
+    'Worker startup or event streaming was interrupted; execution was canceled fail-closed',
+  );
+}
+
+function failedResult(request: RunRequest, diagnostics: readonly Diagnostic[]): RunResult {
+  const state: RunState = {
+    runId: request.runId,
+    status: 'failed',
+    outcome: 'blocked',
+    completedStages: [],
+    artifacts: {},
+    checkpoints: [],
+    diagnostics,
+    promotionEligible: false,
+  };
+  return {
+    runId: request.runId,
+    status: 'failed',
+    outcome: 'blocked',
+    diagnostics,
+    runDirectory: request.runDirectory,
+    state,
+  };
+}
