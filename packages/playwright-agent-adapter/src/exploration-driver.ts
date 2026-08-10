@@ -8,16 +8,57 @@ import {
   type Browser,
   type BrowserContext,
   type CDPSession,
+  type ElementHandle,
+  type Locator,
   type Page,
 } from '@playwright/test';
 
-export type ExplorationStepKind = 'navigate' | 'snapshot';
+export type SemanticLocator =
+  | Readonly<{ kind: 'role'; role: string; name?: string; exact?: boolean }>
+  | Readonly<{ kind: 'label'; text: string; exact?: boolean }>
+  | Readonly<{ kind: 'text'; text: string; exact?: boolean }>;
 
-export type PlannedExplorationStep = Readonly<{
-  intent: string;
-  url: string;
-  kind: ExplorationStepKind;
+export type ExecutionLocator =
+  | Readonly<{ kind: 'test-id'; id: string }>
+  | Readonly<{ kind: 'role'; role: string; name?: string; exact?: boolean }>
+  | Readonly<{ kind: 'label'; text: string; exact?: boolean }>
+  | Readonly<{ kind: 'text'; text: string; exact?: boolean }>;
+
+export type LocatorPair = Readonly<{
+  semantic: SemanticLocator;
+  execution: ExecutionLocator;
 }>;
+
+export type LocatorResolutionFailure =
+  | 'semantic-ambiguous'
+  | 'semantic-inaccessible'
+  | 'semantic-invalid'
+  | 'execution-ambiguous'
+  | 'execution-inaccessible'
+  | 'execution-invalid'
+  | 'mismatch';
+
+export type LocatorResolution =
+  | Readonly<{
+      resolved: true;
+      semantic: SemanticLocator;
+      execution: ExecutionLocator;
+    }>
+  | Readonly<{
+      resolved: false;
+      reason: LocatorResolutionFailure;
+      semantic: SemanticLocator;
+      execution: ExecutionLocator;
+    }>;
+
+export type ExplorationStepKind = 'navigate' | 'snapshot' | 'fill' | 'click';
+
+export type PlannedExplorationStep = Readonly<
+  | { intent: string; url: string; kind: 'navigate' }
+  | { intent: string; kind: 'snapshot' }
+  | { intent: string; kind: 'fill'; locator: LocatorPair; value: string; url?: string }
+  | { intent: string; kind: 'click'; locator: LocatorPair; url?: string }
+>;
 
 export type AccessibilityNode = Readonly<{
   role: string;
@@ -36,6 +77,7 @@ export type StepObservation = Readonly<{
   accessibilitySnapshotSha256?: string;
   screenshotRef?: string;
   browserVersion?: string;
+  locatorResolution?: LocatorResolution;
   error?: string;
 }>;
 
@@ -65,6 +107,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
   #page?: Page;
   #cdp?: CDPSession;
   #tracingStarted = false;
+  #pageContainsFilledValue = false;
 
   constructor(options: PlaywrightExplorationDriverOptions = {}) {
     this.#options = {
@@ -84,13 +127,47 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     const observations: StepObservation[] = [];
 
     for (const [index, step] of steps.entries()) {
+      let locatorResolution: LocatorResolution | undefined;
       try {
         if (step.kind === 'navigate') {
           await page.goto(step.url, { waitUntil: 'load', timeout: this.#options.timeoutMs });
+          this.#pageContainsFilledValue = false;
+        } else if ((step.kind === 'fill' || step.kind === 'click') && step.url) {
+          await page.goto(step.url, { waitUntil: 'load', timeout: this.#options.timeoutMs });
+          this.#pageContainsFilledValue = false;
         }
-        const snapshot = await this.#accessibilitySnapshot(page);
+        if (step.kind === 'fill' || step.kind === 'click') {
+          const resolution = await this.#resolveControl(page, step.locator);
+          locatorResolution = resolution.resolved
+            ? { resolved: true, semantic: resolution.semantic, execution: resolution.execution }
+            : resolution;
+          if (!resolution.resolved) {
+            const finalUrl = page.url();
+            observations.push({
+              intent: step.intent,
+              url: finalUrl,
+              ok: false,
+              originDrifted: originOf(finalUrl) !== allowedOrigin,
+              locatorResolution,
+              ...(browserVersion ? { browserVersion } : {}),
+            });
+            continue;
+          }
+          try {
+            if (step.kind === 'fill') {
+              this.#pageContainsFilledValue = true;
+              await resolution.executionHandle.fill(step.value);
+            } else await resolution.executionHandle.click();
+          } finally {
+            await resolution.executionHandle.dispose();
+          }
+        }
+        const capturedSnapshot = await this.#accessibilitySnapshot(page);
+        const snapshot = this.#pageContainsFilledValue
+          ? redactAccessibilityValues(capturedSnapshot)
+          : capturedSnapshot;
         let screenshotRef: string | undefined;
-        if (this.#options.evidenceDir) {
+        if (this.#options.evidenceDir && !this.#pageContainsFilledValue) {
           const slug =
             step.intent
               .toLowerCase()
@@ -118,18 +195,20 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
           accessibilitySnapshotSha256: createHash('sha256')
             .update(stableStringify(snapshot))
             .digest('hex'),
+          ...(locatorResolution ? { locatorResolution } : {}),
           ...(screenshotRef ? { screenshotRef } : {}),
           ...(browserVersion ? { browserVersion } : {}),
         });
       } catch (error) {
-        const finalUrl = page.url() || step.url;
+        const finalUrl = page.url() || ('url' in step ? (step.url ?? '') : '');
         observations.push({
           intent: step.intent,
           url: finalUrl,
           ok: false,
           originDrifted: originOf(finalUrl) !== allowedOrigin,
           ...(browserVersion ? { browserVersion } : {}),
-          error: error instanceof Error ? error.message : String(error),
+          ...(locatorResolution ? { locatorResolution } : {}),
+          error: safeErrorMessage(error, step.kind === 'fill' ? step.value : undefined),
         });
       }
     }
@@ -148,6 +227,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     this.#browser = undefined;
     this.#cdp = undefined;
     this.#tracingStarted = false;
+    this.#pageContainsFilledValue = false;
     let traceFailure: Error | undefined;
     if (tracingStarted && context && this.#options.evidenceDir) {
       let temporaryTraceDirectory: string | undefined;
@@ -224,7 +304,12 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
         this.#tracingStarted = true;
       }
     }
-    if (!this.#page) this.#page = await this.#context.newPage();
+    if (!this.#page) {
+      this.#page = await this.#context.newPage();
+      this.#page.on('framenavigated', (frame) => {
+        if (frame === this.#page?.mainFrame()) this.#pageContainsFilledValue = false;
+      });
+    }
     return this.#page;
   }
 
@@ -235,7 +320,118 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     };
     return accessibilityTree(response.nodes);
   }
+
+  async #resolveControl(page: Page, pair: LocatorPair): Promise<ControlResolution> {
+    if (!validRoleSpecification(pair.semantic)) {
+      return { resolved: false, reason: 'semantic-invalid', ...pair };
+    }
+    if (!validRoleSpecification(pair.execution)) {
+      return { resolved: false, reason: 'execution-invalid', ...pair };
+    }
+
+    let semanticLocator: Locator;
+    try {
+      semanticLocator = playwrightLocator(page, pair.semantic);
+      await semanticLocator.first().waitFor({
+        state: 'attached',
+        timeout: this.#options.timeoutMs,
+      });
+    } catch (error) {
+      return {
+        resolved: false,
+        reason: invalidSelector(error) ? 'semantic-invalid' : 'semantic-inaccessible',
+        ...pair,
+      };
+    }
+    let semanticCount: number;
+    try {
+      semanticCount = await semanticLocator.count();
+    } catch {
+      return { resolved: false, reason: 'semantic-invalid', ...pair };
+    }
+    if (semanticCount !== 1) {
+      return {
+        resolved: false,
+        reason: semanticCount === 0 ? 'semantic-inaccessible' : 'semantic-ambiguous',
+        ...pair,
+      };
+    }
+
+    let executionLocator: Locator;
+    try {
+      executionLocator = playwrightLocator(page, pair.execution);
+      await executionLocator.first().waitFor({
+        state: 'attached',
+        timeout: this.#options.timeoutMs,
+      });
+    } catch (error) {
+      return {
+        resolved: false,
+        reason: invalidSelector(error) ? 'execution-invalid' : 'execution-inaccessible',
+        ...pair,
+      };
+    }
+    let executionCount: number;
+    try {
+      executionCount = await executionLocator.count();
+    } catch {
+      return { resolved: false, reason: 'execution-invalid', ...pair };
+    }
+    if (executionCount !== 1) {
+      return {
+        resolved: false,
+        reason: executionCount === 0 ? 'execution-inaccessible' : 'execution-ambiguous',
+        ...pair,
+      };
+    }
+
+    let semanticHandle;
+    try {
+      semanticHandle = await semanticLocator.elementHandle({ timeout: this.#options.timeoutMs });
+    } catch (error) {
+      return {
+        resolved: false,
+        reason: strictModeViolation(error) ? 'semantic-ambiguous' : 'semantic-inaccessible',
+        ...pair,
+      };
+    }
+    let executionHandle;
+    try {
+      executionHandle = await executionLocator.elementHandle({ timeout: this.#options.timeoutMs });
+    } catch (error) {
+      await semanticHandle.dispose();
+      return {
+        resolved: false,
+        reason: strictModeViolation(error) ? 'execution-ambiguous' : 'execution-inaccessible',
+        ...pair,
+      };
+    }
+    try {
+      // This trusted-Service evaluation is bounded to referential identity; it is neither
+      // arbitrary generated evaluation nor locator healing (ADR-001 §13.1/§16).
+      const same = await page.evaluate(([a, b]) => a === b, [semanticHandle, executionHandle]);
+      if (!same) {
+        await executionHandle.dispose();
+        return { resolved: false, reason: 'mismatch', ...pair };
+      }
+      return { resolved: true, executionHandle, ...pair };
+    } catch (error) {
+      await executionHandle.dispose();
+      throw error;
+    } finally {
+      await semanticHandle.dispose();
+    }
+  }
 }
+
+type ControlResolution =
+  | Readonly<{
+      resolved: true;
+      semantic: SemanticLocator;
+      execution: ExecutionLocator;
+      executionHandle: ElementHandle;
+    }>
+  | Extract<LocatorResolution, { resolved: false }>;
 
 type CdpValue = Readonly<{ value?: unknown }>;
 type CdpAccessibilityNode = Readonly<{
@@ -253,11 +449,14 @@ function accessibilityTree(nodes: readonly CdpAccessibilityNode[]): Accessibilit
   const root =
     nodes.find((node) => !node.ignored && node.role?.value === 'RootWebArea') ?? nodes[0];
   if (!root) return { role: 'RootWebArea' };
+  const normalizeChildren = (node: CdpAccessibilityNode): AccessibilityNode[] =>
+    (node.childIds ?? []).flatMap((id) => {
+      const child = byId.get(id);
+      if (!child) return [];
+      return child.ignored ? normalizeChildren(child) : [normalize(child)];
+    });
   const normalize = (node: CdpAccessibilityNode): AccessibilityNode => {
-    const children = (node.childIds ?? [])
-      .map((id) => byId.get(id))
-      .filter((child): child is CdpAccessibilityNode => child !== undefined && !child.ignored)
-      .map(normalize);
+    const children = normalizeChildren(node);
     const role = typeof node.role?.value === 'string' ? node.role.value : 'generic';
     const name = typeof node.name?.value === 'string' ? node.name.value : undefined;
     const value = node.value?.value;
@@ -280,6 +479,170 @@ function originOf(url: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+function playwrightLocator(page: Page, specification: ValidatedLocatorSpecification): Locator {
+  switch (specification.kind) {
+    case 'role':
+      return page.getByRole(specification.role, {
+        ...(specification.name === undefined ? {} : { name: specification.name }),
+        ...(specification.exact === undefined ? {} : { exact: specification.exact }),
+      });
+    case 'label':
+      return page.getByLabel(specification.text, {
+        ...(specification.exact === undefined ? {} : { exact: specification.exact }),
+      });
+    case 'text':
+      return page.getByText(specification.text, {
+        ...(specification.exact === undefined ? {} : { exact: specification.exact }),
+      });
+    case 'test-id':
+      return page.getByTestId(specification.id);
+  }
+}
+
+function safeErrorMessage(error: unknown, sensitiveValue?: string): string {
+  const rawMessage = error instanceof Error ? error.message : String(error);
+  if (!sensitiveValue) return rawMessage;
+  // ANSI control bytes are the exact untrusted engine delimiters this sanitizer removes.
+  // eslint-disable-next-line no-control-regex
+  const ansiEscapeSequence = /\u001B(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007]*(?:\u0007|\u001B\\))/g;
+  const withoutAnsi = rawMessage.replace(ansiEscapeSequence, '');
+  const beforeCallLog = withoutAnsi.split('Call log:', 1)[0] ?? '';
+  const firstLine = (beforeCallLog.split('\n', 1)[0] ?? '').slice(0, 200);
+  const escapedValue = JSON.stringify(sensitiveValue).slice(1, -1);
+  const sanitized = firstLine
+    .replaceAll(sensitiveValue, '[REDACTED]')
+    .replaceAll(escapedValue, '[REDACTED]');
+  const sensitiveFragments = [
+    ...sensitiveValue.split(/\r?\n/),
+    ...escapedValue.split(/\\[rn]/),
+  ].filter((fragment) => fragment.length > 0);
+  return sensitiveFragments.some((fragment) => sanitized.includes(fragment))
+    ? 'browser action failed'
+    : sanitized || 'browser action failed';
+}
+
+type AriaRole = Parameters<Page['getByRole']>[0];
+type ValidatedLocatorSpecification =
+  | Exclude<SemanticLocator | ExecutionLocator, { kind: 'role' }>
+  | Readonly<{ kind: 'role'; role: AriaRole; name?: string; exact?: boolean }>;
+
+const ARIA_ROLES: ReadonlySet<AriaRole> = new Set<AriaRole>([
+  'alert',
+  'alertdialog',
+  'application',
+  'article',
+  'banner',
+  'blockquote',
+  'button',
+  'caption',
+  'cell',
+  'checkbox',
+  'code',
+  'columnheader',
+  'combobox',
+  'complementary',
+  'contentinfo',
+  'definition',
+  'deletion',
+  'dialog',
+  'directory',
+  'document',
+  'emphasis',
+  'feed',
+  'figure',
+  'form',
+  'generic',
+  'grid',
+  'gridcell',
+  'group',
+  'heading',
+  'img',
+  'insertion',
+  'link',
+  'list',
+  'listbox',
+  'listitem',
+  'log',
+  'main',
+  'marquee',
+  'math',
+  'meter',
+  'menu',
+  'menubar',
+  'menuitem',
+  'menuitemcheckbox',
+  'menuitemradio',
+  'navigation',
+  'none',
+  'note',
+  'option',
+  'paragraph',
+  'presentation',
+  'progressbar',
+  'radio',
+  'radiogroup',
+  'region',
+  'row',
+  'rowgroup',
+  'rowheader',
+  'scrollbar',
+  'search',
+  'searchbox',
+  'separator',
+  'slider',
+  'spinbutton',
+  'status',
+  'strong',
+  'subscript',
+  'superscript',
+  'switch',
+  'tab',
+  'table',
+  'tablist',
+  'tabpanel',
+  'term',
+  'textbox',
+  'time',
+  'timer',
+  'toolbar',
+  'tooltip',
+  'tree',
+  'treegrid',
+  'treeitem',
+]);
+
+function validRoleSpecification(
+  specification: SemanticLocator | ExecutionLocator,
+): specification is ValidatedLocatorSpecification {
+  if (specification.kind !== 'role') return true;
+  // The cast is confined to this validation boundary; membership establishes the literal role.
+  return ARIA_ROLES.has(specification.role as AriaRole);
+}
+
+function strictModeViolation(error: unknown): boolean {
+  return /strict mode violation/i.test(error instanceof Error ? error.message : String(error));
+}
+
+function invalidSelector(error: unknown): boolean {
+  return /InvalidSelectorError|error while parsing selector|unknown engine|unexpected token|unknown role/i.test(
+    error instanceof Error ? error.message : String(error),
+  );
+}
+
+function redactAccessibilityValues(node: AccessibilityNode): AccessibilityNode {
+  // Chrome's AX tree duplicates a control's value both as `node.value` and as descendant
+  // StaticText/InlineTextBox nodes, so the whole subtree of a value-bearing node is dropped.
+  const containsControlValue = node.value !== undefined;
+  return {
+    role: node.role,
+    ...(node.name ? { name: node.name } : {}),
+    ...(node.description ? { description: node.description } : {}),
+    ...(!containsControlValue && node.children
+      ? { children: node.children.map((child) => redactAccessibilityValues(child)) }
+      : {}),
+  };
 }
 
 function stableStringify(value: unknown): string {
