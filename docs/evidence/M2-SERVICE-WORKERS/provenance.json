@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "branch": "fix/crawler-service-workers",
+  "rebasedBaseCommit": "9e59e2f97010bb69b81e8580f4256a1847f62a18",
+  "captureSourceCommit": "22bdf1df59804749ea278952efaf8161e8b0df55",
+  "captureSourceBaseCommit": "135991d9b1a07c2ffa08e38f8e261543ec5ab980",
+  "engines": {
+    "crawlee": "3.18.0",
+    "playwright": "1.62.1",
+    "browser": "chromium"
+  },
+  "artifactSha256": {
+    "service-worker-registration-blocked.png": "40902903779e2ad15b7ac10da69701f48973f04b0d53164fd3eb47dcd5b71ed2"
+  },
+  "retention": {
+    "optInEnvironmentVariable": "ARXIC_EVIDENCE_DIR",
+    "rawTraceRetained": false,
+    "rawTraceRemovalReason": "no-raw-trace-retention policy"
+  },
+  "proof": "The real-world test assertions and ARXIC-SURFACE-001/-008 diagnostics are authoritative; the screenshot is supplementary."
+}

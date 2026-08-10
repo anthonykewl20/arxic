@@ -303,8 +303,13 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
         useSessionPool: true,
         sessionPoolOptions: { maxPoolSize: crawlConcurrency },
         launchContext: {
+          // Crawlee 3.18 passes these options to Playwright's persistent BrowserContext.
+          // Preserve that shared context for crawl cookies while blocking registration before
+          // worker-owned traffic could bypass page.route().
+          useIncognitoPages: false,
           launchOptions: {
             headless: true,
+            serviceWorkers: 'block',
             ...(this.#options.browserExecutablePath
               ? { executablePath: this.#options.browserExecutablePath }
               : {}),
