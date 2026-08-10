@@ -188,6 +188,19 @@ importers:
         specifier: ^12.0.1
         version: 12.0.1
 
+  packages/intent:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      '@arxic/auth-domain-pack':
+        specifier: workspace:*
+        version: link:../auth-domain-pack
+      '@arxic/real-world-testkit':
+        specifier: workspace:*
+        version: link:../real-world-testkit
+
   packages/m0-pipeline:
     dependencies:
       '@arxic/ast-grep-adapter':
