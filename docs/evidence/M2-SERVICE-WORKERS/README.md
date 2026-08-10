@@ -1,8 +1,12 @@
 # M2-SERVICE-WORKERS browser evidence
 
-The retained screenshot is supplementary visual evidence from the hostile local
-fixture. The raw Playwright trace previously retained in this directory was removed
-under the no-raw-trace-retention policy and must not be regenerated or committed.
+The raw Playwright trace previously retained in this directory was removed under
+the no-raw-trace-retention policy and must not be regenerated or committed. No
+screenshot is retained here either: retained screenshots require `.privacy.json`
+attestation under the merged #115 screenshot-privacy policy, and this slice's
+proof is the real-world test's diagnostic assertions, not a captured image. The
+test captures a screenshot only transiently (into a temporary directory that the
+suite removes), so no unattested screenshot artifact is committed.
 
 Containment is proven by the real-world test, not by a trace:
 
@@ -22,12 +26,12 @@ Proof source:
 
 Retained artifacts:
 
-- `service-worker-registration-blocked.png`
 - `provenance.json`
 
-Normal test runs write the screenshot to a temporary directory and remove it. Setting
-`ARXIC_EVIDENCE_DIR` deliberately retains only the screenshot; the test no longer
-starts or writes a Playwright trace.
+Normal test runs capture the screenshot into a temporary directory and remove it;
+nothing is retained unless `ARXIC_EVIDENCE_DIR` is set, and even then the screenshot
+is not committed (it would require #115 attestation). The test no longer starts or
+writes a Playwright trace.
 
 The diagnostics are emitted for page-owned fallback requests after registration is
 blocked. They are not attributed to unseen Service Worker-owned requests.
