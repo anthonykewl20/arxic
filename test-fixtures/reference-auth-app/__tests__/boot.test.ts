@@ -79,6 +79,25 @@ async function findResetToken(): Promise<string> {
 }
 
 describe('real reference auth app', () => {
+  test('executes Next image optimization through safe sharp', async () => {
+    const imagePath = `/api/__arxic/image/${crypto.randomUUID()}`;
+    const source = await fetch(`${baseUrl}${imagePath}`);
+    expect(source.status).toBe(200);
+    const sourceBytes = await source.arrayBuffer();
+    expect(new DataView(sourceBytes).getUint32(16)).toBe(64);
+
+    const optimized = await fetch(
+      `${baseUrl}/_next/image?url=${encodeURIComponent(imagePath)}&w=32&q=75`,
+      { headers: { accept: 'image/png' } },
+    );
+    expect(optimized.status).toBe(200);
+    expect(optimized.headers.get('content-type')).toBe('image/png');
+    expect(optimized.headers.get('x-nextjs-cache')).toBe('MISS');
+    const optimizedBytes = await optimized.arrayBuffer();
+    expect(new DataView(optimizedBytes).getUint32(16)).toBe(32);
+    expect(optimizedBytes.byteLength).not.toBe(sourceBytes.byteLength);
+  });
+
   test('keeps the Phase 1 login, reset email, password reset, attestation, and logout flow green', async () => {
     const state: BrowserState = { cookies: new Map() };
     const forgedSession: BrowserState = { cookies: new Map([['arxic_session', 'malformed.!']]) };
@@ -159,6 +178,26 @@ describe('real reference auth app', () => {
     expect(newPassword.headers.get('location')).toBe('/');
     expect(newPasswordState.cookies.has('arxic_session')).toBe(true);
     console.log('[reference-flow] old password rejected and changed password accepted');
+
+    expect((await browserFetch(state, '/__arxic/reset', { method: 'POST' })).status).toBe(204);
+    expect(
+      (
+        await browserFetch(state, '/__arxic/seed', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            personaId: 'u1',
+            email: 'user@example.test',
+            password: 'Hunter2!',
+          }),
+        })
+      ).status,
+    ).toBe(201);
+    const cleanRun = await submitServerAction({ cookies: new Map() }, '/login', {
+      email: 'user@example.test',
+      password: 'Hunter2!',
+    });
+    expect(cleanRun.headers.get('location')).toBe('/');
   });
 
   test('requires a real TOTP challenge before creating a full session', async () => {

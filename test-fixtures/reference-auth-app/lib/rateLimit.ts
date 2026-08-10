@@ -3,7 +3,11 @@ interface Counter {
   resetsAt: number;
 }
 
-const counters = new Map<string, Counter>();
+const fixtureGlobal = globalThis as typeof globalThis & {
+  arxicReferenceRateLimits?: Map<string, Counter>;
+};
+const counters = fixtureGlobal.arxicReferenceRateLimits ?? new Map<string, Counter>();
+fixtureGlobal.arxicReferenceRateLimits = counters;
 
 export function consumeRateLimit(key: string, limit = 5, windowMs = 60_000): boolean {
   const now = Date.now();

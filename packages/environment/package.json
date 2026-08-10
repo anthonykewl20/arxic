@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "@arxic/contracts": "workspace:*",
-    "testcontainers": "^11.5.1"
+    "testcontainers": "^12.1.0"
   }
 }

@@ -29,7 +29,7 @@ async function hasSignedSession(request: NextRequest): Promise<boolean> {
   }
 }
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (
     protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path)) &&
     !(await hasSignedSession(request))
