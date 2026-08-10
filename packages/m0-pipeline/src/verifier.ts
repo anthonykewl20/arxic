@@ -8,7 +8,7 @@ import type {
   VerificationPolicy,
   Workflow,
 } from '@arxic/contracts';
-import { runFallback } from '@arxic/playwright-agent-adapter';
+import { installedChromiumVersion, runFallback } from '@arxic/playwright-agent-adapter';
 import { retainCaptureArtifacts } from '@arxic/playwright-trace-sanitizer';
 import {
   SCREENSHOT_CAPTURE_CORRELATION_ENV,
@@ -30,6 +30,7 @@ import {
 
 export type StagedSuitePass = {
   passed: boolean;
+  browserVersion?: string;
   artifacts?: ArtifactRef[];
   diagnostics?: Diagnostic[];
   networkErrors?: string[];
@@ -65,6 +66,7 @@ export type VerifyStagedSuiteResult = {
   runs: Array<{ passed: boolean }>;
   artifacts: ArtifactRef[];
   diagnostics: Diagnostic[];
+  browserVersion?: string;
 };
 
 export async function verifyStagedSuite(
@@ -81,6 +83,7 @@ export async function verifyStagedSuite(
   const runs: Array<{ passed: boolean }> = [];
   const observed = new Set<string>();
   const artifactFailures: string[] = [];
+  const browserVersions = new Set<string>();
   const specPath = join(input.testDir, 'workflow.spec.ts');
   try {
     artifacts.push(await artifactRef('spec', specPath));
@@ -146,6 +149,7 @@ export async function verifyStagedSuite(
     artifacts.push(...(pass.artifacts ?? []));
     diagnostics.push(...(pass.diagnostics ?? []));
     artifactFailures.push(...(pass.artifactFailures ?? []).map((item) => `pass ${run} ${item}`));
+    if (pass.browserVersion) browserVersions.add(pass.browserVersion);
     for (const transition of pass.observedTransitions ?? []) observed.add(transition);
     const runArtifacts = pass.artifacts ?? [];
     const missingScreenshots = (input.policy.screenshotCheckpoints ?? []).filter(
@@ -182,7 +186,21 @@ export async function verifyStagedSuite(
   if (passed === runs.length && runs.length >= input.policy.requiredRuns) {
     if (artifactFailures.length > 0)
       return blockedResult(runs, artifacts, artifactFailures.join('; '), diagnostics);
-    return { outcome: 'verified', runs, artifacts, diagnostics };
+    if (browserVersions.size !== 1) {
+      return blockedResult(
+        runs,
+        artifacts,
+        'Clean-fixture passes did not record exactly one consistent browser version',
+        diagnostics,
+      );
+    }
+    return {
+      outcome: 'verified',
+      runs,
+      artifacts,
+      diagnostics,
+      browserVersion: [...browserVersions][0],
+    };
   }
   if (passed > 0) {
     diagnostics.push(
@@ -216,6 +234,7 @@ async function executeFallbackRun(
     action: ScreenshotPrivacyAction;
   },
 ): Promise<StagedSuitePass> {
+  const browserVersion = await installedChromiumVersion();
   const correlation = screenshot.action.correlation(run);
   const capturedAt = screenshot.action.now();
   const env = {
@@ -260,6 +279,7 @@ async function executeFallbackRun(
     result.output.match(/(?:net::ERR_[A-Z_]+|requestfailed|network error)/giu) ?? [];
   return {
     passed,
+    browserVersion,
     artifacts: runArtifacts,
     diagnostics: result.listed === 0 ? result.diagnostics : [],
     networkErrors,

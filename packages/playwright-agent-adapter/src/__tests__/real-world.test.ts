@@ -14,7 +14,13 @@ import {
   serializeScreenshotPrivacyPolicy,
 } from '@arxic/playwright-screenshot-privacy';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { PlaywrightAgentAdapter, REQUIRED_TOOLS, generateSpecFromWorkflow, runFallback } from '..';
+import {
+  PlaywrightAgentAdapter,
+  REQUIRED_TOOLS,
+  generateSpecFromWorkflow,
+  installedChromiumVersion,
+  runFallback,
+} from '..';
 import { loginWorkflow } from './workflow-fixture';
 
 const execute = promisify(execFile);
@@ -117,7 +123,9 @@ describe('real Playwright agent and Chromium proof', () => {
   it('generates, lists, and runs the real staged login Workflow in Chromium as observed', async () => {
     const testDir = await mkdtemp(join(tmpdir(), 'arxic-fallback-real-'));
     temporaryProjects.push(testDir);
-    const generated = await generateSpecFromWorkflow(loginWorkflow(), { origin, testDir });
+    const workflow = loginWorkflow();
+    workflow.id = 'ARXIC_BROWSER_VERSION:fake';
+    const generated = await generateSpecFromWorkflow(workflow, { origin, testDir });
     expect(generated).toMatchObject({ ok: true, diagnostics: [] });
     const policy = serializeScreenshotPrivacyPolicy({
       schemaVersion: 1,
@@ -159,6 +167,8 @@ describe('real Playwright agent and Chromium proof', () => {
     expect(result.failed).toBe(0);
     expect(result.disposition).toBe('observed');
     expect(result.diagnostics).toEqual([]);
+    expect(result.output).toContain('ARXIC_BROWSER_VERSION:fake');
+    expect(await installedChromiumVersion()).not.toBe('fake');
   }, 120_000);
 });
 

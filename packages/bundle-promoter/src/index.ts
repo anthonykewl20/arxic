@@ -25,6 +25,7 @@ export * from './freeze';
 export * from './redaction-gate';
 export * from './trace-artifact-gate';
 export * from './validator';
+export * from './verified-projection';
 export const PACKAGE_NAME = '@arxic/bundle-promoter' as const;
 
 export type BundlePromoterOptions = {

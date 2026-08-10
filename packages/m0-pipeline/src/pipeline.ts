@@ -14,7 +14,7 @@ import type {
 } from '@arxic/contracts';
 import { validateManifest, validateWorkflow } from '@arxic/contracts';
 import { AstGrepAdapter, diagnosticsOf } from '@arxic/ast-grep-adapter';
-import { BundlePromoterAdapter } from '@arxic/bundle-promoter';
+import { BundlePromoterAdapter, projectVerifiedBundle } from '@arxic/bundle-promoter';
 import { EnvironmentHandshake } from '@arxic/environment';
 import {
   generateSpecFromWorkflow,
@@ -186,7 +186,7 @@ export async function runM0Vertical(
         ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
         'blocked',
         input.candidate.id,
-        `Workflow evidence references are unresolved: ${unresolvedEvidence.join(', ')}`,
+        'Workflow evidence references do not resolve to trusted indexed evidence',
       ),
     );
     return skipped('blocked', verification.runs, diagnostics, input.candidate.id);
@@ -201,10 +201,48 @@ export async function runM0Vertical(
   ]);
   const artifacts = [...verification.artifacts, ...boundSourceArtifacts, ...supporting];
   const timestamp = now();
+  if (!verification.browserVersion) {
+    diagnostics.push(
+      exitDiagnostic(
+        ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
+        'blocked',
+        input.candidate.id,
+        'Deterministic verification did not record the trusted Chromium installation version',
+      ),
+    );
+    return skipped('blocked', verification.runs, diagnostics, input.candidate.id);
+  }
+  const runtimeEvidenceId = `run:${runId}`;
+  const projectedCandidate = structuredClone(input.candidate);
+  projectedCandidate.evidenceRefs = [
+    ...new Set([...projectedCandidate.evidenceRefs, runtimeEvidenceId]),
+  ];
+  projectedCandidate.transitions = projectedCandidate.transitions.map((transition) =>
+    transition.required === false
+      ? transition
+      : {
+          ...transition,
+          evidenceRefs: [...new Set([...transition.evidenceRefs, runtimeEvidenceId])],
+        },
+  );
+  evidenceIndex[runtimeEvidenceId] = {
+    kind: 'runtime',
+    runId,
+    appBuildDigest: input.target.appBuildDigest,
+    browser: input.candidate.scope.browser,
+    browserVersion: verification.browserVersion,
+    url: input.target.origin,
+    timestamp,
+    ...(verification.artifacts.find(({ kind }) => kind === 'screenshot')
+      ? {
+          screenshotRef: verification.artifacts.find(({ kind }) => kind === 'screenshot')!.path,
+        }
+      : {}),
+  };
   const manifest: BundleManifest = {
     schemaVersion: 1,
     bundleVersion: 1,
-    workflow: { id: input.candidate.id, status: verification.outcome },
+    workflow: { id: input.candidate.id, status: input.candidate.status },
     repository: pathToFileURL(resolve(input.target.appDir)).href,
     commit: input.target.commit,
     appBuildDigest: input.target.appBuildDigest,
@@ -223,23 +261,37 @@ export async function runM0Vertical(
       })),
     },
     fileHashes: artifacts.map(({ path, sha256 }) => ({ path, sha256 })),
-    gateResults: [
-      { gate: 'attestation', passed: true },
-      { gate: 'verify', passed: true },
-    ],
-    coverage: { denominator: 1, verified: 1, contradicted: 0, blocked: 0, uncovered: 0 },
+    gateResults: [{ gate: 'attestation', passed: true }],
+    coverage: { denominator: 1, verified: 0, contradicted: 0, blocked: 0, uncovered: 1 },
     runId,
   };
   const manifestValidation = validateManifest(manifest);
   if (!manifestValidation.ok)
     return compileFailure(input.candidate.id, manifestValidation.diagnostics);
-  const stagedBundle: StagedBundle = {
+  const stagedBundleBeforeProjection: StagedBundle = {
     manifest,
-    workflow: input.candidate,
+    workflow: projectedCandidate,
     evidenceIndex,
     artifacts,
     plan: 'Replay the seeded login workflow twice from clean fixture state.',
   };
+  const projection = projectVerifiedBundle(
+    stagedBundleBeforeProjection,
+    { ...verification, gates: [{ gate: 'verify', passed: true }] },
+    timestamp,
+  );
+  if (!projection.ok) {
+    diagnostics.push(
+      exitDiagnostic(
+        ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
+        'blocked',
+        input.candidate.id,
+        'Deterministic verification could not produce one coherent staged bundle',
+      ),
+    );
+    return skipped('blocked', verification.runs, diagnostics, input.candidate.id);
+  }
+  const stagedBundle = projection.value;
   const gates: GateResult[] = [
     { gate: 'attestation', passed: true },
     { gate: 'verify', passed: verification.outcome === 'verified' },
@@ -323,7 +375,7 @@ function indexSourceEvidence(
   evidenceIndex: EvidenceIndex,
 ): void {
   const remaining = [...refs];
-  for (const evidenceId of workflowEvidenceIds(workflow)) {
+  for (const evidenceId of workflowEvidenceIds(workflow).filter((id) => id.startsWith('src:'))) {
     const preferred = preferredSourceEvidence(evidenceId, remaining);
     if (!preferred) continue;
     evidenceIndex[evidenceId] = preferred;
@@ -339,12 +391,10 @@ function indexSourceEvidence(
 
 function workflowEvidenceIds(workflow: Workflow): string[] {
   return [
-    ...new Set(
-      [
-        ...workflow.evidenceRefs,
-        ...workflow.transitions.flatMap(({ evidenceRefs }) => evidenceRefs),
-      ].filter((evidenceId) => evidenceId.startsWith('src:')),
-    ),
+    ...new Set([
+      ...workflow.evidenceRefs,
+      ...workflow.transitions.flatMap(({ evidenceRefs }) => evidenceRefs),
+    ]),
   ];
 }
 
