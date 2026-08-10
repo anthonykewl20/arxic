@@ -1,8 +1,9 @@
-import { cp, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { StagedBundle } from '@arxic/contracts';
+import { validateManifest, validateWorkflow, type StagedBundle } from '@arxic/contracts';
+import type { ScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 import { PlaywrightCompiler } from '@arxic/playwright-compiler';
 import {
   FIXTURE_APPS,
@@ -15,10 +16,16 @@ import {
 } from '@arxic/real-world-testkit';
 import { PlaywrightVerifier } from '@arxic/verifier';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { ARXIC_PROMOTION_ATOMIC_REPLACE_FAILED, BundlePromoterAdapter, freezeBundle } from '..';
+import {
+  ARXIC_PROMOTION_ATOMIC_REPLACE_FAILED,
+  BundlePromoterAdapter,
+  freezeBundle,
+  projectVerifiedBundle,
+  sha256,
+} from '..';
 
 const root = fileURLToPath(new URL('../../../../', import.meta.url));
-const verificationTimestamp = '2026-08-09T12:00:00.000Z';
+const verifiedAt = '2026-08-09T12:00:00.000Z';
 
 describe.each(FIXTURE_APPS)('real-world failed-promotion preservation: $name', (app) => {
   let running: RunningApp | undefined;
@@ -45,32 +52,38 @@ describe.each(FIXTURE_APPS)('real-world failed-promotion preservation: $name', (
 
   test('keeps the verified bundle byte-identical when the subsequent atomic replace is blocked', async () => {
     if (!running) throw new Error(`Fixture app ${app.name} did not start`);
+    const workflow = loginWorkflow(app, {
+      id: `authentication.login.promotion.${app.name}`,
+      title: `Login promotion proof ${app.name}`,
+      dualEvidence: true,
+    });
     const compiled = await new PlaywrightCompiler({
       outputDirectory: stagedDirectory,
       origin: running.origin,
     }).compile(
-      loginWorkflow(app, {
-        id: `authentication.login.promotion.${app.name}`,
-        title: `Login promotion proof ${app.name}`,
-        dualEvidence: true,
-      }),
+      workflow,
       loginObservations(app, running.origin, `real-world-promotion-${app.name}`),
     );
+
     const verification = await new PlaywrightVerifier({
       outputDirectory: stagedDirectory,
       origin: running.origin,
       artifactsDir: artifactDirectory,
       persona: app.persona,
-    }).verify(compiled, {
-      requiredRuns: 2,
-      forbidNetworkErrors: true,
-      screenshotCheckpoints: [app.login.toState],
-      trace: 'retain',
-    });
+      screenshotPrivacyPolicy: screenshotPolicy(app.name),
+    }).verify(compiled, workflow.verification);
     expect(verification.outcome, JSON.stringify(verification.diagnostics)).toBe('verified');
     expect(verification.runs).toEqual([{ passed: true }, { passed: true }]);
-    expect(verification.artifacts.filter(({ kind }) => kind === 'screenshot')).toHaveLength(2);
-    expect(verification.artifacts.filter(({ kind }) => kind === 'trace')).toHaveLength(2);
+    expect(
+      verification.artifacts.filter((artifact) => artifact.kind === 'screenshot'),
+    ).toHaveLength(2);
+    expect(
+      verification.artifacts.filter((artifact) => artifact.kind === 'screenshot-privacy-report'),
+    ).toHaveLength(2);
+    expect(verification.artifacts.filter((artifact) => artifact.kind === 'trace')).toHaveLength(2);
+    expect(
+      verification.artifacts.filter((artifact) => artifact.kind === 'trace-sanitization-report'),
+    ).toHaveLength(2);
 
     const evidenceDirectory = process.env.ARXIC_EVIDENCE_DIR;
     if (evidenceDirectory) {
@@ -78,42 +91,43 @@ describe.each(FIXTURE_APPS)('real-world failed-promotion preservation: $name', (
       await cp(artifactDirectory, join(evidenceDirectory, app.name), { recursive: true });
     }
 
-    const verifiedBundle: StagedBundle = {
-      ...compiled,
-      workflow: { ...compiled.workflow, status: 'verified' },
-      manifest: {
-        ...compiled.manifest,
-        workflow: { ...compiled.manifest.workflow, status: 'verified' },
-        verification: {
-          requiredRuns: 2,
-          runs: verification.runs.map(({ passed }) => ({
-            startedAt: verificationTimestamp,
-            finishedAt: verificationTimestamp,
-            passed,
-          })),
-        },
-        gateResults: [...compiled.manifest.gateResults, { gate: 'verify', passed: true }],
-        coverage: {
-          ...compiled.manifest.coverage,
-          verified: 1,
-          contradicted: 0,
-          blocked: 0,
-          uncovered: 0,
-        },
-      },
-    };
-    expect(verifiedBundle.workflow.id).toBe(`authentication.login.promotion.${app.name}`);
-    expect(verifiedBundle.manifest.workflow.id).toBe(verifiedBundle.workflow.id);
+    const promotable = structuredClone(compiled);
+    promotable.artifacts = promotable.artifacts.map((artifact) => ({
+      ...artifact,
+      path: isAbsolute(artifact.path) ? artifact.path : join(stagedDirectory, artifact.path),
+    }));
+    promotable.manifest.fileHashes = promotable.artifacts.map(({ path, sha256 }) => ({
+      path,
+      sha256,
+    }));
+    const projection = projectVerifiedBundle(
+      promotable,
+      { ...verification, gates: [{ gate: 'verify', passed: true }] },
+      verifiedAt,
+    );
+    expect(projection.ok).toBe(true);
+    if (!projection.ok) throw new Error(projection.reason);
+    const verifiedBundle = projection.value;
+    expect(verifiedBundle.workflow.id).toBe(workflow.id);
     expect(verifiedBundle.workflow.status).toBe('verified');
-    expect(verifiedBundle.manifest.workflow.status).toBe(verifiedBundle.workflow.status);
-    const publicPath = join(promotionDirectory, `${app.name}.bundle.json`);
-    const promoter = new BundlePromoterAdapter({
-      publicPath,
-      now: () => verificationTimestamp,
+    expect(verifiedBundle.manifest.workflow).toEqual({
+      id: verifiedBundle.workflow.id,
+      status: 'verified',
     });
-    const receipt = await promoter.promote(verifiedBundle, [{ gate: 'verify', passed: true }]);
-    const promotedBytes = await readFile(receipt.location);
+
+    const publicPath = join(promotionDirectory, `${app.name}.bundle.json`);
+    const promoter = new BundlePromoterAdapter({ publicPath, now: () => verifiedAt });
+    const receipt = await promoter.promote(verifiedBundle, [{ gate: 'delivery', passed: true }]);
+    const promotedBytes = await readFile(publicPath);
+    expect(receipt.location).toBe(publicPath);
+    expect(receipt.promotedAt).toBe(verifiedAt);
+    expect(receipt.checksumSha256).toBe(sha256(promotedBytes));
     expect(promotedBytes).toEqual(freezeBundle(verifiedBundle));
+
+    const promoted = JSON.parse(promotedBytes.toString('utf8')) as StagedBundle;
+    expect(validateWorkflow(promoted.workflow)).toMatchObject({ ok: true });
+    expect(validateManifest(promoted.manifest)).toMatchObject({ ok: true });
+    expect(promoted.manifest.workflow).toEqual({ id: promoted.workflow.id, status: 'verified' });
 
     const subsequentBundle = {
       ...verifiedBundle,
@@ -122,7 +136,7 @@ describe.each(FIXTURE_APPS)('real-world failed-promotion preservation: $name', (
     expect(freezeBundle(subsequentBundle)).not.toEqual(promotedBytes);
     await mkdir(`${publicPath}.lkg`);
     const failed = await promoter.promoteWithDiagnostics(subsequentBundle, [
-      { gate: 'verify', passed: true },
+      { gate: 'delivery', passed: true },
     ]);
 
     expect(failed.receipt).toBeUndefined();
@@ -131,8 +145,47 @@ describe.each(FIXTURE_APPS)('real-world failed-promotion preservation: $name', (
         code: ARXIC_PROMOTION_ATOMIC_REPLACE_FAILED,
         severity: 'blocked',
         subject: publicPath,
+        message: expect.stringContaining(`${publicPath}.lkg`),
       }),
     ]);
+    expect((await stat(`${publicPath}.lkg`)).isDirectory()).toBe(true);
     expect(await readFile(publicPath)).toEqual(promotedBytes);
+    const finalListing = (await readdir(promotionDirectory)).sort();
+    expect(finalListing).toEqual([`${app.name}.bundle.json`, `${app.name}.bundle.json.lkg`]);
+
+    if (evidenceDirectory) {
+      await mkdir(join(evidenceDirectory, app.name), { recursive: true });
+      await writeFile(
+        join(evidenceDirectory, app.name, 'promotion-outcome.json'),
+        `${JSON.stringify(
+          {
+            app: app.name,
+            promotedChecksumSha256: receipt.checksumSha256,
+            subsequentChecksumSha256: sha256(freezeBundle(subsequentBundle)),
+            blockedDiagnostic: failed.diagnostics,
+            finalListing,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+    }
   }, 240_000);
 });
+
+function screenshotPolicy(appName: string): ScreenshotPrivacyPolicy {
+  return {
+    schemaVersion: 1,
+    id: `bundle-promoter-${appName}-main-mask`,
+    authority: {
+      kind: 'repository-policy',
+      reference: 'docs/evidence/M1-SCREENSHOT-PRIVACY/README.md',
+      recordedAt: '2026-08-09T12:00:00.000Z',
+    },
+    capture: {
+      mode: 'masked-page',
+      fullPage: true,
+      masks: [{ kind: 'role', role: 'main', exact: true }],
+    },
+  };
+}

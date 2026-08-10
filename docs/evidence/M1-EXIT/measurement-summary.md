@@ -32,17 +32,24 @@ fixtures for **both** apps: `packages/verifier/src/real-world.test.ts` asserts
 
 ## §23 outcome
 
-reference-auth-app 14/14 MET · vulnerable-auth-app 13/14 MET, §23.12 UNMET
-(test gap, filed as #109). Full table in `docs/_slice-notes/M1-EXIT.md` §6.
-Verdict recorded: **M1 does not exit** pending §23.12 Express coverage — the
-integrator's call on this evidence.
+reference-auth-app 14/14 MET · vulnerable-auth-app 13/14 MET, §23.12 UNMET at this
+baseline (test gap, filed as #109). The full §23 14×2 MET/UNMET/PARTIAL table now lives
+in `docs/evidence/M1-EXIT-23-12/summary.md` — this file originally pointed at
+`docs/_slice-notes/M1-EXIT.md §6`, which was folded in on merge and no longer exists.
+Baseline verdict: **M1 does not exit** pending §23.12 Express coverage — the
+integrator's call; see the supersession note below for the regenerated #109 proof.
 
-## Supersession note (2026-08-09)
+## Supersession note (2026-08-09, updated 2026-08-10)
 
-Issue #109's `M1-EXIT-23-12` slice supersedes only the §23.12 gap recorded above:
-`packages/bundle-promoter/src/__tests__/promotion-real-world.test.ts` now runs one
-generic compile → two-pass real-Chromium verification → promotion → blocked
-subsequent-promotion proof over both `FIXTURE_APPS` entries and asserts exact prior
-public bytes. Retained screenshots, traces, and the per-test summary live under
-`docs/evidence/M1-EXIT-23-12/`. This file remains the historical baseline for the
-other thirteen criteria; the integrator still owns the final #27 gate remeasurement.
+Issue #109's `M1-EXIT-23-12` slice supersedes the §23.12 gap recorded above. Regenerated
+2026-08-10 through the now-merged safe pipeline (#111 trace sanitization, #112 bundle
+integrity, #115 screenshot privacy): `packages/bundle-promoter/src/__tests__/promotion-real-world.test.ts`
+drives both `FIXTURE_APPS` through compile → two-pass real-Chromium verify (action-owned
+`masked-page` screenshot policy) → `projectVerifiedBundle` (#112 coherence) → promote B1 → a
+blocked subsequent promotion (`ARXIC-PROMOTION-ATOMIC-REPLACE-FAILED`, no receipt) → an
+independent reread asserting exact B1 byte identity. Focused suite green (2 passing, both
+apps). Retained artifacts are policy-compliant (masked-page screenshots + `.privacy.json`,
+sanitized traces + `.sanitization.json`) under `docs/evidence/M1-EXIT-23-12/`, with the full
+§23 14×2 table in its `summary.md`. This file remains the historical baseline for the other
+thirteen criteria; the integrator still owns the final `#27` gate remeasurement, and no LLM
+`verified` truth state is assigned.
