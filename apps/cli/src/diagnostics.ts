@@ -9,6 +9,9 @@ export const ARXIC_CONFIG_VERSION = 'ARXIC-CONFIG-VERSION' as const;
 export const ARXIC_CONFIG_MODEL_MISSING = 'ARXIC-CONFIG-MODEL-MISSING' as const;
 export const ARXIC_EXEC_CRASH = 'ARXIC-EXEC-CRASH' as const;
 export const ARXIC_EXEC_RESUMED = 'ARXIC-EXEC-RESUMED' as const;
+export const ARXIC_EXEC_WORKER_INTERRUPTED = 'ARXIC-EXEC-WORKER-INTERRUPTED' as const;
+export const ARXIC_EXEC_WORKER_PROTOCOL = 'ARXIC-EXEC-WORKER-PROTOCOL' as const;
+export const ARXIC_EXEC_WORKER_APPROVAL_REQUIRED = 'ARXIC-EXEC-WORKER-APPROVAL-REQUIRED' as const;
 
 export type CliDiagnosticCode =
   | typeof ARXIC_CLI_USAGE
@@ -19,7 +22,10 @@ export type CliDiagnosticCode =
   | typeof ARXIC_CONFIG_VERSION
   | typeof ARXIC_CONFIG_MODEL_MISSING
   | typeof ARXIC_EXEC_CRASH
-  | typeof ARXIC_EXEC_RESUMED;
+  | typeof ARXIC_EXEC_RESUMED
+  | typeof ARXIC_EXEC_WORKER_INTERRUPTED
+  | typeof ARXIC_EXEC_WORKER_PROTOCOL
+  | typeof ARXIC_EXEC_WORKER_APPROVAL_REQUIRED;
 
 export function cliDiagnostic(
   code: CliDiagnosticCode,

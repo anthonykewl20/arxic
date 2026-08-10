@@ -44,4 +44,22 @@ describe('parseArgs', () => {
       command: { kind: 'run', config: 'x', runId: 'foo' },
     });
   });
+
+  it('rejects an unknown executor fail-closed', () => {
+    expect(parseArgs(['run', '--config', 'x', '--executor', 'remote'])).toMatchObject({
+      ok: false,
+      diagnostics: [{ code: 'ARXIC-CLI-USAGE', severity: 'blocked' }],
+    });
+  });
+
+  it('selects worker execution explicitly while local remains the default', () => {
+    expect(parseArgs(['run', '--config', 'x'])).toEqual({
+      ok: true,
+      command: { kind: 'run', config: 'x' },
+    });
+    expect(parseArgs(['run', '--config', 'x', '--executor', 'worker'])).toEqual({
+      ok: true,
+      command: { kind: 'run', config: 'x', executor: 'worker' },
+    });
+  });
 });

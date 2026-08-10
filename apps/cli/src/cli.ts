@@ -1,14 +1,17 @@
 import { basename, resolve } from 'node:path';
 import type { RunExecutor } from './executor';
+import { createLocalWorkerClient, type WorkerClient } from '@arxic/worker';
 import { parseArgs } from './args';
 import { ARXIC_CLI_INTERNAL, cliDiagnostic } from './diagnostics';
 import { LocalRunExecutor } from './local-executor';
 import { runAction } from './run';
+import { WorkerRunExecutor } from './worker-executor';
 
 export type OutputSink = { write(message: string): unknown } | { log(message: string): unknown };
 
 export type RunCliOptions = Readonly<{
   executor?: RunExecutor;
+  workerClient?: WorkerClient;
   stdout?: OutputSink;
   stderr?: OutputSink;
   cwd?: string;
@@ -40,7 +43,11 @@ export async function runCli(
       configPath: parsed.command.config,
       ...(parsed.command.out === undefined ? {} : { out: parsed.command.out }),
       ...(parsed.command.runId === undefined ? {} : { runId: parsed.command.runId }),
-      executor: options.executor ?? new LocalRunExecutor(),
+      executor:
+        options.executor ??
+        (parsed.command.executor === 'worker'
+          ? new WorkerRunExecutor(options.workerClient ?? createLocalWorkerClient())
+          : new LocalRunExecutor()),
       cwd: options.cwd ?? process.cwd(),
       ...(options.rulepacksDir === undefined ? {} : { rulepacksDir: options.rulepacksDir }),
       ...(options.now === undefined ? {} : { now: options.now }),
@@ -75,8 +82,8 @@ export async function runCli(
   }
 }
 
-const HELP = `Usage: arxic <command> [options]\n\nCommands:\n  run --config <path>  Start a local run\n\nOptions:\n  -h, --help            Show help\n  -v, --version         Show version`;
-const RUN_HELP = `Usage: arxic run --config <path> [--out <dir>] [--run-id <id>]`;
+const HELP = `Usage: arxic <command> [options]\n\nCommands:\n  run --config <path>  Start a run (local by default)\n\nOptions:\n  -h, --help            Show help\n  -v, --version         Show version`;
+const RUN_HELP = `Usage: arxic run --config <path> [--executor <local|worker>] [--out <dir>] [--run-id <id>]`;
 
 function formatDiagnostic(diagnostic: { code: string; subject: string; message: string }): string {
   return `${diagnostic.code} [${diagnostic.subject}] ${diagnostic.message}`;

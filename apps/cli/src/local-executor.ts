@@ -9,7 +9,13 @@ import {
   type RunState,
 } from '@arxic/orchestrator-langgraph';
 import { ARXIC_EXEC_RESUMED, cliDiagnostic } from './diagnostics';
-import type { DiagnosticSink, RunExecutor, RunRequest, RunResult } from './executor';
+import {
+  runResultFromState,
+  type DiagnosticSink,
+  type RunExecutor,
+  type RunRequest,
+  type RunResult,
+} from './executor';
 
 export class LocalRunExecutor implements RunExecutor {
   async execute(request: RunRequest, sink: DiagnosticSink): Promise<RunResult> {
@@ -36,15 +42,7 @@ export class LocalRunExecutor implements RunExecutor {
     }
     state.diagnostics.forEach((diagnostic) => sink.emit(diagnostic));
     const diagnostics = [...emitted, ...state.diagnostics];
-    return {
-      runId: state.runId,
-      status: finalStatus(state),
-      outcome: state.outcome,
-      diagnostics,
-      runDirectory: request.runDirectory,
-      state,
-      ...(state.receipt === undefined ? {} : { receipt: state.receipt }),
-    };
+    return runResultFromState(request, state, diagnostics);
   }
 }
 
@@ -81,11 +79,4 @@ function resolveCommit(repository: string, revision: string): string {
   } catch {
     return revision;
   }
-}
-
-function finalStatus(state: RunState): RunResult['status'] {
-  if (state.status === 'completed' || state.status === 'partial' || state.status === 'failed') {
-    return state.status;
-  }
-  return 'partial';
 }
