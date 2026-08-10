@@ -1,0 +1,14 @@
+{
+  "app": "reference-auth-app",
+  "promotedChecksumSha256": "ab42c60819b7ec422e47661d4c84eb86d0c18ccca82f9c81a2295535004e1ce9",
+  "subsequentChecksumSha256": "2396dd90ae7606c83f82262f0a0446a4956be23e3d59455280db0dd017ad4bdd",
+  "blockedDiagnostic": [
+    {
+      "code": "ARXIC-PROMOTION-ATOMIC-REPLACE-FAILED",
+      "severity": "blocked",
+      "subject": "/tmp/arxic-promotion-public-19BxsS/reference-auth-app.bundle.json",
+      "message": "EISDIR: illegal operation on a directory, rename '/tmp/arxic-promotion-public-19BxsS/.reference-auth-app.bundle.json.c67acbfd-d25d-4e78-ad32-475a258f02fc.lkg-stage' -> '/tmp/arxic-promotion-public-19BxsS/reference-auth-app.bundle.json.lkg'"
+    }
+  ],
+  "finalListing": ["reference-auth-app.bundle.json", "reference-auth-app.bundle.json.lkg"]
+}

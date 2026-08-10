@@ -20,6 +20,10 @@ An exclusive `O_EXCL` lock file serializes publishers. `lockTimeoutMs` controls 
 
 Before assembly or promotion, `trace-artifact-gate.ts` classifies bounded artifact bytes rather than trusting `ArtifactRef.kind` or an extension. ZIP content is eligible only as an independently inspected sanitized Playwright action timeline with its exact adjacent sidecar. Screenshots must be structurally complete, bounded, decodable PNGs with no trailing payload or complete raw-trace ZIP carried directly in one or more ancillary chunk payloads; isolated ZIP-magic bytes are not treated as a container. The gate returns the validated bytes so assembly does not perform a second unbounded or time-of-check/time-of-use read. This finite content-classification boundary does not decode semantic metadata carriers or attest valid IDAT/pixel content, metadata privacy, or steganography—#115 owns the separate screenshot privacy boundary. Any mismatch preserves prior output/public bytes.
 
+## Real-world proof
+
+`src/__tests__/promotion-real-world.test.ts` parameterizes the same compile → two-pass real-Chromium verification → promotion → blocked subsequent promotion flow over both entries in `FIXTURE_APPS`. It asserts the verifier-confirmed staged workflow and manifest agree, retains named screenshots and traces, injects a real pre-replace LKG snapshot failure, and compares the prior public bundle bytes exactly. Per-app facts remain data in `@arxic/real-world-testkit`; no application-name branch exists in the proof or promoter.
+
 ## Frozen contracts
 
 The package does not modify or extend `StagedBundle`, `GateResult`, or `PromotionReceipt`. In particular, byte counts are checked internally but are not added to the receipt; the frozen receipt contains only `manifest`, `promotedAt`, `location`, and `checksumSha256`. Artifact eligibility and trace sanitization remain upstream responsibilities; this integrity gate does not make a raw trace safe to retain or publish.

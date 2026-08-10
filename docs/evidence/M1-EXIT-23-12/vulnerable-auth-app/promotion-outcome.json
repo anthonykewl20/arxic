@@ -1,0 +1,14 @@
+{
+  "app": "vulnerable-auth-app",
+  "promotedChecksumSha256": "3dc6ecbaded9c810040de588e177c41af55ccd0c2a98f5a5a78aa9836c748b77",
+  "subsequentChecksumSha256": "bc4743b56f3f4815e7e4eb44e2b68c3988c44142b6a463adaf3c8fbec11faf3b",
+  "blockedDiagnostic": [
+    {
+      "code": "ARXIC-PROMOTION-ATOMIC-REPLACE-FAILED",
+      "severity": "blocked",
+      "subject": "/tmp/arxic-promotion-public-lgVOvR/vulnerable-auth-app.bundle.json",
+      "message": "EISDIR: illegal operation on a directory, rename '/tmp/arxic-promotion-public-lgVOvR/.vulnerable-auth-app.bundle.json.c62207ac-8dd2-4d0f-a590-d56ff34fa83e.lkg-stage' -> '/tmp/arxic-promotion-public-lgVOvR/vulnerable-auth-app.bundle.json.lkg'"
+    }
+  ],
+  "finalListing": ["vulnerable-auth-app.bundle.json", "vulnerable-auth-app.bundle.json.lkg"]
+}
