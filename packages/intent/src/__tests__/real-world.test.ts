@@ -1,4 +1,4 @@
-// This proof exercises real authCandidates pack logic against both apps' captured authSurface data; live-browser proof is deferred to slice F, and pack-rule identity supplies oracle authority while content resolution is deferred to slice B.
+// This proof exercises real authCandidates pack logic against both apps' captured authSurface data; live-browser proof is deferred to slice F, and pack-rule identity supplies oracle authority (the orchestrator boundary that consumes this landed in slice B) while deep content resolution — verifying the pack-rule actually authorizes the exact expected value — remains deferred to a later slice.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';

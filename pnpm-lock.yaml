@@ -261,6 +261,9 @@ importers:
       '@arxic/environment':
         specifier: workspace:*
         version: link:../environment
+      '@arxic/intent':
+        specifier: workspace:*
+        version: link:../intent
       '@arxic/model-adapter':
         specifier: workspace:*
         version: link:../model-adapter
@@ -282,6 +285,13 @@ importers:
       '@langchain/langgraph':
         specifier: 1.4.9
         version: 1.4.9(@langchain/core@1.2.4(ws@8.21.2))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.4.3)
+    devDependencies:
+      '@arxic/auth-domain-pack':
+        specifier: workspace:*
+        version: link:../auth-domain-pack
+      '@arxic/real-world-testkit':
+        specifier: workspace:*
+        version: link:../real-world-testkit
 
   packages/playwright-agent-adapter:
     dependencies:

@@ -1,4 +1,5 @@
 import { Annotation, END, MemorySaver, START, StateGraph } from '@langchain/langgraph';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import type {
   Diagnostic,
@@ -7,6 +8,7 @@ import type {
   PromotionReceipt,
   SourceRevision,
   StagedBundle,
+  TruthState,
   Workflow,
 } from '@arxic/contracts';
 import { validateWorkflow } from '@arxic/contracts';
@@ -31,6 +33,7 @@ import {
   type HumanApproval,
 } from '@arxic/environment';
 import type { ModelAdapter } from '@arxic/model-adapter';
+import { normalizeIntentSpec } from '@arxic/intent';
 import {
   generateSpecFromWorkflow,
   PACKAGE_NAME as PLAYWRIGHT_PACKAGE,
@@ -48,6 +51,8 @@ import {
   ARXIC_ORCH_EMPTY_COVERAGE,
   ARXIC_ORCH_HASH_MISMATCH,
   ARXIC_ORCH_MODEL_RETRIES,
+  ARXIC_ORCH_ORACLE_RESOLVED,
+  ARXIC_ORCH_ORACLE_UNMATCHED,
   ARXIC_ORCH_REDACTION_FAILED,
   ARXIC_ORCH_RESUME,
   ARXIC_ORCH_STAGE_BLOCKED,
@@ -61,6 +66,9 @@ import type {
   FixturePreparation,
   ImmutableArtifactRef,
   InferenceResult,
+  OracleResolution,
+  OracleResolutionInput,
+  OracleRule,
   RunState,
   StageArtifact,
   StageCheckpoint,
@@ -111,6 +119,7 @@ export type OrchestratorInput = Readonly<{
   requireExplorationApproval?: boolean;
   modelPrompt?: string;
   credentialBytes?: readonly string[];
+  oracleRules?: readonly OracleRule[];
 }>;
 
 export type ApprovalInput = Readonly<{
@@ -139,6 +148,7 @@ export type OrchestratorOptions = Readonly<{
   }) => Promise<CoverageMatrix>;
   prepareFixtures?: (input: { candidates: readonly Candidate[] }) => Promise<FixturePreparation>;
   explore?: (input: import('./exploration').ExplorationInput) => Promise<ExplorationResult>;
+  resolveOracle?: (input: OracleResolutionInput) => Promise<OracleResolution>;
   compile?: (input: {
     candidates: readonly Candidate[];
     observations: readonly EvidenceRef[];
@@ -527,17 +537,105 @@ export class LangGraphOrchestrator {
   async #compile(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
     const inference = await this.#artifact<InferenceResult>(state, input, 4);
     const exploration = await this.#artifact<ExplorationResult>(state, input, 8);
-    const result = await (this.#options.compile ?? defaultCompile)({
+    const unmatchedDiagnostics = (input.oracleRules ?? []).flatMap(({ candidateId }) =>
+      inference.candidates.some(({ id }) => id === candidateId)
+        ? []
+        : [
+            orchDiagnostic(
+              ARXIC_ORCH_ORACLE_UNMATCHED,
+              'blocked',
+              'stage-9',
+              `Oracle rule candidateId ${candidateId} did not match an inferred candidate`,
+            ),
+          ],
+    );
+    let oracle: OracleResolution = { resolved: [], diagnostics: [], outcome: 'observed' };
+    if (this.#options.resolveOracle) {
+      const stage0 = await this.#artifact<Record<string, unknown>>(state, input, 0);
+      const stage7 = await this.#artifact<FixturePreparation>(state, input, 7);
+      const decision = isPlainRecord(stage0.decision) ? stage0.decision : undefined;
+      const policyAuthority =
+        stage0.policyVersion ??
+        stage0.digest ??
+        decision?.policyVersion ??
+        decision?.digest ??
+        stage0;
+      oracle = await this.#options.resolveOracle({
+        runId: input.runId,
+        candidates: inference.candidates,
+        observations: exploration.evidenceRefs,
+        lineage: {
+          commit: input.revision.commit,
+          appBuildDigest: input.appBuildDigest ?? input.revision.commit,
+          fixtureSeedDigest: stageDigest(stage7.requirements),
+          featureFlagsDigest: stageDigest([...(input.features ?? [])].sort()),
+          policyDigest: stageDigest(policyAuthority),
+        },
+        oracleRules: [...(input.oracleRules ?? [])],
+      });
+    }
+    const normalization = oracle.intentSpec ? normalizeIntentSpec(oracle.intentSpec) : undefined;
+    const hostileVerified = oracle.intentSpec ? containsVerifiedClaim(oracle.intentSpec) : false;
+    const normalizationDiagnostics =
+      normalization && !normalization.ok ? [...normalization.diagnostics] : [];
+    if (hostileVerified) {
+      normalizationDiagnostics.push(
+        orchDiagnostic(
+          ARXIC_ORCH_STAGE_BLOCKED,
+          'blocked',
+          'stage-9',
+          'Oracle IntentSpec attempted to assign verified truth state',
+        ),
+      );
+    }
+    const oracleDiagnostics = [
+      ...oracle.diagnostics,
+      ...normalizationDiagnostics,
+      ...unmatchedDiagnostics,
+    ];
+    const oracleOutcome: Exclude<TruthState, 'verified'> = oracleDiagnostics.some(
+      ({ severity }) => severity === 'blocked',
+    )
+      ? 'blocked'
+      : oracleDiagnostics.some(({ severity }) => severity === 'contradicted')
+        ? 'contradicted'
+        : nonVerifiedOutcome(oracle.outcome);
+    const normalizedIntentSpec =
+      normalization?.ok && !hostileVerified ? normalization.spec : undefined;
+    const compileResult = await (this.#options.compile ?? defaultCompile)({
       candidates: inference.candidates,
       observations: exploration.evidenceRefs,
       outputDirectory: `${input.artifactsDir}/${input.runId}`,
       origin: input.origin,
     });
+    const result: CompilationResult = {
+      ...compileResult,
+      ...(normalizedIntentSpec ? { intentSpec: normalizedIntentSpec } : {}),
+      oracleOutcome,
+    };
+    const diagnostics = [
+      ...oracleDiagnostics,
+      ...(normalizedIntentSpec
+        ? [
+            orchDiagnostic(
+              ARXIC_ORCH_ORACLE_RESOLVED,
+              'observed',
+              input.runId,
+              `Resolved ${normalizedIntentSpec.assertions.filter(({ kind }) => kind === 'acceptance').length} acceptance and ${normalizedIntentSpec.assertions.filter(({ kind }) => kind === 'characterization').length} characterization assertions with outcome ${oracleOutcome}`,
+            ),
+          ]
+        : []),
+    ];
     return {
       artifact: result,
       adapter: PLAYWRIGHT_PACKAGE,
+      diagnostics,
       partial: !result.compiled,
-      promotionEligible: result.compiled,
+      promotionEligible:
+        result.compiled && oracleOutcome !== 'blocked' && oracleOutcome !== 'contradicted',
+      ...(this.#options.resolveOracle !== undefined || oracleDiagnostics.length > 0
+        ? { outcome: oracleOutcome }
+        : {}),
       decisions: result.compiled ? ['Workflow compiled'] : ['Plan retained as uncompiled'],
       gates: [{ gate: 'compile', passed: result.compiled }],
     };
@@ -723,7 +821,7 @@ export class LangGraphOrchestrator {
     const next: RunState = {
       ...state,
       status: nextRunStatus(state, result, status, blocked),
-      outcome: result.outcome ?? (result.fatal || blocked ? 'blocked' : state.outcome),
+      outcome: nextOutcome(state, result, blocked),
       activeStage: stage,
       completedStages,
       artifacts: { ...state.artifacts, [stage]: ref },
@@ -971,6 +1069,63 @@ function nextRunStatus(
   if (stageStatus === 'awaiting-approval') return 'awaiting-approval';
   if (result.partial || blocked || state.status === 'partial') return 'partial';
   return 'running';
+}
+
+function nextOutcome(
+  state: RunState,
+  result: StageExecution,
+  blocked: boolean,
+): RunState['outcome'] {
+  if (result.fatal || blocked) return 'blocked';
+  if (state.outcome === 'blocked') return 'blocked';
+  if (result.outcome === 'blocked') return 'blocked';
+  if (state.outcome === 'contradicted') return 'contradicted';
+  if (result.outcome === 'contradicted') return 'contradicted';
+  if (result.outcome) return result.outcome;
+  return state.outcome;
+}
+
+function stageDigest(value: unknown): string {
+  return createHash('sha256')
+    .update(JSON.stringify(sortKeys(value)))
+    .digest('hex');
+}
+
+function sortKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortKeys);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+        .map(([key, nested]) => [key, sortKeys(nested)]),
+    );
+  }
+  return value;
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function containsVerifiedClaim(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(containsVerifiedClaim);
+  if (!value || typeof value !== 'object') return false;
+  return Object.entries(value as Record<string, unknown>).some(
+    ([key, nested]) =>
+      (key === 'truthState' && nested === 'verified') || containsVerifiedClaim(nested),
+  );
+}
+
+function nonVerifiedOutcome(value: unknown): Exclude<TruthState, 'verified'> {
+  if (
+    value === 'hypothesized' ||
+    value === 'observed' ||
+    value === 'contradicted' ||
+    value === 'blocked'
+  ) {
+    return value;
+  }
+  throw new Error('Oracle resolution returned an invalid truth-state outcome');
 }
 
 function failureDiagnosticCode(hashMismatch: boolean, redaction: boolean) {
