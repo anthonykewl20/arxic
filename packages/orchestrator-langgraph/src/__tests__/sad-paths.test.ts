@@ -383,6 +383,9 @@ describe('orchestrator sad paths', () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ severity: 'blocked', subject: 'stage-8' }),
     );
+    expect(result.outcome).toBe('blocked');
+    expect(result.status).toBe('partial');
+    expect(result.promotionEligible).toBe(false);
     expect(result.receipt).toBeUndefined();
     expect(promoted).toBe(false);
   }, 60_000);

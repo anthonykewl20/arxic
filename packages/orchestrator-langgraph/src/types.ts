@@ -9,6 +9,7 @@ import type {
   TruthState,
   Workflow,
 } from '@arxic/contracts';
+import type { IntentLineage, IntentSpec, OracleSpec, ResolvedAssertion } from '@arxic/intent';
 
 export type RunStatus =
   'queued' | 'running' | 'awaiting-approval' | 'completed' | 'partial' | 'failed';
@@ -83,11 +84,33 @@ export type ExplorationResult = Readonly<{
   decisions: readonly string[];
 }>;
 
+export type OracleRule = Readonly<{
+  candidateId: string;
+  oracle: OracleSpec;
+}>;
+
+export type OracleResolutionInput = Readonly<{
+  runId: string;
+  candidates: readonly Candidate[];
+  observations: readonly EvidenceRef[];
+  lineage: IntentLineage;
+  oracleRules: readonly OracleRule[];
+}>;
+
+export type OracleResolution = Readonly<{
+  intentSpec?: IntentSpec;
+  resolved: readonly ResolvedAssertion[];
+  diagnostics: readonly Diagnostic[];
+  outcome: Exclude<TruthState, 'verified'>;
+}>;
+
 export type CompilationResult = Readonly<{
   compiled: boolean;
   plan: string;
   workflow?: Workflow;
   stagedBundle?: StagedBundle;
+  intentSpec?: IntentSpec;
+  oracleOutcome?: Exclude<TruthState, 'verified'>;
 }>;
 
 export type VerificationNodeResult = Readonly<{
