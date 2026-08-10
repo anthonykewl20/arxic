@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
 
+### changed
+
+- M2-WORKER-CLI worker-backed CLI groundwork (#103, PR #122; **partial — #103 stays open**): `arxic run` now accepts `--executor local|worker` (local remains default). A CLI-owned `WorkerRunExecutor implements RunExecutor` drives the existing `WorkerClient` lifecycle with fail-closed classification (`ARXIC-EXEC-WORKER-*`) and writes the same failed-run ADR §20.1 schema, blocking with `ARXIC-EXEC-WORKER-PROTOCOL` rather than faking a completed run. Real Docker proves selection + deterministic cleanup; the #26 isolation proofs remain intact. **Full stages-0–12 sandbox execution is NOT delivered** — blocked on a Node-22 pipeline worker image (workspace/native/browser/`git`/`sg`), writable artifact + internal-network peer transport, and a structured pipeline-result protocol payload. Honest groundwork increment; the previously-invisible deferral is now visible.
+
 ## [0.2.0] - 2026-08-10 — M1-EXIT (#27 PASSES; both fixture apps 14/14 MET against ADR §23)
 
 ### security
