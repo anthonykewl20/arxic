@@ -2,6 +2,11 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import type { ArtifactRef } from '@arxic/contracts';
+import {
+  retainPolicyAttestedScreenshots,
+  type ScreenshotPrivacyPolicy,
+  type TrustedScreenshotCaptureBinding,
+} from '@arxic/playwright-screenshot-privacy';
 import { discoverCaptureArtifactCandidates } from './artifact-discovery';
 import {
   discardCapturedArtifact,
@@ -19,6 +24,8 @@ export type CaptureRetentionFailureCode =
   | 'CAPTURE_DESTINATION_FAILED'
   | 'CAPTURE_SOURCE_REJECTED'
   | 'SCREENSHOT_REJECTED'
+  | 'SCREENSHOT_PRIVACY_REQUIRED'
+  | 'SCREENSHOT_PRIVACY_FAILED'
   | 'TRACE_SANITIZATION_FAILED'
   | 'SCREENSHOT_CHECKPOINT_MAPPING_FAILED'
   | 'CAPTURE_FAILED'
@@ -39,12 +46,21 @@ export async function retainCaptureArtifacts(input: {
   destination: string;
   forbiddenSubstrings?: readonly string[];
   screenshotCheckpoints?: readonly string[];
+  screenshotPrivacy?: Readonly<{
+    testDirectory: string;
+    binding: TrustedScreenshotCaptureBinding;
+    policy: ScreenshotPrivacyPolicy;
+    correlation: string;
+    attester: '@arxic/verifier' | '@arxic/m0-pipeline' | '@arxic/orchestrator-langgraph';
+    attestedAt: string;
+  }>;
 }): Promise<RetainCaptureArtifactsResult> {
   const forbiddenSubstrings = input.forbiddenSubstrings ?? [];
   const screenshotCheckpoints = input.screenshotCheckpoints ?? [];
   const refs: ArtifactRef[] = [];
   const screenshotSourceNames: string[] = [];
   const sequences = { screenshot: 0, trace: 0 };
+  let screenshotSources: string[] = [];
   let destinationReady = false;
   let failure: Exclude<RetainCaptureArtifactsResult, { ok: true }> | undefined;
   try {
@@ -52,7 +68,44 @@ export async function retainCaptureArtifacts(input: {
     await mkdir(input.destination, { recursive: true });
     destinationReady = true;
     const files = await discoverCaptureArtifactCandidates(input.roots);
+    screenshotSources = files.filter((source) => source.endsWith('.png'));
+    screenshotSourceNames.push(...screenshotSources.map((source) => basename(source)));
+    for (const source of screenshotSources) {
+      const strictPng = await readTraceCarrierFreePng(source);
+      if (!strictPng.ok) {
+        failure = await rejectCapturedSource(
+          source,
+          'SCREENSHOT_REJECTED',
+          'Screenshot source is not a strict trace-carrier-free PNG',
+        );
+        break;
+      }
+    }
+    if (!failure) {
+      const mapping = validateScreenshotCheckpointFilenames(
+        screenshotSourceNames,
+        screenshotCheckpoints,
+        forbiddenSubstrings,
+      );
+      if (!mapping.ok) {
+        failure = {
+          ok: false,
+          code: 'SCREENSHOT_CHECKPOINT_MAPPING_FAILED',
+          message: `Screenshot checkpoint mapping failed (${mapping.code})${mapping.missingCheckpoint ? `: ${mapping.missingCheckpoint}` : ''}`,
+          ...(mapping.missingCheckpoint ? { missingCheckpoints: [mapping.missingCheckpoint] } : {}),
+        };
+      }
+    }
+    if (!failure && screenshotSources.length > 0 && !input.screenshotPrivacy) {
+      await Promise.allSettled(screenshotSources.map((source) => discardCapturedArtifact(source)));
+      failure = {
+        ok: false,
+        code: 'SCREENSHOT_PRIVACY_REQUIRED',
+        message: 'An explicit action-owned screenshot privacy policy is required',
+      };
+    }
     for (const source of files) {
+      if (failure) break;
       const sourceName = basename(source);
       const kind = source.endsWith('.png') ? 'screenshot' : 'trace';
       const policyOwnedScreenshot =
@@ -67,6 +120,7 @@ export async function retainCaptureArtifacts(input: {
       }
       sequences[kind] += 1;
       if (kind === 'screenshot') {
+        if (input.screenshotPrivacy || failure) continue;
         const screenshot = await readTraceCarrierFreePng(source);
         if (!screenshot.ok) {
           failure = await rejectCapturedSource(
@@ -110,18 +164,23 @@ export async function retainCaptureArtifacts(input: {
         await artifactRef('trace-sanitization-report', provenancePath),
       );
     }
-    if (!failure) {
-      const mapping = validateScreenshotCheckpointFilenames(
-        screenshotSourceNames,
-        screenshotCheckpoints,
-        forbiddenSubstrings,
-      );
-      if (!mapping.ok) {
+    if (!failure && input.screenshotPrivacy) {
+      try {
+        const retainedScreenshots = await retainPolicyAttestedScreenshots({
+          ...input.screenshotPrivacy,
+          sourceRoots: ['artifacts', 'test-results'],
+          destinationDirectory: input.destination,
+          retainedName: (sourcePath, index) =>
+            `${String(index + 1).padStart(3, '0')}-${basename(sourcePath)}`,
+        });
+        for (const { screenshot, provenance } of retainedScreenshots) {
+          refs.push(screenshot as ArtifactRef, provenance as ArtifactRef);
+        }
+      } catch (error) {
         failure = {
           ok: false,
-          code: 'SCREENSHOT_CHECKPOINT_MAPPING_FAILED',
-          message: `Screenshot checkpoint mapping failed (${mapping.code})${mapping.missingCheckpoint ? `: ${mapping.missingCheckpoint}` : ''}`,
-          ...(mapping.missingCheckpoint ? { missingCheckpoints: [mapping.missingCheckpoint] } : {}),
+          code: 'SCREENSHOT_PRIVACY_FAILED',
+          message: errorMessage(error),
         };
       }
     }
@@ -133,6 +192,12 @@ export async function retainCaptureArtifacts(input: {
     };
   }
   if (!failure) return { ok: true, refs };
+  await Promise.allSettled(
+    screenshotSources.flatMap((source) => [
+      discardCapturedArtifact(source),
+      rm(`${source}.capture.json`, { force: true }),
+    ]),
+  );
   try {
     await rm(input.destination, { recursive: true, force: true });
   } catch (cleanup) {

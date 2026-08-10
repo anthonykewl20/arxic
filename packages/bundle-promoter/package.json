@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@arxic/contracts": "workspace:*",
+    "@arxic/playwright-screenshot-privacy": "workspace:*",
     "@arxic/playwright-trace-sanitizer": "workspace:*"
   },
   "devDependencies": {

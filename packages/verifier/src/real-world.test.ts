@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { StagedBundle } from '@arxic/contracts';
 import { PlaywrightCompiler } from '@arxic/playwright-compiler';
+import { serializeScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import { chromium } from '@playwright/test';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
@@ -90,6 +91,7 @@ describe.sequential('playwright verifier real-world security proof', () => {
         origin: running.origin,
         artifactsDir: artifactsDirectory,
         persona: app.persona,
+        screenshotPrivacyPolicy: screenshotPolicy(app.name),
       });
       const policy = {
         requiredRuns: 2,
@@ -332,7 +334,7 @@ describe.sequential('playwright verifier real-world security proof', () => {
       }
     });
 
-    test('rejects locator drift as contradicted', async () => {
+    test('blocks a staged spec drift before execution', async () => {
       if (!running) throw new Error('Reference fixture app did not start');
       const workflow = loginWorkflow(referenceAuthApp, {
         id: 'authentication.login.verifier',
@@ -351,6 +353,7 @@ describe.sequential('playwright verifier real-world security proof', () => {
         origin: running.origin,
         artifactsDir: artifactsDirectory,
         persona: referenceAuthApp.persona,
+        screenshotPrivacyPolicy: screenshotPolicy(referenceAuthApp.name),
       });
       const policy = {
         requiredRuns: 2,
@@ -386,10 +389,28 @@ describe.sequential('playwright verifier real-world security proof', () => {
       const drifted = await verifier.verify(driftedBundle, policy);
 
       expect(drifted.outcome).not.toBe('verified');
-      expect(drifted.outcome).toBe('contradicted');
+      expect(drifted.outcome).toBe('blocked');
     }, 240_000);
   });
 });
+
+function screenshotPolicy(appName: string) {
+  const heading = appName === 'reference-auth-app' ? 'Reference Auth App' : 'Vulnerable Auth App';
+  return serializeScreenshotPrivacyPolicy({
+    schemaVersion: 1,
+    id: `verifier-${appName}-home-heading`,
+    authority: {
+      kind: 'repository-policy',
+      reference: 'docs/evidence/M1-SCREENSHOT-PRIVACY/README.md',
+      recordedAt: '2026-08-09T12:00:00.000Z',
+    },
+    capture: {
+      mode: 'approved-region',
+      region: { kind: 'role', role: 'heading', name: heading, exact: true },
+      masks: [],
+    },
+  }).policy;
+}
 
 async function filesUnder(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });

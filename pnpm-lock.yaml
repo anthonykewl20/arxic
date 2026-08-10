@@ -83,6 +83,9 @@ importers:
       '@arxic/playwright-compiler':
         specifier: workspace:*
         version: link:../playwright-compiler
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       '@arxic/verifier':
         specifier: workspace:*
         version: link:../verifier
@@ -96,6 +99,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       '@arxic/playwright-trace-sanitizer':
         specifier: workspace:*
         version: link:../playwright-trace-sanitizer
@@ -199,6 +205,9 @@ importers:
       '@arxic/playwright-agent-adapter':
         specifier: workspace:*
         version: link:../playwright-agent-adapter
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       '@arxic/playwright-trace-sanitizer':
         specifier: workspace:*
         version: link:../playwright-trace-sanitizer
@@ -266,6 +275,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       '@arxic/playwright-trace-sanitizer':
         specifier: workspace:*
         version: link:../playwright-trace-sanitizer
@@ -278,6 +290,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       '@playwright/test':
         specifier: 1.62.1
         version: 1.62.1
@@ -286,11 +301,20 @@ importers:
         specifier: workspace:*
         version: link:../real-world-testkit
 
+  packages/playwright-screenshot-privacy:
+    devDependencies:
+      '@playwright/test':
+        specifier: 1.62.1
+        version: 1.62.1
+
   packages/playwright-trace-sanitizer:
     dependencies:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       yauzl:
         specifier: 3.4.0
         version: 3.4.0
@@ -344,6 +368,9 @@ importers:
       '@arxic/playwright-compiler':
         specifier: workspace:*
         version: link:../playwright-compiler
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       '@arxic/real-world-testkit':
         specifier: workspace:*
         version: link:../real-world-testkit
@@ -374,6 +401,12 @@ importers:
       '@arxic/playwright-agent-adapter':
         specifier: workspace:*
         version: link:../playwright-agent-adapter
+      '@arxic/playwright-compiler':
+        specifier: workspace:*
+        version: link:../playwright-compiler
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       '@arxic/playwright-trace-sanitizer':
         specifier: workspace:*
         version: link:../playwright-trace-sanitizer
@@ -381,9 +414,6 @@ importers:
         specifier: 1.62.1
         version: 1.62.1
     devDependencies:
-      '@arxic/playwright-compiler':
-        specifier: workspace:*
-        version: link:../playwright-compiler
       '@arxic/real-world-testkit':
         specifier: workspace:*
         version: link:../real-world-testkit

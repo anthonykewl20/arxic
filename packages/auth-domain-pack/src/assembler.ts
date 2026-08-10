@@ -134,6 +134,9 @@ export class AuthDomainPackAssembler {
         origin: this.#options.origin,
         artifactsDir: join(this.#options.artifactsDir, workflow.id),
         persona: this.#options.persona,
+        ...(this.#options.screenshotPrivacyPolicy
+          ? { screenshotPrivacyPolicy: this.#options.screenshotPrivacyPolicy }
+          : {}),
         ...(this.#options.resetAndSeed ? { resetAndSeed: this.#options.resetAndSeed } : {}),
       });
     const verification = await verifier.verify(bundle, workflow.verification);

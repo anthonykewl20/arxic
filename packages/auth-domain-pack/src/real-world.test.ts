@@ -11,6 +11,7 @@ import {
   stopApp,
   type RunningApp,
 } from '@arxic/real-world-testkit';
+import { serializeScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 import { AuthDomainPackAssembler, authCandidates } from './index';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
@@ -44,6 +45,7 @@ describe.each(FIXTURE_APPS)('authentication domain pack real-world proof: $name'
       outputDirectory,
       artifactsDir: artifactsDirectory,
       persona: app.persona,
+      screenshotPrivacyPolicy: screenshotPolicy(app.name),
     }).assemble(
       candidates,
       loginObservations(app, running.origin, `real-world-auth-domain-pack-${app.name}`),
@@ -101,6 +103,23 @@ describe.each(FIXTURE_APPS)('authentication domain pack real-world proof: $name'
     expect(matrix.rows).toHaveLength(6);
   }, 300_000);
 });
+
+function screenshotPolicy(appName: string) {
+  return serializeScreenshotPrivacyPolicy({
+    schemaVersion: 1,
+    id: `auth-domain-pack-${appName}-main-mask`,
+    authority: {
+      kind: 'repository-policy',
+      reference: 'docs/evidence/M1-SCREENSHOT-PRIVACY/README.md',
+      recordedAt: '2026-08-09T12:00:00.000Z',
+    },
+    capture: {
+      mode: 'masked-page',
+      fullPage: true,
+      masks: [{ kind: 'role', role: 'main', exact: true }],
+    },
+  }).policy;
+}
 
 function workflow(pack: Awaited<ReturnType<AuthDomainPackAssembler['assemble']>>, id: string) {
   const result = pack.workflows.find((item) => item.id === id);

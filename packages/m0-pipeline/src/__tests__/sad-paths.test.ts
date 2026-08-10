@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import { ZipFile } from 'yazl';
 import { M0Pipeline, retainRunArtifacts, verifyStagedSuite, type StagedSuitePass } from '..';
-import { loginWorkflow } from './workflow-fixture';
+import { loginWorkflow, screenshotPrivacyPolicy } from './workflow-fixture';
 
 const artifact = (kind: 'screenshot' | 'trace', run: number) => ({
   kind,
@@ -366,7 +366,7 @@ describe('M0 exit sad paths', () => {
     },
   );
 
-  it('does not promote a pipeline-level contradicted result', async () => {
+  it('blocks a pipeline suite that bypasses the policy-owned screenshot runtime', async () => {
     await withAttestedTarget(async (origin, artifactsDir) => {
       const pipeline = new M0Pipeline({
         generateSpec: async (_workflow, { testDir }) => {
@@ -382,10 +382,10 @@ describe('M0 exit sad paths', () => {
         },
       });
       const result = await pipeline.run(pipelineInput(origin, artifactsDir));
-      expect(result.outcome, JSON.stringify(result.diagnostics)).toBe('contradicted');
-      expect(result.runs).toEqual([{ passed: false }, { passed: false }]);
+      expect(result.outcome, JSON.stringify(result.diagnostics)).toBe('blocked');
+      expect(result.runs).toEqual([]);
       expect(result.receipt).toBeUndefined();
-      expect(result.diagnostics.map(({ code }) => code)).toContain('ARXIC-EXIT-PROMOTION-SKIPPED');
+      expect(result.diagnostics.map(({ code }) => code)).toContain('ARXIC-EXIT-COMPILE-FAILED');
     });
   });
 });
@@ -488,5 +488,6 @@ function pipelineInput(origin: string, artifactsDir: string) {
     rulepacksDir: join(artifactsDir, 'missing-rulepacks'),
     artifactsDir,
     persona: { email: 'user@example.test', password: 'Hunter2!' },
+    screenshotPrivacyPolicy: screenshotPrivacyPolicy(),
   };
 }

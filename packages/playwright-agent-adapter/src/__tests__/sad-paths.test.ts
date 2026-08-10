@@ -210,4 +210,20 @@ describe('Playwright agent sad paths resolve blocked', () => {
     });
     expect(generated).not.toHaveProperty('specPath');
   });
+
+  it('emits only the trusted screenshot runtime instead of raw screenshot calls', async () => {
+    const testDir = await mkdtemp(join(tmpdir(), 'arxic-fallback-screenshot-policy-'));
+    const generated = await generateSpecFromWorkflow(loginWorkflow(), {
+      origin: 'http://127.0.0.1:9',
+      testDir,
+    });
+
+    expect(generated).toMatchObject({
+      ok: true,
+      runtimePath: join(testDir, 'screenshot-privacy.ts'),
+    });
+    expect(generated.spec).toContain('capturePolicyScreenshot(page,');
+    expect(generated.spec).not.toContain('page.screenshot(');
+    await rm(testDir, { recursive: true, force: true });
+  });
 });

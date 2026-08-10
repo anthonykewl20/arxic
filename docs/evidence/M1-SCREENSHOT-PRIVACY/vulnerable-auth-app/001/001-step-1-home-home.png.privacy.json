@@ -1,0 +1,65 @@
+{
+  "attestedAt": "2026-08-09T15:08:28.904Z",
+  "attestedBy": "@arxic/verifier",
+  "binding": {
+    "runtime": {
+      "path": "fixtures/screenshot-privacy.ts",
+      "sha256": "89dc71225329450044baa837e69aefe462bf34f026a85f54f1b5c2f52967b03b"
+    },
+    "sources": [
+      {
+        "path": "fixtures/screenshot-privacy.ts",
+        "sha256": "89dc71225329450044baa837e69aefe462bf34f026a85f54f1b5c2f52967b03b"
+      },
+      {
+        "path": "fixtures/workflow.fixture.ts",
+        "sha256": "69fd5d47527a9bc9bbc9e666a332940110c7c78aae6989e2ef3c9911855b543d"
+      },
+      {
+        "path": "playwright.config.ts",
+        "sha256": "01328bc5587d40f9abab86d5dd9ccf2250d0fd85f6e73436ac4fe033b9e0731d"
+      },
+      {
+        "path": "tests/workflow.spec.ts",
+        "sha256": "f5cfff34ac59585131dd2ff7eeff41b62cfeb688d85110aaa762867f8174f225"
+      }
+    ],
+    "spec": {
+      "path": "tests/workflow.spec.ts",
+      "sha256": "f5cfff34ac59585131dd2ff7eeff41b62cfeb688d85110aaa762867f8174f225"
+    }
+  },
+  "capture": {
+    "browserVersion": "151.0.7922.34",
+    "capturedAt": "2026-08-09T15:08:26.576Z",
+    "correlationSha256": "ecc544ece21a697521b5eb691e78dc9aae2dac1c749d5382e4d0d7ee7c5ce6c9",
+    "mode": "approved-region",
+    "playwrightVersion": "1.62.1",
+    "receiptSha256": "2a24feec99db5b52552c7cebf0bcc7327bbc4aaaa156ee54c0a2983183e0d0e8",
+    "sourcePath": "artifacts/screenshots/step-1-home-home.png"
+  },
+  "kind": "arxic-screenshot-privacy-attestation",
+  "policy": {
+    "authority": {
+      "kind": "repository-policy",
+      "recordedAt": "2026-08-09T12:00:00.000Z",
+      "reference": "docs/evidence/M1-SCREENSHOT-PRIVACY/README.md"
+    },
+    "capture": {
+      "masks": [],
+      "mode": "approved-region",
+      "region": { "exact": true, "kind": "role", "name": "Vulnerable Auth App", "role": "heading" }
+    },
+    "id": "bundle-vulnerable-auth-app-home-heading",
+    "schemaVersion": 1
+  },
+  "policySha256": "746659003abf673de9b7d25b535b80da4e2b3cc45366154ea90c25d707c19a29",
+  "schemaVersion": 1,
+  "screenshot": {
+    "bytes": 4147,
+    "file": "001-step-1-home-home.png",
+    "height": 38,
+    "sha256": "25098bbb4f3f1ab632965d6a554b9f6be5216ed55286d34da4f797967d24ff38",
+    "width": 1264
+  }
+}

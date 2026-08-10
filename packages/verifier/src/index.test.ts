@@ -3,8 +3,17 @@ import { chmod, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { ArtifactRef, StagedBundle, Workflow } from '@arxic/contracts';
+import { deflateSync } from 'node:zlib';
+import type { StagedBundle, Workflow } from '@arxic/contracts';
 import { validateDiagnostic } from '@arxic/contracts';
+import { PlaywrightCompiler } from '@arxic/playwright-compiler';
+import {
+  SCREENSHOT_CAPTURE_CORRELATION_ENV,
+  SCREENSHOT_PRIVACY_POLICY_ENV,
+  SCREENSHOT_PRIVACY_POLICY_SHA256_ENV,
+  screenshotCaptureReceiptPath,
+  serializeScreenshotPrivacyPolicy,
+} from '@arxic/playwright-screenshot-privacy';
 import { afterEach, describe, expect, test } from 'vitest';
 import { ZipFile } from 'yazl';
 import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
@@ -17,6 +26,7 @@ import {
   ARXIC_VERIFY_DIAGNOSTIC_CODES,
   ARXIC_VERIFY_FLAKY_RUNS,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
+  ARXIC_VERIFY_SCREENSHOT_PRIVACY,
   ARXIC_VERIFY_TRANSITIONS_MISSING,
   ARXIC_VERIFY_TRACE_SANITIZATION_FAILED,
   PlaywrightVerifier,
@@ -208,7 +218,7 @@ describe('PlaywrightVerifier', () => {
     });
   });
 
-  test('retains extra safe screenshots after injectively binding a required checkpoint', async () => {
+  test('rejects checkpoint-bound screenshots without an action-owned privacy policy', async () => {
     const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-checkpoint-extra-'));
     const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
     const screenshots = join(outputDirectory, 'artifacts', 'screenshots');
@@ -216,15 +226,11 @@ describe('PlaywrightVerifier', () => {
     await writeFile(join(screenshots, 'step-1-login-page-home.png'), validPng());
     await writeFile(join(screenshots, 'step-2-home-home.png'), validPng());
 
-    const artifacts = await captureRunArtifacts(outputDirectory, artifactsDirectory, 1, {
-      screenshotCheckpoints: ['home'],
-    });
-
-    expect(artifacts.map(({ kind }) => kind)).toEqual(['screenshot', 'screenshot']);
-    expect(artifacts.map(({ path }) => path)).toEqual([
-      join(artifactsDirectory, 'verification', 'run-1', '001-step-1-login-page-home.png'),
-      join(artifactsDirectory, 'verification', 'run-1', '002-step-2-home-home.png'),
-    ]);
+    await expect(
+      captureRunArtifacts(outputDirectory, artifactsDirectory, 1, {
+        screenshotCheckpoints: ['home'],
+      }),
+    ).rejects.toThrow('SCREENSHOT_PRIVACY_REQUIRED');
   });
 
   test('maps a rejected screenshot trace carrier to blocked without retained refs', async () => {
@@ -584,6 +590,17 @@ describe('PlaywrightVerifier', () => {
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH });
   });
 
+  test('blocks when no action-owned screenshot privacy policy is configured', async () => {
+    const fixture = await stagedFixture();
+    const result = await verifierFor(fixture, { screenshotPrivacyPolicy: undefined }).verify(
+      fixture.bundle,
+      policy(1),
+    );
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_SCREENSHOT_PRIVACY });
+  });
+
   test('blocks an invalid required run count', async () => {
     const fixture = await stagedFixture();
 
@@ -611,6 +628,9 @@ function verifierFor(
       networkErrors: [],
       observedTransitions: ['login-page->home'],
     }),
+    screenshotPrivacyPolicy: screenshotPolicy(),
+    captureCorrelation: (run) => `verifier-unit-correlation-${run}`,
+    now: () => '2026-08-09T12:00:00.000Z',
     ...options,
   });
 }
@@ -623,25 +643,15 @@ async function stagedFixture(): Promise<{
   const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-stage-'));
   const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-verifier-artifacts-'));
   temporaryDirectories.push(outputDirectory, artifactsDirectory);
-  const path = 'tests/workflow.spec.ts';
-  const source = 'test("workflow", async () => undefined);\n';
-  await mkdir(join(outputDirectory, 'tests'), { recursive: true });
-  await writeFile(join(outputDirectory, path), source);
-  const artifact: ArtifactRef = {
-    kind: 'playwright-spec',
-    path,
-    sha256: createHash('sha256').update(source).digest('hex'),
-  };
+  const bundle = await new PlaywrightCompiler({
+    outputDirectory,
+    origin: 'http://127.0.0.1:3000',
+    now: () => '2026-08-09T12:00:00.000Z',
+  }).compile(workflow(), observations());
   return {
     outputDirectory,
     artifactsDirectory,
-    bundle: {
-      manifest: {} as StagedBundle['manifest'],
-      workflow: workflow(),
-      evidenceIndex: {},
-      artifacts: [artifact],
-      plan: 'plan',
-    },
+    bundle,
   };
 }
 
@@ -649,17 +659,55 @@ async function writeRunArtifacts(outputDirectory: string, run: number): Promise<
   const screenshots = join(outputDirectory, 'artifacts/screenshots');
   const results = join(outputDirectory, 'test-results', `run-${run}`);
   await Promise.all([mkdir(screenshots, { recursive: true }), mkdir(results, { recursive: true })]);
+  const screenshot = join(screenshots, 'step-1-login-page-home.png');
+  const bytes = validPng();
+  const policyJson = process.env[SCREENSHOT_PRIVACY_POLICY_ENV];
+  const policySha256 = process.env[SCREENSHOT_PRIVACY_POLICY_SHA256_ENV];
+  const correlation = process.env[SCREENSHOT_CAPTURE_CORRELATION_ENV];
+  if (!policyJson || !policySha256 || !correlation) throw new Error('privacy environment missing');
   await Promise.all([
-    writeFile(join(screenshots, 'home.png'), validPng()),
+    writeFile(screenshot, bytes),
+    writeFile(
+      screenshotCaptureReceiptPath(screenshot),
+      canonicalJson({
+        schemaVersion: 1,
+        kind: 'arxic-untrusted-screenshot-capture',
+        screenshotFile: 'step-1-login-page-home.png',
+        screenshotSha256: createHash('sha256').update(bytes).digest('hex'),
+        screenshotBytes: bytes.length,
+        policySha256,
+        correlationSha256: createHash('sha256').update(correlation).digest('hex'),
+        captureMode: (JSON.parse(policyJson) as { capture: { mode: string } }).capture.mode,
+        playwrightVersion: '1.62.1',
+        browserVersion: '140.0.0.0',
+        capturedAt: '2026-08-09T12:00:00.000Z',
+      }),
+    ),
     writeFile(join(results, 'trace.zip'), await traceZip(run)),
   ]);
 }
 
 function validPng(): Buffer {
-  return Buffer.from(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
-    'base64',
-  );
+  const header = Buffer.alloc(13);
+  header.writeUInt32BE(1, 0);
+  header.writeUInt32BE(1, 4);
+  header[8] = 8;
+  header[9] = 6;
+  return Buffer.concat([
+    Buffer.from('89504e470d0a1a0a', 'hex'),
+    pngChunk('IHDR', header),
+    pngChunk('IDAT', deflateSync(Buffer.from([0, 0x11, 0x22, 0x33, 0xff]))),
+    pngChunk('IEND', Buffer.alloc(0)),
+  ]);
+}
+
+function pngChunk(type: string, data: Buffer): Buffer {
+  const typeBytes = Buffer.from(type, 'ascii');
+  const length = Buffer.alloc(4);
+  length.writeUInt32BE(data.length);
+  const checksum = Buffer.alloc(4);
+  checksum.writeUInt32BE(testCrc32(Buffer.concat([typeBytes, data])));
+  return Buffer.concat([length, typeBytes, data, checksum]);
 }
 
 function pngWithAncillaryPayloads(payloads: readonly Buffer[]): Buffer {
@@ -737,13 +785,72 @@ function workflow(): Workflow {
       {
         from: 'login-page',
         to: 'home',
-        action: { intent: 'Submit login credentials' },
+        action: {
+          intent: 'Submit login credentials',
+          inputRefs: { email: 'persona.email', password: 'persona.password' },
+        },
         assertions: [{ intent: 'url:/' }],
-        evidenceRefs: ['src:login-handler'],
+        evidenceRefs: ['src:login-handler', 'run:login'],
       },
     ],
     negativeCases: [],
-    verification: { requiredRuns: 2, screenshotCheckpoints: [], forbidNetworkErrors: true },
-    evidenceRefs: ['src:login-handler'],
+    verification: { requiredRuns: 2, screenshotCheckpoints: ['home'], forbidNetworkErrors: true },
+    evidenceRefs: ['src:login-handler', 'run:login'],
   };
+}
+
+function observations() {
+  return [
+    {
+      kind: 'source' as const,
+      repo: 'https://github.com/anthonykewl20/arxic',
+      commit: '0123456789abcdef0123456789abcdef01234567',
+      path: 'app/login.ts',
+      startLine: 1,
+      endLine: 2,
+      blobSha256: 'a'.repeat(64),
+      extractor: 'verifier-unit',
+    },
+    {
+      kind: 'runtime' as const,
+      runId: 'run-verifier-unit',
+      appBuildDigest: 'b'.repeat(64),
+      browser: 'chromium',
+      browserVersion: '1.62.1',
+      url: 'http://127.0.0.1:3000/login',
+      timestamp: '2026-08-09T12:00:00.000Z',
+    },
+  ];
+}
+
+function screenshotPolicy() {
+  return serializeScreenshotPrivacyPolicy({
+    schemaVersion: 1,
+    id: 'verifier-unit-heading',
+    authority: {
+      kind: 'repository-policy',
+      reference: 'packages/verifier/src/index.test.ts',
+      recordedAt: '2026-08-09T12:00:00.000Z',
+    },
+    capture: {
+      mode: 'approved-region',
+      region: { kind: 'role', role: 'heading', name: 'Safe heading', exact: true },
+      masks: [],
+    },
+  }).policy;
+}
+
+function canonicalJson(value: unknown): string {
+  const canonicalize = (item: unknown): unknown => {
+    if (Array.isArray(item)) return item.map(canonicalize);
+    if (item && typeof item === 'object') {
+      return Object.fromEntries(
+        Object.entries(item as Record<string, unknown>)
+          .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+          .map(([key, child]) => [key, canonicalize(child)]),
+      );
+    }
+    return item;
+  };
+  return `${JSON.stringify(canonicalize(value))}\n`;
 }

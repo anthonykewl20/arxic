@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +14,7 @@ import {
   type RunningApp,
 } from '@arxic/real-world-testkit';
 import { PlaywrightVerifier } from '@arxic/verifier';
+import type { ScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { assembleBundle, scanBundleForSensitiveData } from '..';
 
@@ -60,6 +61,7 @@ describe.each(FIXTURE_APPS)('real-world bundle assembly proof: $name', (app) => 
       origin: running.origin,
       artifactsDir: artifactDirectory,
       persona: app.persona,
+      screenshotPrivacyPolicy: screenshotPolicy(app.name),
     }).verify(bundle, {
       requiredRuns: 2,
       forbidNetworkErrors: true,
@@ -101,5 +103,41 @@ describe.each(FIXTURE_APPS)('real-world bundle assembly proof: $name', (app) => 
     const notice = await readFile(join(assembly.directory, 'NOTICE'), 'utf8');
     expect(notice).toContain(`Workflow: ${bundle.workflow.id}`);
     expect(notice).toContain('License: MIT');
+
+    const evidenceDirectory = process.env.ARXIC_SCREENSHOT_EVIDENCE_DIR;
+    if (evidenceDirectory) {
+      const evidenceRoot = join(root, 'docs', 'evidence', 'M1-SCREENSHOT-PRIVACY');
+      if (evidenceDirectory !== evidenceRoot) {
+        throw new Error('Screenshot evidence output must equal the bounded repository path');
+      }
+      await mkdir(evidenceRoot, { recursive: true });
+      await cp(join(assembly.directory, 'artifacts', 'screenshots'), join(evidenceRoot, app.name), {
+        recursive: true,
+        errorOnExist: true,
+        force: false,
+      });
+    }
   }, 240_000);
 });
+
+function screenshotPolicy(appName: string): ScreenshotPrivacyPolicy {
+  return {
+    schemaVersion: 1,
+    id: `bundle-${appName}-home-heading`,
+    authority: {
+      kind: 'repository-policy',
+      reference: 'docs/evidence/M1-SCREENSHOT-PRIVACY/README.md',
+      recordedAt: '2026-08-09T12:00:00.000Z',
+    },
+    capture: {
+      mode: 'approved-region',
+      region: {
+        kind: 'role',
+        role: 'heading',
+        name: appName === 'reference-auth-app' ? 'Reference Auth App' : 'Vulnerable Auth App',
+        exact: true,
+      },
+      masks: [],
+    },
+  };
+}

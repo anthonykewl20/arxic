@@ -7,6 +7,7 @@ import type {
   Workflow,
 } from '@arxic/contracts';
 import type { VerificationPersona } from '@arxic/verifier';
+import type { ScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 
 export type FixtureBlocker = {
   fixture: 'inbox' | 'totp';
@@ -51,6 +52,7 @@ export type AuthDomainPackOptions = {
   outputDirectory: string;
   artifactsDir: string;
   persona: VerificationPersona;
+  screenshotPrivacyPolicy?: ScreenshotPrivacyPolicy;
   resetAndSeed?: (run: number) => Promise<void>;
   now?: () => string;
 };

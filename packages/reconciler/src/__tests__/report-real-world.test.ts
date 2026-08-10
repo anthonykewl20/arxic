@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { AuthDomainPackAssembler, authCandidates } from '@arxic/auth-domain-pack';
 import type { EvidenceRef } from '@arxic/contracts';
 import { referenceAuthApp } from '@arxic/real-world-testkit';
+import { serializeScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import {
   compileCoverageReport,
@@ -80,6 +81,7 @@ describe('real coverage and blocker report proof', () => {
       outputDirectory,
       artifactsDir: artifactsDirectory,
       persona,
+      screenshotPrivacyPolicy: screenshotPolicy(),
     }).assemble(candidates, observations());
     const reconciliation = reconciliationResult(candidates);
     const report = compileCoverageReport(
@@ -121,6 +123,23 @@ describe('real coverage and blocker report proof', () => {
     });
   }, 300_000);
 });
+
+function screenshotPolicy() {
+  return serializeScreenshotPrivacyPolicy({
+    schemaVersion: 1,
+    id: 'reconciler-reference-auth-main-mask',
+    authority: {
+      kind: 'repository-policy',
+      reference: 'docs/evidence/M1-SCREENSHOT-PRIVACY/README.md',
+      recordedAt: '2026-08-09T12:00:00.000Z',
+    },
+    capture: {
+      mode: 'masked-page',
+      fullPage: true,
+      masks: [{ kind: 'role', role: 'main', exact: true }],
+    },
+  }).policy;
+}
 
 function reconciliationResult(candidates: ReturnType<typeof authCandidates>): ReconciliationResult {
   const rows: CoverageRow[] = candidates.map(({ workflow }) => ({

@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { mkdir, rm, symlink } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
@@ -9,6 +10,19 @@ import type {
   VerificationResult,
   WorkflowVerifier,
 } from '@arxic/contracts';
+import { generateConfig, generateFixture, generateSpec } from '@arxic/playwright-compiler';
+import {
+  SCREENSHOT_CAPTURE_CORRELATION_ENV,
+  SCREENSHOT_CAPTURED_AT_ENV,
+  SCREENSHOT_PRIVACY_POLICY_ENV,
+  SCREENSHOT_PRIVACY_POLICY_SHA256_ENV,
+  establishTrustedScreenshotCaptureBinding,
+  expectedScreenshotPathsFromTrustedSpec,
+  screenshotPrivacyRuntimeSource,
+  serializeScreenshotPrivacyPolicy,
+  type ScreenshotPrivacyPolicy,
+  type TrustedScreenshotCaptureBinding,
+} from '@arxic/playwright-screenshot-privacy';
 import {
   captureRunArtifacts,
   resolveArtifactPath,
@@ -21,6 +35,7 @@ import {
   ARXIC_VERIFY_ARTIFACT_MISSING,
   ARXIC_VERIFY_BLOCKED_FIXTURE,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
+  ARXIC_VERIFY_SCREENSHOT_PRIVACY,
   ARXIC_VERIFY_TRACE_SANITIZATION_FAILED,
   verifyDiagnostic,
 } from './diagnostics';
@@ -38,6 +53,8 @@ export type PlaywrightVerifierOptions = {
   runSuite?: (run: number) => Promise<RunPass>;
   ensurePlaywrightModule?: boolean;
   now?: () => string;
+  screenshotPrivacyPolicy?: ScreenshotPrivacyPolicy;
+  captureCorrelation?: (run: number) => string;
 };
 
 export class PlaywrightVerifier implements WorkflowVerifier {
@@ -48,6 +65,9 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #resetAndSeed: ((run: number) => Promise<void>) | undefined;
   readonly #runSuite: ((run: number) => Promise<RunPass>) | undefined;
   readonly #ensureModule: boolean;
+  readonly #now: () => string;
+  readonly #screenshotPrivacyPolicy: ScreenshotPrivacyPolicy | undefined;
+  readonly #captureCorrelation: (run: number) => string;
 
   constructor(options: PlaywrightVerifierOptions) {
     this.#outputDirectory = options.outputDirectory;
@@ -57,6 +77,10 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     this.#resetAndSeed = options.resetAndSeed;
     this.#runSuite = options.runSuite;
     this.#ensureModule = options.ensurePlaywrightModule ?? true;
+    this.#now = options.now ?? (() => new Date().toISOString());
+    this.#screenshotPrivacyPolicy = options.screenshotPrivacyPolicy;
+    this.#captureCorrelation =
+      options.captureCorrelation ?? ((run) => `run-${run}-${randomBytes(24).toString('hex')}`);
   }
 
   async verify(bundle: StagedBundle, policy: VerificationPolicy): Promise<VerificationResult> {
@@ -143,6 +167,50 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         );
       }
     }
+    let screenshotBinding: TrustedScreenshotCaptureBinding;
+    let screenshotPolicy: ReturnType<typeof serializeScreenshotPrivacyPolicy>;
+    try {
+      if (!this.#screenshotPrivacyPolicy) {
+        throw new Error('An explicit action-owned screenshot privacy policy is required');
+      }
+      screenshotPolicy = serializeScreenshotPrivacyPolicy(this.#screenshotPrivacyPolicy);
+      const runtime = Object.values(bundle.evidenceIndex).find((item) => item.kind === 'runtime');
+      if (!runtime) throw new Error('Runtime evidence is required to bind the generated spec');
+      const expectedSpec = generateSpec(bundle.workflow, this.#origin, runtime.url).spec;
+      const expectedFixture = generateFixture(bundle.workflow);
+      const expectedConfig = generateConfig(bundle.workflow);
+      const expectedRuntime = screenshotPrivacyRuntimeSource();
+      screenshotBinding = await establishTrustedScreenshotCaptureBinding({
+        testDirectory: this.#outputDirectory,
+        specPath: spec.path,
+        runtimePath: 'fixtures/screenshot-privacy.ts',
+        expectedSpec,
+        allowedSourcePaths: [
+          'tests/workflow.spec.ts',
+          'fixtures/workflow.fixture.ts',
+          'fixtures/screenshot-privacy.ts',
+          'playwright.config.ts',
+        ],
+        trustedSourceContents: {
+          'tests/workflow.spec.ts': expectedSpec,
+          'fixtures/workflow.fixture.ts': expectedFixture,
+          'fixtures/screenshot-privacy.ts': expectedRuntime,
+          'playwright.config.ts': expectedConfig,
+        },
+        expectedScreenshots: expectedScreenshotPathsFromTrustedSpec(expectedSpec),
+      });
+    } catch (error) {
+      return blocked(
+        runs,
+        artifacts,
+        verifyDiagnostic(
+          ARXIC_VERIFY_SCREENSHOT_PRIVACY,
+          'blocked',
+          subject,
+          `Screenshot privacy binding failed: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
+    }
     const requiredTransitions = bundle.workflow.transitions
       .filter((transition) => transition.required !== false)
       .map((transition) => `${transition.from}->${transition.to}`);
@@ -151,6 +219,8 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     const networkErrors: string[] = [];
     const executionDiagnostics: Diagnostic[] = [];
     for (let run = 1; run <= policy.requiredRuns; run += 1) {
+      const captureCorrelation = this.#captureCorrelation(run);
+      const capturedAt = this.#now();
       try {
         await Promise.all([
           rm(join(this.#outputDirectory, 'artifacts'), { recursive: true, force: true }),
@@ -182,7 +252,11 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       }
       let result: RunPass;
       try {
-        result = await this.#execute(run, policy);
+        result = await this.#execute(run, policy, {
+          policy: screenshotPolicy,
+          correlation: captureCorrelation,
+          capturedAt,
+        });
       } catch (error) {
         executionDiagnostics.push(
           verifyDiagnostic(
@@ -209,6 +283,13 @@ export class PlaywrightVerifier implements WorkflowVerifier {
             (value): value is string => typeof value === 'string' && value.length > 0,
           ),
           screenshotCheckpoints: result.passed ? policy.screenshotCheckpoints : [],
+          screenshotPrivacy: {
+            binding: screenshotBinding,
+            policy: screenshotPolicy.policy,
+            correlation: captureCorrelation,
+            attester: '@arxic/verifier',
+            attestedAt: this.#now(),
+          },
         });
       } catch (error) {
         if (error instanceof TraceSanitizationError) {
@@ -258,8 +339,22 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     return resetAndSeedFixtures(this.#origin, this.#persona);
   }
 
-  async #execute(run: number, policy: VerificationPolicy): Promise<RunPass> {
-    const env = personaEnvironment(this.#persona);
+  async #execute(
+    run: number,
+    policy: VerificationPolicy,
+    screenshot: {
+      policy: ReturnType<typeof serializeScreenshotPrivacyPolicy>;
+      correlation: string;
+      capturedAt: string;
+    },
+  ): Promise<RunPass> {
+    const env = {
+      ...personaEnvironment(this.#persona),
+      [SCREENSHOT_PRIVACY_POLICY_ENV]: screenshot.policy.json,
+      [SCREENSHOT_PRIVACY_POLICY_SHA256_ENV]: screenshot.policy.sha256,
+      [SCREENSHOT_CAPTURE_CORRELATION_ENV]: screenshot.correlation,
+      [SCREENSHOT_CAPTURED_AT_ENV]: screenshot.capturedAt,
+    };
     if (!this.#runSuite) {
       return runPlaywrightSuite({
         testDirectory: this.#outputDirectory,

@@ -10,7 +10,7 @@ import type { StagedBundle } from '@arxic/contracts';
 import { validateManifest } from '@arxic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runM0Vertical } from '..';
-import { loginWorkflow } from './workflow-fixture';
+import { loginWorkflow, screenshotPrivacyPolicy } from './workflow-fixture';
 
 const execute = promisify(execFile);
 const root = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -67,6 +67,7 @@ describe('real M0 login vertical', () => {
       artifactsDir,
       persona: { email: 'm0-exit@example.test', password: 'Hunter2!' },
       requiredRuns: 2,
+      screenshotPrivacyPolicy: screenshotPrivacyPolicy(),
     };
     const first = await runM0Vertical(input);
     expect(first.outcome, JSON.stringify(first.diagnostics)).toBe('verified');
@@ -85,7 +86,16 @@ describe('real M0 login vertical', () => {
       ]),
     );
     expect(first.stagedBundle?.artifacts.map(({ kind }) => kind)).toEqual(
-      expect.arrayContaining(['spec', 'screenshot', 'trace', 'notice', 'provenance']),
+      expect.arrayContaining([
+        'spec',
+        'playwright-config',
+        'screenshot-capture-runtime',
+        'screenshot',
+        'screenshot-privacy-report',
+        'trace',
+        'notice',
+        'provenance',
+      ]),
     );
     const promotedBytes = await readFile(first.receipt!.location);
     expect(createHash('sha256').update(promotedBytes).digest('hex')).toBe(

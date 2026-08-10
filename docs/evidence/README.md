@@ -19,6 +19,13 @@ identity/credential locators or capture a state that contains no such text,
 record the mask policy in adjacent provenance, and visually review the result.
 Do not infer pixel privacy from a trace byte scan and do not post-process pixels.
 
+Retained screenshots must use the screenshot-privacy service: publish only a validated PNG
+with its adjacent `.png.privacy.json` sidecar, never the raw capture or untrusted
+`.capture.json` receipt. The sidecar records policy and source binding; it does not prove
+arbitrary pixel secrecy or authenticate its declared authority. Canonical validation rejects
+all ancillary chunks and trailing bytes, but cannot prove that valid IDAT/pixel data contains
+no deliberately encoded covert payload.
+
 **This is a convenience record, not the proof.** The proof is the real-world test
 itself, which runs in CI on every push — for example
 `packages/orchestrator-langgraph/src/__tests__/exploration-real-world.test.ts`

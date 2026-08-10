@@ -18,6 +18,7 @@
     "@arxic/auth-domain-pack": "workspace:*",
     "@arxic/orchestrator-langgraph": "workspace:*",
     "@arxic/playwright-compiler": "workspace:*",
+    "@arxic/playwright-screenshot-privacy": "workspace:*",
     "@arxic/real-world-testkit": "workspace:*",
     "@arxic/source-ua-adapter": "workspace:*"
   }

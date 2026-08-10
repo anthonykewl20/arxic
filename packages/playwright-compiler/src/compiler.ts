@@ -12,6 +12,7 @@ import type {
   WorkflowCompiler,
 } from '@arxic/contracts';
 import { validateEvidenceRef, validateManifest, validateWorkflow } from '@arxic/contracts';
+import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
 import { enforceCompilePolicy } from './compile-policy';
 import {
   ARXIC_COMPILE_EVIDENCE_MISSING,
@@ -111,11 +112,12 @@ export class PlaywrightCompiler implements WorkflowCompiler {
       throw error;
     }
     const fixture = generateFixture(validatedWorkflow.value);
+    const screenshotPrivacyRuntime = screenshotPrivacyRuntimeSource();
     const plan = generatePlan(validatedWorkflow.value);
     const config = generateConfig(validatedWorkflow.value);
     const policy = enforceCompilePolicy({
       spec,
-      fixture,
+      fixture: `${fixture}\n${screenshotPrivacyRuntime}`,
       workflow: validatedWorkflow.value,
       ...(nonSemanticLocatorRationale
         ? {
@@ -134,6 +136,11 @@ export class PlaywrightCompiler implements WorkflowCompiler {
     const files = [
       { kind: 'playwright-spec', path: 'tests/workflow.spec.ts', content: spec },
       { kind: 'playwright-fixture', path: 'fixtures/workflow.fixture.ts', content: fixture },
+      {
+        kind: 'screenshot-capture-runtime',
+        path: 'fixtures/screenshot-privacy.ts',
+        content: screenshotPrivacyRuntime,
+      },
       { kind: 'plan', path: 'plan.md', content: plan },
       { kind: 'playwright-config', path: 'playwright.config.ts', content: config },
     ];
