@@ -88,6 +88,7 @@ describe('real M0 login vertical', () => {
     expect(first.stagedBundle?.artifacts.map(({ kind }) => kind)).toEqual(
       expect.arrayContaining([
         'spec',
+        'playwright-config',
         'screenshot-capture-runtime',
         'screenshot',
         'screenshot-privacy-report',

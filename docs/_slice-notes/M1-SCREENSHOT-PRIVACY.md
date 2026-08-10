@@ -31,9 +31,10 @@ No. This pre-1.0 security hardening composes existing capture and promotion beha
 - **Independent HUMAN visual inspection is REQUIRED.** An LLM/reviewer cannot prove arbitrary pixels are secret-free, so the screenshot-evidence channel is provisional until a human records sign-off.
 - Limits: Linux `O_NOFOLLOW` protections are strongest on the proved platform; other platforms use fail-closed checks without an equivalent no-follow guarantee. Source roots must remain quiescent while bounded inventory and retention run.
 - Limits: valid IDAT/pixel steganography cannot be mechanically proven absent. Strict PNG structure, canonical provenance, and visual review reduce risk but do not establish arbitrary pixel secrecy.
+- Follow-up: M0's `verifyStagedSuite` screenshot-privacy action currently hardwires the canonical runtime source and fixed `workflow.spec.ts`, `playwright.config.ts`, and `screenshot-privacy.ts` bound-source set. M0 is its only caller, so this is acceptable but should be generalized before another caller needs a different staged layout.
 - Cleanup: purge is limited to fixed action-created `artifacts` and `test-results` roots and their explicitly inventoried files. It never recursively deletes a caller-controlled root.
 - Traversal: directory walking is bounded and streaming (`opendir`), with depth, entry, candidate, file-size, and stability limits.
-- Gates: typecheck ☐ · recursive typecheck ☐ · lint ☐ · format ☐ · focused tests ☐ · license gate ☐
+- Gates: typecheck ☑ · recursive typecheck ☑ · lint ☑ · format ☑ · focused real-Chromium tests ☑ · license gate ☑
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 

@@ -195,7 +195,11 @@ export async function runM0Vertical(
     return skipped(verification.outcome, verification.runs, diagnostics, input.candidate.id);
   }
   const supporting = await writeSupportingArtifacts(input, runId, now());
-  const artifacts = [...verification.artifacts, ...supporting];
+  const boundSourceArtifacts = await Promise.all([
+    artifactRef('playwright-config', generated.configPath),
+    artifactRef('screenshot-capture-runtime', generated.runtimePath),
+  ]);
+  const artifacts = [...verification.artifacts, ...boundSourceArtifacts, ...supporting];
   const timestamp = now();
   const manifest: BundleManifest = {
     schemaVersion: 1,
