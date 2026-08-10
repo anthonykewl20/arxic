@@ -17,11 +17,10 @@ must mirror `VERSION` exactly for each release.
 
 ## Release history source
 
-Git tags are the release history. Update `RELEASES.md` with the first two
-milestone exits:
+Git tags are the release history.
 
-- `0.1.0` ships at `M0-EXIT (#14)`
-- `0.2.0` ships at `M1-EXIT (#27)`
+- `0.1.0` — `M0-EXIT (#14)`: milestone completed; not separately tagged (the project moved straight through to M1).
+- `0.2.0` — `M1-EXIT (#27)` — **2026-08-10**: both fixture apps measure 14/14 MET against ADR §23. The full M1 security/integrity chain landed CI-green (#111 trace sanitization, #115 screenshot privacy, #112 bundle integrity, #108 Service Worker containment, #114 Dependabot remediation, #109 §23.12 proof). `VERSION`/`package.json` = `0.2.0`. (Tag `v0.2.0` is a maintainer step.)
 
 ## Release checklist
 
