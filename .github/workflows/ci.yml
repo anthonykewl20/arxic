@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 22.22.0
           cache: pnpm
 
       - name: Install dependencies
@@ -68,14 +68,14 @@ jobs:
       - name: Format
         run: pnpm format:check
 
+      - name: Test isolated Testcontainers Mailpit startup
+        run: env -u ARXIC_MAILPIT_SMTP -u ARXIC_MAILPIT_API pnpm exec vitest run packages/fixture-mailpit/src/testcontainers-smoke.test.ts
+
       - name: Start Mailpit
         run: docker run -d --name mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit:v1.30.0
 
       - name: Test
         run: pnpm test
-        env:
-          ARXIC_MAILPIT_SMTP: localhost:1025
-          ARXIC_MAILPIT_API: http://localhost:8025
 
       - name: License gate
         run: node scripts/license-gate.mjs
