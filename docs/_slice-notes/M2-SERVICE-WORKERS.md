@@ -31,9 +31,11 @@ update `VERSION` and root `package.json` together.
 - Real-world proof: `packages/crawlee-adapter/src/__tests__/service-workers.real-world.test.ts`
   runs real Crawlee/Playwright/Chromium against live same-origin mutation and
   cross-origin sinks and asserts both blocked diagnostics.
-- Artifacts: `docs/evidence/M2-SERVICE-WORKERS/service-worker-registration-blocked.png`
-  is supplementary. The previously retained raw trace was removed under the
-  no-raw-trace-retention policy; no trace or trace sidecar is retained or generated.
+- Artifacts: no screenshot or trace is retained. The previously retained raw trace
+  AND the supplementary screenshot were both removed — retained screenshots require
+  `.privacy.json` attestation under the merged #115 policy, and this slice's proof is
+  the test's diagnostic assertions; the test captures a screenshot only transiently
+  into a temp dir the suite removes. No trace or trace sidecar is retained or generated.
 - Composition: rebased onto `origin/main` at `9e59e2f` with #111 trace sanitization,
   #115 screenshot privacy, and #112 bundle-integrity work already merged.
 - Gates: affected real-Chromium suite 2 files / 4 tests PASS; full suite 92 files /
