@@ -93,6 +93,23 @@ describe('CrawleeSurfaceDiscoverer sad paths', () => {
     );
   }, 60_000);
 
+  it('preserves cookies across queued pages while Service Workers use the persistent-context block seam', async () => {
+    let cookieOnSecondPage = '';
+    const origin = await serve((request, response) => {
+      if (request.url === '/') {
+        response.setHeader('set-cookie', 'crawl-session=preserved; Path=/; SameSite=Lax');
+        return '<a href="/next">next</a>';
+      }
+      cookieOnSecondPage = request.headers.cookie ?? '';
+      return '<title>next</title>';
+    });
+
+    const result = await discoverer().collect({ origin, appBuildDigest: digest, maxDepth: 1 });
+
+    expect(cookieOnSecondPage).toContain('crawl-session=preserved');
+    expect(result.routes.map((route) => route.path)).toEqual(['/', '/next']);
+  }, 60_000);
+
   it('returns blocked diagnostics for an empty origin without throwing', async () => {
     const adapter = discoverer();
 
