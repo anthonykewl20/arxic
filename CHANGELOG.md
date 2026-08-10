@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
 
+### added
+
+- ADR-004 intent-backed pseudocode (IntentSpec) design (#116, PR #123; **Proposed — #116 stays open for implementation**): decides `IntentSpec` = an unfrozen app-local proposal layer (future `@arxic/intent`), oracle provenance `domain-rule|repository-specification|human-approved` (acceptance) vs `observed-only` (characterization only), owners/dependency direction, the 8-step flow, and clean-room Gherkin/locator/sensitivity boundaries. Authorizes the M2 design direction; does not change frozen contracts and does not enable laundering observed behavior into acceptance oracles.
+
 ### changed
 
 - M2-WORKER-CLI worker-backed CLI groundwork (#103, PR #122; **partial — #103 stays open**): `arxic run` now accepts `--executor local|worker` (local remains default). A CLI-owned `WorkerRunExecutor implements RunExecutor` drives the existing `WorkerClient` lifecycle with fail-closed classification (`ARXIC-EXEC-WORKER-*`) and writes the same failed-run ADR §20.1 schema, blocking with `ARXIC-EXEC-WORKER-PROTOCOL` rather than faking a completed run. Real Docker proves selection + deterministic cleanup; the #26 isolation proofs remain intact. **Full stages-0–12 sandbox execution is NOT delivered** — blocked on a Node-22 pipeline worker image (workspace/native/browser/`git`/`sg`), writable artifact + internal-network peer transport, and a structured pipeline-result protocol payload. Honest groundwork increment; the previously-invisible deferral is now visible.
