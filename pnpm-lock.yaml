@@ -83,6 +83,9 @@ importers:
       '@arxic/playwright-compiler':
         specifier: workspace:*
         version: link:../playwright-compiler
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       '@arxic/verifier':
         specifier: workspace:*
         version: link:../verifier
@@ -365,6 +368,9 @@ importers:
       '@arxic/playwright-compiler':
         specifier: workspace:*
         version: link:../playwright-compiler
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       '@arxic/real-world-testkit':
         specifier: workspace:*
         version: link:../real-world-testkit

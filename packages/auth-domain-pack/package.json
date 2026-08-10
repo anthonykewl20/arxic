@@ -10,6 +10,7 @@
   "dependencies": {
     "@arxic/contracts": "workspace:*",
     "@arxic/playwright-compiler": "workspace:*",
+    "@arxic/playwright-screenshot-privacy": "workspace:*",
     "@arxic/verifier": "workspace:*"
   },
   "devDependencies": {

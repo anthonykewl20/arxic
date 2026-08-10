@@ -11,7 +11,7 @@ Issue: #115 · PR: pending · Disposition: blocked pending human visual review
 ## 2. `docs/SYNC.md` — session-log row (append to the table)
 
 ```text
-| 2026-08-09 | **#115 (M1-SCREENSHOT-PRIVACY) Screenshot pixel privacy implemented.** The shared trace-sanitizer capture Service now composes strict PNG checks, action-owned approved-region/masking policy, adjacent privacy reports, checkpoint binding, and existing canonical trace sanitization for verifier and M0. Assembly and promotion independently reject raw, forged, malformed, polyglot, or mismatched screenshots while preserving prior public output. Non-browser security suites pass; retained real-Chromium evidence remains provisional until independent HUMAN visual inspection. Disposition: blocked pending human sign-off. |
+| 2026-08-09 | **#115 (M1-SCREENSHOT-PRIVACY) Screenshot pixel privacy implemented.** The shared trace-sanitizer capture Service now composes strict PNG checks, action-owned approved-region/masking policy, adjacent privacy reports, checkpoint binding, and existing canonical trace sanitization for verifier and M0. Auth-domain-pack now accepts an operator-supplied screenshot policy and forwards it into verification; its own real-world proof and the reconciler proof use an action-owned full-main mask so their multi-state screenshot evidence remains attested rather than failing closed. Assembly and promotion independently reject raw, forged, malformed, polyglot, or mismatched screenshots while preserving prior public output. Retained real-Chromium evidence remains provisional until independent HUMAN visual inspection. Disposition: blocked pending human sign-off. |
 ```
 
 ## 3. `CHANGELOG.md` — entry under `## [Unreleased]` → `### Security`
@@ -32,9 +32,11 @@ No. This pre-1.0 security hardening composes existing capture and promotion beha
 - Limits: Linux `O_NOFOLLOW` protections are strongest on the proved platform; other platforms use fail-closed checks without an equivalent no-follow guarantee. Source roots must remain quiescent while bounded inventory and retention run.
 - Limits: valid IDAT/pixel steganography cannot be mechanically proven absent. Strict PNG structure, canonical provenance, and visual review reduce risk but do not establish arbitrary pixel secrecy.
 - Follow-up: M0's `verifyStagedSuite` screenshot-privacy action currently hardwires the canonical runtime source and fixed `workflow.spec.ts`, `playwright.config.ts`, and `screenshot-privacy.ts` bound-source set. M0 is its only caller, so this is acceptable but should be generalized before another caller needs a different staged layout.
+- Integration: `AuthDomainPackOptions.screenshotPrivacyPolicy` is the production/operator configuration hook. A caller that omits it while generated workflows request screenshots continues to fail closed with the verifier's `ARXIC-VERIFY-SCREENSHOT-PRIVACY` diagnostic; no default or test policy is hardcoded into production.
+- Integration proof: auth-domain-pack (both fixture apps) and reconciler retain screenshots under an action-owned `masked-page` policy that masks the complete semantic `main` region. Capture was not disabled because both suites exercise the evidence-capturing verifier path.
 - Cleanup: purge is limited to fixed action-created `artifacts` and `test-results` roots and their explicitly inventoried files. It never recursively deletes a caller-controlled root.
 - Traversal: directory walking is bounded and streaming (`opendir`), with depth, entry, candidate, file-size, and stability limits.
-- Gates: typecheck ☑ · recursive typecheck ☑ · lint ☑ · format ☑ · focused real-Chromium tests ☑ · license gate ☑
+- Gates: typecheck, recursive typecheck, lint, format, focused real-Chromium tests, and license gate pass. The full 728-test rerun has 727 passing; its sole remaining failure is the pre-existing workspace-count assertion (`22`) now that this slice adds the 23rd `packages`/`apps` directory. Correcting that assertion requires integrator authorization because this slice is forbidden from modifying `packages/contracts/**`.
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
