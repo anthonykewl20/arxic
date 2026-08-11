@@ -5,7 +5,7 @@ import {
   probeDiagnostic,
 } from './diagnostics';
 import { generateConfig, generateFixture } from './fixture-generator';
-import { generateSpec } from './spec-generator';
+import { generateControlStateSpec, generateSpec } from './spec-generator';
 
 export type ProbeRunSuite = (input: { testDirectory: string }) => Promise<{
   passed: boolean;
@@ -26,7 +26,7 @@ export type ProbeSensitivityOptions = {
 };
 
 export type ProbeSensitivityResult = {
-  /** true = every probed assertion's mutation was killed (the assertion is sensitive). false = at least one mutation survived (insensitive). */
+  /** true = every probed operator was killed (the assertion is sensitive to value and action). false = at least one mutation survived (insensitive). */
   killed: boolean;
   probed: number;
   controlPassed: boolean;
@@ -86,7 +86,30 @@ export async function probeAssertionSensitivity(
         probeDiagnostic(
           ARXIC_PROBE_INSENSITIVE_ASSERTION,
           options.workflow.id,
-          `Assertion ${JSON.stringify(assertion.intent)} remained passing after mutation to ${JSON.stringify(mutation)}`,
+          `Assertion ${JSON.stringify(assertion.intent)} remained passing after value mutation to ${JSON.stringify(mutation)}`,
+        ),
+      );
+    }
+
+    probed += 1;
+    const omissionSpec = generateControlStateSpec(
+      options.workflow,
+      options.origin,
+      transitionIndex,
+      assertionIndex,
+    ).spec;
+    const omissionDirectory = await options.writeProbeDirectory({
+      spec: omissionSpec,
+      fixture,
+      config,
+    });
+    const omissionRun = await options.runSuite({ testDirectory: omissionDirectory });
+    if (omissionRun.passed) {
+      diagnostics.push(
+        probeDiagnostic(
+          ARXIC_PROBE_INSENSITIVE_ASSERTION,
+          options.workflow.id,
+          `Assertion ${JSON.stringify(assertion.intent)} remained passing when the transition action was omitted (control-state tautology)`,
         ),
       );
     }

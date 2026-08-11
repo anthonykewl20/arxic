@@ -57,44 +57,84 @@ describe('assertion sensitivity probe', () => {
         writtenConfigs.push(files.config);
         return writeProbeDirectory(files);
       },
-      runSuite: async () => ({ passed: true, output: 'control and mutation passed' }),
+      runSuite: async () => ({ passed: true, output: 'control and mutations passed' }),
     });
 
     expect(result).toEqual({
       killed: false,
-      probed: 1,
+      probed: 2,
       controlPassed: true,
       diagnostics: [
         expect.objectContaining({
           code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
           severity: 'blocked',
           subject: 'authentication.login',
+          message: expect.stringContaining('value mutation'),
+        }),
+        expect.objectContaining({
+          code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
+          severity: 'blocked',
+          subject: 'authentication.login',
+          message: expect.stringContaining('transition action was omitted'),
         }),
       ],
     });
-    expect(writtenSpecs).toHaveLength(2);
+    expect(writtenSpecs).toHaveLength(3);
     expect(writtenSpecs[0]).not.toContain('__arxic-probe-never__');
     expect(writtenSpecs[1]).toContain('toHaveURL(/');
     expect(writtenSpecs[1]).toContain('__arxic-probe-never__');
     expect(writtenSpecs[1]).not.toContain('toHaveURL("');
+    expect(writtenSpecs[2]).toContain('page.goto("http://127.0.0.1:3000/login")');
+    expect(writtenSpecs[2]).not.toContain('__arxic-probe-never__');
     expect(writtenSpecs.every((spec) => !spec.includes('capturePolicyScreenshot'))).toBe(true);
     expect(writtenConfigs.every((config) => config.includes('trace: "off"'))).toBe(true);
     expect(workflow).toEqual(original);
   });
 
   test('accepts a sensitive assertion when the mutation is killed', async () => {
-    const runResults = [true, false];
+    const runResults = [true, false, false];
     const result = await probeAssertionSensitivity({
       ...probeOptions(workflowWithAssertions('url:/')),
       runSuite: async () => ({ passed: runResults.shift()! }),
     });
 
-    expect(result).toEqual({ killed: true, probed: 1, controlPassed: true, diagnostics: [] });
+    expect(result).toEqual({ killed: true, probed: 2, controlPassed: true, diagnostics: [] });
   });
 
-  test('probes every URL and text assertion and reports only the surviving mutation', async () => {
-    const mutations: string[] = [];
+  test('blocks a value-tautology that survives action omission after value mutation is killed', async () => {
+    const writtenSpecs: string[] = [];
     const runResults = [true, false, true];
+    const result = await probeAssertionSensitivity({
+      ...probeOptions(workflowWithAssertions('text:Login')),
+      writeProbeDirectory: async (files) => {
+        writtenSpecs.push(files.spec);
+        return writeProbeDirectory(files);
+      },
+      runSuite: async () => ({ passed: runResults.shift()! }),
+    });
+
+    expect(result).toMatchObject({
+      killed: false,
+      probed: 2,
+      controlPassed: true,
+      diagnostics: [
+        {
+          code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
+          severity: 'blocked',
+          message: expect.stringContaining('transition action was omitted'),
+        },
+      ],
+    });
+    expect(writtenSpecs[2]).toContain('page.goto');
+    expect(writtenSpecs[2]).toContain('getByText("Login")');
+    expect(writtenSpecs[2]).not.toContain('.fill(');
+    expect(writtenSpecs[2]).not.toContain('.click(');
+    expect(writtenSpecs[2]).not.toContain("getByRole('button'");
+  });
+
+  test('probes every URL and text assertion and reports surviving value and omission mutations', async () => {
+    const mutations: string[] = [];
+    const runResults = [true, true, false, false, true];
     const result = await probeAssertionSensitivity({
       ...probeOptions(workflowWithAssertions('url:/', 'text:Logged in')),
       writeProbeDirectory: async (files) => {
@@ -106,25 +146,58 @@ describe('assertion sensitivity probe', () => {
 
     expect(result).toMatchObject({
       killed: false,
-      probed: 2,
+      probed: 4,
       controlPassed: true,
-      diagnostics: [{ code: ARXIC_PROBE_INSENSITIVE_ASSERTION, severity: 'blocked' }],
+      diagnostics: [
+        {
+          code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
+          severity: 'blocked',
+          message: expect.stringContaining('value mutation'),
+        },
+        {
+          code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
+          severity: 'blocked',
+          message: expect.stringContaining('transition action was omitted'),
+        },
+      ],
     });
     expect(mutations[0]).not.toContain('__arxic-probe-never__');
     expect(mutations[1]).toContain('__arxic-probe-never__');
     expect(mutations[1]).toContain('getByText("Logged in")');
     expect(mutations[2]).toContain('toHaveURL(/^http:\\/\\/127');
-    expect(mutations[2]).toContain('getByText("__arxic-probe-never-match__")');
+    expect(mutations[2]).not.toContain('getByText("Logged in")');
+    expect(mutations[3]).toContain('getByText("__arxic-probe-never-match__")');
+    expect(mutations[4]).toContain('getByText("Logged in")');
+  });
+
+  test('writes an action-free control state for one assertion at the transition from-state', async () => {
+    const writtenSpecs: string[] = [];
+    const runResults = [true, false, false];
+    const result = await probeAssertionSensitivity({
+      ...probeOptions(workflowWithAssertions('text:Logged in')),
+      writeProbeDirectory: async (files) => {
+        writtenSpecs.push(files.spec);
+        return writeProbeDirectory(files);
+      },
+      runSuite: async () => ({ passed: runResults.shift()! }),
+    });
+
+    expect(result).toEqual({ killed: true, probed: 2, controlPassed: true, diagnostics: [] });
+    expect(writtenSpecs[2]).toContain('page.goto("http://127.0.0.1:3000/login")');
+    expect(writtenSpecs[2]).toContain('getByText("Logged in")');
+    expect(writtenSpecs[2]).not.toContain('.fill(');
+    expect(writtenSpecs[2]).not.toContain('.click(');
+    expect(writtenSpecs[2]).not.toContain("getByRole('button'");
   });
 
   test('reports all supported assertions killed when every mutation fails', async () => {
-    const runResults = [true, false, false];
+    const runResults = [true, false, false, false, false];
     const result = await probeAssertionSensitivity({
       ...probeOptions(workflowWithAssertions('url:/', 'text:Logged in')),
       runSuite: async () => ({ passed: runResults.shift()! }),
     });
 
-    expect(result).toEqual({ killed: true, probed: 2, controlPassed: true, diagnostics: [] });
+    expect(result).toEqual({ killed: true, probed: 4, controlPassed: true, diagnostics: [] });
   });
 
   test('skips unsupported assertion kinds without running a suite', async () => {

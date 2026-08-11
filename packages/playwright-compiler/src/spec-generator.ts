@@ -59,6 +59,30 @@ export function generateSpec(
   };
 }
 
+export function generateControlStateSpec(
+  workflow: Workflow,
+  origin: string,
+  transitionIndex: number,
+  assertionIndex: number,
+): { spec: string } {
+  const transition = workflow.transitions[transitionIndex];
+  if (!transition) throw new RangeError(`Transition index ${transitionIndex} is out of range`);
+  if (!transition.assertions[assertionIndex])
+    throw new RangeError(`Assertion index ${assertionIndex} is out of range`);
+
+  return {
+    spec: [
+      "import { test, expect } from '../fixtures/workflow.fixture';",
+      '',
+      `test(${JSON.stringify(`${workflow.id} control state ${transitionIndex}:${assertionIndex}`)}, async ({ page }) => {`,
+      `  await page.goto(${JSON.stringify(new URL(statePath(transition.from), origin).href)});`,
+      ...renderAssertions(transition, origin, assertionIndex),
+      '});',
+      '',
+    ].join('\n'),
+  };
+}
+
 function renderAction(transition: WorkflowTransition): {
   lines: string[];
   formScoped: boolean;
@@ -104,8 +128,14 @@ function renderAction(transition: WorkflowTransition): {
   );
 }
 
-function renderAssertions(transition: WorkflowTransition, origin: string): string[] {
-  return transition.assertions.map((assertion) => {
+function renderAssertions(
+  transition: WorkflowTransition,
+  origin: string,
+  assertionIndex?: number,
+): string[] {
+  const assertions =
+    assertionIndex === undefined ? transition.assertions : [transition.assertions[assertionIndex]!];
+  return assertions.map((assertion) => {
     if (assertion.intent.startsWith('url:')) {
       const expected = assertion.intent.slice(4).trim();
       if (!expected) throw unsupportedAssertion(transition);

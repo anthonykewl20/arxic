@@ -174,7 +174,7 @@ describe.sequential('ADR-004 two-app intent proof matrix', () => {
         10,
       );
 
-      expect(stageTen.sensitivityProbe).toEqual({ probed: 1, controlPassed: true });
+      expect(stageTen.sensitivityProbe).toEqual({ probed: 2, controlPassed: true });
       expect(stageTen.gates).toContainEqual({ gate: 'sensitivity', passed: true });
       expect(acceptance.result.outcome, JSON.stringify(acceptance.result.diagnostics)).toBe(
         'verified',
