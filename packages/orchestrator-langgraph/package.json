@@ -16,9 +16,11 @@
     "@arxic/intent": "workspace:*",
     "@arxic/model-adapter": "workspace:*",
     "@arxic/playwright-agent-adapter": "workspace:*",
+    "@arxic/playwright-compiler": "workspace:*",
     "@arxic/playwright-trace-sanitizer": "workspace:*",
     "@arxic/policy-engine": "workspace:*",
     "@arxic/source-ua-adapter": "workspace:*",
+    "@arxic/verifier": "workspace:*",
     "@langchain/core": "1.2.4",
     "@langchain/langgraph": "1.4.9"
   },

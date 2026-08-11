@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { StagedBundle } from '@arxic/contracts';
-import { PlaywrightCompiler } from '@arxic/playwright-compiler';
+import { ARXIC_PROBE_INSENSITIVE_ASSERTION, PlaywrightCompiler } from '@arxic/playwright-compiler';
 import { serializeScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import { chromium } from '@playwright/test';
@@ -22,7 +22,7 @@ import {
   type RunningApp,
   type FixtureApp,
 } from '@arxic/real-world-testkit';
-import { PlaywrightVerifier } from './index';
+import { createSensitivityProbeAdapter, PlaywrightVerifier, resetAndSeedFixtures } from './index';
 import { resolvePlaywrightCli } from './runner';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
@@ -390,6 +390,102 @@ describe.sequential('playwright verifier real-world security proof', () => {
 
       expect(drifted.outcome).not.toBe('verified');
       expect(drifted.outcome).toBe('blocked');
+    }, 240_000);
+  });
+
+  describe('sensitivity probe adapter real-world proof', () => {
+    let running: RunningApp | undefined;
+    let releaseFixture: (() => void) | undefined;
+    let probeParent = '';
+
+    beforeAll(async () => {
+      const leased = await leaseFixtureApp(
+        referenceAuthApp,
+        'arxic-verifier-sensitivity-reference',
+      );
+      running = leased.running;
+      releaseFixture = leased.release;
+      probeParent = await mkdtemp(join(tmpdir(), 'arxic-sensitivity-parent-'));
+    }, 240_000);
+
+    afterAll(async () => {
+      try {
+        await stopApp(running?.child);
+        await Promise.all(
+          [running?.runtimeDirectory, probeParent]
+            .filter((path): path is string => Boolean(path))
+            .map((path) => rm(path, { recursive: true, force: true })),
+        );
+      } finally {
+        releaseFixture?.();
+      }
+    });
+
+    test('proves control, kill, and rejection through the real adapter and Chromium', async () => {
+      if (!running) throw new Error('Reference auth app did not start');
+      const genuineWorkflow = loginWorkflow(referenceAuthApp, {
+        id: 'authentication.login.sensitivity.reference',
+        title: 'Login sensitivity proof',
+      });
+      const genuine = await createSensitivityProbeAdapter({
+        parentDirectory: probeParent,
+        env: {
+          ARXIC_INPUT_PERSONA_EMAIL: referenceAuthApp.persona.email,
+          ARXIC_INPUT_PERSONA_PASSWORD: referenceAuthApp.persona.password,
+        },
+        resetAndSeed: async () => resetAndSeedFixtures(running!.origin, referenceAuthApp.persona),
+      })({
+        workflow: genuineWorkflow,
+        origin: running.origin,
+        runtimeUrl: `${running.origin}${referenceAuthApp.login.loginRoute}`,
+      });
+
+      const insensitivePersona = {
+        email: '__arxic-probe-never-match__@example.test',
+        password: 'InsensitiveProbe9!',
+      };
+      const insensitiveWorkflow = loginWorkflow(referenceAuthApp, {
+        id: 'authentication.login.sensitivity.insensitive',
+        title: 'Insensitive login assertion proof',
+      });
+      insensitiveWorkflow.transitions[0]!.assertions[0]!.intent = 'text:Logged in';
+      const insensitive = await createSensitivityProbeAdapter({
+        parentDirectory: probeParent,
+        env: {
+          ARXIC_INPUT_PERSONA_EMAIL: insensitivePersona.email,
+          ARXIC_INPUT_PERSONA_PASSWORD: insensitivePersona.password,
+        },
+        resetAndSeed: async () => resetAndSeedFixtures(running!.origin, insensitivePersona),
+      })({
+        workflow: insensitiveWorkflow,
+        origin: running.origin,
+        runtimeUrl: `${running.origin}${referenceAuthApp.login.loginRoute}`,
+      });
+
+      expect(genuine).toEqual({
+        killed: true,
+        probed: 1,
+        controlPassed: true,
+        diagnostics: [],
+      });
+      expect(insensitive).toEqual({
+        killed: false,
+        probed: 1,
+        controlPassed: true,
+        diagnostics: [
+          {
+            code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
+            severity: 'blocked',
+            subject: insensitiveWorkflow.id,
+            message:
+              'Assertion "text:Logged in" remained passing after mutation to "text:__arxic-probe-never-match__"',
+          },
+        ],
+      });
+      expect(await readdir(probeParent)).toEqual([]);
+      console.info(
+        `Sensitivity adapter proof: ${JSON.stringify({ controlPassed: genuine.controlPassed, mutationPassed: !genuine.killed, killed: genuine.killed, insensitiveKilled: insensitive.killed, insensitiveDiagnostic: insensitive.diagnostics[0]?.code })}`,
+      );
     }, 240_000);
   });
 });

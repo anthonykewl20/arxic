@@ -38,6 +38,7 @@ import {
   generateSpecFromWorkflow,
   PACKAGE_NAME as PLAYWRIGHT_PACKAGE,
 } from '@arxic/playwright-agent-adapter';
+import { ARXIC_PROBE_HARNESS_UNUSABLE, probeDiagnostic } from '@arxic/playwright-compiler';
 import {
   PACKAGE_NAME as SOURCE_PACKAGE,
   SourceUaAdapter,
@@ -157,6 +158,16 @@ export type OrchestratorOptions = Readonly<{
     intentSpec?: IntentSpec;
   }) => Promise<CompilationResult>;
   verify?: (input: CompilationResult) => Promise<VerificationNodeResult>;
+  probeSensitivity?: (input: {
+    workflow: Workflow;
+    origin: string;
+    runtimeUrl?: string;
+  }) => Promise<{
+    killed: boolean;
+    probed: number;
+    controlPassed: boolean;
+    diagnostics: readonly Diagnostic[];
+  }>;
   promote?: (
     bundle: StagedBundle,
     gates: VerificationNodeResult['gates'],
@@ -679,8 +690,9 @@ export class LangGraphOrchestrator {
     const compilation = await this.#artifact<CompilationResult>(state, input, 9);
     const result = await (this.#options.verify ?? defaultVerify)(compilation);
     if (result.outcome === 'verified') {
-      const projection = result.stagedBundle
-        ? projectVerifiedBundle(result.stagedBundle, result, this.#now())
+      const stagedBundle = result.stagedBundle;
+      const projection = stagedBundle
+        ? projectVerifiedBundle(stagedBundle, result, this.#now())
         : { ok: false as const, reason: 'verification-evidence-incomplete' as const };
       if (!projection.ok) {
         const diagnostic = orchDiagnostic(
@@ -713,6 +725,57 @@ export class LangGraphOrchestrator {
         ...result,
         stagedBundle: projection.value,
       };
+      if (this.#options.probeSensitivity) {
+        const probeBundle = stagedBundle!;
+        const runtimeUrl = Object.values(probeBundle.evidenceIndex).find(
+          (evidence) => evidence.kind === 'runtime',
+        )?.url;
+        let probe: Awaited<ReturnType<NonNullable<OrchestratorOptions['probeSensitivity']>>>;
+        try {
+          probe = await this.#options.probeSensitivity({
+            workflow: probeBundle.workflow,
+            origin: input.origin,
+            ...(runtimeUrl ? { runtimeUrl } : {}),
+          });
+        } catch (error) {
+          const diagnostic = probeDiagnostic(
+            ARXIC_PROBE_HARNESS_UNUSABLE,
+            probeBundle.workflow.id,
+            `Sensitivity probe could not execute: ${error instanceof Error ? error.message : String(error)}`,
+          );
+          const unusable: VerificationNodeResult = {
+            ...projected,
+            diagnostics: [...projected.diagnostics, diagnostic],
+            gates: [...projected.gates, { gate: 'sensitivity', passed: false }],
+            sensitivityProbe: { probed: 0, controlPassed: false },
+          };
+          return {
+            artifact: unusable,
+            adapter: '@arxic/verifier:seam',
+            diagnostics: projected.diagnostics,
+            partial: true,
+            promotionEligible: false,
+            outcome: 'verified',
+            gates: unusable.gates,
+          };
+        }
+        const probed: VerificationNodeResult = {
+          ...projected,
+          diagnostics: [...projected.diagnostics, ...probe.diagnostics],
+          gates: [...projected.gates, { gate: 'sensitivity', passed: probe.killed }],
+          sensitivityProbe: { probed: probe.probed, controlPassed: probe.controlPassed },
+        };
+        return {
+          artifact: probed,
+          adapter: '@arxic/verifier:seam',
+          // Probe blockers gate promotion but do not take truth-state authority from the verifier.
+          diagnostics: probe.killed ? probed.diagnostics : projected.diagnostics,
+          partial: !probe.killed,
+          promotionEligible: probe.killed,
+          outcome: 'verified',
+          gates: probed.gates,
+        };
+      }
       return {
         artifact: projected,
         adapter: '@arxic/verifier:seam',

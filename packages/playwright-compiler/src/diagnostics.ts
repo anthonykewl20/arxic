@@ -9,6 +9,8 @@ export const ARXIC_COMPILE_UNSUPPORTED_STEP = 'ARXIC-COMPILE-UNSUPPORTED-STEP' a
 export const ARXIC_COMPILE_EVIDENCE_MISSING = 'ARXIC-COMPILE-EVIDENCE-MISSING' as const;
 export const ARXIC_COMPILE_MANIFEST_INVALID = 'ARXIC-COMPILE-MANIFEST-INVALID' as const;
 export const ARXIC_COMPILE_WRITE_FAILED = 'ARXIC-COMPILE-WRITE-FAILED' as const;
+export const ARXIC_PROBE_INSENSITIVE_ASSERTION = 'ARXIC-PROBE-INSENSITIVE-ASSERTION' as const;
+export const ARXIC_PROBE_HARNESS_UNUSABLE = 'ARXIC-PROBE-HARNESS-UNUSABLE' as const;
 
 export const ARXIC_COMPILE_DIAGNOSTIC_CODES = [
   ARXIC_COMPILE_WORKFLOW_INVALID,
@@ -23,6 +25,13 @@ export const ARXIC_COMPILE_DIAGNOSTIC_CODES = [
 
 export type CompileDiagnosticCode = (typeof ARXIC_COMPILE_DIAGNOSTIC_CODES)[number];
 
+export const ARXIC_PROBE_DIAGNOSTIC_CODES = [
+  ARXIC_PROBE_INSENSITIVE_ASSERTION,
+  ARXIC_PROBE_HARNESS_UNUSABLE,
+] as const;
+
+export type ProbeDiagnosticCode = (typeof ARXIC_PROBE_DIAGNOSTIC_CODES)[number];
+
 export function compileDiagnostic(
   code: CompileDiagnosticCode,
   subject: string,
@@ -31,5 +40,16 @@ export function compileDiagnostic(
   const diagnostic: Diagnostic = { code, severity: 'blocked', subject, message };
   if (!validateDiagnostic(diagnostic).ok)
     throw new Error('Playwright compiler manufactured an invalid Diagnostic');
+  return diagnostic;
+}
+
+export function probeDiagnostic(
+  code: ProbeDiagnosticCode,
+  subject: string,
+  message: string,
+): Diagnostic {
+  const diagnostic: Diagnostic = { code, severity: 'blocked', subject, message };
+  if (!validateDiagnostic(diagnostic).ok)
+    throw new Error('Playwright sensitivity probe manufactured an invalid Diagnostic');
   return diagnostic;
 }

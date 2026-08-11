@@ -276,6 +276,9 @@ importers:
       '@arxic/playwright-agent-adapter':
         specifier: workspace:*
         version: link:../playwright-agent-adapter
+      '@arxic/playwright-compiler':
+        specifier: workspace:*
+        version: link:../playwright-compiler
       '@arxic/playwright-trace-sanitizer':
         specifier: workspace:*
         version: link:../playwright-trace-sanitizer
@@ -285,6 +288,9 @@ importers:
       '@arxic/source-ua-adapter':
         specifier: workspace:*
         version: link:../source-ua-adapter
+      '@arxic/verifier':
+        specifier: workspace:*
+        version: link:../verifier
       '@langchain/core':
         specifier: 1.2.4
         version: 1.2.4(ws@8.21.2)
