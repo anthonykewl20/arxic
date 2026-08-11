@@ -39,3 +39,7 @@ no — this is internal pre-1.0 verification-gate hardening and does not change 
 | Assertion passes with the transition action omitted | `blocked` (`ARXIC-PROBE-INSENSITIVE-ASSERTION`), verifier truth unchanged and promotion ineligible | Unit runner-boundary control experiment plus `real-world.test.ts` real-Chromium `text:Email` value-tautology proof |
 | Assertion kind is unsupported                       | Fail closed with no control or mutation run (`probed: 0`)                                          | `sensitivity-probe.test.ts` — `role:alert` case                                                                    |
 | Both value and omission mutations fail              | Sensitivity gate passes; no diagnostic                                                             | Unit `url:/` case and real-Chromium reference login proof                                                          |
+
+Known residuals:
+
+- Multi-transition intermediate-state omission: the omission operator navigates to `statePath(transition.from)` directly, so for a non-first transition whose from-state is only reachable in the control run via earlier transitions, the omission run may fail for the wrong reason and under-detect. Strictly additive (never over-detects, never unblocks a previously-blocked candidate); both fixture-app auth flows today are single-transition so unaffected. Tracked as an ADR-004 §7.1 residual.

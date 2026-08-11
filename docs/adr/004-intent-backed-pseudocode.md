@@ -207,6 +207,21 @@ mutation operators such as Stryker’s (already referenced below). Together, val
 substitution and control-state omission falsify “the assertion is tautological” along the
 value axis and the action-dependency axis.
 
+**Known limitation (pre-action-state reconstruction).** The omission run reconstructs the
+transition's pre-action state by navigating to
+`page.goto(new URL(statePath(transition.from), origin).href)` (and the observed
+`runtimeUrl` for the first transition in the control spec). For a single-transition
+workflow — the shape of both fixture-app auth flows today — this exactly matches the
+control run's pre-action state. For a non-first transition in a multi-transition workflow,
+the from-state in the control run is reached by performing earlier transitions; the
+omission run `goto`s that state directly, so if that URL is not independently reachable
+the omission run fails for the wrong reason and the operator **under-detects** (a
+value-tautology on such a transition may be missed). This is strictly additive: the
+operator never makes a previously-blocked candidate promotable, never over-detects (a
+survive → `blocked` is always a genuine tautology), and the value-substitution axis is
+unaffected; safe multi-transition intermediate-state omission is a tracked residual (open
+question below).
+
 ### 8. Explicit non-decisions and M2 authorization
 
 This ADR authorized the M2 implementation build and its two-app real-world proof. It does
@@ -262,7 +277,7 @@ follow-ups; no deferred item weakens the two-app acceptance proof.
 - Failure diagnostics and classification for missing oracle, stale lineage, ambiguity, mismatch, and insensitive assertions — **resolved (slices A-E, PRs #124-#126, #130, #132)**.
 - The required two-app proof matrix, including at least one source/runtime conflict and one observed-only characterization — **resolved (slice F, PR #134)**.
 - Mixed-spec `hasAcceptance` fineness — **resolved (PR #136)**: `hasAcceptance` tightened to `everyRequiredAssertionAcceptance` (per-required-transition acceptance-strength; shared multiset matcher).
-- Tautological-assertion matcher inversion beyond the bounded `url:` and `text:` operators — **resolved (PR for this slice)**: the value-tautology gap is closed by the §7.1 control-state omission operator, not matcher inversion, which is semantically inert for present-value tautologies.
+- Tautological-assertion matcher inversion beyond the bounded `url:` and `text:` operators — **resolved for URL-addressable pre-action states (PR for this slice, ADR §7.1)**: the value-tautology gap is closed by the control-state omission operator, not matcher inversion (which is semantically inert for present-value tautologies). Safe omission for multi-transition intermediate states that are not directly URL-reachable remains a tracked residual (see §7.1 known limitation).
 - Per-assertion sensitivity-gate granularity in the stage-10 artifact — **deferred post-acceptance (tracked follow-up)**.
 - Replacing `defaultCompile` with the full compiler generator — **deferred post-acceptance (tracked follow-up)**.
 - Persisting locator provenance as a dedicated run-local artifact — **deferred post-acceptance (tracked follow-up)**.
