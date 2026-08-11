@@ -33,7 +33,7 @@ import {
   type HumanApproval,
 } from '@arxic/environment';
 import type { ModelAdapter } from '@arxic/model-adapter';
-import { normalizeIntentSpec } from '@arxic/intent';
+import { enforceIntentProvenancePolicy, normalizeIntentSpec, type IntentSpec } from '@arxic/intent';
 import {
   generateSpecFromWorkflow,
   PACKAGE_NAME as PLAYWRIGHT_PACKAGE,
@@ -154,6 +154,7 @@ export type OrchestratorOptions = Readonly<{
     observations: readonly EvidenceRef[];
     outputDirectory: string;
     origin: string;
+    intentSpec?: IntentSpec;
   }) => Promise<CompilationResult>;
   verify?: (input: CompilationResult) => Promise<VerificationNodeResult>;
   promote?: (
@@ -588,6 +589,18 @@ export class LangGraphOrchestrator {
         ),
       );
     }
+    const normalizedIntentSpec =
+      normalization?.ok && !hostileVerified ? normalization.spec : undefined;
+    const candidateWorkflow = inference.candidates[0]?.workflow;
+    if (candidateWorkflow && normalizedIntentSpec) {
+      const provenancePolicy = enforceIntentProvenancePolicy(
+        candidateWorkflow,
+        normalizedIntentSpec,
+      );
+      if (!provenancePolicy.ok) {
+        normalizationDiagnostics.push(...provenancePolicy.diagnostics);
+      }
+    }
     const oracleDiagnostics = [
       ...oracle.diagnostics,
       ...normalizationDiagnostics,
@@ -600,19 +613,41 @@ export class LangGraphOrchestrator {
       : oracleDiagnostics.some(({ severity }) => severity === 'contradicted')
         ? 'contradicted'
         : nonVerifiedOutcome(oracle.outcome);
-    const normalizedIntentSpec =
-      normalization?.ok && !hostileVerified ? normalization.spec : undefined;
+    const oracleAllowsPromotion = oracleOutcome !== 'blocked' && oracleOutcome !== 'contradicted';
+    if (oracleOutcome === 'blocked' || oracleOutcome === 'contradicted') {
+      const result: CompilationResult = {
+        compiled: false,
+        plan: 'Oracle resolution blocked compilation; no spec generated',
+        ...(normalizedIntentSpec ? { intentSpec: normalizedIntentSpec } : {}),
+        oracleOutcome,
+      };
+      return {
+        artifact: result,
+        adapter: PLAYWRIGHT_PACKAGE,
+        diagnostics: oracleDiagnostics,
+        blocked: oracleOutcome === 'blocked',
+        partial: true,
+        promotionEligible: false,
+        outcome: oracleOutcome,
+        decisions: ['Plan retained as uncompiled'],
+        gates: [{ gate: 'compile', passed: false }],
+      };
+    }
     const compileResult = await (this.#options.compile ?? defaultCompile)({
       candidates: inference.candidates,
       observations: exploration.evidenceRefs,
       outputDirectory: `${input.artifactsDir}/${input.runId}`,
       origin: input.origin,
+      intentSpec: normalizedIntentSpec,
     });
     const result: CompilationResult = {
       ...compileResult,
       ...(normalizedIntentSpec ? { intentSpec: normalizedIntentSpec } : {}),
       oracleOutcome,
     };
+    const hasAcceptance = normalizedIntentSpec
+      ? normalizedIntentSpec.assertions.some((assertion) => assertion.kind === 'acceptance')
+      : true;
     const diagnostics = [
       ...oracleDiagnostics,
       ...(normalizedIntentSpec
@@ -631,8 +666,7 @@ export class LangGraphOrchestrator {
       adapter: PLAYWRIGHT_PACKAGE,
       diagnostics,
       partial: !result.compiled,
-      promotionEligible:
-        result.compiled && oracleOutcome !== 'blocked' && oracleOutcome !== 'contradicted',
+      promotionEligible: result.compiled && oracleAllowsPromotion && hasAcceptance,
       ...(this.#options.resolveOracle !== undefined || oracleDiagnostics.length > 0
         ? { outcome: oracleOutcome }
         : {}),
