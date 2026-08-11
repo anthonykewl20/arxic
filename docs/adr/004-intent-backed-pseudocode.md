@@ -2,7 +2,7 @@
 
 | Field      | Value                                                                                                  |
 | ---------- | ------------------------------------------------------------------------------------------------------ |
-| Status     | Accepted (2026-08-11) — two-app proof matrix landed (PR #134)                                           |
+| Status     | Accepted (2026-08-11) — two-app proof matrix landed (PR #134)                                          |
 | Decides    | The bounded IntentSpec/oracle-provenance design for deterministic pseudocode and Playwright generation |
 | Relates to | ADR-001 §2/§8/§9/§10/§12/§13/§15/§16, ADR-002, issue #116                                              |
 | Owners     | Arxic maintainers                                                                                      |
