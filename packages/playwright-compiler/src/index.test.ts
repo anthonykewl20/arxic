@@ -11,11 +11,13 @@ import {
   ARXIC_COMPILE_SECRET_EXPOSURE,
   ARXIC_COMPILE_UNSUPPORTED_STEP,
   ARXIC_COMPILE_WORKFLOW_INVALID,
+  ARXIC_PROBE_DIAGNOSTIC_CODES,
   CompileError,
   PlaywrightCompiler,
   compileDiagnostic,
   enforceCompilePolicy,
   generateSpec,
+  probeDiagnostic,
 } from './index';
 import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
 
@@ -162,6 +164,14 @@ describe('Playwright compiler contracts', () => {
     for (const code of ARXIC_COMPILE_DIAGNOSTIC_CODES) {
       expect(
         validateDiagnostic(compileDiagnostic(code, 'workflow', 'Blocked by test policy')).ok,
+      ).toBe(true);
+    }
+  });
+
+  test('validates every sensitivity-probe diagnostic code through the frozen contract', () => {
+    for (const code of ARXIC_PROBE_DIAGNOSTIC_CODES) {
+      expect(
+        validateDiagnostic(probeDiagnostic(code, 'workflow', 'Insensitive assertion')).ok,
       ).toBe(true);
     }
   });

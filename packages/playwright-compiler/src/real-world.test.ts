@@ -1,21 +1,24 @@
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, symlink } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { validateManifest } from '@arxic/contracts';
+import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import {
   FIXTURE_APPS,
   bootFixtureApp,
   loginObservations,
   loginWorkflow,
+  referenceAuthApp,
   seedFixture,
   stopApp,
   type RunningApp,
 } from '@arxic/real-world-testkit';
-import { PlaywrightCompiler } from './index';
+import { PlaywrightCompiler, probeAssertionSensitivity } from './index';
+import { runPlaywrightSuite } from '../../verifier/src/runner';
 
 const execute = promisify(execFile);
 const require = createRequire(import.meta.url);
@@ -66,6 +69,78 @@ describe.each(FIXTURE_APPS)('playwright compiler real-world proof: $name', (app)
         `artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`,
       );
     }
+  }, 120_000);
+});
+
+describe('playwright sensitivity probe real-world proof', () => {
+  let running: RunningApp | undefined;
+  const probeDirectories: string[] = [];
+
+  beforeAll(async () => {
+    running = await bootFixtureApp(root, referenceAuthApp, 'arxic-sensitivity-reference');
+    await seedFixture(running.origin, 'sensitivity-reference', referenceAuthApp.persona);
+  }, 240_000);
+
+  afterAll(async () => {
+    await stopApp(running?.child);
+    await Promise.all(
+      [running?.runtimeDirectory, ...probeDirectories]
+        .filter((path): path is string => Boolean(path))
+        .map((path) => rm(path, { recursive: true })),
+    );
+  });
+
+  test('kills the mutated login URL assertion through real Chromium', async () => {
+    if (!running) throw new Error('Reference auth app did not start');
+    const workflow = loginWorkflow(referenceAuthApp, {
+      id: 'authentication.login.sensitivity.reference',
+      title: 'Login sensitivity proof',
+    });
+    let mutationPassed: boolean | undefined;
+    const result = await probeAssertionSensitivity({
+      workflow,
+      origin: running.origin,
+      runtimeUrl: `${running.origin}${referenceAuthApp.login.loginRoute}`,
+      writeProbeDirectory: async (files) => {
+        const directory = await mkdtemp(join(root, '.arxic-sensitivity-proof-'));
+        probeDirectories.push(directory);
+        await Promise.all([
+          mkdir(join(directory, 'tests'), { recursive: true }),
+          mkdir(join(directory, 'fixtures'), { recursive: true }),
+        ]);
+        await Promise.all([
+          writeFile(join(directory, 'tests/workflow.spec.ts'), files.spec, 'utf8'),
+          writeFile(join(directory, 'fixtures/workflow.fixture.ts'), files.fixture, 'utf8'),
+          writeFile(
+            join(directory, 'fixtures/screenshot-privacy.ts'),
+            screenshotPrivacyRuntimeSource(),
+            'utf8',
+          ),
+          writeFile(join(directory, 'playwright.config.ts'), files.config, 'utf8'),
+        ]);
+        await ensurePlaywrightModule(directory);
+        return directory;
+      },
+      runSuite: async ({ testDirectory }) => {
+        const run = await runPlaywrightSuite({
+          testDirectory,
+          env: {
+            ARXIC_INPUT_PERSONA_EMAIL: referenceAuthApp.persona.email,
+            ARXIC_INPUT_PERSONA_PASSWORD: referenceAuthApp.persona.password,
+          },
+          trace: 'discard',
+        });
+        mutationPassed = run.passed;
+        return run;
+      },
+    });
+
+    expect(referenceAuthApp.login.assertion).toBe('url:/');
+    expect(mutationPassed).toBe(false);
+    expect(result).toEqual({ killed: true, probed: 1, diagnostics: [] });
+    console.info(
+      'Sensitivity proof: reference-auth-app url:/ → url:/__arxic-probe-never__ killed=true',
+    );
   }, 120_000);
 });
 

@@ -23,6 +23,7 @@ import {
   type StageCheckpointer,
   type StageCheckpoint,
   type StageId,
+  type VerificationNodeResult,
 } from '..';
 
 const execute = promisify(execFile);
@@ -281,6 +282,9 @@ describe('orchestrator sad paths', () => {
     expect((await checkpointer.load('positive-promotion'))?.status).toBe('completed');
     expect(result.receipt).toBeDefined();
     expect(promotionEligible).toBe(true);
+    expect(result.checkpoints.find(({ stage }) => stage === 10)?.gateResults).toEqual([
+      { gate: 'verify', passed: true },
+    ]);
     expect(promotedBundle?.workflow.status).toBe('verified');
     expect(promotedBundle?.manifest.workflow).toEqual({
       id: promotedBundle?.workflow.id,
@@ -290,6 +294,93 @@ describe('orchestrator sad paths', () => {
       promotedBundle?.artifacts.map(({ path, sha256 }) => ({ path, sha256 })),
     );
     expect(stagedBundle).toEqual(original);
+  }, 60_000);
+
+  it('retains promotion eligibility when every sensitivity mutation is killed', async () => {
+    const stagedBundle = coherentObservedBundle();
+    let promoted = false;
+    const result = await new LangGraphOrchestrator({
+      checkpointer: new InMemoryStageCheckpointer(),
+      inferCandidates: async () => validInference('sensitive-probe-request'),
+      compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+      verify: async () => ({
+        outcome: 'verified',
+        stagedBundle,
+        diagnostics: [],
+        artifacts: [{ kind: 'screenshot', path: '/safe/signed-in.png', sha256: 'e'.repeat(64) }],
+        runs: [{ passed: true }, { passed: true }],
+        gates: [{ gate: 'verify', passed: true }],
+      }),
+      probeSensitivity: async () => ({ killed: true, diagnostics: [] }),
+      promote: async (bundle) => {
+        promoted = true;
+        return {
+          manifest: bundle.manifest,
+          promotedAt: '2026-08-05T12:00:00.000Z',
+          location: 'test://sensitivity-promoted',
+          checksumSha256: 'a'.repeat(64),
+        };
+      },
+    }).run(input('sensitive-probe'));
+
+    expect(result.checkpoints.find(({ stage }) => stage === 10)?.gateResults).toContainEqual({
+      gate: 'sensitivity',
+      passed: true,
+    });
+    expect(result.outcome).toBe('verified');
+    expect(result.promotionEligible).toBe(true);
+    expect(result.receipt).toBeDefined();
+    expect(promoted).toBe(true);
+  }, 60_000);
+
+  it('keeps verified truth state but blocks promotion when the sensitivity probe is insensitive', async () => {
+    const stagedBundle = coherentObservedBundle();
+    const checkpointer = new InMemoryStageCheckpointer();
+    let promoted = false;
+    const probeDiagnostic = {
+      code: 'ARXIC-PROBE-INSENSITIVE-ASSERTION',
+      severity: 'blocked' as const,
+      subject: stagedBundle.workflow.id,
+      message: 'The mutated assertion still passed',
+    };
+    const result = await new LangGraphOrchestrator({
+      checkpointer,
+      inferCandidates: async () => validInference('insensitive-probe-request'),
+      compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+      verify: async () => ({
+        outcome: 'verified',
+        stagedBundle,
+        diagnostics: [],
+        artifacts: [{ kind: 'screenshot', path: '/safe/signed-in.png', sha256: 'e'.repeat(64) }],
+        runs: [{ passed: true }, { passed: true }],
+        gates: [{ gate: 'verify', passed: true }],
+      }),
+      probeSensitivity: async (probeInput) => {
+        expect(probeInput).toEqual({
+          workflow: stagedBundle.workflow,
+          origin,
+          runtimeUrl: origin,
+        });
+        return { killed: false, diagnostics: [probeDiagnostic] };
+      },
+      promote: async () => {
+        promoted = true;
+        throw new Error('An insensitive assertion must suppress promotion');
+      },
+    }).run(input('insensitive-probe'));
+
+    const verifyCheckpoint = result.checkpoints.find(({ stage }) => stage === 10)!;
+    const verification = (await checkpointer.readArtifact(
+      result.runId,
+      verifyCheckpoint.artifacts[0]!,
+    )) as VerificationNodeResult;
+    expect(verification.outcome).toBe('verified');
+    expect(verification.diagnostics).toContainEqual(probeDiagnostic);
+    expect(verification.gates).toContainEqual({ gate: 'sensitivity', passed: false });
+    expect(result.outcome).toBe('verified');
+    expect(result.promotionEligible).toBe(false);
+    expect(result.receipt).toBeUndefined();
+    expect(promoted).toBe(false);
   }, 60_000);
 
   it('blocks a forged verified result with incomplete deterministic evidence', async () => {

@@ -6,4 +6,5 @@ export * from './exploration';
 export * from './fixture-coordinator';
 export * from './inference';
 export * from './orchestrator';
+export * from './sensitivity-probe-adapter';
 export * from './types';
