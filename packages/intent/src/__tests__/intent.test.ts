@@ -21,6 +21,7 @@ import {
   compileWithIntentSpec,
   detectStaleness,
   enforceIntentProvenancePolicy,
+  everyRequiredAssertionAcceptance,
   intentDiagnostic,
   normalizeIntentSpec,
   resolveAssertionKind,
@@ -214,6 +215,58 @@ describe('intent service sad paths', () => {
       ],
     });
     expect(compileCalls).toBe(0);
+  });
+
+  describe('everyRequiredAssertionAcceptance promotion-eligibility check', () => {
+    const acceptanceFor = (assertionIntent: string) => ({
+      id: `${assertionIntent}-acc`,
+      intent: assertionIntent,
+      expectedValue: 'url:/',
+      oracles: [domainOracle],
+      evidenceRefs,
+    });
+    const characterizationFor = (assertionIntent: string) => ({
+      id: `${assertionIntent}-char`,
+      intent: assertionIntent,
+      expectedValue: 'text:observed',
+      oracles: [{ kind: 'observed-only' as const }],
+      evidenceRefs,
+    });
+    const specWith = (...assertions: IntentSpecInput['assertions'][number][]) =>
+      buildIntentSpec({ ...validInput(), assertions });
+
+    it('rejects a mixed spec where a required transition is only characterization-backed', () => {
+      // The slice-D residual: a trivial acceptance plus a characterization over
+      // a genuinely required transition must NOT be promotion-eligible.
+      const workflow = workflowWithAssertions('Login succeeds', 'Profile loads');
+      const intentSpec = specWith(
+        acceptanceFor('Login succeeds'),
+        characterizationFor('Profile loads'),
+      );
+
+      expect(everyRequiredAssertionAcceptance(workflow, intentSpec)).toBe(false);
+    });
+
+    it('accepts a spec where every required transition is acceptance-backed', () => {
+      const workflow = workflowWithAssertions('Login succeeds', 'Profile loads');
+      const intentSpec = specWith(acceptanceFor('Login succeeds'), acceptanceFor('Profile loads'));
+
+      expect(everyRequiredAssertionAcceptance(workflow, intentSpec)).toBe(true);
+    });
+
+    it('rejects a characterization-only required assertion', () => {
+      const workflow = workflowWithAssertions('Login succeeds');
+      const intentSpec = specWith(characterizationFor('Login succeeds'));
+
+      expect(everyRequiredAssertionAcceptance(workflow, intentSpec)).toBe(false);
+    });
+
+    it('rejects (defense-in-depth) when a required assertion is unmatched', () => {
+      const workflow = workflowWithAssertions('Login succeeds', 'Profile loads');
+      const intentSpec = specWith(acceptanceFor('Login succeeds')); // 'Profile loads' unmatched
+
+      expect(everyRequiredAssertionAcceptance(workflow, intentSpec)).toBe(false);
+    });
   });
 
   it('rejects a malformed spec as blocked', () => {
