@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
 
+### security
+
+- M2-PROBE-CONTROL-STATE hardened assertion sensitivity (#116 post-acceptance follow-up, PR #140): the sensitivity probe now runs a second, isolated control-state omission operator alongside value substitution — for each required assertion it generates `page.goto(from-state)` + that one assertion with the transition action omitted, and requires it to FAIL; a pass blocks promotion as `ARXIC-PROBE-INSENSITIVE-ASSERTION` (the verifier truth state stays `verified`; only `promotionEligible` is gated). Closes the value-tautology gap (a `text:`/`url:` assertion whose expected value is unconditionally present regardless of the action) that value substitution alone cannot detect. A dated ADR-004 §7.1 addendum authorizes the operator (the consensus pair luna+terra agreed it exceeds §7's literal "changes only the expected result" boundary). Real Chromium 1.62.1 against the reference-auth-app proves the gate catches a `text:Email` value-tautology the single-operator probe missed. reviewer-deepseek + reviewer-hy3 APPROVE (no P1/P2); under-detection for non-first transitions in multi-transition workflows is a documented §7.1 residual.
+
 ### internal
 
 - M2-HASACCEPTANCE-FINENESS (#116 post-acceptance follow-up, PR #136): tightened the IntentSpec promotion guard from a coarse `some(kind==='acceptance')` to `everyRequiredAssertionAcceptance` — every required-transition assertion must be acceptance-backed. Closes the mixed-spec gap (one trivial acceptance + characterization over a required transition) both slice-D reviewers flagged. Shared the multiset matcher between the provenance gate + the new helper (charter §1 — single source of truth for assertion coverage). reviewer-deepseek: GAP CLOSED + REFACTOR SOUND (gate behavior identical post-refactor).
