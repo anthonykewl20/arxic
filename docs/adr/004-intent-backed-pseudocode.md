@@ -2,7 +2,7 @@
 
 | Field      | Value                                                                                                  |
 | ---------- | ------------------------------------------------------------------------------------------------------ |
-| Status     | Proposed (2026-08-10)                                                                                  |
+| Status     | Accepted (2026-08-11) — two-app proof matrix landed (PR <F>)                                           |
 | Decides    | The bounded IntentSpec/oracle-provenance design for deterministic pseudocode and Playwright generation |
 | Relates to | ADR-001 §2/§8/§9/§10/§12/§13/§15/§16, ADR-002, issue #116                                              |
 | Owners     | Arxic maintainers                                                                                      |
@@ -34,8 +34,8 @@ while target-specific surface data supplies routes and assertions.
 
 ### 1. IntentSpec is an unfrozen app-local proposal layer
 
-Choose **(b), an app-local/intermediate proposal type**, implemented later as an
-Arxic-owned `IntentSpec`/`OracleSpec` layer in a new package provisionally named
+Choose **(b), an app-local/intermediate proposal type**, implemented as an
+Arxic-owned `IntentSpec`/`OracleSpec` layer in the package
 `@arxic/intent`. It is not (a) a new frozen `@arxic/contracts` contract and not (c) an
 extension of Workflow evidence/provenance.
 
@@ -75,7 +75,7 @@ what the pinned app did and may be replayed, but cannot satisfy an acceptance-or
 or justify `verified` by itself. Missing, ambiguous, stale, or conflicting oracle links
 are `blocked` or `contradicted`, never silently upgraded.
 
-The implementation spike must settle the exact field names, oracle artifact identity, scope binding, digest algorithm, approval format, and whether multiple oracle kinds are AND- or OR-composed. Until then, these are proposal semantics, not frozen schema fields.
+The implementation settled the exact field names, oracle artifact identity, scope binding, digest algorithm, approval format, and multiple-oracle conflict handling without creating frozen schema fields; the resolutions are recorded below.
 
 ### 3. Owners and dependency direction
 
@@ -179,17 +179,17 @@ the verifier’s truth-state authority.
 
 ### 8. Explicit non-decisions and M2 authorization
 
-This ADR authorizes the later M2 implementation design spike and its two-app real-world
-proof. It does **not** authorize a frozen-contract or JSON-schema change, a Workflow
+This ADR authorized the M2 implementation build and its two-app real-world proof. It does
+**not** authorize a frozen-contract or JSON-schema change, a Workflow
 extension, a new `@arxic/contracts` export, direct Gherkin-to-Workflow compilation,
 free-form generation, unapproved mutation, assertion weakening, or any IntentSpec/oracle
 assignment of `verified`. It does not authorize production execution or fixture values
 containing expected business outcomes.
 
-The full implementation, including the new package, stage wiring, sensitivity probe,
-schema/lifecycle decisions, and proof against both fixture apps, is a separate M2 build
-tracked by issue #116. Maintainer acceptance of this Proposed ADR is acceptance of the
-boundary and design direction, not evidence that the implementation exists or works.
+The implementation, including the new package, stage wiring, sensitivity probe,
+schema/lifecycle decisions, and proof against both fixture apps, was tracked by issue
+#116. Acceptance records that the boundary and design direction were implemented and the
+required capstone proof landed; it does not grant IntentSpec verification authority.
 
 ## Consequences
 
@@ -213,23 +213,29 @@ boundary and design direction, not evidence that the implementation exists or wo
 
 ## Open questions / follow-ups
 
-The following are intentionally **UNVERIFIED** and must be resolved by the implementation
-spike before any schema or package API is proposed:
+The implementation build resolved the deciding questions below across slices A-F. Bounded
+residuals that are not required for acceptance remain deferred post-acceptance as tracked
+follow-ups; no deferred item weakens the two-app acceptance proof.
 
-- Exact `IntentSpec` and `OracleSpec` fields, versioning, lifecycle, and canonical digest.
-- Whether proposal artifacts are checkpointed separately from Workflow artifacts, including retention/redaction rules.
-- The machine-readable shape for assertion kind: acceptance versus characterization.
-- Oracle identity, repository-spec section/span, domain-pack rule version, and approval-record binding.
-- Precedence and conflict handling when independent oracle kinds disagree.
-- Staleness detection when source commit, target build, fixture seed, flags, or policy changes.
-- How oracle provenance is carried into generated tests without changing frozen Workflow or manifest schemas.
-- Exact before/after state model and accessible-control identity receipt for exploration.
-- Semantic locator vocabulary and same-element proof across frames, redirects, and rerenders.
-- Mutation operators, isolation boundary, and minimum sensitivity coverage for the probe.
-- Gherkin package/version/commit pin and the exact `compile` API and lineage extraction seam.
-- How domain packs expose outcomes once while fixtures expose only facts and capabilities.
-- Failure diagnostics and classification for missing oracle, stale lineage, ambiguity, mismatch, and insensitive assertions.
-- The required two-app proof matrix, including at least one source/runtime conflict and one observed-only characterization.
+- Exact `IntentSpec` and `OracleSpec` fields, versioning, lifecycle, and canonical digest — **resolved (slice A, PR #124)**.
+- Whether proposal artifacts are checkpointed separately from Workflow artifacts, including retention/redaction rules — **resolved (slice B, PR #125)**: the run-local IntentSpec is persisted in the hash-verified stage-9 artifact under existing run retention rules.
+- The machine-readable shape for assertion kind: acceptance versus characterization — **resolved (slice A, PR #124)**: `kind` is derived from oracle provenance.
+- Oracle identity, repository-spec section/span, domain-pack rule version, and approval-record binding — **resolved (slice A, PR #124)**.
+- Precedence and conflict handling when independent oracle kinds disagree — **resolved (slices A-B, PRs #124-#125)**: divergent acceptance outcomes are contradicted and sticky.
+- Staleness detection when source commit, target build, fixture seed, flags, or policy changes — **resolved (slice A, PR #124)** through pinned `IntentLineage` digests.
+- How oracle provenance is carried into generated tests without changing frozen Workflow or manifest schemas — **resolved (slice D, PR #130)** through the run-local IntentSpec compiler gate and unchanged frozen bundle schemas.
+- Exact before/after state model and accessible-control identity receipt for exploration — **resolved (slice C, PR #126)**.
+- Semantic locator vocabulary and same-element proof across frames, redirects, and rerenders — **resolved (slice C, PR #126)** through immediate semantic/execution locator identity checks and fail-closed drift handling.
+- Mutation operators, isolation boundary, and minimum sensitivity coverage for the probe — **resolved (slice E, PR #132)**: every required assertion is mutated in an isolated control-plus-mutation run.
+- Gherkin package/version/commit pin and the exact `compile` API and lineage extraction seam — **resolved by non-adoption (slices A-F)**: no Gherkin adapter or dependency is needed for the accepted native IntentSpec flow; any future optional syntax adapter requires its own pinned design.
+- How domain packs expose outcomes once while fixtures expose only facts and capabilities — **resolved (slice A, PR #124)**.
+- Failure diagnostics and classification for missing oracle, stale lineage, ambiguity, mismatch, and insensitive assertions — **resolved (slices A-E, PRs #124-#126, #130, #132)**.
+- The required two-app proof matrix, including at least one source/runtime conflict and one observed-only characterization — **resolved (slice F, PR <F>)**.
+- Mixed-spec `hasAcceptance` fineness — **deferred post-acceptance (tracked follow-up)**.
+- Tautological-assertion matcher inversion beyond the bounded `url:` and `text:` operators — **deferred post-acceptance (tracked follow-up)**.
+- Per-assertion sensitivity-gate granularity in the stage-10 artifact — **deferred post-acceptance (tracked follow-up)**.
+- Replacing `defaultCompile` with the full compiler generator — **deferred post-acceptance (tracked follow-up)**.
+- Persisting locator provenance as a dedicated run-local artifact — **deferred post-acceptance (tracked follow-up)**.
 
 ## References
 
