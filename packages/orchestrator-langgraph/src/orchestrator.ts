@@ -33,7 +33,12 @@ import {
   type HumanApproval,
 } from '@arxic/environment';
 import type { ModelAdapter } from '@arxic/model-adapter';
-import { enforceIntentProvenancePolicy, normalizeIntentSpec, type IntentSpec } from '@arxic/intent';
+import {
+  enforceIntentProvenancePolicy,
+  everyRequiredAssertionAcceptance,
+  normalizeIntentSpec,
+  type IntentSpec,
+} from '@arxic/intent';
 import {
   generateSpecFromWorkflow,
   PACKAGE_NAME as PLAYWRIGHT_PACKAGE,
@@ -656,9 +661,10 @@ export class LangGraphOrchestrator {
       ...(normalizedIntentSpec ? { intentSpec: normalizedIntentSpec } : {}),
       oracleOutcome,
     };
-    const hasAcceptance = normalizedIntentSpec
-      ? normalizedIntentSpec.assertions.some((assertion) => assertion.kind === 'acceptance')
-      : true;
+    const hasAcceptance =
+      normalizedIntentSpec && candidateWorkflow
+        ? everyRequiredAssertionAcceptance(candidateWorkflow, normalizedIntentSpec)
+        : true;
     const diagnostics = [
       ...oracleDiagnostics,
       ...(normalizedIntentSpec
