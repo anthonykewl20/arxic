@@ -231,7 +231,7 @@ follow-ups; no deferred item weakens the two-app acceptance proof.
 - How domain packs expose outcomes once while fixtures expose only facts and capabilities — **resolved (slice A, PR #124)**.
 - Failure diagnostics and classification for missing oracle, stale lineage, ambiguity, mismatch, and insensitive assertions — **resolved (slices A-E, PRs #124-#126, #130, #132)**.
 - The required two-app proof matrix, including at least one source/runtime conflict and one observed-only characterization — **resolved (slice F, PR #134)**.
-- Mixed-spec `hasAcceptance` fineness — **deferred post-acceptance (tracked follow-up)**.
+- Mixed-spec `hasAcceptance` fineness — **resolved (PR #136)**: `hasAcceptance` tightened to `everyRequiredAssertionAcceptance` (per-required-transition acceptance-strength; shared multiset matcher).
 - Tautological-assertion matcher inversion beyond the bounded `url:` and `text:` operators — **deferred post-acceptance (tracked follow-up)**.
 - Per-assertion sensitivity-gate granularity in the stage-10 artifact — **deferred post-acceptance (tracked follow-up)**.
 - Replacing `defaultCompile` with the full compiler generator — **deferred post-acceptance (tracked follow-up)**.
