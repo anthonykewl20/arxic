@@ -313,7 +313,7 @@ describe('orchestrator sad paths', () => {
       }),
       probeSensitivity: async () => ({
         killed: true,
-        probed: 1,
+        probed: 2,
         controlPassed: true,
         diagnostics: [],
       }),
@@ -369,7 +369,7 @@ describe('orchestrator sad paths', () => {
         });
         return {
           killed: false,
-          probed: 1,
+          probed: 2,
           controlPassed: true,
           diagnostics: [probeDiagnostic],
         };
@@ -388,7 +388,7 @@ describe('orchestrator sad paths', () => {
     expect(verification.outcome).toBe('verified');
     expect(verification.diagnostics).toContainEqual(probeDiagnostic);
     expect(verification.gates).toContainEqual({ gate: 'sensitivity', passed: false });
-    expect(verification.sensitivityProbe).toEqual({ probed: 1, controlPassed: true });
+    expect(verification.sensitivityProbe).toEqual({ probed: 2, controlPassed: true });
     expect(result.outcome).toBe('verified');
     expect(result.promotionEligible).toBe(false);
     expect(result.receipt).toBeUndefined();
