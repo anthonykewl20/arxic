@@ -120,6 +120,7 @@ export type VerificationNodeResult = Readonly<{
   runs: readonly Readonly<{ passed: boolean }>[];
   stagedBundle?: StagedBundle;
   gates: readonly GateResult[];
+  sensitivityProbe?: Readonly<{ probed: number; controlPassed: boolean }>;
 }>;
 
 export type StageArtifact = unknown;

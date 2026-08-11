@@ -17,10 +17,14 @@ export function generateSpec(
   workflow: Workflow,
   origin: string,
   runtimeUrl?: string,
+  options: { captureScreenshots?: boolean } = {},
 ): { spec: string; nonSemanticLocatorRationale?: string } {
+  const captureScreenshots = options.captureScreenshots ?? true;
   const lines = [
     "import { test, expect } from '../fixtures/workflow.fixture';",
-    "import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';",
+    ...(captureScreenshots
+      ? ["import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';"]
+      : []),
     '',
     `test(${JSON.stringify(workflow.id)}, async ({ page }) => {`,
   ];
@@ -35,7 +39,11 @@ export function generateSpec(
       `    await page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)});`,
       ...action.lines,
       ...renderAssertions(transition, origin),
-      `    await capturePolicyScreenshot(page, ${JSON.stringify(`artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`)});`,
+      ...(captureScreenshots
+        ? [
+            `    await capturePolicyScreenshot(page, ${JSON.stringify(`artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`)});`,
+          ]
+        : []),
       '  });',
     );
   }

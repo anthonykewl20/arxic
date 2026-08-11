@@ -38,6 +38,7 @@ import {
   generateSpecFromWorkflow,
   PACKAGE_NAME as PLAYWRIGHT_PACKAGE,
 } from '@arxic/playwright-agent-adapter';
+import { ARXIC_PROBE_HARNESS_UNUSABLE, probeDiagnostic } from '@arxic/playwright-compiler';
 import {
   PACKAGE_NAME as SOURCE_PACKAGE,
   SourceUaAdapter,
@@ -161,7 +162,12 @@ export type OrchestratorOptions = Readonly<{
     workflow: Workflow;
     origin: string;
     runtimeUrl?: string;
-  }) => Promise<{ killed: boolean; diagnostics: readonly Diagnostic[] }>;
+  }) => Promise<{
+    killed: boolean;
+    probed: number;
+    controlPassed: boolean;
+    diagnostics: readonly Diagnostic[];
+  }>;
   promote?: (
     bundle: StagedBundle,
     gates: VerificationNodeResult['gates'],
@@ -724,15 +730,40 @@ export class LangGraphOrchestrator {
         const runtimeUrl = Object.values(probeBundle.evidenceIndex).find(
           (evidence) => evidence.kind === 'runtime',
         )?.url;
-        const probe = await this.#options.probeSensitivity({
-          workflow: probeBundle.workflow,
-          origin: input.origin,
-          ...(runtimeUrl ? { runtimeUrl } : {}),
-        });
+        let probe: Awaited<ReturnType<NonNullable<OrchestratorOptions['probeSensitivity']>>>;
+        try {
+          probe = await this.#options.probeSensitivity({
+            workflow: probeBundle.workflow,
+            origin: input.origin,
+            ...(runtimeUrl ? { runtimeUrl } : {}),
+          });
+        } catch (error) {
+          const diagnostic = probeDiagnostic(
+            ARXIC_PROBE_HARNESS_UNUSABLE,
+            probeBundle.workflow.id,
+            `Sensitivity probe could not execute: ${error instanceof Error ? error.message : String(error)}`,
+          );
+          const unusable: VerificationNodeResult = {
+            ...projected,
+            diagnostics: [...projected.diagnostics, diagnostic],
+            gates: [...projected.gates, { gate: 'sensitivity', passed: false }],
+            sensitivityProbe: { probed: 0, controlPassed: false },
+          };
+          return {
+            artifact: unusable,
+            adapter: '@arxic/verifier:seam',
+            diagnostics: projected.diagnostics,
+            partial: true,
+            promotionEligible: false,
+            outcome: 'verified',
+            gates: unusable.gates,
+          };
+        }
         const probed: VerificationNodeResult = {
           ...projected,
           diagnostics: [...projected.diagnostics, ...probe.diagnostics],
           gates: [...projected.gates, { gate: 'sensitivity', passed: probe.killed }],
+          sensitivityProbe: { probed: probe.probed, controlPassed: probe.controlPassed },
         };
         return {
           artifact: probed,

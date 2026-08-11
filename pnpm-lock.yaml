@@ -279,9 +279,6 @@ importers:
       '@arxic/playwright-compiler':
         specifier: workspace:*
         version: link:../playwright-compiler
-      '@arxic/playwright-screenshot-privacy':
-        specifier: workspace:*
-        version: link:../playwright-screenshot-privacy
       '@arxic/playwright-trace-sanitizer':
         specifier: workspace:*
         version: link:../playwright-trace-sanitizer

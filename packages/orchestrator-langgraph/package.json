@@ -17,7 +17,6 @@
     "@arxic/model-adapter": "workspace:*",
     "@arxic/playwright-agent-adapter": "workspace:*",
     "@arxic/playwright-compiler": "workspace:*",
-    "@arxic/playwright-screenshot-privacy": "workspace:*",
     "@arxic/playwright-trace-sanitizer": "workspace:*",
     "@arxic/policy-engine": "workspace:*",
     "@arxic/source-ua-adapter": "workspace:*",

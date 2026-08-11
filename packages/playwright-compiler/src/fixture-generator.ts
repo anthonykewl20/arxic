@@ -22,7 +22,16 @@ export function generateFixture(workflow: Workflow): string {
   ].join('\n');
 }
 
-export function generateConfig(workflow: Workflow): string {
+export function generateConfig(
+  workflow: Workflow,
+  options: { trace?: 'workflow-policy' | 'off' } = {},
+): string {
+  const trace =
+    options.trace === 'off'
+      ? 'off'
+      : workflow.verification.trace === 'retain'
+        ? 'retain-on-failure'
+        : 'off';
   return [
     "import { defineConfig } from '@playwright/test';",
     '',
@@ -30,7 +39,7 @@ export function generateConfig(workflow: Workflow): string {
     "  testDir: './tests',",
     '  workers: 1,',
     "  outputDir: './artifacts/test-results',",
-    `  use: { browserName: ${JSON.stringify(workflow.scope.browser)}, headless: true, trace: ${JSON.stringify(workflow.verification.trace === 'retain' ? 'retain-on-failure' : 'off')} },`,
+    `  use: { browserName: ${JSON.stringify(workflow.scope.browser)}, headless: true, trace: ${JSON.stringify(trace)} },`,
     '});',
     '',
   ].join('\n');

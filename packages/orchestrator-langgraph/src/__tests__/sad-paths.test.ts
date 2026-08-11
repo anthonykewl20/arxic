@@ -311,7 +311,12 @@ describe('orchestrator sad paths', () => {
         runs: [{ passed: true }, { passed: true }],
         gates: [{ gate: 'verify', passed: true }],
       }),
-      probeSensitivity: async () => ({ killed: true, diagnostics: [] }),
+      probeSensitivity: async () => ({
+        killed: true,
+        probed: 1,
+        controlPassed: true,
+        diagnostics: [],
+      }),
       promote: async (bundle) => {
         promoted = true;
         return {
@@ -327,6 +332,7 @@ describe('orchestrator sad paths', () => {
       gate: 'sensitivity',
       passed: true,
     });
+    expect(result.checkpoints.find(({ stage }) => stage === 10)?.artifacts).toHaveLength(1);
     expect(result.outcome).toBe('verified');
     expect(result.promotionEligible).toBe(true);
     expect(result.receipt).toBeDefined();
@@ -361,7 +367,12 @@ describe('orchestrator sad paths', () => {
           origin,
           runtimeUrl: origin,
         });
-        return { killed: false, diagnostics: [probeDiagnostic] };
+        return {
+          killed: false,
+          probed: 1,
+          controlPassed: true,
+          diagnostics: [probeDiagnostic],
+        };
       },
       promote: async () => {
         promoted = true;
@@ -377,10 +388,52 @@ describe('orchestrator sad paths', () => {
     expect(verification.outcome).toBe('verified');
     expect(verification.diagnostics).toContainEqual(probeDiagnostic);
     expect(verification.gates).toContainEqual({ gate: 'sensitivity', passed: false });
+    expect(verification.sensitivityProbe).toEqual({ probed: 1, controlPassed: true });
     expect(result.outcome).toBe('verified');
     expect(result.promotionEligible).toBe(false);
     expect(result.receipt).toBeUndefined();
     expect(promoted).toBe(false);
+  }, 60_000);
+
+  it('keeps verifier truth and evidence when the sensitivity probe harness throws', async () => {
+    const stagedBundle = coherentObservedBundle();
+    const checkpointer = new InMemoryStageCheckpointer();
+    const result = await new LangGraphOrchestrator({
+      checkpointer,
+      inferCandidates: async () => validInference('throwing-probe-request'),
+      compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+      verify: async () => ({
+        outcome: 'verified',
+        stagedBundle,
+        diagnostics: [],
+        artifacts: [{ kind: 'screenshot', path: '/safe/signed-in.png', sha256: 'e'.repeat(64) }],
+        runs: [{ passed: true }, { passed: true }],
+        gates: [{ gate: 'verify', passed: true }],
+      }),
+      probeSensitivity: async () => {
+        throw new Error('probe process timed out');
+      },
+    }).run(input('throwing-probe'));
+
+    const verifyCheckpoint = result.checkpoints.find(({ stage }) => stage === 10)!;
+    const verification = (await checkpointer.readArtifact(
+      result.runId,
+      verifyCheckpoint.artifacts[0]!,
+    )) as VerificationNodeResult;
+    expect(verification.outcome).toBe('verified');
+    expect(verification.artifacts).toEqual([
+      { kind: 'screenshot', path: '/safe/signed-in.png', sha256: 'e'.repeat(64) },
+    ]);
+    expect(verification.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'ARXIC-PROBE-HARNESS-UNUSABLE',
+        severity: 'blocked',
+        message: expect.stringContaining('probe process timed out'),
+      }),
+    );
+    expect(verification.gates).toContainEqual({ gate: 'sensitivity', passed: false });
+    expect(result.outcome).toBe('verified');
+    expect(result.promotionEligible).toBe(false);
   }, 60_000);
 
   it('blocks a forged verified result with incomplete deterministic evidence', async () => {
