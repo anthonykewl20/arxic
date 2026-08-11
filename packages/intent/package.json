@@ -8,7 +8,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@arxic/contracts": "workspace:*"
+    "@arxic/contracts": "workspace:*",
+    "@arxic/playwright-compiler": "workspace:*"
   },
   "devDependencies": {
     "@arxic/auth-domain-pack": "workspace:*",

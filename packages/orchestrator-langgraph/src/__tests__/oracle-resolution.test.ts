@@ -10,9 +10,11 @@ import type { EvidenceRef, StagedBundle, Workflow } from '@arxic/contracts';
 import {
   ARXIC_INTENT_ORACLE_CONFLICT,
   ARXIC_INTENT_ORACLE_MISSING,
+  ARXIC_INTENT_WORKFLOW_COVERAGE_GAP,
   INTENT_SCHEMA_VERSION,
   canonicalizeIntentSpec,
   normalizeIntentSpec,
+  type IntentSpec,
   type IntentSpecInput,
 } from '@arxic/intent';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -78,10 +80,21 @@ describe('stage-9 oracle resolution', () => {
   });
 
   it('blocks stage 9 when the intent service reports a missing oracle', async () => {
+    const checkpointer = new InMemoryStageCheckpointer();
+    let compileRan = false;
     const result = await orchestrator({
+      checkpointer,
       resolveOracle: (input) => realResolution(input, []),
+      compile: async () => {
+        compileRan = true;
+        return { compiled: true, plan: 'must not compile' };
+      },
     }).run(orchestratorInput('oracle-missing'));
+    const artifact = await stageNineArtifact(checkpointer, result, 'oracle-missing');
 
+    expect(compileRan).toBe(false);
+    expect(artifact.compiled).toBe(false);
+    expect(artifact.oracleOutcome).toBe('blocked');
     expect(result.outcome).toBe('blocked');
     expect(result.status).toBe('partial');
     expect(result.promotionEligible).toBe(false);
@@ -98,21 +111,26 @@ describe('stage-9 oracle resolution', () => {
     expect(result.checkpoints.find(({ stage }) => stage === 9)).toMatchObject({
       stage: 9,
       status: 'completed',
-      gateResults: [{ gate: 'compile', passed: true }],
+      gateResults: [{ gate: 'compile', passed: false }],
     });
   }, 60_000);
 
   it('allows the same harness to promote when oracle resolution is clean', async () => {
     const stagedBundle = coherentObservedBundle();
+    let compileIntentSpec: IntentSpec | undefined;
     const result = await orchestrator({
       resolveOracle: (input) => realResolution(input, input.oracleRules),
-      compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+      compile: async ({ intentSpec }) => {
+        compileIntentSpec = intentSpec;
+        return { compiled: true, plan: 'compiled', stagedBundle };
+      },
       verify: async () => verifiedResult(stagedBundle),
       promote: async () => promotionReceipt(stagedBundle),
     }).run(
       orchestratorInput('oracle-control', [{ candidateId: candidate().id, oracle: domainRule() }]),
     );
 
+    expect(compileIntentSpec?.assertions[0]?.kind).toBe('acceptance');
     expect(result.outcome).not.toBe('blocked');
     expect(result.promotionEligible).toBe(true);
     expect(result.receipt).toBeDefined();
@@ -139,6 +157,79 @@ describe('stage-9 oracle resolution', () => {
     expect(result.outcome).toBe('contradicted');
     expect(result.promotionEligible).toBe(false);
     expect(result.receipt).toBeUndefined();
+  }, 60_000);
+
+  it('keeps characterization-only intent non-promotable when stage 10 reports verified', async () => {
+    const stagedBundle = coherentObservedBundle();
+    const checkpointer = new InMemoryStageCheckpointer();
+    let promoted = false;
+    const observedOnlyRules = [
+      { candidateId: candidate().id, oracle: { kind: 'observed-only' } },
+    ] as const;
+    const result = await orchestrator({
+      checkpointer,
+      resolveOracle: (input) => realResolution(input, input.oracleRules),
+      compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+      verify: async () => verifiedResult(stagedBundle),
+      promote: async () => {
+        promoted = true;
+        return promotionReceipt(stagedBundle);
+      },
+    }).run(orchestratorInput('oracle-characterization', observedOnlyRules));
+    const artifact = await stageNineArtifact(checkpointer, result, 'oracle-characterization');
+
+    expect(artifact.compiled).toBe(true);
+    expect(artifact.intentSpec?.assertions).toEqual([
+      expect.objectContaining({ kind: 'characterization' }),
+    ]);
+    expect(result.checkpoints.find(({ stage }) => stage === 10)?.gateResults).toEqual([
+      { gate: 'verify', passed: true },
+    ]);
+    expect(result.promotionEligible).toBe(false);
+    expect(result.receipt).toBeUndefined();
+    expect(promoted).toBe(false);
+  }, 60_000);
+
+  it('blocks compilation when IntentSpec does not cover a required workflow assertion', async () => {
+    const checkpointer = new InMemoryStageCheckpointer();
+    let compileRan = false;
+    const result = await orchestrator({
+      checkpointer,
+      resolveOracle: async (input) => {
+        const resolved = await realResolution(input, input.oracleRules);
+        if (!resolved.intentSpec) throw new Error('Expected resolved IntentSpec');
+        return {
+          ...resolved,
+          intentSpec: {
+            ...resolved.intentSpec,
+            assertions: resolved.intentSpec.assertions.map((assertion) => ({
+              ...assertion,
+              intent: 'text:Different outcome',
+            })),
+          },
+        };
+      },
+      compile: async () => {
+        compileRan = true;
+        return { compiled: true, plan: 'must not compile' };
+      },
+    }).run(
+      orchestratorInput('oracle-coverage-gap', [
+        { candidateId: candidate().id, oracle: domainRule() },
+      ]),
+    );
+    const artifact = await stageNineArtifact(checkpointer, result, 'oracle-coverage-gap');
+
+    expect(compileRan).toBe(false);
+    expect(artifact.compiled).toBe(false);
+    expect(artifact.oracleOutcome).toBe('blocked');
+    expect(result.promotionEligible).toBe(false);
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_INTENT_WORKFLOW_COVERAGE_GAP,
+        severity: 'blocked',
+      }),
+    );
   }, 60_000);
 
   it('keeps default oracle resolution as a no-op', async () => {
@@ -274,7 +365,13 @@ describe('stage-9 oracle resolution', () => {
 
 function orchestrator(overrides: {
   checkpointer?: InMemoryStageCheckpointer;
-  compile?: () => Promise<CompilationResult>;
+  compile?: (input: {
+    candidates: readonly Candidate[];
+    observations: readonly EvidenceRef[];
+    outputDirectory: string;
+    origin: string;
+    intentSpec?: IntentSpec;
+  }) => Promise<CompilationResult>;
   resolveOracle?: (input: OracleResolutionInput) => Promise<OracleResolution>;
   verify?: () => Promise<ReturnType<typeof verifiedResult>>;
   promote?: () => Promise<ReturnType<typeof promotionReceipt>>;

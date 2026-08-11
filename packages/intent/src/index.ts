@@ -6,6 +6,7 @@
 export const PACKAGE_NAME = '@arxic/intent' as const;
 
 export * from './canonical';
+export * from './compile-bridge';
 export * from './diagnostics';
 export * from './normalize';
 export * from './resolve';

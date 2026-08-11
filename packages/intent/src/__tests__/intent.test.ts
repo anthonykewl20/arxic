@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, expect, it } from 'vitest';
-import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
+import {
+  validateDiagnostic,
+  type Diagnostic,
+  type StagedBundle,
+  type Workflow,
+} from '@arxic/contracts';
 import * as intent from '..';
 import {
   ARXIC_INTENT_INVALID,
@@ -8,11 +13,14 @@ import {
   ARXIC_INTENT_ORACLE_MISSING,
   ARXIC_INTENT_ORACLE_STALE,
   ARXIC_INTENT_SOURCE_AS_ACCEPTANCE,
+  ARXIC_INTENT_WORKFLOW_COVERAGE_GAP,
   INTENT_SCHEMA_VERSION,
   buildIntentSpec,
   canonicalJson,
   canonicalizeIntentSpec,
+  compileWithIntentSpec,
   detectStaleness,
+  enforceIntentProvenancePolicy,
   intentDiagnostic,
   normalizeIntentSpec,
   resolveAssertionKind,
@@ -60,7 +68,154 @@ function acceptanceAssertion(expectedValue = 'url:/') {
   } as const;
 }
 
+function workflowWithAssertions(...intents: string[]): Workflow {
+  return {
+    $schema: 'https://arxic.dev/schemas/workflow/v1.json',
+    id: 'login',
+    version: 1,
+    title: 'Login',
+    domain: 'authentication',
+    persona: 'registered-user',
+    status: 'observed',
+    confidence: 1,
+    scope: { commit: 'commit-a', environment: 'test', browser: 'chromium' },
+    preconditions: [],
+    states: [{ id: 'login' }, { id: 'complete' }],
+    transitions: intents.map((intent) => ({
+      from: 'login',
+      to: 'complete',
+      action: { intent: 'Submit login credentials' },
+      assertions: [{ intent }],
+      evidenceRefs: ['run:login'],
+    })),
+    negativeCases: [],
+    verification: {
+      requiredRuns: 1,
+      screenshotCheckpoints: [],
+      forbidNetworkErrors: true,
+    },
+    evidenceRefs: ['run:login'],
+  };
+}
+
 describe('intent service sad paths', () => {
+  it('blocks a required workflow assertion missing from the resolved intent spec', () => {
+    const intentSpec = buildIntentSpec({ ...validInput(), assertions: [] });
+
+    const result = enforceIntentProvenancePolicy(
+      workflowWithAssertions('Login succeeds'),
+      intentSpec,
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('Expected workflow coverage rejection');
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_INTENT_WORKFLOW_COVERAGE_GAP,
+        severity: 'blocked',
+        subject: 'transition:0.assertion:Login succeeds',
+      }),
+    );
+  });
+
+  it('blocks double-counting one resolved assertion across two required transitions', () => {
+    const intentSpec = buildIntentSpec({
+      ...validInput(),
+      assertions: [acceptanceAssertion()],
+    });
+
+    const result = enforceIntentProvenancePolicy(
+      workflowWithAssertions('Login succeeds', 'Login succeeds'),
+      intentSpec,
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('Expected workflow over-emission rejection');
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_INTENT_WORKFLOW_COVERAGE_GAP,
+        severity: 'blocked',
+        subject: 'transition:1.assertion:Login succeeds',
+      }),
+    );
+  });
+
+  it('rechecks and blocks matched acceptance without runtime evidence', () => {
+    const intentSpec = buildIntentSpec({
+      ...validInput(),
+      assertions: [acceptanceAssertion()],
+    });
+    const acceptance = intentSpec.assertions[0];
+    if (!acceptance) throw new Error('Expected acceptance assertion fixture');
+
+    const result = enforceIntentProvenancePolicy(workflowWithAssertions('Login succeeds'), {
+      ...intentSpec,
+      assertions: [
+        { ...acceptance, evidenceRefs: { source: acceptance.evidenceRefs.source, runtime: [] } },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('Expected acceptance evidence rejection');
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_INTENT_SOURCE_AS_ACCEPTANCE,
+        severity: 'blocked',
+      }),
+    );
+  });
+
+  it('rechecks and blocks matched acceptance without source evidence', () => {
+    const intentSpec = buildIntentSpec({
+      ...validInput(),
+      assertions: [acceptanceAssertion()],
+    });
+    const acceptance = intentSpec.assertions[0];
+    if (!acceptance) throw new Error('Expected acceptance assertion fixture');
+
+    const result = enforceIntentProvenancePolicy(workflowWithAssertions('Login succeeds'), {
+      ...intentSpec,
+      assertions: [
+        { ...acceptance, evidenceRefs: { source: [], runtime: acceptance.evidenceRefs.runtime } },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('Expected acceptance evidence rejection');
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_INTENT_SOURCE_AS_ACCEPTANCE,
+        severity: 'blocked',
+      }),
+    );
+  });
+
+  it('does not call the compiler when the intent provenance gate fails', async () => {
+    let compileCalls = 0;
+    const compiler = {
+      compile: async () => {
+        compileCalls += 1;
+        throw new Error('Compiler must not be called');
+      },
+    };
+    const intentSpec = buildIntentSpec({ ...validInput(), assertions: [] });
+
+    const result = await compileWithIntentSpec({
+      compiler,
+      workflow: workflowWithAssertions('Login succeeds'),
+      observations: [],
+      intentSpec,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({ code: ARXIC_INTENT_WORKFLOW_COVERAGE_GAP, severity: 'blocked' }),
+      ],
+    });
+    expect(compileCalls).toBe(0);
+  });
+
   it('rejects a malformed spec as blocked', () => {
     const result = normalizeIntentSpec({});
 
@@ -293,7 +448,7 @@ describe('intent service sad paths', () => {
     const codes = (Object.values(intent) as unknown[]).filter(
       (value): value is string => typeof value === 'string' && value.startsWith('ARXIC-INTENT-'),
     );
-    expect(codes).toHaveLength(6);
+    expect(codes).toHaveLength(7);
     expect(new Set(codes).size).toBe(codes.length);
 
     for (const code of codes) {
@@ -310,6 +465,55 @@ describe('intent service sad paths', () => {
 });
 
 describe('intent service happy paths', () => {
+  it('compiles and returns the bundle after the intent provenance gate passes', async () => {
+    const workflow = workflowWithAssertions('Login succeeds');
+    const intentSpec = buildIntentSpec({
+      ...validInput(),
+      assertions: [acceptanceAssertion()],
+    });
+    const bundle = { plan: 'compiled login' } as StagedBundle;
+    const observations = [] as const;
+    let receivedObservations: unknown;
+
+    const result = await compileWithIntentSpec({
+      compiler: {
+        compile: async (_workflow, compilerObservations) => {
+          receivedObservations = compilerObservations;
+          return bundle;
+        },
+      },
+      workflow,
+      observations,
+      intentSpec,
+    });
+
+    expect(result).toEqual({ ok: true, bundle });
+    expect(receivedObservations).toEqual([]);
+    expect(receivedObservations).not.toBe(observations);
+  });
+
+  it('accepts a matched characterization assertion at the compiler gate', () => {
+    const intentSpec = buildIntentSpec({
+      ...validInput(),
+      assertions: [{ ...acceptanceAssertion(), oracles: [{ kind: 'observed-only' }] }],
+    });
+
+    expect(
+      enforceIntentProvenancePolicy(workflowWithAssertions('Login succeeds'), intentSpec),
+    ).toEqual({ ok: true });
+  });
+
+  it('accepts full required assertion coverage with acceptance evidence', () => {
+    const intentSpec = buildIntentSpec({
+      ...validInput(),
+      assertions: [acceptanceAssertion()],
+    });
+
+    expect(
+      enforceIntentProvenancePolicy(workflowWithAssertions('Login succeeds'), intentSpec),
+    ).toEqual({ ok: true });
+  });
+
   it('builds a valid spec with derived assertion kinds', () => {
     const spec = buildIntentSpec({ ...validInput([acceptanceAssertion()]) });
 
