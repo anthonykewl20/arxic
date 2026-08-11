@@ -2,7 +2,7 @@
 
 | Field      | Value                                                                                                  |
 | ---------- | ------------------------------------------------------------------------------------------------------ |
-| Status     | Accepted (2026-08-11) — two-app proof matrix landed (PR <F>)                                           |
+| Status     | Accepted (2026-08-11) — two-app proof matrix landed (PR #134)                                           |
 | Decides    | The bounded IntentSpec/oracle-provenance design for deterministic pseudocode and Playwright generation |
 | Relates to | ADR-001 §2/§8/§9/§10/§12/§13/§15/§16, ADR-002, issue #116                                              |
 | Owners     | Arxic maintainers                                                                                      |
@@ -230,7 +230,7 @@ follow-ups; no deferred item weakens the two-app acceptance proof.
 - Gherkin package/version/commit pin and the exact `compile` API and lineage extraction seam — **resolved by non-adoption (slices A-F)**: no Gherkin adapter or dependency is needed for the accepted native IntentSpec flow; any future optional syntax adapter requires its own pinned design.
 - How domain packs expose outcomes once while fixtures expose only facts and capabilities — **resolved (slice A, PR #124)**.
 - Failure diagnostics and classification for missing oracle, stale lineage, ambiguity, mismatch, and insensitive assertions — **resolved (slices A-E, PRs #124-#126, #130, #132)**.
-- The required two-app proof matrix, including at least one source/runtime conflict and one observed-only characterization — **resolved (slice F, PR <F>)**.
+- The required two-app proof matrix, including at least one source/runtime conflict and one observed-only characterization — **resolved (slice F, PR #134)**.
 - Mixed-spec `hasAcceptance` fineness — **deferred post-acceptance (tracked follow-up)**.
 - Tautological-assertion matcher inversion beyond the bounded `url:` and `text:` operators — **deferred post-acceptance (tracked follow-up)**.
 - Per-assertion sensitivity-gate granularity in the stage-10 artifact — **deferred post-acceptance (tracked follow-up)**.
