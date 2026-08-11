@@ -9,6 +9,9 @@ import {
   ARXIC_EXPLORATION_APPROVAL_DENIED,
   ARXIC_EXPLORATION_BUDGET_EXHAUSTED,
   ARXIC_EXPLORATION_FORBIDDEN,
+  ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS,
+  ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE,
+  ARXIC_EXPLORATION_LOCATOR_MISMATCH,
   ARXIC_EXPLORATION_ORIGIN_DRIFT,
   ARXIC_EXPLORATION_STEP_FAILED,
   ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED,
@@ -135,6 +138,111 @@ describe('stage-8 intent exploration', () => {
       { steps: [navigation('login', '/login')] },
     );
     expect(result.approved).toBe(false);
+    expect(result.decisions).toContainEqual(expect.stringContaining(ARXIC_EXPLORATION_STEP_FAILED));
+  });
+
+  it.each([
+    ['semantic-ambiguous', ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS],
+    ['execution-ambiguous', ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS],
+    ['semantic-inaccessible', ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE],
+    ['execution-inaccessible', ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE],
+    ['semantic-invalid', ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE],
+    ['execution-invalid', ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE],
+    ['mismatch', ARXIC_EXPLORATION_LOCATOR_MISMATCH],
+  ] as const)('classifies locator resolution %s as blocked %s', async (reason, code) => {
+    const locator = {
+      semantic: { kind: 'label', text: 'Email' },
+      execution: { kind: 'role', role: 'textbox', name: 'Email' },
+    } as const;
+    const result = await run(
+      new FakeDriver([
+        {
+          intent: 'login',
+          url: `${origin}/login`,
+          ok: false,
+          originDrifted: false,
+          locatorResolution: { resolved: false, reason, ...locator },
+        },
+      ]),
+      { steps: [navigation('login', '/login')] },
+    );
+
+    expect(result.approved).toBe(false);
+    expect(result.decisions).toContainEqual(expect.stringContaining(`${code} [blocked] login:`));
+    expect(result.decisions.join('\n')).not.toContain('textbox');
+  });
+
+  it('keeps an unresolved optional locator observed-degraded instead of blocked-approved', async () => {
+    const result = await run(
+      new FakeDriver([
+        {
+          intent: 'optional login control',
+          url: `${origin}/login`,
+          ok: false,
+          originDrifted: false,
+          locatorResolution: {
+            resolved: false,
+            reason: 'semantic-invalid',
+            semantic: { kind: 'role', role: 'button >> nth=0' },
+            execution: { kind: 'role', role: 'button' },
+          },
+        },
+      ]),
+      { steps: [{ ...navigation('optional login control', '/login'), required: false }] },
+    );
+
+    expect(result.approved).toBe(true);
+    expect(result.decisions).toContainEqual(
+      expect.stringContaining('Optional step observed-degraded: optional login control'),
+    );
+    expect(result.decisions.join('\n')).not.toContain('[blocked]');
+  });
+
+  it('classifies a multiline fill failure without persisting its secret', async () => {
+    const secret = 'line1\nSECRET-line2';
+    // The Action inherits the Service's safe-error guarantee and only proves classification here.
+    const result = await run(
+      new FakeDriver([
+        {
+          intent: 'fill rejected control',
+          url: `${origin}/login`,
+          ok: false,
+          originDrifted: false,
+          locatorResolution: {
+            resolved: true,
+            semantic: { kind: 'role', role: 'checkbox' },
+            execution: { kind: 'role', role: 'checkbox' },
+          },
+          error: 'browser action failed',
+        },
+      ]),
+      { steps: [navigation('fill rejected control', '/login')] },
+    );
+
+    expect(result.decisions).toContainEqual(expect.stringContaining(ARXIC_EXPLORATION_STEP_FAILED));
+    expect(result.decisions.join('\n')).not.toContain(secret);
+    expect(result.decisions.join('\n')).not.toContain('SECRET-line2');
+  });
+
+  it('classifies an action failure after successful locator resolution as a failed step', async () => {
+    const result = await run(
+      new FakeDriver([
+        {
+          intent: 'login',
+          url: `${origin}/login`,
+          ok: false,
+          originDrifted: false,
+          locatorResolution: {
+            resolved: true,
+            semantic: { kind: 'label', text: 'Email' },
+            execution: { kind: 'role', role: 'textbox', name: 'Email' },
+          },
+          error: 'Browser action failed',
+        },
+      ]),
+      { steps: [navigation('login', '/login')] },
+    );
+
     expect(result.decisions).toContainEqual(expect.stringContaining(ARXIC_EXPLORATION_STEP_FAILED));
   });
 

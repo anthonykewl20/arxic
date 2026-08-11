@@ -21,6 +21,10 @@ export const ARXIC_EXPLORATION_BUDGET_EXHAUSTED = 'ARXIC-EXPLORATION-BUDGET-EXHA
 export const ARXIC_EXPLORATION_BUDGET_MISSING = 'ARXIC-EXPLORATION-BUDGET-MISSING' as const;
 export const ARXIC_EXPLORATION_ORIGIN_DRIFT = 'ARXIC-EXPLORATION-ORIGIN-DRIFT' as const;
 export const ARXIC_EXPLORATION_STEP_FAILED = 'ARXIC-EXPLORATION-STEP-FAILED' as const;
+export const ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS = 'ARXIC-EXPLORATION-LOCATOR-AMBIGUOUS' as const;
+export const ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE =
+  'ARXIC-EXPLORATION-LOCATOR-INACCESSIBLE' as const;
+export const ARXIC_EXPLORATION_LOCATOR_MISMATCH = 'ARXIC-EXPLORATION-LOCATOR-MISMATCH' as const;
 export const ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED =
   'ARXIC-EXPLORATION-TRANSITIONS-UNOBSERVED' as const;
 
@@ -31,6 +35,9 @@ export const EXPLORATION_DIAGNOSTIC_CODES = Object.freeze([
   ARXIC_EXPLORATION_BUDGET_MISSING,
   ARXIC_EXPLORATION_ORIGIN_DRIFT,
   ARXIC_EXPLORATION_STEP_FAILED,
+  ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS,
+  ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE,
+  ARXIC_EXPLORATION_LOCATOR_MISMATCH,
   ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED,
 ] as const);
 
@@ -329,6 +336,19 @@ function classifyObservation(
   diagnostics: Diagnostic[],
   decisions: string[],
 ): void {
+  if (observation.locatorResolution && !observation.locatorResolution.resolved) {
+    const reason = observation.locatorResolution.reason;
+    if (step.required) {
+      const code = locatorDiagnosticCode(reason);
+      diagnostics.push(
+        explorationDiagnostic(code, step.intent, `Locator resolution failed: ${reason}`),
+      );
+    } else {
+      decisions.push(
+        `Optional step observed-degraded: ${step.intent}: locator resolution ${reason}`,
+      );
+    }
+  }
   if (observation.originDrifted) {
     diagnostics.push(
       explorationDiagnostic(
@@ -338,7 +358,10 @@ function classifyObservation(
       ),
     );
   }
-  if (!observation.ok) {
+  if (
+    !observation.ok &&
+    (!observation.locatorResolution || observation.locatorResolution.resolved)
+  ) {
     if (step.required) {
       diagnostics.push(
         explorationDiagnostic(
@@ -351,6 +374,27 @@ function classifyObservation(
       decisions.push(
         `Optional step observed-degraded: ${step.intent}: ${observation.error ?? 'browser step failed'}`,
       );
+    }
+  }
+}
+
+function locatorDiagnosticCode(
+  reason: Extract<NonNullable<StepObservation['locatorResolution']>, { resolved: false }>['reason'],
+): ExplorationDiagnosticCode {
+  switch (reason) {
+    case 'semantic-ambiguous':
+    case 'execution-ambiguous':
+      return ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS;
+    case 'semantic-inaccessible':
+    case 'execution-inaccessible':
+    case 'semantic-invalid':
+    case 'execution-invalid':
+      return ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE;
+    case 'mismatch':
+      return ARXIC_EXPLORATION_LOCATOR_MISMATCH;
+    default: {
+      const exhaustive: never = reason;
+      return exhaustive;
     }
   }
 }

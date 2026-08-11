@@ -101,6 +101,7 @@ const maxJsonStringBytes = 8 * 1024 * 1024;
 const maxActions = 10_000;
 const allowedActionPairs = new Map<string, ReadonlySet<string>>([
   ['BrowserContext', new Set(['clearCookies', 'newPage'])],
+  ['ElementHandle', new Set(['click', 'fill'])],
   ['Frame', new Set(['click', 'expect', 'fill', 'goto'])],
   ['Page', new Set(['screenshot'])],
   ['Test', new Set(['expect', 'fixture', 'hook', 'pw:api', 'test.step'])],
