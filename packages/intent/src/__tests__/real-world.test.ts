@@ -15,6 +15,7 @@ import {
   INTENT_SCHEMA_VERSION,
   canonicalJson,
   canonicalizeIntentSpec,
+  enforceIntentProvenancePolicy,
   normalizeIntentSpec,
   resolveAssertionKind,
   type IntentSpecInput,
@@ -27,8 +28,8 @@ const { version: authDomainPackVersion } = JSON.parse(
 ) as { version: string };
 const loginCapability: AuthCapabilityId = 'authentication.login';
 const pinnedCanonicalSha256: Readonly<Record<string, string>> = {
-  'reference-auth-app': '90a109d993341608cd99b0816f0d2023770cdbcee2e182cbadeb1707e3e7b88a',
-  'vulnerable-auth-app': 'e27f1aafef030685c0b874e311fd666da3c60629cdab2df331d218bcafea8522',
+  'reference-auth-app': '1860b161ed87c11d0e1f0c4c905534644cc8b7c5befdcd1dca77d7a1a5296198',
+  'vulnerable-auth-app': '6cc7f019393ae0b66ab80384903bdc9fe379749b6c3443e16be0e1ddd8208901',
 };
 
 function loginOracle() {
@@ -74,7 +75,7 @@ function inputFor(app: (typeof FIXTURE_APPS)[number]): IntentSpecInput {
     assertions: [
       {
         id: 'login-success',
-        intent: 'Login succeeds',
+        intent: login.assertion,
         expectedValue: login.assertion,
         oracles: [loginOracle()],
         evidenceRefs,
@@ -86,12 +87,20 @@ function inputFor(app: (typeof FIXTURE_APPS)[number]): IntentSpecInput {
 
 describe('intent service real-world data proof', () => {
   for (const app of FIXTURE_APPS) {
-    it(`normalizes and canonically pins ${app.name} observed login facts`, () => {
+    it(`normalizes, canonically pins, and gates ${app.name} observed login facts`, () => {
       const result = normalizeIntentSpec(inputFor(app));
+      const candidate = authCandidates(app.authSurface).find(
+        ({ workflow }) => workflow.id === loginCapability,
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error(`Expected ${app.name} intent normalization`);
+      if (!candidate) throw new Error(`Expected ${app.name} login candidate`);
       expect(result.spec.assertions[0]?.kind).toBe('acceptance');
+      expect(candidate.workflow.transitions[0]?.assertions[0]?.intent).toBe(
+        app.authSurface.login.assertion,
+      );
+      expect(enforceIntentProvenancePolicy(candidate.workflow, result.spec)).toEqual({ ok: true });
       expect(canonicalizeIntentSpec(result.spec).canonicalSha256).toBe(
         pinnedCanonicalSha256[app.name],
       );

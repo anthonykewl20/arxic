@@ -196,6 +196,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/playwright-compiler':
+        specifier: workspace:*
+        version: link:../playwright-compiler
     devDependencies:
       '@arxic/auth-domain-pack':
         specifier: workspace:*
