@@ -200,6 +200,7 @@ describe('stage-8 intent exploration', () => {
 
   it('classifies a multiline fill failure without persisting its secret', async () => {
     const secret = 'line1\nSECRET-line2';
+    // The Action inherits the Service's safe-error guarantee and only proves classification here.
     const result = await run(
       new FakeDriver([
         {

@@ -1,6 +1,6 @@
 # M2-LOCATOR-POLICY — staged doc updates (charter §10.2)
 
-Issue: refs #116 · PR: TBD · Disposition: **WORK IN PROGRESS — NOT DONE.** Slice C implementation + fix round 1 are on this branch (101 files / 842 tests green). Independent re-review (reviewer-hy3) VERIFIED the 4 original blocking findings (B1–B4) fixed, then found **2 NEW blocking defects (F1, F2) introduced by the fix round** that are **UNRESOLVED**. Do not merge until F1/F2 land and a consensus review passes.
+Issue: refs #116 · PR: TBD · Disposition: **CODE COMPLETE on branch; PR + CI + post-merge doc fold pending.** Slice C + fix round 1 (B1–B4) + fix round 2 (F1–F11) + fix round 3 (consensus-review numeric-credential closure) all landed locally. Consensus review (reviewer-hy3 + reviewer-deepseek) ran on fix round 2: hy3 APPROVE, deepseek REQUEST CHANGES on a **reproduced numeric-AX-value credential leak** (P1). The reviewers disagreed on the same edge; deepseek's P1 was reproduced red-first by the main agent against real Chromium (`<input type="number">` filled with `123456` retained `"value":123456`), fix round 3 closed it type-agnostically, and the red-first test now passes. Awaiting deepseek confirmation + the integrator's PR/CI/doc-fold.
 
 ---
 
@@ -9,6 +9,10 @@ Issue: refs #116 · PR: TBD · Disposition: **WORK IN PROGRESS — NOT DONE.** S
 **Branch:** `feat/exploration-locator-policy` · **Worktree:** `/home/soultransit/devtony/arxic-wt/locator-policy` · committed + pushed as WIP.
 
 **Done on this branch:** ADR-004 §6 locator policy — semantic+execution locator pairs, ARIA-role allowlist (B1), bounded fill-error redaction (B2), act-through-the-identity-checked-handle (B3), a11y ignored-wrapper flattening + redaction positive/negative controls (B4a), real login transition proof (B4b). Plus NB1–NB7 (fail-closed flag ordering, framenavigated, waitFor-attached, strict-mode→ambiguous, non-required→decision-string, exhaustive switch). Gates green (typecheck/typecheck:packages/lint/format/test 842).
+
+**Fix round 2 landed locally (not yet final):** F1–F11 are implemented; F1/F2 red-first reproductions and all ordered local gates now pass. Consensus review remains pending, so the slice is still work in progress.
+
+**Fix round 3 (consensus-review finding) — landed locally:** the fix-round-2 consensus review disagreed. reviewer-hy3 APPROVED; reviewer-deepseek REQUEST CHANGES with a P1 it **reproduced against real Chromium**: a numeric-typed AX `value` bypassed the F1 scrub (the containment check at `redactAccessibilityValues` was string-only), so a filled numeric credential leaked — `<input type="number">` filled with `123456` retained `"value":123456`. hy3 had seen the same edge but classified it as by-design/non-blocking ("realistic credentials aren't pure numbers"). **hy3's classification is wrong for arxic**: TOTP (one of the 6 auth-domain-pack candidates) is a 6-digit numeric credential. The main agent reproduced the P1 red-first (new test failed against the string-only scrub with `"value":123456` surviving), then closed it type-agnostically: the containment check now takes the string form of any `string|number` value, so numeric credentials are dropped while benign numerics (sliders, counters) are preserved unless they actually match a filled value. (deepseek's separate P3 — empty-string fill over-redacts quotes — was checked and is invalid: `JSON.stringify('').slice(1,-1)` is `''`, not `'"'`, and the existing `.filter((fragment) => fragment.length > 0)` already drops empty fragments, so no over-redaction occurs. No change made.) Gates after fix round 3: typecheck ☑ · typecheck:packages ☑ · lint ☑ · `exploration-driver.test.ts` 16/16 ☑ (incl. new numeric test + real signed-in proof) · format:check pending the final note edit.
 
 **BLOCKING — must fix before merge (fix round 2, NOT started):**
 
@@ -37,46 +41,51 @@ Issue: refs #116 · PR: TBD · Disposition: **WORK IN PROGRESS — NOT DONE.** S
 
 ---
 
-## 1. `docs/SYNC.md` — tracker row (NOT YET FINAL — slice incomplete)
+## 1. `docs/SYNC.md` — tracker row (ready for integrator at merge)
 
 ```
-| #116 | [M2 design + impl] Intent-backed pseudocode (IntentSpec) — ADR-004 design landed; slices A + B landed; slice C (locator policy) IN PROGRESS on `feat/exploration-locator-policy` (fix round 2 pending: F1 credential-scrub + F2 trace-sanitizer ElementHandle allowlist); slices D–F pending | 🚧 in progress (2 of 6 slices + slice C partial) |
+| #116 | [M2 design + impl] Intent-backed pseudocode (IntentSpec) — ADR-004 design landed; slices A + B landed; slice C (locator policy) landed via PR <N> (consensus-reviewed: F1 credential-scrub incl. numeric AX values + F2 trace-sanitizer ElementHandle allowlist); slices D–F pending | 🚧 in progress (3 of 6 slices) |
 ```
 
-## 2. `docs/SYNC.md` — session-log row (NOT YET FINAL — do not append until done)
+## 2. `docs/SYNC.md` — session-log row (ready for integrator at merge)
 
 ```
-| 2026-08-1x | **#116 slice C (M2-LOCATOR-POLICY) <status TBD>.** <final summary after F1/F2 land>. Slice C of 6. Next: slice D. |
+| 2026-08-11 | **#116 slice C (M2-LOCATOR-POLICY) landed via PR <N> (CI <status>).** `@arxic/playwright-agent-adapter` `PlaywrightExplorationDriver` enforces ADR-004 §6 locator policy: a semantic locator (role/accessible name) and a stable execution locator must each resolve to exactly one live element and to the SAME element immediately before every normal non-force action; ambiguity/drift/inaccessible controls are diagnostics, not generated assertions. Identity-checked `ElementHandle` act-through (B3) with try/catch disposal (F10). F1 credential-scrub: filled values are tracked session-lifetime in a `Set<string>` (never cleared on navigation), and a recursive value-based scrub redacts the a11y snapshot — `name`/`description` substrings → `[REDACTED]`, any `string|number` `value` whose string form contains a filled value is dropped (children kept), so emails/passwords AND numeric credentials (TOTP/PIN) are removed while benign numerics survive; screenshots are suppressed session-lifetime after any fill (raw full-page screenshots are never routed through screenshot-privacy at this layer — tracked as a #115 follow-up). F2 added `ElementHandle → {click,fill}` to the trace-sanitizer allowlist so the slice's actions survive projection (additive; params already `{}`). Consensus review: reviewer-hy3 APPROVE, reviewer-deepseek REQUEST CHANGES on a reproduced numeric-AX-value leak that hy3 had classified non-blocking — deepseek correct (TOTP is numeric); main agent reproduced it red-first and closed it type-agnostically (fix round 3). Gates green (typecheck/typecheck:packages/lint/test <N> files / <T> tests/format:check). Slice C of 6. Next: slice D. |
 ```
 
-## 3. `CHANGELOG.md` — entry (NOT YET FINAL)
-
-Awaiting F1/F2 resolution. Draft (update before merge):
+## 3. `CHANGELOG.md` — entry (ready for integrator at merge)
 
 ```
-- M2-LOCATOR-POLICY locator and transition policy (refs #116): <redraft to reflect value-based scrub + ElementHandle sanitizer entry>
+- M2-LOCATOR-POLICY locator and transition policy: semantic+execution locator pairs resolve to the same live element before every non-force action; filled values (incl. numeric credentials) scrubbed session-lifetime from the a11y snapshot; ElementHandle trace actions retained (refs #116)
 ```
 
 ## 4. `VERSION` bump required?
 
 no — the adapter remains private and the types are an unfrozen M2 intermediate seam.
 
-## 5. Evidence pointers (current; re-verify after F1/F2)
+## 5. Evidence pointers (fix round 2 + fix round 3)
 
-- Real-world proof: `packages/playwright-agent-adapter/src/__tests__/exploration-driver.test.ts` — Playwright 1.62.1 real Chromium; **currently** fills email+password, clicks Login, reaches `${origin}/` with `Logout`. After F1 the signed-in screenshot assertion changes (screenshots suppressed session-lifetime post-fill); the signed-in a11y snapshot must be asserted email-free.
-- Gates (current): typecheck ☑ · typecheck:packages ☑ · lint ☑ · test 101 files / 842 ☑ · format:check ☑. Re-run after fix round 2.
-- F2 changes the retained-trace content (ElementHandle actions reappear) — add/extend a trace-inspection assertion if practical.
+- Real-world proof: `packages/playwright-agent-adapter/src/__tests__/exploration-driver.test.ts` — Playwright 1.62.1 real Chromium fills email+password through identity-checked handles, clicks Login, and reaches `${origin}/` with `Logout`; every post-fill observation (including the signed-in transition) excludes both credentials and has no retained screenshot.
+- F1 negative control (string): the same file mirrors a successfully filled value into a separate paragraph and proves the recursive AX scrub removes the value while retaining the tree; the pre-existing-value positive control remains visible.
+- **F1 negative control (numeric — fix round 3):** the same file fills `123456` into `<input type="number">` and asserts the numeric AX `value` is absent — red against the string-only scrub (`"value":123456` survived), green after the type-agnostic containment fix.
+- F2 loop closure: `packages/playwright-trace-sanitizer/src/trace-sanitizer.test.ts` proves complete `ElementHandle.fill` and `ElementHandle.click` before/after pairs survive projection with parameters stripped.
+- Gates (fix round 3): typecheck ☑ · typecheck:packages ☑ · lint ☑ · `exploration-driver.test.ts` 16/16 ☑ · full `pnpm test` 101 files / 845 tests ☑ · format:check ☑ (run LAST).
 
-## 6. Sad paths proved (current; extend after fix round 2)
+## 6. Sad paths proved (fix round 2 + fix round 3)
 
-| Trigger                                               | Expected disposition                                                 | Test                                          |
-| ----------------------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------- |
-| Semantic/execution locator >1 element                 | blocked / LOCATOR-AMBIGUOUS                                          | parameterized ambiguity tests                 |
-| Semantic/execution locator 0 elements                 | blocked / LOCATOR-INACCESSIBLE                                       | parameterized inaccessible tests              |
-| Both unique but different nodes                       | blocked / LOCATOR-MISMATCH                                           | mismatch test                                 |
-| Role contains selector syntax (`>>`)                  | blocked / locator invalid; no action                                 | injected-role tests (**strengthen per F5**)   |
-| Multiline fill value in error                         | blocked / STEP_FAILED; no substring persisted                        | multiline fill-error tests                    |
-| Identity-checked node replaced pre-action             | blocked / STEP_FAILED; replacement untouched (**strengthen per F6**) | detached-handle Chromium test                 |
-| Ignored CDP wrapper holds controls                    | tree retains descendants; values redacted (**re-point per F1**)      | a11y positive/negative controls               |
-| Optional locator unresolved                           | observed-degraded decision; no blocked+approved                      | optional unresolved-locator orchestrator test |
-| **Mirrored/echoed filled value (F1 — NEW, must add)** | value absent from a11y across navigation                             | mirroring-page negative control (red-first)   |
+| Trigger                                                                           | Expected disposition                                                 | Test                                                                         |
+| --------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Semantic/execution locator >1 element                                             | blocked / LOCATOR-AMBIGUOUS                                          | parameterized ambiguity tests                                                |
+| Semantic/execution locator 0 elements                                             | blocked / LOCATOR-INACCESSIBLE                                       | parameterized inaccessible tests                                             |
+| Both unique but different nodes                                                   | blocked / LOCATOR-MISMATCH                                           | mismatch test                                                                |
+| Role contains selector syntax (`>>`)                                              | blocked / locator invalid before count or action                     | nameless injected-role test                                                  |
+| Multiline fill value in error                                                     | blocked / STEP_FAILED; no substring persisted                        | multiline fill-error tests                                                   |
+| Identity-checked node replaced pre-action                                         | blocked / STEP_FAILED with detached-handle error                     | detached-handle Chromium test                                                |
+| Ignored CDP wrapper holds controls                                                | tree retains descendants; filled values scrubbed                     | a11y positive/negative controls                                              |
+| Optional locator unresolved                                                       | observed-degraded decision; no blocked+approved                      | optional unresolved-locator orchestrator test                                |
+| Mirrored/echoed filled value                                                      | value absent throughout the recursively scrubbed AX tree             | mirroring-page negative control (red-first)                                  |
+| Navigation after successful credential fill                                       | values remain scrubbed and screenshots remain suppressed             | real signed-in transition proof                                              |
+| ElementHandle fill/click trace actions                                            | complete pairs retained with empty params                            | sanitizer projection test (red-first)                                        |
+| **Numeric AX value carries a filled credential (fix round 3 — consensus review)** | numeric `value` dropped when its string form contains a filled value | `<input type="number">` negative control (red-first, reproduced the P1 live) |
+
+**Known fail-safe behavior (substring over-redaction):** because the containment check is substring-based, a short filled value that is a substring of an unrelated benign numeric (e.g. fill `5` while a slider sits at `50`) will also drop that numeric. This errs toward redaction (never a leak), matches the existing string-value semantics, and only occurs in a session where a fill has already happened — acceptable, recorded so it isn't mistaken for a bug. A future shared `buildSensitiveFragments` helper could deduplicate the scrub skeleton between `redactAccessibilityValues` and `safeErrorMessage` (non-blocking, out of scope for this security fix).

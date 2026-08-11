@@ -100,7 +100,7 @@ describe('PlaywrightExplorationDriver locator policy', () => {
         '<button onclick="status.textContent=\'Clicked\'">Save</button><button>Save</button><button>Save</button><p id="status">Idle</p>',
       )}`;
       const locator = {
-        semantic: { kind: 'role', role: 'button >> nth=0', name: 'Save' },
+        semantic: { kind: 'role', role: 'button >> nth=0' },
         execution: { kind: 'role', role: 'button', name: 'Save' },
       } as const;
       const result = await driver.execute(
@@ -196,7 +196,7 @@ describe('PlaywrightExplorationDriver locator policy', () => {
         [{ intent: 'snapshot after failed fill', kind: 'snapshot' }],
         { allowedOrigin: url },
       );
-      expect(JSON.stringify(afterFailure.observations[0]?.accessibilitySnapshot)).not.toContain(
+      expect(JSON.stringify(afterFailure.observations[0]?.accessibilitySnapshot)).toContain(
         'privacy-sentinel',
       );
     } finally {
@@ -275,6 +275,7 @@ describe('PlaywrightExplorationDriver locator policy', () => {
           error: expect.any(String),
         }),
       );
+      expect(result.observations[0]?.error).toMatch(/not attached to the DOM/i);
     } finally {
       await driver.close();
     }
@@ -324,6 +325,65 @@ describe('PlaywrightExplorationDriver locator policy', () => {
       expect(JSON.stringify(result.observations[0]?.accessibilitySnapshot)).not.toContain(
         'SECRET-line2',
       );
+    } finally {
+      await driver.close();
+    }
+  });
+
+  it('removes a filled value mirrored into another element across the accessibility snapshot', async () => {
+    const driver = new PlaywrightExplorationDriver();
+    const value = 'mirrored-filled-value';
+    try {
+      const html = `<label>Message<input oninput="echo.textContent=this.value"></label><p id="echo"></p>`;
+      const url = `data:text/html,${encodeURIComponent(html)}`;
+      const result = await driver.execute(
+        [
+          {
+            intent: 'fill mirrored value',
+            kind: 'fill',
+            url,
+            locator: {
+              semantic: { kind: 'label', text: 'Message', exact: true },
+              execution: { kind: 'label', text: 'Message', exact: true },
+            },
+            value,
+          },
+        ],
+        { allowedOrigin: url },
+      );
+
+      expect(result.observations[0]?.ok).toBe(true);
+      expect(JSON.stringify(result.observations[0]?.accessibilitySnapshot)).not.toContain(value);
+    } finally {
+      await driver.close();
+    }
+  });
+
+  it('removes a filled numeric credential from a numeric control value in the accessibility snapshot', async () => {
+    // A numeric AX `value` (Chrome reports <input type="number"> as a spinbutton with a
+    // numeric value) must be scrubbed too — TOTP/PIN/OTP codes are numeric credentials.
+    const driver = new PlaywrightExplorationDriver();
+    const value = '123456';
+    try {
+      const url = `data:text/html,${encodeURIComponent('<label>PIN<input type="number"></label>')}`;
+      const result = await driver.execute(
+        [
+          {
+            intent: 'fill numeric credential',
+            kind: 'fill',
+            url,
+            locator: {
+              semantic: { kind: 'label', text: 'PIN', exact: true },
+              execution: { kind: 'label', text: 'PIN', exact: true },
+            },
+            value,
+          },
+        ],
+        { allowedOrigin: url },
+      );
+
+      expect(result.observations[0]?.ok).toBe(true);
+      expect(JSON.stringify(result.observations[0]?.accessibilitySnapshot)).not.toContain(value);
     } finally {
       await driver.close();
     }
@@ -455,15 +515,13 @@ describe('PlaywrightExplorationDriver locator policy', () => {
               accessibilitySnapshotSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
             }),
           );
-          if (observation.intent !== 'click login') {
-            expect(JSON.stringify(observation.accessibilitySnapshot)).not.toContain(
-              'locator-policy@example.test',
-            );
-            expect(JSON.stringify(observation.accessibilitySnapshot)).not.toContain(
-              'LocatorPolicy1!',
-            );
-            expect(observation.screenshotRef).toBeUndefined();
-          }
+          expect(JSON.stringify(observation.accessibilitySnapshot)).not.toContain(
+            'locator-policy@example.test',
+          );
+          expect(JSON.stringify(observation.accessibilitySnapshot)).not.toContain(
+            'LocatorPolicy1!',
+          );
+          expect(observation.screenshotRef).toBeUndefined();
         }
         const signedIn = await waitForObservation(
           driver,
@@ -474,7 +532,11 @@ describe('PlaywrightExplorationDriver locator policy', () => {
         );
         expect(signedIn.url).toBe(`${origin}/`);
         expect(JSON.stringify(signedIn.accessibilitySnapshot)).toContain('Logout');
-        expect(signedIn.screenshotRef).toBeDefined();
+        expect(JSON.stringify(signedIn.accessibilitySnapshot)).not.toContain(
+          'locator-policy@example.test',
+        );
+        expect(JSON.stringify(signedIn.accessibilitySnapshot)).not.toContain('LocatorPolicy1!');
+        expect(signedIn.screenshotRef).toBeUndefined();
         process.stdout.write(
           `Locator policy proof: Chromium ${result.browserVersion}; signed-in ${signedIn.url}; a11y ${signedIn.accessibilitySnapshotSha256?.slice(0, 12)}\n`,
         );

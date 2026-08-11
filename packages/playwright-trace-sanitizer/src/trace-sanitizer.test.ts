@@ -84,6 +84,58 @@ describe('screenshot checkpoint source binding', () => {
 });
 
 describe('Playwright trace sanitization service', () => {
+  test('retains ElementHandle fill and click action pairs', async () => {
+    const fixture = await emptyFixture();
+    const events = [
+      { type: 'context-options', version: 8, browserName: 'chromium' },
+      {
+        type: 'before',
+        callId: 'call@fill',
+        startTime: 1,
+        class: 'ElementHandle',
+        method: 'fill',
+        params: { value: protectedPassword },
+      },
+      { type: 'after', callId: 'call@fill', endTime: 2 },
+      {
+        type: 'before',
+        callId: 'call@click',
+        startTime: 3,
+        class: 'ElementHandle',
+        method: 'click',
+        params: {},
+      },
+      { type: 'after', callId: 'call@click', endTime: 4 },
+    ];
+    await writeFile(
+      fixture.raw,
+      await zipBytes({
+        'trace.trace': `${events.map((event) => JSON.stringify(event)).join('\n')}\n`,
+      }),
+    );
+
+    const result = await sanitizePlaywrightTrace({
+      sourcePath: fixture.raw,
+      outputPath: fixture.sanitized,
+      provenancePath: fixture.provenance,
+      forbiddenSubstrings: [protectedPassword],
+    });
+
+    expect(result.ok, JSON.stringify(result)).toBe(true);
+    const retained = (await readArchive(fixture.sanitized))
+      .get('trace-001.trace')!
+      .toString('utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line) as Record<string, unknown>)
+      .filter((event) => event.type === 'before')
+      .map(({ class: actionClass, method }) => [actionClass, method]);
+    expect(retained).toEqual([
+      ['ElementHandle', 'fill'],
+      ['ElementHandle', 'click'],
+    ]);
+  });
+
   test('sanitizes every trace prefix into an allowlisted action timeline', async () => {
     const fixture = await traceFixture();
 

@@ -51,8 +51,6 @@ export type LocatorResolution =
       execution: ExecutionLocator;
     }>;
 
-export type ExplorationStepKind = 'navigate' | 'snapshot' | 'fill' | 'click';
-
 export type PlannedExplorationStep = Readonly<
   | { intent: string; url: string; kind: 'navigate' }
   | { intent: string; kind: 'snapshot' }
@@ -107,7 +105,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
   #page?: Page;
   #cdp?: CDPSession;
   #tracingStarted = false;
-  #pageContainsFilledValue = false;
+  readonly #filledValues = new Set<string>();
 
   constructor(options: PlaywrightExplorationDriverOptions = {}) {
     this.#options = {
@@ -131,10 +129,8 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       try {
         if (step.kind === 'navigate') {
           await page.goto(step.url, { waitUntil: 'load', timeout: this.#options.timeoutMs });
-          this.#pageContainsFilledValue = false;
         } else if ((step.kind === 'fill' || step.kind === 'click') && step.url) {
           await page.goto(step.url, { waitUntil: 'load', timeout: this.#options.timeoutMs });
-          this.#pageContainsFilledValue = false;
         }
         if (step.kind === 'fill' || step.kind === 'click') {
           const resolution = await this.#resolveControl(page, step.locator);
@@ -155,19 +151,28 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
           }
           try {
             if (step.kind === 'fill') {
-              this.#pageContainsFilledValue = true;
-              await resolution.executionHandle.fill(step.value);
-            } else await resolution.executionHandle.click();
+              await resolution.executionHandle.fill(step.value, {
+                timeout: this.#options.timeoutMs,
+              });
+              this.#filledValues.add(step.value);
+            } else {
+              await resolution.executionHandle.click({ timeout: this.#options.timeoutMs });
+            }
           } finally {
-            await resolution.executionHandle.dispose();
+            try {
+              await resolution.executionHandle.dispose();
+            } catch {
+              // Cleanup must not mask the action result.
+            }
           }
         }
         const capturedSnapshot = await this.#accessibilitySnapshot(page);
-        const snapshot = this.#pageContainsFilledValue
-          ? redactAccessibilityValues(capturedSnapshot)
-          : capturedSnapshot;
+        const snapshot =
+          this.#filledValues.size > 0
+            ? redactAccessibilityValues(capturedSnapshot, this.#filledValues)
+            : capturedSnapshot;
         let screenshotRef: string | undefined;
-        if (this.#options.evidenceDir && !this.#pageContainsFilledValue) {
+        if (this.#options.evidenceDir && this.#filledValues.size === 0) {
           const slug =
             step.intent
               .toLowerCase()
@@ -227,7 +232,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     this.#browser = undefined;
     this.#cdp = undefined;
     this.#tracingStarted = false;
-    this.#pageContainsFilledValue = false;
+    this.#filledValues.clear();
     let traceFailure: Error | undefined;
     if (tracingStarted && context && this.#options.evidenceDir) {
       let temporaryTraceDirectory: string | undefined;
@@ -306,9 +311,6 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     }
     if (!this.#page) {
       this.#page = await this.#context.newPage();
-      this.#page.on('framenavigated', (frame) => {
-        if (frame === this.#page?.mainFrame()) this.#pageContainsFilledValue = false;
-      });
     }
     return this.#page;
   }
@@ -503,24 +505,27 @@ function playwrightLocator(page: Page, specification: ValidatedLocatorSpecificat
 
 function safeErrorMessage(error: unknown, sensitiveValue?: string): string {
   const rawMessage = error instanceof Error ? error.message : String(error);
-  if (!sensitiveValue) return rawMessage;
   // ANSI control bytes are the exact untrusted engine delimiters this sanitizer removes.
   // eslint-disable-next-line no-control-regex
   const ansiEscapeSequence = /\u001B(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007]*(?:\u0007|\u001B\\))/g;
   const withoutAnsi = rawMessage.replace(ansiEscapeSequence, '');
   const beforeCallLog = withoutAnsi.split('Call log:', 1)[0] ?? '';
-  const firstLine = (beforeCallLog.split('\n', 1)[0] ?? '').slice(0, 200);
-  const escapedValue = JSON.stringify(sensitiveValue).slice(1, -1);
-  const sanitized = firstLine
-    .replaceAll(sensitiveValue, '[REDACTED]')
-    .replaceAll(escapedValue, '[REDACTED]');
-  const sensitiveFragments = [
-    ...sensitiveValue.split(/\r?\n/),
-    ...escapedValue.split(/\\[rn]/),
-  ].filter((fragment) => fragment.length > 0);
-  return sensitiveFragments.some((fragment) => sanitized.includes(fragment))
-    ? 'browser action failed'
-    : sanitized || 'browser action failed';
+  let sanitized = beforeCallLog.split('\n', 1)[0] ?? '';
+  if (sensitiveValue !== undefined) {
+    const escapedValue = JSON.stringify(sensitiveValue).slice(1, -1);
+    const sensitiveFragments = [
+      sensitiveValue,
+      escapedValue,
+      ...sensitiveValue.split(/\r?\n/),
+      ...escapedValue.split(/\\[rn]/),
+    ]
+      .filter((fragment) => fragment.length > 0)
+      .sort((left, right) => right.length - left.length);
+    for (const fragment of sensitiveFragments) {
+      sanitized = sanitized.replaceAll(fragment, '[REDACTED]');
+    }
+  }
+  return sanitized.slice(0, 200) || 'browser action failed';
 }
 
 type AriaRole = Parameters<Page['getByRole']>[0];
@@ -528,97 +533,103 @@ type ValidatedLocatorSpecification =
   | Exclude<SemanticLocator | ExecutionLocator, { kind: 'role' }>
   | Readonly<{ kind: 'role'; role: AriaRole; name?: string; exact?: boolean }>;
 
-const ARIA_ROLES: ReadonlySet<AriaRole> = new Set<AriaRole>([
-  'alert',
-  'alertdialog',
-  'application',
-  'article',
-  'banner',
-  'blockquote',
-  'button',
-  'caption',
-  'cell',
-  'checkbox',
-  'code',
-  'columnheader',
-  'combobox',
-  'complementary',
-  'contentinfo',
-  'definition',
-  'deletion',
-  'dialog',
-  'directory',
-  'document',
-  'emphasis',
-  'feed',
-  'figure',
-  'form',
-  'generic',
-  'grid',
-  'gridcell',
-  'group',
-  'heading',
-  'img',
-  'insertion',
-  'link',
-  'list',
-  'listbox',
-  'listitem',
-  'log',
-  'main',
-  'marquee',
-  'math',
-  'meter',
-  'menu',
-  'menubar',
-  'menuitem',
-  'menuitemcheckbox',
-  'menuitemradio',
-  'navigation',
-  'none',
-  'note',
-  'option',
-  'paragraph',
-  'presentation',
-  'progressbar',
-  'radio',
-  'radiogroup',
-  'region',
-  'row',
-  'rowgroup',
-  'rowheader',
-  'scrollbar',
-  'search',
-  'searchbox',
-  'separator',
-  'slider',
-  'spinbutton',
-  'status',
-  'strong',
-  'subscript',
-  'superscript',
-  'switch',
-  'tab',
-  'table',
-  'tablist',
-  'tabpanel',
-  'term',
-  'textbox',
-  'time',
-  'timer',
-  'toolbar',
-  'tooltip',
-  'tree',
-  'treegrid',
-  'treeitem',
-]);
+const ARIA_ROLES = {
+  alert: true,
+  alertdialog: true,
+  application: true,
+  article: true,
+  banner: true,
+  blockquote: true,
+  button: true,
+  caption: true,
+  cell: true,
+  checkbox: true,
+  code: true,
+  columnheader: true,
+  combobox: true,
+  complementary: true,
+  contentinfo: true,
+  definition: true,
+  deletion: true,
+  dialog: true,
+  directory: true,
+  document: true,
+  emphasis: true,
+  feed: true,
+  figure: true,
+  form: true,
+  generic: true,
+  grid: true,
+  gridcell: true,
+  group: true,
+  heading: true,
+  img: true,
+  insertion: true,
+  link: true,
+  list: true,
+  listbox: true,
+  listitem: true,
+  log: true,
+  main: true,
+  marquee: true,
+  math: true,
+  menu: true,
+  menubar: true,
+  menuitem: true,
+  menuitemcheckbox: true,
+  menuitemradio: true,
+  meter: true,
+  navigation: true,
+  none: true,
+  note: true,
+  option: true,
+  paragraph: true,
+  presentation: true,
+  progressbar: true,
+  radio: true,
+  radiogroup: true,
+  region: true,
+  row: true,
+  rowgroup: true,
+  rowheader: true,
+  scrollbar: true,
+  search: true,
+  searchbox: true,
+  separator: true,
+  slider: true,
+  spinbutton: true,
+  status: true,
+  strong: true,
+  subscript: true,
+  superscript: true,
+  switch: true,
+  tab: true,
+  table: true,
+  tablist: true,
+  tabpanel: true,
+  term: true,
+  textbox: true,
+  time: true,
+  timer: true,
+  toolbar: true,
+  tooltip: true,
+  tree: true,
+  treegrid: true,
+  treeitem: true,
+} satisfies Record<AriaRole, true>;
 
 function validRoleSpecification(
   specification: SemanticLocator | ExecutionLocator,
 ): specification is ValidatedLocatorSpecification {
   if (specification.kind !== 'role') return true;
-  // The cast is confined to this validation boundary; membership establishes the literal role.
-  return ARIA_ROLES.has(specification.role as AriaRole);
+  return hasOwn(ARIA_ROLES, specification.role);
+}
+
+function hasOwn<ObjectType extends object>(
+  value: ObjectType,
+  key: PropertyKey,
+): key is keyof ObjectType {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }
 
 function strictModeViolation(error: unknown): boolean {
@@ -631,18 +642,42 @@ function invalidSelector(error: unknown): boolean {
   );
 }
 
-function redactAccessibilityValues(node: AccessibilityNode): AccessibilityNode {
-  // Chrome's AX tree duplicates a control's value both as `node.value` and as descendant
-  // StaticText/InlineTextBox nodes, so the whole subtree of a value-bearing node is dropped.
-  const containsControlValue = node.value !== undefined;
-  return {
-    role: node.role,
-    ...(node.name ? { name: node.name } : {}),
-    ...(node.description ? { description: node.description } : {}),
-    ...(!containsControlValue && node.children
-      ? { children: node.children.map((child) => redactAccessibilityValues(child)) }
-      : {}),
+function redactAccessibilityValues(
+  node: AccessibilityNode,
+  filledValues: ReadonlySet<string>,
+): AccessibilityNode {
+  const sensitiveValues = [...filledValues]
+    .flatMap((filledValue) => [filledValue, ...filledValue.split(/\r?\n/)])
+    .filter((filledValue) => filledValue.length > 0)
+    .sort((left, right) => right.length - left.length);
+  const scrub = (value: string): string => {
+    let scrubbed = value;
+    for (const filledValue of sensitiveValues)
+      scrubbed = scrubbed.replaceAll(filledValue, '[REDACTED]');
+    return scrubbed;
   };
+  const scrubNode = (current: AccessibilityNode): AccessibilityNode => {
+    // Numeric AX values (Chrome reports <input type="number"> as a spinbutton with a
+    // numeric value) carry credentials too — TOTP/PIN/OTP codes — so the containment
+    // check is type-agnostic: any string|number value whose string form contains a
+    // filled value is dropped. Benign numerics (a slider at 50) only drop when a
+    // filled value actually matches, which can only happen after a fill this session.
+    const valueAsString =
+      typeof current.value === 'string' || typeof current.value === 'number'
+        ? String(current.value)
+        : undefined;
+    const valueContainsFilledValue =
+      valueAsString !== undefined &&
+      sensitiveValues.some((filledValue) => valueAsString.includes(filledValue));
+    return {
+      role: current.role,
+      ...(current.name ? { name: scrub(current.name) } : {}),
+      ...(!valueContainsFilledValue && current.value !== undefined ? { value: current.value } : {}),
+      ...(current.description ? { description: scrub(current.description) } : {}),
+      ...(current.children ? { children: current.children.map(scrubNode) } : {}),
+    };
+  };
+  return scrubNode(node);
 }
 
 function stableStringify(value: unknown): string {
