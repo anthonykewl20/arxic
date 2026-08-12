@@ -1,0 +1,17 @@
+.git
+.gitignore
+node_modules
+**/node_modules
+dist
+**/dist
+.opencode
+docs/evidence
+*.tar.gz
+.env*
+!.env.example
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+*.swp
+*~
