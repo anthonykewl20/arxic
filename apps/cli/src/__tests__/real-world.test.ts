@@ -1,4 +1,5 @@
 import { execFile, spawn, type ChildProcess } from 'node:child_process';
+import { createServer as createHttpServer, type Server as HttpServer } from 'node:http';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -17,6 +18,8 @@ let origin = '';
 let sourceDirectory = '';
 let commit = '';
 let configPath = '';
+let modelServer: HttpServer | undefined;
+let modelBaseUrl = '';
 
 describe('real CLI pipeline proof', () => {
   beforeAll(async () => {
@@ -61,10 +64,12 @@ describe('real CLI pipeline proof', () => {
     ).toBe(201);
     configPath = join(configDirectory, 'arxic.yaml');
     await writeConfig(configPath, origin);
+    ({ server: modelServer, baseUrl: modelBaseUrl } = await startModelEndpoint());
   }, 240_000);
 
   afterAll(async () => {
     await stop(app);
+    await stopServer(modelServer);
     await Promise.all(
       temporaryDirectories.map((directory) => rm(directory, { recursive: true, force: true })),
     );
@@ -74,18 +79,26 @@ describe('real CLI pipeline proof', () => {
     const outDir = await temporaryDirectory('arxic-m1-11-runs-');
     const stdoutLines: string[] = [];
     const stderrLines: string[] = [];
-    const result = await runCli(
-      ['run', '--config', configPath, '--out', outDir, '--run-id', 'm1-11-real'],
-      {
-        cwd: root,
-        rulepacksDir: resolve(root, 'rulepacks'),
-        stdout: { write: (message) => stdoutLines.push(message) },
-        stderr: { write: (message) => stderrLines.push(message) },
-        now: () => new Date().toISOString(),
-      },
-    );
+    const previous = modelEnvironment();
+    delete process.env.ARXIC_MODEL_BASE_URL;
+    delete process.env.ARXIC_MODEL_API_KEY;
+    let result: Awaited<ReturnType<typeof runCli>>;
+    try {
+      result = await runCli(
+        ['run', '--config', configPath, '--out', outDir, '--run-id', 'm1-11-real'],
+        {
+          cwd: root,
+          rulepacksDir: resolve(root, 'rulepacks'),
+          stdout: { write: (message) => stdoutLines.push(message) },
+          stderr: { write: (message) => stderrLines.push(message) },
+          now: () => new Date().toISOString(),
+        },
+      );
+    } finally {
+      restoreModelEnvironment(previous);
+    }
 
-    // Honest exit 1: stages 4/8 (#42/#43) are unfinished, so M1-EXIT (#27) cannot verify yet.
+    // No endpoint credentials means stage 4 remains honestly empty; no candidate is fabricated.
     expect(result.exitCode).toBe(1);
     expect(result.runDirectory).toBe(resolve(outDir, 'm1-11-real'));
     const runDirectory = result.runDirectory!;
@@ -120,7 +133,7 @@ describe('real CLI pipeline proof', () => {
     expect(persistedConfig.target.origin).toBe(origin);
     expect(persistedConfig.target.environmentClass).toBe('local-test');
 
-    // Later pipeline stages are not implemented yet, so claiming verified would be dishonest.
+    // The no-model path retains its honest partial outcome.
     expect(['observed', 'blocked']).toContain(run.outcome);
     expect(run.outcome).not.toBe('verified');
     // The orchestrator reserves `completed` for verified+promoted runs; a real but non-verified
@@ -130,6 +143,54 @@ describe('real CLI pipeline proof', () => {
       `outcome=${run.outcome}; tools=${Object.keys(run.toolVersions).join(',')}; routes=${surface.routes.map(({ path }) => path).join(',')}`,
     ).toBe('partial');
   }, 240_000);
+
+  it('drives arxic run through deterministic stage-10 verification with the auth pack', async () => {
+    const outDir = await temporaryDirectory('arxic-release-cli-runs-');
+    const previous = modelEnvironment();
+    process.env.ARXIC_MODEL_BASE_URL = modelBaseUrl;
+    process.env.ARXIC_MODEL_API_KEY = 'release-cli-stub-key';
+    process.env.ARXIC_INPUT_PERSONA_EMAIL = 'm1-11@example.test';
+    process.env.ARXIC_INPUT_PERSONA_PASSWORD = 'Hunter2!';
+    try {
+      const result = await runCli(
+        ['run', '--config', configPath, '--out', outDir, '--run-id', 'release-cli-verified'],
+        {
+          cwd: root,
+          rulepacksDir: resolve(root, 'rulepacks'),
+          stdout: { write: () => undefined },
+          stderr: { write: () => undefined },
+          now: () => new Date().toISOString(),
+        },
+      );
+
+      const runDirectory = resolve(outDir, 'release-cli-verified');
+      const run = JSON.parse(await readFile(join(runDirectory, 'run.json'), 'utf8')) as RunRecord;
+      // Stage 10 is genuinely verified by two real Chromium passes. Existing blocked
+      // discovery diagnostics are sticky in RunState, so stage 12 correctly refuses
+      // promotion rather than laundering the overall run to verified.
+      expect(result.exitCode, JSON.stringify(run)).toBe(1);
+      expect(run.outcome).toBe('blocked');
+      expect(run.status).toBe('partial');
+      expect(run.stages).toContainEqual(
+        expect.objectContaining({
+          name: expect.stringContaining('verification'),
+          status: 'completed',
+        }),
+      );
+      expect(run.stages).toContainEqual(
+        expect.objectContaining({ name: expect.stringContaining('promotion'), status: 'skipped' }),
+      );
+      const verification = JSON.parse(
+        await readFile(join(runDirectory, 'artifacts', '10.json'), 'utf8'),
+      ) as { outcome: string; runs: Array<{ passed: boolean }> };
+      expect(verification).toMatchObject({
+        outcome: 'verified',
+        runs: [{ passed: true }, { passed: true }],
+      });
+    } finally {
+      restoreModelEnvironment(previous);
+    }
+  }, 300_000);
 
   it('classifies an unreachable target as blocked while preserving an honest run directory', async () => {
     const deadPort = await freePort();
@@ -290,4 +351,60 @@ async function temporaryDirectory(prefix: string): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), prefix));
   temporaryDirectories.push(directory);
   return directory;
+}
+
+async function startModelEndpoint(): Promise<{ server: HttpServer; baseUrl: string }> {
+  const server = createHttpServer(async (request, response) => {
+    for await (const _chunk of request) void _chunk;
+    response.setHeader('content-type', 'application/json');
+    response.end(
+      JSON.stringify({
+        id: 'chatcmpl-release-cli',
+        model: 'configured-adapter',
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: JSON.stringify({
+                schemaVersion: 'arxic-stage4-inference-v1',
+                candidates: [{ id: 'authentication.login', intent: 'Submit login credentials' }],
+              }),
+            },
+          },
+        ],
+        usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
+      }),
+    );
+  });
+  await new Promise<void>((resolveListen, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolveListen);
+  });
+  const address = server.address();
+  if (!address || typeof address === 'string') throw new Error('Could not start model endpoint');
+  return { server, baseUrl: `http://127.0.0.1:${address.port}` };
+}
+
+async function stopServer(server: HttpServer | undefined): Promise<void> {
+  if (!server) return;
+  server.closeAllConnections();
+  await new Promise<void>((resolveClose) => server.close(() => resolveClose()));
+}
+
+function modelEnvironment(): Record<string, string | undefined> {
+  return Object.fromEntries(
+    [
+      'ARXIC_MODEL_BASE_URL',
+      'ARXIC_MODEL_API_KEY',
+      'ARXIC_INPUT_PERSONA_EMAIL',
+      'ARXIC_INPUT_PERSONA_PASSWORD',
+    ].map((name) => [name, process.env[name]]),
+  );
+}
+
+function restoreModelEnvironment(previous: Record<string, string | undefined>): void {
+  for (const [name, value] of Object.entries(previous)) {
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
+  }
 }

@@ -1,11 +1,30 @@
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
+import { authCandidates, type AuthSurface } from '../../../packages/auth-domain-pack/src';
+import { BundlePromoterAdapter } from '../../../packages/bundle-promoter/src';
+import { ModelAdapter } from '../../../packages/model-adapter/src';
+import {
+  serializeScreenshotPrivacyPolicy,
+  type ScreenshotPrivacyPolicy,
+} from '../../../packages/playwright-screenshot-privacy/src';
+import {
+  PlaywrightVerifier,
+  resetAndSeedFixtures,
+  type VerificationPersona,
+} from '../../../packages/verifier/src';
 import {
   FileStageCheckpointer,
   LangGraphOrchestrator,
+  runPlannedExploration,
+  stage4Infer,
   WorkerRestartError,
+  type Candidate,
+  type ExplorationResult,
+  type InferenceInput,
+  type InferenceResult,
   type OrchestratorInput,
+  type OrchestratorOptions,
   type RunState,
 } from '@arxic/orchestrator-langgraph';
 import { ARXIC_EXEC_RESUMED, cliDiagnostic } from './diagnostics';
@@ -19,11 +38,20 @@ import {
 
 export class LocalRunExecutor implements RunExecutor {
   async execute(request: RunRequest, sink: DiagnosticSink): Promise<RunResult> {
+    const baseInput = toOrchestratorInput(request);
+    const buildDigest = await targetBuildDigest(
+      request.config.target.origin,
+      request.config.target.attestationPath,
+    );
+    const input: OrchestratorInput = {
+      ...baseInput,
+      ...(buildDigest ? { appBuildDigest: buildDigest } : {}),
+    };
     const orchestrator = new LangGraphOrchestrator({
       checkpointer: new FileStageCheckpointer(request.runDirectory),
+      ...localPipelineOptions(request, input),
       ...(request.now === undefined ? {} : { now: request.now }),
     });
-    const input = toOrchestratorInput(request);
     const emitted = [];
     let state: RunState;
     try {
@@ -66,6 +94,247 @@ export function toOrchestratorInput(request: RunRequest): OrchestratorInput {
     maxUrls: request.config.policy.maxUrls,
     maxDepth: request.config.policy.maxDepth,
   };
+}
+
+function localPipelineOptions(
+  request: RunRequest,
+  input: OrchestratorInput,
+): Omit<OrchestratorOptions, 'checkpointer' | 'now'> {
+  const model = configuredModel(request);
+  const persona = configuredPersona();
+  const outputDirectory = join(request.runDirectory, request.runId);
+  const verificationArtifacts = join(request.runDirectory, 'verification-artifacts');
+  const inferredSourceEvidence: Array<InferenceInput['evidenceRefs'][number]> = [];
+  const options: Omit<OrchestratorOptions, 'checkpointer' | 'now'> = {
+    verify: async (compilation) => {
+      if (!compilation.stagedBundle) return uncompiledVerification();
+      const verification = await new PlaywrightVerifier({
+        outputDirectory,
+        origin: request.config.target.origin,
+        artifactsDir: verificationArtifacts,
+        ...(persona ? { persona } : {}),
+        screenshotPrivacyPolicy: cliScreenshotPolicy(
+          request.runId,
+          request.now?.() ?? new Date().toISOString(),
+        ),
+        ...(request.now === undefined ? {} : { now: request.now }),
+      }).verify(compilation.stagedBundle, compilation.stagedBundle.workflow.verification);
+      return {
+        ...verification,
+        stagedBundle: compilation.stagedBundle,
+        gates: [{ gate: 'verify', passed: verification.outcome === 'verified' }],
+      };
+    },
+    promote: (bundle, gates) =>
+      new BundlePromoterAdapter({
+        publicPath: join(request.runDirectory, 'promoted', `${request.runId}.bundle.json`),
+        ...(request.now === undefined ? {} : { now: request.now }),
+      }).promote(bundle, [...gates]),
+  };
+  if (!model) return options;
+
+  const inferWithModel = stage4Infer(model.adapter, model.name);
+  return {
+    ...options,
+    modelAdapter: model.adapter,
+    model: model.name,
+    inferCandidates: async (inferenceInput) => {
+      inferredSourceEvidence.splice(
+        0,
+        inferredSourceEvidence.length,
+        ...inferenceInput.evidenceRefs,
+      );
+      const inferred = await inferWithModel(inferenceInput);
+      return authDomainCandidates(inferred, inferenceInput, input, request);
+    },
+    prepareFixtures: async ({ candidates }) => {
+      const requirements = candidates.flatMap(
+        (candidate) =>
+          candidate.workflow?.preconditions.map(({ fixture: kind }) => ({ kind })) ?? [],
+      );
+      if (requirements.length === 0) {
+        return { provisioned: true, requirements: [], leases: [], diagnostics: [] };
+      }
+      if (!persona) {
+        return {
+          provisioned: false,
+          requirements,
+          leases: [],
+          diagnostics: [],
+        };
+      }
+      await resetAndSeedFixtures(request.config.target.origin, persona);
+      return {
+        provisioned: true,
+        requirements,
+        leases: [],
+        diagnostics: [],
+      };
+    },
+    explore: async (explorationInput) => {
+      const explored = await runPlannedExploration({
+        ...explorationInput,
+        plan: {
+          steps: [
+            {
+              kind: 'navigate',
+              intent: 'observe authentication entry surface',
+              action: 'navigation',
+              actionClass: 'read-only',
+              url: new URL(
+                authSurfaceFromEvidence(inferredSourceEvidence, input.framework).login
+                  .entryState === 'home'
+                  ? '/'
+                  : '/login',
+                request.config.target.origin,
+              ).href,
+              required: true,
+            },
+          ],
+        },
+      });
+      return withSourceEvidence(explored, inferredSourceEvidence);
+    },
+  };
+}
+
+function configuredModel(request: RunRequest): { adapter: ModelAdapter; name: string } | undefined {
+  const baseUrl = process.env.ARXIC_MODEL_BASE_URL?.trim();
+  const apiKey = process.env.ARXIC_MODEL_API_KEY?.trim();
+  const provider = request.config.models.provider.trim();
+  if (!baseUrl || !apiKey || isUnconfiguredProvider(provider)) return undefined;
+  return {
+    adapter: new ModelAdapter({
+      baseUrl,
+      credentials: () => process.env.ARXIC_MODEL_API_KEY ?? '',
+      providerMeta: { sourceSharing: request.config.models.sourceRetention },
+      ...(request.now === undefined ? {} : { now: request.now }),
+    }),
+    name: provider,
+  };
+}
+
+function isUnconfiguredProvider(provider: string): boolean {
+  return ['none', 'disabled', 'unconfigured'].includes(provider.toLowerCase());
+}
+
+function configuredPersona(): VerificationPersona | undefined {
+  const email = process.env.ARXIC_INPUT_PERSONA_EMAIL?.trim();
+  const password = process.env.ARXIC_INPUT_PERSONA_PASSWORD;
+  if (!email || !password) return undefined;
+  const newPassword = process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD;
+  return { email, password, ...(newPassword ? { newPassword } : {}) };
+}
+
+function authDomainCandidates(
+  inferred: unknown,
+  inferenceInput: InferenceInput,
+  input: OrchestratorInput,
+  request: RunRequest,
+): unknown {
+  if (!isInferenceResult(inferred) || inferred.candidates.length === 0) return inferred;
+  if (!request.config.scope.domains.includes('authentication')) return inferred;
+  const surface = authSurfaceFromEvidence(inferenceInput.evidenceRefs, input.framework);
+  const packed = authCandidates(surface, input.revision.commit).map(toCandidate);
+  const packedIds = new Set(packed.map(({ id }) => id));
+  const candidates = [...packed, ...inferred.candidates.filter(({ id }) => !packedIds.has(id))];
+  return { requestId: inferred.requestId, candidates } satisfies InferenceResult;
+}
+
+function authSurfaceFromEvidence(
+  evidenceRefs: InferenceInput['evidenceRefs'],
+  framework?: string,
+): AuthSurface {
+  const hasLoginRoute = evidenceRefs.some(
+    (evidence) => evidence.kind === 'source' && /(?:^|\/)login(?:\/|\.|$)/iu.test(evidence.path),
+  );
+  const loginPage = hasLoginRoute || framework === 'nextjs';
+  return {
+    login: {
+      entryState: loginPage ? 'login-page' : 'home',
+      successState: 'home',
+      assertion: 'url:/',
+    },
+    logout: { assertion: 'text:Logged out' },
+    passwordChange: { supported: false, reason: 'not established by stage-4 source evidence' },
+    totp: { supported: false, reason: 'not established by stage-4 source evidence' },
+  };
+}
+
+function toCandidate(candidate: ReturnType<typeof authCandidates>[number]): Candidate {
+  return {
+    id: candidate.workflow.id,
+    title: candidate.workflow.title,
+    evidenceRefs: candidate.workflow.evidenceRefs,
+    workflow: candidate.workflow,
+  };
+}
+
+function withSourceEvidence(
+  explored: ExplorationResult,
+  sourceEvidence: InferenceInput['evidenceRefs'],
+): ExplorationResult {
+  return {
+    ...explored,
+    evidenceRefs: [
+      ...sourceEvidence.filter((evidence) => evidence.kind === 'source'),
+      ...explored.evidenceRefs,
+    ],
+  };
+}
+
+function isInferenceResult(value: unknown): value is InferenceResult {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'requestId' in value &&
+    typeof value.requestId === 'string' &&
+    'candidates' in value &&
+    Array.isArray(value.candidates)
+  );
+}
+
+function uncompiledVerification() {
+  return {
+    outcome: 'observed' as const,
+    diagnostics: [],
+    artifacts: [],
+    runs: [],
+    gates: [{ gate: 'verify', passed: false }],
+  };
+}
+
+function cliScreenshotPolicy(runId: string, recordedAt: string): ScreenshotPrivacyPolicy {
+  return serializeScreenshotPrivacyPolicy({
+    schemaVersion: 1,
+    id: `${runId}-cli-main-mask`,
+    authority: {
+      kind: 'repository-policy',
+      reference: 'arxic.yaml:policy.screenshots',
+      recordedAt,
+    },
+    capture: {
+      mode: 'masked-page',
+      fullPage: true,
+      masks: [{ kind: 'role', role: 'main', exact: true }],
+    },
+  }).policy;
+}
+
+async function targetBuildDigest(
+  origin: string,
+  attestationPath: string,
+): Promise<string | undefined> {
+  try {
+    const response = await fetch(new URL(attestationPath, origin));
+    if (!response.ok) return undefined;
+    const value = (await response.json()) as { buildDigest?: unknown };
+    return typeof value.buildDigest === 'string' && /^[0-9a-f]{64}$/iu.test(value.buildDigest)
+      ? value.buildDigest
+      : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function resolveCommit(repository: string, revision: string): string {
