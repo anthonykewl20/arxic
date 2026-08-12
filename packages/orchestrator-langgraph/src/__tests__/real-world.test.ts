@@ -6,13 +6,17 @@ import { basename, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import type { SurfaceMap } from '@arxic/crawlee-adapter';
+import type { EvidenceRef, Workflow } from '@arxic/contracts';
+import { FIXTURE_APPS, loginObservations, loginWorkflow } from '@arxic/real-world-testkit';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ARXIC_ORCH_MODEL_RETRIES,
   ARXIC_ORCH_RESUME,
   FileStageCheckpointer,
+  InMemoryStageCheckpointer,
   LangGraphOrchestrator,
   WorkerRestartError,
+  type CompilationResult,
 } from '..';
 
 const execute = promisify(execFile);
@@ -150,6 +154,78 @@ describe('real LangGraph orchestration proof', () => {
     );
     expect(await persistedRunBytes('real-invalid-model')).not.toContain(promptBytes);
   }, 90_000);
+
+  it('uses the full default compiler for a real reference-app candidate', async () => {
+    const referenceApp = FIXTURE_APPS.find(({ name }) => name === 'reference-auth-app');
+    if (!referenceApp) throw new Error('Reference app metadata is unavailable');
+    const runId = 'real-default-compile';
+    const checkpointer = new InMemoryStageCheckpointer();
+    const attestation = (await (
+      await fetch(`${origin}/.well-known/arxic-test-target.json`)
+    ).json()) as { buildDigest: string };
+    const baseWorkflow = loginWorkflow(referenceApp, {
+      id: 'authentication.default-compile',
+      title: 'Default compiler reference login',
+      dualEvidence: true,
+    });
+    const workflow: Workflow = {
+      ...baseWorkflow,
+      scope: { ...baseWorkflow.scope, commit },
+    };
+    const observations: EvidenceRef[] = loginObservations(referenceApp, origin, runId).map(
+      (observation) =>
+        observation.kind === 'source'
+          ? { ...observation, repo: pathToFileURL(sourceDirectory).href, commit }
+          : { ...observation, appBuildDigest: attestation.buildDigest },
+    );
+    let stagedBundleObserved = false;
+    const result = await new LangGraphOrchestrator({
+      checkpointer,
+      inferCandidates: async () => ({
+        requestId: runId,
+        candidates: [
+          {
+            id: workflow.id,
+            title: workflow.title,
+            evidenceRefs: workflow.evidenceRefs,
+            workflow,
+          },
+        ],
+      }),
+      reconcile: async () => ({ denominator: 1, rows: [] }),
+      prepareFixtures: async () => ({
+        provisioned: true,
+        requirements: [],
+        leases: [],
+        diagnostics: [],
+      }),
+      explore: async () => ({ approved: true, evidenceRefs: observations, decisions: [] }),
+      verify: async (compilation) => {
+        stagedBundleObserved = compilation.compiled && compilation.stagedBundle !== undefined;
+        return {
+          outcome: 'observed',
+          diagnostics: [],
+          artifacts: [],
+          runs: [],
+          gates: [{ gate: 'verify', passed: false }],
+        };
+      },
+    }).run({
+      ...orchestratorInput(runId),
+      appBuildDigest: attestation.buildDigest,
+      maxUrls: 1,
+      maxDepth: 0,
+    });
+    const ref = result.artifacts[9];
+    if (!ref) throw new Error('Default compiler stage did not persist');
+    const compilation = (await checkpointer.readArtifact(runId, ref)) as CompilationResult;
+
+    expect(compilation.compiled).toBe(true);
+    expect(compilation.stagedBundle).toBeDefined();
+    expect(compilation.plan).toBe(compilation.stagedBundle?.plan);
+    expect(stagedBundleObserved).toBe(true);
+    expect(result.completedStages).toContain(12);
+  }, 180_000);
 });
 
 function orchestratorInput(runId: string) {
