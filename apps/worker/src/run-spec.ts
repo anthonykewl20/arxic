@@ -14,6 +14,12 @@
 // `WorkerClient` are the seam the CLI (@arxic/cli, T4) codes against.
 
 import type { Diagnostic, TruthState } from '@arxic/contracts';
+import type {
+  ArtifactTransportManifest,
+  ImportedArtifact,
+  ImportedArtifacts,
+} from '@arxic/environment';
+export type { ArtifactTransportManifest, ImportedArtifact, ImportedArtifacts };
 
 /** Pipeline stage identifiers (mirror ADR §9 stages 0–12). */
 export type StageId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
@@ -110,6 +116,7 @@ export type RunStreamEvent = Readonly<
   | { type: 'stage-completed'; stage: StageId; name: string; finishedAt: string }
   | { type: 'diagnostic'; diagnostic: Diagnostic }
   | { type: 'awaiting-approval'; stage: StageId; message: string }
+  | { type: 'result-ready'; manifest: ArtifactTransportManifest }
   | { type: 'finished'; handle: RunHandle }
 >;
 
@@ -123,6 +130,8 @@ export interface WorkerClient {
   start(spec: RunSpec): Promise<RunHandle>;
   /** Stream live stage + diagnostic events until the run finishes. */
   stream(handle: RunHandle): AsyncIterable<RunStreamEvent>;
+  /** Return bytes accepted by the fail-closed transport importer. */
+  collectArtifacts(handle: RunHandle): Promise<ImportedArtifacts>;
   /** Read the latest handle snapshot for a run. */
   inspect(handle: RunHandle): Promise<RunHandle>;
   /** Record a human approval to resume a run paused at an approval gate. */

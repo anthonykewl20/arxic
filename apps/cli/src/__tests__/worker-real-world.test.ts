@@ -60,10 +60,12 @@ describe('worker-backed CLI real Docker proof', () => {
 
     const runDirectory = result.runDirectory!;
     expect((await readdir(runDirectory)).sort()).toEqual([
+      'artifacts',
       'config.json',
       'diagnostics.jsonl',
       'run.json',
     ]);
+    expect(await readdir(join(runDirectory, 'artifacts'))).toEqual([]);
     const run = JSON.parse(await readFile(join(runDirectory, 'run.json'), 'utf8')) as Record<
       string,
       unknown

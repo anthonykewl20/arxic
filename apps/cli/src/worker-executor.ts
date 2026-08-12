@@ -1,6 +1,8 @@
 import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
+import { dirname, resolve, sep } from 'node:path';
 import type { RunState } from '@arxic/orchestrator-langgraph';
-import type { RunHandle, WorkerClient } from '@arxic/worker';
+import type { ImportedArtifacts, RunHandle, WorkerClient } from '@arxic/worker';
 import {
   ARXIC_EXEC_WORKER_APPROVAL_REQUIRED,
   ARXIC_EXEC_WORKER_INTERRUPTED,
@@ -48,6 +50,7 @@ export class WorkerRunExecutor implements RunExecutor {
     }
 
     let finished: RunHandle | undefined;
+    let imported: ImportedArtifacts | undefined;
     try {
       for await (const event of this.client.stream(handle)) {
         if (event.type === 'diagnostic') emitWorker(event.diagnostic);
@@ -62,6 +65,27 @@ export class WorkerRunExecutor implements RunExecutor {
           );
           await this.cancelAndCollect(handle, emitWorker);
           return failedResult(request, diagnostics);
+        }
+        if (event.type === 'result-ready') {
+          try {
+            imported = await this.client.collectArtifacts(handle);
+            if (JSON.stringify(imported.manifest) !== JSON.stringify(event.manifest)) {
+              throw new Error('Artifact manifest changed after result-ready');
+            }
+            await writeImportedArtifacts(request.runDirectory, request.runId, imported);
+          } catch {
+            record(
+              safeWorkerDiagnostic(
+                {
+                  code: 'ARXIC-WORKER-RUN-FAILED',
+                  severity: 'blocked',
+                  subject: request.runId,
+                  message: 'Worker artifact ingress failed',
+                },
+                request.runId,
+              ),
+            );
+          }
         }
         if (event.type === 'finished') finished = event.handle;
       }
@@ -78,6 +102,22 @@ export class WorkerRunExecutor implements RunExecutor {
       return failedResult(request, diagnostics);
     }
     finished.diagnostics.forEach(emitWorker);
+    if (
+      imported === undefined &&
+      !diagnostics.some(({ code }) => code === 'ARXIC-WORKER-RUN-FAILED')
+    ) {
+      record(
+        safeWorkerDiagnostic(
+          {
+            code: 'ARXIC-WORKER-RUN-FAILED',
+            severity: 'blocked',
+            subject: request.runId,
+            message: 'Worker artifact result was missing',
+          },
+          request.runId,
+        ),
+      );
+    }
     record(protocolFailure(request.runId));
     return failedResult(request, diagnostics);
   }
@@ -93,6 +133,30 @@ export class WorkerRunExecutor implements RunExecutor {
       // The interruption diagnostic already records the fail-closed outcome;
       // cancellation errors must not expose provider or worker prose.
     }
+  }
+}
+
+async function writeImportedArtifacts(
+  runDirectory: string,
+  runId: string,
+  imported: ImportedArtifacts,
+): Promise<void> {
+  if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(runId)) throw new Error('Unsafe run id');
+  const root = resolve(runDirectory, runId, 'artifacts');
+  const staging = resolve(runDirectory, runId, 'artifacts.importing');
+  await mkdir(resolve(runDirectory, runId), { recursive: true, mode: 0o700 });
+  await mkdir(staging, { recursive: false, mode: 0o700 });
+  try {
+    for (const artifact of imported.files) {
+      const target = resolve(staging, ...artifact.path.split('/'));
+      if (!target.startsWith(`${staging}${sep}`)) throw new Error('Unsafe artifact path');
+      await mkdir(dirname(target), { recursive: true, mode: 0o700 });
+      await writeFile(target, artifact.bytes, { mode: 0o600, flag: 'wx' });
+    }
+    await rename(staging, root);
+  } catch (error) {
+    await rm(staging, { recursive: true, force: true });
+    throw error;
   }
 }
 

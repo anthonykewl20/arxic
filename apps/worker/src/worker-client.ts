@@ -8,7 +8,19 @@ import {
   type SandboxState,
   type WorkerSandbox,
 } from '@arxic/environment';
-import type { RunApproval, RunHandle, RunSpec, RunStreamEvent, WorkerClient } from './run-spec';
+import type {
+  ImportedArtifacts,
+  RunApproval,
+  RunHandle,
+  RunSpec,
+  RunStreamEvent,
+  WorkerClient,
+} from './run-spec';
+import {
+  ArtifactImportError,
+  DEFAULT_RESULT_QUOTA_BYTES,
+  importArtifacts,
+} from '@arxic/environment';
 import { freezePolicy, ingestContentAsData, validateWorkerSecurity } from './worker-policy';
 
 /**
@@ -97,6 +109,7 @@ export function createLocalWorkerClient(options: { docker?: boolean } = {}): Wor
   const sandboxes = new Map<string, WorkerSandbox>();
   const policies = new Map<string, ReturnType<typeof freezePolicy>>();
   const approvals = new Map<string, readonly RunApproval[]>();
+  const importedArtifacts = new Map<string, ImportedArtifacts>();
 
   const remember = (handle: RunHandle): RunHandle => {
     handles.set(handle.runId, handle);
@@ -136,6 +149,10 @@ export function createLocalWorkerClient(options: { docker?: boolean } = {}): Wor
             sourcePath,
             quotas: defaultQuotas(spec.config.policy.maxRuntimeMinutes),
             networkName: `arxic-${spec.runId}-net`,
+            resultVolume: {
+              mountPath: '/work/result',
+              quotaBytes: DEFAULT_RESULT_QUOTA_BYTES,
+            },
           });
           sandboxes.set(spec.runId, sandbox);
         } catch (error) {
@@ -220,6 +237,42 @@ export function createLocalWorkerClient(options: { docker?: boolean } = {}): Wor
           yield { type: 'diagnostic', diagnostic };
         }
 
+        if (latest.status !== 'failed') {
+          try {
+            // #156's minimal handshake. The pipeline-result slice (#157) owns
+            // extending this manifest with its sealed result references; until
+            // then the scaffold worker has no bulk pipeline artifacts.
+            const manifest = Buffer.from(
+              JSON.stringify({ runId: handle.runId, resultReady: true, files: [] }),
+            ).toString('base64');
+            const published = await sandbox.exec([
+              'sh',
+              '-c',
+              `printf %s '${manifest}' | base64 -d > /work/result/result-manifest.json`,
+            ]);
+            latest = remember(classifyExecResult(latest, published));
+            if (latest.status === 'failed') throw new Error('Could not publish result manifest');
+            const imported = importArtifacts(await sandbox.collectArtifacts(), handle.runId, {
+              quotaBytes: DEFAULT_RESULT_QUOTA_BYTES,
+            });
+            importedArtifacts.set(handle.runId, imported);
+            yield { type: 'result-ready', manifest: imported.manifest };
+          } catch (error) {
+            const quota = error instanceof ArtifactImportError && error.reason === 'quota';
+            latest = remember(
+              blocked(
+                latest,
+                quota ? 'ARXIC-WORKER-QUOTA-EXCEEDED' : 'ARXIC-WORKER-RUN-FAILED',
+                handle.runId,
+                quota
+                  ? 'Worker artifact transport exceeded its enforced quota.'
+                  : 'Worker artifact transport manifest was missing or corrupt.',
+              ),
+            );
+            yield { type: 'diagnostic', diagnostic: latest.diagnostics.at(-1)! };
+          }
+        }
+
         // Deterministic cleanup: a completed run tears down its sandbox and
         // network regardless of success (threat-model "Cleanup is deterministic
         // and runs for success, refusal, timeout, cancellation, and crash").
@@ -240,6 +293,12 @@ export function createLocalWorkerClient(options: { docker?: boolean } = {}): Wor
         latest = remember({ ...latest, status: 'completed' });
       }
       yield { type: 'finished', handle: latest };
+    },
+
+    async collectArtifacts(handle: RunHandle): Promise<ImportedArtifacts> {
+      const imported = importedArtifacts.get(handle.runId);
+      if (!imported) throw new Error('No validated worker artifacts are ready');
+      return imported;
     },
 
     async inspect(handle: RunHandle): Promise<RunHandle> {

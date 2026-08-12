@@ -95,6 +95,12 @@ describe('CLI↔worker seam types (run-spec)', () => {
       async *stream() {
         yield { type: 'finished', handle: await this.inspect({} as never) };
       },
+      async collectArtifacts() {
+        return {
+          manifest: { runId: 'run-2', resultReady: true, files: [] },
+          files: [],
+        };
+      },
       async inspect(handle) {
         return { ...handle, status: 'completed', outcome: 'blocked' };
       },

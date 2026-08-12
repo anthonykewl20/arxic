@@ -1,13 +1,20 @@
-import { resolve } from 'node:path';
+import { lstat, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, relative, resolve, sep } from 'node:path';
 import type { Diagnostic } from '@arxic/contracts';
 import {
   dockerExec,
+  dockerCp,
   dockerInspect,
   dockerKill,
   dockerRm,
   dockerRunDetach,
+  dockerRun,
   networkCreate,
   networkRm,
+  volumeCreate,
+  volumeInspect,
+  volumeRm,
   type DockerResult,
 } from './docker-cli';
 import { workerDiagnostic } from './worker-diagnostics';
@@ -64,6 +71,7 @@ export type WorkerSandboxSpec = Readonly<{
   networkName: string;
   workerUser?: string;
   writableTmpFs?: string;
+  resultVolume?: Readonly<{ mountPath: string; quotaBytes: number }>;
   env?: Record<string, string>;
 }>;
 
@@ -77,13 +85,23 @@ export type SandboxExecResult = Readonly<{
 
 export type SandboxState = Readonly<{ status: string; exitCode: number; oomKilled: boolean }>;
 
+export type RawArtifactEntry = Readonly<{
+  path: string;
+  kind: 'regular' | 'directory' | 'symlink' | 'other';
+  bytes?: Uint8Array;
+}>;
+
+export type RawArtifactSet = Readonly<{ entries: readonly RawArtifactEntry[] }>;
+
 export type WorkerSandbox = Readonly<{
   jobId: string;
   networkName: string;
   containerId: string;
+  resultVolumeName?: string;
   quotas: WorkerQuotas;
   exec: (command: readonly string[] | string) => Promise<SandboxExecResult>;
   inspect: () => Promise<SandboxState>;
+  collectArtifacts: () => Promise<RawArtifactSet>;
   stop: () => Promise<{ cleanupDiagnostics: Diagnostic[] }>;
 }>;
 
@@ -127,6 +145,19 @@ function assertSafeSpec(spec: WorkerSandboxSpec): void {
   const writable = spec.writableTmpFs ?? '/work';
   if (!/^\/work(?:\/(?!source(?:\/|$))[A-Za-z0-9_.-]+)*$/.test(writable))
     throw new Error('Worker writable tmpfs must be scoped below /work and outside /work/source');
+  if (spec.resultVolume) {
+    const { mountPath, quotaBytes } = spec.resultVolume;
+    if (
+      !/^\/work\/(?!source(?:\/|$))[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/.test(mountPath) ||
+      mountPath === writable ||
+      writable.startsWith(`${mountPath}/`)
+    ) {
+      throw new Error('Worker result volume must be below /work and outside /work/source/tmpfs');
+    }
+    if (!Number.isFinite(quotaBytes) || quotaBytes <= 0 || quotaBytes > 256 * 1024 * 1024) {
+      throw new Error('Worker result volume quota must be positive and at most 256 MiB');
+    }
+  }
   const { memoryMb, memorySwapMb, pidsLimit, cpus, timeoutMs } = spec.quotas;
   if (
     ![memoryMb, memorySwapMb, pidsLimit, cpus, timeoutMs].every(
@@ -153,8 +184,34 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
   const user = spec.workerUser ?? defaultWorkerUser();
   const writable = spec.writableTmpFs ?? '/work';
   const source = resolve(spec.sourcePath);
+  const resultVolumeName = spec.resultVolume ? `arxic-${spec.jobId}-result` : undefined;
   let networkCreated = false;
+  let volumeCreated = false;
   try {
+    if (resultVolumeName) {
+      const existing = await volumeInspect(resultVolumeName);
+      if (existing.exit === 0) {
+        throw new Error('Worker result volume already exists; refusing to reuse untrusted bytes');
+      }
+      const volume = await volumeCreate({ name: resultVolumeName });
+      requireSuccess('docker volume create', volume);
+      volumeCreated = true;
+      // Named volumes have no portable native byte quota. Make the empty,
+      // per-run volume writable here; quotaBytes is enforced fail-closed by the
+      // trusted importer before any artifact is accepted.
+      const prepared = await dockerRun([
+        '--rm',
+        '--network',
+        'none',
+        '--mount',
+        `type=volume,source=${resultVolumeName},destination=/result`,
+        'node:20-alpine',
+        'chmod',
+        '1777',
+        '/result',
+      ]);
+      requireSuccess('prepare worker result volume', prepared);
+    }
     const network = await networkCreate({ name: spec.networkName, internal: true });
     requireSuccess('docker network create', network);
     networkCreated = true;
@@ -172,6 +229,12 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
       `${writable}:rw,size=8m,mode=1777`,
       '--mount',
       `type=bind,source=${source},target=/work/source,readonly`,
+      ...(resultVolumeName && spec.resultVolume
+        ? [
+            '--mount',
+            `type=volume,source=${resultVolumeName},destination=${spec.resultVolume.mountPath}`,
+          ]
+        : []),
       '--memory',
       `${spec.quotas.memoryMb}m`,
       '--memory-swap',
@@ -215,6 +278,18 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
           ),
         );
       }
+      if (resultVolumeName) {
+        const volumeRemoved = await volumeRm(resultVolumeName);
+        if (volumeRemoved.exit !== 0) {
+          cleanupDiagnostics.push(
+            workerDiagnostic(
+              'ARXIC-WORKER-CLEANUP-FAILED',
+              spec.jobId,
+              `Could not remove worker result volume: ${volumeRemoved.stderr}`,
+            ),
+          );
+        }
+      }
       if (cleanupDiagnostics.length === 0) stopped = true;
       return { cleanupDiagnostics };
     };
@@ -222,9 +297,14 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
       jobId: spec.jobId,
       networkName: spec.networkName,
       containerId,
+      resultVolumeName,
       quotas: spec.quotas,
       exec: (command: readonly string[] | string) => execInSandbox(sandbox, command),
       inspect: () => inspectSandbox(sandbox),
+      collectArtifacts: () =>
+        spec.resultVolume
+          ? collectRawArtifacts(containerId, spec.resultVolume.mountPath)
+          : Promise.resolve({ entries: [] }),
       stop,
     });
     return Object.freeze(sandbox);
@@ -233,13 +313,59 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
     const networkCleanup = networkCreated
       ? await networkRm(spec.networkName)
       : { exit: 0, stdout: '', stderr: '' };
-    if (containerCleanup.exit !== 0 || networkCleanup.exit !== 0) {
+    const volumeCleanup =
+      volumeCreated && resultVolumeName
+        ? await volumeRm(resultVolumeName)
+        : { exit: 0, stdout: '', stderr: '' };
+    if (containerCleanup.exit !== 0 || networkCleanup.exit !== 0 || volumeCleanup.exit !== 0) {
       throw new Error(
-        `Worker creation failed and cleanup was incomplete: ${containerCleanup.stderr} ${networkCleanup.stderr}`.trim(),
+        `Worker creation failed and cleanup was incomplete: ${containerCleanup.stderr} ${networkCleanup.stderr} ${volumeCleanup.stderr}`.trim(),
         { cause: error },
       );
     }
     throw error;
+  }
+}
+
+async function collectRawArtifacts(
+  containerId: string,
+  mountPath: string,
+): Promise<RawArtifactSet> {
+  const directory = await mkdtemp(join(tmpdir(), 'arxic-worker-result-'));
+  try {
+    const copied = await dockerCp(containerId, `${mountPath}/.`, directory);
+    requireSuccess('docker cp worker result volume', copied);
+    const entries: RawArtifactEntry[] = [];
+    await readRawEntries(directory, directory, entries);
+    entries.sort((left, right) => left.path.localeCompare(right.path));
+    return { entries };
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+async function readRawEntries(
+  root: string,
+  directory: string,
+  output: RawArtifactEntry[],
+): Promise<void> {
+  for (const name of await readdir(directory)) {
+    const absolute = join(directory, name);
+    const path = relative(root, absolute).split(sep).join('/');
+    const stat = await lstat(absolute);
+    if (output.length >= 4098) {
+      throw new Error('Worker result contains too many filesystem entries');
+    }
+    if (stat.isSymbolicLink()) {
+      output.push({ path, kind: 'symlink' });
+    } else if (stat.isDirectory()) {
+      output.push({ path, kind: 'directory' });
+      await readRawEntries(root, absolute, output);
+    } else if (stat.isFile()) {
+      output.push({ path, kind: 'regular', bytes: await readFile(absolute) });
+    } else {
+      output.push({ path, kind: 'other' });
+    }
   }
 }
 
