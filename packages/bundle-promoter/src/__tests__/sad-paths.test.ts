@@ -14,6 +14,7 @@ import {
   ARXIC_PROMOTION_GATE_FAILED,
   ARXIC_PROMOTION_HASH_MISMATCH,
   ARXIC_PROMOTION_LOCK_CONTENTION,
+  ARXIC_PROMOTION_PLAN_BINDING_FAILED,
   ARXIC_PROMOTION_REDACTION_FAILED,
   ARXIC_PROMOTION_VALIDATION_FAILED,
   atomicReplace,
@@ -97,6 +98,44 @@ describe('promotion sad paths map to blocked', () => {
       diagnostics: [{ code: ARXIC_PROMOTION_VALIDATION_FAILED, severity: 'blocked' }],
     });
     expect(await readFile(publicPath)).toEqual(prior);
+  });
+
+  it('blocks a staged plan string that does not match the plan.md artifact hash', async () => {
+    const publicPath = await promotionPath();
+    const prior = Buffer.from('prior promoted bundle');
+    await writeFile(publicPath, prior);
+    const bundle = await stagedBundle();
+    bindPlanArtifact(bundle);
+    bundle.plan = `${bundle.plan}\nDesynchronized plan mutation.\n`;
+
+    const result = await new BundlePromoterAdapter({ publicPath }).promoteWithDiagnostics(bundle, [
+      { gate: 'delivery', passed: true },
+    ]);
+
+    expect(result).toMatchObject({
+      diagnostics: [
+        {
+          code: ARXIC_PROMOTION_PLAN_BINDING_FAILED,
+          severity: 'blocked',
+          subject: 'bundle.plan',
+          message: 'Staged plan string does not match the plan.md artifact hash',
+        },
+      ],
+    });
+    expect(await readFile(publicPath)).toEqual(prior);
+  });
+
+  it('accepts an m0-style staged bundle without a plan artifact', async () => {
+    const publicPath = await promotionPath();
+    const bundle = await stagedBundle();
+
+    const result = await new BundlePromoterAdapter({ publicPath }).promoteWithDiagnostics(bundle, [
+      { gate: 'delivery', passed: true },
+    ]);
+
+    expect(result.receipt).toBeDefined();
+    expect(result.diagnostics).toEqual([]);
+    expect(await readFile(publicPath)).toEqual(freezeBundle(bundle));
   });
 
   it.each([
@@ -676,4 +715,9 @@ async function verifiedBundle(): Promise<StagedBundle> {
 
 function synchronizeArtifactHashes(bundle: StagedBundle): void {
   bundle.manifest.fileHashes = bundle.artifacts.map(({ path, sha256 }) => ({ path, sha256 }));
+}
+
+function bindPlanArtifact(bundle: StagedBundle): void {
+  bundle.artifacts.push({ kind: 'plan', path: 'plan.md', sha256: digest(bundle.plan) });
+  synchronizeArtifactHashes(bundle);
 }

@@ -1,4 +1,4 @@
-import { cp, mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { isAbsolute, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,7 +17,7 @@ import {
 import { PlaywrightVerifier } from '@arxic/verifier';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import {
-  ARXIC_PROMOTION_ATOMIC_REPLACE_FAILED,
+  ARXIC_PROMOTION_PLAN_BINDING_FAILED,
   BundlePromoterAdapter,
   freezeBundle,
   projectVerifiedBundle,
@@ -50,7 +50,7 @@ describe.each(FIXTURE_APPS)('real-world failed-promotion preservation: $name', (
     );
   });
 
-  test('keeps the verified bundle byte-identical when the subsequent atomic replace is blocked', async () => {
+  test('keeps the verified bundle byte-identical when a subsequent plan is desynchronized', async () => {
     if (!running) throw new Error(`Fixture app ${app.name} did not start`);
     const workflow = loginWorkflow(app, {
       id: `authentication.login.promotion.${app.name}`,
@@ -129,12 +129,11 @@ describe.each(FIXTURE_APPS)('real-world failed-promotion preservation: $name', (
     expect(validateManifest(promoted.manifest)).toMatchObject({ ok: true });
     expect(promoted.manifest.workflow).toEqual({ id: promoted.workflow.id, status: 'verified' });
 
-    const subsequentBundle = {
+    const subsequentBundle: StagedBundle = {
       ...verifiedBundle,
       plan: `${verifiedBundle.plan}\nSubsequent promotion candidate.\n`,
     };
     expect(freezeBundle(subsequentBundle)).not.toEqual(promotedBytes);
-    await mkdir(`${publicPath}.lkg`);
     const failed = await promoter.promoteWithDiagnostics(subsequentBundle, [
       { gate: 'delivery', passed: true },
     ]);
@@ -142,16 +141,15 @@ describe.each(FIXTURE_APPS)('real-world failed-promotion preservation: $name', (
     expect(failed.receipt).toBeUndefined();
     expect(failed.diagnostics).toEqual([
       expect.objectContaining({
-        code: ARXIC_PROMOTION_ATOMIC_REPLACE_FAILED,
+        code: ARXIC_PROMOTION_PLAN_BINDING_FAILED,
         severity: 'blocked',
-        subject: publicPath,
-        message: expect.stringContaining(`${publicPath}.lkg`),
+        subject: 'bundle.plan',
+        message: 'Staged plan string does not match the plan.md artifact hash',
       }),
     ]);
-    expect((await stat(`${publicPath}.lkg`)).isDirectory()).toBe(true);
     expect(await readFile(publicPath)).toEqual(promotedBytes);
     const finalListing = (await readdir(promotionDirectory)).sort();
-    expect(finalListing).toEqual([`${app.name}.bundle.json`, `${app.name}.bundle.json.lkg`]);
+    expect(finalListing).toEqual([`${app.name}.bundle.json`]);
 
     if (evidenceDirectory) {
       await mkdir(join(evidenceDirectory, app.name), { recursive: true });
