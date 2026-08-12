@@ -1,6 +1,6 @@
 # M2-PIPELINE-RESULT — staged doc updates (charter §10.2)
 
-Issue: #157 · PR: pending · Disposition: mixed
+Issue: #157 · PR: #168 · Disposition: mixed
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
