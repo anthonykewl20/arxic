@@ -4,8 +4,10 @@ import { validateEvidenceIndex, validateManifest, validateWorkflow } from '@arxi
 import {
   ARXIC_PROMOTION_GATE_FAILED,
   ARXIC_PROMOTION_HASH_MISMATCH,
+  ARXIC_PROMOTION_PLAN_BINDING_FAILED,
   ARXIC_PROMOTION_VALIDATION_FAILED,
   promotionDiagnostic,
+  type PromotionDiagnosticCode,
 } from './diagnostics';
 
 export type ValidationResult = { ok: true } | { ok: false; diagnostics: Diagnostic[] };
@@ -54,6 +56,8 @@ export function validateStagedBundle(bundle: StagedBundle): ValidationResult {
       'Staged artifact references do not match manifest file hashes',
     );
   }
+  const planBinding = planArtifactIsBound(bundle);
+  if (!planBinding.ok) return planBinding;
   if (!workflowEvidenceResolves(bundle)) {
     return invalidBundle(
       'bundle.evidence',
@@ -69,10 +73,14 @@ export function validateStagedBundle(bundle: StagedBundle): ValidationResult {
   return { ok: true };
 }
 
-function invalidBundle(subject: string, message: string): ValidationResult {
+function invalidBundle(
+  subject: string,
+  message: string,
+  code: PromotionDiagnosticCode = ARXIC_PROMOTION_VALIDATION_FAILED,
+): ValidationResult {
   return {
     ok: false,
-    diagnostics: [promotionDiagnostic(ARXIC_PROMOTION_VALIDATION_FAILED, subject, message)],
+    diagnostics: [promotionDiagnostic(code, subject, message)],
   };
 }
 
@@ -89,6 +97,22 @@ function artifactHashesAgree(bundle: StagedBundle): boolean {
   }
   if (artifacts.size !== hashes.size) return false;
   return [...artifacts].every(([path, digest]) => hashes.get(path) === digest);
+}
+
+function planArtifactIsBound(bundle: StagedBundle): ValidationResult {
+  const artifact =
+    bundle.artifacts.find(({ path }) => path === 'plan.md') ??
+    bundle.artifacts.find(({ kind }) => kind === 'plan');
+  if (!artifact) return { ok: true };
+  const planSha256 = createHash('sha256').update(bundle.plan, 'utf8').digest('hex');
+  if (planSha256 !== artifact.sha256) {
+    return invalidBundle(
+      'bundle.plan',
+      'Staged plan string does not match the plan.md artifact hash',
+      ARXIC_PROMOTION_PLAN_BINDING_FAILED,
+    );
+  }
+  return { ok: true };
 }
 
 function hasDeterministicVerificationEvidence(bundle: StagedBundle): boolean {
