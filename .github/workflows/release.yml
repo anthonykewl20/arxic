@@ -41,3 +41,24 @@ jobs:
           generate_release_notes: true
           body: |
             See CHANGELOG.md for details of this release.
+
+  # Maintainer: add NPM_TOKEN to repository secrets before the first publish.
+  npm-publish:
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - name: Build and publish arxic
+        if: ${{ env.NODE_AUTH_TOKEN != '' }}
+        run: pnpm --filter arxic build && npm publish
+        working-directory: apps/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

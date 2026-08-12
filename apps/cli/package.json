@@ -1,16 +1,42 @@
 {
-  "name": "@arxic/cli",
-  "version": "0.0.0",
-  "private": true,
+  "name": "arxic",
+  "version": "0.2.0",
+  "private": false,
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/cli.js",
+  "bin": {
+    "arxic": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.22"
+  },
   "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "pnpm build",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@ast-grep/cli": "^0.45.0",
+    "@playwright/test": "1.62.1",
+    "crawlee": "3.18.0",
+    "playwright": "1.62.1",
+    "testcontainers": "^12.1.0",
+    "tree-sitter": "^0.22.4",
+    "tree-sitter-javascript": "^0.23.1",
+    "tree-sitter-typescript": "^0.23.2"
+  },
+  "devDependencies": {
     "@arxic/contracts": "workspace:*",
     "@arxic/orchestrator-langgraph": "workspace:*",
     "@arxic/worker": "workspace:*",
+    "tsup": "^8.5.0",
     "yaml": "^2.9.0"
   }
 }

@@ -1,4 +1,6 @@
-# `@arxic/cli`
+# `arxic`
+
+`npm i -g arxic && arxic run --config arxic.yaml`
 
 `arxic run --config arxic.yaml` runs locally by default. `--executor local` is
 the explicit equivalent. `--executor worker` selects the `WorkerClient`-backed

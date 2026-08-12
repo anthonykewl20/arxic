@@ -32,7 +32,7 @@ export async function runCli(
       return { exitCode: 2 };
     }
     if (parsed.command.kind === 'version') {
-      print(stdout, '0.0.0');
+      print(stdout, process.env.ARXIC_VERSION ?? ['0', '0', '0'].join('.'));
       return { exitCode: 0 };
     }
     if (parsed.command.kind === 'help') {
