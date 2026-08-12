@@ -4,13 +4,14 @@ import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { PlaywrightExplorationDriver } from '@arxic/playwright-agent-adapter';
+import { PlaywrightExplorationDriver, type LocatorPair } from '@arxic/playwright-agent-adapter';
 import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ARXIC_EXPLORATION_APPROVAL_DENIED,
   ARXIC_EXPLORATION_BUDGET_EXHAUSTED,
   runExploration,
+  runPlannedExploration,
 } from '../exploration';
 import type { Candidate } from '../types';
 
@@ -117,6 +118,104 @@ describe('real stage-8 exploration proof', () => {
         `Exploration proof: sanitized action timeline and provenance retained; screenshots ${screenshots.length}\n`,
       );
     }
+  }, 120_000);
+
+  it('persists same-element locator proof for the real login fill and click plan', async () => {
+    const email: LocatorPair = {
+      semantic: { kind: 'label', text: 'Email', exact: true },
+      execution: { kind: 'role', role: 'textbox', name: 'Email', exact: true },
+    };
+    const password: LocatorPair = {
+      semantic: { kind: 'label', text: 'Password', exact: true },
+      execution: { kind: 'label', text: 'Password', exact: true },
+    };
+    const submit: LocatorPair = {
+      semantic: { kind: 'role', role: 'button', name: 'Login', exact: true },
+      execution: { kind: 'role', role: 'button', name: 'Login', exact: true },
+    };
+    const locatorEvidenceDir = await temporaryDirectory('locator-provenance-evidence-');
+    const result = await runPlannedExploration({
+      runId: 'real-locator-provenance',
+      origin,
+      appBuildDigest: 'a'.repeat(64),
+      candidates: [],
+      budget: 4,
+      driver: new PlaywrightExplorationDriver({
+        headless: true,
+        evidenceDir: locatorEvidenceDir,
+      }),
+      lease: {
+        id: 'real-locator-provenance-lease',
+        owner: 'exploration-real-world-test',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        inUse: false,
+      },
+      plan: {
+        steps: [
+          {
+            intent: 'open login page',
+            action: 'navigation',
+            actionClass: 'read-only',
+            kind: 'navigate',
+            url: `${origin}/login`,
+            required: true,
+          },
+          {
+            intent: 'fill login email',
+            action: 'fixture-change',
+            actionClass: 'reversible-mutation',
+            kind: 'fill',
+            locator: email,
+            value: 'exploration@example.test',
+            required: true,
+          },
+          {
+            intent: 'fill login password',
+            action: 'fixture-change',
+            actionClass: 'reversible-mutation',
+            kind: 'fill',
+            locator: password,
+            value: 'Hunter2!',
+            required: true,
+          },
+          {
+            intent: 'click login submit',
+            action: 'form-submit',
+            actionClass: 'reversible-mutation',
+            kind: 'click',
+            locator: submit,
+            required: true,
+          },
+        ],
+      },
+      now: () => '2026-08-12T00:00:00.000Z',
+    });
+
+    expect(result.approved).toBe(true);
+    expect(result.locatorProvenance?.records).toEqual([
+      { intent: 'fill login email', resolved: true, sameElementProof: true, ...email },
+      { intent: 'fill login password', resolved: true, sameElementProof: true, ...password },
+      { intent: 'click login submit', resolved: true, sameElementProof: true, ...submit },
+    ]);
+    expect(JSON.stringify(result.locatorProvenance?.records)).not.toContain('executionHandle');
+
+    const tracePath = join(locatorEvidenceDir, 'exploration-trace.zip');
+    const provenancePath = `${tracePath}.sanitization.json`;
+    await Promise.all([access(tracePath), access(provenancePath)]);
+    const inspection = await inspectPlaywrightTrace({
+      tracePath,
+      provenancePath,
+      forbiddenSubstrings: ['exploration@example.test', 'Hunter2!', 'exploration-real-world-proof'],
+    });
+    expect(inspection).toMatchObject({
+      ok: true,
+      provenance: { residualScan: { passed: true } },
+    });
+    const screenshots = (await readdir(locatorEvidenceDir)).filter((file) => file.endsWith('.png'));
+    expect(screenshots).toContain('step-00-open-login-page.png');
+    process.stdout.write(
+      `Locator provenance proof: ${result.locatorProvenance?.records.length} identity receipts; sanitized timeline retained\n`,
+    );
   }, 120_000);
 
   it('blocks a destructive intent until a human approval is recorded', async () => {

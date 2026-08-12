@@ -41,6 +41,7 @@ export type LocatorResolutionFailure =
 export type LocatorResolution =
   | Readonly<{
       resolved: true;
+      sameElementProof: true;
       semantic: SemanticLocator;
       execution: ExecutionLocator;
     }>
@@ -135,7 +136,12 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
         if (step.kind === 'fill' || step.kind === 'click') {
           const resolution = await this.#resolveControl(page, step.locator);
           locatorResolution = resolution.resolved
-            ? { resolved: true, semantic: resolution.semantic, execution: resolution.execution }
+            ? {
+                resolved: true,
+                sameElementProof: resolution.sameElementProof,
+                semantic: resolution.semantic,
+                execution: resolution.execution,
+              }
             : resolution;
           if (!resolution.resolved) {
             const finalUrl = page.url();
@@ -416,7 +422,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
         await executionHandle.dispose();
         return { resolved: false, reason: 'mismatch', ...pair };
       }
-      return { resolved: true, executionHandle, ...pair };
+      return { resolved: true, sameElementProof: true, executionHandle, ...pair };
     } catch (error) {
       await executionHandle.dispose();
       throw error;
@@ -429,6 +435,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
 type ControlResolution =
   | Readonly<{
       resolved: true;
+      sameElementProof: true;
       semantic: SemanticLocator;
       execution: ExecutionLocator;
       executionHandle: ElementHandle;

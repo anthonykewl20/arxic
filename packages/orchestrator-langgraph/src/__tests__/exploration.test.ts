@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import type {
   ExplorationDriver,
   ExplorationDriverResult,
+  LocatorPair,
   PlannedExplorationStep,
 } from '@arxic/playwright-agent-adapter';
 import { describe, expect, it } from 'vitest';
@@ -172,6 +173,174 @@ describe('stage-8 intent exploration', () => {
     expect(result.decisions.join('\n')).not.toContain('textbox');
   });
 
+  it('persists failed fill and click locator provenance with their executable intents', async () => {
+    const email: LocatorPair = {
+      semantic: { kind: 'label', text: 'Email', exact: true },
+      execution: { kind: 'role', role: 'textbox', name: 'Email', exact: true },
+    };
+    const submit: LocatorPair = {
+      semantic: { kind: 'role', role: 'button', name: 'Login', exact: true },
+      execution: { kind: 'role', role: 'button', name: 'Login', exact: true },
+    };
+    const driver = new FakeDriver([
+      {
+        intent: 'driver fill observation',
+        url: `${origin}/login`,
+        ok: false,
+        originDrifted: false,
+        locatorResolution: { resolved: false, reason: 'mismatch', ...email },
+      },
+      {
+        intent: 'driver click observation',
+        url: `${origin}/login`,
+        ok: false,
+        originDrifted: false,
+        locatorResolution: {
+          resolved: false,
+          reason: 'semantic-ambiguous',
+          ...submit,
+        },
+      },
+    ]);
+
+    const result = await runPlannedExploration({
+      runId: 'unit-locator-provenance-failure',
+      origin,
+      candidates: [],
+      budget: 2,
+      driver,
+      lease: {
+        id: 'locator-provenance-lease',
+        owner: 'unit-test',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        inUse: false,
+      },
+      plan: {
+        steps: [
+          {
+            intent: 'fill login email',
+            action: 'fixture-change',
+            actionClass: 'reversible-mutation',
+            kind: 'fill',
+            locator: email,
+            value: 'must-not-be-persisted@example.test',
+            url: `${origin}/login`,
+            required: true,
+          },
+          {
+            intent: 'click login submit',
+            action: 'form-submit',
+            actionClass: 'reversible-mutation',
+            kind: 'click',
+            locator: submit,
+            required: true,
+          },
+        ],
+      },
+      now: () => '2026-08-12T00:00:00.000Z',
+    });
+
+    expect(driver.executed.map(({ intent, kind }) => ({ intent, kind }))).toEqual([
+      { intent: 'fill login email', kind: 'fill' },
+      { intent: 'click login submit', kind: 'click' },
+    ]);
+    expect(result.locatorProvenance?.records).toEqual([
+      {
+        intent: 'fill login email',
+        resolved: false,
+        reason: 'mismatch',
+        ...email,
+      },
+      {
+        intent: 'click login submit',
+        resolved: false,
+        reason: 'semantic-ambiguous',
+        ...submit,
+      },
+    ]);
+    expect(JSON.stringify(result)).not.toContain('must-not-be-persisted@example.test');
+  });
+
+  it('persists successful fill and click locator provenance with same-element proof', async () => {
+    const email: LocatorPair = {
+      semantic: { kind: 'label', text: 'Email', exact: true },
+      execution: { kind: 'role', role: 'textbox', name: 'Email', exact: true },
+    };
+    const submit: LocatorPair = {
+      semantic: { kind: 'role', role: 'button', name: 'Login', exact: true },
+      execution: { kind: 'role', role: 'button', name: 'Login', exact: true },
+    };
+    const driver = new FakeDriver([
+      {
+        intent: 'driver fill observation',
+        url: `${origin}/login`,
+        ok: true,
+        originDrifted: false,
+        locatorResolution: { resolved: true, sameElementProof: true, ...email },
+      },
+      {
+        intent: 'driver click observation',
+        url: `${origin}/`,
+        ok: true,
+        originDrifted: false,
+        locatorResolution: { resolved: true, sameElementProof: true, ...submit },
+      },
+    ]);
+
+    const result = await runPlannedExploration({
+      runId: 'unit-locator-provenance-success',
+      origin,
+      candidates: [],
+      budget: 2,
+      driver,
+      lease: {
+        id: 'locator-provenance-lease',
+        owner: 'unit-test',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        inUse: false,
+      },
+      plan: {
+        steps: [
+          {
+            intent: 'fill login email',
+            action: 'fixture-change',
+            actionClass: 'reversible-mutation',
+            kind: 'fill',
+            locator: email,
+            value: 'unit@example.test',
+            url: `${origin}/login`,
+            required: true,
+          },
+          {
+            intent: 'click login submit',
+            action: 'form-submit',
+            actionClass: 'reversible-mutation',
+            kind: 'click',
+            locator: submit,
+            required: true,
+          },
+        ],
+      },
+      now: () => '2026-08-12T00:00:00.000Z',
+    });
+
+    expect(result.locatorProvenance?.records).toEqual([
+      {
+        intent: 'fill login email',
+        resolved: true,
+        sameElementProof: true,
+        ...email,
+      },
+      {
+        intent: 'click login submit',
+        resolved: true,
+        sameElementProof: true,
+        ...submit,
+      },
+    ]);
+    expect(JSON.stringify(result.locatorProvenance?.records)).not.toContain('executionHandle');
+  });
+
   it('keeps an unresolved optional locator observed-degraded instead of blocked-approved', async () => {
     const result = await run(
       new FakeDriver([
@@ -210,6 +379,7 @@ describe('stage-8 intent exploration', () => {
           originDrifted: false,
           locatorResolution: {
             resolved: true,
+            sameElementProof: true,
             semantic: { kind: 'role', role: 'checkbox' },
             execution: { kind: 'role', role: 'checkbox' },
           },
@@ -234,6 +404,7 @@ describe('stage-8 intent exploration', () => {
           originDrifted: false,
           locatorResolution: {
             resolved: true,
+            sameElementProof: true,
             semantic: { kind: 'label', text: 'Email' },
             execution: { kind: 'role', role: 'textbox', name: 'Email' },
           },

@@ -3,6 +3,8 @@ import { validateDiagnostic } from '@arxic/contracts';
 import {
   PlaywrightExplorationDriver,
   type ExplorationDriver,
+  type LocatorPair,
+  type LocatorResolution,
   type PlannedExplorationStep,
   type StepObservation,
 } from '@arxic/playwright-agent-adapter';
@@ -13,7 +15,7 @@ import {
   type LeaseState,
 } from '@arxic/policy-engine';
 import type { ApprovalInput } from './orchestrator';
-import type { Candidate, ExplorationResult } from './types';
+import type { Candidate, ExplorationResult, LocatorProvenanceRecord } from './types';
 
 export const ARXIC_EXPLORATION_FORBIDDEN = 'ARXIC-EXPLORATION-FORBIDDEN' as const;
 export const ARXIC_EXPLORATION_APPROVAL_DENIED = 'ARXIC-EXPLORATION-APPROVAL-DENIED' as const;
@@ -61,13 +63,20 @@ export function explorationDiagnostic(
 
 export type ExplorationIntentAction = string;
 
+type PlanStepExecution =
+  | Readonly<{ kind?: 'navigate' }>
+  | Readonly<{ kind: 'snapshot' }>
+  | Readonly<{ kind: 'fill'; locator: LocatorPair; value: string }>
+  | Readonly<{ kind: 'click'; locator: LocatorPair }>;
+
 export type PlanStep = Readonly<{
   intent: string;
   action: ExplorationIntentAction;
   actionClass: ActionClass;
   url?: string;
   required: boolean;
-}>;
+}> &
+  PlanStepExecution;
 
 export type ExplorationPlan = Readonly<{ steps: readonly PlanStep[] }>;
 
@@ -149,6 +158,7 @@ export async function runPlannedExploration(
   const diagnostics: Diagnostic[] = [];
   const decisions: string[] = [];
   const evidenceRefs: EvidenceRef[] = [];
+  const locatorProvenance: LocatorProvenanceRecord[] = [];
   const executable: PlanStep[] = [];
   let budgetRemaining = input.budget;
   let approved = true;
@@ -196,7 +206,7 @@ export async function runPlannedExploration(
       safeToExecute = false;
       break;
     }
-    if (step.actionClass === 'read-only' && step.url) {
+    if (isExecutableStep(step)) {
       executable.push(step);
       budgetRemaining -= 1;
     } else {
@@ -215,6 +225,11 @@ export async function runPlannedExploration(
       for (const [index, observation] of result.observations.entries()) {
         const step = executable[index];
         if (!step) continue;
+        if (observation.locatorResolution) {
+          locatorProvenance.push(
+            toLocatorProvenanceRecord(step.intent, observation.locatorResolution),
+          );
+        }
         classifyObservation(observation, step, diagnostics, decisions);
         if (observation.originDrifted || (!observation.ok && step.required)) approved = false;
         if (
@@ -275,7 +290,12 @@ export async function runPlannedExploration(
     }
   }
   decisions.push(...diagnostics.map(formatDiagnostic));
-  return { approved, evidenceRefs, decisions };
+  return {
+    approved,
+    evidenceRefs,
+    decisions,
+    ...(locatorProvenance.length > 0 ? { locatorProvenance: { records: locatorProvenance } } : {}),
+  };
 }
 
 export async function defaultExploration(input: ExplorationInput): Promise<ExplorationResult> {
@@ -285,7 +305,7 @@ export async function defaultExploration(input: ExplorationInput): Promise<Explo
 function mapIntent(
   intent: string,
   origin: string,
-): Pick<PlanStep, 'action' | 'actionClass' | 'url'> {
+): Readonly<{ action: ExplorationIntentAction; actionClass: ActionClass; url?: string }> {
   const path = pathFromIntent(intent);
   if (/navigate|visit|go to/i.test(intent)) {
     return {
@@ -327,7 +347,53 @@ function approvalsFor(
 }
 
 function toDriverStep(step: PlanStep): PlannedExplorationStep {
-  return { intent: step.intent, url: step.url!, kind: 'navigate' };
+  switch (step.kind) {
+    case 'fill':
+      return {
+        intent: step.intent,
+        kind: 'fill',
+        locator: step.locator,
+        value: step.value,
+        ...(step.url ? { url: step.url } : {}),
+      };
+    case 'click':
+      return {
+        intent: step.intent,
+        kind: 'click',
+        locator: step.locator,
+        ...(step.url ? { url: step.url } : {}),
+      };
+    case 'snapshot':
+      return { intent: step.intent, kind: 'snapshot' };
+    case 'navigate':
+    case undefined:
+      if (!step.url) throw new Error(`Exploration step is not executable: ${step.intent}`);
+      return { intent: step.intent, kind: 'navigate', url: step.url };
+  }
+}
+
+function isExecutableStep(step: PlanStep): boolean {
+  if (step.actionClass === 'read-only') {
+    return step.kind === 'snapshot' || step.kind === 'navigate' || Boolean(step.url);
+  }
+  return (
+    step.actionClass === 'reversible-mutation' && (step.kind === 'fill' || step.kind === 'click')
+  );
+}
+
+function toLocatorProvenanceRecord(
+  intent: string,
+  resolution: LocatorResolution,
+): LocatorProvenanceRecord {
+  const locators = { semantic: resolution.semantic, execution: resolution.execution };
+  return resolution.resolved
+    ? {
+        intent,
+        resolved: true,
+        sameElementProof: resolution.sameElementProof,
+        ...locators,
+      }
+    : { intent, resolved: false, reason: resolution.reason, ...locators };
 }
 
 function classifyObservation(

@@ -10,6 +10,11 @@ import type {
   Workflow,
 } from '@arxic/contracts';
 import type { IntentLineage, IntentSpec, OracleSpec, ResolvedAssertion } from '@arxic/intent';
+import type {
+  ExecutionLocator,
+  LocatorResolutionFailure,
+  SemanticLocator,
+} from '@arxic/playwright-agent-adapter';
 
 export type RunStatus =
   'queued' | 'running' | 'awaiting-approval' | 'completed' | 'partial' | 'failed';
@@ -78,10 +83,22 @@ export type FixturePreparation = Readonly<{
 }> &
   Readonly<{ provisioned: true } | { provisioned: false }>;
 
+export type LocatorProvenanceRecord = Readonly<
+  {
+    intent: string;
+    semantic: SemanticLocator;
+    execution: ExecutionLocator;
+  } & (
+    | Readonly<{ resolved: true; sameElementProof: true }>
+    | Readonly<{ resolved: false; reason: LocatorResolutionFailure }>
+  )
+>;
+
 export type ExplorationResult = Readonly<{
   approved: boolean;
   evidenceRefs: readonly EvidenceRef[];
   decisions: readonly string[];
+  locatorProvenance?: Readonly<{ records: readonly LocatorProvenanceRecord[] }>;
 }>;
 
 export type OracleRule = Readonly<{
