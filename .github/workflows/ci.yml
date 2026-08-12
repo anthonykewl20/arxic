@@ -1,10 +1,17 @@
 name: CI
 
+# Runs on PRs only. Trunk-based flow merges a verified PR, so main is covered;
+# the push-to-main trigger is intentionally dropped to halve billable minutes.
+# Use workflow_dispatch to verify main manually if ever needed.
+# paths-ignore skips CI only for changes that cannot affect the build or gates.
 on:
-  push:
-    branches:
-      - main
   pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.editorconfig'
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -13,6 +20,7 @@ concurrency:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
 
@@ -27,6 +35,14 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-chromium-
 
       - name: Install Playwright Chromium
         run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
@@ -89,6 +105,7 @@ jobs:
         with:
           name: sbom-cyclonedx
           path: sbom.cdx.json
+          retention-days: 14
 
       - name: Fixture apps typecheck
         run: pnpm --filter reference-auth-app typecheck && pnpm --filter vulnerable-auth-app typecheck
