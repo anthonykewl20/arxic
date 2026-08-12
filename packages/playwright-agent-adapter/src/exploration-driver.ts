@@ -13,6 +13,8 @@ import {
   type Page,
 } from '@playwright/test';
 
+const NAVIGATION_TIMEOUT_MS = 30_000;
+
 export type SemanticLocator =
   | Readonly<{ kind: 'role'; role: string; name?: string; exact?: boolean }>
   | Readonly<{ kind: 'label'; text: string; exact?: boolean }>
@@ -129,9 +131,9 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       let locatorResolution: LocatorResolution | undefined;
       try {
         if (step.kind === 'navigate') {
-          await page.goto(step.url, { waitUntil: 'load', timeout: this.#options.timeoutMs });
+          await page.goto(step.url, { waitUntil: 'load', timeout: NAVIGATION_TIMEOUT_MS });
         } else if ((step.kind === 'fill' || step.kind === 'click') && step.url) {
-          await page.goto(step.url, { waitUntil: 'load', timeout: this.#options.timeoutMs });
+          await page.goto(step.url, { waitUntil: 'load', timeout: NAVIGATION_TIMEOUT_MS });
         }
         if (step.kind === 'fill' || step.kind === 'click') {
           const resolution = await this.#resolveControl(page, step.locator);
