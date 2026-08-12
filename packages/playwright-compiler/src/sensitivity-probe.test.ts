@@ -28,6 +28,7 @@ describe('assertion sensitivity probe', () => {
       runSuite: async () => ({ passed: false, output: 'module resolution failed' }),
     });
 
+    expect(result.assertions).toEqual([]);
     expect(result).toEqual({
       killed: false,
       probed: 0,
@@ -60,6 +61,17 @@ describe('assertion sensitivity probe', () => {
       runSuite: async () => ({ passed: true, output: 'control and mutations passed' }),
     });
 
+    expect(result.assertions).toEqual([
+      {
+        transitionIndex: 0,
+        assertionIndex: 0,
+        operators: [
+          { kind: 'value-substitution', killed: false, controlPassed: true },
+          { kind: 'control-state-omission', killed: false, controlPassed: true },
+        ],
+        killed: false,
+      },
+    ]);
     expect(result).toEqual({
       killed: false,
       probed: 2,
@@ -98,7 +110,23 @@ describe('assertion sensitivity probe', () => {
       runSuite: async () => ({ passed: runResults.shift()! }),
     });
 
-    expect(result).toEqual({ killed: true, probed: 2, controlPassed: true, diagnostics: [] });
+    expect(result.assertions).toEqual([
+      {
+        transitionIndex: 0,
+        assertionIndex: 0,
+        operators: [
+          { kind: 'value-substitution', killed: true, controlPassed: true },
+          { kind: 'control-state-omission', killed: true, controlPassed: true },
+        ],
+        killed: true,
+      },
+    ]);
+    expect(result).toEqual({
+      killed: true,
+      probed: 2,
+      controlPassed: true,
+      diagnostics: [],
+    });
   });
 
   test('blocks a value-tautology that survives action omission after value mutation is killed', async () => {
@@ -117,6 +145,17 @@ describe('assertion sensitivity probe', () => {
       killed: false,
       probed: 2,
       controlPassed: true,
+      assertions: [
+        {
+          transitionIndex: 0,
+          assertionIndex: 0,
+          operators: [
+            { kind: 'value-substitution', killed: true, controlPassed: true },
+            { kind: 'control-state-omission', killed: false, controlPassed: true },
+          ],
+          killed: false,
+        },
+      ],
       diagnostics: [
         {
           code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
@@ -148,6 +187,26 @@ describe('assertion sensitivity probe', () => {
       killed: false,
       probed: 4,
       controlPassed: true,
+      assertions: [
+        {
+          transitionIndex: 0,
+          assertionIndex: 0,
+          operators: [
+            { kind: 'value-substitution', killed: false, controlPassed: true },
+            { kind: 'control-state-omission', killed: true, controlPassed: true },
+          ],
+          killed: false,
+        },
+        {
+          transitionIndex: 0,
+          assertionIndex: 1,
+          operators: [
+            { kind: 'value-substitution', killed: true, controlPassed: true },
+            { kind: 'control-state-omission', killed: false, controlPassed: true },
+          ],
+          killed: false,
+        },
+      ],
       diagnostics: [
         {
           code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
@@ -182,7 +241,23 @@ describe('assertion sensitivity probe', () => {
       runSuite: async () => ({ passed: runResults.shift()! }),
     });
 
-    expect(result).toEqual({ killed: true, probed: 2, controlPassed: true, diagnostics: [] });
+    expect(result.assertions).toEqual([
+      {
+        transitionIndex: 0,
+        assertionIndex: 0,
+        operators: [
+          { kind: 'value-substitution', killed: true, controlPassed: true },
+          { kind: 'control-state-omission', killed: true, controlPassed: true },
+        ],
+        killed: true,
+      },
+    ]);
+    expect(result).toEqual({
+      killed: true,
+      probed: 2,
+      controlPassed: true,
+      diagnostics: [],
+    });
     expect(writtenSpecs[2]).toContain('page.goto("http://127.0.0.1:3000/login")');
     expect(writtenSpecs[2]).toContain('getByText("Logged in")');
     expect(writtenSpecs[2]).not.toContain('.fill(');
@@ -197,7 +272,32 @@ describe('assertion sensitivity probe', () => {
       runSuite: async () => ({ passed: runResults.shift()! }),
     });
 
-    expect(result).toEqual({ killed: true, probed: 4, controlPassed: true, diagnostics: [] });
+    expect(result.assertions).toEqual([
+      {
+        transitionIndex: 0,
+        assertionIndex: 0,
+        operators: [
+          { kind: 'value-substitution', killed: true, controlPassed: true },
+          { kind: 'control-state-omission', killed: true, controlPassed: true },
+        ],
+        killed: true,
+      },
+      {
+        transitionIndex: 0,
+        assertionIndex: 1,
+        operators: [
+          { kind: 'value-substitution', killed: true, controlPassed: true },
+          { kind: 'control-state-omission', killed: true, controlPassed: true },
+        ],
+        killed: true,
+      },
+    ]);
+    expect(result).toEqual({
+      killed: true,
+      probed: 4,
+      controlPassed: true,
+      diagnostics: [],
+    });
   });
 
   test('skips unsupported assertion kinds without running a suite', async () => {
@@ -210,7 +310,13 @@ describe('assertion sensitivity probe', () => {
       },
     });
 
-    expect(result).toEqual({ killed: false, probed: 0, controlPassed: false, diagnostics: [] });
+    expect(result.assertions).toEqual([]);
+    expect(result).toEqual({
+      killed: false,
+      probed: 0,
+      controlPassed: false,
+      diagnostics: [],
+    });
     expect(ran).toBe(false);
   });
 });
