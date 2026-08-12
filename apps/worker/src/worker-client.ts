@@ -22,6 +22,15 @@ import {
   importArtifacts,
 } from '@arxic/environment';
 import { freezePolicy, ingestContentAsData, validateWorkerSecurity } from './worker-policy';
+import {
+  PIPELINE_RESULT_PATH,
+  pipelineConfigSha256,
+  pipelineSha256,
+  pipelineSourceSha256,
+  serializePipelineResult,
+  type PipelineResult,
+} from './pipeline-result';
+import { createHash } from 'node:crypto';
 
 /**
  * Classify an inspected sandbox state into a run handle. A quota breach
@@ -110,6 +119,7 @@ export function createLocalWorkerClient(options: { docker?: boolean } = {}): Wor
   const policies = new Map<string, ReturnType<typeof freezePolicy>>();
   const approvals = new Map<string, readonly RunApproval[]>();
   const importedArtifacts = new Map<string, ImportedArtifacts>();
+  const specs = new Map<string, RunSpec>();
 
   const remember = (handle: RunHandle): RunHandle => {
     handles.set(handle.runId, handle);
@@ -131,6 +141,7 @@ export function createLocalWorkerClient(options: { docker?: boolean } = {}): Wor
       // ADR §16.3 / threat-model §"Prompt-injection defense": the run policy is
       // frozen before any untrusted content is read and is never mutated.
       policies.set(spec.runId, freezePolicy(spec));
+      specs.set(spec.runId, spec);
 
       if (handles.has(spec.runId)) {
         return handles.get(spec.runId)!;
@@ -239,16 +250,33 @@ export function createLocalWorkerClient(options: { docker?: boolean } = {}): Wor
 
         if (latest.status !== 'failed') {
           try {
-            // #156's minimal handshake. The pipeline-result slice (#157) owns
-            // extending this manifest with its sealed result references; until
-            // then the scaffold worker has no bulk pipeline artifacts.
+            // The current scaffold image has no pipeline runtime (#155). Seal a
+            // bounded observed projection so the real Docker path still proves
+            // the #156 volume + #157 envelope mechanics without claiming that
+            // stages genuinely executed. The image integration replaces this
+            // projection with the actual stages 0-11 state.
+            const spec = specs.get(handle.runId);
+            if (!spec) throw new Error('Run specification is unavailable');
+            const envelopeBytes = serializePipelineResult(scaffoldPipelineResult(spec));
+            const envelopeSha256 = createHash('sha256').update(envelopeBytes).digest('hex');
             const manifest = Buffer.from(
-              JSON.stringify({ runId: handle.runId, resultReady: true, files: [] }),
+              JSON.stringify({
+                runId: handle.runId,
+                resultReady: true,
+                files: [
+                  {
+                    path: PIPELINE_RESULT_PATH,
+                    sha256: envelopeSha256,
+                    bytes: envelopeBytes.length,
+                  },
+                ],
+              }),
             ).toString('base64');
+            const envelope = Buffer.from(envelopeBytes).toString('base64');
             const published = await sandbox.exec([
               'sh',
               '-c',
-              `printf %s '${manifest}' | base64 -d > /work/result/result-manifest.json`,
+              `printf %s '${envelope}' | base64 -d > /work/result/${PIPELINE_RESULT_PATH} && printf %s '${manifest}' | base64 -d > /work/result/result-manifest.json`,
             ]);
             latest = remember(classifyExecResult(latest, published));
             if (latest.status === 'failed') throw new Error('Could not publish result manifest');
@@ -326,6 +354,70 @@ export function createLocalWorkerClient(options: { docker?: boolean } = {}): Wor
         diagnostics: [...latest.diagnostics, ...cleanup.cleanupDiagnostics],
         promotionEligible: false,
       });
+    },
+  };
+}
+
+function scaffoldPipelineResult(spec: RunSpec): PipelineResult {
+  const producedAt = new Date();
+  const expiresAt = new Date(producedAt.getTime() + 5 * 60_000);
+  const checkpoints = Array.from({ length: 12 }, (_, stage) => ({
+    stage: stage as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11,
+    name: `scaffold-stage-${stage}`,
+    status: 'deferred' as const,
+    startedAt: producedAt.toISOString(),
+    finishedAt: producedAt.toISOString(),
+    adapter: {
+      name: stage === 10 ? '@arxic/verifier' : '@arxic/worker:scaffold',
+      version: '0.0.0',
+    },
+    orchestratorVersion: '0.0.0',
+    artifacts: [],
+    toolVersions: (stage === 10 ? { '@arxic/verifier': '0.0.0' } : {}) as Record<string, string>,
+    decisions: ['Pipeline execution deferred until the #155 image integration'],
+    approvals: [],
+    gateResults: [],
+    redaction: { passed: true, redactedFields: [] },
+  }));
+  return {
+    protocolVersion: 1,
+    binding: {
+      runId: spec.runId,
+      configSha256: pipelineConfigSha256(spec.config),
+      sourceSha256: pipelineSourceSha256(spec.config),
+      sourceRevision: spec.config.source.revision,
+      appBuildDigest: 'scaffold-unbuilt-image',
+      workerImageVersion: 'scaffold',
+      toolVersion: '0.0.0',
+      browserVersion: 'unavailable',
+      orchestratorVersion: '0.0.0',
+    },
+    freshness: { producedAt: producedAt.toISOString(), expiresAt: expiresAt.toISOString() },
+    state: {
+      runId: spec.runId,
+      status: 'partial',
+      outcome: 'observed',
+      activeStage: 11,
+      completedStages: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+      artifacts: [],
+      checkpoints,
+      diagnostics: [],
+      promotionEligible: false,
+    },
+    candidate: { gateResults: [] },
+    verifier: {
+      version: 1,
+      runId: spec.runId,
+      verifierVersion: '0.0.0',
+      orchestratorVersion: '0.0.0',
+      configSha256: pipelineConfigSha256(spec.config),
+      sourceSha256: pipelineSourceSha256(spec.config),
+      appBuildDigest: 'scaffold-unbuilt-image',
+      requiredReplayCount: spec.config.policy.requiredVerificationRuns,
+      cleanReplayCount: 0,
+      outcome: 'observed',
+      artifactHashes: [],
+      stagedBundleSha256: pipelineSha256(null),
     },
   };
 }

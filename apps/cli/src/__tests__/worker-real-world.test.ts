@@ -18,7 +18,7 @@ afterAll(async () => {
 });
 
 describe('worker-backed CLI real Docker proof', () => {
-  it('selects the real worker, cleans it up, and records lifecycle completion as blocked', async () => {
+  it('imports and normalizes the synthetic envelope through real Docker without claiming verified', async () => {
     const version = await docker(['version', '--format', '{{.Server.Version}}']);
     expect(version.exit, version.stderr).toBe(0);
 
@@ -54,7 +54,7 @@ describe('worker-backed CLI real Docker proof', () => {
 
     expect(workerObserved).toBe(true);
     expect(result).toEqual({ exitCode: 1, runDirectory: join(directory, 'runs', runId) });
-    expect(errors.join('')).toContain('ARXIC-EXEC-WORKER-PROTOCOL');
+    expect(errors.join('')).not.toContain('ARXIC-EXEC-WORKER-PROTOCOL');
     expect((await docker(['inspect', `arxic-${runId}-worker`])).exit).not.toBe(0);
     expect((await docker(['network', 'inspect', `arxic-${runId}-net`])).exit).not.toBe(0);
 
@@ -65,7 +65,7 @@ describe('worker-backed CLI real Docker proof', () => {
       'diagnostics.jsonl',
       'run.json',
     ]);
-    expect(await readdir(join(runDirectory, 'artifacts'))).toEqual([]);
+    expect(await readdir(join(runDirectory, 'artifacts'))).toEqual(['pipeline-result.json']);
     const run = JSON.parse(await readFile(join(runDirectory, 'run.json'), 'utf8')) as Record<
       string,
       unknown
@@ -91,21 +91,20 @@ describe('worker-backed CLI real Docker proof', () => {
     expect(run).toMatchObject({
       schemaVersion: 1,
       runId,
-      status: 'failed',
-      outcome: 'blocked',
-      stages: [],
+      status: 'partial',
+      outcome: 'observed',
+      stages: expect.arrayContaining([expect.objectContaining({ stage: 10 })]),
       artifactHashes: [],
     });
     expect(run).not.toHaveProperty('receipt');
-    const diagnostics = (await readFile(join(runDirectory, 'diagnostics.jsonl'), 'utf8'))
-      .trim()
-      .split('\n')
-      .map((line) => JSON.parse(line) as unknown);
-    expect(diagnostics).toHaveLength(1);
+    const diagnosticBytes = (
+      await readFile(join(runDirectory, 'diagnostics.jsonl'), 'utf8')
+    ).trim();
+    const diagnostics = diagnosticBytes
+      ? diagnosticBytes.split('\n').map((line) => JSON.parse(line) as unknown)
+      : [];
+    expect(diagnostics).toHaveLength(0);
     expect(diagnostics.every((diagnostic) => validateDiagnostic(diagnostic).ok)).toBe(true);
-    expect(diagnostics).toMatchObject([
-      { code: 'ARXIC-EXEC-WORKER-PROTOCOL', severity: 'blocked', subject: runId },
-    ]);
     expect(JSON.parse(await readFile(join(runDirectory, 'config.json'), 'utf8'))).toMatchObject({
       version: 1,
       source: { repository: source },

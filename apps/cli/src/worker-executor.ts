@@ -1,7 +1,7 @@
 import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve, sep } from 'node:path';
-import type { RunState } from '@arxic/orchestrator-langgraph';
+import { promoteWorkerCandidate, type RunState } from '@arxic/orchestrator-langgraph';
 import type { ImportedArtifacts, RunHandle, WorkerClient } from '@arxic/worker';
 import {
   ARXIC_EXEC_WORKER_APPROVAL_REQUIRED,
@@ -9,13 +9,19 @@ import {
   ARXIC_EXEC_WORKER_PROTOCOL,
   cliDiagnostic,
 } from './diagnostics';
-import { type DiagnosticSink, type RunExecutor, type RunRequest, type RunResult } from './executor';
+import {
+  normalizeWorkerResult,
+  runResultFromState,
+  type DiagnosticSink,
+  type RunExecutor,
+  type RunRequest,
+  type RunResult,
+} from './executor';
 
 /**
  * CLI action adapter for the WorkerClient lifecycle. Pipeline mechanics stay
- * in the isolated runtime; this action owns failure classification. Until the
- * worker exposes a structured pipeline result, lifecycle completion is blocked
- * rather than being mistaken for completion of stages 0–12.
+ * in the isolated runtime; this action owns failure classification, trusted
+ * CLI-side promotion, and the final local/worker normalization decision.
  */
 export class WorkerRunExecutor implements RunExecutor {
   constructor(private readonly client: WorkerClient) {}
@@ -72,7 +78,6 @@ export class WorkerRunExecutor implements RunExecutor {
             if (JSON.stringify(imported.manifest) !== JSON.stringify(event.manifest)) {
               throw new Error('Artifact manifest changed after result-ready');
             }
-            await writeImportedArtifacts(request.runDirectory, request.runId, imported);
           } catch {
             record(
               safeWorkerDiagnostic(
@@ -118,8 +123,80 @@ export class WorkerRunExecutor implements RunExecutor {
         ),
       );
     }
-    record(protocolFailure(request.runId));
-    return failedResult(request, diagnostics);
+    if (imported === undefined) return failedResult(request, diagnostics);
+    const normalized = normalizeWorkerResult(request, imported);
+    if (!normalized.ok) {
+      record(
+        normalized.kind === 'verifier'
+          ? safeWorkerDiagnostic(
+              {
+                code: 'ARXIC-WORKER-RUN-FAILED',
+                severity: 'blocked',
+                subject: request.runId,
+                message: normalized.reason,
+              },
+              request.runId,
+            )
+          : protocolFailure(request.runId),
+      );
+      return failedResult(request, diagnostics);
+    }
+    try {
+      await writeImportedArtifacts(request.runDirectory, request.runId, imported);
+    } catch {
+      record(
+        safeWorkerDiagnostic(
+          {
+            code: 'ARXIC-WORKER-RUN-FAILED',
+            severity: 'blocked',
+            subject: request.runId,
+            message: 'Worker artifact ingress failed',
+          },
+          request.runId,
+        ),
+      );
+      return failedResult(request, diagnostics);
+    }
+
+    let state = {
+      ...normalized.state,
+      diagnostics: [...diagnostics, ...normalized.state.diagnostics],
+    };
+    if (state.outcome === 'verified') {
+      if (!normalized.stagedBundle) {
+        record(protocolFailure(request.runId));
+        return failedResult(request, diagnostics);
+      }
+      try {
+        const receipt = await promoteWorkerCandidate({
+          bundle: normalized.stagedBundle,
+          gates: normalized.gateResults,
+          publicPath: resolve(request.runDirectory, 'promoted', `${request.runId}.bundle.json`),
+          ...(request.now ? { now: request.now } : {}),
+        });
+        state = {
+          ...state,
+          status: 'completed' as const,
+          promotionEligible: true,
+          receipt,
+        };
+      } catch {
+        record(
+          safeWorkerDiagnostic(
+            {
+              code: 'ARXIC-WORKER-RUN-FAILED',
+              severity: 'blocked',
+              subject: request.runId,
+              message: 'CLI-side candidate promotion failed',
+            },
+            request.runId,
+          ),
+        );
+        return failedResult(request, diagnostics);
+      }
+    }
+    state.diagnostics.forEach(emitWorker);
+    return runResultFromState(request, state, diagnostics);
   }
 
   private async cancelAndCollect(
