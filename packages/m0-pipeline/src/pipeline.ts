@@ -149,6 +149,27 @@ export async function runM0Vertical(
       error instanceof Error ? error.message : String(error),
     );
   }
+  // Pre-verification evidence gate: every workflow evidence reference must
+  // resolve to trusted indexed evidence BEFORE any Chromium run is spent.
+  // Source evidence is indexed above (ast-grep); runtime evidence is added by
+  // the pipeline AFTER verification, so any `run:` ref already present in the
+  // candidate is inherently unresolvable and is caught here. Checking before
+  // verifyStagedSuite keeps this gate deterministic rather than dependent on a
+  // browser launch completing (ADR §15; charter §3).
+  const unresolvedEvidence = workflowEvidenceIds(input.candidate).filter(
+    (evidenceId) => evidenceIndex[evidenceId] === undefined,
+  );
+  if (unresolvedEvidence.length > 0) {
+    diagnostics.push(
+      exitDiagnostic(
+        ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
+        'blocked',
+        input.candidate.id,
+        'Workflow evidence references do not resolve to trusted indexed evidence',
+      ),
+    );
+    return skipped('blocked', [], diagnostics, input.candidate.id);
+  }
   const verification = await verifyStagedSuite({
     workflow: input.candidate,
     origin: input.target.origin,
@@ -177,20 +198,6 @@ export async function runM0Vertical(
     },
   });
   diagnostics.push(...verification.diagnostics);
-  const unresolvedEvidence = workflowEvidenceIds(input.candidate).filter(
-    (evidenceId) => evidenceIndex[evidenceId] === undefined,
-  );
-  if (unresolvedEvidence.length > 0 && verification.outcome === 'verified') {
-    diagnostics.push(
-      exitDiagnostic(
-        ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
-        'blocked',
-        input.candidate.id,
-        'Workflow evidence references do not resolve to trusted indexed evidence',
-      ),
-    );
-    return skipped('blocked', verification.runs, diagnostics, input.candidate.id);
-  }
   if (verification.outcome !== 'verified') {
     return skipped(verification.outcome, verification.runs, diagnostics, input.candidate.id);
   }
