@@ -27,7 +27,9 @@ describe('worker-backed CLI real Docker proof', () => {
     await writeFile(join(source, 'source.txt'), 'worker lifecycle proof');
     await writeConfig(join(directory, 'arxic.yaml'), source);
     const runId = `worker-cli-${process.pid}`;
-    const actualClient = createLocalWorkerClient();
+    // node:20-alpine keeps this lifecycle/mechanics proof CI-portable (the
+    // real arxic-worker image is exercised by worker-image.real-world.test.ts).
+    const actualClient = createLocalWorkerClient({ image: 'node:20-alpine' });
     let workerObserved = false;
     const workerClient: WorkerClient = {
       ...actualClient,

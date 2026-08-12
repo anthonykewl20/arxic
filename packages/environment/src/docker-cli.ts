@@ -130,3 +130,8 @@ export function networkConnect(
     container,
   ]);
 }
+
+/** Inspect a Docker image; exit 0 means the image exists locally. */
+export function dockerImageInspect(image: string): Promise<DockerResult> {
+  return invoke(['image', 'inspect', image]);
+}
