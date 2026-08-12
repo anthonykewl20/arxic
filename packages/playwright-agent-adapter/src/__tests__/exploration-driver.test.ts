@@ -230,7 +230,10 @@ describe('PlaywrightExplorationDriver locator policy', () => {
       expect(result.observations[0]).toEqual(
         expect.objectContaining({
           ok: true,
-          locatorResolution: expect.objectContaining({ resolved: true }),
+          locatorResolution: expect.objectContaining({
+            resolved: true,
+            sameElementProof: true,
+          }),
         }),
       );
     } finally {
