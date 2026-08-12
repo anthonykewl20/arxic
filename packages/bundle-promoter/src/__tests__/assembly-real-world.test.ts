@@ -1,8 +1,10 @@
 import { createHash } from 'node:crypto';
+import { execFile } from 'node:child_process';
 import { cp, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import { PlaywrightCompiler } from '@arxic/playwright-compiler';
 import {
   FIXTURE_APPS,
@@ -19,6 +21,28 @@ import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { assembleBundle, scanBundleForSensitiveData } from '..';
 
 const root = fileURLToPath(new URL('../../../../', import.meta.url));
+const execFileAsync = promisify(execFile);
+let realSbomPromise: Promise<readonly [Buffer, Buffer]> | undefined;
+
+function generateRealSboms(): Promise<readonly [Buffer, Buffer]> {
+  realSbomPromise ??= (async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-real-sbom-'));
+    const firstPath = join(directory, 'first.cdx.json');
+    const secondPath = join(directory, 'second.cdx.json');
+    try {
+      for (const path of [firstPath, secondPath]) {
+        await execFileAsync('pnpm', ['sbom', '--sbom-format', 'cyclonedx', '--out', path], {
+          cwd: root,
+          maxBuffer: 10 * 1024 * 1024,
+        });
+      }
+      return [await readFile(firstPath), await readFile(secondPath)] as const;
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  })();
+  return realSbomPromise;
+}
 
 describe.each(FIXTURE_APPS)('real-world bundle assembly proof: $name', (app) => {
   let running: RunningApp | undefined;
@@ -69,11 +93,14 @@ describe.each(FIXTURE_APPS)('real-world bundle assembly proof: $name', (app) => 
       trace: 'retain',
     });
     expect(verification.outcome, JSON.stringify(verification.diagnostics)).toBe('verified');
+    const [generatedSbom, independentlyGeneratedSbom] = await generateRealSboms();
+    expect(generatedSbom).not.toEqual(independentlyGeneratedSbom);
 
     const assembly = await assembleBundle({
       bundle,
       stagedDirectory,
       outputDirectory: bundleDirectory,
+      sbom: generatedSbom,
       verificationArtifacts: verification.artifacts,
       provenance: {
         repository: 'https://github.com/anthonykewl20/arxic',
@@ -84,6 +111,14 @@ describe.each(FIXTURE_APPS)('real-world bundle assembly proof: $name', (app) => 
       now: () => '2026-08-06T12:00:00.000Z',
     });
 
+    const sbomBytes = await readFile(join(assembly.directory, 'sbom.cdx.json'));
+    const parsedSbom = JSON.parse(sbomBytes.toString('utf8'));
+    expect(parsedSbom).toMatchObject({ bomFormat: 'CycloneDX' });
+    expect(parsedSbom).not.toHaveProperty('serialNumber');
+    expect(parsedSbom.metadata).not.toHaveProperty('timestamp');
+    expect(assembly.checksumsSha256).toContain(
+      `${createHash('sha256').update(sbomBytes).digest('hex')}  sbom.cdx.json\n`,
+    );
     expect(await scanBundleForSensitiveData(assembly.directory)).toMatchObject({ passed: true });
     for (const line of assembly.checksumsSha256.trimEnd().split('\n')) {
       const [expected, path] = line.split('  ');

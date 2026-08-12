@@ -58,6 +58,62 @@ describe('bundle assembly and redaction gate', () => {
     expect(assembly.files.map(({ path }) => path)).toContain('checksums.sha256');
   });
 
+  it('sanitizes sensitive CycloneDX content before checksumming the SBOM', async () => {
+    const plantedEmail = 'maintainer@real-company.com';
+    const assembly = await assemblyFixture(
+      JSON.stringify({
+        bomFormat: 'CycloneDX',
+        specVersion: '1.7',
+        serialNumber: 'urn:uuid:volatile',
+        metadata: { timestamp: '2026-08-12T00:00:00.000Z' },
+        components: [{ name: 'example', author: plantedEmail }],
+      }),
+    );
+    const bytes = await readFile(join(assembly.directory, 'sbom.cdx.json'));
+    const content = bytes.toString('utf8');
+    expect(content).not.toContain(plantedEmail);
+    expect(JSON.parse(content)).toMatchObject({ bomFormat: 'CycloneDX', specVersion: '1.7' });
+    expect(JSON.parse(content)).not.toHaveProperty('serialNumber');
+    expect(JSON.parse(content).metadata).not.toHaveProperty('timestamp');
+    expect(assembly.checksumsSha256).toContain(`${hash(bytes)}  sbom.cdx.json\n`);
+    expect(await scanBundleForSensitiveData(assembly.directory)).toMatchObject({ passed: true });
+  });
+
+  it('leaves non-email secrets visible to the unchanged redaction gate', async () => {
+    const plantedSecret = 'password=Secret123!';
+    const assembly = await assemblyFixture(
+      JSON.stringify({
+        bomFormat: 'CycloneDX',
+        specVersion: '1.7',
+        components: [{ name: 'hostile', description: plantedSecret }],
+      }),
+    );
+
+    expect(await scanBundleForSensitiveData(assembly.directory)).toMatchObject({
+      passed: false,
+      findings: [expect.objectContaining({ file: 'sbom.cdx.json', pattern: 'password-literal' })],
+    });
+  });
+
+  it('rejects malformed SBOM input before changing prior bundle output', async () => {
+    const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
+    const marker = join(outputDirectory, 'prior-output.txt');
+    await writeFile(marker, 'prior output');
+    const bundle = await stagedAssemblyBundle(stagedDirectory);
+
+    await expect(
+      assembleBundle({
+        bundle,
+        stagedDirectory,
+        outputDirectory,
+        sbom: '{not-json',
+        provenance: provenanceFor(bundle),
+      }),
+    ).rejects.toThrow('SBOM must be valid CycloneDX JSON');
+    await expect(readFile(marker, 'utf8')).resolves.toBe('prior output');
+  });
+
   it('rejects raw traces and accepts independently inspected sanitized traces', async () => {
     const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
     const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
@@ -432,6 +488,7 @@ describe('bundle assembly and redaction gate', () => {
       'artifacts/reports',
       'provenance.json',
       'NOTICE',
+      'sbom.cdx.json',
       'checksums.sha256',
     ]) {
       await expect(stat(join(assembly.directory, path)), path).resolves.toBeDefined();
@@ -457,7 +514,13 @@ async function textBundle(content: string): Promise<string> {
   return directory;
 }
 
-async function assemblyFixture() {
+async function assemblyFixture(
+  sbom: string | Buffer = JSON.stringify({
+    bomFormat: 'CycloneDX',
+    specVersion: '1.7',
+    components: [{ name: 'fixture-dependency', version: '1.0.0' }],
+  }),
+) {
   const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
   const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
   const files = [
@@ -480,6 +543,7 @@ async function assemblyFixture() {
     bundle,
     stagedDirectory,
     outputDirectory,
+    sbom,
     provenance: {
       repository: bundle.manifest.repository,
       commit: bundle.manifest.commit,
