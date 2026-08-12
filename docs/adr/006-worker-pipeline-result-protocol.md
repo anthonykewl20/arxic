@@ -1,11 +1,11 @@
 # ADR-006: Worker→CLI pipeline-result protocol (M2-WORKER-CLI / #103)
 
-| Field      | Value                                                                                 |
-| ---------- | ------------------------------------------------------------------------------------- |
-| Status     | Proposed                                                                              |
-| Decides    | The worker→CLI result transport, wire envelope, validation, promotion, and resumption |
-| Relates to | ADR-001 §2/§9/§10/§15/§16/§20/§21/§23, ADR-002, ADR-004, issue #103                   |
-| Owners     | Arxic maintainers                                                                     |
+| Field      | Value                                                                                                                       |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Status     | Proposed — Owner decisions resolved 2026-08-12; remains Proposed pending real-world implementation proof (ADR-004 pattern). |
+| Decides    | The worker→CLI result transport, wire envelope, validation, promotion, and resumption                                       |
+| Relates to | ADR-001 §2/§9/§10/§15/§16/§20/§21/§23, ADR-002, ADR-004, issue #103                                                         |
+| Owners     | Arxic maintainers                                                                                                           |
 
 ## Context
 
@@ -244,32 +244,43 @@ boundary.
   protocol alone cannot complete issue #103.
 - Screenshot privacy still includes an irreducible human-review gate.
 
-## Open questions / owner decisions
+## Resolved owner decisions (2026-08-12)
 
-These choices affect distribution, threat model, trust, retention, or product
-semantics and are not engineer-callable during implementation:
-
-1. **Worker image distribution model.** Build an in-repo `Dockerfile` on cold
-   start (matching ADR-003's source-only philosophy), use a published
-   digest-pinned registry image, or have CI build and tag by `VERSION`? This may
-   require an ADR-003 addendum.
-2. **Peer networking and `internal: true`.** The target app, Mailpit, and model
-   stub currently run on host loopback and are unreachable. Should they become
-   per-run sibling containers on the internal network, preserving
-   default-deny internet egress, or should an approved relaxation use an
-   explicit allowlist proxy? This changes the ADR-001 §16 threat model. Docker
-   `--internal` permits container↔container communication and gateway access; it
-   is not a hard host barrier.
-3. **Trusted-image attestation.** Is the worker image trusted to originate a
-   verifier-backed `verified`, or must the result include signed attestation or
-   undergo CLI re-verification? SHA-256 alone does not prove Chromium ran.
-4. **Result-volume retention, encryption, and quota.** Set byte/inode limits,
-   cleanup lifecycle, encryption requirements, and whether sanitized artifacts
-   survive a blocked run under the PII-retention policy.
-5. **Promotion-ownership split.** Confirm that the final public commit remains
-   CLI-side even though stages 0–12 logically execute in the worker.
-6. **Human screenshot privacy review.** Name the responsible party and define
-   attachment, retention, and deletion policy.
+1. **Worker image distribution — in-repo `Dockerfile`.** Arxic builds the worker
+   image locally from `apps/worker/Dockerfile`; Docker layer-caches it so the
+   cost is paid only on the first cold start. This is self-contained, requires
+   no external image hosting, and matches ADR-003 (source-only, no emit); revisit
+   a published/digest-pinned registry image only if cold-start cost or remote
+   workers later demand it.
+2. **Peer networking — sibling containers on the internal network.** The target
+   fixture app, Mailpit, and the model stub run as their own containers attached
+   to the same `internal: true` Docker network as the worker; the worker reaches
+   them by container name (DNS alias). `internal` is not relaxed—the worker
+   still cannot reach the internet or the host, preserving ADR §16
+   default-deny egress.
+3. **Trusted-image attestation — trust the in-repo image.** Because the worker
+   image is built from this repo, the CLI trusts its `verified` claim subject to
+   the existing fail-closed validation: artifact hashes, gates, and the
+   versioned stage-10 verifier record; `verified` is never synthesized from
+   bytes alone. No cryptographic signing machinery is added now; revisit
+   cosign/Sigstore only if a third-party or remote worker image is introduced.
+4. **Result volume — local-dev default.** Use a per-run writable result volume
+   with a ~256 MiB cap; exceeding it fails closed as `blocked`, never partial
+   success. Artifact retention folds into the existing run-directory policy
+   (ADR §20.1), storage is unencrypted at rest because local development trusts
+   the host, and sanitization happens worker-side before any bytes enter the
+   volume.
+5. **Promotion ownership — CLI-side stage-12.** The worker runs stages 0–11 and
+   produces the verified `StagedBundle`; the CLI performs the authoritative
+   atomic publish to the public store, so `PromotionReceipt.location` is a real
+   durable path. The worker may produce a promotion candidate, but the
+   irreversible public commit and receipt are CLI-side, preserving “failed run
+   leaves prior bundle intact” (ADR §23.12) and the trusted publish boundary.
+6. **Human screenshot review — owner review as a release gate.** The maintainer
+   visually inspects retained screenshots before cutting a release or promoting
+   to a production-class target, and screenshots are retained with the
+   bundle/run as evidence. This is a required human gate because an LLM cannot
+   mechanically prove arbitrary pixels secret-free (ADR §15 residual).
 
 ## References
 
