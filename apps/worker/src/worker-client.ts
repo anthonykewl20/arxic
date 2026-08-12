@@ -112,8 +112,22 @@ const INGEST_SOURCE_TEXT = [
   "find /work/source -type f \\( -name '*.md' -o -name '*.txt' -o -name '*.json' \\) -exec cat {} + 2>/dev/null || true",
 ];
 
-export function createLocalWorkerClient(options: { docker?: boolean } = {}): WorkerClient {
+/**
+ * The worker image the sandbox launches. Built from apps/worker/Dockerfile
+ * (run apps/worker/build-and-verify.sh to produce it locally as
+ * `arxic-worker:dev`). Override with ARXIC_WORKER_IMAGE for testing against a
+ * different tag. Only the image is wired here: every isolation flag
+ * (--user, --read-only, --security-opt no-new-privileges, --cap-drop ALL,
+ * --tmpfs /work, read-only source bind, internal network, quotas) stays in
+ * createWorkerSandbox and is never weakened (ADR §16).
+ */
+const ARXIC_WORKER_IMAGE = process.env.ARXIC_WORKER_IMAGE ?? 'arxic-worker:dev';
+
+export function createLocalWorkerClient(
+  options: { docker?: boolean; image?: string } = {},
+): WorkerClient {
   const dockerEnabled = options.docker !== false;
+  const workerImage = options.image ?? ARXIC_WORKER_IMAGE;
   const handles = new Map<string, RunHandle>();
   const sandboxes = new Map<string, WorkerSandbox>();
   const policies = new Map<string, ReturnType<typeof freezePolicy>>();
@@ -157,6 +171,7 @@ export function createLocalWorkerClient(options: { docker?: boolean } = {}): Wor
           const sourcePath = resolve(process.cwd(), spec.config.source.repository);
           const sandbox = await createWorkerSandbox({
             jobId: spec.runId,
+            image: workerImage,
             sourcePath,
             quotas: defaultQuotas(spec.config.policy.maxRuntimeMinutes),
             networkName: `arxic-${spec.runId}-net`,
