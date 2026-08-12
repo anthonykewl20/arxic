@@ -171,6 +171,16 @@ export type OrchestratorOptions = Readonly<{
     killed: boolean;
     probed: number;
     controlPassed: boolean;
+    assertions: readonly Readonly<{
+      transitionIndex: number;
+      assertionIndex: number;
+      operators: readonly Readonly<{
+        kind: 'value-substitution' | 'control-state-omission';
+        killed: boolean;
+        controlPassed: boolean;
+      }>[];
+      killed: boolean;
+    }>[];
     diagnostics: readonly Diagnostic[];
   }>;
   promote?: (
@@ -753,7 +763,7 @@ export class LangGraphOrchestrator {
             ...projected,
             diagnostics: [...projected.diagnostics, diagnostic],
             gates: [...projected.gates, { gate: 'sensitivity', passed: false }],
-            sensitivityProbe: { probed: 0, controlPassed: false },
+            sensitivityProbe: { probed: 0, controlPassed: false, assertions: [] },
           };
           return {
             artifact: unusable,
@@ -769,7 +779,11 @@ export class LangGraphOrchestrator {
           ...projected,
           diagnostics: [...projected.diagnostics, ...probe.diagnostics],
           gates: [...projected.gates, { gate: 'sensitivity', passed: probe.killed }],
-          sensitivityProbe: { probed: probe.probed, controlPassed: probe.controlPassed },
+          sensitivityProbe: {
+            probed: probe.probed,
+            controlPassed: probe.controlPassed,
+            assertions: probe.assertions,
+          },
         };
         return {
           artifact: probed,

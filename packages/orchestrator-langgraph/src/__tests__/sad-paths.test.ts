@@ -315,6 +315,17 @@ describe('orchestrator sad paths', () => {
         killed: true,
         probed: 2,
         controlPassed: true,
+        assertions: [
+          {
+            transitionIndex: 0,
+            assertionIndex: 0,
+            operators: [
+              { kind: 'value-substitution', killed: true, controlPassed: true },
+              { kind: 'control-state-omission', killed: true, controlPassed: true },
+            ],
+            killed: true,
+          },
+        ],
         diagnostics: [],
       }),
       promote: async (bundle) => {
@@ -371,6 +382,17 @@ describe('orchestrator sad paths', () => {
           killed: false,
           probed: 2,
           controlPassed: true,
+          assertions: [
+            {
+              transitionIndex: 0,
+              assertionIndex: 0,
+              operators: [
+                { kind: 'value-substitution', killed: false, controlPassed: true },
+                { kind: 'control-state-omission', killed: true, controlPassed: true },
+              ],
+              killed: false,
+            },
+          ],
           diagnostics: [probeDiagnostic],
         };
       },
@@ -388,7 +410,21 @@ describe('orchestrator sad paths', () => {
     expect(verification.outcome).toBe('verified');
     expect(verification.diagnostics).toContainEqual(probeDiagnostic);
     expect(verification.gates).toContainEqual({ gate: 'sensitivity', passed: false });
-    expect(verification.sensitivityProbe).toEqual({ probed: 2, controlPassed: true });
+    expect(verification.sensitivityProbe).toEqual({
+      probed: 2,
+      controlPassed: true,
+      assertions: [
+        {
+          transitionIndex: 0,
+          assertionIndex: 0,
+          operators: [
+            { kind: 'value-substitution', killed: false, controlPassed: true },
+            { kind: 'control-state-omission', killed: true, controlPassed: true },
+          ],
+          killed: false,
+        },
+      ],
+    });
     expect(result.outcome).toBe('verified');
     expect(result.promotionEligible).toBe(false);
     expect(result.receipt).toBeUndefined();
@@ -432,6 +468,11 @@ describe('orchestrator sad paths', () => {
       }),
     );
     expect(verification.gates).toContainEqual({ gate: 'sensitivity', passed: false });
+    expect(verification.sensitivityProbe).toEqual({
+      probed: 0,
+      controlPassed: false,
+      assertions: [],
+    });
     expect(result.outcome).toBe('verified');
     expect(result.promotionEligible).toBe(false);
   }, 60_000);

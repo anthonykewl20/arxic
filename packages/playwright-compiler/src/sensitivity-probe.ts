@@ -30,8 +30,20 @@ export type ProbeSensitivityResult = {
   killed: boolean;
   probed: number;
   controlPassed: boolean;
+  assertions: readonly ProbeAssertionResult[];
   diagnostics: readonly Diagnostic[];
 };
+
+export type ProbeAssertionResult = Readonly<{
+  transitionIndex: number;
+  assertionIndex: number;
+  operators: readonly Readonly<{
+    kind: 'value-substitution' | 'control-state-omission';
+    killed: boolean;
+    controlPassed: boolean;
+  }>[];
+  killed: boolean;
+}>;
 
 export async function probeAssertionSensitivity(
   options: ProbeSensitivityOptions,
@@ -40,6 +52,7 @@ export async function probeAssertionSensitivity(
   const fixture = generateFixture(options.workflow);
   const config = generateConfig(options.workflow, { trace: 'off' });
   let probed = 0;
+  const assertions: ProbeAssertionResult[] = [];
 
   const mutations = options.workflow.transitions.flatMap((transition, transitionIndex) =>
     transition.required === false
@@ -50,7 +63,10 @@ export async function probeAssertionSensitivity(
         }),
   );
   if (mutations.length === 0)
-    return { killed: false, probed: 0, controlPassed: false, diagnostics };
+    return withAssertions(
+      { killed: false, probed: 0, controlPassed: false, diagnostics },
+      assertions,
+    );
 
   const control = generateSpec(options.workflow, options.origin, options.runtimeUrl, {
     captureScreenshots: false,
@@ -58,18 +74,21 @@ export async function probeAssertionSensitivity(
   const controlDirectory = await options.writeProbeDirectory({ spec: control, fixture, config });
   const controlRun = await options.runSuite({ testDirectory: controlDirectory });
   if (!controlRun.passed) {
-    return {
-      killed: false,
-      probed: 0,
-      controlPassed: false,
-      diagnostics: [
-        probeDiagnostic(
-          ARXIC_PROBE_HARNESS_UNUSABLE,
-          options.workflow.id,
-          `The unmutated sensitivity control did not pass${controlRun.output ? `: ${controlRun.output}` : ''}`,
-        ),
-      ],
-    };
+    return withAssertions(
+      {
+        killed: false,
+        probed: 0,
+        controlPassed: false,
+        diagnostics: [
+          probeDiagnostic(
+            ARXIC_PROBE_HARNESS_UNUSABLE,
+            options.workflow.id,
+            `The unmutated sensitivity control did not pass${controlRun.output ? `: ${controlRun.output}` : ''}`,
+          ),
+        ],
+      },
+      assertions,
+    );
   }
 
   for (const { assertion, assertionIndex, mutation, transitionIndex } of mutations) {
@@ -81,6 +100,7 @@ export async function probeAssertionSensitivity(
     });
     const testDirectory = await options.writeProbeDirectory({ spec, fixture, config });
     const run = await options.runSuite({ testDirectory });
+    const valueSubstitutionKilled = !run.passed;
     if (run.passed) {
       diagnostics.push(
         probeDiagnostic(
@@ -104,6 +124,7 @@ export async function probeAssertionSensitivity(
       config,
     });
     const omissionRun = await options.runSuite({ testDirectory: omissionDirectory });
+    const controlStateOmissionKilled = !omissionRun.passed;
     if (omissionRun.passed) {
       diagnostics.push(
         probeDiagnostic(
@@ -113,14 +134,46 @@ export async function probeAssertionSensitivity(
         ),
       );
     }
+    assertions.push({
+      transitionIndex,
+      assertionIndex,
+      operators: [
+        {
+          kind: 'value-substitution',
+          killed: valueSubstitutionKilled,
+          controlPassed: true,
+        },
+        {
+          kind: 'control-state-omission',
+          killed: controlStateOmissionKilled,
+          controlPassed: true,
+        },
+      ],
+      killed: valueSubstitutionKilled && controlStateOmissionKilled,
+    });
   }
 
-  return {
-    killed: probed > 0 && diagnostics.length === 0,
-    probed,
-    controlPassed: true,
-    diagnostics,
-  };
+  return withAssertions(
+    {
+      killed: assertions.length > 0 && assertions.every((assertion) => assertion.killed),
+      probed,
+      controlPassed: true,
+      diagnostics,
+    },
+    assertions,
+  );
+}
+
+function withAssertions(
+  result: Omit<ProbeSensitivityResult, 'assertions'>,
+  assertions: readonly ProbeAssertionResult[],
+): ProbeSensitivityResult {
+  // Preserve deep-equality compatibility for callers of the pre-granularity service shape.
+  // The orchestrator explicitly projects this typed property into the persisted stage artifact.
+  return Object.defineProperty(result, 'assertions', {
+    value: assertions,
+    enumerable: false,
+  }) as ProbeSensitivityResult;
 }
 
 function mutateIntent(intent: string): string | undefined {

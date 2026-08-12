@@ -137,7 +137,20 @@ export type VerificationNodeResult = Readonly<{
   runs: readonly Readonly<{ passed: boolean }>[];
   stagedBundle?: StagedBundle;
   gates: readonly GateResult[];
-  sensitivityProbe?: Readonly<{ probed: number; controlPassed: boolean }>;
+  sensitivityProbe?: Readonly<{
+    probed: number;
+    controlPassed: boolean;
+    assertions: readonly Readonly<{
+      transitionIndex: number;
+      assertionIndex: number;
+      operators: readonly Readonly<{
+        kind: 'value-substitution' | 'control-state-omission';
+        killed: boolean;
+        controlPassed: boolean;
+      }>[];
+      killed: boolean;
+    }>[];
+  }>;
 }>;
 
 export type StageArtifact = unknown;
