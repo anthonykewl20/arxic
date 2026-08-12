@@ -96,12 +96,11 @@ describe('WorkerRunExecutor sad paths', () => {
     expect(result.diagnostics.map(({ code }) => code)).toEqual([
       'ARXIC-EXEC-WORKER-INTERRUPTED',
       'ARXIC-WORKER-RUN-FAILED',
-      'ARXIC-EXEC-WORKER-PROTOCOL',
     ]);
     expect(JSON.stringify(result.diagnostics)).not.toContain('SECRET');
   });
 
-  it('blocks the current no-op completed handle because no pipeline result exists', async () => {
+  it('blocks a completed handle when its pipeline result is missing', async () => {
     const completed = { ...running, status: 'completed' } as const;
     const client = workerClient({
       stream: () => events({ type: 'finished', handle: completed }),
@@ -109,16 +108,13 @@ describe('WorkerRunExecutor sad paths', () => {
     });
     const result = await new WorkerRunExecutor(client).execute(request, { emit() {} });
     expect(result).toMatchObject({ status: 'failed', outcome: 'blocked' });
-    expect(result.diagnostics.map(({ code }) => code)).toEqual([
-      'ARXIC-WORKER-RUN-FAILED',
-      'ARXIC-EXEC-WORKER-PROTOCOL',
-    ]);
+    expect(result.diagnostics.map(({ code }) => code)).toEqual(['ARXIC-WORKER-RUN-FAILED']);
     expect(result.state.checkpoints).toEqual([]);
     expect(result.state.artifacts).toEqual({});
     expect(result.receipt).toBeUndefined();
   });
 
-  it('writes validated result-ready bytes to the sibling artifacts directory without changing run JSON', async () => {
+  it('does not write imported bytes until the PipelineResult envelope validates', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'arxic-worker-ingress-'));
     const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0xff]);
     const sha256 = createHash('sha256').update(bytes).digest('hex');
@@ -142,11 +138,9 @@ describe('WorkerRunExecutor sad paths', () => {
         { ...request, runDirectory: directory },
         { emit() {} },
       );
-      expect(await readFile(join(directory, request.runId, 'artifacts/screens/proof.png'))).toEqual(
-        bytes,
-      );
-      // #157 still owns PipelineResult normalization, so lifecycle completion
-      // remains blocked by the existing protocol diagnostic in this slice.
+      await expect(
+        readFile(join(directory, request.runId, 'artifacts/screens/proof.png')),
+      ).rejects.toThrow();
       expect(result.diagnostics.map(({ code }) => code)).toEqual(['ARXIC-EXEC-WORKER-PROTOCOL']);
     } finally {
       await rm(directory, { recursive: true, force: true });

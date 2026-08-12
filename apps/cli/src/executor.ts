@@ -2,6 +2,8 @@ import type { Diagnostic, PromotionReceipt, TruthState } from '@arxic/contracts'
 import type { RunState } from '@arxic/orchestrator-langgraph';
 import type { ArxicConfig } from '@arxic/worker';
 
+export { normalizeWorkerResult } from './worker-result-normalize';
+
 export interface DiagnosticSink {
   emit(diagnostic: Diagnostic): void;
 }
