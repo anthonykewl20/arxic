@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import type { StagedBundle, Workflow } from '@arxic/contracts';
+import { ARXIC_COMPILE_EVIDENCE_MISSING } from '@arxic/playwright-compiler';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
@@ -219,8 +220,9 @@ describe('orchestrator sad paths', () => {
   }, 60_000);
 
   it('finishes partially with observed empty coverage when inference yields zero candidates', async () => {
+    const checkpointer = new InMemoryStageCheckpointer();
     const result = await new LangGraphOrchestrator({
-      checkpointer: new InMemoryStageCheckpointer(),
+      checkpointer,
       inferCandidates: async () => ({ requestId: 'empty-request', candidates: [] }),
     }).run(input('empty'));
 
@@ -230,6 +232,41 @@ describe('orchestrator sad paths', () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_EMPTY_COVERAGE, severity: 'observed' }),
     );
+    expect(await stageArtifact(checkpointer, result, 'empty', 9)).toEqual({
+      compiled: false,
+      plan: 'No workflow candidate was available to compile',
+      oracleOutcome: 'observed',
+    });
+    expect(result.receipt).toBeUndefined();
+  }, 60_000);
+
+  it('classifies a full-compiler evidence rejection as blocked without throwing', async () => {
+    const checkpointer = new InMemoryStageCheckpointer();
+    const result = await new LangGraphOrchestrator({
+      checkpointer,
+      inferCandidates: async () => validInference('missing-compile-evidence'),
+      explore: async () => ({ approved: true, evidenceRefs: [], decisions: [] }),
+    }).run(input('missing-compile-evidence'));
+    const compilation = await stageArtifact<{
+      compiled: boolean;
+      plan: string;
+      diagnostics?: readonly { code: string; severity: string }[];
+    }>(checkpointer, result, 'missing-compile-evidence', 9);
+
+    expect(compilation).toMatchObject({
+      compiled: false,
+      plan: `Compilation blocked (${ARXIC_COMPILE_EVIDENCE_MISSING})`,
+      diagnostics: [{ code: ARXIC_COMPILE_EVIDENCE_MISSING, severity: 'blocked' }],
+    });
+    expect(result.status).toBe('partial');
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_COMPILE_EVIDENCE_MISSING,
+        severity: 'blocked',
+      }),
+    );
+    expect(result.completedStages).toContain(12);
     expect(result.receipt).toBeUndefined();
   }, 60_000);
 
@@ -881,6 +918,17 @@ async function persistedBytes(runs: string, runId: string): Promise<string> {
     )
   ).flatMap((names, index) => names.map((name) => join(runs, runId, directories[index], name)));
   return (await Promise.all(files.map((file) => readFile(file, 'utf8')))).join('\n');
+}
+
+async function stageArtifact<T = StageArtifact>(
+  checkpointer: InMemoryStageCheckpointer,
+  state: RunState,
+  runId: string,
+  stage: StageId,
+): Promise<T> {
+  const ref = state.artifacts[stage];
+  if (!ref) throw new Error(`Expected stage-${stage} artifact`);
+  return (await checkpointer.readArtifact(runId, ref)) as T;
 }
 
 async function committedSource(): Promise<string> {

@@ -39,11 +39,13 @@ import {
   normalizeIntentSpec,
   type IntentSpec,
 } from '@arxic/intent';
+import { PACKAGE_NAME as PLAYWRIGHT_PACKAGE } from '@arxic/playwright-agent-adapter';
 import {
-  generateSpecFromWorkflow,
-  PACKAGE_NAME as PLAYWRIGHT_PACKAGE,
-} from '@arxic/playwright-agent-adapter';
-import { ARXIC_PROBE_HARNESS_UNUSABLE, probeDiagnostic } from '@arxic/playwright-compiler';
+  ARXIC_PROBE_HARNESS_UNUSABLE,
+  CompileError,
+  PlaywrightCompiler,
+  probeDiagnostic,
+} from '@arxic/playwright-compiler';
 import {
   PACKAGE_NAME as SOURCE_PACKAGE,
   SourceUaAdapter,
@@ -677,6 +679,7 @@ export class LangGraphOrchestrator {
         : true;
     const diagnostics = [
       ...oracleDiagnostics,
+      ...(result.diagnostics ?? []),
       ...(normalizedIntentSpec
         ? [
             orchDiagnostic(
@@ -692,11 +695,14 @@ export class LangGraphOrchestrator {
       artifact: result,
       adapter: PLAYWRIGHT_PACKAGE,
       diagnostics,
+      blocked: result.diagnostics?.some(({ severity }) => severity === 'blocked'),
       partial: !result.compiled,
       promotionEligible: result.compiled && oracleAllowsPromotion && hasAcceptance,
-      ...(this.#options.resolveOracle !== undefined || oracleDiagnostics.length > 0
-        ? { outcome: oracleOutcome }
-        : {}),
+      ...(result.diagnostics?.some(({ severity }) => severity === 'blocked')
+        ? { outcome: 'blocked' as const }
+        : this.#options.resolveOracle !== undefined || oracleDiagnostics.length > 0
+          ? { outcome: oracleOutcome }
+          : {}),
       decisions: result.compiled ? ['Workflow compiled'] : ['Plan retained as uncompiled'],
       gates: [{ gate: 'compile', passed: result.compiled }],
     };
@@ -1143,17 +1149,29 @@ async function defaultCompile(input: {
 }): Promise<CompilationResult> {
   const workflow = input.candidates[0]?.workflow;
   if (!workflow) return { compiled: false, plan: 'No workflow candidate was available to compile' };
-  const generated = await generateSpecFromWorkflow(workflow, {
-    origin: input.origin,
-    testDir: input.outputDirectory,
-  });
-  return {
-    compiled: generated.ok,
-    plan: generated.ok
-      ? 'Generated Playwright workflow spec'
-      : 'Generator rejected the workflow; plan retained',
-    workflow,
-  };
+  try {
+    const bundle = await new PlaywrightCompiler({
+      outputDirectory: input.outputDirectory,
+      origin: input.origin,
+    }).compile(workflow, [...input.observations]);
+    return { compiled: true, plan: bundle.plan, workflow, stagedBundle: bundle };
+  } catch (error) {
+    const diagnostic =
+      error instanceof CompileError
+        ? error.diagnostic
+        : orchDiagnostic(
+            ARXIC_ORCH_STAGE_BLOCKED,
+            'blocked',
+            workflow.id,
+            'The workflow compiler failed before producing a safe diagnostic',
+          );
+    return {
+      compiled: false,
+      plan: `Compilation blocked (${diagnostic.code})`,
+      diagnostics: [diagnostic],
+      workflow,
+    };
+  }
 }
 
 async function defaultVerify(_compilation: CompilationResult): Promise<VerificationNodeResult> {

@@ -124,6 +124,7 @@ export type OracleResolution = Readonly<{
 export type CompilationResult = Readonly<{
   compiled: boolean;
   plan: string;
+  diagnostics?: readonly Diagnostic[];
   workflow?: Workflow;
   stagedBundle?: StagedBundle;
   intentSpec?: IntentSpec;
