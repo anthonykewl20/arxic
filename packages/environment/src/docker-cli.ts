@@ -36,6 +36,19 @@ export function dockerRunDetach(fullArgs: readonly string[]): Promise<DockerResu
   return invoke(['run', '-d', ...fullArgs]);
 }
 
+export function dockerRun(fullArgs: readonly string[]): Promise<DockerResult> {
+  return invoke(['run', ...fullArgs]);
+}
+
+/** Copy bytes through Docker's archive API rather than the bounded UTF-8 control stream. */
+export function dockerCp(
+  container: string,
+  sourcePath: string,
+  destinationPath: string,
+): Promise<DockerResult> {
+  return invoke(['cp', `${container}:${sourcePath}`, destinationPath]);
+}
+
 export function dockerExec(
   container: string,
   cmdArgs: readonly string[],
@@ -86,6 +99,22 @@ export async function networkRm(name: string): Promise<DockerResult> {
     return { exit: 0, stdout: '', stderr: '' };
   }
   return result;
+}
+
+export function volumeCreate(input: Readonly<{ name: string }>): Promise<DockerResult> {
+  return invoke(['volume', 'create', '--name', input.name]);
+}
+
+export async function volumeRm(name: string): Promise<DockerResult> {
+  const result = await invoke(['volume', 'rm', name]);
+  if (result.exit !== 0 && /no such volume|not found/i.test(result.stderr)) {
+    return { exit: 0, stdout: '', stderr: '' };
+  }
+  return result;
+}
+
+export function volumeInspect(name: string): Promise<DockerResult> {
+  return invoke(['volume', 'inspect', name]);
 }
 
 export function networkConnect(

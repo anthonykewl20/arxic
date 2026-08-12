@@ -380,6 +380,33 @@ describe('worker sandbox construction is enforced safe', () => {
       'non-positive quota',
       { ...base, jobId: 'safe', networkName: 'arxic-safe-net', quotas: { ...quotas, memoryMb: 0 } },
     ],
+    [
+      'result volume overlaps source',
+      {
+        ...base,
+        jobId: 'safe',
+        networkName: 'arxic-safe-net',
+        resultVolume: { mountPath: '/work/source/result', quotaBytes: 1024 },
+      },
+    ],
+    [
+      'result volume escapes work',
+      {
+        ...base,
+        jobId: 'safe',
+        networkName: 'arxic-safe-net',
+        resultVolume: { mountPath: '/result', quotaBytes: 1024 },
+      },
+    ],
+    [
+      'result volume quota exceeds 256 MiB',
+      {
+        ...base,
+        jobId: 'safe',
+        networkName: 'arxic-safe-net',
+        resultVolume: { mountPath: '/work/result', quotaBytes: 256 * 1024 * 1024 + 1 },
+      },
+    ],
   ])('rejects an unsafe sandbox spec before touching Docker: %s', async (_name, spec) => {
     await expect(createWorkerSandbox(spec)).rejects.toThrow();
   });
