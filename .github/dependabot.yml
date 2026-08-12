@@ -19,6 +19,16 @@ updates:
       # only; Dependabot SECURITY alerts still fire for CVEs.
       - dependency-name: '@ast-grep/cli'
       - dependency-name: '@playwright/test'
+      # Block ALL major-version bumps from auto-landing. Dependabot PR #139 was
+      # a grouped "minor+patch" PR that carried 20 majors (typescript 5->7,
+      # eslint 9->10, otplib 12->13, vitest 3->4, ...) and broke lint+typecheck
+      # when merged unvalidated during the Actions billing outage (PR #143
+      # reverted it). Majors now require deliberate evaluation + green CI.
+      # Security-driven major bumps (CVEs) still come through as security
+      # updates.
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
     open-pull-requests-limit: 15
     commit-message:
       prefix: 'chore(deps)'
@@ -32,6 +42,12 @@ updates:
         update-types:
           - version-update:semver-minor
           - version-update:semver-patch
+    ignore:
+      # Same rationale as npm: no auto major bumps for workflow actions
+      # (action majors can break workflows; validate deliberately with CI).
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
     open-pull-requests-limit: 15
     commit-message:
       prefix: 'chore(deps)'
