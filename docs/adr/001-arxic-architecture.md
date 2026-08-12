@@ -597,6 +597,7 @@ arxic-bundle/
   artifacts/{screenshots,traces,reports}/
   provenance.json
   NOTICE
+  sbom.cdx.json
   checksums.sha256
 ```
 
