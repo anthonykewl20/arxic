@@ -15,6 +15,7 @@ import {
   promotionDiagnostic,
 } from './diagnostics';
 import { freezeBundle } from './freeze';
+import { scanTextForSecrets } from './redaction-gate';
 import { validateTraceArtifacts } from './trace-artifact-gate';
 import { sha256, validateGates, validateStagedBundle } from './validator';
 
@@ -105,6 +106,10 @@ export class BundlePromoterAdapter implements BundlePromoter {
           ),
         ],
       };
+    }
+    const redactionDiagnostics = scanTextForSecrets(Buffer.from(frozen).toString('utf8'));
+    if (redactionDiagnostics.length > 0) {
+      return { diagnostics: [...redactionDiagnostics] };
     }
     const checksumSha256 = sha256(frozen);
     let receipt: PromotionReceipt;

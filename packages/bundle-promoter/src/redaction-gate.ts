@@ -36,16 +36,46 @@ const patterns = [
   { name: 'session-token', expression: /session\s*token\s*[=:]/iu },
 ] as const;
 
+export function scanTextForSecrets(text: string): readonly Diagnostic[] {
+  const content = allowlisted(text);
+  return patterns
+    .filter((pattern) => matches(pattern, content))
+    .map((pattern) =>
+      promotionDiagnostic(
+        ARXIC_PROMOTION_REDACTION_FAILED,
+        pattern.name,
+        `Sensitive data matched ${pattern.name}`,
+      ),
+    );
+}
+
+function matches(pattern: (typeof patterns)[number], content: string): boolean {
+  if (pattern.name === 'email-address') return containsEmail(pattern.expression, content);
+  return pattern.expression.test(content);
+}
+
+function containsEmail(expression: RegExp, content: string): boolean {
+  for (let at = content.indexOf('@'); at >= 0; at = content.indexOf('@', at + 1)) {
+    let start = at;
+    let end = at + 1;
+    while (start > 0 && /[A-Za-z0-9._%+-]/u.test(content[start - 1]!)) start -= 1;
+    while (end < content.length && /[A-Za-z0-9.-]/u.test(content[end]!)) end += 1;
+    if (expression.test(content.slice(start, end))) return true;
+  }
+  return false;
+}
+
 export async function scanBundleForSensitiveData(directory: string): Promise<RedactionResult> {
   const allFiles = await filesUnder(directory);
   const files = allFiles.filter((path) => textExtensions.has(extname(path)));
   const findings: RedactionFinding[] = [];
   for (const file of files) {
-    const content = allowlisted(await readFile(file, 'utf8'));
-    for (const pattern of patterns) {
-      if (pattern.expression.test(content)) {
-        findings.push({ file: relative(directory, file), pattern: pattern.name });
-      }
+    const diagnostics = scanTextForSecrets(await readFile(file, 'utf8'));
+    for (const diagnostic of diagnostics) {
+      findings.push({
+        file: relative(directory, file),
+        pattern: diagnostic.subject,
+      });
     }
   }
   const traces = allFiles.filter((path) => extname(path) === '.zip');
