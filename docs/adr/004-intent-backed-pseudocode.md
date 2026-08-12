@@ -278,9 +278,9 @@ follow-ups; no deferred item weakens the two-app acceptance proof.
 - The required two-app proof matrix, including at least one source/runtime conflict and one observed-only characterization — **resolved (slice F, PR #134)**.
 - Mixed-spec `hasAcceptance` fineness — **resolved (PR #136)**: `hasAcceptance` tightened to `everyRequiredAssertionAcceptance` (per-required-transition acceptance-strength; shared multiset matcher).
 - Tautological-assertion matcher inversion beyond the bounded `url:` and `text:` operators — **resolved for URL-addressable pre-action states (PR for this slice, ADR §7.1)**: the value-tautology gap is closed by the control-state omission operator, not matcher inversion (which is semantically inert for present-value tautologies). Safe omission for multi-transition intermediate states that are not directly URL-reachable remains a tracked residual (see §7.1 known limitation).
-- Per-assertion sensitivity-gate granularity in the stage-10 artifact — **deferred post-acceptance (tracked follow-up)**.
+- Per-assertion sensitivity-gate granularity in the stage-10 artifact — **resolved (M2-PROBE-GRANULARITY)**: stage 10 persists each required assertion's coordinates and both probe-operator outcomes while retaining aggregate promotion gating and verifier truth-state authority.
 - Replacing `defaultCompile` with the full compiler generator — **deferred post-acceptance (tracked follow-up)**.
-- Persisting locator provenance as a dedicated run-local artifact — **deferred post-acceptance (tracked follow-up)**.
+- Persisting locator provenance as a dedicated run-local artifact — **resolved (M2-LOCATOR-PROVENANCE, PR #146)**: stage 8 persists serializable run-local fill/click records with semantic/execution locators, resolution outcome, failure reason, and same-element proof.
 
 ## References
 
