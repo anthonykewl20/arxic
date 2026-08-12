@@ -18,6 +18,8 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY . .
 
 RUN pnpm install --frozen-lockfile
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 RUN pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
+RUN chmod -R a+rX /opt/ms-playwright
 
 CMD ["node", "-e", "setInterval(() => {}, 60000)"]
