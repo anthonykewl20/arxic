@@ -21,7 +21,7 @@
     "@arxic/policy-engine": "workspace:*",
     "@arxic/source-ua-adapter": "workspace:*",
     "@arxic/verifier": "workspace:*",
-    "@langchain/core": "1.2.5",
+    "@langchain/core": "1.2.4",
     "@langchain/langgraph": "1.4.9"
   },
   "devDependencies": {
