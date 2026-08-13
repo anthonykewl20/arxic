@@ -25,13 +25,25 @@ import {
   type RunResult,
 } from './executor';
 
+type WorkerRunExecutorOptions = Readonly<{
+  sourceHash?: (repository: string) => Promise<string>;
+}>;
+
 /**
  * CLI action adapter for the WorkerClient lifecycle. Pipeline mechanics stay
  * in the isolated runtime; this action owns failure classification, trusted
  * CLI-side promotion, and the final local/worker normalization decision.
  */
 export class WorkerRunExecutor implements RunExecutor {
-  constructor(private readonly client: WorkerClient) {}
+  private readonly sourceHash: (repository: string) => Promise<string>;
+
+  constructor(
+    private readonly client: WorkerClient,
+    options: WorkerRunExecutorOptions = {},
+  ) {
+    this.sourceHash =
+      options.sourceHash ?? (async (repository) => (await hashSourceTree(repository)).sourceSha256);
+  }
 
   async execute(request: RunRequest, sink: DiagnosticSink): Promise<RunResult> {
     const workerConfig = {
@@ -53,7 +65,7 @@ export class WorkerRunExecutor implements RunExecutor {
     let handle: RunHandle;
     let trustedSourceSha256: string;
     try {
-      trustedSourceSha256 = (await hashSourceTree(request.config.source.repository)).sourceSha256;
+      trustedSourceSha256 = await this.sourceHash(request.config.source.repository);
       handle = await this.client.start({
         runId: request.runId,
         config: request.config,
