@@ -7,6 +7,31 @@ section 8 and RELEASES.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-08-13
+
+### added
+
+- Installable `arxic` CLI package via `npm i -g arxic`, with `arxic run` driving the full local pipeline through deterministic verification and promotion of an eligible `verified` bundle.
+- Worker artifact transport and pipeline-result protocol (#156/#157): per-run result volumes, fail-closed artifact import, and a bounded versioned result envelope with stage-10 verifier authority and CLI-side promotion.
+- CycloneDX `sbom.cdx.json` in promoted bundles (#147), included in the bundle's SHA-256 inventory and redaction gate.
+- Run-local stage-8 locator provenance (#146), including semantic/execution locators and same-element identity proof.
+- Per-required-assertion sensitivity-probe results (#145), retaining transition/assertion coordinates and both probe operators.
+
+### changed
+
+- `defaultCompile` now uses the full policy-gated Playwright generator (#149), rejecting unsupported assertion intents and candidates missing matching source/runtime evidence instead of loosely accepting them.
+- Promotion eligibility no longer treats advisory stage-1, stage-2, or stage-5 diagnostics as sticky blockers when deterministic verification passes (#199); genuine blocked or contradicted pipeline states remain ineligible.
+
+### fixed
+
+- Bound staged plan text to its declared `plan.md` artifact before promotion (#148).
+- Wired the shared redaction gate into promotion so the exact canonical frozen bytes are scanned before atomic replacement (#159).
+- Decoupled exploration navigation from tight locator/action timeouts, removing the navigation-timeout CI flake (#154).
+
+### security
+
+- Preserved default-deny worker egress across the new result-volume transport and pipeline-result protocol; transport added no isolation relaxation.
+
 ## [Unreleased]
 
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
