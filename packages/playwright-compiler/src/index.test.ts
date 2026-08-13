@@ -20,6 +20,7 @@ import {
   probeDiagnostic,
 } from './index';
 import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
+import { ARXIC_COMPILE_ORIGIN_DENIED, resolveOriginPolicy } from './index';
 
 const directories: string[] = [];
 
@@ -143,6 +144,31 @@ describe('Playwright compiler sad paths', () => {
     });
   });
 
+  test('blocks a runtime observation whose origin is outside the action-owned allowlist', async () => {
+    const runtime = observations()[1];
+    if (!runtime || runtime.kind !== 'runtime') throw new Error('Missing runtime observation');
+    runtime.url = 'http://foreign.example/login';
+    await expect(
+      compiler().compile(
+        loginWorkflow(),
+        observations().map((item, index) => (index === 1 ? runtime : item)),
+      ),
+    ).rejects.toMatchObject({
+      diagnostic: { code: ARXIC_COMPILE_ORIGIN_DENIED, severity: 'blocked' },
+    });
+  });
+
+  test('origin-denial diagnostics loop-close through the frozen contract', () => {
+    const result = resolveOriginPolicy({
+      subject: 'authentication.login',
+      declaredOrigin: 'http://approved.example',
+      runtimeUrl: 'http://foreign.example/login',
+    });
+    expect(result.passed).toBe(false);
+    if (result.passed) throw new Error('Expected denied origin policy');
+    expect(validateDiagnostic(result.diagnostic).ok).toBe(true);
+  });
+
   test.each([
     ['assertion', 'text:Your token=abc123'],
     ['action', 'Click credential=abc123'],
@@ -222,6 +248,12 @@ describe('Playwright compiler contracts', () => {
     expect(await readFile(join(directory, 'fixtures/workflow.fixture.ts'), 'utf8')).toContain(
       'test.afterEach',
     );
+    const fixture = await readFile(join(directory, 'fixtures/workflow.fixture.ts'), 'utf8');
+    expect(fixture).toContain("context.route('**/*'");
+    expect(fixture).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
+    expect(fixture).toContain('http://127.0.0.1:3000');
+    const config = await readFile(join(directory, 'playwright.config.ts'), 'utf8');
+    expect(config).toContain("serviceWorkers: 'block'");
     expect(await readFile(join(directory, 'fixtures/screenshot-privacy.ts'), 'utf8')).toBe(
       screenshotPrivacyRuntimeSource(),
     );
@@ -240,8 +272,8 @@ describe('Playwright compiler contracts', () => {
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3000/',
     );
-    expect(generated.spec).toContain('await page.goto("http://127.0.0.1:3000/")');
-    expect(generated.spec).not.toContain('await page.goto("http://127.0.0.1:3000/login")');
+    expect(generated.spec).toContain('page.goto("http://127.0.0.1:3000/")');
+    expect(generated.spec).not.toContain('page.goto("http://127.0.0.1:3000/login")');
   });
 
   test('uses runtime URL only for the first transition and state paths thereafter', () => {
@@ -259,8 +291,8 @@ describe('Playwright compiler contracts', () => {
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3000/observed-entry',
     );
-    expect(generated.spec).toContain('await page.goto("http://127.0.0.1:3000/observed-entry")');
-    expect(generated.spec).toContain('await page.goto("http://127.0.0.1:3000/")');
+    expect(generated.spec).toContain('page.goto("http://127.0.0.1:3000/observed-entry")');
+    expect(generated.spec).toContain('page.goto("http://127.0.0.1:3000/")');
     expect(generated.spec.match(/observed-entry/gu)).toHaveLength(1);
   });
 
@@ -350,7 +382,7 @@ describe('Playwright compiler contracts', () => {
 function compiler(): PlaywrightCompiler {
   return new PlaywrightCompiler({
     outputDirectory: join(tmpdir(), 'unused'),
-    origin: 'http://localhost',
+    origin: 'http://127.0.0.1:3000',
   });
 }
 

@@ -25,11 +25,14 @@ import {
 } from './diagnostics';
 import { generateConfig, generateFixture } from './fixture-generator';
 import { generatePlan } from './plan-generator';
+import { resolveOriginPolicy } from './origin-policy';
 import { generateSpec, UnsupportedWorkflowStepError } from './spec-generator';
 
 export type PlaywrightCompilerOptions = {
   outputDirectory: string;
   origin: string;
+  approvedOrigins?: string[];
+  captureScreenshots?: boolean;
   now?: () => string;
 };
 
@@ -46,11 +49,15 @@ export class CompileError extends Error {
 export class PlaywrightCompiler implements WorkflowCompiler {
   readonly #outputDirectory: string;
   readonly #origin: string;
+  readonly #approvedOrigins?: string[];
+  readonly #captureScreenshots: boolean;
   readonly #now: () => string;
 
   constructor(options: PlaywrightCompilerOptions) {
     this.#outputDirectory = options.outputDirectory;
     this.#origin = new URL(options.origin).href;
+    this.#approvedOrigins = options.approvedOrigins;
+    this.#captureScreenshots = options.captureScreenshots ?? true;
     this.#now = options.now ?? (() => new Date().toISOString());
   }
 
@@ -97,10 +104,19 @@ export class PlaywrightCompiler implements WorkflowCompiler {
         ),
       );
     }
+    const originPolicy = resolveOriginPolicy({
+      subject: workflow.id,
+      declaredOrigin: this.#origin,
+      ...(this.#approvedOrigins ? { approvedOrigins: this.#approvedOrigins } : {}),
+      runtimeUrl: runtime.url,
+    });
+    if (!originPolicy.passed) throw new CompileError(originPolicy.diagnostic);
     let spec: string;
     let nonSemanticLocatorRationale: string | undefined;
     try {
-      const generated = generateSpec(validatedWorkflow.value, this.#origin, runtime.url);
+      const generated = generateSpec(validatedWorkflow.value, this.#origin, runtime.url, {
+        captureScreenshots: this.#captureScreenshots,
+      });
       spec = generated.spec;
       nonSemanticLocatorRationale = generated.nonSemanticLocatorRationale;
     } catch (error) {
@@ -111,7 +127,7 @@ export class PlaywrightCompiler implements WorkflowCompiler {
       }
       throw error;
     }
-    const fixture = generateFixture(validatedWorkflow.value);
+    const fixture = generateFixture(validatedWorkflow.value, originPolicy.allowedOrigins);
     const screenshotPrivacyRuntime = screenshotPrivacyRuntimeSource();
     const plan = generatePlan(validatedWorkflow.value);
     const config = generateConfig(validatedWorkflow.value);

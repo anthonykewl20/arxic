@@ -21,12 +21,12 @@ export function generateSpec(
 ): { spec: string; nonSemanticLocatorRationale?: string } {
   const captureScreenshots = options.captureScreenshots ?? true;
   const lines = [
-    "import { test, expect } from '../fixtures/workflow.fixture';",
+    "import { test, expect, assertNetworkContained, assertPageOrigin, enforceNetworkContainment } from '../fixtures/workflow.fixture';",
     ...(captureScreenshots
       ? ["import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';"]
       : []),
     '',
-    `test(${JSON.stringify(workflow.id)}, async ({ page }) => {`,
+    `test(${JSON.stringify(workflow.id)}, async ({ page, context }) => {`,
   ];
   let usedFormScope = false;
   for (const [index, transition] of workflow.transitions
@@ -36,8 +36,11 @@ export function generateSpec(
     if (action.formScoped) usedFormScope = true;
     lines.push(
       `  await test.step(${JSON.stringify(`${transition.from} → ${transition.to}`)}, async () => {`,
-      `    await page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)});`,
+      `    await enforceNetworkContainment(context, () => page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)}));`,
+      '    assertPageOrigin(page);',
+      '    assertNetworkContained(context);',
       ...action.lines,
+      '    assertNetworkContained(context);',
       ...renderAssertions(transition, origin),
       ...(captureScreenshots
         ? [
@@ -103,7 +106,7 @@ function renderAction(transition: WorkflowTransition): {
           ([name, reference]) =>
             `    await form.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
         ),
-        `    await form.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }).click();`,
+        `    await enforceNetworkContainment(context, () => form.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }).click());`,
       ],
       formScoped: true,
     };
