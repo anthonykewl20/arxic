@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import {
   createWorkerSandbox,
   defaultQuotas,
+  dockerKill,
   inspectSandbox,
   workerDiagnostic,
   type SandboxExecResult,
@@ -16,21 +17,13 @@ import type {
   RunStreamEvent,
   WorkerClient,
 } from './run-spec';
+import { WORKER_SOURCE_PATH } from './run-spec';
 import {
   ArtifactImportError,
   DEFAULT_RESULT_QUOTA_BYTES,
   importArtifacts,
 } from '@arxic/environment';
-import { freezePolicy, ingestContentAsData, validateWorkerSecurity } from './worker-policy';
-import {
-  PIPELINE_RESULT_PATH,
-  pipelineConfigSha256,
-  pipelineSha256,
-  pipelineSourceSha256,
-  serializePipelineResult,
-  type PipelineResult,
-} from './pipeline-result';
-import { createHash } from 'node:crypto';
+import { freezePolicy, validateWorkerSecurity } from './worker-policy';
 
 /**
  * Classify an inspected sandbox state into a run handle. A quota breach
@@ -105,13 +98,6 @@ function blocked(
   };
 }
 
-/** Command that reads representative source text so it can be ingested as data. */
-const INGEST_SOURCE_TEXT = [
-  'sh',
-  '-c',
-  "find /work/source -type f \\( -name '*.md' -o -name '*.txt' -o -name '*.json' \\) -exec cat {} + 2>/dev/null || true",
-];
-
 /**
  * The worker image the sandbox launches. Built from apps/worker/Dockerfile
  * (run apps/worker/build-and-verify.sh to produce it locally as
@@ -124,16 +110,16 @@ const INGEST_SOURCE_TEXT = [
 const ARXIC_WORKER_IMAGE = process.env.ARXIC_WORKER_IMAGE ?? 'arxic-worker:dev';
 
 export function createLocalWorkerClient(
-  options: { docker?: boolean; image?: string } = {},
+  options: { docker?: boolean; image?: string; command?: readonly string[] } = {},
 ): WorkerClient {
   const dockerEnabled = options.docker !== false;
   const workerImage = options.image ?? ARXIC_WORKER_IMAGE;
+  const runnerCommand = options.command ?? ['node', '/app/apps/worker/dist/main.js'];
   const handles = new Map<string, RunHandle>();
   const sandboxes = new Map<string, WorkerSandbox>();
   const policies = new Map<string, ReturnType<typeof freezePolicy>>();
   const approvals = new Map<string, readonly RunApproval[]>();
   const importedArtifacts = new Map<string, ImportedArtifacts>();
-  const specs = new Map<string, RunSpec>();
 
   const remember = (handle: RunHandle): RunHandle => {
     handles.set(handle.runId, handle);
@@ -155,10 +141,31 @@ export function createLocalWorkerClient(
       // ADR §16.3 / threat-model §"Prompt-injection defense": the run policy is
       // frozen before any untrusted content is read and is never mutated.
       policies.set(spec.runId, freezePolicy(spec));
-      specs.set(spec.runId, spec);
 
       if (handles.has(spec.runId)) {
         return handles.get(spec.runId)!;
+      }
+
+      const sourcePath = resolve(process.cwd(), spec.config.source.repository);
+      const workerSpec: RunSpec = {
+        ...spec,
+        config: {
+          ...spec.config,
+          source: { ...spec.config.source, repository: WORKER_SOURCE_PATH },
+        },
+      };
+      const env: Record<string, string> = {
+        ARXIC_RUN_SPEC: Buffer.from(JSON.stringify(workerSpec), 'utf8').toString('base64'),
+      };
+      for (const name of [
+        'ARXIC_MODEL_BASE_URL',
+        'ARXIC_MODEL_API_KEY',
+        'ARXIC_INPUT_PERSONA_EMAIL',
+        'ARXIC_INPUT_PERSONA_PASSWORD',
+        'ARXIC_INPUT_PERSONA_NEWPASSWORD',
+      ] as const) {
+        const value = process.env[name];
+        if (value) env[name] = value;
       }
 
       if (dockerEnabled) {
@@ -168,7 +175,6 @@ export function createLocalWorkerClient(
           // is enforced by construction in createWorkerSandbox (non-root,
           // read-only, cap-drop ALL, internal network, no socket); the spec is
           // not consulted for sandbox flags.
-          const sourcePath = resolve(process.cwd(), spec.config.source.repository);
           const sandbox = await createWorkerSandbox({
             jobId: spec.runId,
             image: workerImage,
@@ -179,6 +185,8 @@ export function createLocalWorkerClient(
               mountPath: '/work/result',
               quotaBytes: DEFAULT_RESULT_QUOTA_BYTES,
             },
+            env,
+            command: runnerCommand,
           });
           sandboxes.set(spec.runId, sandbox);
         } catch (error) {
@@ -222,112 +230,85 @@ export function createLocalWorkerClient(
       const sandbox = sandboxes.get(handle.runId);
       const policy = policies.get(handle.runId);
       if (sandbox && policy) {
-        // Content-is-data: ingest source text as data against the frozen
-        // policy. Injection-shaped content is recorded, never executed; the
-        // policy reference is returned unchanged (verified in worker-policy.test).
         try {
-          const content = await sandbox.exec(INGEST_SOURCE_TEXT);
-          // Route the ingestion exec through failure classification so a
-          // timeout/OOM/non-zero ingestion is labeled correctly (TIMEOUT /
-          // QUOTA-EXCEEDED / RUN-FAILED), not silently swallowed.
-          latest = remember(classifyExecResult(latest, content));
-          if (latest.status === 'failed' && latest.diagnostics.at(-1)) {
-            yield { type: 'diagnostic', diagnostic: latest.diagnostics.at(-1)! };
-          }
-          if (latest.status !== 'failed') {
-            const ingestion = ingestContentAsData(policy, content.stdout, 'source');
-            for (const diagnostic of ingestion.diagnostics) {
-              latest = remember({ ...latest, diagnostics: [...latest.diagnostics, diagnostic] });
-              yield { type: 'diagnostic', diagnostic };
-            }
-          }
-        } catch {
-          // The sandbox may have already exited; classification below handles it.
-        }
-
-        try {
-          const state = await inspectSandbox(sandbox);
-          latest = remember(classifySandboxState(latest, state));
-          if (latest.status === 'failed' && latest.diagnostics.at(-1)) {
-            yield { type: 'diagnostic', diagnostic: latest.diagnostics.at(-1)! };
-          }
-        } catch (error) {
-          const diagnostic = workerDiagnostic(
-            'ARXIC-WORKER-RUN-FAILED',
-            handle.runId,
-            `Could not inspect isolated worker: ${error instanceof Error ? error.message : String(error)}`,
-          );
-          latest = remember(
-            blocked(latest, 'ARXIC-WORKER-RUN-FAILED', handle.runId, diagnostic.message),
-          );
-          yield { type: 'diagnostic', diagnostic };
-        }
-
-        if (latest.status !== 'failed') {
           try {
-            // The current scaffold image has no pipeline runtime (#155). Seal a
-            // bounded observed projection so the real Docker path still proves
-            // the #156 volume + #157 envelope mechanics without claiming that
-            // stages genuinely executed. The image integration replaces this
-            // projection with the actual stages 0-11 state.
-            const spec = specs.get(handle.runId);
-            if (!spec) throw new Error('Run specification is unavailable');
-            const envelopeBytes = serializePipelineResult(scaffoldPipelineResult(spec));
-            const envelopeSha256 = createHash('sha256').update(envelopeBytes).digest('hex');
-            const manifest = Buffer.from(
-              JSON.stringify({
-                runId: handle.runId,
-                resultReady: true,
-                files: [
-                  {
-                    path: PIPELINE_RESULT_PATH,
-                    sha256: envelopeSha256,
-                    bytes: envelopeBytes.length,
-                  },
-                ],
-              }),
-            ).toString('base64');
-            const envelope = Buffer.from(envelopeBytes).toString('base64');
-            const published = await sandbox.exec([
-              'sh',
-              '-c',
-              `printf %s '${envelope}' | base64 -d > /work/result/${PIPELINE_RESULT_PATH} && printf %s '${manifest}' | base64 -d > /work/result/result-manifest.json`,
-            ]);
-            latest = remember(classifyExecResult(latest, published));
-            if (latest.status === 'failed') throw new Error('Could not publish result manifest');
-            const imported = importArtifacts(await sandbox.collectArtifacts(), handle.runId, {
-              quotaBytes: DEFAULT_RESULT_QUOTA_BYTES,
-            });
-            importedArtifacts.set(handle.runId, imported);
-            yield { type: 'result-ready', manifest: imported.manifest };
+            const deadline = Date.now() + sandbox.quotas.timeoutMs;
+            while (true) {
+              const state = await inspectSandbox(sandbox);
+              if (state.status !== 'running') break;
+              if (Date.now() >= deadline) {
+                await dockerKill(sandbox.containerId);
+                latest = remember(
+                  blocked(
+                    latest,
+                    'ARXIC-WORKER-TIMEOUT',
+                    handle.runId,
+                    'Worker exceeded its wall-clock quota (timeoutMs).',
+                  ),
+                );
+                yield { type: 'diagnostic', diagnostic: latest.diagnostics.at(-1)! };
+                break;
+              }
+              await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+
+            if (latest.status !== 'failed') {
+              const state = await inspectSandbox(sandbox);
+              if (state.oomKilled) {
+                latest = remember(classifySandboxState(latest, state));
+                yield { type: 'diagnostic', diagnostic: latest.diagnostics.at(-1)! };
+              }
+            }
+
+            if (latest.status !== 'failed') {
+              try {
+                const imported = importArtifacts(await sandbox.collectArtifacts(), handle.runId, {
+                  quotaBytes: DEFAULT_RESULT_QUOTA_BYTES,
+                });
+                importedArtifacts.set(handle.runId, imported);
+                yield { type: 'result-ready', manifest: imported.manifest };
+              } catch (error) {
+                const quota = error instanceof ArtifactImportError && error.reason === 'quota';
+                latest = remember(
+                  blocked(
+                    latest,
+                    quota ? 'ARXIC-WORKER-QUOTA-EXCEEDED' : 'ARXIC-WORKER-RUN-FAILED',
+                    handle.runId,
+                    quota
+                      ? 'Worker artifact transport exceeded its enforced quota.'
+                      : 'Worker artifact transport manifest was missing or corrupt.',
+                  ),
+                );
+                yield { type: 'diagnostic', diagnostic: latest.diagnostics.at(-1)! };
+              }
+            }
           } catch (error) {
-            const quota = error instanceof ArtifactImportError && error.reason === 'quota';
             latest = remember(
               blocked(
                 latest,
-                quota ? 'ARXIC-WORKER-QUOTA-EXCEEDED' : 'ARXIC-WORKER-RUN-FAILED',
+                'ARXIC-WORKER-RUN-FAILED',
                 handle.runId,
-                quota
-                  ? 'Worker artifact transport exceeded its enforced quota.'
-                  : 'Worker artifact transport manifest was missing or corrupt.',
+                `Could not inspect isolated worker: ${error instanceof Error ? error.message : String(error)}`,
               ),
             );
-            yield { type: 'diagnostic', diagnostic: latest.diagnostics.at(-1)! };
+            if (latest.diagnostics.at(-1)) {
+              yield { type: 'diagnostic', diagnostic: latest.diagnostics.at(-1)! };
+            }
           }
-        }
-
-        // Deterministic cleanup: a completed run tears down its sandbox and
-        // network regardless of success (threat-model "Cleanup is deterministic
-        // and runs for success, refusal, timeout, cancellation, and crash").
-        const cleanup = await sandbox.stop();
-        if (cleanup.cleanupDiagnostics.length === 0) sandboxes.delete(handle.runId);
-        if (cleanup.cleanupDiagnostics.length > 0) {
-          latest = remember({
-            ...latest,
-            diagnostics: [...latest.diagnostics, ...cleanup.cleanupDiagnostics],
-          });
-          for (const diagnostic of cleanup.cleanupDiagnostics)
-            yield { type: 'diagnostic', diagnostic };
+        } finally {
+          // Deterministic cleanup: a completed run tears down its sandbox and
+          // network regardless of success (threat-model "Cleanup is deterministic
+          // and runs for success, refusal, timeout, cancellation, and crash").
+          const cleanup = await sandbox.stop();
+          if (cleanup.cleanupDiagnostics.length === 0) sandboxes.delete(handle.runId);
+          if (cleanup.cleanupDiagnostics.length > 0) {
+            latest = remember({
+              ...latest,
+              diagnostics: [...latest.diagnostics, ...cleanup.cleanupDiagnostics],
+            });
+            for (const diagnostic of cleanup.cleanupDiagnostics)
+              yield { type: 'diagnostic', diagnostic };
+          }
         }
       }
 
@@ -369,70 +350,6 @@ export function createLocalWorkerClient(
         diagnostics: [...latest.diagnostics, ...cleanup.cleanupDiagnostics],
         promotionEligible: false,
       });
-    },
-  };
-}
-
-function scaffoldPipelineResult(spec: RunSpec): PipelineResult {
-  const producedAt = new Date();
-  const expiresAt = new Date(producedAt.getTime() + 5 * 60_000);
-  const checkpoints = Array.from({ length: 12 }, (_, stage) => ({
-    stage: stage as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11,
-    name: `scaffold-stage-${stage}`,
-    status: 'deferred' as const,
-    startedAt: producedAt.toISOString(),
-    finishedAt: producedAt.toISOString(),
-    adapter: {
-      name: stage === 10 ? '@arxic/verifier' : '@arxic/worker:scaffold',
-      version: '0.0.0',
-    },
-    orchestratorVersion: '0.0.0',
-    artifacts: [],
-    toolVersions: (stage === 10 ? { '@arxic/verifier': '0.0.0' } : {}) as Record<string, string>,
-    decisions: ['Pipeline execution deferred until the #155 image integration'],
-    approvals: [],
-    gateResults: [],
-    redaction: { passed: true, redactedFields: [] },
-  }));
-  return {
-    protocolVersion: 1,
-    binding: {
-      runId: spec.runId,
-      configSha256: pipelineConfigSha256(spec.config),
-      sourceSha256: pipelineSourceSha256(spec.config),
-      sourceRevision: spec.config.source.revision,
-      appBuildDigest: 'scaffold-unbuilt-image',
-      workerImageVersion: 'scaffold',
-      toolVersion: '0.0.0',
-      browserVersion: 'unavailable',
-      orchestratorVersion: '0.0.0',
-    },
-    freshness: { producedAt: producedAt.toISOString(), expiresAt: expiresAt.toISOString() },
-    state: {
-      runId: spec.runId,
-      status: 'partial',
-      outcome: 'observed',
-      activeStage: 11,
-      completedStages: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-      artifacts: [],
-      checkpoints,
-      diagnostics: [],
-      promotionEligible: false,
-    },
-    candidate: { gateResults: [] },
-    verifier: {
-      version: 1,
-      runId: spec.runId,
-      verifierVersion: '0.0.0',
-      orchestratorVersion: '0.0.0',
-      configSha256: pipelineConfigSha256(spec.config),
-      sourceSha256: pipelineSourceSha256(spec.config),
-      appBuildDigest: 'scaffold-unbuilt-image',
-      requiredReplayCount: spec.config.policy.requiredVerificationRuns,
-      cleanReplayCount: 0,
-      outcome: 'observed',
-      artifactHashes: [],
-      stagedBundleSha256: pipelineSha256(null),
     },
   };
 }

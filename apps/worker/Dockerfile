@@ -6,6 +6,7 @@ RUN apt-get update \
         g++ \
         git \
         make \
+        procps \
         python3 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,5 +38,6 @@ RUN pnpm install --frozen-lockfile
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 RUN pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
 RUN chmod -R a+rX /opt/ms-playwright
+RUN pnpm --filter @arxic/worker build
 
-CMD ["node", "-e", "setInterval(() => {}, 60000)"]
+CMD ["node", "/app/apps/worker/dist/main.js"]

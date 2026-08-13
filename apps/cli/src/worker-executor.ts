@@ -1,8 +1,13 @@
-import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
+import { validateDiagnostic, type Diagnostic, type StagedBundle } from '@arxic/contracts';
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
-import { dirname, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { promoteWorkerCandidate, type RunState } from '@arxic/orchestrator-langgraph';
-import type { ImportedArtifacts, RunHandle, WorkerClient } from '@arxic/worker';
+import {
+  WORKER_SOURCE_PATH,
+  type ImportedArtifacts,
+  type RunHandle,
+  type WorkerClient,
+} from '@arxic/worker';
 import {
   ARXIC_EXEC_WORKER_APPROVAL_REQUIRED,
   ARXIC_EXEC_WORKER_INTERRUPTED,
@@ -27,6 +32,10 @@ export class WorkerRunExecutor implements RunExecutor {
   constructor(private readonly client: WorkerClient) {}
 
   async execute(request: RunRequest, sink: DiagnosticSink): Promise<RunResult> {
+    const workerConfig = {
+      ...request.config,
+      source: { ...request.config.source, repository: WORKER_SOURCE_PATH },
+    };
     const diagnostics: Diagnostic[] = [];
     const record = (diagnostic: Diagnostic): void => {
       if (
@@ -124,7 +133,7 @@ export class WorkerRunExecutor implements RunExecutor {
       );
     }
     if (imported === undefined) return failedResult(request, diagnostics);
-    const normalized = normalizeWorkerResult(request, imported);
+    const normalized = normalizeWorkerResult({ ...request, config: workerConfig }, imported);
     if (!normalized.ok) {
       record(
         normalized.kind === 'verifier'
@@ -169,7 +178,7 @@ export class WorkerRunExecutor implements RunExecutor {
       }
       try {
         const receipt = await promoteWorkerCandidate({
-          bundle: normalized.stagedBundle,
+          bundle: promotableBundle(normalized.stagedBundle, request.runDirectory, request.runId),
           gates: normalized.gateResults,
           publicPath: resolve(request.runDirectory, 'promoted', `${request.runId}.bundle.json`),
           ...(request.now ? { now: request.now } : {}),
@@ -211,6 +220,25 @@ export class WorkerRunExecutor implements RunExecutor {
       // cancellation errors must not expose provider or worker prose.
     }
   }
+}
+
+function promotableBundle(bundle: StagedBundle, runDirectory: string, runId: string): StagedBundle {
+  const root = resolve(runDirectory, runId, 'artifacts');
+  const rewrite = (path: string): string => (isAbsolute(path) ? path : resolve(root, path));
+  return {
+    ...bundle,
+    artifacts: bundle.artifacts.map((artifact) => ({
+      ...artifact,
+      path: rewrite(artifact.path),
+    })),
+    manifest: {
+      ...bundle.manifest,
+      fileHashes: bundle.manifest.fileHashes.map((hash) => ({
+        ...hash,
+        path: rewrite(hash.path),
+      })),
+    },
+  };
 }
 
 async function writeImportedArtifacts(

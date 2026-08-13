@@ -21,6 +21,9 @@ import type {
 } from '@arxic/environment';
 export type { ArtifactTransportManifest, ImportedArtifact, ImportedArtifacts };
 
+/** The in-container mount path of the read-only source bind; CLI and worker hashing must agree. */
+export const WORKER_SOURCE_PATH = '/work/source' as const;
+
 /** Pipeline stage identifiers (mirror ADR §9 stages 0–12). */
 export type StageId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 

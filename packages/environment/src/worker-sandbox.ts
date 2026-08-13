@@ -51,18 +51,26 @@ export type WorkerQuotas = Readonly<{
   timeoutMs: number;
 }>;
 
+/** Quotas sized for a real in-sandbox Crawlee and Chromium pipeline. */
 export function defaultQuotas(maxRuntimeMinutes: number): WorkerQuotas {
   const minutes =
     Number.isFinite(maxRuntimeMinutes) && maxRuntimeMinutes > 0 ? maxRuntimeMinutes : 1;
   return Object.freeze({
-    memoryMb: 512,
-    memorySwapMb: 512,
+    memoryMb: 2048,
+    memorySwapMb: 2048,
     pidsLimit: 256,
     cpus: 1,
     timeoutMs: Math.ceil(minutes * 60_000),
   });
 }
 
+/**
+ * Sandbox launch configuration. The internal network may be pre-created so
+ * trusted supervisors can attach sibling containers before the worker joins.
+ * `command` overrides the default keepalive; when set, the container is
+ * expected to run to completion and exit while the supervisor polls
+ * `inspect()`.
+ */
 export type WorkerSandboxSpec = Readonly<{
   jobId: string;
   sourcePath: string;
@@ -73,6 +81,7 @@ export type WorkerSandboxSpec = Readonly<{
   writableTmpFs?: string;
   resultVolume?: Readonly<{ mountPath: string; quotaBytes: number }>;
   env?: Record<string, string>;
+  command?: readonly string[];
 }>;
 
 export type SandboxExecResult = Readonly<{
@@ -96,6 +105,7 @@ export type RawArtifactSet = Readonly<{ entries: readonly RawArtifactEntry[] }>;
 export type WorkerSandbox = Readonly<{
   jobId: string;
   networkName: string;
+  networkOwned: boolean;
   containerId: string;
   resultVolumeName?: string;
   quotas: WorkerQuotas;
@@ -213,8 +223,9 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
       requireSuccess('prepare worker result volume', prepared);
     }
     const network = await networkCreate({ name: spec.networkName, internal: true });
-    requireSuccess('docker network create', network);
-    networkCreated = true;
+    const networkAlreadyExists = network.exit !== 0 && /already exists/i.test(network.stderr);
+    if (!networkAlreadyExists) requireSuccess('docker network create', network);
+    networkCreated = network.exit === 0;
     const run = await dockerRunDetach([
       '--name',
       containerName,
@@ -226,7 +237,7 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
       '--cap-drop',
       'ALL',
       '--tmpfs',
-      `${writable}:rw,size=8m,mode=1777`,
+      `${writable}:rw,size=512m,mode=1777`,
       '--mount',
       `type=bind,source=${source},target=/work/source,readonly`,
       ...(resultVolumeName && spec.resultVolume
@@ -247,9 +258,7 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
       spec.networkName,
       ...Object.entries(spec.env ?? {}).flatMap(([name, value]) => ['--env', `${name}=${value}`]),
       image,
-      'node',
-      '-e',
-      'setInterval(()=>{},60000)',
+      ...(spec.command ?? ['node', '-e', 'setInterval(()=>{},60000)']),
     ]);
     requireSuccess('docker run', run);
     const containerId = run.stdout;
@@ -268,15 +277,17 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
           ),
         );
       }
-      const networkRemoved = await networkRm(spec.networkName);
-      if (networkRemoved.exit !== 0) {
-        cleanupDiagnostics.push(
-          workerDiagnostic(
-            'ARXIC-WORKER-CLEANUP-FAILED',
-            spec.jobId,
-            `Could not remove worker network: ${networkRemoved.stderr}`,
-          ),
-        );
+      if (sandbox.networkOwned) {
+        const networkRemoved = await networkRm(spec.networkName);
+        if (networkRemoved.exit !== 0) {
+          cleanupDiagnostics.push(
+            workerDiagnostic(
+              'ARXIC-WORKER-CLEANUP-FAILED',
+              spec.jobId,
+              `Could not remove worker network: ${networkRemoved.stderr}`,
+            ),
+          );
+        }
       }
       if (resultVolumeName) {
         const volumeRemoved = await volumeRm(resultVolumeName);
@@ -296,6 +307,7 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
     Object.assign(sandbox, {
       jobId: spec.jobId,
       networkName: spec.networkName,
+      networkOwned: networkCreated,
       containerId,
       resultVolumeName,
       quotas: spec.quotas,

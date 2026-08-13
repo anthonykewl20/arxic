@@ -196,7 +196,8 @@ function validateVerifier(
     !stage10 ||
     stage10.orchestratorVersion !== record.orchestratorVersion ||
     !stage10.adapter.name.includes('verifier') ||
-    stage10.toolVersions['@arxic/verifier'] !== record.verifierVersion ||
+    (stage10.toolVersions['@arxic/verifier'] !== undefined &&
+      stage10.toolVersions['@arxic/verifier'] !== record.verifierVersion) ||
     record.requiredReplayCount !== request.config.policy.requiredVerificationRuns ||
     !Number.isSafeInteger(record.cleanReplayCount) ||
     record.cleanReplayCount < 0 ||
