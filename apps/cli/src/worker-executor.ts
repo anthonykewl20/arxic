@@ -4,6 +4,7 @@ import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { promoteWorkerCandidate, type RunState } from '@arxic/orchestrator-langgraph';
 import {
   WORKER_SOURCE_PATH,
+  hashSourceTree,
   type ImportedArtifacts,
   type RunHandle,
   type WorkerClient,
@@ -12,6 +13,7 @@ import {
   ARXIC_EXEC_WORKER_APPROVAL_REQUIRED,
   ARXIC_EXEC_WORKER_INTERRUPTED,
   ARXIC_EXEC_WORKER_PROTOCOL,
+  ARXIC_EXEC_WORKER_SOURCE_MISMATCH,
   cliDiagnostic,
 } from './diagnostics';
 import {
@@ -49,7 +51,9 @@ export class WorkerRunExecutor implements RunExecutor {
       record(safeWorkerDiagnostic(diagnostic, request.runId));
 
     let handle: RunHandle;
+    let trustedSourceSha256: string;
     try {
+      trustedSourceSha256 = (await hashSourceTree(request.config.source.repository)).sourceSha256;
       handle = await this.client.start({
         runId: request.runId,
         config: request.config,
@@ -133,20 +137,26 @@ export class WorkerRunExecutor implements RunExecutor {
       );
     }
     if (imported === undefined) return failedResult(request, diagnostics);
-    const normalized = normalizeWorkerResult({ ...request, config: workerConfig }, imported);
+    const normalized = normalizeWorkerResult(
+      { ...request, config: workerConfig },
+      imported,
+      trustedSourceSha256,
+    );
     if (!normalized.ok) {
       record(
-        normalized.kind === 'verifier'
-          ? safeWorkerDiagnostic(
-              {
-                code: 'ARXIC-WORKER-RUN-FAILED',
-                severity: 'blocked',
-                subject: request.runId,
-                message: normalized.reason,
-              },
-              request.runId,
-            )
-          : protocolFailure(request.runId),
+        normalized.kind === 'source'
+          ? sourceHashMismatch(request.runId)
+          : normalized.kind === 'verifier'
+            ? safeWorkerDiagnostic(
+                {
+                  code: 'ARXIC-WORKER-RUN-FAILED',
+                  severity: 'blocked',
+                  subject: request.runId,
+                  message: normalized.reason,
+                },
+                request.runId,
+              )
+            : protocolFailure(request.runId),
       );
       return failedResult(request, diagnostics);
     }
@@ -296,6 +306,15 @@ function protocolFailure(runId: string): Diagnostic {
     'blocked',
     runId,
     'Worker pipeline result protocol is unavailable; lifecycle completion is not pipeline completion',
+  );
+}
+
+function sourceHashMismatch(runId: string): Diagnostic {
+  return cliDiagnostic(
+    ARXIC_EXEC_WORKER_SOURCE_MISMATCH,
+    'blocked',
+    runId,
+    'Worker source bytes do not match the trusted staged source; promotion was refused',
   );
 }
 

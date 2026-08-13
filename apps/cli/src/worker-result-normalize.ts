@@ -13,7 +13,6 @@ import {
   canonicalPipelineJson,
   pipelineConfigSha256,
   pipelineSha256,
-  pipelineSourceSha256,
   type ImportedArtifacts,
   type PipelineArtifactRef,
   type PipelineResult,
@@ -27,7 +26,7 @@ const MAX_CLOCK_SKEW_MS = 30_000;
 
 export type WorkerResultFailure = Readonly<{
   ok: false;
-  kind: 'protocol' | 'verifier';
+  kind: 'protocol' | 'verifier' | 'source';
   reason: string;
 }>;
 export type NormalizedWorkerResult = Readonly<{
@@ -41,9 +40,10 @@ export type NormalizedWorkerResult = Readonly<{
 export function normalizeWorkerResult(
   request: RunRequest,
   imported: ImportedArtifacts,
+  trustedSourceSha256: string,
 ): WorkerResultFailure | NormalizedWorkerResult {
   try {
-    return normalizeWorkerResultUnsafe(request, imported);
+    return normalizeWorkerResultUnsafe(request, imported, trustedSourceSha256);
   } catch {
     return protocol('Pipeline result envelope contains malformed nested fields');
   }
@@ -52,6 +52,7 @@ export function normalizeWorkerResult(
 function normalizeWorkerResultUnsafe(
   request: RunRequest,
   imported: ImportedArtifacts,
+  trustedSourceSha256: string,
 ): WorkerResultFailure | NormalizedWorkerResult {
   for (const declaration of imported.manifest.files) {
     const file = imported.files.find(({ path }) => path === declaration.path);
@@ -83,10 +84,12 @@ function normalizeWorkerResultUnsafe(
     result.binding.runId !== request.runId ||
     result.state.runId !== request.runId ||
     result.binding.configSha256 !== pipelineConfigSha256(request.config) ||
-    result.binding.sourceSha256 !== pipelineSourceSha256(request.config) ||
     result.binding.sourceRevision !== request.config.source.revision
   ) {
     return protocol('Pipeline result binding does not match this run');
+  }
+  if (result.binding.sourceSha256 !== trustedSourceSha256) {
+    return sourceMismatch('Worker source hash does not match the trusted staged-source hash');
   }
   const now = new Date((request.now ?? (() => new Date().toISOString()))()).getTime();
   const produced = Date.parse(result.freshness.producedAt);
@@ -270,7 +273,7 @@ function isPipelineResult(value: unknown): value is PipelineResult {
   const statuses = ['queued', 'running', 'awaiting-approval', 'completed', 'partial', 'failed'];
   const outcomes = ['hypothesized', 'observed', 'verified', 'contradicted', 'blocked'];
   return (
-    exactKeys(binding, [
+    exactRequiredKeys(binding, [
       'runId',
       'configSha256',
       'sourceSha256',
@@ -408,6 +411,11 @@ function exactKeys(record: Record<string, unknown>, allowed: readonly string[]):
   return Object.keys(record).every((key) => allowed.includes(key));
 }
 
+function exactRequiredKeys(record: Record<string, unknown>, required: readonly string[]): boolean {
+  const keys = Object.keys(record);
+  return keys.length === required.length && keys.every((key) => required.includes(key));
+}
+
 function sha256(bytes: Uint8Array): string {
   return createHash('sha256').update(bytes).digest('hex');
 }
@@ -422,4 +430,8 @@ function protocol(reason: string): WorkerResultFailure {
 
 function verifier(reason: string): WorkerResultFailure {
   return { ok: false, kind: 'verifier', reason };
+}
+
+function sourceMismatch(reason: string): WorkerResultFailure {
+  return { ok: false, kind: 'source', reason };
 }

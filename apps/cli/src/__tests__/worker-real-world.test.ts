@@ -1,14 +1,23 @@
 import { execFile } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { cp, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
-import { createLocalWorkerClient, type ImportedArtifacts, type WorkerClient } from '@arxic/worker';
+import {
+  createLocalWorkerClient,
+  hashSourceTree,
+  serializePipelineResult,
+  type ArxicConfig,
+  type ImportedArtifacts,
+  type PipelineResult,
+  type WorkerClient,
+} from '@arxic/worker';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runCli } from '../index';
+import { normalizeWorkerResult } from '../worker-result-normalize';
 
 const execute = promisify(execFile);
 const repoRoot = resolve(import.meta.dirname, '../../../..');
@@ -290,6 +299,31 @@ describe('worker-backed CLI real Docker proof', () => {
         expect(validateDiagnostic(diagnostic).ok).toBe(true);
         expect(diagnostic.code).toMatch(/^ARXIC-[A-Z0-9-]+$/);
       }
+      expect(workerArtifacts).toBeDefined();
+      const trustedSourceSha256 = (await hashSourceTree(sourceDir)).sourceSha256;
+      const tampered = tamperWorkerSourceHash(workerArtifacts!, 'f'.repeat(64));
+      const persistedWorkerConfig = JSON.parse(
+        await readFile(join(runDirectory, 'config.json'), 'utf8'),
+      ) as ArxicConfig;
+      expect(
+        normalizeWorkerResult(
+          {
+            runId,
+            config: {
+              ...persistedWorkerConfig,
+              source: {
+                ...persistedWorkerConfig.source,
+                repository: '/work/source',
+              },
+            },
+            runDirectory,
+            rulepacksDir: resolve(repoRoot, 'rulepacks'),
+            now: () => new Date().toISOString(),
+          },
+          tampered,
+          trustedSourceSha256,
+        ),
+      ).toMatchObject({ ok: false, kind: 'source' });
     } catch (error) {
       console.log(`worker stderr for ${runId}:\n${workerLogs || '(no logs captured)'}`);
       if (workerArtifacts) {
@@ -304,6 +338,32 @@ describe('worker-backed CLI real Docker proof', () => {
     }
   }, 600_000);
 });
+
+function tamperWorkerSourceHash(
+  imported: ImportedArtifacts,
+  sourceSha256: string,
+): ImportedArtifacts {
+  const envelope = imported.files.find(({ path }) => path === 'pipeline-result.json');
+  if (!envelope) throw new Error('Real worker result omitted pipeline-result.json');
+  const result = JSON.parse(Buffer.from(envelope.bytes).toString('utf8')) as PipelineResult;
+  const bytes = serializePipelineResult({
+    ...result,
+    binding: { ...result.binding, sourceSha256 },
+    ...(result.verifier ? { verifier: { ...result.verifier, sourceSha256 } } : {}),
+  });
+  const digest = createHash('sha256').update(bytes).digest('hex');
+  return {
+    manifest: {
+      ...imported.manifest,
+      files: imported.manifest.files.map((file) =>
+        file.path === envelope.path ? { ...file, sha256: digest, bytes: bytes.length } : file,
+      ),
+    },
+    files: imported.files.map((file) =>
+      file.path === envelope.path ? { ...file, sha256: digest, bytes } : file,
+    ),
+  };
+}
 
 async function executeDocker(
   args: readonly string[],

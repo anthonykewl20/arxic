@@ -13,7 +13,6 @@ import {
   PIPELINE_RESULT_VERSION,
   pipelineConfigSha256,
   pipelineSha256,
-  pipelineSourceSha256,
   serializePipelineResult,
   type PipelineArtifactRef,
   type PipelineResult,
@@ -33,6 +32,8 @@ export interface ProjectPipelineResultInput {
   readonly toolVersion?: string;
   readonly browserVersion?: string;
   readonly orchestratorVersion?: string;
+  /** Hash independently computed from source bytes inside the sandbox. */
+  readonly sourceSha256: string;
 }
 
 export interface ProjectPipelineResultOutput {
@@ -68,7 +69,7 @@ export function projectPipelineResult(
   );
   const stagedBundle = stageTenResult?.stagedBundle;
   const configSha256 = pipelineConfigSha256(input.spec.config);
-  const sourceSha256 = pipelineSourceSha256(input.spec.config);
+  const sourceSha256 = input.sourceSha256;
   const orchestratorVersion = input.orchestratorVersion ?? ORCHESTRATOR_VERSION;
   const appBuildDigest =
     input.appBuildDigest ??

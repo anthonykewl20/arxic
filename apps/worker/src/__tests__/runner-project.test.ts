@@ -14,7 +14,7 @@ import {
   type VerificationNodeResult,
 } from '@arxic/orchestrator-langgraph';
 import { describe, expect, it } from 'vitest';
-import { pipelineConfigSha256, pipelineSha256, pipelineSourceSha256 } from '../pipeline-result';
+import { pipelineConfigSha256, pipelineSha256 } from '../pipeline-result';
 import { projectPipelineResult, type VolumeFile } from '../runner-project';
 import type { RunSpec } from '../run-spec';
 
@@ -125,7 +125,7 @@ describe('projectPipelineResult', () => {
       expect(entry.sha256).toBe(sha256(bytes as Uint8Array));
     }
     expect(projected.result.binding.configSha256).toBe(pipelineConfigSha256(spec.config));
-    expect(projected.result.binding.sourceSha256).toBe(pipelineSourceSha256(spec.config));
+    expect(projected.result.binding.sourceSha256).toBe('a'.repeat(64));
     expect(projected.result.state).toMatchObject({
       status: 'completed',
       outcome: 'verified',
@@ -165,6 +165,7 @@ function projectInput(files: readonly VolumeFile[]) {
     workerImageVersion: 'worker-test',
     toolVersion: 'tool-test',
     browserVersion: 'chromium-test',
+    sourceSha256: 'a'.repeat(64),
   };
 }
 

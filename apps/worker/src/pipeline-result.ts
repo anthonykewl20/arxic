@@ -110,14 +110,6 @@ export function pipelineConfigSha256(config: ArxicConfig): string {
   return pipelineSha256(config);
 }
 
-export function pipelineSourceSha256(config: ArxicConfig): string {
-  return pipelineSha256({
-    repository: config.source.repository,
-    revision: config.source.revision,
-    languages: config.source.languages,
-  });
-}
-
 function sortValue(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortValue);
   if (value !== null && typeof value === 'object') {

@@ -4,7 +4,6 @@ import {
   PIPELINE_RESULT_PATH,
   pipelineConfigSha256,
   pipelineSha256,
-  pipelineSourceSha256,
   serializePipelineResult,
   type ImportedArtifacts,
   type PipelineResult,
@@ -22,11 +21,37 @@ const request: RunRequest = {
 };
 const stageBytes = Buffer.from('{"stage":10}\n');
 const stageHash = sha256(stageBytes);
+const trustedSourceSha256 = 'a'.repeat(64);
 
 describe('worker PipelineResult fail-closed normalization', () => {
+  it('rejects a fabricated worker source hash against the trusted staged bytes', () => {
+    const fabricated = envelope();
+    const result = normalizeWorkerResult(request, imported(fabricated), 'f'.repeat(64));
+    expect(result).toMatchObject({ ok: false, kind: 'source' });
+  });
+
+  it('rejects a missing worker source hash before reconciliation', () => {
+    const candidate = envelope();
+    const missing = {
+      ...candidate,
+      binding: { ...candidate.binding, sourceSha256: undefined },
+    };
+    expect(
+      normalizeWorkerResult(
+        request,
+        imported(missing as unknown as PipelineResult),
+        trustedSourceSha256,
+      ),
+    ).toMatchObject({ ok: false, kind: 'protocol' });
+  });
+
   it('rejects a worker-asserted verified value without a stage-10 verifier record as forged', () => {
     const forged = { ...envelope({ outcome: 'verified' }), verifier: undefined };
-    const result = normalizeWorkerResult(request, imported(forged as PipelineResult));
+    const result = normalizeWorkerResult(
+      request,
+      imported(forged as PipelineResult),
+      trustedSourceSha256,
+    );
     expect(result).toMatchObject({ ok: false, kind: 'verifier' });
   });
 
@@ -36,7 +61,7 @@ describe('worker PipelineResult fail-closed normalization', () => {
       ...candidate,
       verifier: { ...candidate.verifier!, cleanReplayCount: 1 },
     };
-    expect(normalizeWorkerResult(request, imported(stale))).toMatchObject({
+    expect(normalizeWorkerResult(request, imported(stale), trustedSourceSha256)).toMatchObject({
       ok: false,
       kind: 'verifier',
     });
@@ -46,12 +71,17 @@ describe('worker PipelineResult fail-closed normalization', () => {
     const result = normalizeWorkerResult(
       request,
       imported(envelope({ outcome: 'observed' }), Buffer.from('tampered')),
+      trustedSourceSha256,
     );
     expect(result).toMatchObject({ ok: false, kind: 'protocol' });
   });
 
   it('normalizes a fresh consistent envelope through the local RunResult shape', () => {
-    const normalized = normalizeWorkerResult(request, imported(envelope({ outcome: 'observed' })));
+    const normalized = normalizeWorkerResult(
+      request,
+      imported(envelope({ outcome: 'observed' })),
+      trustedSourceSha256,
+    );
     expect(normalized.ok).toBe(true);
     if (!normalized.ok) return;
     const workerResult = runResultFromState(request, normalized.state);
@@ -102,7 +132,7 @@ function envelope(overrides: { outcome?: 'verified' | 'observed' } = {}): Pipeli
     binding: {
       runId: request.runId,
       configSha256: pipelineConfigSha256(request.config),
-      sourceSha256: pipelineSourceSha256(request.config),
+      sourceSha256: trustedSourceSha256,
       sourceRevision: request.config.source.revision,
       appBuildDigest: 'b'.repeat(64),
       workerImageVersion: 'synthetic-no-image',
@@ -132,7 +162,7 @@ function envelope(overrides: { outcome?: 'verified' | 'observed' } = {}): Pipeli
       verifierVersion: '0.0.0',
       orchestratorVersion: '0.0.0',
       configSha256: pipelineConfigSha256(request.config),
-      sourceSha256: pipelineSourceSha256(request.config),
+      sourceSha256: trustedSourceSha256,
       appBuildDigest: 'b'.repeat(64),
       requiredReplayCount: 2,
       cleanReplayCount: 2,
