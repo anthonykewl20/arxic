@@ -394,10 +394,14 @@ async function collectRawArtifacts(
 ): Promise<RawArtifactSet> {
   const state = await dockerInspect(containerId, '{{.State.Status}}');
   const running = state === 'running';
-  if (running) await assertResultVolumeCapacity(containerId, mountPath, quotaBytes);
+  if (!running) throw new ArtifactImportError('invalid', 'Worker result tmpfs is unavailable');
+  await assertResultVolumeCapacity(containerId, mountPath, quotaBytes);
+  await assertResultTreeSafeForExtraction(containerId, mountPath);
+  // Do not even create host staging until the container-side validation has
+  // accepted the tree. In particular, a rejected link can never be recreated
+  // in a host directory by the archive extractor.
   const directory = await mkdtemp(join(tmpdir(), 'arxic-worker-result-'));
   try {
-    if (!running) throw new ArtifactImportError('invalid', 'Worker result tmpfs is unavailable');
     await copyMountedResult(containerId, mountPath, directory);
     const entries: RawArtifactEntry[] = [];
     const budget: ArtifactReadBudget = { totalBytes: 0, fileCount: 0 };
@@ -410,6 +414,51 @@ async function collectRawArtifacts(
     return { entries };
   } finally {
     await rm(directory, { recursive: true, force: true });
+  }
+}
+
+/** Reject filesystem objects that could alter host extraction semantics before
+ * any archive bytes reach a host extractor. `mountPath` is the validated,
+ * supervisor-owned tmpfs path and every expression token is a fixed argv item.
+ */
+async function assertResultTreeSafeForExtraction(
+  containerId: string,
+  mountPath: string,
+): Promise<void> {
+  const unsafe = await dockerExec(containerId, [
+    'find',
+    mountPath,
+    '-xdev',
+    '(',
+    '-type',
+    'l',
+    '-o',
+    '-type',
+    'b',
+    '-o',
+    '-type',
+    'c',
+    '-o',
+    '-type',
+    'p',
+    '-o',
+    '-type',
+    's',
+    '-o',
+    '(',
+    '-type',
+    'f',
+    '-links',
+    '+1',
+    ')',
+    ')',
+    '-print',
+  ]);
+  if (unsafe.exit !== 0 || unsafe.stdout.length > 0) {
+    throw new ArtifactImportError(
+      'invalid',
+      'Worker result contains an unsafe filesystem entry; host extraction was blocked',
+    );
   }
 }
 
@@ -476,14 +525,18 @@ function assertCapacityOutput(output: string, quotaBytes: number): void {
   // POSIX `df -P` fixes the data row to: filesystem, 1024-blocks, used,
   // available, capacity, mounted-on. A filesystem label may contain spaces, so
   // address the fixed numeric fields from the right.
-  const usableKilobytes = Number(values.at(-5));
-  const usableBytes = usableKilobytes * 1024;
+  const totalSizeKilobytes = Number(values.at(-5));
+  const totalSizeBytes = totalSizeKilobytes * 1024;
   // tmpfs is page-rounded by the kernel. Permit at most one 4 KiB page of
   // rounding while still rejecting an accidentally unbounded/mis-mounted path.
-  if (!Number.isSafeInteger(usableBytes) || usableBytes <= 0 || usableBytes > quotaBytes + 4096) {
+  if (
+    !Number.isSafeInteger(totalSizeBytes) ||
+    totalSizeBytes <= 0 ||
+    totalSizeBytes > quotaBytes + 4096
+  ) {
     throw new ArtifactImportError(
       'quota',
-      `Worker result volume usable-byte limit is absent or exceeds its quota (${usableBytes}/${quotaBytes}; ${output})`,
+      `Worker result volume total-size limit is absent or exceeds its quota (${totalSizeBytes}/${quotaBytes}; ${output})`,
     );
   }
 }
@@ -540,7 +593,12 @@ export async function inspectSandbox(sandbox: WorkerSandbox): Promise<SandboxSta
       `${RESULT_EXPORT_PATH}/${RESULT_COMPLETE_MARKER}`,
     ]);
     if (completed.exit === 0 && /^\d+$/.test(completed.stdout)) {
-      return { status: 'exited', exitCode: Number(completed.stdout), oomKilled: false };
+      const completedExitCode = Number(completed.stdout);
+      return {
+        status: 'exited',
+        exitCode: completedExitCode,
+        oomKilled: oomKilled === 'true' || completedExitCode === 137 || completedExitCode === 139,
+      };
     }
   }
   return { status, exitCode: Number(exitCode), oomKilled: oomKilled === 'true' };
