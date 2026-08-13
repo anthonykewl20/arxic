@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { join, resolve } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
+import type { StagedBundle } from '@arxic/contracts';
 import { authCandidates, type AuthSurface } from '../../../packages/auth-domain-pack/src';
 import { BundlePromoterAdapter } from '../../../packages/bundle-promoter/src';
 import { ModelAdapter } from '../../../packages/model-adapter/src';
@@ -121,7 +122,13 @@ function localPipelineOptions(
       }).verify(compilation.stagedBundle, compilation.stagedBundle.workflow.verification);
       return {
         ...verification,
-        stagedBundle: compilation.stagedBundle,
+        stagedBundle: promotionReadyBundle(compilation.stagedBundle, request),
+        artifacts: verification.artifacts.map((artifact) => ({
+          ...artifact,
+          path: isAbsolute(artifact.path)
+            ? artifact.path
+            : resolve(request.runDirectory, artifact.path),
+        })),
         gates: [{ gate: 'verify', passed: verification.outcome === 'verified' }],
       };
     },
@@ -194,6 +201,22 @@ function localPipelineOptions(
         },
       });
       return withSourceEvidence(explored, inferredSourceEvidence);
+    },
+  };
+}
+
+function promotionReadyBundle(bundle: StagedBundle, request: RunRequest): StagedBundle {
+  const runRoot = resolve(request.runDirectory, request.runId);
+  const artifacts = bundle.artifacts.map((artifact) => ({
+    ...artifact,
+    path: isAbsolute(artifact.path) ? artifact.path : resolve(runRoot, artifact.path),
+  }));
+  return {
+    ...bundle,
+    artifacts,
+    manifest: {
+      ...bundle.manifest,
+      fileHashes: artifacts.map(({ path, sha256 }) => ({ path, sha256 })),
     },
   };
 }

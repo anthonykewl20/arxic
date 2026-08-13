@@ -64,7 +64,7 @@ describe('orchestrator sad paths', () => {
       response.end(
         request.url === '/'
           ? '<!doctype html><title>Home</title><a href="/login">Login</a>'
-          : '<!doctype html><title>Login</title><input name="email">',
+          : '<!doctype html><title>Login</title><form method="post"><input name="email"></form>',
       );
     });
     await new Promise<void>((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
@@ -314,7 +314,11 @@ describe('orchestrator sad paths', () => {
       },
     }).run(input('positive-promotion'));
 
-    expect(result.diagnostics).toEqual([]);
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'ARXIC-SURFACE-002', severity: 'blocked' }),
+      ]),
+    );
     expect(result.status).toBe('completed');
     expect((await checkpointer.load('positive-promotion'))?.status).toBe('completed');
     expect(result.receipt).toBeDefined();
@@ -331,6 +335,47 @@ describe('orchestrator sad paths', () => {
       promotedBundle?.artifacts.map(({ path, sha256 }) => ({ path, sha256 })),
     );
     expect(stagedBundle).toEqual(original);
+  }, 60_000);
+
+  it('promotes when source and discovery blockers describe deliberately unattempted advisory work', async () => {
+    const stagedBundle = coherentObservedBundle();
+    let promoted = false;
+    const result = await new LangGraphOrchestrator({
+      checkpointer: new InMemoryStageCheckpointer(),
+      inferCandidates: async () => validInference('advisory-promotion-request'),
+      compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+      verify: async () => ({
+        outcome: 'verified',
+        stagedBundle,
+        diagnostics: [],
+        artifacts: [],
+        runs: [{ passed: true }, { passed: true }],
+        gates: [{ gate: 'verify', passed: true }],
+      }),
+      promote: async (bundle) => {
+        promoted = true;
+        return {
+          manifest: bundle.manifest,
+          promotedAt: '2026-08-05T12:00:00.000Z',
+          location: 'test://advisory-promoted',
+          checksumSha256: 'a'.repeat(64),
+        };
+      },
+    }).run(input('advisory-promotion'));
+
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'ARXIC-SOURCE-UNSUPPORTED-LANGUAGE',
+          severity: 'blocked',
+        }),
+        expect.objectContaining({ code: 'ARXIC-SURFACE-002', severity: 'blocked' }),
+      ]),
+    );
+    expect(result.outcome).toBe('verified');
+    expect(result.status).toBe('completed');
+    expect(result.receipt).toBeDefined();
+    expect(promoted).toBe(true);
   }, 60_000);
 
   it('retains promotion eligibility when every sensitivity mutation is killed', async () => {
@@ -647,7 +692,12 @@ describe('orchestrator sad paths', () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_RESUME, severity: 'observed' }),
     );
-    expect(result.diagnostics.filter(({ severity }) => severity === 'blocked')).toEqual([]);
+    expect(result.diagnostics.filter(({ severity }) => severity === 'blocked')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'ARXIC-SOURCE-UNSUPPORTED-LANGUAGE' }),
+        expect.objectContaining({ code: 'ARXIC-SURFACE-002' }),
+      ]),
+    );
     expect(result.receipt).toBeDefined();
   }, 60_000);
 
@@ -937,6 +987,7 @@ async function committedSource(): Promise<string> {
     join(directory, 'page.tsx'),
     'export default function Page() { return <form action="/login"><input name="email" /></form>; }\n',
   );
+  await writeFile(join(directory, 'styles.css'), 'body {}\n');
   const environment = {
     ...process.env,
     GIT_AUTHOR_NAME: 'Arxic Test',
