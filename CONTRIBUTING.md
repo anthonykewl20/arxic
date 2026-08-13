@@ -39,7 +39,7 @@ pnpm test
 
 **Strategy: trunk-based development** (confirmed decision). There is no long-lived `dev` or `release` branch.
 
-- `main` is the single integration branch. The repository is **private during pre-1.0**, so GitHub branch protection is **off** (free-tier limit for private repos) — treat `main` as protected by discipline: **merge only when the `ci` check is green** (`gh pr checks <N> --watch` → `pass`); no direct pushes, no force-push, no deletion; linear history required.
+- `main` is the single integration branch. The repository has been **public since 2026-08-12** (it was private earlier in pre-1.0). Branch protection is **enabled** with `strict: true`: the required `ci` check must pass, changes land through PRs, protection is enforced for admins, linear history is required, and force-pushes are disabled. **Merge only when `ci` is green** (`gh pr checks <N> --watch` → `pass`); do not push directly or delete `main`.
 - All work lands via **short-lived branches** named by intent: `feat/<scope>`, `fix/<scope>`, `docs/<scope>`, `chore/<scope>`, `spike/<scope>`. Rebase stale dependency-bump branches onto `main` before evaluating CI.
 - Open a PR against `main`; the `ci` check must pass before merge. Solo maintainers may self-merge (0 required reviews). Merge style: **squash**.
 - `main` is always shippable. **Releases are cut from `main` via tags** (`v0.1.0`, `v0.2.0`, …) per `RELEASES.md` — never via a release branch.
