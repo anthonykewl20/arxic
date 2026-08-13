@@ -3,13 +3,25 @@
 ![CI](https://github.com/anthonykewl20/arxic/actions/workflows/ci.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
-![Status](https://img.shields.io/badge/status-pre--MVP-blue)
+![Status](https://img.shields.io/badge/status-M1%20complete%20%7C%20M2%20in%20progress-blue)
 
 Evidence-driven behavioral intent compiler that produces independently replayable
 Playwright workflow bundles with explicit evidence, provenance, and verifiable
 coverage.
 
-Status: Accepted, pre-MVP (Milestone 1 exit hardening in progress)
+Status: pre-1.0. Milestone 1 is complete; Milestone 2 hardening is in progress.
+
+## Install and run
+
+```bash
+npm i -g arxic
+arxic run --config arxic.yaml
+```
+
+Local execution is the supported path and is the default. `--executor worker` is
+experimental and not yet functional end to end. See the
+[architecture summary](docs/adr/001-arxic-architecture.md), especially §19, for
+the configuration shape.
 
 ## What is Arxic?
 
@@ -45,7 +57,7 @@ and the pipeline in section 9.
 - `rulepacks/` - behavioral rule packs
 - `test-fixtures/` - concrete scenario fixtures
 
-## Quickstart
+## Contributor quickstart
 
 ```bash
 pnpm install
@@ -54,15 +66,16 @@ pnpm lint
 pnpm test
 ```
 
-Note: the CLI and worker are not implemented yet; roadmap items are tracked in
-the milestones and slices.
+The installable CLI drives the local pipeline through verification. The
+worker-backed executor remains Milestone 2 work in progress.
 
 ## Roadmap
 
 Milestones are tracked on GitHub: https://github.com/anthonykewl20/arxic/milestones
 
 - M0-EXIT (`#14`) - one manually-supplied login candidate compiles, verifies twice, and promotes with evidence
-- M1-EXIT (`#27`) - two structurally different reference apps produce independently replayable bundles without app-specific generator code
+- M1-EXIT (`#27`) - complete: two structurally different reference apps produce independently replayable bundles without app-specific generator code
+- M2 - hardening in progress, including the experimental worker-backed executor
 
 ## Contributing
 
