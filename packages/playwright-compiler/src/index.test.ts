@@ -261,6 +261,7 @@ describe('Playwright compiler contracts', () => {
     const fixture = await readFile(join(directory, 'fixtures/workflow.fixture.ts'), 'utf8');
     expect(fixture).toContain("context.routeWebSocket('**/*'");
     expect(fixture).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
+    expect(fixture).toContain("if (alias.hostname === '127.0.0.1') alias.hostname = 'localhost'");
     expect(fixture).toContain("await context.route('**/*', async (route) => {");
     expect(fixture).toContain('await route.continue()');
     expect(fixture).not.toContain('route.fallback()');
