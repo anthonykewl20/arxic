@@ -116,6 +116,7 @@ export class PlaywrightCompiler implements WorkflowCompiler {
     try {
       const generated = generateSpec(validatedWorkflow.value, this.#origin, runtime.url, {
         captureScreenshots: this.#captureScreenshots,
+        approvedOrigins: originPolicy.allowedOrigins,
       });
       spec = generated.spec;
       nonSemanticLocatorRationale = generated.nonSemanticLocatorRationale;

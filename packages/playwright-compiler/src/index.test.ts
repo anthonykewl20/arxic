@@ -158,6 +158,16 @@ describe('Playwright compiler sad paths', () => {
     });
   });
 
+  test('accepts runtime path, query, trailing-slash, and default-port differences on the declared origin', () => {
+    expect(
+      resolveOriginPolicy({
+        subject: 'authentication.login',
+        declaredOrigin: 'http://approved.example:80/',
+        runtimeUrl: 'http://approved.example/login/?return=%2Fhome',
+      }),
+    ).toEqual({ passed: true, allowedOrigins: ['http://approved.example'] });
+  });
+
   test('origin-denial diagnostics loop-close through the frozen contract', () => {
     const result = resolveOriginPolicy({
       subject: 'authentication.login',
@@ -249,10 +259,12 @@ describe('Playwright compiler contracts', () => {
       'test.afterEach',
     );
     const fixture = await readFile(join(directory, 'fixtures/workflow.fixture.ts'), 'utf8');
-    expect(fixture).toContain("context.route('**/*'");
     expect(fixture).toContain("context.routeWebSocket('**/*'");
     expect(fixture).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
-    expect(fixture).toContain("error.message.includes('Route is already handled')");
+    expect(fixture).toContain("await context.route('**/*', async (route) => {");
+    expect(fixture).toContain('await route.continue()');
+    expect(fixture).not.toContain('route.fallback()');
+    expect(fixture.match(/context\.route\('\*\*\/\*'/gu)).toHaveLength(1);
     expect(spec).toContain('configureApprovedOrigins(["http://127.0.0.1:3000"])');
     const config = await readFile(join(directory, 'playwright.config.ts'), 'utf8');
     expect(config).toContain("serviceWorkers: 'block'");
@@ -297,7 +309,7 @@ describe('Playwright compiler contracts', () => {
     expect(generated.spec).toContain('page.goto("http://127.0.0.1:3000/")');
     expect(generated.spec.match(/observed-entry/gu)).toHaveLength(1);
     expect(generated.spec).toContain(
-      'enforceNetworkContainment(context, () => page.getByRole(\'link\', { name: "Change password" }).click())',
+      'enforceNetworkContainment(page, () => page.getByRole(\'link\', { name: "Change password" }).click())',
     );
   });
 
@@ -306,7 +318,7 @@ describe('Playwright compiler contracts', () => {
     workflow.transitions[0]!.action = { intent: 'Click Continue' };
     const generated = generateSpec(workflow, 'http://127.0.0.1:3000');
     expect(generated.spec).toContain(
-      'enforceNetworkContainment(context, () => page.getByRole(\'button\', { name: "Continue" }).click())',
+      'enforceNetworkContainment(page, () => page.getByRole(\'button\', { name: "Continue" }).click())',
     );
   });
 

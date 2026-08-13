@@ -17,17 +17,18 @@ export function generateSpec(
   workflow: Workflow,
   origin: string,
   runtimeUrl?: string,
-  options: { captureScreenshots?: boolean } = {},
+  options: { captureScreenshots?: boolean; approvedOrigins?: string[] } = {},
 ): { spec: string; nonSemanticLocatorRationale?: string } {
   const captureScreenshots = options.captureScreenshots ?? true;
   const approvedOrigin = new URL(origin).origin;
+  const approvedOrigins = options.approvedOrigins ?? [approvedOrigin];
   const lines = [
     "import { test, expect, assertNetworkContained, assertPageOrigin, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';",
     ...(captureScreenshots
       ? ["import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';"]
       : []),
     '',
-    `configureApprovedOrigins([${JSON.stringify(approvedOrigin)}]);`,
+    `configureApprovedOrigins(${JSON.stringify(approvedOrigins)});`,
     '',
     `test(${JSON.stringify(workflow.id)}, async ({ page, context }) => {`,
   ];
@@ -39,7 +40,7 @@ export function generateSpec(
     if (action.formScoped) usedFormScope = true;
     lines.push(
       `  await test.step(${JSON.stringify(`${transition.from} → ${transition.to}`)}, async () => {`,
-      `    await enforceNetworkContainment(context, () => page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)}));`,
+      `    await page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)});`,
       '    assertPageOrigin(page);',
       '    assertNetworkContained(context);',
       ...action.lines,
@@ -79,12 +80,12 @@ export function generateControlStateSpec(
 
   return {
     spec: [
-      "import { test, expect, configureApprovedOrigins } from '../fixtures/workflow.fixture';",
+      "import { test, expect, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';",
       '',
       `configureApprovedOrigins([${JSON.stringify(approvedOrigin)}]);`,
       '',
       `test(${JSON.stringify(`${workflow.id} control state ${transitionIndex}:${assertionIndex}`)}, async ({ page }) => {`,
-      `  await page.goto(${JSON.stringify(new URL(statePath(transition.from), origin).href)});`,
+      `  await enforceNetworkContainment(page, () => page.goto(${JSON.stringify(new URL(statePath(transition.from), origin).href)}));`,
       ...renderAssertions(transition, origin, assertionIndex),
       '});',
       '',
@@ -112,7 +113,7 @@ function renderAction(transition: WorkflowTransition): {
           ([name, reference]) =>
             `    await form.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
         ),
-        `    await enforceNetworkContainment(context, () => form.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }).click());`,
+        `    await enforceNetworkContainment(page, () => form.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }).click());`,
       ],
       formScoped: true,
     };
@@ -121,7 +122,7 @@ function renderAction(transition: WorkflowTransition): {
   if (open?.[1] && inputRefs.length === 0) {
     return {
       lines: [
-        `    await enforceNetworkContainment(context, () => page.getByRole('link', { name: ${JSON.stringify(open[1])} }).click());`,
+        `    await enforceNetworkContainment(page, () => page.getByRole('link', { name: ${JSON.stringify(open[1])} }).click());`,
       ],
       formScoped: false,
     };
@@ -130,7 +131,7 @@ function renderAction(transition: WorkflowTransition): {
   if (click?.[1] && inputRefs.length === 0) {
     return {
       lines: [
-        `    await enforceNetworkContainment(context, () => page.getByRole('button', { name: ${JSON.stringify(click[1])} }).click());`,
+        `    await enforceNetworkContainment(page, () => page.getByRole('button', { name: ${JSON.stringify(click[1])} }).click());`,
       ],
       formScoped: false,
     };
