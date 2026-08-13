@@ -18,7 +18,6 @@ export function buildAttestationPolicy(input: BuildAttestationPolicyInput): Atte
     allowedOrigins: [...(input.operatorAllowedOrigins ?? [])],
     localTestAllowedOrigins: [input.origin],
     allowedEnvironmentClasses: ['local-test', 'preview'],
-    requireSignedReceipt: true,
     ...(input.receiptKey ? { receiptKey: input.receiptKey } : {}),
     ...(input.expectedNonce ? { expectedNonce: input.expectedNonce } : {}),
     ...(input.expectedBuildDigest ? { expectedBuildDigest: input.expectedBuildDigest } : {}),

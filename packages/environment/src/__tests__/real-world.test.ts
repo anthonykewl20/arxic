@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { EnvironmentHandshake } from '..';
+import { buildAttestationPolicy, EnvironmentHandshake, operatorAttestationSettings } from '..';
 
 const execute = promisify(execFile);
 const root = resolve(fileURLToPath(new URL('../../../../', import.meta.url)));
@@ -140,6 +140,27 @@ describe('real-world target-attestation handshake', () => {
         { origin },
         { allowedOrigins: [origin], expectedNonce },
       );
+      expect(result).toMatchObject({
+        disposition: 'allowed',
+        diagnostics: [],
+        decision: { origin, environmentClass: 'local-test', disposition: 'allowed' },
+      });
+    }
+  });
+
+  it('accepts real local-test reference apps without receipts through the default policy builder', async () => {
+    const handshake = new EnvironmentHandshake();
+    const cases = [
+      [referenceOrigin, 'reference-auth-app-fixture-v1'],
+      [vulnerableOrigin, 'vulnerable-auth-app-fixture-v1'],
+    ] as const;
+    for (const [origin, expectedNonce] of cases) {
+      const policy = buildAttestationPolicy({
+        origin,
+        expectedNonce,
+        ...operatorAttestationSettings({}),
+      });
+      const result = await handshake.attest({ origin }, policy);
       expect(result).toMatchObject({
         disposition: 'allowed',
         diagnostics: [],

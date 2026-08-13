@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { buildAttestationPolicy, operatorAttestationSettings } from '..';
 
 describe('operator-controlled attestation policy', () => {
-  it('fails closed for non-local targets when operator settings are absent', () => {
+  it('leaves local receipts optional while non-local enforcement remains in verification', () => {
     const policy = buildAttestationPolicy({ origin: 'https://target.example' });
     expect(policy).toMatchObject({
       allowedOrigins: [],
       localTestAllowedOrigins: ['https://target.example'],
-      requireSignedReceipt: true,
     });
+    expect(policy.requireSignedReceipt).toBeUndefined();
     expect(policy.receiptKey).toBeUndefined();
   });
 
