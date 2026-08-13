@@ -20,11 +20,14 @@ export function generateSpec(
   options: { captureScreenshots?: boolean } = {},
 ): { spec: string; nonSemanticLocatorRationale?: string } {
   const captureScreenshots = options.captureScreenshots ?? true;
+  const approvedOrigin = new URL(origin).origin;
   const lines = [
-    "import { test, expect, assertNetworkContained, assertPageOrigin, enforceNetworkContainment } from '../fixtures/workflow.fixture';",
+    "import { test, expect, assertNetworkContained, assertPageOrigin, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';",
     ...(captureScreenshots
       ? ["import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';"]
       : []),
+    '',
+    `configureApprovedOrigins([${JSON.stringify(approvedOrigin)}]);`,
     '',
     `test(${JSON.stringify(workflow.id)}, async ({ page, context }) => {`,
   ];
@@ -68,6 +71,7 @@ export function generateControlStateSpec(
   transitionIndex: number,
   assertionIndex: number,
 ): { spec: string } {
+  const approvedOrigin = new URL(origin).origin;
   const transition = workflow.transitions[transitionIndex];
   if (!transition) throw new RangeError(`Transition index ${transitionIndex} is out of range`);
   if (!transition.assertions[assertionIndex])
@@ -75,7 +79,9 @@ export function generateControlStateSpec(
 
   return {
     spec: [
-      "import { test, expect } from '../fixtures/workflow.fixture';",
+      "import { test, expect, configureApprovedOrigins } from '../fixtures/workflow.fixture';",
+      '',
+      `configureApprovedOrigins([${JSON.stringify(approvedOrigin)}]);`,
       '',
       `test(${JSON.stringify(`${workflow.id} control state ${transitionIndex}:${assertionIndex}`)}, async ({ page }) => {`,
       `  await page.goto(${JSON.stringify(new URL(statePath(transition.from), origin).href)});`,
@@ -114,14 +120,18 @@ function renderAction(transition: WorkflowTransition): {
   const open = intent.match(/^(?:open|go to|navigate to)\s+(.+)$/iu);
   if (open?.[1] && inputRefs.length === 0) {
     return {
-      lines: [`    await page.getByRole('link', { name: ${JSON.stringify(open[1])} }).click();`],
+      lines: [
+        `    await enforceNetworkContainment(context, () => page.getByRole('link', { name: ${JSON.stringify(open[1])} }).click());`,
+      ],
       formScoped: false,
     };
   }
   const click = intent.match(/^(?:click|select|choose)\s+(.+)$/iu);
   if (click?.[1] && inputRefs.length === 0) {
     return {
-      lines: [`    await page.getByRole('button', { name: ${JSON.stringify(click[1])} }).click();`],
+      lines: [
+        `    await enforceNetworkContainment(context, () => page.getByRole('button', { name: ${JSON.stringify(click[1])} }).click());`,
+      ],
       formScoped: false,
     };
   }

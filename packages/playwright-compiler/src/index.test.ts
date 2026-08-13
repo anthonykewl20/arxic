@@ -250,8 +250,10 @@ describe('Playwright compiler contracts', () => {
     );
     const fixture = await readFile(join(directory, 'fixtures/workflow.fixture.ts'), 'utf8');
     expect(fixture).toContain("context.route('**/*'");
+    expect(fixture).toContain("context.routeWebSocket('**/*'");
     expect(fixture).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
-    expect(fixture).toContain('http://127.0.0.1:3000');
+    expect(fixture).toContain("error.message.includes('Route is already handled')");
+    expect(spec).toContain('configureApprovedOrigins(["http://127.0.0.1:3000"])');
     const config = await readFile(join(directory, 'playwright.config.ts'), 'utf8');
     expect(config).toContain("serviceWorkers: 'block'");
     expect(await readFile(join(directory, 'fixtures/screenshot-privacy.ts'), 'utf8')).toBe(
@@ -294,6 +296,18 @@ describe('Playwright compiler contracts', () => {
     expect(generated.spec).toContain('page.goto("http://127.0.0.1:3000/observed-entry")');
     expect(generated.spec).toContain('page.goto("http://127.0.0.1:3000/")');
     expect(generated.spec.match(/observed-entry/gu)).toHaveLength(1);
+    expect(generated.spec).toContain(
+      'enforceNetworkContainment(context, () => page.getByRole(\'link\', { name: "Change password" }).click())',
+    );
+  });
+
+  test('wraps button actions in fail-fast network containment', () => {
+    const workflow = loginWorkflow();
+    workflow.transitions[0]!.action = { intent: 'Click Continue' };
+    const generated = generateSpec(workflow, 'http://127.0.0.1:3000');
+    expect(generated.spec).toContain(
+      'enforceNetworkContainment(context, () => page.getByRole(\'button\', { name: "Continue" }).click())',
+    );
   });
 
   test('renders URL assertions as exact-route regexes that permit query strings and fragments', () => {
