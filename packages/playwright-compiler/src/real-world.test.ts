@@ -49,6 +49,7 @@ describe.each(FIXTURE_APPS)('playwright compiler real-world proof: $name', (app)
     const bundle = await new PlaywrightCompiler({
       outputDirectory,
       origin: running.origin,
+      captureScreenshots: false,
     }).compile(workflow, loginObservations(app, running.origin, `real-world-compiler-${app.name}`));
     expect(validateManifest(bundle.manifest).ok).toBe(true);
     expect(bundle.plan).toContain(`${app.login.fromState} → ${app.login.toState}`);
@@ -61,11 +62,19 @@ describe.each(FIXTURE_APPS)('playwright compiler real-world proof: $name', (app)
     const output = `${listing.stdout}${listing.stderr}`;
     expect(output).toContain(workflow.id);
     const spec = await readFile(join(outputDirectory, 'tests/workflow.spec.ts'), 'utf8');
-    for (const [index, transition] of workflow.transitions.entries()) {
-      expect(spec).toContain(
-        `artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`,
-      );
-    }
+    expect(spec).toContain('enforceNetworkContainment');
+    const run = await execute(process.execPath, [cliPath, 'test'], {
+      cwd: outputDirectory,
+      env: {
+        ...process.env,
+        ARXIC_INPUT_PERSONA_EMAIL: app.persona.email,
+        ARXIC_INPUT_PERSONA_PASSWORD: app.persona.password,
+      },
+      timeout: 120_000,
+    }).catch((error: { stdout?: string; stderr?: string }) => {
+      throw new Error(`${error.stdout ?? ''}${error.stderr ?? ''}`);
+    });
+    expect(`${run.stdout}${run.stderr}`).toContain('1 passed');
   }, 120_000);
 });
 
@@ -82,8 +91,4 @@ async function ensurePlaywrightModule(directory: string): Promise<void> {
   const scope = join(directory, 'node_modules', '@playwright');
   await mkdir(scope, { recursive: true });
   await symlink(packageRoot, join(scope, 'test'), 'dir');
-}
-
-function fileNamePart(value: string): string {
-  return value.replaceAll(/[^a-zA-Z0-9_-]/g, '-');
 }

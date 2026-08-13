@@ -17,16 +17,20 @@ export function generateSpec(
   workflow: Workflow,
   origin: string,
   runtimeUrl?: string,
-  options: { captureScreenshots?: boolean } = {},
+  options: { captureScreenshots?: boolean; approvedOrigins?: string[] } = {},
 ): { spec: string; nonSemanticLocatorRationale?: string } {
   const captureScreenshots = options.captureScreenshots ?? true;
+  const approvedOrigin = new URL(origin).origin;
+  const approvedOrigins = options.approvedOrigins ?? [approvedOrigin];
   const lines = [
-    "import { test, expect } from '../fixtures/workflow.fixture';",
+    "import { test, expect, assertNetworkContained, assertPageOrigin, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';",
     ...(captureScreenshots
       ? ["import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';"]
       : []),
     '',
-    `test(${JSON.stringify(workflow.id)}, async ({ page }) => {`,
+    `configureApprovedOrigins(${JSON.stringify(approvedOrigins)});`,
+    '',
+    `test(${JSON.stringify(workflow.id)}, async ({ page, context }) => {`,
   ];
   let usedFormScope = false;
   for (const [index, transition] of workflow.transitions
@@ -37,7 +41,10 @@ export function generateSpec(
     lines.push(
       `  await test.step(${JSON.stringify(`${transition.from} → ${transition.to}`)}, async () => {`,
       `    await page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)});`,
+      '    assertPageOrigin(page);',
+      '    assertNetworkContained(context);',
       ...action.lines,
+      '    assertNetworkContained(context);',
       ...renderAssertions(transition, origin),
       ...(captureScreenshots
         ? [
@@ -65,6 +72,7 @@ export function generateControlStateSpec(
   transitionIndex: number,
   assertionIndex: number,
 ): { spec: string } {
+  const approvedOrigin = new URL(origin).origin;
   const transition = workflow.transitions[transitionIndex];
   if (!transition) throw new RangeError(`Transition index ${transitionIndex} is out of range`);
   if (!transition.assertions[assertionIndex])
@@ -72,10 +80,12 @@ export function generateControlStateSpec(
 
   return {
     spec: [
-      "import { test, expect } from '../fixtures/workflow.fixture';",
+      "import { test, expect, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';",
+      '',
+      `configureApprovedOrigins([${JSON.stringify(approvedOrigin)}]);`,
       '',
       `test(${JSON.stringify(`${workflow.id} control state ${transitionIndex}:${assertionIndex}`)}, async ({ page }) => {`,
-      `  await page.goto(${JSON.stringify(new URL(statePath(transition.from), origin).href)});`,
+      `  await enforceNetworkContainment(page, () => page.goto(${JSON.stringify(new URL(statePath(transition.from), origin).href)}));`,
       ...renderAssertions(transition, origin, assertionIndex),
       '});',
       '',
@@ -103,7 +113,7 @@ function renderAction(transition: WorkflowTransition): {
           ([name, reference]) =>
             `    await form.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
         ),
-        `    await form.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }).click();`,
+        `    await enforceNetworkContainment(page, () => form.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }).click());`,
       ],
       formScoped: true,
     };
@@ -111,14 +121,18 @@ function renderAction(transition: WorkflowTransition): {
   const open = intent.match(/^(?:open|go to|navigate to)\s+(.+)$/iu);
   if (open?.[1] && inputRefs.length === 0) {
     return {
-      lines: [`    await page.getByRole('link', { name: ${JSON.stringify(open[1])} }).click();`],
+      lines: [
+        `    await enforceNetworkContainment(page, () => page.getByRole('link', { name: ${JSON.stringify(open[1])} }).click());`,
+      ],
       formScoped: false,
     };
   }
   const click = intent.match(/^(?:click|select|choose)\s+(.+)$/iu);
   if (click?.[1] && inputRefs.length === 0) {
     return {
-      lines: [`    await page.getByRole('button', { name: ${JSON.stringify(click[1])} }).click();`],
+      lines: [
+        `    await enforceNetworkContainment(page, () => page.getByRole('button', { name: ${JSON.stringify(click[1])} }).click());`,
+      ],
       formScoped: false,
     };
   }

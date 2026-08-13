@@ -65,8 +65,8 @@ describe('playwright compiler generality on the vulnerable auth app', () => {
     );
 
     const spec = await readFile(join(outputDirectory, 'tests/workflow.spec.ts'), 'utf8');
-    expect(spec).toContain(`await page.goto(${JSON.stringify(`${running.origin}/`)})`);
-    expect(spec).not.toContain(`await page.goto(${JSON.stringify(`${running.origin}/login`)})`);
+    expect(spec).toContain(`page.goto(${JSON.stringify(`${running.origin}/`)})`);
+    expect(spec).not.toContain(`page.goto(${JSON.stringify(`${running.origin}/login`)})`);
   });
 
   test('surfaces residual single-input form ambiguity with the generated count guard', async () => {
