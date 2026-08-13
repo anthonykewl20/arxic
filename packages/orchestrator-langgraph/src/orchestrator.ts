@@ -23,6 +23,7 @@ import {
   projectVerifiedBundle,
 } from '@arxic/bundle-promoter';
 import {
+  ARXIC_SURFACE_FORM_SUBMIT_BLOCKED,
   CrawleeSurfaceDiscoverer,
   PACKAGE_NAME as CRAWLEE_PACKAGE,
   type SurfaceMap,
@@ -48,6 +49,7 @@ import {
 } from '@arxic/playwright-compiler';
 import {
   PACKAGE_NAME as SOURCE_PACKAGE,
+  ARXIC_SOURCE_UNSUPPORTED_LANGUAGE,
   SourceUaAdapter,
   type NormalizedSourceIndex,
 } from '@arxic/source-ua-adapter';
@@ -486,12 +488,13 @@ export class LangGraphOrchestrator {
       ...(input.personas ? { personas: [...input.personas] } : {}),
       ...(input.appBuildDigest ? { appBuildDigest: input.appBuildDigest } : {}),
     });
+    const blocked = result.diagnostics.some((diagnostic) => diagnosticBlocksStage(5, diagnostic));
     return {
       artifact: result,
       adapter: CRAWLEE_PACKAGE,
       diagnostics: result.diagnostics,
-      blocked: result.diagnostics.some((diagnostic) => diagnostic.severity === 'blocked'),
-      partial: result.diagnostics.some((diagnostic) => diagnostic.severity === 'blocked'),
+      blocked,
+      partial: blocked,
     };
   }
 
@@ -908,7 +911,7 @@ export class LangGraphOrchestrator {
     const diagnostics = [...state.diagnostics, ...(result.diagnostics ?? [])];
     const blocked =
       result.blocked ||
-      (result.diagnostics ?? []).some((diagnostic) => diagnostic.severity === 'blocked');
+      (result.diagnostics ?? []).some((diagnostic) => diagnosticBlocksStage(stage, diagnostic));
     if (blocked) {
       diagnostics.push(
         orchDiagnostic(
@@ -1063,6 +1066,20 @@ function finalize(state: RunState): RunState {
 
 function diagnosticsFromEvents(events: EvidenceEvent[]): Diagnostic[] {
   return events.flatMap((event) => ('diagnostic' in event ? [event.diagnostic] : []));
+}
+
+/**
+ * A denied operation is not necessarily a denied pipeline stage. Source files outside the
+ * configured parser set and mutation forms deliberately left untouched by breadth discovery
+ * remain audit-visible, but neither disproves nor prevents deterministic verification.
+ */
+function diagnosticBlocksStage(stage: StageId, diagnostic: Diagnostic): boolean {
+  if (diagnostic.severity !== 'blocked') return false;
+  if ((stage === 1 || stage === 2) && diagnostic.code === ARXIC_SOURCE_UNSUPPORTED_LANGUAGE) {
+    return false;
+  }
+  if (stage === 5 && diagnostic.code === ARXIC_SURFACE_FORM_SUBMIT_BLOCKED) return false;
+  return true;
 }
 
 function approvalSummary(approval: HumanApproval): string {

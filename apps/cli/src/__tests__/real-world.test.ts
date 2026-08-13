@@ -144,7 +144,7 @@ describe('real CLI pipeline proof', () => {
     ).toBe('partial');
   }, 240_000);
 
-  it('drives arxic run through deterministic stage-10 verification with the auth pack', async () => {
+  it('promotes the deterministic stage-10 verified auth bundle despite advisory discovery diagnostics', async () => {
     const outDir = await temporaryDirectory('arxic-release-cli-runs-');
     const previous = modelEnvironment();
     process.env.ARXIC_MODEL_BASE_URL = modelBaseUrl;
@@ -165,12 +165,9 @@ describe('real CLI pipeline proof', () => {
 
       const runDirectory = resolve(outDir, 'release-cli-verified');
       const run = JSON.parse(await readFile(join(runDirectory, 'run.json'), 'utf8')) as RunRecord;
-      // Stage 10 is genuinely verified by two real Chromium passes. Existing blocked
-      // discovery diagnostics are sticky in RunState, so stage 12 correctly refuses
-      // promotion rather than laundering the overall run to verified.
-      expect(result.exitCode, JSON.stringify(run)).toBe(1);
-      expect(run.outcome).toBe('blocked');
-      expect(run.status).toBe('partial');
+      expect(result.exitCode, JSON.stringify(run)).toBe(0);
+      expect(run.outcome).toBe('verified');
+      expect(run.status).toBe('completed');
       expect(run.stages).toContainEqual(
         expect.objectContaining({
           name: expect.stringContaining('verification'),
@@ -178,8 +175,12 @@ describe('real CLI pipeline proof', () => {
         }),
       );
       expect(run.stages).toContainEqual(
-        expect.objectContaining({ name: expect.stringContaining('promotion'), status: 'skipped' }),
+        expect.objectContaining({
+          name: expect.stringContaining('promotion'),
+          status: 'completed',
+        }),
       );
+      expect(run.receipt).toMatchObject({ location: expect.any(String) });
       const verification = JSON.parse(
         await readFile(join(runDirectory, 'artifacts', '10.json'), 'utf8'),
       ) as { outcome: string; runs: Array<{ passed: boolean }> };
@@ -242,6 +243,7 @@ type RunRecord = {
   outcome: string;
   stages: Array<{ name: string; status: string }>;
   toolVersions: Record<string, string>;
+  receipt?: { location: string };
 };
 
 type SurfaceArtifact = { routes: Array<{ path: string }> };
