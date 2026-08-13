@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { extname, join } from 'node:path';
+import { extname } from 'node:path';
 import type { SupportedSourceLanguage } from './policy';
 
 export type SourceCategory = 'code' | 'docs' | 'markup' | 'config' | 'other';
@@ -11,7 +10,7 @@ export type ManifestFile = {
   language: string;
   category: SourceCategory;
   status: 'indexed' | 'skipped';
-  reason?: 'binary' | 'oversize' | 'parse-error' | 'unsupported-language' | 'dirty';
+  reason?: 'binary' | 'oversize' | 'parse-error' | 'unsupported-language' | 'dirty' | 'unsafe-file';
 };
 
 const LANGUAGES: Record<string, SupportedSourceLanguage> = {
@@ -42,8 +41,4 @@ export function sha256(bytes: Uint8Array): string {
 
 export function isBinary(bytes: Uint8Array): boolean {
   return bytes.subarray(0, 8192).includes(0);
-}
-
-export async function readManifestBytes(root: string, path: string): Promise<Buffer> {
-  return readFile(join(root, ...path.split('/')));
 }
