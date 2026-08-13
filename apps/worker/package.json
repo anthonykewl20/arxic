@@ -5,10 +5,33 @@
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
+    "@arxic/auth-domain-pack": "workspace:*",
+    "@arxic/bundle-promoter": "workspace:*",
     "@arxic/contracts": "workspace:*",
-    "@arxic/environment": "workspace:*"
+    "@arxic/environment": "workspace:*",
+    "@arxic/model-adapter": "workspace:*",
+    "@arxic/orchestrator-langgraph": "workspace:*",
+    "@arxic/playwright-agent-adapter": "workspace:*",
+    "@arxic/playwright-screenshot-privacy": "workspace:*",
+    "@arxic/verifier": "workspace:*",
+    "@ast-grep/cli": "^0.45.0",
+    "@playwright/test": "1.62.1",
+    "crawlee": "3.18.0",
+    "playwright": "1.62.1",
+    "testcontainers": "^12.1.0",
+    "tree-sitter": "^0.22.4",
+    "tree-sitter-javascript": "^0.23.1",
+    "tree-sitter-typescript": "^0.23.2",
+    "yauzl": "3.4.0",
+    "yazl": "3.3.1"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.0"
   },
   "scripts": {
+    "build": "tsup",
+    "test": "vitest run --root ../.. apps/worker/src",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   }
 }

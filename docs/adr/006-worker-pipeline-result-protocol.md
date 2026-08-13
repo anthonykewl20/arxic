@@ -1,11 +1,11 @@
 # ADR-006: Worker→CLI pipeline-result protocol (M2-WORKER-CLI / #103)
 
-| Field      | Value                                                                                                                       |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Status     | Proposed — Owner decisions resolved 2026-08-12; remains Proposed pending real-world implementation proof (ADR-004 pattern). |
-| Decides    | The worker→CLI result transport, wire envelope, validation, promotion, and resumption                                       |
-| Relates to | ADR-001 §2/§9/§10/§15/§16/§20/§21/§23, ADR-002, ADR-004, issue #103                                                         |
-| Owners     | Arxic maintainers                                                                                                           |
+| Field      | Value                                                                                                                  |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Status     | Accepted (2026-08-13) — real-world implementation proof landed (refs #103); see "Acceptance proof (2026-08-13)" below. |
+| Decides    | The worker→CLI result transport, wire envelope, validation, promotion, and resumption                                  |
+| Relates to | ADR-001 §2/§9/§10/§15/§16/§20/§21/§23, ADR-002, ADR-004, issue #103                                                    |
+| Owners     | Arxic maintainers                                                                                                      |
 
 ## Context
 
@@ -313,3 +313,9 @@ boundary.
   SHA-256 artifact digest. Semantics copied, not internals.
   <https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-an-output-parameter>
   and <https://github.com/actions/upload-artifact>.
+
+## Acceptance proof (2026-08-13)
+
+The worker executor (`arxic run --executor worker`) now drives the full pipeline (stages 0–12) inside the hardened `arxic-worker:dev` sandbox and the CLI performs the authoritative stage-12 promotion. The real-Docker end-to-end proof (`apps/cli/src/__tests__/worker-real-world.test.ts`) boots the `vulnerable-auth-app` fixture + a stage-4 model stub as sibling containers on the worker's `internal: true` network, runs the whole pipeline against real Chromium, and asserts a `verified` PROMOTED bundle with a `PromotionReceipt`. All #26 isolation invariants are re-proven in-sandbox during that verified run: read-only rootfs, non-root `--user`, `--cap-drop ALL`, no Docker socket bind, internal network, and default-deny egress (the metadata endpoint is unreachable from the worker). A hostile `README.injection.md` committed into the scanned source does not alter the outcome — source is treated as data (ADR-001 §16.3). Following the ADR-004 acceptance pattern, the real-world proof flips this ADR from Proposed to Accepted.
+
+Residuals (not blocking this acceptance): the worker image Dockerfile re-downloads Playwright Chromium when source changes invalidate the `COPY . .` layer (a CI-efficiency follow-up, not a correctness issue); the e2e test skips when Docker or a timely image build is unavailable, matching the existing worker real-world test pattern; and independent HUMAN visual inspection of retained screenshots remains required (ADR §15 / #115) because an LLM cannot certify arbitrary pixels.

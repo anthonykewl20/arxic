@@ -7,34 +7,22 @@ section 8 and RELEASES.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2026-08-13
-
-### added
-
-- Installable `arxic` CLI package via `npm i -g arxic`, with `arxic run` driving the full local pipeline through deterministic verification and promotion of an eligible `verified` bundle.
-- Worker artifact transport and pipeline-result protocol (#156/#157): per-run result volumes, fail-closed artifact import, and a bounded versioned result envelope with stage-10 verifier authority and CLI-side promotion.
-- CycloneDX `sbom.cdx.json` in promoted bundles (#147), included in the bundle's SHA-256 inventory and redaction gate.
-- Run-local stage-8 locator provenance (#146), including semantic/execution locators and same-element identity proof.
-- Per-required-assertion sensitivity-probe results (#145), retaining transition/assertion coordinates and both probe operators.
-
-### changed
-
-- `defaultCompile` now uses the full policy-gated Playwright generator (#149), rejecting unsupported assertion intents and candidates missing matching source/runtime evidence instead of loosely accepting them.
-- Promotion eligibility no longer treats advisory stage-1, stage-2, or stage-5 diagnostics as sticky blockers when deterministic verification passes (#199); genuine blocked or contradicted pipeline states remain ineligible.
-
-### fixed
-
-- Bound staged plan text to its declared `plan.md` artifact before promotion (#148).
-- Wired the shared redaction gate into promotion so the exact canonical frozen bytes are scanned before atomic replacement (#159).
-- Decoupled exploration navigation from tight locator/action timeouts, removing the navigation-timeout CI flake (#154).
-
-### security
-
-- Preserved default-deny worker egress across the new result-volume transport and pipeline-result protocol; transport added no isolation relaxation.
-
 ## [Unreleased]
 
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
+
+### added
+
+- The worker executor (`arxic run --executor worker`) now drives the full stages 0–12 pipeline inside the hardened Docker sandbox and produces a `verified` promoted bundle end-to-end, with CLI-side authoritative stage-12 promotion (refs #103). The previous synthetic/scaffold worker result is replaced by a real-Docker proof.
+
+### changed
+
+- The worker image builds the runner with tsup and runs `node dist/main.js` (no runtime tsx transform); the sandbox is sized for an in-container Chromium pipeline (512 MiB writable `/work` tmpfs, 2048 MiB memory/swap quota) and `networkCreate` tolerates a supervisor-precreated internal network so sibling fixture/model containers can attach before the worker joins.
+- `validateVerifier` compares the stage-10 verifier version only when the orchestrator recorded one (the orchestrator does not populate `@arxic/verifier` in the stage-10 checkpoint `toolVersions`), correcting an impossible-to-satisfy check that rejected every worker verified result.
+
+### internal
+
+- ADR-006 (worker→CLI pipeline-result protocol) Accepted (2026-08-13) after the real-world implementation proof (refs #103).
 
 ### security
 
@@ -88,6 +76,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - M2-PROBE-GRANULARITY (refs #116): stage-10 verification artifacts now retain per-required-assertion sensitivity outcomes, including transition/assertion coordinates and both probe operators, while the existing aggregate promotion gate and verifier truth-state authority remain unchanged; real Chromium against the reference auth app proves both operators are killed for `url:/`.
 - Run-level truth-state stickiness (M2-INTENT-B / #116): once any pipeline stage ends `blocked` or `contradicted`, the run outcome now stays `blocked`/`contradicted` even if a later stage (e.g. stage-10 verify returning `verified`) would otherwise have overwritten it; a sticky `blocked`/`contradicted` run is `status: partial` and not promotion-eligible. Previously a soft-blocked early stage could be erased by a later `verified`, producing `outcome: verified` + a promoted receipt. The new semantics is more conservative and is pinned by a red-first test in `sad-paths.test.ts`. (Pre-1.0; no public-API break.)
 - M2-WORKER-CLI worker-backed CLI groundwork (#103, PR #122; **partial — #103 stays open**): `arxic run` now accepts `--executor local|worker` (local remains default). A CLI-owned `WorkerRunExecutor implements RunExecutor` drives the existing `WorkerClient` lifecycle with fail-closed classification (`ARXIC-EXEC-WORKER-*`) and writes the same failed-run ADR §20.1 schema, blocking with `ARXIC-EXEC-WORKER-PROTOCOL` rather than faking a completed run. Real Docker proves selection + deterministic cleanup; the #26 isolation proofs remain intact. **Full stages-0–12 sandbox execution is NOT delivered** — blocked on a Node-22 pipeline worker image (workspace/native/browser/`git`/`sg`), writable artifact + internal-network peer transport, and a structured pipeline-result protocol payload. Honest groundwork increment; the previously-invisible deferral is now visible.
+
+## [0.3.0] - 2026-08-13
+
+### added
+
+- Installable `arxic` CLI package via `npm i -g arxic`, with `arxic run` driving the full local pipeline through deterministic verification and promotion of an eligible `verified` bundle.
+- Worker artifact transport and pipeline-result protocol (#156/#157): per-run result volumes, fail-closed artifact import, and a bounded versioned result envelope with stage-10 verifier authority and CLI-side promotion.
+- CycloneDX `sbom.cdx.json` in promoted bundles (#147), included in the bundle's SHA-256 inventory and redaction gate.
+- Run-local stage-8 locator provenance (#146), including semantic/execution locators and same-element identity proof.
+- Per-required-assertion sensitivity-probe results (#145), retaining transition/assertion coordinates and both probe operators.
+
+### changed
+
+- `defaultCompile` now uses the full policy-gated Playwright generator (#149), rejecting unsupported assertion intents and candidates missing matching source/runtime evidence instead of loosely accepting them.
+- Promotion eligibility no longer treats advisory stage-1, stage-2, or stage-5 diagnostics as sticky blockers when deterministic verification passes (#199); genuine blocked or contradicted pipeline states remain ineligible.
+
+### fixed
+
+- Bound staged plan text to its declared `plan.md` artifact before promotion (#148).
+- Wired the shared redaction gate into promotion so the exact canonical frozen bytes are scanned before atomic replacement (#159).
+- Decoupled exploration navigation from tight locator/action timeouts, removing the navigation-timeout CI flake (#154).
+
+### security
+
+- Preserved default-deny worker egress across the new result-volume transport and pipeline-result protocol; transport added no isolation relaxation.
 
 ## [0.2.0] - 2026-08-10 — M1-EXIT (#27 PASSES; both fixture apps 14/14 MET against ADR §23)
 

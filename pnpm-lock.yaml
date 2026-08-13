@@ -90,12 +90,70 @@ importers:
 
   apps/worker:
     dependencies:
+      '@arxic/auth-domain-pack':
+        specifier: workspace:*
+        version: link:../../packages/auth-domain-pack
+      '@arxic/bundle-promoter':
+        specifier: workspace:*
+        version: link:../../packages/bundle-promoter
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
       '@arxic/environment':
         specifier: workspace:*
         version: link:../../packages/environment
+      '@arxic/model-adapter':
+        specifier: workspace:*
+        version: link:../../packages/model-adapter
+      '@arxic/orchestrator-langgraph':
+        specifier: workspace:*
+        version: link:../../packages/orchestrator-langgraph
+      '@arxic/playwright-agent-adapter':
+        specifier: workspace:*
+        version: link:../../packages/playwright-agent-adapter
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../../packages/playwright-screenshot-privacy
+      '@arxic/verifier':
+        specifier: workspace:*
+        version: link:../../packages/verifier
+      '@ast-grep/cli':
+        specifier: ^0.45.0
+        version: 0.45.0
+      '@playwright/test':
+        specifier: 1.62.1
+        version: 1.62.1
+      crawlee:
+        specifier: 3.18.0
+        version: 3.18.0(@types/node@24.13.3)(playwright@1.62.1)(supports-color@7.2.0)
+      playwright:
+        specifier: 1.62.1
+        version: 1.62.1
+      testcontainers:
+        specifier: ^12.1.0
+        version: 12.1.0(supports-color@7.2.0)
+      tree-sitter:
+        specifier: ^0.22.4
+        version: 0.22.4
+      tree-sitter-javascript:
+        specifier: ^0.23.1
+        version: 0.23.1(tree-sitter@0.22.4)
+      tree-sitter-typescript:
+        specifier: ^0.23.2
+        version: 0.23.2(tree-sitter@0.22.4)
+      yauzl:
+        specifier: 3.4.0
+        version: 3.4.0
+      yazl:
+        specifier: 3.3.1
+        version: 3.3.1(patch_hash=0828e6163503647010829ccd73424bf2cdca0f59a7db3a03714ac23911e6cad4)
+    devDependencies:
+      tsup:
+        specifier: ^8.5.0
+        version: 8.5.1(postcss@8.5.25)(supports-color@7.2.0)(tsx@4.23.5)(typescript@5.9.3)(yaml@2.9.0)
+      tsx:
+        specifier: ^4.20.0
+        version: 4.23.5
 
   packages/ast-grep-adapter:
     dependencies:
