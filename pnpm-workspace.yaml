@@ -35,3 +35,5 @@ minimumReleaseAgeExclude:
   - crawlee@3.18.0
 patchedDependencies:
   yazl@3.3.1: patches/yazl@3.3.1.patch
+overrides:
+  esbuild: 0.28.1
