@@ -40,6 +40,49 @@ describe('run input fingerprint', () => {
     );
   });
 
+  it('treats omitted and empty optional input collections identically', () => {
+    const omitted = createRunInputFingerprint({
+      ...baseline,
+      config: {
+        framework: baseline.config.framework,
+        models: baseline.config.models,
+      },
+    });
+    const empty = createRunInputFingerprint({
+      ...baseline,
+      config: {
+        framework: baseline.config.framework,
+        models: baseline.config.models,
+        credentialBytes: [],
+        features: [],
+        languages: [],
+        oracleRules: [],
+        personas: [],
+      },
+    });
+
+    expect(empty).toEqual(omitted);
+  });
+
+  it('is stable when oracle rules are reordered', () => {
+    const rules = [
+      { candidateId: 'login', oracle: { kind: 'observed-only' } },
+      { candidateId: 'logout', oracle: { kind: 'observed-only' } },
+    ] as const;
+
+    expect(
+      createRunInputFingerprint({
+        ...baseline,
+        config: { ...baseline.config, oracleRules: rules },
+      }),
+    ).toEqual(
+      createRunInputFingerprint({
+        ...baseline,
+        config: { ...baseline.config, oracleRules: [...rules].reverse() },
+      }),
+    );
+  });
+
   it.each([
     [
       'source revision',

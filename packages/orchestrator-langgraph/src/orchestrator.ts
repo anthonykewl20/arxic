@@ -55,7 +55,7 @@ import {
   SourceUaAdapter,
   type NormalizedSourceIndex,
 } from '@arxic/source-ua-adapter';
-import { artifactHash, type StageCheckpointer } from './checkpointer';
+import { artifactHash, canonicalJson, type StageCheckpointer } from './checkpointer';
 import { FixtureCoordinator } from './fixture-coordinator';
 import { defaultExploration } from './exploration';
 import { createRunInputFingerprint } from './input-fingerprint';
@@ -65,6 +65,7 @@ import {
   ARXIC_ORCH_HASH_MISMATCH,
   ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH,
   ARXIC_ORCH_INPUT_FINGERPRINT_MISSING,
+  ARXIC_ORCH_INPUT_FINGERPRINT_INVALID,
   ARXIC_ORCH_MODEL_RETRIES,
   ARXIC_ORCH_ORACLE_RESOLVED,
   ARXIC_ORCH_ORACLE_UNMATCHED,
@@ -135,9 +136,15 @@ export type OrchestratorInput = Readonly<{
   modelPrompt?: string;
   credentialBytes?: readonly string[];
   oracleRules?: readonly OracleRule[];
-  /** Additional caller policy that changes the run's authorization semantics. */
+  /**
+   * Additional caller policy that changes the run's authorization semantics.
+   * Pass JSON-serializable semantics only: JSON drops function values, so they cannot bind reuse.
+   */
   policy?: unknown;
-  /** Additional caller configuration, including model configuration, that changes run behavior. */
+  /**
+   * Additional caller configuration, including model configuration, that changes run behavior.
+   * Pass JSON-serializable semantics only: JSON drops function values, so they cannot bind reuse.
+   */
   config?: unknown;
 }>;
 
@@ -220,30 +227,35 @@ export class LangGraphOrchestrator {
 
   async run(input: OrchestratorInput, approval?: ApprovalInput): Promise<RunState> {
     const persisted = await this.#options.checkpointer.load(input.runId);
-    const inputFingerprint = createRunInputFingerprint({
-      sourceRevision: input.revision,
-      origin: input.origin,
-      policy: {
-        appBuildDigest: input.appBuildDigest,
-        expectedNonce: input.expectedNonce,
-        maxDepth: input.maxDepth,
-        maxUrls: input.maxUrls,
-        requireExplorationApproval: input.requireExplorationApproval,
-        supplied: input.policy,
-      },
-      config: {
-        features: input.features ? [...input.features].sort() : undefined,
-        framework: input.framework,
-        languages: input.languages ? [...input.languages].sort() : undefined,
-        model: this.#options.model,
-        modelPrompt: input.modelPrompt,
-        oracleRules: input.oracleRules,
-        personas: input.personas ? [...input.personas].sort() : undefined,
-        rulepacksDir: input.rulepacksDir,
-        supplied: input.config,
-        credentialBytes: input.credentialBytes,
-      },
-    });
+    let inputFingerprint: ReturnType<typeof createRunInputFingerprint>;
+    try {
+      inputFingerprint = createRunInputFingerprint({
+        sourceRevision: input.revision,
+        origin: input.origin,
+        policy: {
+          appBuildDigest: input.appBuildDigest,
+          expectedNonce: input.expectedNonce,
+          maxDepth: input.maxDepth,
+          maxUrls: input.maxUrls,
+          requireExplorationApproval: input.requireExplorationApproval,
+          supplied: input.policy,
+        },
+        config: {
+          features: input.features,
+          framework: input.framework,
+          languages: input.languages,
+          model: this.#options.model,
+          modelPrompt: input.modelPrompt,
+          oracleRules: input.oracleRules,
+          personas: input.personas,
+          rulepacksDir: input.rulepacksDir,
+          supplied: input.config,
+          credentialBytes: input.credentialBytes,
+        },
+      });
+    } catch {
+      return this.#rejectInvalidInputFingerprint(persisted, input.runId);
+    }
     if (persisted && persisted.inputFingerprint === undefined) {
       return this.#rejectReuse(
         persisted,
@@ -331,10 +343,38 @@ export class LangGraphOrchestrator {
       receipt: undefined,
       diagnostics: [...state.diagnostics, orchDiagnostic(code, 'blocked', state.runId, message)],
     };
-    const checkpoint = blocked.checkpoints.at(-1);
-    if (checkpoint)
-      await this.#options.checkpointer.saveCheckpoint(state.runId, checkpoint, blocked);
     return blocked;
+  }
+
+  #rejectInvalidInputFingerprint(persisted: RunState | undefined, runId: string): RunState {
+    const state =
+      persisted ??
+      ({
+        runId,
+        status: 'failed',
+        outcome: 'blocked',
+        completedStages: [],
+        artifacts: {},
+        checkpoints: [],
+        diagnostics: [],
+        promotionEligible: false,
+      } satisfies RunState);
+    return {
+      ...state,
+      status: 'failed',
+      outcome: 'blocked',
+      promotionEligible: false,
+      receipt: undefined,
+      diagnostics: [
+        ...state.diagnostics,
+        orchDiagnostic(
+          ARXIC_ORCH_INPUT_FINGERPRINT_INVALID,
+          'blocked',
+          runId,
+          'Run input fingerprint requires JSON-serializable policy and configuration semantics',
+        ),
+      ],
+    };
   }
 
   #buildGraph(input: OrchestratorInput, approval?: ApprovalInput) {
@@ -656,7 +696,10 @@ export class LangGraphOrchestrator {
   async #compile(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
     const inference = await this.#artifact<InferenceResult>(state, input, 4);
     const exploration = await this.#artifact<ExplorationResult>(state, input, 8);
-    const unmatchedDiagnostics = (input.oracleRules ?? []).flatMap(({ candidateId }) =>
+    const oracleRules = [...(input.oracleRules ?? [])].sort((left, right) =>
+      canonicalJson(left).localeCompare(canonicalJson(right)),
+    );
+    const unmatchedDiagnostics = oracleRules.flatMap(({ candidateId }) =>
       inference.candidates.some(({ id }) => id === candidateId)
         ? []
         : [
@@ -690,7 +733,7 @@ export class LangGraphOrchestrator {
           featureFlagsDigest: stageDigest([...(input.features ?? [])].sort()),
           policyDigest: stageDigest(policyAuthority),
         },
-        oracleRules: [...(input.oracleRules ?? [])],
+        oracleRules,
       });
     }
     const normalization = oracle.intentSpec ? normalizeIntentSpec(oracle.intentSpec) : undefined;

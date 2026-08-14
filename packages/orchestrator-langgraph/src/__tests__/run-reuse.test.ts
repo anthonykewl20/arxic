@@ -2,6 +2,7 @@ import { validateDiagnostic } from '@arxic/contracts';
 import { describe, expect, it } from 'vitest';
 import {
   ARXIC_ORCH_HASH_MISMATCH,
+  ARXIC_ORCH_INPUT_FINGERPRINT_INVALID,
   ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH,
   ARXIC_ORCH_INPUT_FINGERPRINT_MISSING,
   artifactHash,
@@ -64,7 +65,8 @@ describe('terminal run reuse', () => {
   });
 
   it('blocks a legacy terminal record whose inputs cannot be proven identical', async () => {
-    const checkpointer = new TerminalCheckpointer(terminalState({ legacy: true }));
+    const original = terminalState({ legacy: true });
+    const checkpointer = new TerminalCheckpointer(original);
     const result = await new LangGraphOrchestrator({ checkpointer }).run(baseline);
 
     expect(result.status).toBe('failed');
@@ -72,6 +74,53 @@ describe('terminal run reuse', () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_INPUT_FINGERPRINT_MISSING, severity: 'blocked' }),
     );
+    await expect(checkpointer.load(baseline.runId)).resolves.toEqual(original);
+  });
+
+  it('does not alter a terminal record after mismatched reuse is rejected', async () => {
+    const original = terminalState();
+    const checkpointer = new TerminalCheckpointer(original);
+
+    await new LangGraphOrchestrator({ checkpointer }).run({ ...baseline, maxUrls: 9 });
+
+    await expect(checkpointer.load(baseline.runId)).resolves.toEqual(original);
+  });
+
+  it('returns the original terminal receipt when identical inputs follow a rejected mismatch', async () => {
+    const original = terminalState();
+    const checkpointer = new TerminalCheckpointer(original);
+    const orchestrator = new LangGraphOrchestrator({ checkpointer });
+
+    await orchestrator.run({ ...baseline, maxUrls: 9 });
+
+    await expect(orchestrator.run(baseline)).resolves.toEqual(original);
+  });
+
+  it('blocks invalid fingerprint inputs without throwing or modifying the terminal record', async () => {
+    const original = terminalState();
+    const checkpointer = new TerminalCheckpointer(original);
+    const result = await new LangGraphOrchestrator({ checkpointer }).run({
+      ...baseline,
+      config: { concurrency: BigInt(1) },
+    });
+
+    expect(result).toMatchObject({ status: 'failed', outcome: 'blocked' });
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: ARXIC_ORCH_INPUT_FINGERPRINT_INVALID, severity: 'blocked' }),
+    );
+    await expect(checkpointer.load(baseline.runId)).resolves.toEqual(original);
+
+    const circular: { self?: unknown } = {};
+    circular.self = circular;
+    const circularResult = await new LangGraphOrchestrator({ checkpointer }).run({
+      ...baseline,
+      policy: circular,
+    });
+
+    expect(circularResult.diagnostics).toContainEqual(
+      expect.objectContaining({ code: ARXIC_ORCH_INPUT_FINGERPRINT_INVALID, severity: 'blocked' }),
+    );
+    await expect(checkpointer.load(baseline.runId)).resolves.toEqual(original);
   });
 
   it('blocks terminal reuse when persisted artifact bytes drift from their recorded hash', async () => {
@@ -106,7 +155,8 @@ class TerminalCheckpointer implements StageCheckpointer {
     for (const stage of stages) this.#artifacts.set(`stage:${stage}`, { stage });
   }
 
-  async load(): Promise<RunState> {
+  async load(_runId: string): Promise<RunState> {
+    void _runId;
     return this.#state;
   }
 
@@ -154,18 +204,24 @@ function terminalState(options: { legacy?: boolean; driftedStage?: StageId } = {
             sourceRevision: baseline.revision,
             origin: baseline.origin,
             policy: {
+              appBuildDigest: baseline.appBuildDigest,
+              expectedNonce: baseline.expectedNonce,
               maxDepth: baseline.maxDepth,
               maxUrls: baseline.maxUrls,
               requireExplorationApproval: baseline.requireExplorationApproval,
+              supplied: baseline.policy,
             },
             config: {
               features: baseline.features,
               framework: baseline.framework,
+              languages: baseline.languages,
               model: undefined,
               modelPrompt: undefined,
+              oracleRules: baseline.oracleRules,
+              personas: baseline.personas,
               rulepacksDir: baseline.rulepacksDir,
               supplied: baseline.config,
-              credentialBytes: undefined,
+              credentialBytes: baseline.credentialBytes,
             },
           }).sha256,
         }),
@@ -173,8 +229,30 @@ function terminalState(options: { legacy?: boolean; driftedStage?: StageId } = {
     outcome: 'observed',
     completedStages: stages,
     artifacts,
-    checkpoints: [],
+    checkpoints: [
+      {
+        stage: 12,
+        name: 'promotion',
+        status: 'completed',
+        startedAt: '2026-08-14T00:00:00.000Z',
+        finishedAt: '2026-08-14T00:00:01.000Z',
+        adapter: { name: '@arxic/orchestrator-langgraph', version: '0.0.0' },
+        orchestratorVersion: '0.0.0',
+        artifacts: Object.values(artifacts),
+        toolVersions: {},
+        decisions: [],
+        approvals: [],
+        gateResults: [],
+        redaction: { passed: true, redactedFields: [] },
+      },
+    ],
     diagnostics: [],
     promotionEligible: false,
+    receipt: {
+      manifest: {} as never,
+      promotedAt: '2026-08-14T00:00:01.000Z',
+      location: '/workspace/bundles/reused-terminal-run',
+      checksumSha256: 'a'.repeat(64),
+    },
   };
 }
