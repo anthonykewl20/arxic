@@ -12,7 +12,7 @@ import type {
   TruthState,
   Workflow,
 } from '@arxic/contracts';
-import { validateManifest, validateWorkflow } from '@arxic/contracts';
+import { ARXIC_VERSION, validateManifest, validateWorkflow } from '@arxic/contracts';
 import { AstGrepAdapter, diagnosticsOf } from '@arxic/ast-grep-adapter';
 import { BundlePromoterAdapter, projectVerifiedBundle } from '@arxic/bundle-promoter';
 import { EnvironmentHandshake } from '@arxic/environment';
@@ -259,7 +259,7 @@ export async function runM0Vertical(
       browser: 'chromium',
       persona: input.candidate.persona,
     },
-    generator: { id: '@arxic/m0-pipeline', version: '0.0.0' },
+    generator: { id: '@arxic/m0-pipeline', version: ARXIC_VERSION },
     verification: {
       requiredRuns,
       runs: verification.runs.map((run) => ({

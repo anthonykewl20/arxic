@@ -7,3 +7,4 @@ export * from './evidence-ref';
 export * from './manifest';
 export * from './source-revision';
 export * from './workflow';
+export * from './version';

@@ -33,7 +33,7 @@ import {
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, '../../../..');
 let commit = '';
-const pinnedCanonicalSha256 = 'b8954b334d68261f54de045fc295d85ae22608394deccb450c8fce12db4b76bb';
+const pinnedCanonicalSha256 = '0514a897edfce505636ee5d78a74a441d158f0bc1c1fa61e8cf1276e4a0e4872';
 const { version: authDomainPackVersion } = JSON.parse(
   readFileSync(resolve(root, 'packages/auth-domain-pack/package.json'), 'utf8'),
 ) as { version: string };

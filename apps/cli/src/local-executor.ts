@@ -2,18 +2,18 @@ import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { isAbsolute, join, resolve } from 'node:path';
 import type { StagedBundle } from '@arxic/contracts';
-import { authCandidates, type AuthSurface } from '../../../packages/auth-domain-pack/src';
-import { BundlePromoterAdapter } from '../../../packages/bundle-promoter/src';
-import { ModelAdapter } from '../../../packages/model-adapter/src';
+import { authCandidates, type AuthSurface } from '@arxic/auth-domain-pack';
+import { BundlePromoterAdapter } from '@arxic/bundle-promoter';
+import { ModelAdapter } from '@arxic/model-adapter';
 import {
   serializeScreenshotPrivacyPolicy,
   type ScreenshotPrivacyPolicy,
-} from '../../../packages/playwright-screenshot-privacy/src';
+} from '@arxic/playwright-screenshot-privacy';
 import {
   PlaywrightVerifier,
   resetAndSeedFixtures,
   type VerificationPersona,
-} from '../../../packages/verifier/src';
+} from '@arxic/verifier';
 import {
   FileStageCheckpointer,
   LangGraphOrchestrator,

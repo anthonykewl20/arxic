@@ -11,7 +11,12 @@ import type {
   Workflow,
   WorkflowCompiler,
 } from '@arxic/contracts';
-import { validateEvidenceRef, validateManifest, validateWorkflow } from '@arxic/contracts';
+import {
+  ARXIC_VERSION,
+  validateEvidenceRef,
+  validateManifest,
+  validateWorkflow,
+} from '@arxic/contracts';
 import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
 import { enforceCompilePolicy } from './compile-policy';
 import {
@@ -187,7 +192,7 @@ export class PlaywrightCompiler implements WorkflowCompiler {
         persona: workflow.persona,
         ...(workflow.scope.featureFlags ? { featureFlags: workflow.scope.featureFlags } : {}),
       },
-      generator: { id: '@arxic/playwright-compiler', version: '0.0.0' },
+      generator: { id: '@arxic/playwright-compiler', version: ARXIC_VERSION },
       verification: {
         requiredRuns: workflow.verification.requiredRuns,
         runs: [{ startedAt: timestamp, finishedAt: timestamp, passed: false }],

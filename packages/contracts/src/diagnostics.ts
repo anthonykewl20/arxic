@@ -36,17 +36,19 @@ export type Diagnostic = {
 };
 
 const schemaUrl = new URL('../../../schemas/diagnostics/diagnostics.schema.json', import.meta.url);
-let diagnosticSchema: object;
-
-try {
-  diagnosticSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-} catch (error) {
-  throw new Error(`Failed to load Diagnostic schema at ${schemaUrl.pathname}`, { cause: error });
+function createValidator() {
+  let diagnosticSchema: object;
+  try {
+    diagnosticSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
+  } catch (error) {
+    throw new Error(`Failed to load Diagnostic schema at ${schemaUrl.pathname}`, { cause: error });
+  }
+  const ajv = new Ajv2020({ allErrors: true });
+  addFormats(ajv);
+  return ajv.compile<Diagnostic>(diagnosticSchema);
 }
-
-const ajv = new Ajv2020({ allErrors: true });
-addFormats(ajv);
-const validate = ajv.compile<Diagnostic>(diagnosticSchema);
+let validate: ReturnType<typeof createValidator> | undefined;
+const validator = () => (validate ??= createValidator());
 
 const diagnosticCode = (error: ErrorObject) => {
   if (error.instancePath === '/severity' && error.keyword === 'enum') {
@@ -68,11 +70,12 @@ const toDiagnostic = (error: ErrorObject): Diagnostic => ({
 export const validateDiagnostic = (
   input: unknown,
 ): { ok: true; value: Diagnostic } | { ok: false; diagnostics: Diagnostic[] } => {
-  if (validate(input)) {
+  const compiled = validator();
+  if (compiled(input)) {
     return { ok: true, value: input };
   }
   return {
     ok: false,
-    diagnostics: (validate.errors ?? []).map(toDiagnostic),
+    diagnostics: (compiled.errors ?? []).map(toDiagnostic),
   };
 };

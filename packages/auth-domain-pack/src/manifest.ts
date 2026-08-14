@@ -1,3 +1,4 @@
+import { ARXIC_VERSION } from '@arxic/contracts';
 import type {
   AuthCandidate,
   CoverageMatrix,
@@ -14,7 +15,7 @@ export function createDomainManifest(
     schemaVersion: 1,
     domain: 'authentication',
     generatedAt,
-    generator: { id: '@arxic/auth-domain-pack', version: '0.0.0' },
+    generator: { id: '@arxic/auth-domain-pack', version: ARXIC_VERSION },
     workflowCount: workflows.length,
     verified: workflows.filter(({ outcome }) => outcome === 'verified').length,
     blocked: workflows.filter(({ outcome }) => outcome === 'blocked').length,

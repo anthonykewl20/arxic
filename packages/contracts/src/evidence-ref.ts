@@ -44,17 +44,19 @@ export type EvidenceRefDocument = {
 export type EvidenceRef = EvidenceRefSource | EvidenceRefRuntime | EvidenceRefDocument;
 
 const schemaUrl = new URL('../../../schemas/evidence/evidence-ref.schema.json', import.meta.url);
-let evidenceRefSchema: object;
-
-try {
-  evidenceRefSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-} catch (error) {
-  throw new Error(`Failed to load EvidenceRef schema at ${schemaUrl.pathname}`, { cause: error });
+function createValidator() {
+  let evidenceRefSchema: object;
+  try {
+    evidenceRefSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
+  } catch (error) {
+    throw new Error(`Failed to load EvidenceRef schema at ${schemaUrl.pathname}`, { cause: error });
+  }
+  const ajv = new Ajv2020({ allErrors: true, $data: true });
+  addFormats(ajv);
+  return ajv.compile<EvidenceRef>(evidenceRefSchema);
 }
-
-const ajv = new Ajv2020({ allErrors: true, $data: true });
-addFormats(ajv);
-const validate = ajv.compile<EvidenceRef>(evidenceRefSchema);
+let validate: ReturnType<typeof createValidator> | undefined;
+const validator = () => (validate ??= createValidator());
 
 const isRecord = (input: unknown): input is Record<string, unknown> =>
   typeof input === 'object' && input !== null && !Array.isArray(input);
@@ -84,12 +86,13 @@ const toDiagnostic = (error: ErrorObject, code: string): Diagnostic => ({
 export const validateEvidenceRef = (
   input: unknown,
 ): { ok: true; value: EvidenceRef } | { ok: false; diagnostics: Diagnostic[] } => {
-  if (validate(input)) {
+  const compiled = validator();
+  if (compiled(input)) {
     return { ok: true, value: input };
   }
   const code = diagnosticCode(input);
   return {
     ok: false,
-    diagnostics: (validate.errors ?? []).map((error) => toDiagnostic(error, code)),
+    diagnostics: (compiled.errors ?? []).map((error) => toDiagnostic(error, code)),
   };
 };

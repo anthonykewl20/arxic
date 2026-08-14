@@ -34,3 +34,14 @@ TypeScript on demand) already consumes **source directly** with no emit.
   deterministic per-package typechecking without emit.
 - `pnpm install` stays the single materialization step; nothing compiles ahead
   of the gates.
+
+## Addendum — 2026-08-15: distributable app boundary
+
+The source-only decision remains in force for internal workspace packages.
+They stay private, resolve through `main: src/index.ts`, and do not emit build
+artifacts. Only distributable applications emit a bundled artifact: the
+`arxic` CLI builds an ESM binary with tsup. The CLI is the sole publish set;
+the worker and all `@arxic/*` workspace packages remain private.
+
+This narrows release emission to the product boundary without changing M0's
+development model or introducing per-package `dist/` output.

@@ -11,7 +11,7 @@ import type {
   TruthState,
   Workflow,
 } from '@arxic/contracts';
-import { validateWorkflow } from '@arxic/contracts';
+import { ARXIC_VERSION, validateWorkflow } from '@arxic/contracts';
 import {
   AstGrepAdapter,
   PACKAGE_NAME as AST_GREP_PACKAGE,
@@ -98,7 +98,7 @@ import type {
   VerificationNodeResult,
 } from './types';
 
-export const ORCHESTRATOR_VERSION = '0.0.0' as const;
+export const ORCHESTRATOR_VERSION = ARXIC_VERSION;
 
 const STAGES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 const STAGE_NAMES = [

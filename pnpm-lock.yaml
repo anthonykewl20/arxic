@@ -75,12 +75,27 @@ importers:
         specifier: ^0.23.2
         version: 0.23.2(tree-sitter@0.22.4)
     devDependencies:
+      '@arxic/auth-domain-pack':
+        specifier: workspace:*
+        version: link:../../packages/auth-domain-pack
+      '@arxic/bundle-promoter':
+        specifier: workspace:*
+        version: link:../../packages/bundle-promoter
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@arxic/model-adapter':
+        specifier: workspace:*
+        version: link:../../packages/model-adapter
       '@arxic/orchestrator-langgraph':
         specifier: workspace:*
         version: link:../../packages/orchestrator-langgraph
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../../packages/playwright-screenshot-privacy
+      '@arxic/verifier':
+        specifier: workspace:*
+        version: link:../../packages/verifier
       '@arxic/worker':
         specifier: workspace:*
         version: link:../worker

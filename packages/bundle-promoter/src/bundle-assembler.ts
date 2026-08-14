@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve, sep } from 'node:path';
-import type { ArtifactRef, StagedBundle } from '@arxic/contracts';
+import { ARXIC_VERSION, type ArtifactRef, type StagedBundle } from '@arxic/contracts';
 import { validateScreenshotArtifactSet } from '@arxic/playwright-screenshot-privacy';
 import { validateTraceArtifacts } from './trace-artifact-gate';
 
@@ -78,7 +78,7 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
     repository: input.provenance.repository,
     commit: input.provenance.commit,
     appBuildDigest: input.provenance.appBuildDigest,
-    generator: { id: '@arxic/bundle-promoter', version: '0.0.0' },
+    generator: { id: '@arxic/bundle-promoter', version: ARXIC_VERSION },
     ...(input.provenance.toolVersions ? { toolVersions: input.provenance.toolVersions } : {}),
   });
   const notice = `Arxic verified workflow bundle.\nWorkflow: ${input.bundle.workflow.id}\nGenerated: ${generatedAt}\nLicense: MIT\nThis bundle contains independently inspectable privacy-preserving Playwright action timelines.\n`;

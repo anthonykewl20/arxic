@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 import { access } from 'node:fs/promises';
-import type { Diagnostic } from '@arxic/contracts';
+import { ARXIC_VERSION, type Diagnostic } from '@arxic/contracts';
 import {
   ARXIC_AGENT_HANDSHAKE_FAILED,
   ARXIC_AGENT_PROCESS_ERROR,
@@ -67,7 +67,7 @@ export class PlaywrightAgentAdapter {
     const initialized = await this.client.request<InitializeResult>('initialize', {
       protocolVersion: '2025-03-26',
       capabilities: {},
-      clientInfo: { name: '@arxic/playwright-agent-adapter', version: '0.0.0' },
+      clientInfo: { name: '@arxic/playwright-agent-adapter', version: ARXIC_VERSION },
     });
     if (!initialized.ok) return this.handshakeFailure(initialized.diagnostics);
     const notification = this.client.notify('notifications/initialized');

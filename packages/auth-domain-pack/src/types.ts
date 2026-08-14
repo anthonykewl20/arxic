@@ -70,7 +70,7 @@ export type DomainManifest = {
   schemaVersion: 1;
   domain: 'authentication';
   generatedAt: string;
-  generator: { id: '@arxic/auth-domain-pack'; version: '0.0.0' };
+  generator: { id: '@arxic/auth-domain-pack'; version: string };
   workflowCount: number;
   verified: number;
   blocked: number;

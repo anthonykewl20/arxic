@@ -11,7 +11,7 @@ describe('runCli', () => {
     const output: string[] = [];
     const result = await runCli(['--version'], { stdout: writer(output) });
     expect(result).toEqual({ exitCode: 0 });
-    expect(output.join('')).toBe('0.0.0\n');
+    expect(output.join('')).toBe('0.1.1\n');
   });
 
   it('prints usage help', async () => {
