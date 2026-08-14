@@ -173,6 +173,9 @@ describe('real Docker worker result volume transport', () => {
     const stagingBefore = (await readdir(tmpdir()))
       .filter((name) => name.startsWith('arxic-worker-result-'))
       .sort();
+    const spoolBefore = (await readdir(tmpdir()))
+      .filter((name) => name.startsWith('arxic-worker-spool-'))
+      .sort();
     try {
       expect((await worker.exec(['ln', '-s', '/etc/passwd', '/work/result/escape'])).exit).toBe(0);
       // Exercise a write through the hostile link. The read-only container root
@@ -195,6 +198,9 @@ describe('real Docker worker result volume transport', () => {
       expect(
         (await readdir(tmpdir())).filter((name) => name.startsWith('arxic-worker-result-')).sort(),
       ).toEqual(stagingBefore);
+      expect(
+        (await readdir(tmpdir())).filter((name) => name.startsWith('arxic-worker-spool-')).sort(),
+      ).toEqual(spoolBefore);
     } finally {
       await worker.stop();
     }
@@ -343,6 +349,9 @@ describe('real Docker worker result volume transport', () => {
     const json = Buffer.from('{"safe":true}\n');
     const png64 = png.toString('base64');
     const json64 = json.toString('base64');
+    const spoolBefore = (await readdir(tmpdir()))
+      .filter((name) => name.startsWith('arxic-worker-spool-'))
+      .sort();
     try {
       expect(
         (
@@ -365,6 +374,9 @@ describe('real Docker worker result volume transport', () => {
       ]);
       expect(Buffer.from(imported.files[0]!.bytes)).toEqual(png);
       expect(Buffer.from(imported.files[1]!.bytes)).toEqual(json);
+      expect(
+        (await readdir(tmpdir())).filter((name) => name.startsWith('arxic-worker-spool-')).sort(),
+      ).toEqual(spoolBefore);
       expect((await worker.stop()).cleanupDiagnostics).toEqual([]);
       expect((await worker.stop()).cleanupDiagnostics).toEqual([]);
       expect((await volumeInspect(worker.resultVolumeName!)).exit).not.toBe(0);
