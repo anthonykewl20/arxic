@@ -15,7 +15,9 @@ reporting lifecycle completion as a successful Arxic run.
 
 Healing is not performed in the 1.0 pipeline. Each completed run records the
 observed `ARXIC-ORCH-HEALING-DEFERRED` diagnostic at stage 11 so this is visible in
-the run diagnostics, not a silent gap. If deterministic replay finds mechanical
-drift, Arxic rejects the candidate as `contradicted`; it does not weaken assertions
-or repair the test, the candidate remains unverified, and it cannot replace a prior
-promoted bundle. See [ADR-007](../../docs/adr/007-stage11-healing-deferral.md).
+the run diagnostics, not a silent gap. 1.0 preserves the verifier's existing
+non-verified outcome: a failure that a human would call locator or readiness drift is
+classified like any other replay failure (`contradicted`), and no distinct
+mechanical-drift classification exists in 1.0. Arxic does not weaken assertions or
+repair the test; the candidate remains unverified and cannot replace a prior promoted
+bundle. See [ADR-007](../../docs/adr/007-stage11-healing-deferral.md).
