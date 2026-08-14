@@ -29,6 +29,7 @@ export function createSensitivityProbeAdapter(options: SensitivityProbeAdapterOp
           await Promise.all([
             writeFile(join(directory, 'tests/workflow.spec.ts'), files.spec, 'utf8'),
             writeFile(join(directory, 'fixtures/workflow.fixture.ts'), files.fixture, 'utf8'),
+            writeFile(join(directory, 'fixtures/transition-receipts.ts'), files.receipts, 'utf8'),
             writeFile(join(directory, 'playwright.config.ts'), files.config, 'utf8'),
           ]);
           await ensurePlaywrightModule(directory);

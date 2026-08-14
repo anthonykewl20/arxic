@@ -26,8 +26,8 @@ export async function establishTrustedScreenshotCaptureBinding(input: {
     'expected screenshot',
     '.png',
   );
-  if (expectedScreenshots.length < 1 || expectedScreenshots.length > 32) {
-    invalid('expected screenshot inventory must contain one to 32 paths');
+  if (expectedScreenshots.length > 32) {
+    invalid('expected screenshot inventory exceeds its bound');
   }
   const allowedSourcePaths = exactRelativePaths(input.allowedSourcePaths, 'allowed source');
   const specPath = safeRelativePath(input.specPath, 'spec', '.ts');

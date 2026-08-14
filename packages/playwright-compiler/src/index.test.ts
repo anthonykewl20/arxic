@@ -234,13 +234,16 @@ describe('Playwright compiler contracts', () => {
       },
     ]);
     expect(bundle.manifest.coverage.denominator).toBe(1);
-    expect(bundle.artifacts).toHaveLength(5);
+    expect(bundle.artifacts).toHaveLength(6);
     expect(bundle.plan).toContain('login-page → home');
     const spec = await readFile(join(directory, 'tests/workflow.spec.ts'), 'utf8');
     expect(spec).toMatch(/getByLabel\(['"]Email['"]\)/u);
     expect(spec).toContain("getByRole('button'");
     expect(spec).toContain('artifacts/screenshots/step-1-login-page-home.png');
     expect(spec).toContain('capturePolicyScreenshot(page,');
+    expect(spec).toContain(
+      'recordTransitionReceipt(page, "login-page->home", "login-page → home")',
+    );
     expect(spec).not.toContain('page.screenshot(');
     expect(spec).toContain('ARXIC_INPUT_PERSONA_EMAIL');
     expect(spec).not.toContain('waitForTimeout');
@@ -272,6 +275,11 @@ describe('Playwright compiler contracts', () => {
     expect(await readFile(join(directory, 'fixtures/screenshot-privacy.ts'), 'utf8')).toBe(
       screenshotPrivacyRuntimeSource(),
     );
+    const receipts = await readFile(join(directory, 'fixtures/transition-receipts.ts'), 'utf8');
+    expect(receipts).toContain("context.on('response'");
+    expect(receipts).toContain("page.on('console'");
+    expect(receipts).toContain("page.on('pageerror'");
+    expect(receipts).toContain("context.on('requestfailed'");
   });
 
   test('compiler errors expose one frozen blocked diagnostic', () => {
@@ -289,6 +297,16 @@ describe('Playwright compiler contracts', () => {
     );
     expect(generated.spec).toContain('page.goto("http://127.0.0.1:3000/")');
     expect(generated.spec).not.toContain('page.goto("http://127.0.0.1:3000/login")');
+  });
+
+  test('gives repeated state-pair transitions distinct receipt identifiers', () => {
+    const workflow = loginWorkflow();
+    workflow.transitions.push(structuredClone(workflow.transitions[0]!));
+
+    const spec = generateSpec(workflow, 'http://127.0.0.1:3000').spec;
+
+    expect(spec).toContain('recordTransitionReceipt(page, "login-page->home#1"');
+    expect(spec).toContain('recordTransitionReceipt(page, "login-page->home#2"');
   });
 
   test('uses runtime URL only for the first transition and state paths thereafter', () => {

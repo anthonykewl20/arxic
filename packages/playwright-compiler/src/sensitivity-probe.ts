@@ -6,6 +6,7 @@ import {
 } from './diagnostics';
 import { generateConfig, generateFixture } from './fixture-generator';
 import { generateControlStateSpec, generateSpec } from './spec-generator';
+import { transitionReceiptRuntimeSource } from './transition-receipt-runtime';
 
 export type ProbeRunSuite = (input: { testDirectory: string }) => Promise<{
   passed: boolean;
@@ -20,6 +21,7 @@ export type ProbeSensitivityOptions = {
   writeProbeDirectory: (input: {
     spec: string;
     fixture: string;
+    receipts: string;
     config: string;
   }) => Promise<string>;
   runSuite: ProbeRunSuite;
@@ -50,6 +52,7 @@ export async function probeAssertionSensitivity(
 ): Promise<ProbeSensitivityResult> {
   const diagnostics: Diagnostic[] = [];
   const fixture = generateFixture(options.workflow);
+  const receipts = transitionReceiptRuntimeSource();
   const config = generateConfig(options.workflow, { trace: 'off' });
   let probed = 0;
   const assertions: ProbeAssertionResult[] = [];
@@ -71,7 +74,12 @@ export async function probeAssertionSensitivity(
   const control = generateSpec(options.workflow, options.origin, options.runtimeUrl, {
     captureScreenshots: false,
   }).spec;
-  const controlDirectory = await options.writeProbeDirectory({ spec: control, fixture, config });
+  const controlDirectory = await options.writeProbeDirectory({
+    spec: control,
+    fixture,
+    receipts,
+    config,
+  });
   const controlRun = await options.runSuite({ testDirectory: controlDirectory });
   if (!controlRun.passed) {
     return withAssertions(
@@ -98,7 +106,7 @@ export async function probeAssertionSensitivity(
     const { spec } = generateSpec(workflow, options.origin, options.runtimeUrl, {
       captureScreenshots: false,
     });
-    const testDirectory = await options.writeProbeDirectory({ spec, fixture, config });
+    const testDirectory = await options.writeProbeDirectory({ spec, fixture, receipts, config });
     const run = await options.runSuite({ testDirectory });
     const valueSubstitutionKilled = !run.passed;
     if (run.passed) {
@@ -121,6 +129,7 @@ export async function probeAssertionSensitivity(
     const omissionDirectory = await options.writeProbeDirectory({
       spec: omissionSpec,
       fixture,
+      receipts,
       config,
     });
     const omissionRun = await options.runSuite({ testDirectory: omissionDirectory });

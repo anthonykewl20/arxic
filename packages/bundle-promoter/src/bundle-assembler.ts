@@ -105,6 +105,15 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
     assertHash(artifact, bytes);
     await copyFile(source, join(directory, relativePath));
   }
+  const transitionReceiptsRuntime = input.bundle.artifacts.find(
+    ({ path }) => path === 'fixtures/transition-receipts.ts',
+  );
+  if (transitionReceiptsRuntime) {
+    const source = safeResolve(stagedDirectory, transitionReceiptsRuntime.path);
+    const bytes = await readFile(source);
+    assertHash(transitionReceiptsRuntime, bytes);
+    await copyFile(source, join(directory, transitionReceiptsRuntime.path));
+  }
   const screenshotRuntime = input.bundle.artifacts.find(
     ({ path }) => path === 'fixtures/screenshot-privacy.ts',
   );

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "capture": "live-playwright-screenshot",
+  "app": "reference-auth-app",
+  "assertion": "url:/",
+  "screenshotSha256": "e5d534fde597bfdfbeec2b0ceb13eeaed8d5b78da1925821d08d901130b2c528",
+  "masks": ["all input elements", "rendered synthetic persona email text"],
+  "maskColor": "#000000",
+  "postProcessing": false
+}

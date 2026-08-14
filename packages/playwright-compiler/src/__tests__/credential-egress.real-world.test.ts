@@ -230,6 +230,57 @@ test('page egress', async ({ page, context }) => {
   expect(foreignRequests).toEqual([]);
 }, 120_000);
 
+test('real Chromium fails containment afterEach when a receipt-enabled test tolerates denied hostile egress', async () => {
+  const foreign = createServer((_request, response) => response.end('foreign'));
+  const foreignOrigin = await listen(foreign);
+  const approved = createServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'text/html' });
+    response.end('<main>approved</main>');
+  });
+  const approvedOrigin = await listen(approved);
+  const directory = await mkdtemp(join(tmpdir(), 'arxic-egress-receipt-denial-'));
+  cleanups.push(() => rm(directory, { recursive: true }));
+  const receiptPath = join(directory, 'artifacts', 'arxic-transition-receipts.json');
+  const receiptNonce = 'receipt-denial-nonce';
+
+  await new PlaywrightCompiler({ outputDirectory: directory, origin: approvedOrigin }).compile(
+    loginWorkflow(),
+    observations(`${approvedOrigin}/login`),
+  );
+  await ensurePlaywrightModule(directory);
+  await writeFile(
+    join(directory, 'tests/workflow.spec.ts'),
+    `import { test, configureApprovedOrigins } from '../fixtures/workflow.fixture';
+configureApprovedOrigins([${JSON.stringify(approvedOrigin)}]);
+test('tolerates denied hostile egress in the body', async ({ page }) => {
+  await page.goto(${JSON.stringify(approvedOrigin)});
+  await page.evaluate(() => fetch(${JSON.stringify(`${foreignOrigin}/capture`)}).catch(() => undefined));
+});
+`,
+  );
+
+  let output = '';
+  try {
+    await execute(process.execPath, [resolvePlaywrightCli(), 'test'], {
+      cwd: directory,
+      env: {
+        ...process.env,
+        ARXIC_TRANSITION_RECEIPTS_PATH: receiptPath,
+        ARXIC_TRANSITION_RECEIPTS_NONCE: receiptNonce,
+      },
+      timeout: 120_000,
+    });
+  } catch (error) {
+    const failure = error as { stdout?: string; stderr?: string };
+    output = `${failure.stdout ?? ''}${failure.stderr ?? ''}`;
+  }
+
+  // Receipt collection coexists with containment; assertNetworkContained in the generated
+  // afterEach is authoritative even when the test body deliberately tolerates the abort.
+  expect(output).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
+  await expect(readFile(receiptPath, 'utf8')).resolves.toContain('arxic-transition-receipts');
+}, 120_000);
+
 async function listen(server: Server): Promise<string> {
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject);

@@ -10,7 +10,13 @@ import type {
   VerificationResult,
   WorkflowVerifier,
 } from '@arxic/contracts';
-import { generateConfig, generateFixture, generateSpec } from '@arxic/playwright-compiler';
+import {
+  generateConfig,
+  generateFixture,
+  generateSpec,
+  transitionReceiptId,
+  transitionReceiptRuntimeSource,
+} from '@arxic/playwright-compiler';
 import {
   SCREENSHOT_CAPTURE_CORRELATION_ENV,
   SCREENSHOT_CAPTURED_AT_ENV,
@@ -40,7 +46,7 @@ import {
   verifyDiagnostic,
 } from './diagnostics';
 import { resetAndSeedFixtures, type VerificationPersona } from './reset';
-import { runPlaywrightSuite, type RunPass } from './runner';
+import { runPlaywrightSuite, type RunPass, type TransitionReceiptExpectation } from './runner';
 
 const require = createRequire(import.meta.url);
 
@@ -50,7 +56,7 @@ export type PlaywrightVerifierOptions = {
   artifactsDir: string;
   persona?: VerificationPersona;
   resetAndSeed?: (run: number) => Promise<void>;
-  runSuite?: (run: number) => Promise<RunPass>;
+  runSuite?: (run: number, transitionReceipts: TransitionReceiptExpectation) => Promise<RunPass>;
   ensurePlaywrightModule?: boolean;
   now?: () => string;
   screenshotPrivacyPolicy?: ScreenshotPrivacyPolicy;
@@ -63,7 +69,9 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #artifactsDirectory: string;
   readonly #persona: VerificationPersona | undefined;
   readonly #resetAndSeed: ((run: number) => Promise<void>) | undefined;
-  readonly #runSuite: ((run: number) => Promise<RunPass>) | undefined;
+  readonly #runSuite:
+    | ((run: number, transitionReceipts: TransitionReceiptExpectation) => Promise<RunPass>)
+    | undefined;
   readonly #ensureModule: boolean;
   readonly #now: () => string;
   readonly #screenshotPrivacyPolicy: ScreenshotPrivacyPolicy | undefined;
@@ -178,6 +186,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       if (!runtime) throw new Error('Runtime evidence is required to bind the generated spec');
       const expectedSpec = generateSpec(bundle.workflow, this.#origin, runtime.url).spec;
       const expectedFixture = generateFixture(bundle.workflow);
+      const expectedTransitionReceiptRuntime = transitionReceiptRuntimeSource();
       const expectedConfig = generateConfig(bundle.workflow);
       const expectedRuntime = screenshotPrivacyRuntimeSource();
       screenshotBinding = await establishTrustedScreenshotCaptureBinding({
@@ -188,12 +197,14 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         allowedSourcePaths: [
           'tests/workflow.spec.ts',
           'fixtures/workflow.fixture.ts',
+          'fixtures/transition-receipts.ts',
           'fixtures/screenshot-privacy.ts',
           'playwright.config.ts',
         ],
         trustedSourceContents: {
           'tests/workflow.spec.ts': expectedSpec,
           'fixtures/workflow.fixture.ts': expectedFixture,
+          'fixtures/transition-receipts.ts': expectedTransitionReceiptRuntime,
           'fixtures/screenshot-privacy.ts': expectedRuntime,
           'playwright.config.ts': expectedConfig,
         },
@@ -211,12 +222,19 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         ),
       );
     }
-    const requiredTransitions = bundle.workflow.transitions
-      .filter((transition) => transition.required !== false)
-      .map((transition) => `${transition.from}->${transition.to}`);
-    const observed = new Set<string>();
+    const requiredWorkflowTransitions = bundle.workflow.transitions.filter(
+      (transition) => transition.required !== false,
+    );
+    const requiredTransitionReceipts = requiredWorkflowTransitions.map((transition, index) => ({
+      id: transitionReceiptId(requiredWorkflowTransitions, index),
+      stepName: `${transition.from} → ${transition.to}`,
+    }));
+    const requiredTransitions = requiredTransitionReceipts.map(({ id }) => id);
     const artifactFailures: Array<{ reason: 'missing' | 'mismatch'; detail: string }> = [];
     const networkErrors: string[] = [];
+    const receiptFailures: string[] = [];
+    const receiptRedactionFailures: string[] = [];
+    const missingTransitions: string[] = [];
     const executionDiagnostics: Diagnostic[] = [];
     for (let run = 1; run <= policy.requiredRuns; run += 1) {
       const captureCorrelation = this.#captureCorrelation(run);
@@ -252,11 +270,22 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       }
       let result: RunPass;
       try {
-        result = await this.#execute(run, policy, {
-          policy: screenshotPolicy,
-          correlation: captureCorrelation,
-          capturedAt,
-        });
+        result = await this.#execute(
+          run,
+          policy,
+          {
+            policy: screenshotPolicy,
+            correlation: captureCorrelation,
+            capturedAt,
+          },
+          {
+            path: join(this.#outputDirectory, 'artifacts', 'arxic-transition-receipts.json'),
+            nonce: randomBytes(32).toString('hex'),
+            testTitle: bundle.workflow.id,
+            transitions: requiredTransitionReceipts,
+            forbiddenSubstrings: personaForbiddenSubstrings(this.#persona),
+          },
+        );
       } catch (error) {
         executionDiagnostics.push(
           verifyDiagnostic(
@@ -270,18 +299,27 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       }
       runs.push({ passed: result.passed });
       networkErrors.push(...result.networkErrors.map((item) => `run ${run}: ${item}`));
-      if (result.passed) {
-        for (const transition of requiredTransitions) observed.add(transition);
+      if (result.passed && result.receiptRedactionFailure) {
+        receiptRedactionFailures.push(`run ${run}: ${result.receiptRedactionFailure}`);
+      } else if (result.passed && result.receiptError) {
+        receiptFailures.push(`run ${run}: ${result.receiptError}`);
+      } else if (result.passed && result.observedTransitions === undefined) {
+        receiptFailures.push(
+          `run ${run}: no transition receipt was returned by the Playwright runner`,
+        );
       }
-      for (const transition of result.observedTransitions ?? []) {
-        observed.add(transition);
+      if (result.passed && result.observedTransitions) {
+        missingTransitions.push(
+          ...requiredTransitions
+            .filter((transition) => !result.observedTransitions?.includes(transition))
+            .map((transition) => `run ${run}: ${transition}`),
+        );
       }
+      if (result.passed && (result.receiptError || result.receiptRedactionFailure)) continue;
       let captured: ArtifactRef[];
       try {
         captured = await captureRunArtifacts(this.#outputDirectory, this.#artifactsDirectory, run, {
-          forbiddenSubstrings: Object.values(this.#persona ?? {}).filter(
-            (value): value is string => typeof value === 'string' && value.length > 0,
-          ),
+          forbiddenSubstrings: personaForbiddenSubstrings(this.#persona),
           screenshotCheckpoints: result.passed ? policy.screenshotCheckpoints : [],
           screenshotPrivacy: {
             binding: screenshotBinding,
@@ -328,7 +366,9 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       executionDiagnostics,
       artifactFailures,
       networkErrors,
-      missingTransitions: requiredTransitions.filter((transition) => !observed.has(transition)),
+      receiptFailures,
+      receiptRedactionFailures,
+      missingTransitions,
     });
     return { ...classification, runs, artifacts };
   }
@@ -347,6 +387,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       correlation: string;
       capturedAt: string;
     },
+    transitionReceipts: TransitionReceiptExpectation,
   ): Promise<RunPass> {
     const env = {
       ...personaEnvironment(this.#persona),
@@ -360,12 +401,13 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         testDirectory: this.#outputDirectory,
         env,
         trace: policy.trace,
+        transitionReceipts,
       });
     }
     const previous = new Map(Object.keys(env).map((name) => [name, process.env[name]] as const));
     Object.assign(process.env, env);
     try {
-      return await this.#runSuite(run);
+      return await this.#runSuite(run, transitionReceipts);
     } finally {
       for (const [name, value] of previous) restoreEnvironment(name, value);
     }
@@ -407,4 +449,10 @@ function personaEnvironment(persona: VerificationPersona | undefined): Record<st
     }
   }
   return env;
+}
+
+function personaForbiddenSubstrings(persona: VerificationPersona | undefined): string[] {
+  return Object.values(persona ?? {}).filter(
+    (value): value is string => typeof value === 'string' && value.length > 0,
+  );
 }

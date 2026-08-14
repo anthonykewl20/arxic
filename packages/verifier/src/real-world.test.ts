@@ -5,7 +5,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { StagedBundle } from '@arxic/contracts';
-import { ARXIC_PROBE_INSENSITIVE_ASSERTION, PlaywrightCompiler } from '@arxic/playwright-compiler';
+import {
+  ARXIC_PROBE_INSENSITIVE_ASSERTION,
+  PlaywrightCompiler,
+  generateFixture,
+  transitionReceiptRuntimeSource,
+} from '@arxic/playwright-compiler';
 import { serializeScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import { chromium } from '@playwright/test';
@@ -22,8 +27,14 @@ import {
   type RunningApp,
   type FixtureApp,
 } from '@arxic/real-world-testkit';
-import { createSensitivityProbeAdapter, PlaywrightVerifier, resetAndSeedFixtures } from './index';
-import { resolvePlaywrightCli } from './runner';
+import {
+  classifyVerification,
+  createSensitivityProbeAdapter,
+  ensurePlaywrightModule,
+  PlaywrightVerifier,
+  resetAndSeedFixtures,
+} from './index';
+import { resolvePlaywrightCli, runPlaywrightSuite } from './runner';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 let fixtureAppLease = Promise.resolve();
@@ -145,6 +156,75 @@ describe.sequential('playwright verifier real-world security proof', () => {
           : join(artifactsDirectory, `${app.name}-sanitized-trace-viewer.png`),
       );
     }, 240_000);
+
+    test('records real Chromium HTTP and console errors and applies the default network gate', async () => {
+      if (!running) throw new Error(`Fixture app ${app.name} did not start`);
+      const nonce = `receipt-event-${app.name}`;
+      const receiptPath = join(outputDirectory, 'artifacts', 'arxic-transition-receipts.json');
+      await Promise.all([
+        mkdir(join(outputDirectory, 'tests'), { recursive: true }),
+        mkdir(join(outputDirectory, 'fixtures'), { recursive: true }),
+      ]);
+      await Promise.all([
+        writeFile(
+          join(outputDirectory, 'fixtures/workflow.fixture.ts'),
+          generateFixture(
+            loginWorkflow(app, {
+              id: `receipt-event-gate.${app.name}`,
+              title: `Receipt event gate ${app.name}`,
+            }),
+          ),
+        ),
+        writeFile(
+          join(outputDirectory, 'fixtures/transition-receipts.ts'),
+          transitionReceiptRuntimeSource(),
+        ),
+        writeFile(
+          join(outputDirectory, 'playwright.config.ts'),
+          "import { defineConfig } from '@playwright/test';\nexport default defineConfig({ testDir: './tests', workers: 1, use: { browserName: 'chromium', headless: true } });\n",
+        ),
+        writeFile(
+          join(outputDirectory, 'tests/workflow.spec.ts'),
+          [
+            "import { test, expect, configureApprovedOrigins } from '../fixtures/workflow.fixture';",
+            "import { recordTransitionReceipt } from '../fixtures/transition-receipts';",
+            `configureApprovedOrigins([${JSON.stringify(new URL(running.origin).origin)}]);`,
+            "test('receipt event gate', async ({ page }) => {",
+            `  const response = await page.goto(${JSON.stringify(`${running.origin}/__arxic-receipt-missing__`)});`,
+            '  await expect(response).not.toBeNull();',
+            "  await page.evaluate(() => console.error('arxic receipt console proof'));",
+            "  recordTransitionReceipt(page, 'login-page->home', 'login-page → home');",
+            '});',
+            '',
+          ].join('\n'),
+        ),
+      ]);
+      await ensurePlaywrightModule(outputDirectory);
+
+      const pass = await runPlaywrightSuite({
+        testDirectory: outputDirectory,
+        transitionReceipts: {
+          path: receiptPath,
+          nonce,
+          testTitle: 'receipt event gate',
+          transitions: [{ id: 'login-page->home', stepName: 'login-page → home' }],
+        },
+      });
+
+      expect(pass.passed, pass.output).toBe(true);
+      expect(pass.observedTransitions).toEqual(['login-page->home']);
+      expect(pass.networkErrors).toEqual(
+        expect.arrayContaining([expect.stringContaining('http-response 404'), 'console-error']),
+      );
+      expect(
+        classifyVerification({
+          subject: `receipt-event-gate.${app.name}`,
+          runs: [{ passed: pass.passed }],
+          policy: { requiredRuns: 1 } as ReturnType<typeof loginWorkflow>['verification'],
+          networkErrors: pass.networkErrors,
+        }).outcome,
+      ).toBe('blocked');
+    }, 120_000);
   });
 
   async function assertTraceViewerLoads(tracePath: string, screenshotPath: string): Promise<void> {

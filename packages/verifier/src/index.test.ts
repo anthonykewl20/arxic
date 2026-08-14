@@ -25,6 +25,7 @@ import {
   ARXIC_VERIFY_BLOCKED_NETWORK,
   ARXIC_VERIFY_DIAGNOSTIC_CODES,
   ARXIC_VERIFY_FLAKY_RUNS,
+  ARXIC_VERIFY_REDACTION_FAILED,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
   ARXIC_VERIFY_SCREENSHOT_PRIVACY,
   ARXIC_VERIFY_TRANSITIONS_MISSING,
@@ -32,6 +33,9 @@ import {
   PlaywrightVerifier,
   captureRunArtifacts,
   classifyVerification,
+  ensurePlaywrightModule,
+  readTransitionReceipts,
+  runPlaywrightSuite,
 } from './index';
 
 const temporaryDirectories: string[] = [];
@@ -370,6 +374,311 @@ describe('PlaywrightVerifier', () => {
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_BLOCKED_NETWORK });
   });
 
+  test('blocks an exit-zero run which skips a required transition instead of marking it verified', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await writeRunArtifacts(fixture.outputDirectory, 1);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: [],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(1));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
+  });
+
+  test('blocks a two-run verification when one otherwise-passing replay skips a transition', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async (run) => {
+        await writeRunArtifacts(fixture.outputDirectory, run);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: run === 1 ? [] : ['login-page->home'],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(2));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
+  });
+
+  test('blocks a passing legacy fixture which returns no transition receipt', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await writeRunArtifacts(fixture.outputDirectory, 1);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(1));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
+  });
+
+  test('requires an event receipt even when the workflow has no required transitions', async () => {
+    const fixture = await stagedFixture(noRequiredTransitionsWorkflow());
+    const verifier = verifierFor(fixture, {
+      runSuite: async (_run, expectation) => {
+        expect(expectation.transitions).toEqual([]);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: [],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(1));
+
+    expect(result.outcome, JSON.stringify(result.diagnostics)).toBe('verified');
+  });
+
+  test('blocks a no-required-transitions workflow when its event receipt is absent', async () => {
+    const fixture = await stagedFixture(noRequiredTransitionsWorkflow());
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        return { passed: true, output: '', exitCode: 0, networkErrors: [] };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(1));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
+  });
+
+  test('blocks malformed receipt output rather than trusting a successful process result', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await writeRunArtifacts(fixture.outputDirectory, 1);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          receiptError:
+            'Transition receipt contains an untrusted, duplicate, or forged step witness',
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(1));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
+    expect(result.artifacts).toEqual([]);
+  });
+
+  test('defaults to blocking structured HTTP and console errors when policy omits forbidNetworkErrors', () => {
+    const result = classifyVerification({
+      subject: 'authentication.login',
+      runs: [{ passed: true }],
+      policy: { requiredRuns: 1 } as StagedBundle['workflow']['verification'],
+      networkErrors: ['http-response 500 http://127.0.0.1:3000/api/login', 'console-error boom'],
+    });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_BLOCKED_NETWORK });
+  });
+
+  test('validates receipt nonce, step names, URL witnesses, and structured page events', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-transition-receipt-'));
+    temporaryDirectories.push(directory);
+    const receiptPath = join(directory, 'receipts.json');
+    const nonce = 'runner-owned-nonce';
+    const expectation = {
+      path: receiptPath,
+      nonce,
+      testTitle: 'authentication.login',
+      transitions: [{ id: 'login-page->home', stepName: 'login-page → home' }],
+    };
+    await writeFile(
+      receiptPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        kind: 'arxic-transition-receipts',
+        correlationSha256: createHash('sha256').update(nonce).digest('hex'),
+        testTitle: 'authentication.login',
+        transitions: [
+          {
+            id: 'login-page->home',
+            stepName: 'login-page → home',
+            url: 'http://127.0.0.1:3000/',
+          },
+        ],
+        events: [
+          { kind: 'http-response', status: 500, url: 'http://127.0.0.1:3000/api/login' },
+          { kind: 'console-error', message: 'unexpected app error' },
+        ],
+      }),
+    );
+
+    await expect(readTransitionReceipts(expectation)).resolves.toEqual({
+      ok: true,
+      transitions: ['login-page->home'],
+      networkErrors: ['http-response 500 http://127.0.0.1:3000/api/login', 'console-error'],
+    });
+    await expect(readFile(receiptPath)).rejects.toMatchObject({ code: 'ENOENT' });
+    await writeFile(
+      receiptPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        kind: 'arxic-transition-receipts',
+        correlationSha256: createHash('sha256').update(nonce).digest('hex'),
+        testTitle: 'authentication.login',
+        transitions: [
+          {
+            id: 'forged->transition',
+            stepName: 'forged → transition',
+            url: 'http://127.0.0.1:3000/',
+          },
+        ],
+        events: [],
+      }),
+    );
+    await expect(readTransitionReceipts(expectation)).resolves.toEqual({
+      ok: false,
+      error: 'Transition receipt contains an untrusted, duplicate, or forged step witness',
+    });
+  });
+
+  test('blocks and deletes a receipt whose serialized console event exposes a persona secret', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-transition-receipt-redaction-'));
+    temporaryDirectories.push(directory);
+    const receiptPath = join(directory, 'receipts.json');
+    const secret = 'ReceiptSecret9!';
+    const nonce = 'runner-owned-nonce';
+    await writeFile(
+      receiptPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        kind: 'arxic-transition-receipts',
+        correlationSha256: createHash('sha256').update(nonce).digest('hex'),
+        testTitle: 'authentication.login',
+        transitions: [],
+        events: [{ kind: 'console-error', message: `leaked ${secret}` }],
+      }),
+    );
+
+    await expect(
+      readTransitionReceipts({
+        path: receiptPath,
+        nonce,
+        testTitle: 'authentication.login',
+        transitions: [],
+        forbiddenSubstrings: [secret],
+      }),
+    ).resolves.toEqual({ ok: false, redactionFailure: true });
+    await expect(readFile(receiptPath)).rejects.toMatchObject({ code: 'ENOENT' });
+
+    const result = classifyVerification({
+      subject: 'authentication.login',
+      runs: [{ passed: true }],
+      policy: policy(1),
+      receiptRedactionFailures: ['run 1: transition receipt contained forbidden persona content'],
+    });
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_REDACTION_FAILED });
+    expect(result.diagnostics[0]?.message).not.toContain(secret);
+  });
+
+  test('blocks malformed event URL witnesses instead of allowing URL parsing to escape', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-transition-receipt-url-'));
+    temporaryDirectories.push(directory);
+    const receiptPath = join(directory, 'receipts.json');
+    const nonce = 'runner-owned-nonce';
+    await writeFile(
+      receiptPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        kind: 'arxic-transition-receipts',
+        correlationSha256: createHash('sha256').update(nonce).digest('hex'),
+        testTitle: 'authentication.login',
+        transitions: [],
+        events: [{ kind: 'http-response', status: 500, url: 'forged non-url witness' }],
+      }),
+    );
+
+    await expect(
+      readTransitionReceipts({
+        path: receiptPath,
+        nonce,
+        testTitle: 'authentication.login',
+        transitions: [],
+      }),
+    ).resolves.toEqual({
+      ok: false,
+      error: 'Transition receipt contains a malformed page or context event',
+    });
+  });
+
+  test('removes inherited receipt configuration from a receipt-free Playwright child run', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-receipt-env-'));
+    temporaryDirectories.push(directory);
+    const stalePath = join(directory, 'stale-receipts.json');
+    const observedPath = join(directory, 'observed-env.json');
+    const previousPath = process.env.ARXIC_TRANSITION_RECEIPTS_PATH;
+    const previousNonce = process.env.ARXIC_TRANSITION_RECEIPTS_NONCE;
+    process.env.ARXIC_TRANSITION_RECEIPTS_PATH = stalePath;
+    process.env.ARXIC_TRANSITION_RECEIPTS_NONCE = 'stale-nonce';
+    try {
+      await Promise.all([
+        writeFile(
+          join(directory, 'playwright.config.ts'),
+          "import { defineConfig } from '@playwright/test';\nexport default defineConfig({ testDir: './tests', use: { browserName: 'chromium', headless: true } });\n",
+        ),
+        mkdir(join(directory, 'tests'), { recursive: true }).then(() =>
+          writeFile(
+            join(directory, 'tests/probe.spec.ts'),
+            `import { test } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
+test('receipt-free probe', async ({ page }) => {
+  await page.setContent('<main>probe</main>');
+  await writeFile(${JSON.stringify(observedPath)}, JSON.stringify({ path: process.env.ARXIC_TRANSITION_RECEIPTS_PATH ?? null, nonce: process.env.ARXIC_TRANSITION_RECEIPTS_NONCE ?? null }));
+});
+`,
+          ),
+        ),
+      ]);
+      await ensurePlaywrightModule(directory);
+
+      const pass = await runPlaywrightSuite({ testDirectory: directory });
+
+      expect(pass.passed, pass.output).toBe(true);
+      await expect(readFile(observedPath, 'utf8')).resolves.toBe('{"path":null,"nonce":null}');
+      await expect(readFile(stalePath)).rejects.toMatchObject({ code: 'ENOENT' });
+    } finally {
+      if (previousPath === undefined) delete process.env.ARXIC_TRANSITION_RECEIPTS_PATH;
+      else process.env.ARXIC_TRANSITION_RECEIPTS_PATH = previousPath;
+      if (previousNonce === undefined) delete process.env.ARXIC_TRANSITION_RECEIPTS_NONCE;
+      else process.env.ARXIC_TRANSITION_RECEIPTS_NONCE = previousNonce;
+    }
+  }, 120_000);
+
   test('blocks when required screenshots and traces are absent', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture);
@@ -635,7 +944,7 @@ function verifierFor(
   });
 }
 
-async function stagedFixture(): Promise<{
+async function stagedFixture(inputWorkflow = workflow()): Promise<{
   bundle: StagedBundle;
   outputDirectory: string;
   artifactsDirectory: string;
@@ -647,7 +956,7 @@ async function stagedFixture(): Promise<{
     outputDirectory,
     origin: 'http://127.0.0.1:3000',
     now: () => '2026-08-09T12:00:00.000Z',
-  }).compile(workflow(), observations());
+  }).compile(inputWorkflow, observations());
   return {
     outputDirectory,
     artifactsDirectory,
@@ -797,6 +1106,12 @@ function workflow(): Workflow {
     verification: { requiredRuns: 2, screenshotCheckpoints: ['home'], forbidNetworkErrors: true },
     evidenceRefs: ['src:login-handler', 'run:login'],
   };
+}
+
+function noRequiredTransitionsWorkflow(): Workflow {
+  const fixture = workflow();
+  fixture.transitions[0]!.required = false;
+  return fixture;
 }
 
 function observations() {

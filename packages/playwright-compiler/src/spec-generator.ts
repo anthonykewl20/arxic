@@ -22,8 +22,10 @@ export function generateSpec(
   const captureScreenshots = options.captureScreenshots ?? true;
   const approvedOrigin = new URL(origin).origin;
   const approvedOrigins = options.approvedOrigins ?? [approvedOrigin];
+  const requiredTransitions = workflow.transitions.filter((item) => item.required !== false);
   const lines = [
     "import { test, expect, assertNetworkContained, assertPageOrigin, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';",
+    "import { recordTransitionReceipt } from '../fixtures/transition-receipts';",
     ...(captureScreenshots
       ? ["import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';"]
       : []),
@@ -33,9 +35,7 @@ export function generateSpec(
     `test(${JSON.stringify(workflow.id)}, async ({ page, context }) => {`,
   ];
   let usedFormScope = false;
-  for (const [index, transition] of workflow.transitions
-    .filter((item) => item.required !== false)
-    .entries()) {
+  for (const [index, transition] of requiredTransitions.entries()) {
     const action = renderAction(transition);
     if (action.formScoped) usedFormScope = true;
     lines.push(
@@ -51,6 +51,7 @@ export function generateSpec(
             `    await capturePolicyScreenshot(page, ${JSON.stringify(`artifacts/screenshots/step-${index + 1}-${fileNamePart(transition.from)}-${fileNamePart(transition.to)}.png`)});`,
           ]
         : []),
+      `    recordTransitionReceipt(page, ${JSON.stringify(transitionReceiptId(requiredTransitions, index))}, ${JSON.stringify(`${transition.from} → ${transition.to}`)});`,
       '  });',
     );
   }
@@ -64,6 +65,18 @@ export function generateSpec(
         }
       : {}),
   };
+}
+
+export function transitionReceiptId(
+  transitions: readonly WorkflowTransition[],
+  index: number,
+): string {
+  const transition = transitions[index];
+  if (!transition) throw new RangeError(`Transition index ${index} is out of range`);
+  const base = `${transition.from}->${transition.to}`;
+  const duplicates = transitions.filter((item) => `${item.from}->${item.to}` === base);
+  if (duplicates.length === 1) return base;
+  return `${base}#${duplicates.indexOf(transition) + 1}`;
 }
 
 export function generateControlStateSpec(
