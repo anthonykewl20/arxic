@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { resolve } from 'node:path';
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
 import type { RunState } from '@arxic/orchestrator-langgraph';
 import { loadConfig } from './config/parse';
@@ -31,7 +33,10 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
   }
 
   const runId = options.runId ?? randomUUID();
-  const runDirectory = resolve(cwd, options.out ?? '.arxic/runs');
+  const runDirectory =
+    options.out === undefined
+      ? await mkdtemp(join(tmpdir(), 'arxic-runs-'))
+      : resolve(cwd, options.out);
   const repositoryDirectory = resolve(cwd, loaded.value.source.repository);
   const rulepacksDir = resolve(options.rulepacksDir ?? resolve(cwd, 'rulepacks'));
   const diagnostics: Diagnostic[] = [];

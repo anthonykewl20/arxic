@@ -1,12 +1,17 @@
-import { access, mkdtemp, readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { execFile } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+import { access, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import type { Diagnostic } from '@arxic/contracts';
 import type { RunExecutor, RunRequest, RunResult } from '../executor';
 import { cliDiagnostic, ARXIC_EXEC_RESUMED } from '../diagnostics';
 import { runAction } from '../run';
 import { OBSERVED_DIAGNOSTIC, VALID_YAML, runState } from './fixtures';
+
+const execute = promisify(execFile);
 
 describe('runAction sad paths', () => {
   it('returns exit 2 and writes no run directory for malformed config', async () => {
@@ -108,6 +113,45 @@ describe('runAction sad paths', () => {
     expect(outcome.exitCode).toBe(1);
     expect(recorded).toEqual(['ARXIC-EXEC-RESUMED', 'ARXIC-ORCH-TEST-OBSERVED']);
   });
+
+  it.each(['.arxic/\n', ''])(
+    'keeps default output outside a repository regardless of its .gitignore (%j)',
+    async (gitignore) => {
+      const directory = await configDirectory();
+      await writeFile(join(directory, '.gitignore'), gitignore);
+      await commitRepository(directory);
+      const firstRunId = `default-output-first-${randomUUID()}`;
+      const secondRunId = `default-output-second-${randomUUID()}`;
+
+      const first = await runAction({
+        configPath: 'arxic.yaml',
+        runId: firstRunId,
+        executor: resultExecutor([], 'verified'),
+        cwd: directory,
+        now: sequenceClock(),
+      });
+      const second = await runAction({
+        configPath: 'arxic.yaml',
+        runId: secondRunId,
+        executor: resultExecutor([], 'verified'),
+        cwd: directory,
+        now: sequenceClock(),
+      });
+
+      expect(first.exitCode).toBe(0);
+      expect(second.exitCode).toBe(0);
+      expect(first.runDirectory).toMatch(new RegExp(`arxic-runs-.+/${firstRunId}$`, 'u'));
+      expect(second.runDirectory).toMatch(new RegExp(`arxic-runs-.+/${secondRunId}$`, 'u'));
+      expect(dirname(first.runDirectory!)).not.toBe(dirname(second.runDirectory!));
+      expect((await stat(dirname(first.runDirectory!))).mode & 0o777).toBe(0o700);
+      expect((await stat(dirname(second.runDirectory!))).mode & 0o777).toBe(0o700);
+      expect((await execute('git', ['status', '--porcelain'], { cwd: directory })).stdout).toBe('');
+      await Promise.all([
+        rm(dirname(first.runDirectory!), { recursive: true, force: true }),
+        rm(dirname(second.runDirectory!), { recursive: true, force: true }),
+      ]);
+    },
+  );
 });
 
 describe('runAction happy path', () => {
@@ -194,6 +238,19 @@ async function configDirectory(yaml = VALID_YAML): Promise<string> {
   const directory = await mkdtemp(join(tmpdir(), 'arxic-action-'));
   await writeFile(join(directory, 'arxic.yaml'), yaml);
   return directory;
+}
+
+async function commitRepository(directory: string): Promise<void> {
+  const env = {
+    ...process.env,
+    GIT_AUTHOR_NAME: 'Arxic Test',
+    GIT_AUTHOR_EMAIL: 'test@arxic.invalid',
+    GIT_COMMITTER_NAME: 'Arxic Test',
+    GIT_COMMITTER_EMAIL: 'test@arxic.invalid',
+  };
+  await execute('git', ['init', '--initial-branch=main'], { cwd: directory, env });
+  await execute('git', ['add', '.'], { cwd: directory, env });
+  await execute('git', ['commit', '-m', 'CLI test repository'], { cwd: directory, env });
 }
 
 function sequenceClock(): () => string {
