@@ -1,4 +1,5 @@
 import { execFile, spawn, type ChildProcess } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { createServer as createHttpServer, type Server as HttpServer } from 'node:http';
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
@@ -20,6 +21,9 @@ let commit = '';
 let configPath = '';
 let modelServer: HttpServer | undefined;
 let modelBaseUrl = '';
+let stateDirectory = '';
+let previousStateDirectory: string | undefined;
+const hostStateArtifacts = ['.vitest-auth.db-wal', 'auth.db-wal'];
 
 describe('real CLI pipeline proof', () => {
   beforeAll(async () => {
@@ -28,6 +32,9 @@ describe('real CLI pipeline proof', () => {
       timeout: 180_000,
     });
     sourceDirectory = await committedFixtureCopy();
+    stateDirectory = await temporaryDirectory('arxic-m1-11-state-');
+    previousStateDirectory = process.env.ARXIC_STATE_DIR;
+    process.env.ARXIC_STATE_DIR = stateDirectory;
     const runtime = await temporaryDirectory('arxic-m1-11-runtime-');
     const configDirectory = await temporaryDirectory('arxic-m1-11-config-');
     const port = await freePort();
@@ -73,6 +80,8 @@ describe('real CLI pipeline proof', () => {
     await Promise.all(
       temporaryDirectories.map((directory) => rm(directory, { recursive: true, force: true })),
     );
+    if (previousStateDirectory === undefined) delete process.env.ARXIC_STATE_DIR;
+    else process.env.ARXIC_STATE_DIR = previousStateDirectory;
   });
 
   it('writes an observable run directory after driving the real pipeline and reference app', async () => {
@@ -144,50 +153,53 @@ describe('real CLI pipeline proof', () => {
     ).toBe('partial');
   }, 240_000);
 
-  it('promotes the deterministic stage-10 verified auth bundle despite advisory discovery diagnostics', async () => {
-    const outDir = await temporaryDirectory('arxic-release-cli-runs-');
+  it('promotes two consecutive default-output runs against the real reference repository', async () => {
     const previous = modelEnvironment();
     process.env.ARXIC_MODEL_BASE_URL = modelBaseUrl;
     process.env.ARXIC_MODEL_API_KEY = 'release-cli-stub-key';
     process.env.ARXIC_INPUT_PERSONA_EMAIL = 'm1-11@example.test';
     process.env.ARXIC_INPUT_PERSONA_PASSWORD = 'Hunter2!';
     try {
-      const result = await runCli(
-        ['run', '--config', configPath, '--out', outDir, '--run-id', 'release-cli-verified'],
-        {
-          cwd: root,
+      for (const sequence of ['first', 'second']) {
+        const runId = `release-cli-default-${sequence}-${randomUUID()}`;
+        const result = await runCli(['run', '--config', configPath, '--run-id', runId], {
+          cwd: sourceDirectory,
           rulepacksDir: resolve(root, 'rulepacks'),
           stdout: { write: () => undefined },
           stderr: { write: () => undefined },
           now: () => new Date().toISOString(),
-        },
-      );
+        });
 
-      const runDirectory = resolve(outDir, 'release-cli-verified');
-      const run = JSON.parse(await readFile(join(runDirectory, 'run.json'), 'utf8')) as RunRecord;
-      expect(result.exitCode, JSON.stringify(run)).toBe(0);
-      expect(run.outcome).toBe('verified');
-      expect(run.status).toBe('completed');
-      expect(run.stages).toContainEqual(
-        expect.objectContaining({
-          name: expect.stringContaining('verification'),
-          status: 'completed',
-        }),
-      );
-      expect(run.stages).toContainEqual(
-        expect.objectContaining({
-          name: expect.stringContaining('promotion'),
-          status: 'completed',
-        }),
-      );
-      expect(run.receipt).toMatchObject({ location: expect.any(String) });
-      const verification = JSON.parse(
-        await readFile(join(runDirectory, 'artifacts', '10.json'), 'utf8'),
-      ) as { outcome: string; runs: Array<{ passed: boolean }> };
-      expect(verification).toMatchObject({
-        outcome: 'verified',
-        runs: [{ passed: true }, { passed: true }],
-      });
+        const runDirectory = result.runDirectory!;
+        const run = JSON.parse(await readFile(join(runDirectory, 'run.json'), 'utf8')) as RunRecord;
+        expect(result.exitCode, JSON.stringify(run)).toBe(0);
+        expect(run.outcome).toBe('verified');
+        expect(run.status).toBe('completed');
+        expect(runDirectory.startsWith(`${sourceDirectory}/`)).toBe(false);
+        expect(
+          (await execute('git', ['status', '--porcelain'], { cwd: sourceDirectory })).stdout,
+        ).toBe('');
+        expect(run.stages).toContainEqual(
+          expect.objectContaining({
+            name: expect.stringContaining('verification'),
+            status: 'completed',
+          }),
+        );
+        expect(run.stages).toContainEqual(
+          expect.objectContaining({
+            name: expect.stringContaining('promotion'),
+            status: 'completed',
+          }),
+        );
+        expect(run.receipt).toMatchObject({ location: expect.any(String) });
+        const verification = JSON.parse(
+          await readFile(join(runDirectory, 'artifacts', '10.json'), 'utf8'),
+        ) as { outcome: string; runs: Array<{ passed: boolean }> };
+        expect(verification).toMatchObject({
+          outcome: 'verified',
+          runs: [{ passed: true }, { passed: true }],
+        });
+      }
     } finally {
       restoreModelEnvironment(previous);
     }
@@ -295,10 +307,25 @@ models:
 }
 
 async function committedFixtureCopy(): Promise<string> {
-  const directory = await temporaryDirectory('arxic-m1-11-source-');
-  await cp(appDir, directory, {
+  const stagingDirectory = await temporaryDirectory('arxic-m1-11-host-state-');
+  await cp(appDir, stagingDirectory, {
     recursive: true,
     filter: (path) => !['node_modules', '.next', 'dist'].includes(basename(path)),
+  });
+  for (const artifact of hostStateArtifacts) {
+    await writeFile(join(stagingDirectory, artifact), 'x'.repeat(1024 * 1024 + 1));
+  }
+  const directory = await temporaryDirectory('arxic-m1-11-source-');
+  await cp(stagingDirectory, directory, {
+    recursive: true,
+    filter: (path) => {
+      const name = basename(path);
+      return (
+        !['node_modules', '.next', 'dist'].includes(name) &&
+        !name.startsWith('.vitest-auth.db') &&
+        !name.startsWith('auth.db')
+      );
+    },
   });
   await writeFile(join(directory, '.gitignore'), 'node_modules/\n.next/\ndist/\nauth.db*\n');
   const environment = {
