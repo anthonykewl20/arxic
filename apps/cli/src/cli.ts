@@ -1,11 +1,8 @@
 import { basename, resolve } from 'node:path';
 import type { RunExecutor } from './executor';
-import { createLocalWorkerClient, type WorkerClient } from '@arxic/worker';
+import { ARXIC_VERSION } from '@arxic/contracts';
+import type { WorkerClient } from '@arxic/worker';
 import { parseArgs } from './args';
-import { ARXIC_CLI_INTERNAL, cliDiagnostic } from './diagnostics';
-import { LocalRunExecutor } from './local-executor';
-import { runAction } from './run';
-import { WorkerRunExecutor } from './worker-executor';
 
 export type OutputSink = { write(message: string): unknown } | { log(message: string): unknown };
 
@@ -32,22 +29,21 @@ export async function runCli(
       return { exitCode: 2 };
     }
     if (parsed.command.kind === 'version') {
-      print(stdout, process.env.ARXIC_VERSION ?? ['0', '0', '0'].join('.'));
+      print(stdout, ARXIC_VERSION);
       return { exitCode: 0 };
     }
     if (parsed.command.kind === 'help') {
       print(stdout, parsed.command.command === 'run' ? RUN_HELP : HELP);
       return { exitCode: 0 };
     }
+    const { runAction } = await import('./run');
     const outcome = await runAction({
       configPath: parsed.command.config,
       ...(parsed.command.out === undefined ? {} : { out: parsed.command.out }),
       ...(parsed.command.runId === undefined ? {} : { runId: parsed.command.runId }),
       executor:
         options.executor ??
-        (parsed.command.executor === 'worker'
-          ? new WorkerRunExecutor(options.workerClient ?? createLocalWorkerClient())
-          : new LocalRunExecutor()),
+        (await defaultExecutor(parsed.command.executor ?? 'local', options.workerClient)),
       cwd: options.cwd ?? process.cwd(),
       ...(options.rulepacksDir === undefined ? {} : { rulepacksDir: options.rulepacksDir }),
       ...(options.now === undefined ? {} : { now: options.now }),
@@ -71,6 +67,7 @@ export async function runCli(
         : { runDirectory: resolve(outcome.runDirectory) }),
     };
   } catch {
+    const { ARXIC_CLI_INTERNAL, cliDiagnostic } = await import('./diagnostics');
     const diagnostic = cliDiagnostic(
       ARXIC_CLI_INTERNAL,
       'blocked',
@@ -80,6 +77,21 @@ export async function runCli(
     print(stderr, formatDiagnostic(diagnostic));
     return { exitCode: 1 };
   }
+}
+
+async function defaultExecutor(
+  executor: 'local' | 'worker',
+  workerClient: WorkerClient | undefined,
+): Promise<RunExecutor> {
+  if (executor === 'local') {
+    const { LocalRunExecutor } = await import('./local-executor');
+    return new LocalRunExecutor();
+  }
+  const [{ createLocalWorkerClient }, { WorkerRunExecutor }] = await Promise.all([
+    import('@arxic/worker'),
+    import('./worker-executor'),
+  ]);
+  return new WorkerRunExecutor(workerClient ?? createLocalWorkerClient());
 }
 
 const HELP = `Usage: arxic <command> [options]\n\nCommands:\n  run --config <path>  Start a run (local by default)\n\nOptions:\n  -h, --help            Show help\n  -v, --version         Show version`;

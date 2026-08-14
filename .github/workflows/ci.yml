@@ -68,10 +68,10 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
 
-      - name: Verify metadata (VERSION == package.json; CHANGELOG present)
+      - name: Verify metadata (version provenance; CHANGELOG present)
         run: |
           set -euo pipefail
-          [ "$(cat VERSION)" = "$(node -p 'require("./package.json").version')" ] || { echo "::error::VERSION and package.json version disagree"; exit 1; }
+          node scripts/assert-version-provenance.mjs
           grep -q "## \[Unreleased\]" CHANGELOG.md || { echo "::error::CHANGELOG.md missing [Unreleased] section"; exit 1; }
 
       - name: Verify slice notes (charter §10.2 path + template shape)
@@ -113,6 +113,9 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Tarball smoke
+        run: node scripts/tarball-smoke.mjs
 
       - name: License gate
         run: node scripts/license-gate.mjs

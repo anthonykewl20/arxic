@@ -6,7 +6,7 @@ export default tseslint.config(
   {
     ignores: [
       'test-fixtures/**',
-      'dist/**',
+      '**/dist/**',
       'coverage/**',
       'pnpm-lock.yaml',
       '.opencode/**',

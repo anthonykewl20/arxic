@@ -82,17 +82,19 @@ export type Workflow = {
 };
 
 const schemaUrl = new URL('../../../schemas/workflow/workflow.schema.json', import.meta.url);
-let workflowSchema: object;
-
-try {
-  workflowSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-} catch (error) {
-  throw new Error(`Failed to load Workflow schema at ${schemaUrl.pathname}`, { cause: error });
+function createValidator() {
+  let workflowSchema: object;
+  try {
+    workflowSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
+  } catch (error) {
+    throw new Error(`Failed to load Workflow schema at ${schemaUrl.pathname}`, { cause: error });
+  }
+  const ajv = new Ajv2020({ allErrors: true });
+  addFormats(ajv);
+  return ajv.compile<Workflow>(workflowSchema);
 }
-
-const ajv = new Ajv2020({ allErrors: true });
-addFormats(ajv);
-const validate = ajv.compile<Workflow>(workflowSchema);
+let validate: ReturnType<typeof createValidator> | undefined;
+const validator = () => (validate ??= createValidator());
 
 const diagnosticCode = (error: ErrorObject) => {
   const missingProperty =
@@ -133,10 +135,11 @@ const toDiagnostic = (error: ErrorObject): Diagnostic => ({
 export const validateWorkflow = (
   input: unknown,
 ): { ok: true; value: Workflow } | { ok: false; diagnostics: Diagnostic[] } => {
-  if (!validate(input)) {
+  const compiled = validator();
+  if (!compiled(input)) {
     return {
       ok: false,
-      diagnostics: (validate.errors ?? []).map(toDiagnostic),
+      diagnostics: (compiled.errors ?? []).map(toDiagnostic),
     };
   }
   const diagnostics = input.transitions

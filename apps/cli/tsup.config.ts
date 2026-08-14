@@ -29,7 +29,6 @@ export default defineConfig({
   external: [
     /^@ast-grep\/cli(?:\/.*)?$/,
     /^@playwright\/test(?:\/.*)?$/,
-    /^chromium-bidi(?:\/.*)?$/,
     /^crawlee(?:\/.*)?$/,
     /^playwright(?:-core)?(?:\/.*)?$/,
     /^testcontainers(?:\/.*)?$/,

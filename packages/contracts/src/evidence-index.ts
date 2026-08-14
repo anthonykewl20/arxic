@@ -17,23 +17,25 @@ const evidenceRefSchemaUrl = new URL(
   '../../../schemas/evidence/evidence-ref.schema.json',
   import.meta.url,
 );
-let evidenceIndexSchema: object;
-let evidenceRefSchema: object;
-
-try {
-  evidenceIndexSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-  evidenceRefSchema = JSON.parse(readFileSync(evidenceRefSchemaUrl, 'utf8')) as object;
-} catch (error) {
-  throw new Error(
-    `Failed to load EvidenceIndex schemas at ${schemaUrl.pathname} and ${evidenceRefSchemaUrl.pathname}`,
-    { cause: error },
-  );
+function createValidator() {
+  let evidenceIndexSchema: object;
+  let evidenceRefSchema: object;
+  try {
+    evidenceIndexSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
+    evidenceRefSchema = JSON.parse(readFileSync(evidenceRefSchemaUrl, 'utf8')) as object;
+  } catch (error) {
+    throw new Error(
+      `Failed to load EvidenceIndex schemas at ${schemaUrl.pathname} and ${evidenceRefSchemaUrl.pathname}`,
+      { cause: error },
+    );
+  }
+  const ajv = new Ajv2020({ allErrors: true, $data: true });
+  addFormats(ajv);
+  ajv.addSchema(evidenceRefSchema);
+  return ajv.compile<EvidenceIndex>(evidenceIndexSchema);
 }
-
-const ajv = new Ajv2020({ allErrors: true, $data: true });
-addFormats(ajv);
-ajv.addSchema(evidenceRefSchema);
-const validate = ajv.compile<EvidenceIndex>(evidenceIndexSchema);
+let validate: ReturnType<typeof createValidator> | undefined;
+const validator = () => (validate ??= createValidator());
 
 const grammarDiagnostic = (id: unknown): Diagnostic => ({
   code: ARXIC_EVIDENCE_ID_GRAMMAR,
@@ -67,10 +69,11 @@ export const validateEvidenceIndex = (
       return { ok: false, diagnostics: [grammarDiagnostic(invalidKey)] };
     }
   }
-  if (validate(input)) {
+  const compiled = validator();
+  if (compiled(input)) {
     return { ok: true, value: input };
   }
-  const diagnostics = (validate.errors ?? []).map(indexDiagnostic);
+  const diagnostics = (compiled.errors ?? []).map(indexDiagnostic);
   if (typeof input === 'object' && input !== null && !Array.isArray(input)) {
     for (const value of Object.values(input)) {
       const result = validateEvidenceRef(value);

@@ -28,8 +28,8 @@ const { version: authDomainPackVersion } = JSON.parse(
 ) as { version: string };
 const loginCapability: AuthCapabilityId = 'authentication.login';
 const pinnedCanonicalSha256: Readonly<Record<string, string>> = {
-  'reference-auth-app': '1860b161ed87c11d0e1f0c4c905534644cc8b7c5befdcd1dca77d7a1a5296198',
-  'vulnerable-auth-app': '6cc7f019393ae0b66ab80384903bdc9fe379749b6c3443e16be0e1ddd8208901',
+  'reference-auth-app': 'bd21463f6c4572a5c4f16c241d6ab50e0fdfe3804f8adb4cad1d4b2f6573de23',
+  'vulnerable-auth-app': 'ab685d165511ee83ff1ddf5a22f04c32322263231bf66000f3802303812a7264',
 };
 
 function loginOracle() {

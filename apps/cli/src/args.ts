@@ -1,6 +1,5 @@
 import { parseArgs as nodeParseArgs } from 'node:util';
 import type { Diagnostic } from '@arxic/contracts';
-import { ARXIC_CLI_USAGE, cliDiagnostic } from './diagnostics';
 
 export type CliCommand =
   | Readonly<{ kind: 'version' }>
@@ -81,6 +80,13 @@ function parseRunArgs(argv: readonly string[]): ParseResult {
 function usage(message: string): ParseResult {
   return {
     ok: false,
-    diagnostics: [cliDiagnostic(ARXIC_CLI_USAGE, 'blocked', 'cli.arguments', message)],
+    diagnostics: [
+      {
+        code: 'ARXIC-CLI-USAGE',
+        severity: 'blocked',
+        subject: 'cli.arguments',
+        message,
+      },
+    ],
   };
 }

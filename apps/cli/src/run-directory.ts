@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { GateResult } from '@arxic/contracts';
+import { ARXIC_VERSION, type GateResult } from '@arxic/contracts';
 import type { ArxicConfig } from '@arxic/worker';
 import type { RunResult } from './executor';
 
@@ -41,7 +41,7 @@ export async function writeRunDirectory(
   const runRecord = {
     schemaVersion: 1,
     runId: record.runId,
-    generator: { id: '@arxic/cli', version: '0.0.0' },
+    generator: { id: '@arxic/cli', version: ARXIC_VERSION },
     config: redactConfig(record.config),
     target: {
       origin: record.config.target.origin,

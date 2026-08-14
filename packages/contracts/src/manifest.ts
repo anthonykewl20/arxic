@@ -91,19 +91,21 @@ export type BundleManifest = {
 };
 
 const schemaUrl = new URL('../../../schemas/manifest/manifest.schema.json', import.meta.url);
-let manifestSchema: object;
-
-try {
-  manifestSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-} catch (error) {
-  throw new Error(`Failed to load BundleManifest schema at ${schemaUrl.pathname}`, {
-    cause: error,
-  });
+function createValidator() {
+  let manifestSchema: object;
+  try {
+    manifestSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
+  } catch (error) {
+    throw new Error(`Failed to load BundleManifest schema at ${schemaUrl.pathname}`, {
+      cause: error,
+    });
+  }
+  const ajv = new Ajv2020({ allErrors: true });
+  addFormats(ajv);
+  return ajv.compile<BundleManifest>(manifestSchema);
 }
-
-const ajv = new Ajv2020({ allErrors: true });
-addFormats(ajv);
-const validate = ajv.compile<BundleManifest>(manifestSchema);
+let validate: ReturnType<typeof createValidator> | undefined;
+const validator = () => (validate ??= createValidator());
 
 const diagnosticCode = (error: ErrorObject) => {
   const missingProperty =
@@ -134,11 +136,12 @@ const toDiagnostic = (error: ErrorObject): Diagnostic => ({
 export const validateManifest = (
   input: unknown,
 ): { ok: true; value: BundleManifest } | { ok: false; diagnostics: Diagnostic[] } => {
-  if (validate(input)) {
+  const compiled = validator();
+  if (compiled(input)) {
     return { ok: true, value: input };
   }
   return {
     ok: false,
-    diagnostics: (validate.errors ?? []).map(toDiagnostic),
+    diagnostics: (compiled.errors ?? []).map(toDiagnostic),
   };
 };

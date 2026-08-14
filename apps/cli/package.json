@@ -1,15 +1,16 @@
 {
   "name": "arxic",
-  "version": "0.3.0",
+  "version": "0.1.1",
   "private": false,
   "type": "module",
-  "main": "dist/cli.js",
   "bin": {
     "arxic": "dist/cli.js"
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "NOTICE"
   ],
   "publishConfig": {
     "access": "public"
@@ -19,7 +20,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "prepublishOnly": "pnpm build",
+    "prepack": "pnpm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -33,7 +34,12 @@
     "tree-sitter-typescript": "^0.23.2"
   },
   "devDependencies": {
+    "@arxic/auth-domain-pack": "workspace:*",
+    "@arxic/bundle-promoter": "workspace:*",
     "@arxic/contracts": "workspace:*",
+    "@arxic/model-adapter": "workspace:*",
+    "@arxic/playwright-screenshot-privacy": "workspace:*",
+    "@arxic/verifier": "workspace:*",
     "@arxic/orchestrator-langgraph": "workspace:*",
     "@arxic/worker": "workspace:*",
     "tsup": "^8.5.0",

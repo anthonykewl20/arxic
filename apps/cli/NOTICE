@@ -1,0 +1,25 @@
+Arxic
+Copyright (c) 2026 Arxic maintainers and contributors
+
+Licensed under the MIT License (see LICENSE).
+
+Arxic assembles proven open-source engines at their public seams. No upstream
+source is vendored into this repository. Product code is authored and owned by
+the Arxic project, or adapted under permissive (MIT / Apache-2.0) terms into
+reviewed vendored code that carries upstream attribution. This product does not
+include any AGPL-licensed code.
+
+Understand Anything
+Copyright (c) Egonex AI and contributors
+MIT License
+https://github.com/Egonex-AI/Understand-Anything
+Pinned review: fe8c5bc591716aafd79b4765549328f08ef5a52e
+Arxic adapts a deterministic scanner subset behind SourceIndexer; no upstream
+internals are imported and no upstream source file is vendored wholesale.
+
+tree-sitter-javascript and tree-sitter-typescript grammars
+Copyright (c) tree-sitter contributors
+MIT License (verified separately from each installed grammar package's
+package.json and LICENSE file by the source adapter contract suite)
+https://github.com/tree-sitter/tree-sitter-javascript
+https://github.com/tree-sitter/tree-sitter-typescript
