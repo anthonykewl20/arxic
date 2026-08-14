@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { createHmac } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
@@ -7,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { EnvironmentHandshake } from '..';
+import { buildAttestationPolicy, EnvironmentHandshake, operatorAttestationSettings } from '..';
 
 const execute = promisify(execFile);
 const root = resolve(fileURLToPath(new URL('../../../../', import.meta.url)));
@@ -147,9 +148,36 @@ describe('real-world target-attestation handshake', () => {
     }
   });
 
+  it('accepts real local-test reference apps without receipts through the default policy builder', async () => {
+    const handshake = new EnvironmentHandshake();
+    const cases = [
+      [referenceOrigin, 'reference-auth-app-fixture-v1'],
+      [vulnerableOrigin, 'vulnerable-auth-app-fixture-v1'],
+    ] as const;
+    for (const [origin, expectedNonce] of cases) {
+      const policy = buildAttestationPolicy({
+        origin,
+        expectedNonce,
+        ...operatorAttestationSettings({}),
+      });
+      const result = await handshake.attest({ origin }, policy);
+      expect(result).toMatchObject({
+        disposition: 'allowed',
+        diagnostics: [],
+        decision: { origin, environmentClass: 'local-test', disposition: 'allowed' },
+      });
+    }
+  });
+
   it('refuses a locally served production-looking target then allows recorded human approval', async () => {
     const port = await freePort('0.0.0.0');
     const origin = `http://0.0.0.0:${port}`;
+    const buildDigest = '8c3f68766d8dbb06cbd85efc196d12b448a37eb34f196dc861f21865a7ca310f';
+    const nonce = 'production-proof-nonce';
+    const receiptKey = 'production-proof-key';
+    const signedReceipt = createHmac('sha256', receiptKey)
+      .update(`${buildDigest}.${nonce}`)
+      .digest('hex');
     const server: Server = createServer((_request, response) => {
       response.setHeader('content-type', 'application/json');
       response.end(
@@ -157,8 +185,9 @@ describe('real-world target-attestation handshake', () => {
           environmentClass: 'production',
           origin,
           allowedOrigins: [origin],
-          buildDigest: '8c3f68766d8dbb06cbd85efc196d12b448a37eb34f196dc861f21865a7ca310f',
-          nonce: 'production-proof-nonce',
+          buildDigest,
+          nonce,
+          signedReceipt,
         }),
       );
     });
@@ -168,6 +197,8 @@ describe('real-world target-attestation handshake', () => {
       const basePolicy = {
         allowedOrigins: [origin],
         expectedNonce: 'production-proof-nonce',
+        expectedBuildDigest: buildDigest,
+        receiptKey,
         now: () => '2026-08-05T12:00:00.000Z',
       };
       const refused = await handshake.attest({ origin }, basePolicy);

@@ -87,6 +87,7 @@ describe('ADR §23.14 target-attestation contract gate', () => {
       {
         allowedOrigins: [origin],
         expectedNonce: nonce,
+        expectedBuildDigest: digest,
         requireSignedReceipt: true,
         receiptKey,
         now: () => '2026-08-05T12:00:00.000Z',
@@ -157,9 +158,13 @@ describe('ADR §23.14 target-attestation contract gate', () => {
       },
     );
     expect(result.disposition).toBe('refused');
-    expect(result.diagnostics.map(({ code }) => code)).toEqual([
-      'ARXIC-ATTESTATION-ENV-CLASS-DENIED',
-    ]);
+    expect(result.diagnostics.map(({ code }) => code)).toEqual(
+      expect.arrayContaining([
+        'ARXIC-ATTESTATION-ENV-CLASS-DENIED',
+        'ARXIC-ATTESTATION-BUILD-DIGEST-MISMATCH',
+        'ARXIC-ATTESTATION-RECEIPT-UNSIGNED',
+      ]),
+    );
     expect(result.decision.override).toBeUndefined();
   });
 

@@ -13,6 +13,7 @@ import { fetchAttestation, validSignedReceipt, type TargetAttestation } from './
 
 export const PACKAGE_NAME = '@arxic/environment' as const;
 export const ATTESTATION_POLICY_VERSION = 'arxic-target-attestation-v1' as const;
+const BUILD_DIGEST_MISMATCH = 'ARXIC-ATTESTATION-BUILD-DIGEST-MISMATCH' as const;
 
 export type HumanApproval = {
   approver: string;
@@ -22,8 +23,11 @@ export type HumanApproval = {
 
 export type AttestationPolicy = {
   allowedOrigins: string[];
+  /** Loopback/reference targets may be explicitly admitted without weakening non-local policy. */
+  localTestAllowedOrigins?: string[];
   allowedEnvironmentClasses?: string[];
   expectedNonce?: string;
+  expectedBuildDigest?: string;
   requireSignedReceipt?: boolean;
   receiptKey?: string;
   humanApprovals?: Record<string, HumanApproval>;
@@ -35,6 +39,7 @@ export type AttestationDecision = {
   target: string;
   origin: string;
   environmentClass: string;
+  buildDigest?: string;
   disposition: 'allowed' | 'refused';
   reason: string;
   policyVersion: string;
@@ -114,11 +119,13 @@ function decision(
   reason: string,
   policy: AttestationPolicy,
   override?: HumanApproval,
+  buildDigest?: string,
 ): AttestationDecision {
   return {
     target: request.origin,
     origin: request.origin,
     environmentClass,
+    ...(buildDigest ? { buildDigest } : {}),
     disposition,
     reason,
     policyVersion: ATTESTATION_POLICY_VERSION,
@@ -164,18 +171,21 @@ export function verifyAttestation(
       ),
     );
   }
+  const authoritativeOrigins =
+    attestation.environmentClass === 'local-test'
+      ? (policy.localTestAllowedOrigins ?? policy.allowedOrigins)
+      : policy.allowedOrigins;
   if (
     !isExactWebOrigin(request.origin) ||
     !isExactWebOrigin(attestation.origin) ||
     request.origin !== attestation.origin ||
-    !attestation.allowedOrigins.includes(request.origin) ||
-    !policy.allowedOrigins.includes(request.origin)
+    !authoritativeOrigins.includes(request.origin)
   ) {
     diagnostics.push(
       attestationDiagnostic(
         ARXIC_ATTESTATION_ORIGIN_NOT_ALLOWED,
         request.origin,
-        'Request, attested, target-allowed, and policy-allowed origins must match exactly',
+        'Request and attested origins must match an independent operator allowlist exactly',
       ),
     );
   }
@@ -198,8 +208,32 @@ export function verifyAttestation(
       ),
     );
   }
+  if (attestation.environmentClass !== 'local-test' && policy.expectedNonce === undefined) {
+    diagnostics.push(
+      attestationDiagnostic(
+        ARXIC_ATTESTATION_NONCE_MISMATCH,
+        request.origin,
+        'Non-local attestation requires an independently issued expected nonce',
+      ),
+    );
+  }
   if (
-    policy.requireSignedReceipt &&
+    policy.expectedBuildDigest !== undefined
+      ? attestation.buildDigest.toLowerCase() !== policy.expectedBuildDigest.toLowerCase()
+      : attestation.environmentClass !== 'local-test'
+  ) {
+    diagnostics.push({
+      code: BUILD_DIGEST_MISMATCH,
+      severity: 'blocked',
+      subject: request.origin,
+      message:
+        policy.expectedBuildDigest === undefined
+          ? 'Non-local attestation requires an independently discovered build digest'
+          : 'Attested build digest does not match the discovered or staged source digest',
+    });
+  }
+  if (
+    (attestation.environmentClass !== 'local-test' || policy.requireSignedReceipt === true) &&
     (!policy.receiptKey || !validSignedReceipt(attestation, policy.receiptKey))
   ) {
     diagnostics.push(
@@ -229,6 +263,7 @@ export function verifyAttestation(
         reason,
         policy,
         disposition === 'allowed' ? approvedProductionOverride : undefined,
+        attestation.buildDigest,
       ),
       origin: attestation.origin,
     },

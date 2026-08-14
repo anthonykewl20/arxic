@@ -29,7 +29,9 @@ import {
   type SurfaceMap,
 } from '@arxic/crawlee-adapter';
 import {
+  buildAttestationPolicy,
   EnvironmentHandshake,
+  operatorAttestationSettings,
   PACKAGE_NAME as ENVIRONMENT_PACKAGE,
   type HumanApproval,
 } from '@arxic/environment';
@@ -335,12 +337,13 @@ export class LangGraphOrchestrator {
   async #attest(input: OrchestratorInput): Promise<StageExecution> {
     const result = await new EnvironmentHandshake().attest(
       { origin: input.origin },
-      {
-        allowedOrigins: [input.origin],
-        allowedEnvironmentClasses: ['local-test'],
+      buildAttestationPolicy({
+        origin: input.origin,
+        ...(input.appBuildDigest ? { expectedBuildDigest: input.appBuildDigest } : {}),
         ...(input.expectedNonce ? { expectedNonce: input.expectedNonce } : {}),
+        ...operatorAttestationSettings(process.env),
         now: this.#now,
-      },
+      }),
     );
     return {
       artifact: result,
