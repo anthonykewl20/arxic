@@ -1,7 +1,11 @@
 import type { BundleManifest, Diagnostic, WorkflowTransition } from '@arxic/contracts';
 import type { RouteSurface, SurfaceMap } from '@arxic/crawlee-adapter';
-import { canonicalJson, codepointCompare } from '@arxic/evidence-graph';
-import Graph from 'graphology';
+import {
+  buildDirectedGraph,
+  canonicalJson,
+  codepointCompare,
+  type DirectedGraphTraversal,
+} from '@arxic/evidence-graph';
 import {
   ARXIC_RECON_CONFLICT,
   ARXIC_RECON_DENOMINATOR_TAMPERED,
@@ -16,9 +20,6 @@ import type {
   ReconciliationOutcome,
   ReconciliationResult,
 } from './types';
-
-type MergeNode = Readonly<{ kind: string; evidenceRefs: readonly string[] }>;
-type MergeEdge = Readonly<{ kind: string }>;
 
 export class DenominatorTamperedError extends Error {
   readonly diagnostic: Diagnostic;
@@ -66,7 +67,7 @@ export async function reconcile(input: {
   const routes = [...input.surface.routes].sort((left, right) =>
     codepointCompare(left.url, right.url),
   );
-  const graph = buildMergeGraph(candidates, input.surface);
+  const graph = buildMergeTopology(candidates, input.surface);
   const candidateRows = candidates.map((candidate) =>
     candidateRow(candidate, routes, input.surface, graph, duplicateIds.has(candidate.id)),
   );
@@ -128,7 +129,7 @@ function candidateRow(
   candidate: ReconciliationCandidate,
   routes: readonly RouteSurface[],
   surface: SurfaceMap,
-  graph: Graph<MergeNode, MergeEdge>,
+  graph: DirectedGraphTraversal,
   duplicateId: boolean,
 ): CoverageRow {
   const expected = expectedRoutes(candidate);
@@ -335,21 +336,27 @@ function matchingBlocker(
   });
 }
 
-function buildMergeGraph(candidates: readonly ReconciliationCandidate[], surface: SurfaceMap) {
-  const graph = new Graph<MergeNode, MergeEdge>({ type: 'directed', multi: true });
+/**
+ * Reconciliation owns this transient candidate-to-surface topology because it
+ * represents domain correlation rather than persisted evidence semantics.
+ * The evidence-graph service owns its ingestion and traversal mechanics.
+ */
+function buildMergeTopology(candidates: readonly ReconciliationCandidate[], surface: SurfaceMap) {
+  const nodes: Array<{ id: string }> = [];
+  const edges: Array<{ id: string; source: string; target: string }> = [];
   const duplicateIds = duplicateCandidateIds(candidates);
   for (const candidate of candidates) {
     if (duplicateIds.has(candidate.id)) continue;
     const candidateId = `candidate:${candidate.id}`;
-    graph.addNode(candidateId, { kind: 'Candidate', evidenceRefs: staticEvidenceRefs(candidate) });
-    for (const [index, transition] of (candidate.workflow?.transitions ?? []).entries()) {
+    nodes.push({ id: candidateId });
+    const transitions = candidate.workflow?.transitions ?? [];
+    for (let index = 0; index < transitions.length; index += 1) {
       const transitionId = `${candidateId}:transition:${index}`;
-      graph.addNode(transitionId, {
-        kind: 'Transition',
-        evidenceRefs: [...transition.evidenceRefs].sort(codepointCompare),
-      });
-      graph.addDirectedEdgeWithKey(`${candidateId}->${transitionId}`, candidateId, transitionId, {
-        kind: 'asserts',
+      nodes.push({ id: transitionId });
+      edges.push({
+        id: `${candidateId}->${transitionId}`,
+        source: candidateId,
+        target: transitionId,
       });
     }
   }
@@ -357,28 +364,25 @@ function buildMergeGraph(candidates: readonly ReconciliationCandidate[], surface
     codepointCompare(left.url, right.url),
   )) {
     const routeId = `runtime:${route.url}`;
-    graph.addNode(routeId, {
-      kind: 'RuntimeSurface',
-      evidenceRefs: route.evidence ? [runtimeRefId(route)] : [],
-    });
+    nodes.push({ id: routeId });
     route.forms.forEach((form, formIndex) => {
       const formId = `${routeId}:form:${formIndex}`;
-      graph.addNode(formId, { kind: 'Form', evidenceRefs: [] });
-      graph.addDirectedEdgeWithKey(`${routeId}->${formId}`, routeId, formId, { kind: 'exposes' });
+      nodes.push({ id: formId });
+      edges.push({ id: `${routeId}->${formId}`, source: routeId, target: formId });
       form.controls.forEach((control, controlIndex) => {
         const controlId = `${formId}:control:${controlIndex}`;
-        graph.addNode(controlId, { kind: 'Control', evidenceRefs: [] });
-        graph.addDirectedEdgeWithKey(`${formId}->${controlId}`, formId, controlId, {
-          kind: 'contains',
+        nodes.push({ id: controlId });
+        edges.push({
+          id: `${formId}->${controlId}`,
+          source: formId,
+          target: controlId,
         });
       });
     });
     route.controls.forEach((_control, controlIndex) => {
       const controlId = `${routeId}:control:${controlIndex}`;
-      graph.addNode(controlId, { kind: 'Control', evidenceRefs: [] });
-      graph.addDirectedEdgeWithKey(`${routeId}->${controlId}`, routeId, controlId, {
-        kind: 'contains',
-      });
+      nodes.push({ id: controlId });
+      edges.push({ id: `${routeId}->${controlId}`, source: routeId, target: controlId });
     });
   }
   for (const candidate of candidates) {
@@ -386,18 +390,17 @@ function buildMergeGraph(candidates: readonly ReconciliationCandidate[], surface
     for (const expected of expectedRoutes(candidate)) {
       for (const route of surface.routes.filter((item) => surfaceSupportsRoute(item, expected))) {
         const edgeId = `candidate:${candidate.id}->runtime:${route.url}`;
-        if (!graph.hasEdge(edgeId)) {
-          graph.addDirectedEdgeWithKey(
-            edgeId,
-            `candidate:${candidate.id}`,
-            `runtime:${route.url}`,
-            { kind: 'overlaps' },
-          );
+        if (!edges.some((edge) => edge.id === edgeId)) {
+          edges.push({
+            id: edgeId,
+            source: `candidate:${candidate.id}`,
+            target: `runtime:${route.url}`,
+          });
         }
       }
     }
   }
-  return graph;
+  return buildDirectedGraph({ nodes, edges });
 }
 
 function duplicateCandidateIds(candidates: readonly ReconciliationCandidate[]): Set<string> {

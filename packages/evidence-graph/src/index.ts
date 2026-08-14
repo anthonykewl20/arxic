@@ -4,4 +4,5 @@ export * from './builders';
 export * from './diagnostics';
 export * from './graph';
 export * from './serialize';
+export * from './topology';
 export * from './types';

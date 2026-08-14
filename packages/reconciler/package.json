@@ -10,8 +10,7 @@
   "dependencies": {
     "@arxic/contracts": "workspace:*",
     "@arxic/crawlee-adapter": "workspace:*",
-    "@arxic/evidence-graph": "workspace:*",
-    "graphology": "^0.26.0"
+    "@arxic/evidence-graph": "workspace:*"
   },
   "devDependencies": {
     "@arxic/ast-grep-adapter": "workspace:*",
