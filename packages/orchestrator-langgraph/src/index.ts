@@ -4,6 +4,7 @@ export * from './checkpointer';
 export * from './diagnostics';
 export * from './exploration';
 export * from './fixture-coordinator';
+export * from './input-fingerprint';
 export * from './inference';
 export * from './orchestrator';
 export * from './sensitivity-probe-adapter';

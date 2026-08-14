@@ -55,13 +55,17 @@ import {
   SourceUaAdapter,
   type NormalizedSourceIndex,
 } from '@arxic/source-ua-adapter';
-import { artifactHash, type StageCheckpointer } from './checkpointer';
+import { artifactHash, canonicalJson, type StageCheckpointer } from './checkpointer';
 import { FixtureCoordinator } from './fixture-coordinator';
 import { defaultExploration } from './exploration';
+import { createRunInputFingerprint } from './input-fingerprint';
 import { isStage4InferenceFailure, selectNeighbourhood, stage4Infer } from './inference';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
   ARXIC_ORCH_HASH_MISMATCH,
+  ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH,
+  ARXIC_ORCH_INPUT_FINGERPRINT_MISSING,
+  ARXIC_ORCH_INPUT_FINGERPRINT_INVALID,
   ARXIC_ORCH_MODEL_RETRIES,
   ARXIC_ORCH_ORACLE_RESOLVED,
   ARXIC_ORCH_ORACLE_UNMATCHED,
@@ -133,6 +137,16 @@ export type OrchestratorInput = Readonly<{
   modelPrompt?: string;
   credentialBytes?: readonly string[];
   oracleRules?: readonly OracleRule[];
+  /**
+   * Additional caller policy that changes the run's authorization semantics.
+   * Pass JSON-serializable semantics only: JSON drops function values, so they cannot bind reuse.
+   */
+  policy?: unknown;
+  /**
+   * Additional caller configuration, including model configuration, that changes run behavior.
+   * Pass JSON-serializable semantics only: JSON drops function values, so they cannot bind reuse.
+   */
+  config?: unknown;
 }>;
 
 export type ApprovalInput = Readonly<{
@@ -214,14 +228,64 @@ export class LangGraphOrchestrator {
 
   async run(input: OrchestratorInput, approval?: ApprovalInput): Promise<RunState> {
     const persisted = await this.#options.checkpointer.load(input.runId);
+    let inputFingerprint: ReturnType<typeof createRunInputFingerprint>;
+    try {
+      inputFingerprint = createRunInputFingerprint({
+        sourceRevision: input.revision,
+        origin: input.origin,
+        policy: {
+          appBuildDigest: input.appBuildDigest,
+          expectedNonce: input.expectedNonce,
+          maxDepth: input.maxDepth,
+          maxUrls: input.maxUrls,
+          requireExplorationApproval: input.requireExplorationApproval,
+          supplied: input.policy,
+        },
+        config: {
+          features: input.features,
+          framework: input.framework,
+          languages: input.languages,
+          model: this.#options.model,
+          modelPrompt: input.modelPrompt,
+          oracleRules: input.oracleRules,
+          personas: input.personas,
+          rulepacksDir: input.rulepacksDir,
+          supplied: input.config,
+          credentialBytes: input.credentialBytes,
+        },
+      });
+    } catch {
+      return this.#rejectInvalidInputFingerprint(persisted, input.runId);
+    }
+    if (persisted && persisted.inputFingerprint === undefined) {
+      return this.#rejectReuse(
+        persisted,
+        ARXIC_ORCH_INPUT_FINGERPRINT_MISSING,
+        'Persisted run has no input fingerprint and cannot be safely reused',
+      );
+    }
+    if (persisted && persisted.inputFingerprint !== inputFingerprint.sha256) {
+      return this.#rejectReuse(
+        persisted,
+        ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH,
+        'Persisted run input fingerprint does not match the supplied semantic inputs',
+      );
+    }
     if (
       persisted &&
       (persisted.status === 'completed' || persisted.status === 'partial') &&
       STAGES.every((stage) => persisted.completedStages.includes(stage))
     ) {
+      if (!(await this.#verifyTerminalArtifacts(persisted))) {
+        return this.#rejectReuse(
+          persisted,
+          ARXIC_ORCH_HASH_MISMATCH,
+          'Persisted terminal artifacts no longer match their recorded SHA-256 hashes',
+        );
+      }
       return persisted;
     }
-    let initial = persisted ?? queuedState(input.runId);
+    let initial = persisted ?? queuedState(input.runId, inputFingerprint.sha256);
     if (persisted) {
       initial = {
         ...initial,
@@ -252,6 +316,66 @@ export class LangGraphOrchestrator {
       }
     }
     return finalized;
+  }
+
+  async #verifyTerminalArtifacts(state: RunState): Promise<boolean> {
+    const refs = STAGES.map((stage) => state.artifacts[stage]);
+    if (refs.some((ref) => ref === undefined)) return false;
+    return (
+      await Promise.all(
+        refs.map(async (ref) => this.#options.checkpointer.verifyArtifact(state.runId, ref!)),
+      )
+    ).every(Boolean);
+  }
+
+  async #rejectReuse(
+    state: RunState,
+    code:
+      | typeof ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH
+      | typeof ARXIC_ORCH_INPUT_FINGERPRINT_MISSING
+      | typeof ARXIC_ORCH_HASH_MISMATCH,
+    message: string,
+  ): Promise<RunState> {
+    const blocked: RunState = {
+      ...state,
+      status: 'failed',
+      outcome: 'blocked',
+      promotionEligible: false,
+      receipt: undefined,
+      diagnostics: [...state.diagnostics, orchDiagnostic(code, 'blocked', state.runId, message)],
+    };
+    return blocked;
+  }
+
+  #rejectInvalidInputFingerprint(persisted: RunState | undefined, runId: string): RunState {
+    const state =
+      persisted ??
+      ({
+        runId,
+        status: 'failed',
+        outcome: 'blocked',
+        completedStages: [],
+        artifacts: {},
+        checkpoints: [],
+        diagnostics: [],
+        promotionEligible: false,
+      } satisfies RunState);
+    return {
+      ...state,
+      status: 'failed',
+      outcome: 'blocked',
+      promotionEligible: false,
+      receipt: undefined,
+      diagnostics: [
+        ...state.diagnostics,
+        orchDiagnostic(
+          ARXIC_ORCH_INPUT_FINGERPRINT_INVALID,
+          'blocked',
+          runId,
+          'Run input fingerprint requires JSON-serializable policy and configuration semantics',
+        ),
+      ],
+    };
   }
 
   #buildGraph(input: OrchestratorInput, approval?: ApprovalInput) {
@@ -581,7 +705,10 @@ export class LangGraphOrchestrator {
   async #compile(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
     const inference = await this.#artifact<InferenceResult>(state, input, 4);
     const exploration = await this.#artifact<ExplorationResult>(state, input, 8);
-    const unmatchedDiagnostics = (input.oracleRules ?? []).flatMap(({ candidateId }) =>
+    const oracleRules = [...(input.oracleRules ?? [])].sort((left, right) =>
+      canonicalJson(left).localeCompare(canonicalJson(right)),
+    );
+    const unmatchedDiagnostics = oracleRules.flatMap(({ candidateId }) =>
       inference.candidates.some(({ id }) => id === candidateId)
         ? []
         : [
@@ -615,7 +742,7 @@ export class LangGraphOrchestrator {
           featureFlagsDigest: stageDigest([...(input.features ?? [])].sort()),
           policyDigest: stageDigest(policyAuthority),
         },
-        oracleRules: [...(input.oracleRules ?? [])],
+        oracleRules,
       });
     }
     const normalization = oracle.intentSpec ? normalizeIntentSpec(oracle.intentSpec) : undefined;
@@ -876,9 +1003,7 @@ export class LangGraphOrchestrator {
     const ref = state.artifacts[stage];
     if (!ref) throw new Error(`Stage ${stage} artifact reference is missing`);
     const value = await this.#options.checkpointer.readArtifact(input.runId, ref);
-    const memoryHash = artifactHash(value);
-    const fileHash = artifactHash(value, true);
-    if (ref.sha256 !== memoryHash && ref.sha256 !== fileHash) {
+    if (!(await this.#options.checkpointer.verifyArtifact(input.runId, ref))) {
       throw new ArtifactHashMismatchError(stage, ref);
     }
     return value as T;
@@ -1054,9 +1179,10 @@ class ArtifactHashMismatchError extends Error {
 
 class RedactionError extends Error {}
 
-function queuedState(runId: string): RunState {
+function queuedState(runId: string, inputFingerprint: string): RunState {
   return {
     runId,
+    inputFingerprint,
     status: 'queued',
     outcome: 'hypothesized',
     completedStages: [],

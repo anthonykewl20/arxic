@@ -43,6 +43,8 @@ export type StageCheckpoint = Readonly<{
 
 export type RunState = Readonly<{
   runId: string;
+  /** SHA-256 fingerprint of the semantic inputs that produced this run. */
+  inputFingerprint?: string;
   status: RunStatus;
   outcome: TruthState;
   activeStage?: StageId;
