@@ -10,6 +10,7 @@ import type {
   Workflow,
 } from '@arxic/contracts';
 import type { IntentLineage, IntentSpec, OracleSpec, ResolvedAssertion } from '@arxic/intent';
+import type { LeaseState } from '@arxic/policy-engine';
 import type {
   ExecutionLocator,
   LocatorResolutionFailure,
@@ -78,9 +79,15 @@ export type CoverageMatrix = Readonly<{
   }>[];
 }>;
 
+/**
+ * `inUse` is a coordinator-owned collision signal. Stage-8 receives only available
+ * (`false`) lease snapshots and never mutates the persisted fixture artifact.
+ */
+export type FixtureLeaseState = Readonly<FixtureLease & LeaseState>;
+
 export type FixturePreparation = Readonly<{
   requirements: readonly FixtureRequirement[];
-  leases: readonly FixtureLease[];
+  leases: readonly FixtureLeaseState[];
   diagnostics: readonly Diagnostic[];
 }> &
   Readonly<{ provisioned: true } | { provisioned: false }>;

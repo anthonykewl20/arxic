@@ -48,6 +48,145 @@ describe('stage-8 intent exploration', () => {
     );
   });
 
+  it('executes a reversible action with a supplied lease and skips the same action without one', async () => {
+    const step = {
+      intent: 'submit login',
+      action: 'form-submit',
+      actionClass: 'reversible-mutation' as const,
+      kind: 'click' as const,
+      locator: {
+        semantic: { kind: 'role' as const, role: 'button', name: 'Login' },
+        execution: { kind: 'role' as const, role: 'button', name: 'Login' },
+      },
+      required: true,
+    };
+    const withLeaseDriver = new FakeDriver([observation(`${origin}/`)]);
+    const withLease = await runPlannedExploration({
+      runId: 'reversible-with-lease',
+      origin,
+      candidates: [],
+      budget: 1,
+      driver: withLeaseDriver,
+      leases: [
+        {
+          id: 'reversible-lease',
+          owner: 'reversible-with-lease',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          inUse: false,
+        },
+      ],
+      plan: { steps: [step] },
+    });
+    const withoutLeaseDriver = new FakeDriver([]);
+    const withoutLease = await runPlannedExploration({
+      runId: 'reversible-without-lease',
+      origin,
+      candidates: [],
+      budget: 1,
+      driver: withoutLeaseDriver,
+      plan: { steps: [step] },
+    });
+
+    expect(withLease.approved).toBe(true);
+    expect(withLeaseDriver.executed).toHaveLength(1);
+    expect(withoutLeaseDriver.executed).toEqual([]);
+    expect(withoutLease.decisions).toContainEqual(expect.stringContaining('requires fixtures'));
+  });
+
+  it.each([
+    [
+      'foreign owner',
+      {
+        id: 'foreign-lease',
+        owner: 'another-run',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        inUse: false,
+      },
+    ],
+    [
+      'expired lease',
+      {
+        id: 'expired-lease',
+        owner: 'reversible-invalid-lease',
+        expiresAt: '2030-01-01T00:00:00.000Z',
+        inUse: false,
+      },
+    ],
+  ] as const)('rejects a reversible action with a %s', async (_name, lease) => {
+    const driver = new FakeDriver([]);
+    const result = await runPlannedExploration({
+      runId: 'reversible-invalid-lease',
+      origin,
+      candidates: [],
+      budget: 1,
+      driver,
+      leases: [lease],
+      plan: {
+        steps: [
+          {
+            intent: 'submit login',
+            action: 'form-submit',
+            actionClass: 'reversible-mutation',
+            kind: 'click',
+            locator: {
+              semantic: { kind: 'role', role: 'button', name: 'Login' },
+              execution: { kind: 'role', role: 'button', name: 'Login' },
+            },
+            required: true,
+          },
+        ],
+      },
+      now: () => '2031-01-01T00:00:00.000Z',
+    });
+
+    expect(result.approved).toBe(false);
+    expect(driver.executed).toEqual([]);
+    expect(result.decisions).toContainEqual(expect.stringContaining(ARXIC_EXPLORATION_FORBIDDEN));
+  });
+
+  it('reports a collision when every supplied fixture lease is in use instead of treating it as absent', async () => {
+    const driver = new FakeDriver([]);
+    const result = await runPlannedExploration({
+      runId: 'reversible-in-use',
+      origin,
+      candidates: [],
+      budget: 1,
+      driver,
+      leases: [
+        {
+          id: 'busy',
+          owner: 'reversible-in-use',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          inUse: true,
+        },
+        {
+          id: 'also-busy',
+          owner: 'reversible-in-use',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          inUse: true,
+        },
+      ],
+      plan: {
+        steps: [
+          {
+            intent: 'submit login',
+            action: 'form-submit',
+            actionClass: 'reversible-mutation',
+            kind: 'click',
+            locator: {
+              semantic: { kind: 'role', role: 'button', name: 'Login' },
+              execution: { kind: 'role', role: 'button', name: 'Login' },
+            },
+            required: true,
+          },
+        ],
+      },
+    });
+    expect(result.approved).toBe(false);
+    expect(driver.executed).toEqual([]);
+    expect(result.decisions).toContainEqual(expect.stringContaining(ARXIC_EXPLORATION_FORBIDDEN));
+  });
+
   it('blocks an unknown policy action without executing it', async () => {
     const driver = new FakeDriver([]);
     const result = await run(driver, plan({ action: 'unknown', actionClass: 'read-only' }));
@@ -211,7 +350,7 @@ describe('stage-8 intent exploration', () => {
       driver,
       lease: {
         id: 'locator-provenance-lease',
-        owner: 'unit-test',
+        owner: 'unit-locator-provenance-failure',
         expiresAt: '2099-01-01T00:00:00.000Z',
         inUse: false,
       },
@@ -295,7 +434,7 @@ describe('stage-8 intent exploration', () => {
       driver,
       lease: {
         id: 'locator-provenance-lease',
-        owner: 'unit-test',
+        owner: 'unit-locator-provenance-success',
         expiresAt: '2099-01-01T00:00:00.000Z',
         inUse: false,
       },

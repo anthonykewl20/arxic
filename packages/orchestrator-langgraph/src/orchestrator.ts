@@ -42,7 +42,10 @@ import {
   normalizeIntentSpec,
   type IntentSpec,
 } from '@arxic/intent';
-import { PACKAGE_NAME as PLAYWRIGHT_PACKAGE } from '@arxic/playwright-agent-adapter';
+import {
+  PACKAGE_NAME as PLAYWRIGHT_PACKAGE,
+  type ExplorationDriver,
+} from '@arxic/playwright-agent-adapter';
 import {
   ARXIC_PROBE_HARNESS_UNUSABLE,
   CompileError,
@@ -57,7 +60,7 @@ import {
 } from '@arxic/source-ua-adapter';
 import { artifactHash, canonicalJson, type StageCheckpointer } from './checkpointer';
 import { FixtureCoordinator } from './fixture-coordinator';
-import { defaultExploration } from './exploration';
+import { defaultExploration, type ExplorationPlan } from './exploration';
 import { createRunInputFingerprint } from './input-fingerprint';
 import { isStage4InferenceFailure, selectNeighbourhood, stage4Infer } from './inference';
 import {
@@ -80,6 +83,7 @@ import type {
   CompilationResult,
   CoverageMatrix,
   ExplorationResult,
+  FixtureLeaseState,
   FixturePreparation,
   ImmutableArtifactRef,
   InferenceResult,
@@ -173,7 +177,16 @@ export type OrchestratorOptions = Readonly<{
     candidates: readonly Candidate[];
     surface: SurfaceMap;
   }) => Promise<CoverageMatrix>;
-  prepareFixtures?: (input: { candidates: readonly Candidate[] }) => Promise<FixturePreparation>;
+  prepareFixtures?: (input: {
+    candidates: readonly Candidate[];
+    runId: string;
+  }) => Promise<FixturePreparation>;
+  /** Service boundary for stage-7 provisioning and terminal cleanup. */
+  fixtureCoordinator?: FixtureCoordinator;
+  /** Driver injection for the default stage-8 service, primarily sandbox integration. */
+  explorationDriver?: ExplorationDriver;
+  /** Optional deterministic plan for exercising the default stage-8 service. */
+  explorationPlan?: ExplorationPlan;
   explore?: (input: import('./exploration').ExplorationInput) => Promise<ExplorationResult>;
   resolveOracle?: (input: OracleResolutionInput) => Promise<OracleResolution>;
   compile?: (input: {
@@ -220,6 +233,7 @@ export class WorkerRestartError extends Error {
 export class LangGraphOrchestrator {
   readonly #options: OrchestratorOptions;
   readonly #now: () => string;
+  readonly #activeFixtureLeases = new Map<string, readonly FixtureLeaseState[]>();
 
   constructor(options: OrchestratorOptions) {
     this.#options = options;
@@ -227,95 +241,151 @@ export class LangGraphOrchestrator {
   }
 
   async run(input: OrchestratorInput, approval?: ApprovalInput): Promise<RunState> {
-    const persisted = await this.#options.checkpointer.load(input.runId);
-    let inputFingerprint: ReturnType<typeof createRunInputFingerprint>;
+    let graphInvoked = false;
+    let terminal = false;
+    let runResult: RunState | undefined;
     try {
-      inputFingerprint = createRunInputFingerprint({
-        sourceRevision: input.revision,
-        origin: input.origin,
-        policy: {
-          appBuildDigest: input.appBuildDigest,
-          expectedNonce: input.expectedNonce,
-          maxDepth: input.maxDepth,
-          maxUrls: input.maxUrls,
-          requireExplorationApproval: input.requireExplorationApproval,
-          supplied: input.policy,
-        },
-        config: {
-          features: input.features,
-          framework: input.framework,
-          languages: input.languages,
-          model: this.#options.model,
-          modelPrompt: input.modelPrompt,
-          oracleRules: input.oracleRules,
-          personas: input.personas,
-          rulepacksDir: input.rulepacksDir,
-          supplied: input.config,
-          credentialBytes: input.credentialBytes,
-        },
-      });
-    } catch {
-      return this.#rejectInvalidInputFingerprint(persisted, input.runId);
-    }
-    if (persisted && persisted.inputFingerprint === undefined) {
-      return this.#rejectReuse(
-        persisted,
-        ARXIC_ORCH_INPUT_FINGERPRINT_MISSING,
-        'Persisted run has no input fingerprint and cannot be safely reused',
-      );
-    }
-    if (persisted && persisted.inputFingerprint !== inputFingerprint.sha256) {
-      return this.#rejectReuse(
-        persisted,
-        ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH,
-        'Persisted run input fingerprint does not match the supplied semantic inputs',
-      );
-    }
-    if (
-      persisted &&
-      (persisted.status === 'completed' || persisted.status === 'partial') &&
-      STAGES.every((stage) => persisted.completedStages.includes(stage))
-    ) {
-      if (!(await this.#verifyTerminalArtifacts(persisted))) {
+      const persisted = await this.#options.checkpointer.load(input.runId);
+      let inputFingerprint: ReturnType<typeof createRunInputFingerprint>;
+      try {
+        inputFingerprint = createRunInputFingerprint({
+          sourceRevision: input.revision,
+          origin: input.origin,
+          policy: {
+            appBuildDigest: input.appBuildDigest,
+            expectedNonce: input.expectedNonce,
+            maxDepth: input.maxDepth,
+            maxUrls: input.maxUrls,
+            requireExplorationApproval: input.requireExplorationApproval,
+            supplied: input.policy,
+          },
+          config: {
+            features: input.features,
+            framework: input.framework,
+            languages: input.languages,
+            model: this.#options.model,
+            modelPrompt: input.modelPrompt,
+            oracleRules: input.oracleRules,
+            personas: input.personas,
+            rulepacksDir: input.rulepacksDir,
+            supplied: input.config,
+            credentialBytes: input.credentialBytes,
+          },
+        });
+      } catch {
+        return this.#rejectInvalidInputFingerprint(persisted, input.runId);
+      }
+      if (persisted && persisted.inputFingerprint === undefined) {
         return this.#rejectReuse(
           persisted,
-          ARXIC_ORCH_HASH_MISMATCH,
-          'Persisted terminal artifacts no longer match their recorded SHA-256 hashes',
+          ARXIC_ORCH_INPUT_FINGERPRINT_MISSING,
+          'Persisted run has no input fingerprint and cannot be safely reused',
         );
       }
-      return persisted;
-    }
-    let initial = persisted ?? queuedState(input.runId, inputFingerprint.sha256);
-    if (persisted) {
-      initial = {
-        ...initial,
-        status:
-          initial.status === 'awaiting-approval' && !approval ? 'awaiting-approval' : 'running',
-        diagnostics: [
-          ...initial.diagnostics,
-          orchDiagnostic(
-            ARXIC_ORCH_RESUME,
-            'observed',
-            input.runId,
-            `Resumed after stage ${String(initial.completedStages.at(-1) ?? 'none')}; only the active stage may re-run`,
-          ),
-        ],
-      };
-    }
-    if (!persisted) initial = { ...initial, status: 'running' };
-    const graph = this.#buildGraph(input, approval).compile({ checkpointer: new MemorySaver() });
-    const result = await graph.invoke(
-      { run: initial },
-      { configurable: { thread_id: input.runId } },
-    );
-    const finalized = finalize(result.run);
-    if (finalized.status !== result.run.status) {
-      const checkpoint = finalized.checkpoints.at(-1);
-      if (checkpoint) {
-        await this.#options.checkpointer.saveCheckpoint(input.runId, checkpoint, finalized);
+      if (persisted && persisted.inputFingerprint !== inputFingerprint.sha256) {
+        return this.#rejectReuse(
+          persisted,
+          ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH,
+          'Persisted run input fingerprint does not match the supplied semantic inputs',
+        );
+      }
+      if (
+        persisted &&
+        (persisted.status === 'completed' || persisted.status === 'partial') &&
+        STAGES.every((stage) => persisted.completedStages.includes(stage))
+      ) {
+        if (!(await this.#verifyTerminalArtifacts(persisted))) {
+          return this.#rejectReuse(
+            persisted,
+            ARXIC_ORCH_HASH_MISMATCH,
+            'Persisted terminal artifacts no longer match their recorded SHA-256 hashes',
+          );
+        }
+        return persisted;
+      }
+      await this.#rehydrateFixtureLeases(persisted, input.runId);
+      let initial = persisted ?? queuedState(input.runId, inputFingerprint.sha256);
+      if (persisted) {
+        initial = {
+          ...initial,
+          status:
+            initial.status === 'awaiting-approval' && !approval ? 'awaiting-approval' : 'running',
+          diagnostics: [
+            ...initial.diagnostics,
+            orchDiagnostic(
+              ARXIC_ORCH_RESUME,
+              'observed',
+              input.runId,
+              `Resumed after stage ${String(initial.completedStages.at(-1) ?? 'none')}; only the active stage may re-run`,
+            ),
+          ],
+        };
+      }
+      if (!persisted) initial = { ...initial, status: 'running' };
+      const graph = this.#buildGraph(input, approval).compile({ checkpointer: new MemorySaver() });
+      graphInvoked = true;
+      const result = await graph.invoke(
+        { run: initial },
+        { configurable: { thread_id: input.runId } },
+      );
+      const finalized = finalize(result.run);
+      terminal = isTerminalRunStatus(finalized.status);
+      if (finalized.status !== result.run.status) {
+        const checkpoint = finalized.checkpoints.at(-1);
+        if (checkpoint) {
+          await this.#options.checkpointer.saveCheckpoint(input.runId, checkpoint, finalized);
+        }
+      }
+      runResult = finalized;
+    } finally {
+      if (terminal || (graphInvoked && runResult === undefined)) {
+        const diagnostics = await this.#releaseRunFixtures(input.runId);
+        if (runResult && diagnostics.length > 0) {
+          runResult = { ...runResult, diagnostics: [...runResult.diagnostics, ...diagnostics] };
+          if (this.#options.checkpointer.saveRunState) {
+            try {
+              await this.#options.checkpointer.saveRunState(input.runId, runResult);
+            } catch {
+              // Cleanup diagnostics are best-effort and must not change a terminal run result.
+            }
+          }
+        }
       }
     }
-    return finalized;
+    if (!runResult) throw new Error('Orchestration completed without a run result');
+    return runResult;
+  }
+
+  async #releaseRunFixtures(runId: string): Promise<readonly Diagnostic[]> {
+    const leases = this.#activeFixtureLeases.get(runId);
+    this.#activeFixtureLeases.delete(runId);
+    if (leases && this.#options.fixtureCoordinator) {
+      return this.#options.fixtureCoordinator.release(leases);
+    }
+    return [];
+  }
+
+  async #rehydrateFixtureLeases(persisted: RunState | undefined, runId: string): Promise<void> {
+    if (
+      !persisted ||
+      isTerminalRunStatus(persisted.status) ||
+      !persisted.completedStages.includes(7) ||
+      this.#activeFixtureLeases.has(runId) ||
+      !this.#options.fixtureCoordinator
+    ) {
+      return;
+    }
+    const ref = persisted.artifacts[7];
+    if (!ref || !(await this.#options.checkpointer.verifyArtifact(runId, ref))) return;
+    const fixtures = (await this.#options.checkpointer.readArtifact(
+      runId,
+      ref,
+    )) as FixturePreparation;
+    if (!fixtures.provisioned || fixtures.leases.length === 0) return;
+    this.#activeFixtureLeases.set(
+      runId,
+      this.#options.fixtureCoordinator.rehydrate(fixtures.leases, new Date(this.#now())),
+    );
   }
 
   async #verifyTerminalArtifacts(state: RunState): Promise<boolean> {
@@ -646,9 +716,17 @@ export class LangGraphOrchestrator {
 
   async #fixtures(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
     const inference = await this.#artifact<InferenceResult>(state, input, 4);
-    const result = await (this.#options.prepareFixtures ?? defaultFixturePreparation)({
-      candidates: inference.candidates,
-    });
+    const result = await (this.#options.prepareFixtures
+      ? this.#options.prepareFixtures({ candidates: inference.candidates, runId: input.runId })
+      : this.#options.fixtureCoordinator
+        ? this.#options.fixtureCoordinator.prepare({
+            candidates: inference.candidates,
+            runId: input.runId,
+          })
+        : defaultFixturePreparation({ candidates: inference.candidates }));
+    if (result.provisioned && this.#options.fixtureCoordinator) {
+      this.#activeFixtureLeases.set(input.runId, result.leases);
+    }
     return {
       artifact: result,
       adapter: '@arxic/fixture-adapters:seam',
@@ -671,6 +749,8 @@ export class LangGraphOrchestrator {
     approval?: ApprovalInput,
   ): Promise<StageExecution> {
     const inference = await this.#artifact<InferenceResult>(state, input, 4);
+    const fixtures = await this.#artifact<FixturePreparation>(state, input, 7);
+    const leases = this.#activeFixtureLeases.get(input.runId) ?? fixtures.leases;
     if (input.requireExplorationApproval && !approval) {
       return {
         artifact: { approved: false, evidenceRefs: [], decisions: ['Human approval required'] },
@@ -685,7 +765,10 @@ export class LangGraphOrchestrator {
       origin: input.origin,
       ...(input.appBuildDigest ? { appBuildDigest: input.appBuildDigest } : {}),
       candidates: inference.candidates,
+      ...(leases.length > 0 ? { leases, lease: leases[0], now: this.#now } : { now: this.#now }),
       ...(approval ? { approval } : {}),
+      ...(this.#options.explorationDriver ? { driver: this.#options.explorationDriver } : {}),
+      ...(this.#options.explorationPlan ? { plan: this.#options.explorationPlan } : {}),
       budget: 8,
     };
     const result = await (this.#options.explore ?? defaultExploration)(explorationInput);
@@ -1200,6 +1283,10 @@ function finalize(state: RunState): RunState {
   if (state.status === 'partial' || state.outcome === 'blocked')
     return { ...state, status: 'partial' };
   return { ...state, status: 'completed' };
+}
+
+function isTerminalRunStatus(status: RunState['status']): boolean {
+  return status === 'completed' || status === 'partial' || status === 'failed';
 }
 
 function diagnosticsFromEvents(events: EvidenceEvent[]): Diagnostic[] {

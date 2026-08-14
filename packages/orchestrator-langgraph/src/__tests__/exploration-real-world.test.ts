@@ -146,7 +146,7 @@ describe('real stage-8 exploration proof', () => {
       }),
       lease: {
         id: 'real-locator-provenance-lease',
-        owner: 'exploration-real-world-test',
+        owner: 'real-locator-provenance',
         expiresAt: '2099-01-01T00:00:00.000Z',
         inUse: false,
       },

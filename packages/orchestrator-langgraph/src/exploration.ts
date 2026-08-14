@@ -88,6 +88,8 @@ export type ExplorationInput = Readonly<{
   approval?: ApprovalInput;
   budget: number;
   sandboxAdapterPresent?: boolean;
+  leases?: readonly LeaseState[];
+  /** @deprecated Supply the stage-7 lease collection through `leases`. */
   lease?: LeaseState;
   driver?: ExplorationDriver;
   browser?: string;
@@ -163,6 +165,8 @@ export async function runPlannedExploration(
   let budgetRemaining = input.budget;
   let approved = true;
   let safeToExecute = true;
+  const leaseSelection = selectLease(input);
+  const lease = leaseSelection.lease;
 
   for (const step of plan.steps) {
     if (budgetRemaining <= 0) {
@@ -176,7 +180,18 @@ export async function runPlannedExploration(
       approved = false;
       break;
     }
-    if (step.actionClass === 'reversible-mutation' && !input.lease) {
+    if (
+      step.actionClass === 'reversible-mutation' &&
+      (leaseSelection.invalid || leaseSelection.collision)
+    ) {
+      const message = 'Fixture lease owner or expiry does not authorize this run';
+      diagnostics.push(explorationDiagnostic(ARXIC_EXPLORATION_FORBIDDEN, step.intent, message));
+      decisions.push(message);
+      approved = false;
+      safeToExecute = false;
+      break;
+    }
+    if (step.actionClass === 'reversible-mutation' && !lease) {
       decisions.push(
         `Step authorized but not executed (actionClass ${step.actionClass} requires fixtures/approval-handled): ${step.intent}`,
       );
@@ -186,7 +201,7 @@ export async function runPlannedExploration(
       action: step.action,
       actionClass: step.actionClass,
       origin: input.origin,
-      ...(input.lease ? { lease: input.lease } : {}),
+      ...(lease ? { lease } : {}),
       approvals,
       budget: { remaining: budgetRemaining },
     });
@@ -296,6 +311,19 @@ export async function runPlannedExploration(
     decisions,
     ...(locatorProvenance.length > 0 ? { locatorProvenance: { records: locatorProvenance } } : {}),
   };
+}
+
+function selectLease(
+  input: ExplorationInput,
+): Readonly<{ lease?: LeaseState; invalid: boolean; collision: boolean }> {
+  const supplied = [...(input.lease ? [input.lease] : []), ...(input.leases ?? [])];
+  const candidates = supplied.filter((candidate) => !candidate.inUse);
+  if (candidates.length === 0) return { invalid: false, collision: supplied.length > 0 };
+  const now = Date.parse((input.now ?? (() => new Date().toISOString()))());
+  const lease = candidates.find(
+    (candidate) => candidate.owner === input.runId && Date.parse(candidate.expiresAt) > now,
+  );
+  return lease ? { lease, invalid: false, collision: false } : { invalid: true, collision: false };
 }
 
 export async function defaultExploration(input: ExplorationInput): Promise<ExplorationResult> {
