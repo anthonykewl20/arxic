@@ -5,6 +5,7 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
   void approvedOrigins;
   return [
     "import { test as base, expect } from '@playwright/test';",
+    "import { installTransitionReceiptListeners, writeTransitionReceipts } from './transition-receipts';",
     '',
     'const approvedOrigins = new Set();',
     "const ORIGIN_DENIED = 'ARXIC-COMPILE-ORIGIN-DENIED';",
@@ -47,7 +48,7 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
     '  }',
     '}',
     '',
-    'test.beforeEach(async ({ browserName, context, page }) => {',
+    'test.beforeEach(async ({ browserName, context, page }, testInfo) => {',
     "  if (browserName !== 'chromium') {",
     '    throw new Error(`${ORIGIN_DENIED}: redirect containment requires Chromium CDP`);',
     '  }',
@@ -102,9 +103,11 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
     '    }',
     '  });',
     "  await session.send('Fetch.enable', { patterns: [{ requestStage: 'Response' }] });",
+    '  installTransitionReceiptListeners(context, page, testInfo);',
     '});',
     '',
     'test.afterEach(async ({ context }) => {',
+    '  await writeTransitionReceipts(context);',
     '  const session = cdpSessions.get(context);',
     '  if (session) {',
     "    await session.send('Fetch.disable').catch(() => undefined);",

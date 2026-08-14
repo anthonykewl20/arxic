@@ -32,6 +32,7 @@ import {
   PlaywrightVerifier,
   captureRunArtifacts,
   classifyVerification,
+  readTransitionReceipts,
 } from './index';
 
 const temporaryDirectories: string[] = [];
@@ -368,6 +369,162 @@ describe('PlaywrightVerifier', () => {
 
     expect(result.outcome).toBe('blocked');
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_BLOCKED_NETWORK });
+  });
+
+  test('blocks an exit-zero run which skips a required transition instead of marking it verified', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await writeRunArtifacts(fixture.outputDirectory, 1);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: [],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(1));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
+  });
+
+  test('blocks a two-run verification when one otherwise-passing replay skips a transition', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async (run) => {
+        await writeRunArtifacts(fixture.outputDirectory, run);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: run === 1 ? [] : ['login-page->home'],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(2));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
+  });
+
+  test('blocks a passing legacy fixture which returns no transition receipt', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await writeRunArtifacts(fixture.outputDirectory, 1);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(1));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
+  });
+
+  test('blocks malformed receipt output rather than trusting a successful process result', async () => {
+    const fixture = await stagedFixture();
+    const verifier = verifierFor(fixture, {
+      runSuite: async () => {
+        await writeRunArtifacts(fixture.outputDirectory, 1);
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          receiptError:
+            'Transition receipt contains an untrusted, duplicate, or forged step witness',
+        };
+      },
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(1));
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRANSITIONS_MISSING });
+  });
+
+  test('defaults to blocking structured HTTP and console errors when policy omits forbidNetworkErrors', () => {
+    const result = classifyVerification({
+      subject: 'authentication.login',
+      runs: [{ passed: true }],
+      policy: { requiredRuns: 1 } as StagedBundle['workflow']['verification'],
+      networkErrors: ['http-response 500 http://127.0.0.1:3000/api/login', 'console-error boom'],
+    });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_BLOCKED_NETWORK });
+  });
+
+  test('validates receipt nonce, step names, URL witnesses, and structured page events', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-transition-receipt-'));
+    temporaryDirectories.push(directory);
+    const receiptPath = join(directory, 'receipts.json');
+    const nonce = 'runner-owned-nonce';
+    const expectation = {
+      path: receiptPath,
+      nonce,
+      testTitle: 'authentication.login',
+      transitions: [{ id: 'login-page->home', stepName: 'login-page → home' }],
+    };
+    await writeFile(
+      receiptPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        kind: 'arxic-transition-receipts',
+        correlationSha256: createHash('sha256').update(nonce).digest('hex'),
+        testTitle: 'authentication.login',
+        transitions: [
+          {
+            id: 'login-page->home',
+            stepName: 'login-page → home',
+            url: 'http://127.0.0.1:3000/',
+          },
+        ],
+        events: [
+          { kind: 'http-response', status: 500, url: 'http://127.0.0.1:3000/api/login' },
+          { kind: 'console-error', message: 'unexpected app error' },
+        ],
+      }),
+    );
+
+    await expect(readTransitionReceipts(expectation)).resolves.toEqual({
+      ok: true,
+      transitions: ['login-page->home'],
+      networkErrors: ['http-response 500 http://127.0.0.1:3000/api/login', 'console-error'],
+    });
+    await writeFile(
+      receiptPath,
+      JSON.stringify({
+        schemaVersion: 1,
+        kind: 'arxic-transition-receipts',
+        correlationSha256: createHash('sha256').update(nonce).digest('hex'),
+        testTitle: 'authentication.login',
+        transitions: [
+          {
+            id: 'forged->transition',
+            stepName: 'forged → transition',
+            url: 'http://127.0.0.1:3000/',
+          },
+        ],
+        events: [],
+      }),
+    );
+    await expect(readTransitionReceipts(expectation)).resolves.toEqual({
+      ok: false,
+      error: 'Transition receipt contains an untrusted, duplicate, or forged step witness',
+    });
   });
 
   test('blocks when required screenshots and traces are absent', async () => {

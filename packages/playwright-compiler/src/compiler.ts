@@ -27,6 +27,7 @@ import { generateConfig, generateFixture } from './fixture-generator';
 import { generatePlan } from './plan-generator';
 import { resolveOriginPolicy } from './origin-policy';
 import { generateSpec, UnsupportedWorkflowStepError } from './spec-generator';
+import { transitionReceiptRuntimeSource } from './transition-receipt-runtime';
 
 export type PlaywrightCompilerOptions = {
   outputDirectory: string;
@@ -129,12 +130,13 @@ export class PlaywrightCompiler implements WorkflowCompiler {
       throw error;
     }
     const fixture = generateFixture(validatedWorkflow.value, originPolicy.allowedOrigins);
+    const transitionReceiptRuntime = transitionReceiptRuntimeSource();
     const screenshotPrivacyRuntime = screenshotPrivacyRuntimeSource();
     const plan = generatePlan(validatedWorkflow.value);
     const config = generateConfig(validatedWorkflow.value);
     const policy = enforceCompilePolicy({
       spec,
-      fixture: `${fixture}\n${screenshotPrivacyRuntime}`,
+      fixture: `${fixture}\n${transitionReceiptRuntime}\n${screenshotPrivacyRuntime}`,
       workflow: validatedWorkflow.value,
       ...(nonSemanticLocatorRationale
         ? {
@@ -153,6 +155,11 @@ export class PlaywrightCompiler implements WorkflowCompiler {
     const files = [
       { kind: 'playwright-spec', path: 'tests/workflow.spec.ts', content: spec },
       { kind: 'playwright-fixture', path: 'fixtures/workflow.fixture.ts', content: fixture },
+      {
+        kind: 'transition-receipt-runtime',
+        path: 'fixtures/transition-receipts.ts',
+        content: transitionReceiptRuntime,
+      },
       {
         kind: 'screenshot-capture-runtime',
         path: 'fixtures/screenshot-privacy.ts',

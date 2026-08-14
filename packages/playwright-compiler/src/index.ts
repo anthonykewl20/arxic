@@ -8,3 +8,4 @@ export * from './origin-policy';
 export * from './plan-generator';
 export * from './sensitivity-probe';
 export * from './spec-generator';
+export * from './transition-receipt-runtime';
