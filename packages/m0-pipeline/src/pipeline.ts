@@ -16,6 +16,7 @@ import { validateManifest, validateWorkflow } from '@arxic/contracts';
 import { AstGrepAdapter, diagnosticsOf } from '@arxic/ast-grep-adapter';
 import { BundlePromoterAdapter, projectVerifiedBundle } from '@arxic/bundle-promoter';
 import { EnvironmentHandshake } from '@arxic/environment';
+import { artifactRef } from '@arxic/verifier';
 import {
   generateSpecFromWorkflow,
   renderFallbackConfig,
@@ -32,7 +33,7 @@ import {
   ARXIC_EXIT_PROMOTION_SKIPPED,
   exitDiagnostic,
 } from './diagnostics';
-import { artifactRef, verifyStagedSuite } from './verifier';
+import { verifyStagedSuite } from './verifier';
 
 const FIXTURE_NONCE = 'reference-auth-app-fixture-v1';
 

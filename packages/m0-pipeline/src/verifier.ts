@@ -1,5 +1,4 @@
-import { createHash } from 'node:crypto';
-import { readFile, rm } from 'node:fs/promises';
+import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type {
   ArtifactRef,
@@ -8,8 +7,15 @@ import type {
   VerificationPolicy,
   Workflow,
 } from '@arxic/contracts';
+import {
+  ARXIC_VERIFY_SUITE_UNAVAILABLE,
+  artifactRef,
+  captureRunArtifacts,
+  classifyVerification,
+  verifyDiagnostic,
+  type ClassificationInput,
+} from '@arxic/verifier';
 import { installedChromiumVersion, runFallback } from '@arxic/playwright-agent-adapter';
-import { retainCaptureArtifacts } from '@arxic/playwright-trace-sanitizer';
 import {
   SCREENSHOT_CAPTURE_CORRELATION_ENV,
   SCREENSHOT_CAPTURED_AT_ENV,
@@ -21,12 +27,7 @@ import {
   type ScreenshotPrivacyPolicy,
   type TrustedScreenshotCaptureBinding,
 } from '@arxic/playwright-screenshot-privacy';
-import {
-  ARXIC_EXIT_APP_DEFECT_CONTRADICTED,
-  ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
-  ARXIC_EXIT_FLAKY_RUNS,
-  exitDiagnostic,
-} from './diagnostics';
+import { ARXIC_EXIT_EVIDENCE_GATE_BLOCKED, exitDiagnostic } from './diagnostics';
 
 export type StagedSuitePass = {
   passed: boolean;
@@ -73,13 +74,14 @@ export async function verifyStagedSuite(
   input: VerifyStagedSuiteInput,
 ): Promise<VerifyStagedSuiteResult> {
   if (!Number.isInteger(input.policy.requiredRuns) || input.policy.requiredRuns < 1) {
-    return blockedResult([], [], 'Verification requires at least one clean-fixture run');
+    return classifiedResult(input, [], [], {});
   }
   const requiredTransitions = input.workflow.transitions
     .filter((transition) => transition.required !== false)
     .map((transition) => `${transition.from}->${transition.to}`);
   const artifacts: ArtifactRef[] = [];
-  const diagnostics: Diagnostic[] = [];
+  const executionDiagnostics: Diagnostic[] = [];
+  const networkErrors: string[] = [];
   const runs: Array<{ passed: boolean }> = [];
   const observed = new Set<string>();
   const artifactFailures: string[] = [];
@@ -88,11 +90,14 @@ export async function verifyStagedSuite(
   try {
     artifacts.push(await artifactRef('spec', specPath));
   } catch (error) {
-    return blockedResult(
-      runs,
-      artifacts,
-      `The staged suite is unavailable: ${error instanceof Error ? error.message : String(error)}`,
-    );
+    return classifiedResult(input, runs, artifacts, {
+      executionDiagnostics: [
+        unavailableDiagnostic(
+          input.workflow.id,
+          `The staged suite is unavailable: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      ],
+    });
   }
   let screenshot:
     | {
@@ -119,11 +124,14 @@ export async function verifyStagedSuite(
       });
       screenshot = { binding, policy: privacyPolicy, action };
     } catch (error) {
-      return blockedResult(
-        runs,
-        artifacts,
-        `Screenshot privacy binding failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      return classifiedResult(input, runs, artifacts, {
+        executionDiagnostics: [
+          unavailableDiagnostic(
+            input.workflow.id,
+            `Screenshot privacy binding failed: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        ],
+      });
     }
   }
   for (let run = 1; run <= input.policy.requiredRuns; run += 1) {
@@ -138,16 +146,19 @@ export async function verifyStagedSuite(
         ? await input.executeRun(run)
         : await executeFallbackRun(input, run, requiredTransitions, screenshot!);
     } catch (error) {
-      return blockedResult(
-        runs,
-        artifacts,
-        `Clean-fixture pass ${run} could not execute: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      return classifiedResult(input, runs, artifacts, {
+        executionDiagnostics: [
+          unavailableDiagnostic(
+            input.workflow.id,
+            `Clean-fixture pass ${run} could not execute: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        ],
+      });
     }
-    const networkFailed = input.policy.forbidNetworkErrors && (pass.networkErrors?.length ?? 0) > 0;
-    runs.push({ passed: pass.passed && !networkFailed });
+    runs.push({ passed: pass.passed });
     artifacts.push(...(pass.artifacts ?? []));
-    diagnostics.push(...(pass.diagnostics ?? []));
+    executionDiagnostics.push(...(pass.diagnostics ?? []));
+    networkErrors.push(...(pass.networkErrors ?? []));
     artifactFailures.push(...(pass.artifactFailures ?? []).map((item) => `pass ${run} ${item}`));
     if (pass.browserVersion) browserVersions.add(pass.browserVersion);
     for (const transition of pass.observedTransitions ?? []) observed.add(transition);
@@ -174,54 +185,36 @@ export async function verifyStagedSuite(
     }
   }
   const missing = requiredTransitions.filter((transition) => !observed.has(transition));
-  if (missing.length > 0) {
-    return blockedResult(
-      runs,
-      artifacts,
-      `Required transitions lack runtime observations: ${missing.join(', ')}`,
-      diagnostics,
-    );
-  }
-  const passed = runs.filter((run) => run.passed).length;
-  if (passed === runs.length && runs.length >= input.policy.requiredRuns) {
-    if (artifactFailures.length > 0)
-      return blockedResult(runs, artifacts, artifactFailures.join('; '), diagnostics);
-    if (browserVersions.size !== 1) {
-      return blockedResult(
-        runs,
-        artifacts,
-        'Clean-fixture passes did not record exactly one consistent browser version',
-        diagnostics,
-      );
-    }
+  const classified = classifiedResult(input, runs, artifacts, {
+    ...(executionDiagnostics.length > 0 ? { executionDiagnostics } : {}),
+    ...(networkErrors.length > 0 ? { networkErrors } : {}),
+    ...(artifactFailures.length > 0
+      ? {
+          artifactFailures: artifactFailures.map((detail) => ({
+            reason: 'missing' as const,
+            detail,
+          })),
+        }
+      : {}),
+    ...(missing.length > 0 ? { missingTransitions: missing } : {}),
+  });
+  if (classified.outcome !== 'verified') return classified;
+  if (browserVersions.size !== 1) {
     return {
-      outcome: 'verified',
-      runs,
-      artifacts,
-      diagnostics,
-      browserVersion: [...browserVersions][0],
+      ...classified,
+      outcome: 'blocked',
+      diagnostics: [
+        ...classified.diagnostics,
+        exitDiagnostic(
+          ARXIC_EXIT_EVIDENCE_GATE_BLOCKED,
+          'blocked',
+          input.workflow.id,
+          'Clean-fixture passes did not record exactly one consistent browser version',
+        ),
+      ],
     };
   }
-  if (passed > 0) {
-    diagnostics.push(
-      exitDiagnostic(
-        ARXIC_EXIT_FLAKY_RUNS,
-        'contradicted',
-        input.workflow.id,
-        'Verification split between passing and failing clean-fixture runs',
-      ),
-    );
-  } else {
-    diagnostics.push(
-      exitDiagnostic(
-        ARXIC_EXIT_APP_DEFECT_CONTRADICTED,
-        'contradicted',
-        input.workflow.id,
-        'Runtime disproved the candidate in every clean-fixture run',
-      ),
-    );
-  }
-  return { outcome: 'contradicted', runs, artifacts, diagnostics };
+  return { ...classified, browserVersion: [...browserVersions][0] };
 }
 
 async function executeFallbackRun(
@@ -257,19 +250,17 @@ async function executeFallbackRun(
   let runArtifacts: ArtifactRef[] = [];
   const artifactFailures: string[] = [];
   try {
-    runArtifacts = await retainRunArtifacts(
-      input.testDir,
-      input.artifactsDir,
-      run,
-      Object.values(input.persona),
-      passed ? input.policy.screenshotCheckpoints : [],
-      {
+    runArtifacts = await captureRunArtifacts(input.testDir, input.artifactsDir, run, {
+      forbiddenSubstrings: Object.values(input.persona),
+      screenshotCheckpoints: passed ? input.policy.screenshotCheckpoints : [],
+      screenshotPrivacy: {
         binding: screenshot.binding,
         policy: screenshot.policy.policy,
         correlation,
+        attester: '@arxic/verifier',
         attestedAt: screenshot.action.now(),
       },
-    );
+    });
   } catch (error) {
     artifactFailures.push(
       `screenshot artifacts failed closed: ${error instanceof Error ? error.message : String(error)}`,
@@ -297,61 +288,33 @@ async function resetAndSeed(
   const seed = await fetch(`${origin}/api/__arxic/seed`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ personaId: 'm0-exit-user', ...persona }),
+    body: JSON.stringify({ personaId: 'arxic-verifier-user', ...persona }),
   });
   if (!seed.ok) throw new Error(`Fixture seed returned ${seed.status}`);
 }
 
-export async function retainRunArtifacts(
-  testDir: string,
-  artifactsDir: string,
-  run: number,
-  forbiddenSubstrings: readonly string[],
-  screenshotCheckpoints: readonly string[] = [],
-  screenshotPrivacy?: Readonly<{
-    binding: TrustedScreenshotCaptureBinding;
-    policy: ScreenshotPrivacyPolicy;
-    correlation: string;
-    attestedAt: string;
-  }>,
-): Promise<ArtifactRef[]> {
-  const retained = await retainCaptureArtifacts({
-    roots: [join(testDir, 'artifacts'), join(testDir, 'test-results')],
-    destination: join(artifactsDir, 'verification', `run-${run}`),
-    forbiddenSubstrings,
-    screenshotCheckpoints,
-    screenshotPrivacy: screenshotPrivacy
-      ? {
-          testDirectory: testDir,
-          ...screenshotPrivacy,
-          attester: '@arxic/m0-pipeline',
-        }
-      : undefined,
-  });
-  if (retained.ok) return retained.refs;
-  throw new Error(`${retained.code}: ${retained.message}`);
-}
-
-export async function artifactRef(kind: string, path: string): Promise<ArtifactRef> {
-  const bytes = await readFile(path);
-  return { kind, path, sha256: createHash('sha256').update(bytes).digest('hex') };
-}
-
-function blockedResult(
+function classifiedResult(
+  input: VerifyStagedSuiteInput,
   runs: Array<{ passed: boolean }>,
   artifacts: ArtifactRef[],
-  message: string,
-  diagnostics: Diagnostic[] = [],
+  classificationInput: Omit<ClassificationInput, 'subject' | 'runs' | 'policy'>,
 ): VerifyStagedSuiteResult {
+  const classification = classifyVerification({
+    subject: input.workflow.id,
+    runs,
+    policy: input.policy,
+    ...classificationInput,
+  });
   return {
-    outcome: 'blocked',
+    outcome: classification.outcome,
     runs,
     artifacts,
-    diagnostics: [
-      ...diagnostics,
-      exitDiagnostic(ARXIC_EXIT_EVIDENCE_GATE_BLOCKED, 'blocked', 'verification.evidence', message),
-    ],
+    diagnostics: classification.diagnostics,
   };
+}
+
+function unavailableDiagnostic(subject: string, message: string): Diagnostic {
+  return verifyDiagnostic(ARXIC_VERIFY_SUITE_UNAVAILABLE, 'blocked', subject, message);
 }
 
 function restoreEnvironment(name: string, value: string | undefined): void {

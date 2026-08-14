@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { BundleManifest } from '@arxic/contracts';
 import { validateDiagnostic, validateManifest } from '@arxic/contracts';
+import { ARXIC_VERIFY_SUITE_UNAVAILABLE } from '@arxic/verifier';
 import { describe, expect, it } from 'vitest';
 import { EXIT_DIAGNOSTIC_CODES, exitDiagnostic, verifyStagedSuite } from '..';
 import { loginWorkflow } from './workflow-fixture';
@@ -89,8 +90,6 @@ describe('M0 exit contract gate', () => {
     });
     expect(result.outcome).toBe('blocked');
     expect(result.runs).toEqual([]);
-    expect(result.diagnostics.map(({ code }) => code)).toContain(
-      'ARXIC-EXIT-EVIDENCE-GATE-BLOCKED',
-    );
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_SUITE_UNAVAILABLE);
   });
 });

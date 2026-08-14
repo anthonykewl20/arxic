@@ -316,10 +316,13 @@ importers:
       '@arxic/playwright-screenshot-privacy':
         specifier: workspace:*
         version: link:../playwright-screenshot-privacy
+      '@arxic/verifier':
+        specifier: workspace:*
+        version: link:../verifier
+    devDependencies:
       '@arxic/playwright-trace-sanitizer':
         specifier: workspace:*
         version: link:../playwright-trace-sanitizer
-    devDependencies:
       '@types/yazl':
         specifier: 3.3.1
         version: 3.3.1
