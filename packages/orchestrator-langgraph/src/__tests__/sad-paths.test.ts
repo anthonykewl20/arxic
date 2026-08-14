@@ -11,6 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
   ARXIC_ORCH_HASH_MISMATCH,
+  ARXIC_ORCH_HEALING_DEFERRED,
   ARXIC_ORCH_MODEL_RETRIES,
   ARXIC_ORCH_REDACTION_FAILED,
   ARXIC_ORCH_RESUME,
@@ -231,6 +232,13 @@ describe('orchestrator sad paths', () => {
     expect(result.completedStages).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_EMPTY_COVERAGE, severity: 'observed' }),
+    );
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_ORCH_HEALING_DEFERRED,
+        severity: 'observed',
+        subject: 'stage-11',
+      }),
     );
     expect(await stageArtifact(checkpointer, result, 'empty', 9)).toEqual({
       compiled: false,
