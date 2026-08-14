@@ -1,5 +1,7 @@
 # ADR-007: Stage-11 healing deferral for 1.0
 
+> Note (2026-08-14): the milestone this ADR calls "1.0" was re-versioned to **0.1.1** (owner versioning correction). The decision itself is unchanged.
+
 | Field      | Value                                                                                |
 | ---------- | ------------------------------------------------------------------------------------ |
 | Status     | Accepted                                                                             |
