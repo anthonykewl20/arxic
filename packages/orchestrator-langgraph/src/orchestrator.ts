@@ -66,6 +66,7 @@ import {
   ARXIC_ORCH_ORACLE_RESOLVED,
   ARXIC_ORCH_ORACLE_UNMATCHED,
   ARXIC_ORCH_REDACTION_FAILED,
+  ARXIC_ORCH_HEALING_DEFERRED,
   ARXIC_ORCH_RESUME,
   ARXIC_ORCH_STAGE_BLOCKED,
   orchDiagnostic,
@@ -328,6 +329,14 @@ export class LangGraphOrchestrator {
         artifact: { deferred: true, reason: 'Healing is deferred to M2' },
         adapter: '@arxic/orchestrator-langgraph',
         status: 'deferred',
+        diagnostics: [
+          orchDiagnostic(
+            ARXIC_ORCH_HEALING_DEFERRED,
+            'observed',
+            'stage-11',
+            'Healing is deferred to M2; no repair was attempted',
+          ),
+        ],
         decisions: ['Healing deferred to M2; no repair was attempted'],
       };
     }
