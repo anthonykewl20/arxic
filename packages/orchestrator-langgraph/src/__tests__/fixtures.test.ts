@@ -4,6 +4,8 @@ import {
   ARXIC_FIXTURE_INBOX_MISSING,
   ARXIC_FIXTURE_LEASE_LEAK,
   ARXIC_FIXTURE_MISSING,
+  ARXIC_FIXTURE_RELEASE_FAILED,
+  ARXIC_FIXTURE_RESET_FAILED,
   ARXIC_FIXTURE_SECRET_LEAK,
   ARXIC_FIXTURE_UNKNOWN_DB,
   FixtureCoordinator,
@@ -32,6 +34,81 @@ describe('FixtureCoordinator sad paths', () => {
     expect(second.diagnostics[0]?.code).toBe(ARXIC_FIXTURE_LEASE_LEAK);
     expect(provider.resetIds).toEqual(['boundary:1']);
     expect(provider.releaseIds).toEqual(['boundary:1']);
+  });
+
+  test('carries the run owner and active lease fields needed by reversible-action policy', async () => {
+    const provider = new BoundaryProvider();
+    const coordinator = new FixtureCoordinator([provider]);
+    const prepared = await coordinator.prepare({
+      candidates: [candidate([{ fixture: 'persona' }])],
+      runId: 'fixture-owner-run',
+    });
+
+    expect(prepared).toMatchObject({
+      provisioned: true,
+      leases: [
+        {
+          id: 'boundary:1',
+          owner: 'fixture-owner-run',
+          inUse: false,
+          expiresAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+        },
+      ],
+    });
+
+    await coordinator.release(prepared.leases);
+    expect(provider.resetIds).toEqual(['boundary:1']);
+    expect(provider.releaseIds).toEqual(['boundary:1']);
+  });
+
+  test('rehydrates with a fresh coordinator and re-resolves its provider for terminal release', async () => {
+    const provider = new BoundaryProvider();
+    const initial = await new FixtureCoordinator([provider]).prepare({
+      candidates: [candidate([{ fixture: 'persona' }])],
+      runId: 'rehydrated-run',
+    });
+    const fresh = new FixtureCoordinator([provider]);
+
+    const rehydrated = fresh.rehydrate(initial.leases, new Date('2035-01-01T00:00:00.000Z'));
+    expect(await fresh.release(rehydrated)).toEqual([]);
+    expect(provider.resetIds).toEqual(['boundary:1']);
+    expect(provider.releaseIds).toEqual(['boundary:1']);
+  });
+
+  test('reports release failure when a fresh coordinator cannot resolve a persisted lease provider', async () => {
+    const initial = await new FixtureCoordinator([new BoundaryProvider()]).prepare({
+      candidates: [candidate([{ fixture: 'persona' }])],
+      runId: 'orphaned-run',
+    });
+    const fresh = new FixtureCoordinator([]);
+
+    const rehydrated = fresh.rehydrate(initial.leases);
+    expect(await fresh.release(rehydrated)).toContainEqual(
+      expect.objectContaining({ code: ARXIC_FIXTURE_RELEASE_FAILED, severity: 'observed' }),
+    );
+  });
+
+  test('reports reset and release failures independently while still attempting reset then release', async () => {
+    const resetFails = new BoundaryProvider({ resetFails: true });
+    const resetCoordinator = new FixtureCoordinator([resetFails]);
+    const resetLease = await resetCoordinator.prepare({
+      candidates: [candidate([{ fixture: 'persona' }])],
+    });
+    expect(await resetCoordinator.release(resetLease.leases)).toEqual([
+      expect.objectContaining({ code: ARXIC_FIXTURE_RESET_FAILED, severity: 'observed' }),
+    ]);
+    expect(resetFails.releaseIds).toEqual(['boundary:1']);
+
+    const releaseFails = new BoundaryProvider({ releaseFails: true });
+    const releaseCoordinator = new FixtureCoordinator([releaseFails]);
+    const releaseLease = await releaseCoordinator.prepare({
+      candidates: [candidate([{ fixture: 'persona' }])],
+    });
+    expect(await releaseCoordinator.release(releaseLease.leases)).toEqual([
+      expect.objectContaining({ code: ARXIC_FIXTURE_RELEASE_FAILED, severity: 'observed' }),
+    ]);
+    expect(releaseFails.resetIds).toEqual(['boundary:1']);
+    expect(releaseFails.releaseIds).toEqual(['boundary:1']);
   });
 
   test('blocks and removes raw secret and PII when a provider leaks fixture values', async () => {
@@ -120,9 +197,15 @@ class BoundaryProvider implements FixtureProvider {
   readonly resetIds: string[] = [];
   readonly releaseIds: string[] = [];
   readonly #leak: boolean;
+  readonly #resetFails: boolean;
+  readonly #releaseFails: boolean;
 
-  constructor(leak = false) {
-    this.#leak = leak;
+  constructor(
+    options: boolean | Readonly<{ resetFails?: boolean; releaseFails?: boolean }> = false,
+  ) {
+    this.#leak = typeof options === 'boolean' && options;
+    this.#resetFails = typeof options !== 'boolean' && (options.resetFails ?? false);
+    this.#releaseFails = typeof options !== 'boolean' && (options.releaseFails ?? false);
   }
 
   supports(requirement: FixtureRequirement): boolean {
@@ -138,10 +221,12 @@ class BoundaryProvider implements FixtureProvider {
 
   async reset(lease: FixtureLease): Promise<void> {
     this.resetIds.push(lease.id);
+    if (this.#resetFails) throw new Error('reset failed');
   }
 
   async release(lease: FixtureLease): Promise<void> {
     this.releaseIds.push(lease.id);
+    if (this.#releaseFails) throw new Error('release failed');
   }
 }
 

@@ -5,22 +5,28 @@ import type {
   FixtureRequirement,
 } from '@arxic/contracts';
 import { validateDiagnostic } from '@arxic/contracts';
-import type { Candidate, FixturePreparation } from './types';
+import type { Candidate, FixtureLeaseState, FixturePreparation } from './types';
 
 export const ARXIC_FIXTURE_MISSING = 'ARXIC-FIXTURE-MISSING' as const;
 export const ARXIC_FIXTURE_LEASE_LEAK = 'ARXIC-FIXTURE-LEASE-LEAK' as const;
 export const ARXIC_FIXTURE_SECRET_LEAK = 'ARXIC-FIXTURE-SECRET-LEAK' as const;
 export const ARXIC_FIXTURE_INBOX_MISSING = 'ARXIC-FIXTURE-INBOX-MISSING' as const;
 export const ARXIC_FIXTURE_UNKNOWN_DB = 'ARXIC-FIXTURE-UNKNOWN-DB' as const;
+export const ARXIC_FIXTURE_RELEASE_FAILED = 'ARXIC-FIXTURE-RELEASE-FAILED' as const;
+export const ARXIC_FIXTURE_RESET_FAILED = 'ARXIC-FIXTURE-RESET-FAILED' as const;
 
 export type FixtureDiagnosticCode =
   | typeof ARXIC_FIXTURE_MISSING
   | typeof ARXIC_FIXTURE_LEASE_LEAK
   | typeof ARXIC_FIXTURE_SECRET_LEAK
   | typeof ARXIC_FIXTURE_INBOX_MISSING
-  | typeof ARXIC_FIXTURE_UNKNOWN_DB;
+  | typeof ARXIC_FIXTURE_UNKNOWN_DB
+  | typeof ARXIC_FIXTURE_RELEASE_FAILED
+  | typeof ARXIC_FIXTURE_RESET_FAILED;
 
-type OutstandingLease = Readonly<{ lease: FixtureLease; provider: FixtureProvider }>;
+type OutstandingLease = Readonly<{ lease: FixtureLeaseState; provider: FixtureProvider }>;
+
+const DEFAULT_LEASE_DURATION_MS = 5 * 60 * 1000;
 
 export function fixtureDiagnostic(
   code: FixtureDiagnosticCode,
@@ -36,12 +42,17 @@ export function fixtureDiagnostic(
 export class FixtureCoordinator {
   readonly #providers: readonly FixtureProvider[];
   readonly #outstanding = new Map<string, OutstandingLease>();
+  readonly #now: () => Date;
 
-  constructor(providers: readonly FixtureProvider[]) {
+  constructor(providers: readonly FixtureProvider[], options: Readonly<{ now?: () => Date }> = {}) {
     this.#providers = [...providers];
+    this.#now = options.now ?? (() => new Date());
   }
 
-  async prepare(input: { candidates: readonly Candidate[] }): Promise<FixturePreparation> {
+  async prepare(input: {
+    candidates: readonly Candidate[];
+    runId?: string;
+  }): Promise<FixturePreparation> {
     const requirements = candidateRequirements(input.candidates);
     const artifactRequirements = requirements.map(redactRequirement);
     if (this.#outstanding.size > 0) {
@@ -70,15 +81,18 @@ export class FixtureCoordinator {
           ),
         );
       }
-      let lease: FixtureLease;
+      let provisionedLease: FixtureLease;
       try {
-        lease = await provider.provision(requirement);
+        provisionedLease = await provider.provision(requirement);
       } catch (error) {
         await this.#cleanup(provisioned);
         return blockedPreparation(artifactRequirements, diagnosticFromError(error, requirement));
       }
-      if (containsSensitiveFixtureValue(lease, requirement)) {
-        await this.#cleanup([...provisioned, { lease, provider }]);
+      if (containsSensitiveFixtureValue(provisionedLease, requirement)) {
+        await this.#cleanup([
+          ...provisioned,
+          { lease: this.#managedLease(provisionedLease, input.runId), provider },
+        ]);
         return blockedPreparation(
           artifactRequirements,
           fixtureDiagnostic(
@@ -88,6 +102,7 @@ export class FixtureCoordinator {
           ),
         );
       }
+      const lease = this.#managedLease(provisionedLease, input.runId);
       if (this.#outstanding.has(lease.id)) {
         await this.#cleanup([...provisioned, { lease, provider }]);
         return blockedPreparation(
@@ -111,13 +126,50 @@ export class FixtureCoordinator {
     };
   }
 
-  async release(leases: readonly FixtureLease[]): Promise<void> {
-    for (const lease of leases) {
+  async release(leases: readonly FixtureLease[]): Promise<readonly Diagnostic[]> {
+    const diagnostics: Diagnostic[] = [];
+    const outstanding = leases.flatMap((lease) => {
       const outstanding = this.#outstanding.get(lease.id);
-      if (!outstanding) continue;
-      await outstanding.provider.release(outstanding.lease);
-      this.#outstanding.delete(lease.id);
+      if (outstanding) return [outstanding];
+      diagnostics.push(
+        cleanupDiagnostic(
+          ARXIC_FIXTURE_RELEASE_FAILED,
+          lease.id,
+          'Fixture lease was not registered for release',
+        ),
+      );
+      return [];
+    });
+    return [...diagnostics, ...(await this.#cleanup(outstanding))];
+  }
+
+  rehydrate(
+    leases: readonly FixtureLeaseState[],
+    now: Date = this.#now(),
+  ): readonly FixtureLeaseState[] {
+    const renewed: FixtureLeaseState[] = [];
+    for (const lease of leases) {
+      const refreshed = {
+        ...lease,
+        expiresAt: renewedExpiry(lease.expiresAt, now).toISOString(),
+      };
+      renewed.push(refreshed);
+      if (this.#outstanding.has(lease.id)) continue;
+      const provider = this.#provider(lease.requirement);
+      if (provider) this.#outstanding.set(lease.id, { lease: refreshed, provider });
     }
+    return renewed;
+  }
+
+  #managedLease(lease: FixtureLease, runId: string | undefined): FixtureLeaseState {
+    return {
+      ...lease,
+      owner: runId ?? 'fixture-coordinator',
+      expiresAt:
+        lease.expiresAt ??
+        new Date(this.#now().getTime() + DEFAULT_LEASE_DURATION_MS).toISOString(),
+      inUse: false,
+    };
   }
 
   #provider(requirement: FixtureRequirement): FixtureProvider | undefined {
@@ -131,15 +183,41 @@ export class FixtureCoordinator {
     return undefined;
   }
 
-  async #cleanup(outstanding: readonly OutstandingLease[]): Promise<void> {
+  async #cleanup(outstanding: readonly OutstandingLease[]): Promise<readonly Diagnostic[]> {
+    const diagnostics: Diagnostic[] = [];
     for (const item of outstanding) {
       const reset = await attemptCleanup(() => item.provider.reset(item.lease));
       const released = await attemptCleanup(() => item.provider.release(item.lease));
+      if (!reset) {
+        diagnostics.push(
+          cleanupDiagnostic(
+            ARXIC_FIXTURE_RESET_FAILED,
+            item.lease.id,
+            'Fixture reset failed during terminal cleanup',
+          ),
+        );
+      }
+      if (!released) {
+        diagnostics.push(
+          cleanupDiagnostic(
+            ARXIC_FIXTURE_RELEASE_FAILED,
+            item.lease.id,
+            'Fixture release failed during terminal cleanup',
+          ),
+        );
+      }
       if (reset && released) {
         this.#outstanding.delete(item.lease.id);
       }
     }
+    return diagnostics;
   }
+}
+
+function renewedExpiry(current: string, now: Date): Date {
+  const renewed = new Date(now.getTime() + DEFAULT_LEASE_DURATION_MS);
+  const currentExpiry = new Date(current);
+  return Number.isNaN(currentExpiry.getTime()) || currentExpiry < renewed ? renewed : currentExpiry;
 }
 
 async function attemptCleanup(operation: () => Promise<void>): Promise<boolean> {
@@ -149,6 +227,21 @@ async function attemptCleanup(operation: () => Promise<void>): Promise<boolean> 
   } catch {
     return false;
   }
+}
+
+function cleanupDiagnostic(
+  code: FixtureDiagnosticCode,
+  subject: string,
+  message: string,
+): Diagnostic {
+  const diagnostic: Diagnostic = {
+    code,
+    severity: 'observed',
+    subject,
+    message,
+  };
+  if (!validateDiagnostic(diagnostic).ok) throw new Error('Invalid fixture cleanup Diagnostic');
+  return diagnostic;
 }
 
 function candidateRequirements(candidates: readonly Candidate[]): FixtureRequirement[] {

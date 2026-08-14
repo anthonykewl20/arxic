@@ -5,7 +5,18 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
-import type { StagedBundle, Workflow } from '@arxic/contracts';
+import type {
+  FixtureLease,
+  FixtureProvider,
+  FixtureRequirement,
+  StagedBundle,
+  Workflow,
+} from '@arxic/contracts';
+import type {
+  ExplorationDriver,
+  ExplorationDriverResult,
+  PlannedExplorationStep,
+} from '@arxic/playwright-agent-adapter';
 import { ARXIC_COMPILE_EVIDENCE_MISSING } from '@arxic/playwright-compiler';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
@@ -15,7 +26,9 @@ import {
   ARXIC_ORCH_MODEL_RETRIES,
   ARXIC_ORCH_REDACTION_FAILED,
   ARXIC_ORCH_RESUME,
+  ARXIC_FIXTURE_RELEASE_FAILED,
   FileStageCheckpointer,
+  FixtureCoordinator,
   InMemoryStageCheckpointer,
   LangGraphOrchestrator,
   WorkerRestartError,
@@ -818,7 +831,252 @@ describe('orchestrator sad paths', () => {
       }),
     ]);
   }, 60_000);
+
+  it('retains a paused lease and releases it after approval resumes in a fresh orchestrator', async () => {
+    const runs = await temporaryDirectory('approval-lease-runs-');
+    const provider = new LifecycleFixtureProvider();
+    const coordinator = new FixtureCoordinator([provider]);
+    const waiting = await new LangGraphOrchestrator({
+      checkpointer: new FileStageCheckpointer(runs),
+      fixtureCoordinator: coordinator,
+      inferCandidates: async () => inferenceWithPersonaFixture('approval-lease'),
+    }).run({ ...input('approval-lease'), requireExplorationApproval: true });
+
+    expect(waiting.status).toBe('awaiting-approval');
+    expect(provider.provisionIds).toEqual(['lifecycle:1']);
+    expect(provider.resetIds).toEqual([]);
+    expect(provider.releaseIds).toEqual([]);
+
+    const resumed = await new LangGraphOrchestrator({
+      checkpointer: new FileStageCheckpointer(runs),
+      fixtureCoordinator: coordinator,
+      inferCandidates: async () => {
+        throw new Error('Stage 7 must resume from its persisted fixture artifact');
+      },
+      explore: async () => ({ approved: true, evidenceRefs: [], decisions: [] }),
+    }).run(
+      { ...input('approval-lease'), requireExplorationApproval: true },
+      {
+        approver: 'human@example.test',
+        approvedAt: '2026-08-15T00:00:00.000Z',
+        reason: 'Approved resume of retained local fixtures',
+      },
+    );
+
+    expect(resumed.status).toBe('partial');
+    expect(provider.provisionIds).toEqual(['lifecycle:1']);
+    expect(provider.resetIds).toEqual(['lifecycle:1']);
+    expect(provider.releaseIds).toEqual(['lifecycle:1']);
+  }, 60_000);
+
+  it('renews an expired paused lease before real planned exploration resumes', async () => {
+    const runId = 'renewed-paused-lease';
+    const initialNow = '2026-08-15T00:00:00.000Z';
+    const resumedNow = '2026-08-15T00:06:00.000Z';
+    const checkpointer = new InMemoryStageCheckpointer();
+    const provider = new LifecycleFixtureProvider();
+    const waiting = await new LangGraphOrchestrator({
+      checkpointer,
+      now: () => initialNow,
+      fixtureCoordinator: new FixtureCoordinator([provider], { now: () => new Date(initialNow) }),
+      inferCandidates: async () => inferenceWithPersonaFixture(runId),
+    }).run({ ...input(runId), requireExplorationApproval: true });
+    expect(waiting.status).toBe('awaiting-approval');
+
+    const driver = new RecordingExplorationDriver();
+    await new LangGraphOrchestrator({
+      checkpointer,
+      now: () => resumedNow,
+      fixtureCoordinator: new FixtureCoordinator([provider], { now: () => new Date(resumedNow) }),
+      explorationDriver: driver,
+      explorationPlan: reversibleClickPlan(),
+    }).run(
+      { ...input(runId), requireExplorationApproval: true },
+      {
+        approver: 'human@example.test',
+        approvedAt: resumedNow,
+        reason: 'Approved renewed local fixture exploration',
+      },
+    );
+
+    expect(driver.executed).toHaveLength(1);
+    expect(driver.executed[0]).toMatchObject({ kind: 'click', intent: 'submit login' });
+  }, 60_000);
+
+  it('passes stage-7 leases into exploration and resets/releases them after a partial run', async () => {
+    const provider = new LifecycleFixtureProvider();
+    const coordinator = new FixtureCoordinator([provider]);
+    let explorationLease: unknown;
+    let explorationLeases: unknown;
+    const result = await new LangGraphOrchestrator({
+      checkpointer: new InMemoryStageCheckpointer(),
+      fixtureCoordinator: coordinator,
+      inferCandidates: async () => inferenceWithPersonaFixture('lease-completed'),
+      explore: async (explorationInput) => {
+        explorationLease = explorationInput.lease;
+        explorationLeases = explorationInput.leases;
+        return { approved: true, evidenceRefs: [], decisions: [] };
+      },
+    }).run(input('lease-completed'));
+
+    expect(result.status).toBe('partial');
+    expect(explorationLease).toMatchObject({
+      id: 'lifecycle:1',
+      owner: 'lease-completed',
+      inUse: false,
+      expiresAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+    });
+    expect(explorationLeases).toEqual([expect.objectContaining({ id: 'lifecycle:1' })]);
+    expect(provider.resetIds).toEqual(['lifecycle:1']);
+    expect(provider.releaseIds).toEqual(['lifecycle:1']);
+  }, 60_000);
+
+  it('resets and releases stage-7 leases when a later stage throws', async () => {
+    const provider = new LifecycleFixtureProvider();
+    const coordinator = new FixtureCoordinator([provider]);
+    const checkpointer = new InMemoryStageCheckpointer();
+    const orchestrator = new LangGraphOrchestrator({
+      checkpointer,
+      fixtureCoordinator: coordinator,
+      inferCandidates: async () => inferenceWithPersonaFixture('lease-throw'),
+      explore: async () => {
+        throw new WorkerRestartError('stage-8 interruption');
+      },
+    });
+
+    await expect(orchestrator.run(input('lease-throw'))).rejects.toThrow('stage-8 interruption');
+    expect(provider.resetIds).toEqual(['lifecycle:1']);
+    expect(provider.releaseIds).toEqual(['lifecycle:1']);
+  }, 60_000);
+
+  it('resets and releases stage-7 leases after a failed run', async () => {
+    const provider = new LifecycleFixtureProvider();
+    const coordinator = new FixtureCoordinator([provider]);
+    const checkpointer = new InMemoryStageCheckpointer();
+    const orchestrator = new LangGraphOrchestrator({
+      checkpointer,
+      fixtureCoordinator: coordinator,
+      inferCandidates: async () => inferenceWithPersonaFixture('lease-failed'),
+      explore: async () => {
+        throw new Error('stage-8 fixture-safe failure');
+      },
+    });
+    const result = await orchestrator.run(input('lease-failed'));
+
+    expect(result).toMatchObject({ status: 'failed', outcome: 'blocked' });
+    expect(provider.resetIds).toEqual(['lifecycle:1']);
+    expect(provider.releaseIds).toEqual(['lifecycle:1']);
+    await expect(
+      new LangGraphOrchestrator({
+        checkpointer,
+        fixtureCoordinator: coordinator,
+        inferCandidates: async () => {
+          throw new Error('Terminal failed state must not execute stage 7 again');
+        },
+        explore: async () => {
+          throw new Error('stage-8 fixture-safe failure');
+        },
+      }).run(input('lease-failed')),
+    ).resolves.toMatchObject({
+      status: 'failed',
+    });
+    expect(provider.resetIds).toEqual(['lifecycle:1']);
+    expect(provider.releaseIds).toEqual(['lifecycle:1']);
+    expect((await coordinator.prepare({ candidates: [], runId: 'usable' })).provisioned).toBe(true);
+  }, 60_000);
+
+  it('releases stage-7 leases when final checkpoint persistence throws', async () => {
+    const provider = new LifecycleFixtureProvider();
+    const stagedBundle = coherentObservedBundle();
+    const result = new LangGraphOrchestrator({
+      checkpointer: new FinalCheckpointFailureCheckpointer(),
+      fixtureCoordinator: new FixtureCoordinator([provider]),
+      inferCandidates: async () => inferenceWithPersonaFixture('lease-finalize-throw'),
+      explore: async () => ({ approved: true, evidenceRefs: [], decisions: [] }),
+      compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+      verify: async () => ({
+        outcome: 'verified',
+        stagedBundle,
+        diagnostics: [],
+        artifacts: [],
+        runs: [{ passed: true }, { passed: true }],
+        gates: [{ gate: 'verify', passed: true }],
+      }),
+      promote: async (bundle) => ({
+        manifest: bundle.manifest,
+        promotedAt: '2026-08-15T00:00:00.000Z',
+        location: 'test://finalization-checkpoint',
+        checksumSha256: 'f'.repeat(64),
+      }),
+    });
+
+    await expect(result.run(input('lease-finalize-throw'))).rejects.toThrow(
+      'Final checkpoint persistence failed',
+    );
+    expect(provider.resetIds).toEqual(['lifecycle:1']);
+    expect(provider.releaseIds).toEqual(['lifecycle:1']);
+  }, 60_000);
+
+  it('reports an observed cleanup warning without changing the final run result', async () => {
+    const provider = new LifecycleFixtureProvider({ releaseFails: true });
+    const checkpointer = new InMemoryStageCheckpointer();
+    const result = await new LangGraphOrchestrator({
+      checkpointer,
+      fixtureCoordinator: new FixtureCoordinator([provider]),
+      inferCandidates: async () => inferenceWithPersonaFixture('lease-release-warning'),
+      explore: async () => ({ approved: true, evidenceRefs: [], decisions: [] }),
+    }).run(input('lease-release-warning'));
+
+    expect(result).toMatchObject({ status: 'partial', outcome: 'blocked' });
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: ARXIC_FIXTURE_RELEASE_FAILED, severity: 'observed' }),
+    );
+    expect(provider.resetIds).toEqual(['lifecycle:1']);
+    expect(provider.releaseIds).toEqual(['lifecycle:1']);
+    expect(result.checkpoints.filter(({ stage }) => stage === 12)).toHaveLength(1);
+    expect((await checkpointer.load('lease-release-warning'))?.diagnostics).toContainEqual(
+      expect.objectContaining({ code: ARXIC_FIXTURE_RELEASE_FAILED, severity: 'observed' }),
+    );
+  }, 60_000);
 });
+
+class RecordingExplorationDriver implements ExplorationDriver {
+  executed: readonly PlannedExplorationStep[] = [];
+
+  async execute(steps: readonly PlannedExplorationStep[]): Promise<ExplorationDriverResult> {
+    this.executed = steps;
+    return {
+      observations: steps.map((step) => ({
+        intent: step.intent,
+        url: origin,
+        ok: true,
+        originDrifted: false,
+        browserVersion: 'fake-browser',
+      })),
+      browserVersion: 'fake-browser',
+    };
+  }
+
+  async close(): Promise<void> {}
+}
+
+function reversibleClickPlan() {
+  return {
+    steps: [
+      {
+        intent: 'submit login',
+        action: 'form-submit',
+        actionClass: 'reversible-mutation' as const,
+        kind: 'click' as const,
+        locator: {
+          semantic: { kind: 'role' as const, role: 'button', name: 'Login' },
+          execution: { kind: 'role' as const, role: 'button', name: 'Login' },
+        },
+        required: true,
+      },
+    ],
+  };
+}
 
 class HashMismatchCheckpointer implements StageCheckpointer {
   readonly #delegate = new InMemoryStageCheckpointer();
@@ -851,6 +1109,48 @@ class HashMismatchCheckpointer implements StageCheckpointer {
 
   saveCheckpoint(runId: string, checkpoint: StageCheckpoint, state: RunState): Promise<void> {
     return this.#delegate.saveCheckpoint(runId, checkpoint, state);
+  }
+}
+
+class FinalCheckpointFailureCheckpointer extends InMemoryStageCheckpointer {
+  override async saveCheckpoint(
+    runId: string,
+    checkpoint: StageCheckpoint,
+    state: RunState,
+  ): Promise<void> {
+    if (checkpoint.stage === 12 && state.status === 'completed') {
+      throw new Error('Final checkpoint persistence failed');
+    }
+    await super.saveCheckpoint(runId, checkpoint, state);
+  }
+}
+
+class LifecycleFixtureProvider implements FixtureProvider {
+  readonly provisionIds: string[] = [];
+  readonly resetIds: string[] = [];
+  readonly releaseIds: string[] = [];
+  readonly #releaseFails: boolean;
+
+  constructor(options: Readonly<{ releaseFails?: boolean }> = {}) {
+    this.#releaseFails = options.releaseFails ?? false;
+  }
+
+  supports(requirement: FixtureRequirement): boolean {
+    return requirement.kind === 'persona';
+  }
+
+  async provision(requirement: FixtureRequirement): Promise<FixtureLease> {
+    this.provisionIds.push('lifecycle:1');
+    return { id: 'lifecycle:1', requirement };
+  }
+
+  async reset(lease: FixtureLease): Promise<void> {
+    this.resetIds.push(lease.id);
+  }
+
+  async release(lease: FixtureLease): Promise<void> {
+    this.releaseIds.push(lease.id);
+    if (this.#releaseFails) throw new Error('Fixture provider release failed');
   }
 }
 
@@ -917,6 +1217,20 @@ function validInference(
       },
     ],
   } as const;
+}
+
+function inferenceWithPersonaFixture(requestId: string) {
+  const inferred = validInference(requestId);
+  return {
+    ...inferred,
+    candidates: inferred.candidates.map((candidate) => ({
+      ...candidate,
+      workflow: {
+        ...candidate.workflow,
+        preconditions: [{ fixture: 'persona' }],
+      },
+    })),
+  };
 }
 
 function coherentObservedBundle(): StagedBundle {

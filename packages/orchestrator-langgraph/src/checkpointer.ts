@@ -15,6 +15,8 @@ export interface StageCheckpointer {
   readArtifact(runId: string, ref: ImmutableArtifactRef): Promise<StageArtifact>;
   verifyArtifact(runId: string, ref: ImmutableArtifactRef): Promise<boolean>;
   saveCheckpoint(runId: string, checkpoint: StageCheckpoint, state: RunState): Promise<void>;
+  /** Atomically replaces persisted run state without adding a stage checkpoint. */
+  saveRunState?(runId: string, state: RunState): Promise<void>;
 }
 
 export class InMemoryStageCheckpointer implements StageCheckpointer {
@@ -58,6 +60,11 @@ export class InMemoryStageCheckpointer implements StageCheckpointer {
     _checkpoint: StageCheckpoint,
     state: RunState,
   ): Promise<void> {
+    assertRunId(runId);
+    this.#states.set(runId, clone(state));
+  }
+
+  async saveRunState(runId: string, state: RunState): Promise<void> {
     assertRunId(runId);
     this.#states.set(runId, clone(state));
   }
@@ -129,6 +136,18 @@ export class FileStageCheckpointer implements StageCheckpointer {
 
   async saveCheckpoint(runId: string, checkpoint: StageCheckpoint, state: RunState): Promise<void> {
     assertRunId(runId);
+    const directory = join(this.#runsDirectory, runId, 'stages');
+    await mkdir(directory, { recursive: true });
+    await atomicWrite(
+      join(directory, `${pad(checkpoint.stage)}.json`),
+      `${canonicalJson({ checkpoint, state })}\n`,
+    );
+  }
+
+  async saveRunState(runId: string, state: RunState): Promise<void> {
+    assertRunId(runId);
+    const checkpoint = state.checkpoints.at(-1);
+    if (!checkpoint) throw new Error('Cannot persist run state without a checkpoint');
     const directory = join(this.#runsDirectory, runId, 'stages');
     await mkdir(directory, { recursive: true });
     await atomicWrite(
