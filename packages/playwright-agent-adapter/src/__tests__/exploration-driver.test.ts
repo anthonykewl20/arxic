@@ -244,16 +244,7 @@ describe('PlaywrightExplorationDriver locator policy', () => {
   it('fails closed when a rerender replaces the identity-checked execution element', async () => {
     const driver = new PlaywrightExplorationDriver({ timeoutMs: 2_000 });
     try {
-      const html = `<label>Email<input data-testid="email" disabled></label>
-        <script>
-          setTimeout(() => {
-            const original = document.querySelector('[data-testid=email]');
-            const replacement = original.cloneNode();
-            replacement.disabled = false;
-            replacement.dataset.replacement = 'true';
-            original.replaceWith(replacement);
-          }, 200);
-        </script>`;
+      const html = `<label>Email<input data-testid="email" onfocus="const replacement = this.cloneNode(); replacement.removeAttribute('onfocus'); replacement.dataset.replacement = 'true'; this.replaceWith(replacement)"></label>`;
       const url = `data:text/html,${encodeURIComponent(html)}`;
       const result = await driver.execute(
         [
