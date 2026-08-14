@@ -56,7 +56,7 @@ export type PlaywrightVerifierOptions = {
   artifactsDir: string;
   persona?: VerificationPersona;
   resetAndSeed?: (run: number) => Promise<void>;
-  runSuite?: (run: number) => Promise<RunPass>;
+  runSuite?: (run: number, transitionReceipts: TransitionReceiptExpectation) => Promise<RunPass>;
   ensurePlaywrightModule?: boolean;
   now?: () => string;
   screenshotPrivacyPolicy?: ScreenshotPrivacyPolicy;
@@ -69,7 +69,9 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #artifactsDirectory: string;
   readonly #persona: VerificationPersona | undefined;
   readonly #resetAndSeed: ((run: number) => Promise<void>) | undefined;
-  readonly #runSuite: ((run: number) => Promise<RunPass>) | undefined;
+  readonly #runSuite:
+    | ((run: number, transitionReceipts: TransitionReceiptExpectation) => Promise<RunPass>)
+    | undefined;
   readonly #ensureModule: boolean;
   readonly #now: () => string;
   readonly #screenshotPrivacyPolicy: ScreenshotPrivacyPolicy | undefined;
@@ -231,6 +233,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     const artifactFailures: Array<{ reason: 'missing' | 'mismatch'; detail: string }> = [];
     const networkErrors: string[] = [];
     const receiptFailures: string[] = [];
+    const receiptRedactionFailures: string[] = [];
     const missingTransitions: string[] = [];
     const executionDiagnostics: Diagnostic[] = [];
     for (let run = 1; run <= policy.requiredRuns; run += 1) {
@@ -275,14 +278,13 @@ export class PlaywrightVerifier implements WorkflowVerifier {
             correlation: captureCorrelation,
             capturedAt,
           },
-          requiredTransitionReceipts.length > 0
-            ? {
-                path: join(this.#outputDirectory, 'artifacts', 'arxic-transition-receipts.json'),
-                nonce: randomBytes(32).toString('hex'),
-                testTitle: bundle.workflow.id,
-                transitions: requiredTransitionReceipts,
-              }
-            : undefined,
+          {
+            path: join(this.#outputDirectory, 'artifacts', 'arxic-transition-receipts.json'),
+            nonce: randomBytes(32).toString('hex'),
+            testTitle: bundle.workflow.id,
+            transitions: requiredTransitionReceipts,
+            forbiddenSubstrings: personaForbiddenSubstrings(this.#persona),
+          },
         );
       } catch (error) {
         executionDiagnostics.push(
@@ -297,13 +299,11 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       }
       runs.push({ passed: result.passed });
       networkErrors.push(...result.networkErrors.map((item) => `run ${run}: ${item}`));
-      if (result.passed && result.receiptError) {
+      if (result.passed && result.receiptRedactionFailure) {
+        receiptRedactionFailures.push(`run ${run}: ${result.receiptRedactionFailure}`);
+      } else if (result.passed && result.receiptError) {
         receiptFailures.push(`run ${run}: ${result.receiptError}`);
-      } else if (
-        result.passed &&
-        result.observedTransitions === undefined &&
-        requiredTransitions.length > 0
-      ) {
+      } else if (result.passed && result.observedTransitions === undefined) {
         receiptFailures.push(
           `run ${run}: no transition receipt was returned by the Playwright runner`,
         );
@@ -315,12 +315,11 @@ export class PlaywrightVerifier implements WorkflowVerifier {
             .map((transition) => `run ${run}: ${transition}`),
         );
       }
+      if (result.passed && (result.receiptError || result.receiptRedactionFailure)) continue;
       let captured: ArtifactRef[];
       try {
         captured = await captureRunArtifacts(this.#outputDirectory, this.#artifactsDirectory, run, {
-          forbiddenSubstrings: Object.values(this.#persona ?? {}).filter(
-            (value): value is string => typeof value === 'string' && value.length > 0,
-          ),
+          forbiddenSubstrings: personaForbiddenSubstrings(this.#persona),
           screenshotCheckpoints: result.passed ? policy.screenshotCheckpoints : [],
           screenshotPrivacy: {
             binding: screenshotBinding,
@@ -368,6 +367,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       artifactFailures,
       networkErrors,
       receiptFailures,
+      receiptRedactionFailures,
       missingTransitions,
     });
     return { ...classification, runs, artifacts };
@@ -387,7 +387,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       correlation: string;
       capturedAt: string;
     },
-    transitionReceipts: TransitionReceiptExpectation | undefined,
+    transitionReceipts: TransitionReceiptExpectation,
   ): Promise<RunPass> {
     const env = {
       ...personaEnvironment(this.#persona),
@@ -401,13 +401,13 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         testDirectory: this.#outputDirectory,
         env,
         trace: policy.trace,
-        ...(transitionReceipts ? { transitionReceipts } : {}),
+        transitionReceipts,
       });
     }
     const previous = new Map(Object.keys(env).map((name) => [name, process.env[name]] as const));
     Object.assign(process.env, env);
     try {
-      return await this.#runSuite(run);
+      return await this.#runSuite(run, transitionReceipts);
     } finally {
       for (const [name, value] of previous) restoreEnvironment(name, value);
     }
@@ -449,4 +449,10 @@ function personaEnvironment(persona: VerificationPersona | undefined): Record<st
     }
   }
   return env;
+}
+
+function personaForbiddenSubstrings(persona: VerificationPersona | undefined): string[] {
+  return Object.values(persona ?? {}).filter(
+    (value): value is string => typeof value === 'string' && value.length > 0,
+  );
 }

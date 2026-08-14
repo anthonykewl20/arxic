@@ -74,7 +74,6 @@ describe('trusted compiled screenshot binding', () => {
     [['../escape.png']],
     [['artifacts/screenshots/home.jpg']],
     [['artifacts/screenshots/home.png', 'artifacts/screenshots/home.png']],
-    [[]],
   ])('rejects an invalid expected output inventory: %j', async (expectedScreenshots) => {
     const directory = await fixtureDirectory();
     await expect(
@@ -84,6 +83,29 @@ describe('trusted compiled screenshot binding', () => {
         expectedScreenshots,
       }),
     ).rejects.toThrow(/ARXIC-SCREENSHOT-BINDING/u);
+  });
+
+  test('binds a zero-screenshot spec when the workflow has no required transitions', async () => {
+    const directory = await fixtureDirectory();
+    const noScreenshotSpec = [
+      "import { test } from '../fixtures/workflow.fixture';",
+      "test('no required transitions', async () => {});",
+      '',
+    ].join('\n');
+    await put(directory, 'tests/workflow.spec.ts', noScreenshotSpec);
+
+    await expect(
+      establishTrustedScreenshotCaptureBinding({
+        testDirectory: directory,
+        ...baseInput,
+        expectedSpec: noScreenshotSpec,
+        trustedSourceContents: {
+          ...trustedSourceContents,
+          'tests/workflow.spec.ts': noScreenshotSpec,
+        },
+        expectedScreenshots: [],
+      }),
+    ).resolves.toMatchObject({ expectedScreenshots: [] });
   });
 
   test('binds exact source bytes and detects post-bind drift', async () => {

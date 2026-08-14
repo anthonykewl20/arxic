@@ -5,6 +5,7 @@ import {
   ARXIC_VERIFY_ARTIFACT_MISSING,
   ARXIC_VERIFY_BLOCKED_NETWORK,
   ARXIC_VERIFY_FLAKY_RUNS,
+  ARXIC_VERIFY_REDACTION_FAILED,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
   ARXIC_VERIFY_TRANSITIONS_MISSING,
   verifyDiagnostic,
@@ -18,6 +19,7 @@ export type ClassificationInput = {
   artifactFailures?: Array<{ reason: 'missing' | 'mismatch'; detail: string }>;
   networkErrors?: string[];
   receiptFailures?: string[];
+  receiptRedactionFailures?: string[];
   missingTransitions?: string[];
 };
 
@@ -103,6 +105,19 @@ export function classifyVerification(input: ClassificationInput): Classification
           'blocked',
           input.subject,
           `Transition receipts failed closed: ${input.receiptFailures.join('; ')}`,
+        ),
+      ],
+    };
+  }
+  if (input.receiptRedactionFailures?.length) {
+    return {
+      outcome: 'blocked',
+      diagnostics: [
+        verifyDiagnostic(
+          ARXIC_VERIFY_REDACTION_FAILED,
+          'blocked',
+          input.subject,
+          `Transition receipt redaction failed: ${input.receiptRedactionFailures.join('; ')}`,
         ),
       ],
     };
