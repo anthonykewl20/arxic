@@ -1,7 +1,10 @@
+import { createWriteStream } from 'node:fs';
 import { lstat, mkdtemp, readdir, rm } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, sep } from 'node:path';
+import { Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import type { Diagnostic } from '@arxic/contracts';
 import {
   dockerExec,
@@ -25,6 +28,7 @@ import {
   readArtifactWithinQuota,
   type ArtifactReadBudget,
 } from './artifact-quota';
+import { validateTarArchive } from './tar-archive-validation';
 
 /**
  * Non-root fallback used where the host exposes no POSIX uid (e.g. Windows,
@@ -397,23 +401,49 @@ async function collectRawArtifacts(
   if (!running) throw new ArtifactImportError('invalid', 'Worker result tmpfs is unavailable');
   await assertResultVolumeCapacity(containerId, mountPath, quotaBytes);
   await assertResultTreeSafeForExtraction(containerId, mountPath);
-  // Do not even create host staging until the container-side validation has
-  // accepted the tree. In particular, a rejected link can never be recreated
-  // in a host directory by the archive extractor.
-  const directory = await mkdtemp(join(tmpdir(), 'arxic-worker-result-'));
+  // The container-side scan remains defense in depth. The spool is the exact
+  // byte stream validated below, so a worker cannot replace entries after that
+  // scan but before the host extractor consumes them.
+  const spoolDirectory = await mkdtemp(join(tmpdir(), 'arxic-worker-spool-'));
+  let spooled = false;
   try {
-    await copyMountedResult(containerId, mountPath, directory);
-    const entries: RawArtifactEntry[] = [];
-    const budget: ArtifactReadBudget = { totalBytes: 0, fileCount: 0 };
-    await readRawEntries(directory, directory, entries, budget, {
+    await spoolMountedResult(
+      containerId,
+      mountPath,
+      join(spoolDirectory, 'result.tar'),
       quotaBytes,
-      perFileBytes,
-      fileLimit,
-    });
-    entries.sort((left, right) => left.path.localeCompare(right.path));
-    return { entries };
+    );
+    spooled = true;
+    return consumeSupervisorResultSpool(spoolDirectory, { quotaBytes, perFileBytes, fileLimit });
   } finally {
-    await rm(directory, { recursive: true, force: true });
+    if (!spooled) await rm(spoolDirectory, { recursive: true, force: true });
+  }
+}
+
+/** Consume and remove a supervisor-owned spool. Validation deliberately
+ * precedes staging creation, so callers never materialize rejected members. */
+export async function consumeSupervisorResultSpool(
+  spoolDirectory: string,
+  limits: Readonly<{ quotaBytes: number; perFileBytes: number; fileLimit: number }>,
+): Promise<RawArtifactSet> {
+  const spoolPath = join(spoolDirectory, 'result.tar');
+  try {
+    await validateTarArchive(spoolPath);
+    // Do not create host staging until the identical spooled archive has been
+    // accepted. A rejected link can therefore never reach host extraction.
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-worker-result-'));
+    try {
+      await extractSpool(spoolPath, directory);
+      const entries: RawArtifactEntry[] = [];
+      const budget: ArtifactReadBudget = { totalBytes: 0, fileCount: 0 };
+      await readRawEntries(directory, directory, entries, budget, limits);
+      entries.sort((left, right) => left.path.localeCompare(right.path));
+      return { entries };
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  } finally {
+    await rm(spoolDirectory, { recursive: true, force: true });
   }
 }
 
@@ -462,49 +492,83 @@ async function assertResultTreeSafeForExtraction(
   }
 }
 
-/** Docker's archive endpoint cannot see container tmpfs mounts. Stream a tar
- * archive between child processes so neither Docker's UTF-8 control buffer nor
- * the Node heap buffers result bytes. Paths are fixed trusted arguments. */
-async function copyMountedResult(
+/** Docker's archive endpoint cannot see container tmpfs mounts. Stream its tar
+ * output to a supervisor-owned file, charging chunks before disk writes. The
+ * heap never holds the result archive. */
+async function spoolMountedResult(
   containerId: string,
   mountPath: string,
-  directory: string,
+  spoolPath: string,
+  quotaBytes: number,
 ): Promise<void> {
-  await new Promise<void>((resolveCopy, rejectCopy) => {
-    const source = spawn('docker', ['exec', containerId, 'tar', '-C', mountPath, '-cf', '-', '.'], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    const destination = spawn('tar', ['-xf', '-', '-C', directory], {
-      stdio: ['pipe', 'ignore', 'pipe'],
-    });
-    let sourceError = '';
-    let destinationError = '';
-    source.stderr.setEncoding('utf8').on('data', (chunk: string) => (sourceError += chunk));
-    destination.stderr
-      .setEncoding('utf8')
-      .on('data', (chunk: string) => (destinationError += chunk));
-    source.stdout.pipe(destination.stdin);
-    let sourceExit: number | null = null;
-    let destinationExit: number | null = null;
-    const finish = (): void => {
-      if (sourceExit === null || destinationExit === null) return;
-      if (sourceExit === 0 && destinationExit === 0) resolveCopy();
-      else
-        rejectCopy(
-          new Error(
-            `stream worker result volume failed: ${sourceError || destinationError || `tar exits ${sourceExit}/${destinationExit}`}`,
-          ),
-        );
-    };
-    source.on('error', rejectCopy);
-    destination.on('error', rejectCopy);
+  const source = spawn('docker', ['exec', containerId, 'tar', '-C', mountPath, '-cf', '-', '.'], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let sourceError = '';
+  let spawnError: Error | undefined;
+  let sourceExit: number | null = null;
+  source.stderr.setEncoding('utf8').on('data', (chunk: string) => (sourceError += chunk));
+  source.on('error', (error: Error) => (spawnError = error));
+  const sourceClosed = new Promise<void>((resolveClosed) => {
     source.on('close', (code) => {
       sourceExit = code;
-      finish();
+      resolveClosed();
     });
-    destination.on('close', (code) => {
-      destinationExit = code;
-      finish();
+  });
+  let streamedBytes = 0;
+  let quotaError: ArtifactImportError | undefined;
+  const quota = new Transform({
+    transform(chunk: Buffer, _encoding, callback): void {
+      const nextBytes = streamedBytes + chunk.byteLength;
+      if (nextBytes > quotaBytes) {
+        quotaError = new ArtifactImportError(
+          'quota',
+          'Worker result exceeded the cumulative byte quota',
+        );
+        callback(quotaError);
+        return;
+      }
+      streamedBytes = nextBytes;
+      callback(null, chunk);
+    },
+  });
+  let pipelineError: unknown;
+  try {
+    await pipeline(
+      source.stdout,
+      quota,
+      createWriteStream(spoolPath, { flags: 'wx', mode: 0o600 }),
+    );
+  } catch (error) {
+    pipelineError = error;
+  }
+  await sourceClosed;
+  if (quotaError) throw quotaError;
+  if (spawnError) throw spawnError;
+  if (pipelineError) throw pipelineError;
+  if (sourceExit !== 0) {
+    throw new Error(
+      `stream worker result volume failed: ${sourceError || `tar exits ${sourceExit}`}`,
+    );
+  }
+}
+
+/** Extract only a tar archive that validateTarArchive accepted from the exact
+ * spool path. Both paths are supervisor-owned fixed arguments. */
+async function extractSpool(spoolPath: string, directory: string): Promise<void> {
+  await new Promise<void>((resolveExtract, rejectExtract) => {
+    const extractor = spawn('tar', ['-xf', spoolPath, '-C', directory], {
+      stdio: ['ignore', 'ignore', 'pipe'],
+    });
+    let extractError = '';
+    extractor.stderr.setEncoding('utf8').on('data', (chunk: string) => (extractError += chunk));
+    extractor.on('error', rejectExtract);
+    extractor.on('close', (code) => {
+      if (code === 0) resolveExtract();
+      else
+        rejectExtract(
+          new Error(`extract worker result volume failed: ${extractError || `tar exits ${code}`}`),
+        );
     });
   });
 }
