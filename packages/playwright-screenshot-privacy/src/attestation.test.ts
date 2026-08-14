@@ -252,7 +252,8 @@ describe('trusted screenshot attestation and exact artifact inventory', () => {
     });
     await expect(imageFiles(fixture.testDirectory)).resolves.toEqual([]);
     await expect(imageFiles(fixture.destinationDirectory)).resolves.toEqual([]);
-  }, 30_000);
+    // Measured 13.6–38.7s locally; 80s is 2× the slowest observed run.
+  }, 80_000);
 
   test('rejects an arbitrary purge root without deleting dependency or trusted-source sentinels', async () => {
     const fixture = await capturedFixture();
