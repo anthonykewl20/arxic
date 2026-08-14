@@ -13,6 +13,7 @@ export interface StageCheckpointer {
   load(runId: string): Promise<RunState | undefined>;
   saveArtifact(runId: string, stage: StageId, value: StageArtifact): Promise<ImmutableArtifactRef>;
   readArtifact(runId: string, ref: ImmutableArtifactRef): Promise<StageArtifact>;
+  verifyArtifact(runId: string, ref: ImmutableArtifactRef): Promise<boolean>;
   saveCheckpoint(runId: string, checkpoint: StageCheckpoint, state: RunState): Promise<void>;
 }
 
@@ -43,6 +44,13 @@ export class InMemoryStageCheckpointer implements StageCheckpointer {
     const bytes = this.#artifacts.get(`${runId}/${ref.id}`);
     if (bytes === undefined) throw new Error(`Artifact ${ref.id} is missing`);
     return JSON.parse(bytes) as StageArtifact;
+  }
+
+  async verifyArtifact(runId: string, ref: ImmutableArtifactRef): Promise<boolean> {
+    assertRunId(runId);
+    assertArtifactId(ref.id);
+    const bytes = this.#artifacts.get(`${runId}/${ref.id}`);
+    return bytes !== undefined && sha256(bytes) === ref.sha256;
   }
 
   async saveCheckpoint(
@@ -99,6 +107,24 @@ export class FileStageCheckpointer implements StageCheckpointer {
     return JSON.parse(
       await readFile(join(this.#runsDirectory, runId, 'artifacts', `${pad(stage)}.json`), 'utf8'),
     ) as StageArtifact;
+  }
+
+  async verifyArtifact(runId: string, ref: ImmutableArtifactRef): Promise<boolean> {
+    assertRunId(runId);
+    assertArtifactId(ref.id);
+    try {
+      const bytes = await readFile(
+        join(
+          this.#runsDirectory,
+          runId,
+          'artifacts',
+          `${pad(Number(ref.id.slice('stage:'.length)))}.json`,
+        ),
+      );
+      return sha256(bytes.toString('utf8')) === ref.sha256;
+    } catch {
+      return false;
+    }
   }
 
   async saveCheckpoint(runId: string, checkpoint: StageCheckpoint, state: RunState): Promise<void> {

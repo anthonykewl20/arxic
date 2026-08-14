@@ -15,4 +15,5 @@ coverage
 playwright-report
 test-results
 .cache
+.arxic/
 sbom.cdx.json
