@@ -5,8 +5,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { inspectPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
+import {
+  ARXIC_VERIFY_APP_DEFECT,
+  ARXIC_VERIFY_ARTIFACT_MISSING,
+  ARXIC_VERIFY_BLOCKED_NETWORK,
+  ARXIC_VERIFY_FLAKY_RUNS,
+  ARXIC_VERIFY_SUITE_UNAVAILABLE,
+  ARXIC_VERIFY_TRANSITIONS_MISSING,
+  captureRunArtifacts,
+} from '@arxic/verifier';
 import { ZipFile } from 'yazl';
-import { M0Pipeline, retainRunArtifacts, verifyStagedSuite, type StagedSuitePass } from '..';
+import { M0Pipeline, verifyStagedSuite, type StagedSuitePass } from '..';
 import { loginWorkflow, screenshotPrivacyPolicy } from './workflow-fixture';
 
 const artifact = (kind: 'screenshot' | 'trace', run: number) => ({
@@ -48,7 +57,7 @@ describe('M0 exit sad paths', () => {
     await mkdir(resultDirectory, { recursive: true });
     await writeFile(rawPath, await sensitiveTrace('ordinary-value'));
 
-    await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+    await expect(captureRunArtifacts(testDir, artifactsDir, 1)).rejects.toThrow(
       'filename rejected',
     );
     await expect(readFile(rawPath)).rejects.toMatchObject({ code: 'ENOENT' });
@@ -63,7 +72,9 @@ describe('M0 exit sad paths', () => {
     await mkdir(resultDirectory, { recursive: true });
     await writeFile(rawPath, await sensitiveTrace(credential));
 
-    const artifacts = await retainRunArtifacts(testDir, artifactsDir, 1, [credential]);
+    const artifacts = await captureRunArtifacts(testDir, artifactsDir, 1, {
+      forbiddenSubstrings: [credential],
+    });
 
     expect(artifacts.map(({ kind }) => kind)).toEqual(['trace', 'trace-sanitization-report']);
     await expect(readFile(rawPath)).rejects.toMatchObject({ code: 'ENOENT' });
@@ -96,7 +107,7 @@ describe('M0 exit sad paths', () => {
       await writeFile(join(resultDirectory, '00-safe.png'), validPng());
       await writeFile(source, bytes);
 
-      await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+      await expect(captureRunArtifacts(testDir, artifactsDir, 1)).rejects.toThrow(
         'strict trace-carrier-free PNG',
       );
       await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
@@ -130,7 +141,7 @@ describe('M0 exit sad paths', () => {
         await writeFile(source, await sensitiveTrace('carrier-value'));
         return {
           passed: true,
-          artifacts: await retainRunArtifacts(testDir, artifactsDir, 1, []),
+          artifacts: await captureRunArtifacts(testDir, artifactsDir, 1),
           observedTransitions: ['login-page->home'],
         };
       },
@@ -138,6 +149,7 @@ describe('M0 exit sad paths', () => {
 
     expect(result.outcome).toBe('blocked');
     expect(result.artifacts.map(({ kind }) => kind)).toEqual(['spec']);
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_SUITE_UNAVAILABLE);
     await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
@@ -148,9 +160,9 @@ describe('M0 exit sad paths', () => {
     await mkdir(screenshotDirectory, { recursive: true });
     await writeFile(join(screenshotDirectory, 'step-1-login-page-profile.png'), validPng());
 
-    await expect(retainRunArtifacts(testDir, artifactsDir, 1, [], ['home'])).rejects.toThrow(
-      'Screenshot checkpoint mapping failed (missing-source)',
-    );
+    await expect(
+      captureRunArtifacts(testDir, artifactsDir, 1, { screenshotCheckpoints: ['home'] }),
+    ).rejects.toThrow('Screenshot checkpoint mapping failed (missing-source)');
     await expect(readdir(join(artifactsDir, 'verification', 'run-1'))).rejects.toMatchObject({
       code: 'ENOENT',
     });
@@ -192,6 +204,7 @@ describe('M0 exit sad paths', () => {
     });
 
     expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_ARTIFACT_MISSING);
     expect(result.diagnostics.at(-1)?.message).toContain('screenshots step-2');
   });
 
@@ -205,7 +218,7 @@ describe('M0 exit sad paths', () => {
     await writeFile(backing, validPng());
     await symlink(backing, join(screenshotDirectory, 'proof.png'));
 
-    await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+    await expect(captureRunArtifacts(testDir, artifactsDir, 1)).rejects.toThrow(
       'rejects symbolic links',
     );
     await expect(readFile(backing)).resolves.toEqual(validPng());
@@ -226,7 +239,7 @@ describe('M0 exit sad paths', () => {
       server.listen(socketPath, resolveListen);
     });
     try {
-      await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+      await expect(captureRunArtifacts(testDir, artifactsDir, 1)).rejects.toThrow(
         'rejects non-regular entries',
       );
     } finally {
@@ -247,7 +260,7 @@ describe('M0 exit sad paths', () => {
     await writeFile(join(locked, 'proof.png'), validPng());
     await chmod(locked, 0o000);
     try {
-      await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+      await expect(captureRunArtifacts(testDir, artifactsDir, 1)).rejects.toThrow(
         'could not inspect the owned workspace safely',
       );
     } finally {
@@ -283,7 +296,7 @@ describe('M0 exit sad paths', () => {
         );
       }
 
-      await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+      await expect(captureRunArtifacts(testDir, artifactsDir, 1)).rejects.toThrow(
         'exceeded a configured safety limit',
       );
       await expect(readdir(join(artifactsDir, 'verification', 'run-1'))).rejects.toMatchObject({
@@ -300,7 +313,7 @@ describe('M0 exit sad paths', () => {
     await mkdir(resultDirectory, { recursive: true });
     await writeFile(rawPath, 'not a trace archive');
 
-    await expect(retainRunArtifacts(testDir, artifactsDir, 1, [])).rejects.toThrow(
+    await expect(captureRunArtifacts(testDir, artifactsDir, 1)).rejects.toThrow(
       'Trace sanitization failed',
     );
     await expect(readFile(rawPath)).rejects.toMatchObject({ code: 'ENOENT' });
@@ -310,7 +323,7 @@ describe('M0 exit sad paths', () => {
     const result = await scriptedVerifier([true, false]);
     expect(result.outcome).toBe('contradicted');
     expect(result.runs).toEqual([{ passed: true }, { passed: false }]);
-    expect(result.diagnostics.map(({ code }) => code)).toContain('ARXIC-EXIT-FLAKY-RUNS');
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_FLAKY_RUNS);
     expect(result).not.toHaveProperty('receipt');
   });
 
@@ -321,19 +334,39 @@ describe('M0 exit sad paths', () => {
     );
     expect(result.outcome).toBe('contradicted');
     expect(result.runs).toEqual([{ passed: false }, { passed: false }]);
-    expect(result.diagnostics.map(({ code }) => code)).toContain(
-      'ARXIC-EXIT-APP-DEFECT-CONTRADICTED',
-    );
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_APP_DEFECT);
     expect(result).not.toHaveProperty('receipt');
   });
 
   it('blocks when a required transition has no runtime observation', async () => {
     const result = await scriptedVerifier([true, true], [[], []]);
     expect(result.outcome).toBe('blocked');
-    expect(result.diagnostics.map(({ code }) => code)).toContain(
-      'ARXIC-EXIT-EVIDENCE-GATE-BLOCKED',
-    );
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_TRANSITIONS_MISSING);
     expect(result).not.toHaveProperty('receipt');
+  });
+
+  it('blocks clean runs that record a network error under the verification policy', async () => {
+    const testDir = await mkdtemp(join(tmpdir(), 'arxic-exit-network-'));
+    await writeFile(join(testDir, 'workflow.spec.ts'), 'test');
+    const result = await verifyStagedSuite({
+      workflow: loginWorkflow(),
+      origin: 'http://127.0.0.1:1',
+      testDir,
+      artifactsDir: testDir,
+      persona: { email: 'user@example.test', password: 'Hunter2!' },
+      policy: { requiredRuns: 1, forbidNetworkErrors: true, trace: 'retain' },
+      resetAndSeed: async () => undefined,
+      executeRun: async () => ({
+        passed: true,
+        browserVersion: '140.0.0',
+        artifacts: [artifact('screenshot', 1), artifact('trace', 1)],
+        networkErrors: ['net::ERR_CONNECTION_REFUSED http://example.test'],
+        observedTransitions: ['login-page->home'],
+      }),
+    });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_BLOCKED_NETWORK);
   });
 
   it.each([
