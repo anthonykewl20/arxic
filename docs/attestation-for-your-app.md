@@ -26,7 +26,13 @@ The fields are:
 - `buildDigest`: a 64-hex-character SHA-256 identifying the app build. Hash a stable build identifier or, preferably, a deterministic manifest of the deployed build outputs. Recompute it whenever deployable app bytes change. For example, the reference Next.js app hashes `.next/BUILD_ID` with SHA-256 (and hashes a stable development identifier when no build ID exists).
 - `nonce`: a non-empty freshness/binding value. If the operator configures an expected nonce, this value must match it exactly.
 
-The lower-level attestation contract also supports an optional `signedReceipt` string. It is required only when an embedding policy enables signed receipts; it is an HMAC-SHA-256 over `<buildDigest>.<nonce>`. A normal local CLI target does not need it.
+The lower-level attestation contract also supports a `signedReceipt` string. It
+is an HMAC-SHA-256 over `<buildDigest>.<nonce>`. A `local-test` target does not
+need one by default; every non-`local-test` target requires a valid receipt and
+the CLI-side `ARXIC_ATTESTATION_RECEIPT_KEY`. Configure
+`ARXIC_ATTESTATION_ALLOWED_ORIGINS` only for operator-approved origins. See
+[worker deployment and source-hash lockstep](operator/worker-deploy.md) for
+the operator settings and code provenance.
 
 ## Minimal route handler
 

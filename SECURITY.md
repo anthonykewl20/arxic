@@ -53,6 +53,23 @@ These are best-effort targets for a pre-1.0, maintainer-run project.
 - An LLM may never assign `verified`; only deterministic replay verification can.
 - Raw Playwright trace ZIPs are prohibited retained evidence. Only the shared sanitizer's independently inspected action timeline plus adjacent provenance may reach assembly or promotion; screenshots have a separate capture-time masking and visual-review boundary.
 
+## Historical exposure decision
+
+On 2026-08-12, the repository accepted the pre-public history exposure rather
+than rewriting public history. The removed full internal ADR and
+reference-collection script remain reachable in old commits; the recorded
+rationale is that the exposure contained no credentials, the full-history
+gitleaks result then had only false-positive SHA/digest matches, the public ADR
+already disclosed the architecture, and rewriting every commit SHA was
+disproportionate. See `docs/SYNC.md:156-158` for the recorded decision.
+
+Do not purge history without a scoped recovery plan and explicit repository
+owner authorization. Revisit this decision immediately if a genuinely sensitive
+item (for example, a credential, private customer data, or material not meant
+for public disclosure) is found in history. At each release re-evaluation, run
+a fresh full-history secret scan and have the maintainer record the result
+before reconfirming the decision.
+
 ## Hardening roadmap
 
 See ADR §16. Adversarial prompt-injection, origin-escape, secret-leakage, and

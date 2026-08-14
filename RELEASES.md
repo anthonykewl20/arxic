@@ -10,6 +10,9 @@ Before `1.0.0`, versions use `0.MINOR.PATCH`:
 - Slice-level fixes are **patch** releases.
 - Breaking changes are allowed pre-1.0 when required by validation.
 
+For the post-1.0 public-surface, support, and deprecation commitments, see
+[`docs/RELEASE_POLICY.md`](docs/RELEASE_POLICY.md).
+
 ### Single source of truth
 
 `VERSION` is the source of truth for current version. `package.json` version
@@ -40,8 +43,9 @@ Git tags are the release history.
 4. Rename `## [Unreleased]` to `## [x.y.z] - YYYY-MM-DD` and add a fresh
    `## [Unreleased]` at top.
 5. Commit with `chore(release): x.y.z`.
-6. Tag `vx.y.z`.
-7. Push tag and let the release workflow publish a GitHub Release.
+6. Complete the human [screenshot inspection gate](docs/release-gates/screenshot-inspection.md) for every retained promoted screenshot and record its sign-off.
+7. Tag `vx.y.z`.
+8. Push tag and let the release workflow publish a GitHub Release.
 
 ## How to pick the next bump from changelog verbs
 

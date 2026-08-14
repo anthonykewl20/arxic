@@ -86,7 +86,9 @@ PR ritual.
 ## Versioning
 
 Arxic follows Semantic Versioning. Current release policy and checks are defined
-in `RELEASES.md`, and all notable changes are tracked in `CHANGELOG.md`.
+in `RELEASES.md`; the public-surface, support, and deprecation policy is in
+[`docs/RELEASE_POLICY.md`](docs/RELEASE_POLICY.md). All notable changes are
+tracked in `CHANGELOG.md`.
 
 ## License
 
