@@ -1,19 +1,14 @@
 import { createRequire } from 'node:module';
+import { realpath } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import type { EvidenceEvent, EvidenceRefSource, SourceIndexRequest } from '@arxic/contracts';
 import { dirtyPaths, enumerateFiles, isShallowRepository, resolveCommit } from './git';
-import {
-  detectCategory,
-  detectLanguage,
-  isBinary,
-  readManifestBytes,
-  sha256,
-  type ManifestFile,
-} from './manifest';
+import { detectCategory, detectLanguage, isBinary, sha256, type ManifestFile } from './manifest';
 import { SourceParser } from './parser';
 import { extractTypeScript, type SourceFinding } from './extractors/typescript';
 import { extractFrameworkRoutes } from './framework-registry';
 import { isExtraIgnored, type SourceScanPolicy, type SupportedSourceLanguage } from './policy';
+import { ARXIC_SOURCE_UNSAFE_FILE, readSafeSource } from './safe-source';
 
 const require = createRequire(import.meta.url);
 
@@ -55,7 +50,17 @@ export async function scanRepository(
     return empty(null);
   }
 
-  const commit = await resolveCommit(root);
+  let resolvedRoot: string;
+  try {
+    resolvedRoot = await realpath(root);
+  } catch (error) {
+    events.push({
+      diagnostic: policy.classifyFailure('repository-unavailable', root, String(error)),
+    });
+    return empty(null);
+  }
+
+  const commit = await resolveCommit(resolvedRoot);
   if (!commit) {
     events.push({
       diagnostic: policy.classifyFailure(
@@ -66,7 +71,7 @@ export async function scanRepository(
     });
     return empty(null);
   }
-  if (await isShallowRepository(root)) {
+  if (await isShallowRepository(resolvedRoot)) {
     events.push({
       diagnostic: policy.classifyFailure(
         'shallow',
@@ -87,7 +92,7 @@ export async function scanRepository(
     return empty(commit);
   }
 
-  const dirty = await dirtyPaths(root);
+  const dirty = await dirtyPaths(resolvedRoot);
   const dirtySet = new Set(dirty);
   if (dirty.length > 0) {
     events.push({
@@ -96,16 +101,36 @@ export async function scanRepository(
   }
 
   const parser = new SourceParser();
-  for (const path of (await enumerateFiles(root)).filter(
+  for (const path of (await enumerateFiles(resolvedRoot)).filter(
     (item) => !isExtraIgnored(item, policy.extraIgnores),
   )) {
-    let bytes: Buffer;
-    try {
-      bytes = await readManifestBytes(root, path);
-    } catch (error) {
-      if (dirtySet.has(path)) continue;
-      throw error;
+    const safeRead = await readSafeSource(resolvedRoot, path, policy.maxFileSizeBytes);
+    if (!safeRead.ok) {
+      if (dirtySet.has(path) && safeRead.errorCode === 'ENOENT') continue;
+      const base: ManifestFile = {
+        path,
+        blobSha256: '',
+        sizeBytes: safeRead.sizeBytes,
+        language: detectLanguage(path),
+        category: detectCategory(path),
+        status: 'skipped',
+        reason: safeRead.kind === 'oversize' ? 'oversize' : 'unsafe-file',
+      };
+      manifest.push(base);
+      events.push({
+        diagnostic:
+          safeRead.kind === 'oversize'
+            ? policy.classifyFailure('oversize', path, safeRead.detail)
+            : {
+                code: ARXIC_SOURCE_UNSAFE_FILE,
+                severity: 'blocked',
+                subject: path,
+                message: safeRead.detail,
+              },
+      });
+      continue;
     }
+    const bytes = safeRead.bytes;
     const base: ManifestFile = {
       path,
       blobSha256: sha256(bytes),
@@ -117,18 +142,6 @@ export async function scanRepository(
     if (dirtySet.has(path)) {
       base.reason = 'dirty';
       manifest.push(base);
-      continue;
-    }
-    if (bytes.byteLength > policy.maxFileSizeBytes) {
-      base.reason = 'oversize';
-      manifest.push(base);
-      events.push({
-        diagnostic: policy.classifyFailure(
-          'oversize',
-          path,
-          `${bytes.byteLength} bytes exceeds quota ${policy.maxFileSizeBytes}.`,
-        ),
-      });
       continue;
     }
     if (isBinary(bytes)) {
