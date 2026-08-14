@@ -1,10 +1,10 @@
-import { lstat, mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { lstat, mkdtemp, readdir, rm } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve, sep } from 'node:path';
 import type { Diagnostic } from '@arxic/contracts';
 import {
   dockerExec,
-  dockerCp,
   dockerInspect,
   dockerKill,
   dockerRm,
@@ -18,6 +18,13 @@ import {
   type DockerResult,
 } from './docker-cli';
 import { workerDiagnostic } from './worker-diagnostics';
+import {
+  ArtifactImportError,
+  DEFAULT_RESULT_FILE_LIMIT,
+  DEFAULT_RESULT_FILE_QUOTA_BYTES,
+  readArtifactWithinQuota,
+  type ArtifactReadBudget,
+} from './artifact-quota';
 
 /**
  * Non-root fallback used where the host exposes no POSIX uid (e.g. Windows,
@@ -26,6 +33,8 @@ import { workerDiagnostic } from './worker-diagnostics';
  * sharing rather than by matching a host uid.
  */
 const NON_ROOT_FALLBACK_USER = '1000:1000';
+const RESULT_EXPORT_PATH = '/work/.arxic-result-export';
+const RESULT_COMPLETE_MARKER = '.arxic-command-complete';
 
 /**
  * Resolve the worker `--user` default to the host uid:gid so a bind-mounted
@@ -79,7 +88,12 @@ export type WorkerSandboxSpec = Readonly<{
   networkName: string;
   workerUser?: string;
   writableTmpFs?: string;
-  resultVolume?: Readonly<{ mountPath: string; quotaBytes: number }>;
+  resultVolume?: Readonly<{
+    mountPath: string;
+    quotaBytes: number;
+    perFileBytes?: number;
+    fileLimit?: number;
+  }>;
   env?: Record<string, string>;
   command?: readonly string[];
 }>;
@@ -167,6 +181,19 @@ function assertSafeSpec(spec: WorkerSandboxSpec): void {
     if (!Number.isFinite(quotaBytes) || quotaBytes <= 0 || quotaBytes > 256 * 1024 * 1024) {
       throw new Error('Worker result volume quota must be positive and at most 256 MiB');
     }
+    const perFileBytes =
+      spec.resultVolume.perFileBytes ?? Math.min(DEFAULT_RESULT_FILE_QUOTA_BYTES, quotaBytes);
+    const fileLimit = spec.resultVolume.fileLimit ?? DEFAULT_RESULT_FILE_LIMIT;
+    if (
+      !Number.isSafeInteger(perFileBytes) ||
+      perFileBytes <= 0 ||
+      perFileBytes > DEFAULT_RESULT_FILE_QUOTA_BYTES ||
+      !Number.isSafeInteger(fileLimit) ||
+      fileLimit <= 0 ||
+      fileLimit > DEFAULT_RESULT_FILE_LIMIT
+    ) {
+      throw new Error('Worker result per-file bytes/file-count quotas are invalid');
+    }
   }
   const { memoryMb, memorySwapMb, pidsLimit, cpus, timeoutMs } = spec.quotas;
   if (
@@ -206,9 +233,9 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
       const volume = await volumeCreate({ name: resultVolumeName });
       requireSuccess('docker volume create', volume);
       volumeCreated = true;
-      // Named volumes have no portable native byte quota. Make the empty,
-      // per-run volume writable here; quotaBytes is enforced fail-closed by the
-      // trusted importer before any artifact is accepted.
+      // The named volume is a lifecycle marker only. Result bytes are mounted
+      // on the container's quota-sized tmpfs below; unlike a local named-volume
+      // directory, tmpfs gives the hostile writer a physical ENOSPC boundary.
       const prepared = await dockerRun([
         '--rm',
         '--network',
@@ -220,7 +247,7 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
         '1777',
         '/result',
       ]);
-      requireSuccess('prepare worker result volume', prepared);
+      requireSuccess('prepare worker result export volume', prepared);
     }
     const network = await networkCreate({ name: spec.networkName, internal: true });
     const networkAlreadyExists = network.exit !== 0 && /already exists/i.test(network.stderr);
@@ -242,8 +269,10 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
       `type=bind,source=${source},target=/work/source,readonly`,
       ...(resultVolumeName && spec.resultVolume
         ? [
+            '--tmpfs',
+            `${spec.resultVolume.mountPath}:rw,size=${spec.resultVolume.quotaBytes},mode=1777`,
             '--mount',
-            `type=volume,source=${resultVolumeName},destination=${spec.resultVolume.mountPath}`,
+            `type=volume,source=${resultVolumeName},destination=${RESULT_EXPORT_PATH}`,
           ]
         : []),
       '--memory',
@@ -258,7 +287,17 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
       spec.networkName,
       ...Object.entries(spec.env ?? {}).flatMap(([name, value]) => ['--env', `${name}=${value}`]),
       image,
-      ...(spec.command ?? ['node', '-e', 'setInterval(()=>{},60000)']),
+      ...(spec.resultVolume && spec.command
+        ? [
+            'sh',
+            '-c',
+            `result=$1; control=$2; shift 2; "$@"; status=$?; printf %s "$status" > "$control/${RESULT_COMPLETE_MARKER}"; while :; do sleep 60; done`,
+            'arxic-result-wrapper',
+            spec.resultVolume.mountPath,
+            RESULT_EXPORT_PATH,
+            ...spec.command,
+          ]
+        : (spec.command ?? ['node', '-e', 'setInterval(()=>{},60000)'])),
     ]);
     requireSuccess('docker run', run);
     const containerId = run.stdout;
@@ -315,7 +354,14 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
       inspect: () => inspectSandbox(sandbox),
       collectArtifacts: () =>
         spec.resultVolume
-          ? collectRawArtifacts(containerId, spec.resultVolume.mountPath)
+          ? collectRawArtifacts(
+              containerId,
+              spec.resultVolume.mountPath,
+              spec.resultVolume.quotaBytes,
+              spec.resultVolume.perFileBytes ??
+                Math.min(DEFAULT_RESULT_FILE_QUOTA_BYTES, spec.resultVolume.quotaBytes),
+              spec.resultVolume.fileLimit ?? DEFAULT_RESULT_FILE_LIMIT,
+            )
           : Promise.resolve({ entries: [] }),
       stop,
     });
@@ -342,13 +388,28 @@ export async function createWorkerSandbox(spec: WorkerSandboxSpec): Promise<Work
 async function collectRawArtifacts(
   containerId: string,
   mountPath: string,
+  quotaBytes: number,
+  perFileBytes: number,
+  fileLimit: number,
 ): Promise<RawArtifactSet> {
+  const state = await dockerInspect(containerId, '{{.State.Status}}');
+  const running = state === 'running';
+  if (!running) throw new ArtifactImportError('invalid', 'Worker result tmpfs is unavailable');
+  await assertResultVolumeCapacity(containerId, mountPath, quotaBytes);
+  await assertResultTreeSafeForExtraction(containerId, mountPath);
+  // Do not even create host staging until the container-side validation has
+  // accepted the tree. In particular, a rejected link can never be recreated
+  // in a host directory by the archive extractor.
   const directory = await mkdtemp(join(tmpdir(), 'arxic-worker-result-'));
   try {
-    const copied = await dockerCp(containerId, `${mountPath}/.`, directory);
-    requireSuccess('docker cp worker result volume', copied);
+    await copyMountedResult(containerId, mountPath, directory);
     const entries: RawArtifactEntry[] = [];
-    await readRawEntries(directory, directory, entries);
+    const budget: ArtifactReadBudget = { totalBytes: 0, fileCount: 0 };
+    await readRawEntries(directory, directory, entries, budget, {
+      quotaBytes,
+      perFileBytes,
+      fileLimit,
+    });
     entries.sort((left, right) => left.path.localeCompare(right.path));
     return { entries };
   } finally {
@@ -356,25 +417,164 @@ async function collectRawArtifacts(
   }
 }
 
+/** Reject filesystem objects that could alter host extraction semantics before
+ * any archive bytes reach a host extractor. `mountPath` is the validated,
+ * supervisor-owned tmpfs path and every expression token is a fixed argv item.
+ */
+async function assertResultTreeSafeForExtraction(
+  containerId: string,
+  mountPath: string,
+): Promise<void> {
+  const unsafe = await dockerExec(containerId, [
+    'find',
+    mountPath,
+    '-xdev',
+    '(',
+    '-type',
+    'l',
+    '-o',
+    '-type',
+    'b',
+    '-o',
+    '-type',
+    'c',
+    '-o',
+    '-type',
+    'p',
+    '-o',
+    '-type',
+    's',
+    '-o',
+    '(',
+    '-type',
+    'f',
+    '-links',
+    '+1',
+    ')',
+    ')',
+    '-print',
+  ]);
+  if (unsafe.exit !== 0 || unsafe.stdout.length > 0) {
+    throw new ArtifactImportError(
+      'invalid',
+      'Worker result contains an unsafe filesystem entry; host extraction was blocked',
+    );
+  }
+}
+
+/** Docker's archive endpoint cannot see container tmpfs mounts. Stream a tar
+ * archive between child processes so neither Docker's UTF-8 control buffer nor
+ * the Node heap buffers result bytes. Paths are fixed trusted arguments. */
+async function copyMountedResult(
+  containerId: string,
+  mountPath: string,
+  directory: string,
+): Promise<void> {
+  await new Promise<void>((resolveCopy, rejectCopy) => {
+    const source = spawn('docker', ['exec', containerId, 'tar', '-C', mountPath, '-cf', '-', '.'], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    const destination = spawn('tar', ['-xf', '-', '-C', directory], {
+      stdio: ['pipe', 'ignore', 'pipe'],
+    });
+    let sourceError = '';
+    let destinationError = '';
+    source.stderr.setEncoding('utf8').on('data', (chunk: string) => (sourceError += chunk));
+    destination.stderr
+      .setEncoding('utf8')
+      .on('data', (chunk: string) => (destinationError += chunk));
+    source.stdout.pipe(destination.stdin);
+    let sourceExit: number | null = null;
+    let destinationExit: number | null = null;
+    const finish = (): void => {
+      if (sourceExit === null || destinationExit === null) return;
+      if (sourceExit === 0 && destinationExit === 0) resolveCopy();
+      else
+        rejectCopy(
+          new Error(
+            `stream worker result volume failed: ${sourceError || destinationError || `tar exits ${sourceExit}/${destinationExit}`}`,
+          ),
+        );
+    };
+    source.on('error', rejectCopy);
+    destination.on('error', rejectCopy);
+    source.on('close', (code) => {
+      sourceExit = code;
+      finish();
+    });
+    destination.on('close', (code) => {
+      destinationExit = code;
+      finish();
+    });
+  });
+}
+
+async function assertResultVolumeCapacity(
+  containerId: string,
+  mountPath: string,
+  quotaBytes: number,
+): Promise<void> {
+  const capacity = await dockerExec(containerId, ['df', '-k', '-P', mountPath]);
+  requireSuccess('inspect worker result volume capacity', capacity);
+  assertCapacityOutput(capacity.stdout, quotaBytes);
+}
+
+function assertCapacityOutput(output: string, quotaBytes: number): void {
+  const lines = output.trim().split('\n');
+  const values = lines.at(-1)?.trim().split(/\s+/) ?? [];
+  // POSIX `df -P` fixes the data row to: filesystem, 1024-blocks, used,
+  // available, capacity, mounted-on. A filesystem label may contain spaces, so
+  // address the fixed numeric fields from the right.
+  const totalSizeKilobytes = Number(values.at(-5));
+  const totalSizeBytes = totalSizeKilobytes * 1024;
+  // tmpfs is page-rounded by the kernel. Permit at most one 4 KiB page of
+  // rounding while still rejecting an accidentally unbounded/mis-mounted path.
+  if (
+    !Number.isSafeInteger(totalSizeBytes) ||
+    totalSizeBytes <= 0 ||
+    totalSizeBytes > quotaBytes + 4096
+  ) {
+    throw new ArtifactImportError(
+      'quota',
+      `Worker result volume total-size limit is absent or exceeds its quota (${totalSizeBytes}/${quotaBytes}; ${output})`,
+    );
+  }
+}
+
 async function readRawEntries(
   root: string,
   directory: string,
   output: RawArtifactEntry[],
+  budget: ArtifactReadBudget,
+  limits: Readonly<{ quotaBytes: number; perFileBytes: number; fileLimit: number }>,
 ): Promise<void> {
   for (const name of await readdir(directory)) {
     const absolute = join(directory, name);
     const path = relative(root, absolute).split(sep).join('/');
     const stat = await lstat(absolute);
-    if (output.length >= 4098) {
-      throw new Error('Worker result contains too many filesystem entries');
-    }
     if (stat.isSymbolicLink()) {
       output.push({ path, kind: 'symlink' });
     } else if (stat.isDirectory()) {
       output.push({ path, kind: 'directory' });
-      await readRawEntries(root, absolute, output);
+      await readRawEntries(root, absolute, output, budget, limits);
     } else if (stat.isFile()) {
-      output.push({ path, kind: 'regular', bytes: await readFile(absolute) });
+      budget.fileCount += 1;
+      if (budget.fileCount > limits.fileLimit + 1) {
+        throw new ArtifactImportError('quota', 'Worker result exceeded the file-count quota');
+      }
+      const read = await readArtifactWithinQuota(absolute, budget, {
+        perFileBytes: limits.perFileBytes,
+        totalBytes: limits.quotaBytes,
+      });
+      if (!read.accepted) {
+        throw new ArtifactImportError(
+          'quota',
+          read.reason === 'file-size'
+            ? `Worker artifact exceeded the per-file byte quota: ${path}`
+            : 'Worker result exceeded the cumulative byte quota',
+        );
+      }
+      output.push({ path, kind: 'regular', bytes: read.bytes });
     } else {
       output.push({ path, kind: 'other' });
     }
@@ -387,6 +587,20 @@ export async function inspectSandbox(sandbox: WorkerSandbox): Promise<SandboxSta
     '{{.State.Status}} {{.State.ExitCode}} {{.State.OOMKilled}}',
   );
   const [status = 'unknown', exitCode = '-1', oomKilled = 'false'] = raw.split(/\s+/);
+  if (status === 'running' && sandbox.resultVolumeName) {
+    const completed = await dockerExec(sandbox.containerId, [
+      'cat',
+      `${RESULT_EXPORT_PATH}/${RESULT_COMPLETE_MARKER}`,
+    ]);
+    if (completed.exit === 0 && /^\d+$/.test(completed.stdout)) {
+      const completedExitCode = Number(completed.stdout);
+      return {
+        status: 'exited',
+        exitCode: completedExitCode,
+        oomKilled: oomKilled === 'true' || completedExitCode === 137 || completedExitCode === 139,
+      };
+    }
+  }
   return { status, exitCode: Number(exitCode), oomKilled: oomKilled === 'true' };
 }
 

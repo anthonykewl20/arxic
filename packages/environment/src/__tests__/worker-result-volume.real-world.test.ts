@@ -1,13 +1,15 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { validateDiagnostic } from '@arxic/contracts';
 import {
   createWorkerSandbox,
   dockerInspect,
   dockerVersion,
   volumeInspect,
+  workerDiagnostic,
   type WorkerSandbox,
 } from '..';
 import { ArtifactImportError, importArtifacts, type ArtifactTransportManifest } from '..';
@@ -20,7 +22,11 @@ function identity(label: string): string {
   return `${label}-${process.pid}-${randomUUID().slice(0, 8)}`;
 }
 
-async function sandbox(label: string, quotaBytes = 256 * 1024 * 1024): Promise<WorkerSandbox> {
+async function sandbox(
+  label: string,
+  quotaBytes = 256 * 1024 * 1024,
+  limits: Readonly<{ perFileBytes?: number; fileLimit?: number }> = {},
+): Promise<WorkerSandbox> {
   const source = await mkdtemp(join(tmpdir(), 'arxic-result-source-'));
   directories.push(source);
   await writeFile(join(source, 'source.txt'), 'source');
@@ -30,7 +36,7 @@ async function sandbox(label: string, quotaBytes = 256 * 1024 * 1024): Promise<W
     sourcePath: source,
     networkName: `arxic-${jobId}-net`,
     quotas: { memoryMb: 64, memorySwapMb: 64, pidsLimit: 64, cpus: 0.5, timeoutMs: 15_000 },
-    resultVolume: { mountPath: '/work/result', quotaBytes },
+    resultVolume: { mountPath: '/work/result', quotaBytes, ...limits },
   });
 }
 
@@ -75,39 +81,176 @@ describe('real Docker worker result volume transport', () => {
     );
   });
 
-  it('blocks an over-quota volume import as ARXIC-WORKER-QUOTA-EXCEEDED', async ({ skip }) => {
+  it('physically blocks a volume-full write as ARXIC-WORKER-QUOTA-EXCEEDED without host OOM', async ({
+    skip,
+  }) => {
     if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
     const worker = await sandbox('result-quota', 128);
     try {
-      const bytes = Buffer.alloc(256, 0x61);
-      expect(
-        (
-          await worker.exec([
-            'sh',
-            '-c',
-            `dd if=/dev/zero of=/work/result/large.bin bs=256 count=1`,
-          ])
-        ).exit,
-      ).toBe(0);
-      await writeManifest(worker, [
-        { path: 'large.bin', sha256: sha256(bytes), bytes: bytes.length },
+      const write = await worker.exec([
+        'sh',
+        '-c',
+        `dd if=/dev/zero of=/work/result/large.bin bs=4096 count=2`,
       ]);
-      const raw = await worker.collectArtifacts();
-      expectImportCode(() => importArtifacts(raw, worker.jobId, { quotaBytes: 128 }), 'quota');
-      // Action mapping: ArtifactImportError(reason=quota) → blocked / ARXIC-WORKER-QUOTA-EXCEEDED.
+      expect(write.exit).not.toBe(0);
+      expect(write.stderr).toMatch(/No space left on device/i);
+      const state = await worker.inspect();
+      expect(state.oomKilled).toBe(false);
+      const diagnostic = workerDiagnostic(
+        'ARXIC-WORKER-QUOTA-EXCEEDED',
+        worker.jobId,
+        'Worker artifact transport exceeded its enforced quota.',
+      );
+      expect(validateDiagnostic(diagnostic)).toMatchObject({ ok: true });
+      // A volume-full worker is blocked without host buffering or OOM.
+      expect({ outcome: diagnostic.severity, diagnostic }).toMatchObject({ outcome: 'blocked' });
     } finally {
       await worker.stop();
     }
   }, 120_000);
 
-  it('rejects a symlink in the result volume as blocked run failure', async ({ skip }) => {
+  it('rejects an oversized file during streaming import and leaves the host healthy', async ({
+    skip,
+  }) => {
     if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
-    const worker = await sandbox('result-symlink');
+    const worker = await sandbox('result-file-quota', 1024 * 1024, { perFileBytes: 64 * 1024 });
     try {
-      expect((await worker.exec(['ln', '-s', '/etc/passwd', '/work/result/link'])).exit).toBe(0);
+      const write = await worker.exec([
+        'sh',
+        '-c',
+        'dd if=/dev/zero of=/work/result/large.bin bs=65537 count=1',
+      ]);
+      expect(write.exit, write.stderr).toBe(0);
+      await expect(worker.collectArtifacts()).rejects.toMatchObject({
+        name: 'ArtifactImportError',
+        reason: 'quota',
+        message: expect.stringContaining('per-file byte quota'),
+      });
+      expect((await worker.inspect()).oomKilled).toBe(false);
+      const diagnostic = workerDiagnostic(
+        'ARXIC-WORKER-QUOTA-EXCEEDED',
+        worker.jobId,
+        'Worker artifact transport exceeded its enforced quota.',
+      );
+      expect(validateDiagnostic(diagnostic)).toMatchObject({ ok: true });
+      expect(diagnostic.severity).toBe('blocked');
+    } finally {
+      await worker.stop();
+    }
+  }, 120_000);
+
+  it('rejects cumulative file count incrementally', async ({ skip }) => {
+    if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
+    const worker = await sandbox('result-file-count', 1024 * 1024, { fileLimit: 2 });
+    try {
+      expect(
+        (
+          await worker.exec([
+            'sh',
+            '-c',
+            'touch /work/result/a /work/result/b /work/result/c /work/result/result-manifest.json',
+          ])
+        ).exit,
+      ).toBe(0);
+      await expect(worker.collectArtifacts()).rejects.toMatchObject({
+        reason: 'quota',
+        message: expect.stringContaining('file-count quota'),
+      });
+      expect((await worker.inspect()).oomKilled).toBe(false);
+    } finally {
+      await worker.stop();
+    }
+  }, 120_000);
+
+  it('rejects a hostile symlink before host extraction without writing its host target', async ({
+    skip,
+  }) => {
+    if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
+    const worker = await sandbox('result-pre-extract-symlink');
+    const hostTargetBefore = createHash('sha256')
+      .update(await readFile('/etc/passwd'))
+      .digest('hex');
+    const stagingBefore = (await readdir(tmpdir()))
+      .filter((name) => name.startsWith('arxic-worker-result-'))
+      .sort();
+    try {
+      expect((await worker.exec(['ln', '-s', '/etc/passwd', '/work/result/escape'])).exit).toBe(0);
+      // Exercise a write through the hostile link. The read-only container root
+      // rejects it; collection must then reject the remaining link before any
+      // archive is extracted by the host supervisor.
+      expect(
+        (await worker.exec(['sh', '-c', 'printf hostile > /work/result/escape'])).exit,
+      ).not.toBe(0);
       await writeManifest(worker, []);
-      const raw = await worker.collectArtifacts();
-      expectImportCode(() => importArtifacts(raw, worker.jobId), 'invalid');
+      await expect(worker.collectArtifacts()).rejects.toMatchObject({
+        name: 'ArtifactImportError',
+        reason: 'invalid',
+        message: expect.stringContaining('unsafe filesystem entry'),
+      });
+      expect(
+        createHash('sha256')
+          .update(await readFile('/etc/passwd'))
+          .digest('hex'),
+      ).toBe(hostTargetBefore);
+      expect(
+        (await readdir(tmpdir())).filter((name) => name.startsWith('arxic-worker-result-')).sort(),
+      ).toEqual(stagingBefore);
+    } finally {
+      await worker.stop();
+    }
+  }, 120_000);
+
+  it('classifies a completion-marker exit 137 as an OOM quota breach', async ({ skip }) => {
+    if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
+    const source = await mkdtemp(join(tmpdir(), 'arxic-result-source-'));
+    directories.push(source);
+    await writeFile(join(source, 'source.txt'), 'source');
+    const jobId = identity('marker-oom');
+    const worker = await createWorkerSandbox({
+      jobId,
+      sourcePath: source,
+      networkName: `arxic-${jobId}-net`,
+      quotas: {
+        memoryMb: 64,
+        memorySwapMb: 64,
+        pidsLimit: 64,
+        cpus: 0.5,
+        timeoutMs: 15_000,
+      },
+      resultVolume: { mountPath: '/work/result', quotaBytes: 1024 * 1024 },
+      command: ['sh', '-c', 'exit 137'],
+    });
+    try {
+      let state = await worker.inspect();
+      for (let attempt = 0; state.status === 'running' && attempt < 20; attempt += 1) {
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, 25));
+        state = await worker.inspect();
+      }
+      expect(state).toMatchObject({ status: 'exited', exitCode: 137, oomKilled: true });
+    } finally {
+      await worker.stop();
+    }
+  }, 120_000);
+
+  it('rejects hard-linked result files before host extraction', async ({ skip }) => {
+    if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
+    const worker = await sandbox('result-pre-extract-hardlink');
+    try {
+      expect(
+        (
+          await worker.exec([
+            'sh',
+            '-c',
+            'printf hostile > /work/result/original && ln /work/result/original /work/result/alias',
+          ])
+        ).exit,
+      ).toBe(0);
+      await writeManifest(worker, []);
+      await expect(worker.collectArtifacts()).rejects.toMatchObject({
+        name: 'ArtifactImportError',
+        reason: 'invalid',
+        message: expect.stringContaining('unsafe filesystem entry'),
+      });
     } finally {
       await worker.stop();
     }
@@ -131,8 +274,11 @@ describe('real Docker worker result volume transport', () => {
     try {
       expect((await worker.exec(['mkfifo', '/work/result/pipe'])).exit).toBe(0);
       await writeManifest(worker, []);
-      const raw = await worker.collectArtifacts();
-      expectImportCode(() => importArtifacts(raw, worker.jobId), 'invalid');
+      await expect(worker.collectArtifacts()).rejects.toMatchObject({
+        name: 'ArtifactImportError',
+        reason: 'invalid',
+        message: expect.stringContaining('unsafe filesystem entry'),
+      });
     } finally {
       await worker.stop();
     }

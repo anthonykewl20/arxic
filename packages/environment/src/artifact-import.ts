@@ -1,5 +1,17 @@
 import { createHash } from 'node:crypto';
 import type { RawArtifactSet } from './worker-sandbox';
+import {
+  ArtifactImportError,
+  DEFAULT_RESULT_FILE_LIMIT,
+  DEFAULT_RESULT_QUOTA_BYTES,
+} from './artifact-quota';
+
+export {
+  ArtifactImportError,
+  DEFAULT_RESULT_FILE_LIMIT,
+  DEFAULT_RESULT_FILE_QUOTA_BYTES,
+  DEFAULT_RESULT_QUOTA_BYTES,
+} from './artifact-quota';
 
 /** Minimal run-local byte-transport manifest; #157 extends/consumes this handshake. */
 export type ArtifactTransportManifest = Readonly<{
@@ -18,18 +30,6 @@ export type ImportedArtifacts = Readonly<{
 }>;
 
 export const RESULT_MANIFEST_PATH = 'result-manifest.json';
-export const DEFAULT_RESULT_QUOTA_BYTES = 256 * 1024 * 1024;
-export const DEFAULT_RESULT_FILE_LIMIT = 4096;
-
-export class ArtifactImportError extends Error {
-  constructor(
-    readonly reason: 'quota' | 'invalid',
-    message: string,
-  ) {
-    super(message);
-  }
-}
-
 /** Validate worker-owned bytes as hostile content; hashes confer transport integrity only. */
 export function importArtifacts(
   raw: RawArtifactSet,
