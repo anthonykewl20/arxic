@@ -4,7 +4,7 @@ import { createServer as createHttpServer, type Server as HttpServer } from 'nod
 import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -21,6 +21,8 @@ let commit = '';
 let configPath = '';
 let modelServer: HttpServer | undefined;
 let modelBaseUrl = '';
+let stateDirectory = '';
+let previousStateDirectory: string | undefined;
 const hostStateArtifacts = ['.vitest-auth.db-wal', 'auth.db-wal'];
 
 describe('real CLI pipeline proof', () => {
@@ -29,10 +31,10 @@ describe('real CLI pipeline proof', () => {
       cwd: root,
       timeout: 180_000,
     });
-    for (const artifact of hostStateArtifacts) {
-      await writeFile(join(appDir, artifact), 'x'.repeat(1024 * 1024 + 1));
-    }
     sourceDirectory = await committedFixtureCopy();
+    stateDirectory = await temporaryDirectory('arxic-m1-11-state-');
+    previousStateDirectory = process.env.ARXIC_STATE_DIR;
+    process.env.ARXIC_STATE_DIR = stateDirectory;
     const runtime = await temporaryDirectory('arxic-m1-11-runtime-');
     const configDirectory = await temporaryDirectory('arxic-m1-11-config-');
     const port = await freePort();
@@ -78,9 +80,8 @@ describe('real CLI pipeline proof', () => {
     await Promise.all(
       temporaryDirectories.map((directory) => rm(directory, { recursive: true, force: true })),
     );
-    await Promise.all(
-      hostStateArtifacts.map((artifact) => rm(join(appDir, artifact), { force: true })),
-    );
+    if (previousStateDirectory === undefined) delete process.env.ARXIC_STATE_DIR;
+    else process.env.ARXIC_STATE_DIR = previousStateDirectory;
   });
 
   it('writes an observable run directory after driving the real pipeline and reference app', async () => {
@@ -170,7 +171,6 @@ describe('real CLI pipeline proof', () => {
         });
 
         const runDirectory = result.runDirectory!;
-        temporaryDirectories.push(dirname(runDirectory));
         const run = JSON.parse(await readFile(join(runDirectory, 'run.json'), 'utf8')) as RunRecord;
         expect(result.exitCode, JSON.stringify(run)).toBe(0);
         expect(run.outcome).toBe('verified');
@@ -307,8 +307,16 @@ models:
 }
 
 async function committedFixtureCopy(): Promise<string> {
+  const stagingDirectory = await temporaryDirectory('arxic-m1-11-host-state-');
+  await cp(appDir, stagingDirectory, {
+    recursive: true,
+    filter: (path) => !['node_modules', '.next', 'dist'].includes(basename(path)),
+  });
+  for (const artifact of hostStateArtifacts) {
+    await writeFile(join(stagingDirectory, artifact), 'x'.repeat(1024 * 1024 + 1));
+  }
   const directory = await temporaryDirectory('arxic-m1-11-source-');
-  await cp(appDir, directory, {
+  await cp(stagingDirectory, directory, {
     recursive: true,
     filter: (path) => {
       const name = basename(path);

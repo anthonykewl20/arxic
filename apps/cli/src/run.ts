@@ -1,6 +1,6 @@
-import { randomUUID } from 'node:crypto';
-import { mkdtemp } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { createHash, randomUUID } from 'node:crypto';
+import { chmod, mkdir } from 'node:fs/promises';
+import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
 import type { RunState } from '@arxic/orchestrator-langgraph';
@@ -32,12 +32,12 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
     return { exitCode: 2, diagnostics: loaded.diagnostics };
   }
 
+  const repositoryDirectory = resolve(cwd, loaded.value.source.repository);
   const runId = options.runId ?? randomUUID();
   const runDirectory =
     options.out === undefined
-      ? await mkdtemp(join(tmpdir(), 'arxic-runs-'))
+      ? await defaultRunRoot(repositoryDirectory)
       : resolve(cwd, options.out);
-  const repositoryDirectory = resolve(cwd, loaded.value.source.repository);
   const rulepacksDir = resolve(options.rulepacksDir ?? resolve(cwd, 'rulepacks'));
   const diagnostics: Diagnostic[] = [];
   const recordingSink: DiagnosticSink = {
@@ -128,6 +128,16 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
     recordingSink.emit(internal);
     return { exitCode: 1, diagnostics };
   }
+}
+
+async function defaultRunRoot(repositoryDirectory: string): Promise<string> {
+  const base = process.env.ARXIC_STATE_DIR ?? join(homedir(), '.arxic');
+  // A moved repository gets a new state root because its resolved path changes.
+  const repositoryKey = createHash('sha256').update(repositoryDirectory).digest('hex').slice(0, 16);
+  const root = join(base, 'runs', repositoryKey);
+  await mkdir(root, { recursive: true, mode: 0o700 });
+  await chmod(root, 0o700).catch(() => undefined);
+  return root;
 }
 
 function diagnosticKey(diagnostic: Diagnostic): string {

@@ -1,11 +1,12 @@
 import { execFile } from 'node:child_process';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { access, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import type { Diagnostic } from '@arxic/contracts';
+import { FileStageCheckpointer } from '@arxic/orchestrator-langgraph';
 import type { RunExecutor, RunRequest, RunResult } from '../executor';
 import { cliDiagnostic, ARXIC_EXEC_RESUMED } from '../diagnostics';
 import { runAction } from '../run';
@@ -118,40 +119,88 @@ describe('runAction sad paths', () => {
     'keeps default output outside a repository regardless of its .gitignore (%j)',
     async (gitignore) => {
       const directory = await configDirectory();
+      const stateDirectory = await mkdtemp(join(tmpdir(), 'arxic-cli-state-'));
+      const previousStateDirectory = process.env.ARXIC_STATE_DIR;
       await writeFile(join(directory, '.gitignore'), gitignore);
       await commitRepository(directory);
       const firstRunId = `default-output-first-${randomUUID()}`;
       const secondRunId = `default-output-second-${randomUUID()}`;
+      process.env.ARXIC_STATE_DIR = stateDirectory;
+      try {
+        const first = await runAction({
+          configPath: 'arxic.yaml',
+          runId: firstRunId,
+          executor: resultExecutor([], 'verified'),
+          cwd: directory,
+          now: sequenceClock(),
+        });
+        const second = await runAction({
+          configPath: 'arxic.yaml',
+          runId: secondRunId,
+          executor: resultExecutor([], 'verified'),
+          cwd: directory,
+          now: sequenceClock(),
+        });
 
+        const repositoryKey = createHash('sha256').update(directory).digest('hex').slice(0, 16);
+        expect(first.exitCode).toBe(0);
+        expect(second.exitCode).toBe(0);
+        expect(first.runDirectory).toBe(join(stateDirectory, 'runs', repositoryKey, firstRunId));
+        expect(second.runDirectory).toBe(join(stateDirectory, 'runs', repositoryKey, secondRunId));
+        expect(dirname(first.runDirectory!)).toBe(dirname(second.runDirectory!));
+        expect((await stat(dirname(first.runDirectory!))).mode & 0o777).toBe(0o700);
+        expect((await execute('git', ['status', '--porcelain'], { cwd: directory })).stdout).toBe(
+          '',
+        );
+      } finally {
+        if (previousStateDirectory === undefined) delete process.env.ARXIC_STATE_DIR;
+        else process.env.ARXIC_STATE_DIR = previousStateDirectory;
+        await rm(stateDirectory, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it('reuses a stable out-of-tree default root to resume the same run id', async () => {
+    const directory = await configDirectory();
+    const stateDirectory = await mkdtemp(join(tmpdir(), 'arxic-cli-state-'));
+    const previousStateDirectory = process.env.ARXIC_STATE_DIR;
+    const runId = `default-output-resume-${randomUUID()}`;
+    const checkpointLoads: boolean[] = [];
+    process.env.ARXIC_STATE_DIR = stateDirectory;
+    await writeFile(join(directory, '.gitignore'), '');
+    await commitRepository(directory);
+    try {
       const first = await runAction({
         configPath: 'arxic.yaml',
-        runId: firstRunId,
-        executor: resultExecutor([], 'verified'),
+        runId,
+        executor: checkpointingExecutor(checkpointLoads),
         cwd: directory,
         now: sequenceClock(),
       });
       const second = await runAction({
         configPath: 'arxic.yaml',
-        runId: secondRunId,
-        executor: resultExecutor([], 'verified'),
+        runId,
+        executor: checkpointingExecutor(checkpointLoads),
         cwd: directory,
         now: sequenceClock(),
       });
 
-      expect(first.exitCode).toBe(0);
-      expect(second.exitCode).toBe(0);
-      expect(first.runDirectory).toMatch(new RegExp(`arxic-runs-.+/${firstRunId}$`, 'u'));
-      expect(second.runDirectory).toMatch(new RegExp(`arxic-runs-.+/${secondRunId}$`, 'u'));
-      expect(dirname(first.runDirectory!)).not.toBe(dirname(second.runDirectory!));
-      expect((await stat(dirname(first.runDirectory!))).mode & 0o777).toBe(0o700);
-      expect((await stat(dirname(second.runDirectory!))).mode & 0o777).toBe(0o700);
+      const repositoryKey = createHash('sha256').update(directory).digest('hex').slice(0, 16);
+      const expectedRunDirectory = join(stateDirectory, 'runs', repositoryKey, runId);
+      expect(first.runDirectory).toBe(expectedRunDirectory);
+      expect(second.runDirectory).toBe(expectedRunDirectory);
+      expect(checkpointLoads).toEqual([false, true]);
+      expect(second.diagnostics).toContainEqual(
+        expect.objectContaining({ code: ARXIC_EXEC_RESUMED, severity: 'observed' }),
+      );
+      expect((await stat(join(stateDirectory, 'runs', repositoryKey))).mode & 0o777).toBe(0o700);
       expect((await execute('git', ['status', '--porcelain'], { cwd: directory })).stdout).toBe('');
-      await Promise.all([
-        rm(dirname(first.runDirectory!), { recursive: true, force: true }),
-        rm(dirname(second.runDirectory!), { recursive: true, force: true }),
-      ]);
-    },
-  );
+    } finally {
+      if (previousStateDirectory === undefined) delete process.env.ARXIC_STATE_DIR;
+      else process.env.ARXIC_STATE_DIR = previousStateDirectory;
+      await rm(stateDirectory, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('runAction happy path', () => {
@@ -214,6 +263,46 @@ function resultExecutor(
     async execute(request, sink) {
       diagnostics.forEach((diagnostic) => sink.emit(diagnostic));
       return makeResult(request, diagnostics, outcome);
+    },
+  };
+}
+
+function checkpointingExecutor(checkpointLoads: boolean[]): RunExecutor {
+  return {
+    async execute(request, sink) {
+      const checkpointer = new FileStageCheckpointer(request.runDirectory);
+      const restored = await checkpointer.load(request.runId);
+      checkpointLoads.push(restored !== undefined);
+      if (restored) {
+        const resumed = cliDiagnostic(
+          ARXIC_EXEC_RESUMED,
+          'observed',
+          request.runId,
+          'Resumed from a persisted FileStageCheckpointer checkpoint',
+        );
+        sink.emit(resumed);
+        return {
+          runId: request.runId,
+          status: 'completed',
+          outcome: restored.outcome,
+          diagnostics: [resumed],
+          runDirectory: request.runDirectory,
+          state: restored,
+        };
+      }
+
+      const state = { ...runState([], 'observed'), runId: request.runId };
+      const checkpoint = state.checkpoints[0];
+      if (!checkpoint) throw new Error('Test run state requires an initial checkpoint');
+      await checkpointer.saveCheckpoint(request.runId, checkpoint, state);
+      return {
+        runId: request.runId,
+        status: 'completed',
+        outcome: state.outcome,
+        diagnostics: [],
+        runDirectory: request.runDirectory,
+        state,
+      };
     },
   };
 }
