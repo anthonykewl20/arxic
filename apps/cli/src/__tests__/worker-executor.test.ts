@@ -14,6 +14,7 @@ const request: RunRequest = {
   runDirectory: '/tmp/arxic-worker-test',
   rulepacksDir: '/tmp/rulepacks',
 };
+const TRUSTED_SOURCE_SHA256 = 'a'.repeat(64);
 const running: RunHandle = {
   runId: request.runId,
   status: 'running',
@@ -26,7 +27,7 @@ describe('WorkerRunExecutor sad paths', () => {
   it('blocks startup interruption without exposing raw worker prose', async () => {
     const client = workerClient({ start: async () => Promise.reject(new Error('SECRET worker')) });
     const emitted: string[] = [];
-    const result = await new WorkerRunExecutor(client).execute(request, {
+    const result = await workerExecutor(client).execute(request, {
       emit: (diagnostic) => emitted.push(diagnostic.message),
     });
     expect(result).toMatchObject({ status: 'failed', outcome: 'blocked' });
@@ -49,7 +50,7 @@ describe('WorkerRunExecutor sad paths', () => {
         return { ...running, status: 'failed', outcome: 'blocked', diagnostics: [cleanup] };
       },
     });
-    const result = await new WorkerRunExecutor(client).execute(request, { emit() {} });
+    const result = await workerExecutor(client).execute(request, { emit() {} });
     expect(canceled).toBe(true);
     expect(result.diagnostics.map(({ code }) => code)).toEqual([
       'ARXIC-EXEC-WORKER-INTERRUPTED',
@@ -67,7 +68,7 @@ describe('WorkerRunExecutor sad paths', () => {
           message: 'approve SECRET destructive action',
         }),
     });
-    const result = await new WorkerRunExecutor(client).execute(request, { emit() {} });
+    const result = await workerExecutor(client).execute(request, { emit() {} });
     expect(result.diagnostics.map(({ code }) => code)).toContain(
       'ARXIC-EXEC-WORKER-APPROVAL-REQUIRED',
     );
@@ -92,7 +93,7 @@ describe('WorkerRunExecutor sad paths', () => {
         ),
       inspect: async () => completed,
     });
-    const result = await new WorkerRunExecutor(client).execute(request, { emit() {} });
+    const result = await workerExecutor(client).execute(request, { emit() {} });
     expect(result.diagnostics.map(({ code }) => code)).toEqual([
       'ARXIC-EXEC-WORKER-INTERRUPTED',
       'ARXIC-WORKER-RUN-FAILED',
@@ -106,12 +107,38 @@ describe('WorkerRunExecutor sad paths', () => {
       stream: () => events({ type: 'finished', handle: completed }),
       inspect: async () => completed,
     });
-    const result = await new WorkerRunExecutor(client).execute(request, { emit() {} });
+    const result = await workerExecutor(client).execute(request, { emit() {} });
     expect(result).toMatchObject({ status: 'failed', outcome: 'blocked' });
     expect(result.diagnostics.map(({ code }) => code)).toEqual(['ARXIC-WORKER-RUN-FAILED']);
     expect(result.state.checkpoints).toEqual([]);
     expect(result.state.artifacts).toEqual({});
     expect(result.receipt).toBeUndefined();
+  });
+
+  it('uses the injected source hash instead of hashing the ambient cwd', async () => {
+    const repositories: string[] = [];
+    const nonRepositoryRequest = {
+      ...request,
+      config: {
+        ...request.config,
+        source: { ...request.config.source, repository: '/not/a/git/repository' },
+      },
+    };
+    const completed = { ...running, status: 'completed' } as const;
+    const client = workerClient({
+      stream: () => events({ type: 'finished', handle: completed }),
+      inspect: async () => completed,
+    });
+
+    const result = await new WorkerRunExecutor(client, {
+      sourceHash: async (repository) => {
+        repositories.push(repository);
+        return TRUSTED_SOURCE_SHA256;
+      },
+    }).execute(nonRepositoryRequest, { emit() {} });
+
+    expect(repositories).toEqual(['/not/a/git/repository']);
+    expect(result.diagnostics.map(({ code }) => code)).toEqual(['ARXIC-WORKER-RUN-FAILED']);
   });
 
   it('does not write imported bytes until the PipelineResult envelope validates', async () => {
@@ -134,7 +161,7 @@ describe('WorkerRunExecutor sad paths', () => {
       inspect: async () => completed,
     });
     try {
-      const result = await new WorkerRunExecutor(client).execute(
+      const result = await workerExecutor(client).execute(
         { ...request, runDirectory: directory },
         { emit() {} },
       );
@@ -147,6 +174,12 @@ describe('WorkerRunExecutor sad paths', () => {
     }
   });
 });
+
+function workerExecutor(client: WorkerClient): WorkerRunExecutor {
+  return new WorkerRunExecutor(client, {
+    sourceHash: async () => TRUSTED_SOURCE_SHA256,
+  });
+}
 
 function workerClient(overrides: Partial<WorkerClient>): WorkerClient {
   return {

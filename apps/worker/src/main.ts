@@ -32,6 +32,7 @@ import {
 import { canonicalPipelineJson, PIPELINE_RESULT_PATH } from './pipeline-result';
 import { projectPipelineResult, type VolumeFile } from './runner-project';
 import type { RunSpec } from './run-spec';
+import { hashSourceTree } from './source-tree-hash';
 
 const RESULT_ROOT = '/work/result';
 const PIPELINE_WORK_ROOT = '/work/pipeline';
@@ -429,10 +430,12 @@ async function writeProjectedResult(
   appBuildDigest?: string,
 ): Promise<void> {
   const volumeFiles = await readVolumeFiles();
+  const { sourceSha256 } = await hashSourceTree('/work/source');
   const projected = projectPipelineResult({
     spec,
     state,
     volumeFiles,
+    sourceSha256,
     now,
     ...(appBuildDigest ? { appBuildDigest } : {}),
     orchestratorVersion: ORCHESTRATOR_VERSION,
