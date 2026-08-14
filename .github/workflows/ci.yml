@@ -18,6 +18,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      worker: ${{ steps.filter.outputs.worker }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - id: filter
+        name: Detect worker-image-relevant changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base origin/main HEAD)"
+          if git diff --name-only "$base" HEAD | grep -E '^(apps/worker/|packages/environment/|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|package\.json$|\.github/workflows/ci\.yml$|\.github/dependabot\.yml$)' > /dev/null; then
+            echo 'worker=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'worker=false' >> "$GITHUB_OUTPUT"
+          fi
+
   ci:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -118,3 +139,29 @@ jobs:
 
       - name: Command-guard denylist test
         run: bash .opencode/plugins/test-guard.sh
+
+  worker-image:
+    needs: [changes]
+    if: needs.changes.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.10 # version comes from package.json "packageManager"
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and verify worker image
+        run: bash apps/worker/build-and-verify.sh
+
+      - name: Run worker image sandbox suite
+        run: ARXIC_WORKER_IMAGE_REQUIRED=1 pnpm exec vitest run packages/environment/src/__tests__/worker-image.real-world.test.ts
