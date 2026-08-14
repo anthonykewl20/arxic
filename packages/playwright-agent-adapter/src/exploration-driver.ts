@@ -158,6 +158,13 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
             continue;
           }
           try {
+            // Focus can synchronously run page-controlled handlers. Re-check the exact
+            // handle after that boundary so a rerender cannot turn the following native
+            // action into input on the newly focused replacement control.
+            await resolution.executionHandle.focus();
+            if (!(await attachedToDom(resolution.executionHandle))) {
+              throw new Error('Identity-checked execution element is not attached to the DOM');
+            }
             if (step.kind === 'fill') {
               await resolution.executionHandle.fill(step.value, {
                 timeout: this.#options.timeoutMs,
@@ -510,6 +517,11 @@ function playwrightLocator(page: Page, specification: ValidatedLocatorSpecificat
     case 'test-id':
       return page.getByTestId(specification.id);
   }
+}
+
+async function attachedToDom(handle: ElementHandle): Promise<boolean> {
+  // This is a fixed trusted-Service containment check, not generated page evaluation.
+  return handle.evaluate((element) => element.isConnected);
 }
 
 function safeErrorMessage(error: unknown, sensitiveValue?: string): string {
