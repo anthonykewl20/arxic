@@ -1,4 +1,9 @@
-FROM node:22-slim
+# `node:22-slim` multi-architecture index digest. Refresh this pin by running
+# `docker buildx imagetools inspect node:22-slim`, confirming the reported
+# `Digest` belongs to the multi-architecture index, then updating this value.
+# Pinned: 2026-08-14.
+# Rebuild and prove the refreshed image with `bash apps/worker/build-and-verify.sh`.
+FROM node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

@@ -26,10 +26,12 @@ import {
  * test holds the line: if a future Dockerfile change reintroduces a
  * network-bound package-manager bootstrap, this assertion fails closed here.
  *
- * Skipped when Docker or the `arxic-worker:dev` image is unavailable, so CI
- * (which does not build the worker image) skips rather than fails.
+ * Local runs skip when Docker or the `arxic-worker:dev` image is unavailable.
+ * CI sets `ARXIC_WORKER_IMAGE_REQUIRED=1`, so either missing prerequisite is a
+ * hard failure after the worker-image job builds the image.
  */
 const ARXIC_WORKER_IMAGE = 'arxic-worker:dev';
+const workerImageRequired = process.env.ARXIC_WORKER_IMAGE_REQUIRED === '1';
 
 const directories: string[] = [];
 let dockerAvailable = false;
@@ -54,6 +56,20 @@ describe('real arxic-worker image under full sandbox hardening', () => {
     }
   });
 
+  const requireWorkerImage = (skip: (reason?: string) => void) => {
+    if (!dockerAvailable) {
+      const message = `Docker unavailable: ${dockerReason}`;
+      if (workerImageRequired) throw new Error(`Worker image is required: ${message}`);
+      skip(message);
+    }
+
+    if (!imageAvailable) {
+      const message = `${ARXIC_WORKER_IMAGE} not built; run apps/worker/build-and-verify.sh`;
+      if (workerImageRequired) throw new Error(`Worker image is required: ${message}`);
+      skip(message);
+    }
+  };
+
   afterAll(async () => {
     await Promise.all(
       directories.map((directory) => rm(directory, { recursive: true, force: true })),
@@ -61,9 +77,7 @@ describe('real arxic-worker image under full sandbox hardening', () => {
   });
 
   it('runs node, pnpm, and ast-grep as a non-root uid with no network egress', async ({ skip }) => {
-    if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
-    if (!imageAvailable)
-      skip(`${ARXIC_WORKER_IMAGE} not built; run apps/worker/build-and-verify.sh`);
+    requireWorkerImage(skip);
     const jobId = `img-${process.pid}-${randomUUID().slice(0, 8)}`;
     const source = await mkdtemp(join(tmpdir(), 'arxic-m2-image-'));
     directories.push(source);
@@ -138,9 +152,7 @@ describe('real arxic-worker image under full sandbox hardening', () => {
   }, 180_000);
 
   it('keeps the sandbox non-root and torn down after the run', async ({ skip }) => {
-    if (!dockerAvailable) skip(`Docker unavailable: ${dockerReason}`);
-    if (!imageAvailable)
-      skip(`${ARXIC_WORKER_IMAGE} not built; run apps/worker/build-and-verify.sh`);
+    requireWorkerImage(skip);
     const jobId = `img-clean-${process.pid}-${randomUUID().slice(0, 8)}`;
     const source = await mkdtemp(join(tmpdir(), 'arxic-m2-image-clean-'));
     directories.push(source);
