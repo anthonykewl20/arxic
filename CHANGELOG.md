@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
 
+### internal
+
+- Versioning correction (owner directive, 2026-08-14): the production-release milestone is re-versioned 1.0.0 → 0.1.1 — this is not v1; the production line stays pre-1.0 0.x. `VERSION`/`package.json` = `0.1.1`. Only `v0.2.0` was ever tagged; the never-tagged 0.3.0/0.3.1 entries are subsumed into the 0.1 line (see RELEASES.md "Versioning correction"). Maintainer follow-up: decide the v0.2.0-vs-0.1.1 tag ordering.
+
 ## [0.3.1] - 2026-08-14
 
 ### added

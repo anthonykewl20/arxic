@@ -8,7 +8,7 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **Milestone 1.0 — Production Hardening: batch 2 COMPLETE (5 more issues: #182, #173, #176, #187, #210; 10/25 slices done; 19 issues remain open).** Batch 2 delivered stage-11 deferral visibility, run-reuse input integrity, clean default CLI output/source-copy hygiene, and receipt-backed transition verification. **Next batch priorities:** #179 (consolidate to one verifier — unblocked by #173), #180 (stage-7 leases → stage-8 explore), #191 + #193 (worker base-image digest pin plus build/run worker image in CI), and #212 (result-extraction TOCTOU residual). `main` branch protection ENABLED (required `ci`, `strict: true`).**
+**Status:** **Milestone 0.1.1 — Production Hardening: batch 2 COMPLETE (5 more issues: #182, #173, #176, #187, #210; 10/25 slices done; 19 issues remain open).** Batch 2 delivered stage-11 deferral visibility, run-reuse input integrity, clean default CLI output/source-copy hygiene, and receipt-backed transition verification. **Next batch priorities:** #179 (consolidate to one verifier — unblocked by #173), #180 (stage-7 leases → stage-8 explore), #191 + #193 (worker base-image digest pin plus build/run worker image in CI), and #212 (result-extraction TOCTOU residual). `main` branch protection ENABLED (required `ci`, `strict: true`).**
 
 **Parallel batch (charter §10) — COMPLETE.** Four slices plus an M1-EXIT de-risk spike were built concurrently, one agent per worktree, with the merge queue serialized by the integrator. All merged: #26 CLI↔worker seam types (#84), #42 M1-14 (#92), the #27 de-risk spike (#91), #25 M1-11 (#94), #43 M1-15 (#85), #26 M1-12 (#93). Every worker reported "done" at least once before it was — four of five needed a fix round — so **verify slice claims against CI and the disk artifact, never against the report**. Two systemic causes, both now closed: charter §10 landed after the workers had already started (so `docs/_slice-notes/` and `_TEMPLATE.md` did not exist and three agents invented `docs/_slice_notes/`), and no check enforces the §10.2 path — the format gate caught the wrong directory twice by luck, and #91 slipped through green with it. That CI guard was subsequently added (see Wave 0 below) and the second batch had zero slice-note defects.
 
@@ -52,9 +52,9 @@ _#104 (CLI accepted policy values the worker refuses) was resolved by #107 — s
 | Apps | `apps/{cli,worker}/` (scaffolded) |
 | Rule packs | `rulepacks/{nextjs,express}/` versioned auth AST rules **DONE (#9)**; `rulepacks/react` remains empty until #22 |
 | Test fixture apps | `test-fixtures/{reference-auth-app (Next.js 15 + sqlite + Mailpit + otplib),vulnerable-auth-app (Express + sqlite)}/` — **DONE (#13)**: real booting apps, real Mailpit, attestation, seed API; the §6 real-world surface for spikes #8–#12 + M1 |
-| Issues | <https://github.com/anthonykewl20/arxic/issues> — milestones "Milestone 0", "Milestone 1", "Milestone 2 - Hardening", and "1.0.0 - Production Release" (10/25 done; 19 open as of 2026-08-14) |
+| Issues | <https://github.com/anthonykewl20/arxic/issues> — milestones "Milestone 0", "Milestone 1", "Milestone 2 - Hardening", and "0.1.1 - Production Release" (10/25 done; 19 open as of 2026-08-14) |
 | Tooling | pnpm workspaces (Node ≥22 via corepack `packageManager` pnpm 11), TS strict, ESLint flat-config, Prettier; **per-workspace `tsconfig.json` + `typecheck` across all 19 package/app workspaces**; gates `pnpm lint/typecheck/typecheck:packages/format:check/test` are CI-green; **source-only — no build/emit in M0** (ADR-003) |
-| Versioning | `VERSION` (0.3.1) is single source of truth → `package.json`; `RELEASES.md` (SemVer; 0.1.0=M0-EXIT #14, 0.2.0=M1-EXIT #27, 0.3.0=first externally-usable release); `CHANGELOG.md` updated EVERY slice |
+| Versioning | `VERSION` (0.1.1 — re-versioned 2026-08-14; only v0.2.0 was ever tagged; see RELEASES.md) is single source of truth → `package.json`; `RELEASES.md` (SemVer; 0.1.0=M0-EXIT #14, 0.2.0=M1-EXIT #27, 0.3.0=first externally-usable release); `CHANGELOG.md` updated EVERY slice |
 | Repo & CI | GitHub: squash-only merges + delete-branch-on-merge, Dependabot + security alerts ON, `main` protected (PR flow). CI `ci.yml` (required check `ci`): lint/typecheck/format/test + metadata guards + **license gate** (`scripts/license-gate.mjs`, rejects GPL/AGPL/SSPL) + **CycloneDX SBOM** artifact + fixture-app tests (real Mailpit); issue/PR templates; `CODEOWNERS`=@anthonykewl20 |
 | Maturity docs | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`, `GOVERNANCE.md` |
 
@@ -125,9 +125,9 @@ _M2 work has begun on the two open issues below. The GitHub "Milestone 2 - Harde
 
 _#116 slice plan (per ADR-004 §3/§4): **A** (done, #124) `@arxic/intent` Service → **B** (done, #125) orchestrator oracle-resolution Action → **C** (done, #126) ADR §6 locator policy → **D** (done, #130) compiler integration → **E** (done, #132) ADR §7 sensitivity probe → **F** (done, #134) two-app real-browser proof matrix + ADR-004 Accepted flip. **#116 COMPLETE (6/6); ADR-004 Accepted (2026-08-11); all five post-acceptance follow-ups complete (0 remain).**_
 
-### Milestone 1.0 — Production Hardening (in flight)
+### Milestone 0.1.1 — Production Hardening (in flight)
 
-_The "1.0.0 - Production Release" milestone contains 25 hardening issues. Batches 1 and 2 completed the ten slices below; 19 issues remain open (2026-08-14)._
+_The "0.1.1 - Production Release" milestone (re-versioned from "1.0.0 - Production Release" on 2026-08-14 — see RELEASES.md "Versioning correction") contains 25 hardening issues. Batches 1 and 2 completed the ten slices below; 19 issues remain open (2026-08-14)._
 
 | # | Issue | Status |
 |---|---|---|
