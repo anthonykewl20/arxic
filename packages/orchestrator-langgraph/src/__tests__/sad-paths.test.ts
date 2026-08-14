@@ -11,6 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
   ARXIC_ORCH_HASH_MISMATCH,
+  ARXIC_ORCH_HEALING_DEFERRED,
   ARXIC_ORCH_MODEL_RETRIES,
   ARXIC_ORCH_REDACTION_FAILED,
   ARXIC_ORCH_RESUME,
@@ -232,6 +233,13 @@ describe('orchestrator sad paths', () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_EMPTY_COVERAGE, severity: 'observed' }),
     );
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_ORCH_HEALING_DEFERRED,
+        severity: 'observed',
+        subject: 'stage-11',
+      }),
+    );
     expect(await stageArtifact(checkpointer, result, 'empty', 9)).toEqual({
       compiled: false,
       plan: 'No workflow candidate was available to compile',
@@ -282,6 +290,26 @@ describe('orchestrator sad paths', () => {
 
     expect(resumed.status).toBe('partial');
     expect((await checkpointer.load('terminal-partial'))?.status).toBe('partial');
+  }, 60_000);
+
+  it('blocks terminal reuse when persisted artifact bytes no longer match the recorded hash', async () => {
+    const runs = await temporaryDirectory('terminal-hash-runs-');
+    const initial = await new LangGraphOrchestrator({
+      checkpointer: new FileStageCheckpointer(runs),
+      inferCandidates: async () => ({ requestId: 'terminal-hash', candidates: [] }),
+    }).run(input('terminal-hash'));
+    await writeFile(join(runs, 'terminal-hash', 'artifacts', '12.json'), '{"tampered":true}\n');
+
+    const reused = await new LangGraphOrchestrator({
+      checkpointer: new FileStageCheckpointer(runs),
+    }).run(input('terminal-hash'));
+
+    expect(initial.completedStages).toHaveLength(13);
+    expect(reused.status).toBe('failed');
+    expect(reused.outcome).toBe('blocked');
+    expect(reused.diagnostics).toContainEqual(
+      expect.objectContaining({ code: ARXIC_ORCH_HASH_MISMATCH, severity: 'blocked' }),
+    );
   }, 60_000);
 
   it('promotes a verifier-confirmed staged bundle', async () => {
@@ -815,6 +843,10 @@ class HashMismatchCheckpointer implements StageCheckpointer {
 
   readArtifact(runId: string, ref: ImmutableArtifactRef): Promise<StageArtifact> {
     return this.#delegate.readArtifact(runId, ref);
+  }
+
+  verifyArtifact(runId: string, ref: ImmutableArtifactRef): Promise<boolean> {
+    return this.#delegate.verifyArtifact(runId, ref);
   }
 
   saveCheckpoint(runId: string, checkpoint: StageCheckpoint, state: RunState): Promise<void> {
