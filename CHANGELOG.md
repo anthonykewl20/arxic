@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
 
+## [0.3.1] - 2026-08-14
+
 ### added
 
 - The worker executor (`arxic run --executor worker`) now drives the full stages 0–12 pipeline inside the hardened Docker sandbox and produces a `verified` promoted bundle end-to-end, with CLI-side authoritative stage-12 promotion (refs #103). The previous synthetic/scaffold worker result is replaced by a real-Docker proof.
