@@ -61,15 +61,16 @@ async function listTarballContents(tarball) {
 }
 
 function assertTarballContents(entries) {
+  const normalizedEntries = entries.map((entry) => entry.split('\\').join('/'));
   for (const required of ['package/dist/cli.js', 'package/LICENSE', 'package/NOTICE']) {
-    if (!entries.includes(required)) {
+    if (!normalizedEntries.includes(required)) {
       throw new Error(`tarball is missing required entry ${required}`);
     }
   }
-  if (entries.some((entry) => entry.startsWith('package/src/'))) {
+  if (normalizedEntries.some((entry) => entry.startsWith('package/src/'))) {
     throw new Error('tarball must not contain source files');
   }
-  if (entries.some((entry) => entry.startsWith('package/node_modules/'))) {
+  if (normalizedEntries.some((entry) => entry.startsWith('package/node_modules/'))) {
     throw new Error('tarball must not contain node_modules');
   }
 }

@@ -88,6 +88,26 @@ describe('tarball smoke allowed path', () => {
     expect(packageManagerSpawnOptions('linux')).toEqual({});
   });
 
+  it('accepts Windows-style tar entry separators', async () => {
+    await expect(
+      assertTarballSmoke({
+        version: '0.1.1',
+        buildCli: async () => {},
+        pack: async () => '/tmp/arxic.tgz',
+        listTarball: async () =>
+          packagedFiles.map((entry) =>
+            entry === 'package/dist/cli.js' ? 'package\\dist\\cli.js' : entry,
+          ),
+        install: async () => {},
+        runCli: async (args) => {
+          if (args[0] === '--version') return '0.1.1';
+          if (args[0] === 'run' && args[1] === '--config') throw configFailure();
+          return 'Usage: arxic';
+        },
+      }),
+    ).resolves.toBeUndefined();
+  });
+
   it('accepts a tarball whose CLI reports VERSION and serves help', async () => {
     await expect(
       assertTarballSmoke({
