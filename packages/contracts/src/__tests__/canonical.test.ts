@@ -1,9 +1,7 @@
 import { canonicalJson, sha256 } from '..';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
-
-const exec = promisify(execFile);
 
 // Generated fixture runtimes cannot resolve workspace packages. The remaining
 // exemptions are domain serializers whose normalization/redaction semantics are
@@ -16,6 +14,21 @@ const STRUCTURAL_GATE_EXEMPTIONS = new Set([
   'packages/playwright-agent-adapter/src/exploration-driver.ts',
   'packages/bundle-promoter/src/bundle-assembler.ts',
 ]);
+
+const DUPLICATE_IMPLEMENTATION =
+  /(?:function|const)\s+(?:canonicalJson|sha256|stableStringify|canonicalizeSbom)\b|createHash\((?:'|")sha256(?:'|")/;
+
+function productionTypeScriptFiles(root: string, directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .flatMap((entry) => {
+      const file = join(directory, entry.name);
+      if (entry.isDirectory()) return productionTypeScriptFiles(root, file);
+      if (!entry.isFile() || !entry.name.endsWith('.ts') || entry.name.endsWith('.test.ts'))
+        return [];
+      return [relative(root, file)];
+    });
+}
 
 describe('canonical JSON capability', () => {
   it.each([
@@ -41,27 +54,12 @@ describe('canonical JSON capability', () => {
     expect(sha256(bytes)).toBe('aa5b57b84362a73916774d3a4d118a8f2ee5d8b738c6241a9d275284dea18edc');
   });
 
-  it('has no duplicate production canonical JSON or SHA-256 implementation outside contracts', async () => {
-    let stdout = '';
-    try {
-      ({ stdout } = await exec('rg', [
-        '-l',
-        '(?:function|const)\\s+(?:canonicalJson|sha256|stableStringify|canonicalizeSbom)\\b|createHash\\((?:\'|")sha256(?:\'|")\\)',
-        'packages',
-        'apps',
-        '-g',
-        '*.ts',
-        '-g',
-        '!**/*.test.ts',
-        '-g',
-        '!**/__tests__/**',
-      ]));
-    } catch (error) {
-      if (!(error && typeof error === 'object' && 'code' in error && error.code === 1)) throw error;
-    }
-    const duplicateImplementations = stdout
-      .split('\n')
-      .filter(Boolean)
+  it('has no duplicate production canonical JSON or SHA-256 implementation outside contracts', () => {
+    const root = process.cwd();
+    const duplicateImplementations = ['packages', 'apps']
+      .flatMap((directory) => productionTypeScriptFiles(root, join(root, directory)))
+      .filter((path) => !path.includes('/__tests__/'))
+      .filter((path) => DUPLICATE_IMPLEMENTATION.test(readFileSync(join(root, path), 'utf8')))
       .filter((path) => !STRUCTURAL_GATE_EXEMPTIONS.has(path));
     expect(duplicateImplementations).toEqual([]);
   });
