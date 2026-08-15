@@ -66,7 +66,8 @@ describe('version provenance allowed path', () => {
   it('excludes a Windows-style test fixture from production source scanning', () => {
     const fixturePath = win32.join('apps', 'cli', 'src', '__tests__', 'fixtures.ts');
 
-    expect(isProductionSourceFile(fixturePath, win32.sep)).toBe(false);
+    expect(isProductionSourceFile(fixturePath)).toBe(false);
+    expect([fixturePath].filter(isProductionSourceFile)).toEqual([]);
   });
 
   it('accepts matching production manifests and built CLI output', async () => {

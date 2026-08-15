@@ -103,12 +103,12 @@ function emitsPlaceholderVersion(source) {
   );
 }
 
-export function normalizePathForMatching(filePath, separator = pathSeparator) {
-  return filePath.split(separator).join('/');
+export function normalizePathForMatching(filePath) {
+  return filePath.split(pathSeparator).join('/').replaceAll('\\', '/');
 }
 
-export function isProductionSourceFile(filePath, separator = pathSeparator) {
-  const normalizedPath = normalizePathForMatching(filePath, separator);
+export function isProductionSourceFile(filePath) {
+  const normalizedPath = normalizePathForMatching(filePath);
   return !/(?:^|\/)__tests__(?:\/|$)|\.(?:test|spec)\.ts$/u.test(normalizedPath);
 }
 
