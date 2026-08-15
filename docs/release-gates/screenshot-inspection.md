@@ -7,22 +7,39 @@ pixels secret-free.
 
 ## Inspector procedure
 
-1. Collect every retained, promoted PNG and its adjacent `.privacy.json`
+1. Generate the complete screenshot census from the promoted bundle, run, or
+   evidence root before opening any files:
+
+   ```sh
+   node scripts/inspection-manifest.mjs <promoted-bundle-or-evidence-root>
+   ```
+
+   The script writes `inspection-manifest.json`, a human-readable
+   `inspection-manifest.txt`, and `inspection-sign-off.md` next to that root.
+   The manifest is a review checklist, not pixel-safety certification.
+
+   Caveats: outputs are written **into** the supplied root, so use a
+   per-run/per-release root (or a copy), not a shared evidence tree you want
+   kept pristine. Symlinked screenshot files are listed but not followed and
+   require manual resolution; symlinked directories are not traversed.
+
+2. Collect every retained, promoted PNG and its adjacent `.privacy.json`
    provenance from the release's promoted bundles. Reject raw captures and
    screenshots without provenance before review.
-2. Use a **census, not a statistical sample**: inspect every retained
+3. Use a **census, not a statistical sample**: inspect every retained
    screenshot from every clean verification run in every promoted bundle. This
    includes each screenshot kind/checkpoint, fixture/target, and repeat run;
    there is no smaller sample size that passes this gate.
-3. Open each PNG at normal viewing size and inspect all visible pixels for
+4. Open each PNG at normal viewing size and inspect all visible pixels for
    credentials, email addresses, API keys/tokens, session or cookie data,
    personal information, and any other data not intended for public retention.
    Confirm that the adjacent provenance names the intended policy and capture.
-4. **Fail** the gate if any secret or personal data is visible, provenance is
+5. **Fail** the gate if any secret or personal data is visible, provenance is
    missing/mismatched, or the inspector cannot make a confident determination.
    The bundle cannot be released. Remove or recapture the artifact under the
    capture-time privacy policy, then repeat the full inspection.
-5. On pass, append a dated sign-off to
+6. On pass, complete the generated `inspection-sign-off.md` and append a dated
+   sign-off to
    `docs/evidence/<release>/inspection.md` (or the release notes) naming the
    reviewer and the exact bundle/run set reviewed. Use this format:
 
