@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { assertTarballSmoke } from './tarball-smoke.mjs';
+import { assertTarballSmoke, packageManagerSpawnOptions } from './tarball-smoke.mjs';
 
 const packagedFiles = [
   'package/dist/cli.js',
@@ -83,6 +83,11 @@ describe('tarball smoke sad paths', () => {
 });
 
 describe('tarball smoke allowed path', () => {
+  it('uses a shell for Windows package-manager command shims', () => {
+    expect(packageManagerSpawnOptions('win32')).toEqual({ shell: true });
+    expect(packageManagerSpawnOptions('linux')).toEqual({});
+  });
+
   it('accepts a tarball whose CLI reports VERSION and serves help', async () => {
     await expect(
       assertTarballSmoke({

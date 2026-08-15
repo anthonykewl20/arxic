@@ -12,7 +12,11 @@ const defaultRoot = dirname(scriptDirectory);
 export async function assertTarballSmoke({
   root = defaultRoot,
   version = undefined,
-  buildCli = () => execFileAsync('pnpm', ['--filter', './apps/cli', 'build'], { cwd: root }),
+  buildCli = () =>
+    execFileAsync('pnpm', ['--filter', './apps/cli', 'build'], {
+      cwd: root,
+      ...packageManagerSpawnOptions(),
+    }),
   pack,
   listTarball,
   install,
@@ -73,6 +77,7 @@ function assertTarballContents(entries) {
 async function packCli({ root, tarballDirectory }) {
   await execFileAsync('npm', ['pack', '--pack-destination', tarballDirectory], {
     cwd: join(root, 'apps/cli'),
+    ...packageManagerSpawnOptions(),
   });
   const tarballs = (await readdir(tarballDirectory))
     .filter((entry) => entry.endsWith('.tgz'))
@@ -84,7 +89,14 @@ async function packCli({ root, tarballDirectory }) {
 async function installTarball({ tarball, installDirectory }) {
   await execFileAsync('npm', ['install', '--ignore-scripts', '--no-package-lock', tarball], {
     cwd: installDirectory,
+    ...packageManagerSpawnOptions(),
   });
+}
+
+// These package-manager commands and arguments are fixed literals owned by this
+// script. Windows needs a shell to invoke its pnpm.cmd/npm.cmd shims.
+export function packageManagerSpawnOptions(platform = process.platform) {
+  return platform === 'win32' ? { shell: true } : {};
 }
 
 async function runPackedCli({ installDirectory, argument }) {
