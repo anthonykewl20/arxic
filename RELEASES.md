@@ -44,8 +44,14 @@ Git tags are the release history.
    `## [Unreleased]` at top.
 5. Commit with `chore(release): x.y.z`.
 6. Complete the human [screenshot inspection gate](docs/release-gates/screenshot-inspection.md) for every retained promoted screenshot and record its sign-off.
-7. Tag `vx.y.z`.
-8. Push tag and let the release workflow publish a GitHub Release.
+7. Before the first automated publish, add an npm granular automation token as
+    the repository `NPM_TOKEN` secret with publish access to `arxic`. The release
+    workflow fails closed if it is absent. Migrate to npm trusted publishing when
+    npm supports this repository's GitHub Actions OIDC identity.
+8. Run the Release workflow manually once to exercise its dry-run path; it runs
+    all gates but does not publish or create a release.
+9. Tag `vx.y.z` and push the tag. The tag workflow verifies it matches `VERSION`,
+    publishes `arxic` with npm provenance, then creates the GitHub Release.
 
 ## How to pick the next bump from changelog verbs
 

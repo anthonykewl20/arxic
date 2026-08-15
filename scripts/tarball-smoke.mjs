@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,6 +43,9 @@ export async function assertTarballSmoke({
     }
     await execute(['--help']);
     await execute(['run', '--help']);
+    const malformedConfig = join(temporaryDirectory, 'malformed-arxic.yaml');
+    await writeFile(malformedConfig, 'version: [not valid YAML\n');
+    await assertPackedConfigFailure(execute, malformedConfig);
   } finally {
     await rm(temporaryDirectory, { recursive: true, force: true });
   }
@@ -85,10 +88,54 @@ async function installTarball({ tarball, installDirectory }) {
 }
 
 async function runPackedCli({ installDirectory, argument }) {
-  const { stdout } = await execFileAsync('node', ['node_modules/.bin/arxic', ...argument], {
+  const packageDirectory = join(installDirectory, 'node_modules', 'arxic');
+  const packageJson = JSON.parse(await readFile(join(packageDirectory, 'package.json'), 'utf8'));
+  const bin = packageJson.bin?.arxic;
+  if (typeof bin !== 'string' || bin.length === 0) {
+    throw new Error('installed arxic package must declare a string bin.arxic entry');
+  }
+  const { stdout } = await execFileAsync('node', [join(packageDirectory, bin), ...argument], {
     cwd: installDirectory,
   });
   return stdout;
+}
+
+async function assertPackedConfigFailure(execute, configPath) {
+  try {
+    await execute(['run', '--config', configPath]);
+  } catch (error) {
+    const result = asProcessFailure(error);
+    if (!result || result.exitCode === 0) {
+      throw new Error('packed arxic malformed-config run did not report a non-zero process exit');
+    }
+    const output = `${result.stdout}\n${result.stderr}`;
+    if (
+      /(?:^|\n)\s*(?:Error:|at\s)|\bERR_MODULE_NOT_FOUND\b|\bCannot find module\b|\bFailed to load .*schema\b/u.test(
+        output,
+      )
+    ) {
+      throw new Error(`packed arxic malformed-config run crashed: ${output.trim()}`);
+    }
+    if (!/(?:ARXIC-CONFIG-[A-Z-]+|status=blocked)/u.test(output)) {
+      throw new Error(
+        `packed arxic malformed-config run lacked a structured diagnostic: ${output.trim()}`,
+      );
+    }
+    return;
+  }
+  throw new Error('packed arxic malformed-config run unexpectedly succeeded');
+}
+
+function asProcessFailure(error) {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const candidate = error;
+  return typeof candidate.code === 'number'
+    ? {
+        exitCode: candidate.code,
+        stdout: typeof candidate.stdout === 'string' ? candidate.stdout : '',
+        stderr: typeof candidate.stderr === 'string' ? candidate.stderr : '',
+      }
+    : undefined;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

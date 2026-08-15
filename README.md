@@ -11,17 +11,16 @@ coverage.
 
 Status: pre-1.0. Milestone 1 is complete; Milestone 2 hardening is in progress.
 
-## Install and run
+## Install and quickstart
 
 ```bash
 npm i -g arxic
-arxic run --config arxic.yaml
+npx arxic@latest --version
 ```
 
-Local execution is the supported path and is the default. `--executor worker` is
-experimental and not yet functional end to end. See the
-[architecture summary](docs/adr/001-arxic-architecture.md), especially §19, for
-the configuration shape.
+Then follow the [end-to-end quickstart](docs/quickstart.md) for prerequisites,
+an attested local target, `arxic.yaml`, and the expected no-model outcome.
+Local execution is the default; `--executor worker` requires Docker.
 
 ## What is Arxic?
 
@@ -66,8 +65,8 @@ pnpm lint
 pnpm test
 ```
 
-The installable CLI drives the local pipeline through verification. The
-worker-backed executor remains Milestone 2 work in progress.
+The installable CLI drives the local pipeline through verification; worker mode
+requires Docker.
 
 ## Roadmap
 

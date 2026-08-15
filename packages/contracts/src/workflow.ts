@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
+import workflowSchema from '../../../schemas/workflow/workflow.schema.json';
 import {
   ARXIC_WORKFLOW_EVIDENCE_ID_INVALID,
   ARXIC_WORKFLOW_INVALID,
@@ -81,14 +81,7 @@ export type Workflow = {
   evidenceRefs: string[];
 };
 
-const schemaUrl = new URL('../../../schemas/workflow/workflow.schema.json', import.meta.url);
 function createValidator() {
-  let workflowSchema: object;
-  try {
-    workflowSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-  } catch (error) {
-    throw new Error(`Failed to load Workflow schema at ${schemaUrl.pathname}`, { cause: error });
-  }
   const ajv = new Ajv2020({ allErrors: true });
   addFormats(ajv);
   return ajv.compile<Workflow>(workflowSchema);

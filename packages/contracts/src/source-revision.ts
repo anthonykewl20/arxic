@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
+import sourceRevisionSchema from '../../../schemas/evidence/source-revision.schema.json';
 import { ARXIC_SOURCE_REVISION_INVALID, type Diagnostic } from './diagnostics';
 
 export type SourceRevision = {
@@ -14,16 +14,7 @@ export type SourceRevision = {
   }[];
 };
 
-const schemaUrl = new URL('../../../schemas/evidence/source-revision.schema.json', import.meta.url);
 function createValidator() {
-  let sourceRevisionSchema: object;
-  try {
-    sourceRevisionSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-  } catch (error) {
-    throw new Error(`Failed to load SourceRevision schema at ${schemaUrl.pathname}`, {
-      cause: error,
-    });
-  }
   const ajv = new Ajv2020({ allErrors: true });
   addFormats(ajv);
   return ajv.compile<SourceRevision>(sourceRevisionSchema);

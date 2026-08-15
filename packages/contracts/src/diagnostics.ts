@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
+import diagnosticSchema from '../../../schemas/diagnostics/diagnostics.schema.json';
 
 export const ARXIC_EVIDENCE_REF_INVALID = 'ARXIC-EVIDENCE-REF-INVALID' as const;
 export const ARXIC_EVIDENCE_REF_KIND_UNKNOWN = 'ARXIC-EVIDENCE-REF-KIND-UNKNOWN' as const;
@@ -35,14 +35,7 @@ export type Diagnostic = {
   supportedFixes?: string[];
 };
 
-const schemaUrl = new URL('../../../schemas/diagnostics/diagnostics.schema.json', import.meta.url);
 function createValidator() {
-  let diagnosticSchema: object;
-  try {
-    diagnosticSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-  } catch (error) {
-    throw new Error(`Failed to load Diagnostic schema at ${schemaUrl.pathname}`, { cause: error });
-  }
   const ajv = new Ajv2020({ allErrors: true });
   addFormats(ajv);
   return ajv.compile<Diagnostic>(diagnosticSchema);

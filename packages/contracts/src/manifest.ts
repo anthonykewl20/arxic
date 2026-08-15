@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
+import manifestSchema from '../../../schemas/manifest/manifest.schema.json';
 import {
   ARXIC_MANIFEST_DENOMINATOR_INVALID,
   ARXIC_MANIFEST_GATE_MISSING,
@@ -90,16 +90,7 @@ export type BundleManifest = {
   runId: string;
 };
 
-const schemaUrl = new URL('../../../schemas/manifest/manifest.schema.json', import.meta.url);
 function createValidator() {
-  let manifestSchema: object;
-  try {
-    manifestSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-  } catch (error) {
-    throw new Error(`Failed to load BundleManifest schema at ${schemaUrl.pathname}`, {
-      cause: error,
-    });
-  }
   const ajv = new Ajv2020({ allErrors: true });
   addFormats(ajv);
   return ajv.compile<BundleManifest>(manifestSchema);
