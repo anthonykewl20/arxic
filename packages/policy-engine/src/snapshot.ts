@@ -33,6 +33,7 @@ export function computePolicySnapshot(
 ): PolicySnapshot {
   const canonicalInput = {
     ...input,
+    now: undefined,
     allowedOrigins: [...new Set(input.allowedOrigins)].sort(),
   };
   return {

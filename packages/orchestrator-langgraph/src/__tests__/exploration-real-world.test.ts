@@ -149,6 +149,7 @@ describe('real stage-8 exploration proof', () => {
         owner: 'real-locator-provenance',
         expiresAt: '2099-01-01T00:00:00.000Z',
         inUse: false,
+        requirement: { kind: 'persona' },
       },
       plan: {
         steps: [
@@ -164,6 +165,7 @@ describe('real stage-8 exploration proof', () => {
             intent: 'fill login email',
             action: 'fixture-change',
             actionClass: 'reversible-mutation',
+            fixtureKind: 'persona',
             kind: 'fill',
             locator: email,
             value: 'exploration@example.test',
@@ -173,6 +175,7 @@ describe('real stage-8 exploration proof', () => {
             intent: 'fill login password',
             action: 'fixture-change',
             actionClass: 'reversible-mutation',
+            fixtureKind: 'persona',
             kind: 'fill',
             locator: password,
             value: 'Hunter2!',
@@ -182,6 +185,7 @@ describe('real stage-8 exploration proof', () => {
             intent: 'click login submit',
             action: 'form-submit',
             actionClass: 'reversible-mutation',
+            fixtureKind: 'persona',
             kind: 'click',
             locator: submit,
             required: true,

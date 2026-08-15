@@ -89,7 +89,7 @@ function decisionFor(input: PolicyAuthorization, diagnostic?: Diagnostic): Polic
     reason: diagnostic?.message ?? `Policy authorized action: ${input.action}`,
     diagnostics: diagnostic ? [diagnostic] : [],
     snapshot: computePolicySnapshot(input, decision, resolvedPolicyVersion, () =>
-      new Date().toISOString(),
+      new Date(input.now ?? Date.now()).toISOString(),
     ),
   };
 }

@@ -116,6 +116,11 @@ describe('real fixture adapters proof', () => {
     expect(resetToken).toMatch(/^[A-Za-z0-9_-]+$/u);
     const otpToken = otp.generate(otpLease);
     expect(otp.validate(otpLease, otpToken)).toBe(true);
+    await inbox.reapExpired([inboxLease], new Date(Date.now() + 60_000));
+    const reapedInbox = await fetch(
+      `${api}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`,
+    );
+    expect(messageCount(await reapedInbox.json())).toBe(0);
     await coordinator.release(prepared.leases);
     const emptyInbox = await fetch(
       `${api}/api/v1/search?query=${encodeURIComponent(`to:${email}`)}`,

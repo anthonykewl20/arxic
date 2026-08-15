@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import type { Workflow } from '@arxic/contracts';
 import type {
   ExplorationDriver,
   ExplorationDriverResult,
@@ -54,6 +55,7 @@ describe('stage-8 intent exploration', () => {
       action: 'form-submit',
       actionClass: 'reversible-mutation' as const,
       kind: 'click' as const,
+      fixtureKind: 'persona',
       locator: {
         semantic: { kind: 'role' as const, role: 'button', name: 'Login' },
         execution: { kind: 'role' as const, role: 'button', name: 'Login' },
@@ -73,6 +75,7 @@ describe('stage-8 intent exploration', () => {
           owner: 'reversible-with-lease',
           expiresAt: '2099-01-01T00:00:00.000Z',
           inUse: false,
+          requirement: { kind: 'persona' },
         },
       ],
       plan: { steps: [step] },
@@ -93,6 +96,165 @@ describe('stage-8 intent exploration', () => {
     expect(withoutLease.decisions).toContainEqual(expect.stringContaining('requires fixtures'));
   });
 
+  it('authorizes reversible steps only with a lease for that step fixture requirement', async () => {
+    const driver = new FakeDriver([observation(`${origin}/persona`), observation(`${origin}/otp`)]);
+    const result = await runPlannedExploration({
+      runId: 'per-requirement-leases',
+      origin,
+      candidates: [],
+      budget: 3,
+      driver,
+      leases: [
+        {
+          id: 'persona-lease',
+          owner: 'per-requirement-leases',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          inUse: false,
+          requirement: { kind: 'persona' },
+        },
+        {
+          id: 'otp-lease',
+          owner: 'per-requirement-leases',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          inUse: false,
+          requirement: { kind: 'otp' },
+        },
+      ] as never,
+      plan: {
+        steps: [
+          reversibleStep('persona step', 'persona'),
+          reversibleStep('otp step', 'otp'),
+          reversibleStep('unleased inbox step', 'inbox'),
+        ],
+      } as unknown as ExplorationPlan,
+    });
+
+    expect(driver.executed.map((step) => step.intent)).toEqual(['persona step', 'otp step']);
+    expect(result.decisions).toContainEqual(expect.stringContaining('unleased inbox step'));
+  });
+
+  it('derives one fixture kind for a reversible candidate and executes it only with that lease kind', async () => {
+    const plan = planExploration(
+      [candidate('submit login form', [{ fixture: 'persona' }])],
+      origin,
+    );
+    const derived = plan.steps.find((step) => step.actionClass === 'reversible-mutation');
+    if (!derived) throw new Error('Expected a reversible derived step');
+    expect(derived.fixtureKind).toBe('persona');
+    const driver = new FakeDriver([observation(`${origin}/`)]);
+
+    await runPlannedExploration({
+      runId: 'derived-persona',
+      origin,
+      candidates: [],
+      budget: 1,
+      driver,
+      leases: [
+        {
+          id: 'derived-persona-lease',
+          owner: 'derived-persona',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          inUse: false,
+          requirement: { kind: 'persona' },
+        },
+      ],
+      plan: {
+        steps: [
+          {
+            ...derived,
+            kind: 'click',
+            locator: {
+              semantic: { kind: 'role', role: 'button', name: 'Login' },
+              execution: { kind: 'role', role: 'button', name: 'Login' },
+            },
+          },
+        ],
+      },
+    });
+
+    expect(driver.executed).toHaveLength(1);
+  });
+
+  it('silently skips the deprecated single-lease input when it has no matching requirement kind', async () => {
+    const plan = planExploration(
+      [candidate('submit login form', [{ fixture: 'persona' }])],
+      origin,
+    );
+    const derived = plan.steps.find((step) => step.actionClass === 'reversible-mutation');
+    if (!derived) throw new Error('Expected a reversible derived step');
+    const driver = new FakeDriver([]);
+    const result = await runPlannedExploration({
+      runId: 'deprecated-single-lease',
+      origin,
+      candidates: [],
+      budget: 1,
+      driver,
+      lease: {
+        id: 'deprecated-lease',
+        owner: 'deprecated-single-lease',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        inUse: false,
+      } as never,
+      plan: {
+        steps: [
+          {
+            ...derived,
+            kind: 'click',
+            locator: {
+              semantic: { kind: 'role', role: 'button', name: 'Login' },
+              execution: { kind: 'role', role: 'button', name: 'Login' },
+            },
+          },
+        ],
+      },
+    });
+
+    expect(driver.executed).toEqual([]);
+    expect(result.decisions).toContainEqual(expect.stringContaining('requires fixtures'));
+  });
+
+  it('leaves multi-kind reversible candidates untyped and fail-closed skipped', async () => {
+    const plan = planExploration(
+      [candidate('submit login form', [{ fixture: 'persona' }, { fixture: 'inbox' }])],
+      origin,
+    );
+    const derived = plan.steps.find((step) => step.actionClass === 'reversible-mutation');
+    if (!derived) throw new Error('Expected a reversible derived step');
+    expect(derived.fixtureKind).toBeUndefined();
+    const driver = new FakeDriver([]);
+
+    await runPlannedExploration({
+      runId: 'derived-multi-kind',
+      origin,
+      candidates: [],
+      budget: 1,
+      driver,
+      leases: [
+        {
+          id: 'derived-persona-lease',
+          owner: 'derived-multi-kind',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          inUse: false,
+          requirement: { kind: 'persona' },
+        },
+      ],
+      plan: {
+        steps: [
+          {
+            ...derived,
+            kind: 'click',
+            locator: {
+              semantic: { kind: 'role', role: 'button', name: 'Login' },
+              execution: { kind: 'role', role: 'button', name: 'Login' },
+            },
+          },
+        ],
+      },
+    });
+
+    expect(driver.executed).toEqual([]);
+  });
+
   it.each([
     [
       'foreign owner',
@@ -101,6 +263,7 @@ describe('stage-8 intent exploration', () => {
         owner: 'another-run',
         expiresAt: '2099-01-01T00:00:00.000Z',
         inUse: false,
+        requirement: { kind: 'persona' },
       },
     ],
     [
@@ -110,6 +273,7 @@ describe('stage-8 intent exploration', () => {
         owner: 'reversible-invalid-lease',
         expiresAt: '2030-01-01T00:00:00.000Z',
         inUse: false,
+        requirement: { kind: 'persona' },
       },
     ],
   ] as const)('rejects a reversible action with a %s', async (_name, lease) => {
@@ -128,6 +292,7 @@ describe('stage-8 intent exploration', () => {
             action: 'form-submit',
             actionClass: 'reversible-mutation',
             kind: 'click',
+            fixtureKind: 'persona',
             locator: {
               semantic: { kind: 'role', role: 'button', name: 'Login' },
               execution: { kind: 'role', role: 'button', name: 'Login' },
@@ -158,12 +323,14 @@ describe('stage-8 intent exploration', () => {
           owner: 'reversible-in-use',
           expiresAt: '2099-01-01T00:00:00.000Z',
           inUse: true,
+          requirement: { kind: 'persona' },
         },
         {
           id: 'also-busy',
           owner: 'reversible-in-use',
           expiresAt: '2099-01-01T00:00:00.000Z',
           inUse: true,
+          requirement: { kind: 'persona' },
         },
       ],
       plan: {
@@ -173,6 +340,7 @@ describe('stage-8 intent exploration', () => {
             action: 'form-submit',
             actionClass: 'reversible-mutation',
             kind: 'click',
+            fixtureKind: 'persona',
             locator: {
               semantic: { kind: 'role', role: 'button', name: 'Login' },
               execution: { kind: 'role', role: 'button', name: 'Login' },
@@ -353,6 +521,7 @@ describe('stage-8 intent exploration', () => {
         owner: 'unit-locator-provenance-failure',
         expiresAt: '2099-01-01T00:00:00.000Z',
         inUse: false,
+        requirement: { kind: 'persona' },
       },
       plan: {
         steps: [
@@ -361,6 +530,7 @@ describe('stage-8 intent exploration', () => {
             action: 'fixture-change',
             actionClass: 'reversible-mutation',
             kind: 'fill',
+            fixtureKind: 'persona',
             locator: email,
             value: 'must-not-be-persisted@example.test',
             url: `${origin}/login`,
@@ -371,6 +541,7 @@ describe('stage-8 intent exploration', () => {
             action: 'form-submit',
             actionClass: 'reversible-mutation',
             kind: 'click',
+            fixtureKind: 'persona',
             locator: submit,
             required: true,
           },
@@ -437,6 +608,7 @@ describe('stage-8 intent exploration', () => {
         owner: 'unit-locator-provenance-success',
         expiresAt: '2099-01-01T00:00:00.000Z',
         inUse: false,
+        requirement: { kind: 'persona' },
       },
       plan: {
         steps: [
@@ -445,6 +617,7 @@ describe('stage-8 intent exploration', () => {
             action: 'fixture-change',
             actionClass: 'reversible-mutation',
             kind: 'fill',
+            fixtureKind: 'persona',
             locator: email,
             value: 'unit@example.test',
             url: `${origin}/login`,
@@ -455,6 +628,7 @@ describe('stage-8 intent exploration', () => {
             action: 'form-submit',
             actionClass: 'reversible-mutation',
             kind: 'click',
+            fixtureKind: 'persona',
             locator: submit,
             required: true,
           },
@@ -597,6 +771,21 @@ function navigation(intent: string, path: string) {
   } as const;
 }
 
+function reversibleStep(intent: string, fixtureKind: string) {
+  return {
+    intent,
+    action: 'form-submit',
+    actionClass: 'reversible-mutation' as const,
+    kind: 'click' as const,
+    locator: {
+      semantic: { kind: 'role' as const, role: 'button', name: intent },
+      execution: { kind: 'role' as const, role: 'button', name: intent },
+    },
+    required: false,
+    fixtureKind,
+  };
+}
+
 function plan(step: { action: string; actionClass: 'read-only' | 'destructive' }): ExplorationPlan {
   return { steps: [{ intent: step.action, ...step, url: `${origin}/login`, required: true }] };
 }
@@ -631,7 +820,7 @@ async function run(
   });
 }
 
-function candidate(intent: string): Candidate {
+function candidate(intent: string, preconditions: Workflow['preconditions'] = []): Candidate {
   return {
     id: 'authentication.login',
     title: 'Login',
@@ -646,7 +835,7 @@ function candidate(intent: string): Candidate {
       status: 'hypothesized',
       confidence: 0.5,
       scope: { commit: 'a'.repeat(40), environment: 'local-test', browser: 'chromium' },
-      preconditions: [],
+      preconditions,
       states: [{ id: 'signed-out' }, { id: 'signed-in' }],
       transitions: [
         {

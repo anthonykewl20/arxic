@@ -15,7 +15,12 @@ import {
   type LeaseState,
 } from '@arxic/policy-engine';
 import type { ApprovalInput } from './orchestrator';
-import type { Candidate, ExplorationResult, LocatorProvenanceRecord } from './types';
+import type {
+  Candidate,
+  ExplorationResult,
+  FixtureLeaseState,
+  LocatorProvenanceRecord,
+} from './types';
 
 export const ARXIC_EXPLORATION_FORBIDDEN = 'ARXIC-EXPLORATION-FORBIDDEN' as const;
 export const ARXIC_EXPLORATION_APPROVAL_DENIED = 'ARXIC-EXPLORATION-APPROVAL-DENIED' as const;
@@ -74,6 +79,8 @@ export type PlanStep = Readonly<{
   action: ExplorationIntentAction;
   actionClass: ActionClass;
   url?: string;
+  /** Fixture requirement authorizing a reversible action, if the plan can identify one. */
+  fixtureKind?: string;
   required: boolean;
 }> &
   PlanStepExecution;
@@ -88,9 +95,9 @@ export type ExplorationInput = Readonly<{
   approval?: ApprovalInput;
   budget: number;
   sandboxAdapterPresent?: boolean;
-  leases?: readonly LeaseState[];
+  leases?: readonly FixtureLeaseState[];
   /** @deprecated Supply the stage-7 lease collection through `leases`. */
-  lease?: LeaseState;
+  lease?: FixtureLeaseState;
   driver?: ExplorationDriver;
   browser?: string;
   now?: () => string;
@@ -114,11 +121,17 @@ export function planExploration(candidates: readonly Candidate[], origin: string
     }
     for (const transition of candidate.workflow.transitions) {
       const mapped = mapIntent(transition.action.intent, origin);
+      const fixtureKinds = [
+        ...new Set(candidate.workflow.preconditions.map(({ fixture }) => fixture)),
+      ];
       steps.push({
         intent: transition.action.intent,
         action: mapped.action,
         actionClass: mapped.actionClass,
         ...(mapped.url ? { url: mapped.url } : {}),
+        ...(mapped.actionClass === 'reversible-mutation' && fixtureKinds.length === 1
+          ? { fixtureKind: fixtureKinds[0] }
+          : {}),
         required: transition.required !== false,
       });
     }
@@ -166,9 +179,6 @@ export async function runPlannedExploration(
   let budgetRemaining = input.budget;
   let approved = true;
   let safeToExecute = true;
-  const leaseSelection = selectLease(input);
-  const lease = leaseSelection.lease;
-
   for (const step of plan.steps) {
     if (budgetRemaining <= 0) {
       diagnostics.push(
@@ -181,6 +191,8 @@ export async function runPlannedExploration(
       approved = false;
       break;
     }
+    const leaseSelection = selectLease(input, step.fixtureKind);
+    const lease = leaseSelection.lease;
     if (
       step.actionClass === 'reversible-mutation' &&
       (leaseSelection.invalid || leaseSelection.collision)
@@ -316,10 +328,13 @@ export async function runPlannedExploration(
 
 function selectLease(
   input: ExplorationInput,
+  fixtureKind: string | undefined,
 ): Readonly<{ lease?: LeaseState; invalid: boolean; collision: boolean }> {
   const supplied = [...(input.lease ? [input.lease] : []), ...(input.leases ?? [])];
-  const candidates = supplied.filter((candidate) => !candidate.inUse);
-  if (candidates.length === 0) return { invalid: false, collision: supplied.length > 0 };
+  const matching = supplied.filter((candidate) => candidate.requirement?.kind === fixtureKind);
+  if (matching.length === 0) return { invalid: false, collision: false };
+  const candidates = matching.filter((candidate) => !candidate.inUse);
+  if (candidates.length === 0) return { invalid: false, collision: true };
   const now = Date.parse((input.now ?? (() => new Date().toISOString()))());
   const lease = candidates.find(
     (candidate) => candidate.owner === input.runId && Date.parse(candidate.expiresAt) > now,

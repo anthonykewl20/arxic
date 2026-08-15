@@ -765,7 +765,7 @@ export class LangGraphOrchestrator {
       origin: input.origin,
       ...(input.appBuildDigest ? { appBuildDigest: input.appBuildDigest } : {}),
       candidates: inference.candidates,
-      ...(leases.length > 0 ? { leases, lease: leases[0], now: this.#now } : { now: this.#now }),
+      ...(leases.length > 0 ? { leases, now: this.#now } : { now: this.#now }),
       ...(approval ? { approval } : {}),
       ...(this.#options.explorationDriver ? { driver: this.#options.explorationDriver } : {}),
       ...(this.#options.explorationPlan ? { plan: this.#options.explorationPlan } : {}),

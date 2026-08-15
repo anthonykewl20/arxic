@@ -25,6 +25,8 @@ export type FixtureDiagnosticCode =
   | typeof ARXIC_FIXTURE_RESET_FAILED;
 
 type OutstandingLease = Readonly<{ lease: FixtureLeaseState; provider: FixtureProvider }>;
+type ReapableFixtureProvider = FixtureProvider &
+  Readonly<{ reapExpired?: (leases: readonly FixtureLease[], now: Date) => Promise<void> }>;
 
 const DEFAULT_LEASE_DURATION_MS = 5 * 60 * 1000;
 
@@ -42,6 +44,7 @@ export function fixtureDiagnostic(
 export class FixtureCoordinator {
   readonly #providers: readonly FixtureProvider[];
   readonly #outstanding = new Map<string, OutstandingLease>();
+  readonly #deferredDiagnostics: Diagnostic[] = [];
   readonly #now: () => Date;
 
   constructor(providers: readonly FixtureProvider[], options: Readonly<{ now?: () => Date }> = {}) {
@@ -55,64 +58,89 @@ export class FixtureCoordinator {
   }): Promise<FixturePreparation> {
     const requirements = candidateRequirements(input.candidates);
     const artifactRequirements = requirements.map(redactRequirement);
+    const diagnostics = this.#deferredDiagnostics.splice(0);
+    const owner = input.runId ?? 'fixture-coordinator';
+    const now = this.#now();
+    const expired = [...this.#outstanding.values()].filter(
+      ({ lease }) => lease.owner !== owner && Date.parse(lease.expiresAt) <= now.getTime(),
+    );
+    for (const { lease } of expired) {
+      this.#outstanding.delete(lease.id);
+      diagnostics.push(
+        cleanupDiagnostic(
+          ARXIC_FIXTURE_LEASE_LEAK,
+          'fixture-coordinator',
+          'Expired foreign fixture lease was dropped from coordinator tracking without provider cleanup',
+        ),
+      );
+    }
     if (this.#outstanding.size > 0) {
       const leaked = [...this.#outstanding.values()];
-      await this.#cleanup(leaked);
-      return blockedPreparation(
-        artifactRequirements,
+      const owned = leaked.filter(({ lease }) => lease.owner === owner);
+      diagnostics.push(...(await this.#cleanup(owned, true)));
+      return blockedPreparation(artifactRequirements, [
+        ...diagnostics,
         fixtureDiagnostic(
           ARXIC_FIXTURE_LEASE_LEAK,
           'fixture-coordinator',
-          'A prior run left an unreleased fixture lease; it was reset and released',
+          'A prior run left an unreleased fixture lease; preparation is blocked',
         ),
-      );
+      ]);
     }
     const provisioned: OutstandingLease[] = [];
     for (const requirement of requirements) {
       const provider = this.#provider(requirement);
       if (!provider) {
-        await this.#cleanup(provisioned);
-        return blockedPreparation(
-          artifactRequirements,
+        diagnostics.push(...(await this.#cleanup(provisioned, true)));
+        return blockedPreparation(artifactRequirements, [
+          ...diagnostics,
           fixtureDiagnostic(
             ARXIC_FIXTURE_MISSING,
             requirement.kind,
             `No registered fixture provider supports required kind ${requirement.kind}`,
           ),
-        );
+        ]);
       }
       let provisionedLease: FixtureLease;
       try {
         provisionedLease = await provider.provision(requirement);
       } catch (error) {
-        await this.#cleanup(provisioned);
-        return blockedPreparation(artifactRequirements, diagnosticFromError(error, requirement));
+        diagnostics.push(...(await this.#cleanup(provisioned, true)));
+        return blockedPreparation(artifactRequirements, [
+          ...diagnostics,
+          diagnosticFromError(error, requirement),
+        ]);
       }
       if (containsSensitiveFixtureValue(provisionedLease, requirement)) {
-        await this.#cleanup([
-          ...provisioned,
-          { lease: this.#managedLease(provisionedLease, input.runId), provider },
-        ]);
-        return blockedPreparation(
-          artifactRequirements,
+        diagnostics.push(
+          ...(await this.#cleanup(
+            [
+              ...provisioned,
+              { lease: this.#managedLease(provisionedLease, input.runId), provider },
+            ],
+            true,
+          )),
+        );
+        return blockedPreparation(artifactRequirements, [
+          ...diagnostics,
           fixtureDiagnostic(
             ARXIC_FIXTURE_SECRET_LEAK,
             requirement.kind,
             'A fixture provider exposed secret or personal data in a lease artifact',
           ),
-        );
+        ]);
       }
       const lease = this.#managedLease(provisionedLease, input.runId);
       if (this.#outstanding.has(lease.id)) {
-        await this.#cleanup([...provisioned, { lease, provider }]);
-        return blockedPreparation(
-          artifactRequirements,
+        diagnostics.push(...(await this.#cleanup([...provisioned, { lease, provider }], true)));
+        return blockedPreparation(artifactRequirements, [
+          ...diagnostics,
           fixtureDiagnostic(
             ARXIC_FIXTURE_LEASE_LEAK,
             requirement.kind,
             'A fixture provider returned a lease id that is already outstanding',
           ),
-        );
+        ]);
       }
       const outstanding = { lease, provider };
       provisioned.push(outstanding);
@@ -121,7 +149,7 @@ export class FixtureCoordinator {
     return {
       requirements: artifactRequirements,
       leases: provisioned.map(({ lease }) => lease),
-      diagnostics: [],
+      diagnostics,
       provisioned: true,
     };
   }
@@ -140,7 +168,37 @@ export class FixtureCoordinator {
       );
       return [];
     });
-    return [...diagnostics, ...(await this.#cleanup(outstanding))];
+    return [...diagnostics, ...(await this.#cleanup(outstanding, true))];
+  }
+
+  /** Explicit maintenance only; normal fixture lifecycle never invokes provider reaping. */
+  async reapExpiredLeases(
+    leases: readonly FixtureLeaseState[],
+    now: Date = this.#now(),
+  ): Promise<readonly Diagnostic[]> {
+    const groups = new Map<ReapableFixtureProvider, FixtureLeaseState[]>();
+    for (const lease of leases) {
+      const provider = this.#provider(lease.requirement) as ReapableFixtureProvider | undefined;
+      if (!provider?.reapExpired) continue;
+      const group = groups.get(provider) ?? [];
+      group.push(lease);
+      groups.set(provider, group);
+    }
+    const diagnostics: Diagnostic[] = [];
+    for (const [provider, providerLeases] of groups) {
+      try {
+        await provider.reapExpired!(providerLeases, now);
+      } catch {
+        diagnostics.push(
+          cleanupDiagnostic(
+            ARXIC_FIXTURE_RELEASE_FAILED,
+            'fixture-provider-reaper',
+            'Fixture provider could not reap explicitly supplied expired leases',
+          ),
+        );
+      }
+    }
+    return diagnostics;
   }
 
   rehydrate(
@@ -183,7 +241,10 @@ export class FixtureCoordinator {
     return undefined;
   }
 
-  async #cleanup(outstanding: readonly OutstandingLease[]): Promise<readonly Diagnostic[]> {
+  async #cleanup(
+    outstanding: readonly OutstandingLease[],
+    recordDroppedLeak = false,
+  ): Promise<readonly Diagnostic[]> {
     const diagnostics: Diagnostic[] = [];
     for (const item of outstanding) {
       const reset = await attemptCleanup(() => item.provider.reset(item.lease));
@@ -206,8 +267,15 @@ export class FixtureCoordinator {
           ),
         );
       }
-      if (reset && released) {
-        this.#outstanding.delete(item.lease.id);
+      this.#outstanding.delete(item.lease.id);
+      if ((!reset || !released) && recordDroppedLeak) {
+        this.#deferredDiagnostics.push(
+          cleanupDiagnostic(
+            ARXIC_FIXTURE_LEASE_LEAK,
+            'fixture-coordinator',
+            'Terminal fixture cleanup failed; dropped lease tracking so a later run is not permanently blocked',
+          ),
+        );
       }
     }
     return diagnostics;
@@ -256,9 +324,9 @@ function candidateRequirements(candidates: readonly Candidate[]): FixtureRequire
 
 function blockedPreparation(
   requirements: readonly FixtureRequirement[],
-  diagnostic: Diagnostic,
+  diagnostics: readonly Diagnostic[],
 ): FixturePreparation {
-  return { requirements, leases: [], diagnostics: [diagnostic], provisioned: false };
+  return { requirements, leases: [], diagnostics, provisioned: false };
 }
 
 function containsSensitiveFixtureValue(
