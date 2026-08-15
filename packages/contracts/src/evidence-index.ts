@@ -1,6 +1,7 @@
-import { readFileSync } from 'node:fs';
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
+import evidenceIndexSchema from '../../../schemas/evidence/evidence-index.schema.json';
+import evidenceRefSchema from '../../../schemas/evidence/evidence-ref.schema.json';
 import {
   ARXIC_EVIDENCE_ID_GRAMMAR,
   ARXIC_EVIDENCE_INDEX_INVALID,
@@ -12,23 +13,7 @@ export type EvidenceIndex = Record<string, EvidenceRef>;
 export type EvidenceId = string & { readonly __evidenceId: unique symbol };
 export const EVIDENCE_ID_PATTERN = /^(src|run|doc):[A-Za-z0-9._#-]+(?::[A-Za-z0-9._#-]+)?$/;
 
-const schemaUrl = new URL('../../../schemas/evidence/evidence-index.schema.json', import.meta.url);
-const evidenceRefSchemaUrl = new URL(
-  '../../../schemas/evidence/evidence-ref.schema.json',
-  import.meta.url,
-);
 function createValidator() {
-  let evidenceIndexSchema: object;
-  let evidenceRefSchema: object;
-  try {
-    evidenceIndexSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-    evidenceRefSchema = JSON.parse(readFileSync(evidenceRefSchemaUrl, 'utf8')) as object;
-  } catch (error) {
-    throw new Error(
-      `Failed to load EvidenceIndex schemas at ${schemaUrl.pathname} and ${evidenceRefSchemaUrl.pathname}`,
-      { cause: error },
-    );
-  }
   const ajv = new Ajv2020({ allErrors: true, $data: true });
   addFormats(ajv);
   ajv.addSchema(evidenceRefSchema);

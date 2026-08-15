@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
 import Ajv2020, { type ErrorObject } from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
+import evidenceRefSchema from '../../../schemas/evidence/evidence-ref.schema.json';
 import {
   ARXIC_EVIDENCE_REF_INVALID,
   ARXIC_EVIDENCE_REF_KIND_UNKNOWN,
@@ -43,14 +43,7 @@ export type EvidenceRefDocument = {
 
 export type EvidenceRef = EvidenceRefSource | EvidenceRefRuntime | EvidenceRefDocument;
 
-const schemaUrl = new URL('../../../schemas/evidence/evidence-ref.schema.json', import.meta.url);
 function createValidator() {
-  let evidenceRefSchema: object;
-  try {
-    evidenceRefSchema = JSON.parse(readFileSync(schemaUrl, 'utf8')) as object;
-  } catch (error) {
-    throw new Error(`Failed to load EvidenceRef schema at ${schemaUrl.pathname}`, { cause: error });
-  }
   const ajv = new Ajv2020({ allErrors: true, $data: true });
   addFormats(ajv);
   return ajv.compile<EvidenceRef>(evidenceRefSchema);

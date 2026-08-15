@@ -9,6 +9,14 @@ const packagedFiles = [
   'package/package.json',
 ];
 
+function configFailure({
+  code = 2,
+  stdout = '',
+  stderr = 'ARXIC-CONFIG-PARSE [config] invalid YAML',
+} = {}) {
+  return Object.assign(new Error('process failed'), { code, stdout, stderr });
+}
+
 describe('tarball smoke sad paths', () => {
   it('rejects a packed CLI whose --version output drifts from VERSION', async () => {
     await expect(
@@ -39,6 +47,27 @@ describe('tarball smoke sad paths', () => {
     ).rejects.toThrow('help failed');
   });
 
+  it('rejects a packed CLI whose malformed-config run crashes instead of returning a diagnostic', async () => {
+    await expect(
+      assertTarballSmoke({
+        version: '0.1.1',
+        buildCli: async () => {},
+        pack: async () => '/tmp/arxic.tgz',
+        listTarball: async () => packagedFiles,
+        install: async () => {},
+        runCli: async (args) => {
+          if (args[0] === '--version') return '0.1.1';
+          if (args[0] === 'run' && args[1] === '--config') {
+            throw configFailure({
+              stderr: 'Error: unexpected packed runtime failure\n    at runCli',
+            });
+          }
+          return 'Usage: arxic';
+        },
+      }),
+    ).rejects.toThrow('packed arxic malformed-config run crashed');
+  });
+
   it('rejects a tarball missing the required LICENSE file', async () => {
     await expect(
       assertTarballSmoke({
@@ -62,7 +91,11 @@ describe('tarball smoke allowed path', () => {
         pack: async () => '/tmp/arxic.tgz',
         listTarball: async () => packagedFiles,
         install: async () => {},
-        runCli: async (args) => (args[0] === '--version' ? '0.1.1' : 'Usage: arxic'),
+        runCli: async (args) => {
+          if (args[0] === '--version') return '0.1.1';
+          if (args[0] === 'run' && args[1] === '--config') throw configFailure();
+          return 'Usage: arxic';
+        },
       }),
     ).resolves.toBeUndefined();
   });

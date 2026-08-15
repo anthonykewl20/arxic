@@ -3,62 +3,81 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
+  # Dispatch always runs the gates but never publishes or creates a release.
+  workflow_dispatch:
 
-permissions:
-  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v7
 
-      - name: Verify release metadata (tag == VERSION == package.json)
-        run: |
-          set -euo pipefail
-          TAG="${GITHUB_REF_NAME#v}"
-          VERSION="$(cat VERSION)"
-          PKG="$(node -p 'require("./package.json").version')"
-          echo "tag=$TAG version=$VERSION package.json=$PKG"
-          if [ "$VERSION" = "0.0.0" ]; then
-            echo "::error::VERSION is 0.0.0 (no release cut yet); refusing to publish."
-            exit 1
-          fi
-          if [ "$TAG" != "$VERSION" ] || [ "$TAG" != "$PKG" ] || [ "$VERSION" != "$PKG" ]; then
-            echo "::error::Version mismatch: tag=$TAG VERSION=$VERSION package.json=$PKG must all agree."
-            exit 1
-          fi
-          if ! grep -q "## \[Unreleased\]" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md has no [Unreleased] section to finalize."
-            exit 1
-          fi
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.10
 
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v3
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
-          generate_release_notes: true
-          body: |
-            See CHANGELOG.md for details of this release.
-
-  # Maintainer: add NPM_TOKEN to repository secrets before the first publish.
-  npm-publish:
-    needs: release
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22.22
+          node-version: 22.22.0
           cache: pnpm
           registry-url: https://registry.npmjs.org
-      - run: pnpm install --frozen-lockfile
-      - name: Build and publish arxic
-        if: ${{ env.NODE_AUTH_TOKEN != '' }}
-        run: pnpm --filter arxic build && npm publish
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Verify version provenance
+        run: node scripts/assert-version-provenance.mjs
+
+      - name: Smoke test the packed CLI
+        run: node scripts/tarball-smoke.mjs
+
+      - name: Verify release tag matches VERSION
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          set -euo pipefail
+          expected="v$(cat VERSION)"
+          if [ "$expected" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME must equal $expected"
+            exit 1
+          fi
+
+      - name: Describe dry run
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          echo "Dry run complete: would publish arxic@$(cat VERSION) with npm provenance."
+          echo "Dry run complete: would create the matching GitHub Release."
+
+      - name: Publish arxic with npm provenance
+        if: ${{ github.event_name == 'push' }}
         working-directory: apps/cli
+        run: npm publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        if: ${{ github.event_name == 'push' }}
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
