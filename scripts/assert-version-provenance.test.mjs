@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   assertVersionProvenance,
   isProductionSourceFile,
-  pnpmExecutable,
+  pnpmBuildCommand,
 } from './assert-version-provenance.mjs';
 
 async function makeWorkspace({ cliVersion = '0.1.1', producer = '0.1.1' } = {}) {
@@ -74,8 +74,11 @@ describe('version provenance allowed path', () => {
     expect([fixturePath].filter(isProductionSourceFile)).toEqual([]);
   });
 
-  it('uses the Windows pnpm command shim', () => {
-    expect(pnpmExecutable('win32')).toBe('pnpm.cmd');
+  it('uses cmd.exe to execute the Windows pnpm shim', () => {
+    expect(pnpmBuildCommand('win32')).toEqual({
+      command: 'cmd.exe',
+      args: ['/d', '/s', '/c', 'pnpm --filter "./apps/cli" build'],
+    });
   });
 
   it('accepts matching production manifests and built CLI output', async () => {
