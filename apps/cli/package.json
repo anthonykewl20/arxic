@@ -8,6 +8,7 @@
   },
   "files": [
     "dist",
+    "rulepacks",
     "README.md",
     "LICENSE",
     "NOTICE"
@@ -28,7 +29,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "prepack": "pnpm run build",
+    "prepack": "pnpm run build && node scripts/copy-rulepacks.mjs",
+    "postpack": "node scripts/clean-package-artifacts.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

@@ -52,6 +52,9 @@ jobs:
       - name: Smoke test the packed CLI
         run: node scripts/tarball-smoke.mjs
 
+      - name: Human-flow E2E (release gate)
+        run: node scripts/human-flow-e2e.mjs
+
       - name: Verify release tag matches VERSION
         if: ${{ github.event_name == 'push' }}
         run: |

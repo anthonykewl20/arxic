@@ -9,12 +9,16 @@ import type { Diagnostic } from '@arxic/contracts';
 import { FileStageCheckpointer } from '@arxic/orchestrator-langgraph';
 import type { RunExecutor, RunRequest, RunResult } from '../executor';
 import { cliDiagnostic, ARXIC_EXEC_RESUMED } from '../diagnostics';
-import { runAction } from '../run';
+import { installedRulepacksDir, runAction } from '../run';
 import { OBSERVED_DIAGNOSTIC, VALID_YAML, runState } from './fixtures';
 
 const execute = promisify(execFile);
 
 describe('runAction sad paths', () => {
+  it('locates packaged rule packs beside the compiled CLI rather than in the user app', () => {
+    expect(installedRulepacksDir('file:///tmp/arxic/dist/cli.js')).toBe('/tmp/arxic/rulepacks/');
+  });
+
   it('returns exit 2 and writes no run directory for malformed config', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'arxic-action-bad-'));
     await writeFile(join(directory, 'arxic.yaml'), 'version: [bad\n');

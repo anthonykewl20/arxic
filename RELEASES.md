@@ -43,21 +43,22 @@ Git tags are the release history.
 4. Rename `## [Unreleased]` to `## [x.y.z] - YYYY-MM-DD` and add a fresh
    `## [Unreleased]` at top.
 5. Commit with `chore(release): x.y.z`.
-6. Complete the human [screenshot inspection gate](docs/release-gates/screenshot-inspection.md) for every retained promoted screenshot and record its sign-off.
+6. Run `node scripts/human-flow-e2e.mjs`; this human-flow gate also runs automatically in `release.yml` before publishing.
 7. Before the first automated publish, add an npm granular automation token as
    the repository `NPM_TOKEN` secret with publish access to `arxic`. The release
    workflow fails closed if it is absent. Migrate to npm trusted publishing when
    npm supports this repository's GitHub Actions OIDC identity.
-8. Run the Release workflow manually once to exercise its dry-run path; it runs
-   all gates but does not publish or create a release.
-9. Tag `vx.y.z` and push the tag. The tag workflow verifies it matches `VERSION`,
+8. Tag `vx.y.z` and push the tag. The tag workflow verifies it matches `VERSION`,
    publishes `arxic` with npm provenance, then creates the GitHub Release.
+9. Complete the human [screenshot inspection gate](docs/release-gates/screenshot-inspection.md) for every retained promoted screenshot and record its sign-off.
 
 ## Maintainer release readiness
 
 - Release pipeline dry-run: passed 2026-08-15, run 31868969555.
-- Remaining owner steps: configure the repository `NPM_TOKEN` secret, then tag
-  `v0.1.1` to trigger the real npm publish and GitHub Release.
+- Remaining owner steps, in order: run the human-flow E2E gate (automatic in
+  `release.yml`), configure the repository `NPM_TOKEN` secret, tag `v0.1.1` to
+  trigger the real npm publish and GitHub Release, then inspect each retained
+  promoted screenshot.
 - Tag-ordering decision: recorded above; the published `v0.2.0` remains in place.
 
 ## How to pick the next bump from changelog verbs

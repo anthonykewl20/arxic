@@ -1,0 +1,115 @@
+{
+  "appBuildDigest": "57a6a65a9ccd95f65e217b6c35451fb79cac045be8f5179239175e665284bf03",
+  "bundleVersion": 1,
+  "commit": "c3cc763afe29cb41ce07ae1200ea18762ebcc234",
+  "coverage": {
+    "blocked": 0,
+    "contradicted": 0,
+    "denominator": 1,
+    "uncovered": 0,
+    "verified": 1
+  },
+  "environment": {
+    "browser": "chromium",
+    "class": "local-test",
+    "persona": "registered-user"
+  },
+  "fileHashes": [
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/human-happy-50dceefb-b8db-4a14-b105-42f93dc9360a/tests/workflow.spec.ts",
+      "sha256": "0af9dd41fcffcc53a21949191fc2224047ffac2325de86c1c03f7a5dcd2731ec"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/human-happy-50dceefb-b8db-4a14-b105-42f93dc9360a/fixtures/workflow.fixture.ts",
+      "sha256": "3f69af8844df7e97ca258b06ff70e3ee5b021d177b957fc0f4b43a041d1b8c9f"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/human-happy-50dceefb-b8db-4a14-b105-42f93dc9360a/fixtures/transition-receipts.ts",
+      "sha256": "af97593a72952a2af1c001e33c55102d09bbf5606a5a79b81d06ceb496351af6"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/human-happy-50dceefb-b8db-4a14-b105-42f93dc9360a/fixtures/screenshot-privacy.ts",
+      "sha256": "e07426576fcc753859bc5f4b4b877b432d61083b3b51060004b1ae111d5109b6"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/human-happy-50dceefb-b8db-4a14-b105-42f93dc9360a/plan.md",
+      "sha256": "b95fbe5aeb2f1c6428f4229431fe53b4b9ff96c8f51d358cb0e3065f45e26855"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/human-happy-50dceefb-b8db-4a14-b105-42f93dc9360a/playwright.config.ts",
+      "sha256": "78a8de1c22608c0f9d6d2e8a9c73baff35e367fa033149cbaa5ddd024817f69f"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/verification-artifacts/verification/run-1/trace-001.zip",
+      "sha256": "7efe46efb0d26e1eb33b94d8ac32137f33ad22578788ff0676e75efb2eeab20f"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/verification-artifacts/verification/run-1/trace-001.zip.sanitization.json",
+      "sha256": "2510eb2a74be0426b377b40e734dd9918ac63fee1c5288988086d4b5f1c7fd4e"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/verification-artifacts/verification/run-1/001-step-1-login-page-home.png",
+      "sha256": "ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/verification-artifacts/verification/run-1/001-step-1-login-page-home.png.privacy.json",
+      "sha256": "86d4ef3fc0355d1016ceec72d645ed911668c54e11eaf1ae546837f8d3ce1e18"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/verification-artifacts/verification/run-2/trace-001.zip",
+      "sha256": "7efe46efb0d26e1eb33b94d8ac32137f33ad22578788ff0676e75efb2eeab20f"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/verification-artifacts/verification/run-2/trace-001.zip.sanitization.json",
+      "sha256": "5bff911c83479302d141910d871d865f1907511fb14672a59d46ac323eeae277"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/verification-artifacts/verification/run-2/001-step-1-login-page-home.png",
+      "sha256": "ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-JHzx2D/state/runs/2b355ecd491cfb29/verification-artifacts/verification/run-2/001-step-1-login-page-home.png.privacy.json",
+      "sha256": "c78fccb78927125003e7f35b8a2c63faec128b599c69d1c323fc4cc0b6af8d1c"
+    }
+  ],
+  "gateResults": [
+    {
+      "gate": "compile",
+      "passed": true
+    },
+    {
+      "gate": "policy",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true
+    }
+  ],
+  "generator": {
+    "id": "@arxic/playwright-compiler",
+    "version": "0.1.1"
+  },
+  "repository": "file:///tmp/arxic-human-flow-JHzx2D/reference-auth-app",
+  "runId": "human-happy-50dceefb-b8db-4a14-b105-42f93dc9360a",
+  "schemaVersion": 1,
+  "verification": {
+    "requiredRuns": 2,
+    "runs": [
+      {
+        "finishedAt": "2026-08-15T16:08:13.682Z",
+        "passed": true,
+        "startedAt": "2026-08-15T16:08:13.682Z"
+      },
+      {
+        "finishedAt": "2026-08-15T16:08:13.682Z",
+        "passed": true,
+        "startedAt": "2026-08-15T16:08:13.682Z"
+      }
+    ]
+  },
+  "workflow": {
+    "id": "authentication.login",
+    "status": "verified"
+  }
+}

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { chmod, mkdir } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { sha256, validateDiagnostic, type Diagnostic } from '@arxic/contracts';
 import type { RunState } from '@arxic/orchestrator-langgraph';
 import { loadConfig } from './config/parse';
@@ -38,7 +39,7 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
     options.out === undefined
       ? await defaultRunRoot(repositoryDirectory)
       : resolve(cwd, options.out);
-  const rulepacksDir = resolve(options.rulepacksDir ?? resolve(cwd, 'rulepacks'));
+  const rulepacksDir = resolve(options.rulepacksDir ?? installedRulepacksDir());
   const diagnostics: Diagnostic[] = [];
   const recordingSink: DiagnosticSink = {
     emit(diagnostic) {
@@ -128,6 +129,10 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
     recordingSink.emit(internal);
     return { exitCode: 1, diagnostics };
   }
+}
+
+export function installedRulepacksDir(moduleUrl = import.meta.url): string {
+  return fileURLToPath(new URL('../rulepacks/', moduleUrl));
 }
 
 async function defaultRunRoot(repositoryDirectory: string): Promise<string> {

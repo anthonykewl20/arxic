@@ -92,5 +92,8 @@ verification, also supply `ARXIC_INPUT_PERSONA_EMAIL` and
 `ARXIC_INPUT_PERSONA_PASSWORD`. A fully eligible candidate still requires two
 deterministic verification passes before Arxic exits 0.
 
+For the exact packed-install, local-app, local-model human-flow release gate, run
+`node scripts/human-flow-e2e.mjs` from an Arxic source checkout.
+
 For worker execution, add `--executor worker` after configuring Docker; the same
 attestation and configuration requirements apply.

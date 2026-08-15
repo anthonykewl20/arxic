@@ -1,0 +1,69 @@
+{
+  "attestedAt": "2026-08-15T16:08:11.339Z",
+  "attestedBy": "@arxic/verifier",
+  "binding": {
+    "runtime": {
+      "path": "fixtures/screenshot-privacy.ts",
+      "sha256": "e07426576fcc753859bc5f4b4b877b432d61083b3b51060004b1ae111d5109b6"
+    },
+    "sources": [
+      {
+        "path": "fixtures/screenshot-privacy.ts",
+        "sha256": "e07426576fcc753859bc5f4b4b877b432d61083b3b51060004b1ae111d5109b6"
+      },
+      {
+        "path": "fixtures/transition-receipts.ts",
+        "sha256": "af97593a72952a2af1c001e33c55102d09bbf5606a5a79b81d06ceb496351af6"
+      },
+      {
+        "path": "fixtures/workflow.fixture.ts",
+        "sha256": "3f69af8844df7e97ca258b06ff70e3ee5b021d177b957fc0f4b43a041d1b8c9f"
+      },
+      {
+        "path": "playwright.config.ts",
+        "sha256": "78a8de1c22608c0f9d6d2e8a9c73baff35e367fa033149cbaa5ddd024817f69f"
+      },
+      {
+        "path": "tests/workflow.spec.ts",
+        "sha256": "0af9dd41fcffcc53a21949191fc2224047ffac2325de86c1c03f7a5dcd2731ec"
+      }
+    ],
+    "spec": {
+      "path": "tests/workflow.spec.ts",
+      "sha256": "0af9dd41fcffcc53a21949191fc2224047ffac2325de86c1c03f7a5dcd2731ec"
+    }
+  },
+  "capture": {
+    "browserVersion": "151.0.7922.34",
+    "capturedAt": "2026-08-15T16:08:09.253Z",
+    "correlationSha256": "2e941c36a0231ba3c4b3809d8a5566b5f231d7c2aded5e1024a07cfa8d873cdf",
+    "mode": "masked-page",
+    "playwrightVersion": "1.62.1",
+    "receiptSha256": "ceba9ddc705225da8bc38aadf8a098583241ec4bc441250d3ac218d9b57d8b6b",
+    "sourcePath": "artifacts/screenshots/step-1-login-page-home.png"
+  },
+  "kind": "arxic-screenshot-privacy-attestation",
+  "policy": {
+    "authority": {
+      "kind": "repository-policy",
+      "recordedAt": "2026-08-15T16:08:09.242Z",
+      "reference": "arxic.yaml:policy.screenshots"
+    },
+    "capture": {
+      "fullPage": true,
+      "masks": [{ "exact": true, "kind": "role", "role": "main" }],
+      "mode": "masked-page"
+    },
+    "id": "human-happy-50dceefb-b8db-4a14-b105-42f93dc9360a-cli-main-mask",
+    "schemaVersion": 1
+  },
+  "policySha256": "8c171408cf2fb0e8334993744676fd85c546ed6fcda73080b1caf8e242cfa7e3",
+  "schemaVersion": 1,
+  "screenshot": {
+    "bytes": 4367,
+    "file": "001-step-1-login-page-home.png",
+    "height": 720,
+    "sha256": "ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1",
+    "width": 1280
+  }
+}
