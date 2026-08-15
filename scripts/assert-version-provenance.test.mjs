@@ -1,9 +1,9 @@
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, win32 } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { assertVersionProvenance } from './assert-version-provenance.mjs';
+import { assertVersionProvenance, isProductionSourceFile } from './assert-version-provenance.mjs';
 
 async function makeWorkspace({ cliVersion = '0.1.1', producer = '0.1.1' } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'arxic-version-provenance-'));
@@ -63,6 +63,12 @@ describe('version provenance sad paths', () => {
 });
 
 describe('version provenance allowed path', () => {
+  it('excludes a Windows-style test fixture from production source scanning', () => {
+    const fixturePath = win32.join('apps', 'cli', 'src', '__tests__', 'fixtures.ts');
+
+    expect(isProductionSourceFile(fixturePath, win32.sep)).toBe(false);
+  });
+
   it('accepts matching production manifests and built CLI output', async () => {
     const root = await makeWorkspace();
 

@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, sep as pathSeparator } from 'node:path';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -83,7 +83,7 @@ async function productionSourceFiles(root) {
   const files = await Promise.all(
     sourceRoots.map((sourceRoot) => filesUnder(join(root, sourceRoot))),
   );
-  return files.flat().filter((path) => !/(?:\/__tests__\/|\.(?:test|spec)\.ts$)/u.test(path));
+  return files.flat().filter(isProductionSourceFile);
 }
 
 async function filesUnder(directory) {
@@ -101,6 +101,15 @@ function emitsPlaceholderVersion(source) {
   return /\b(?:generator|clientInfo|adapter|orchestratorVersion|verifierVersion|toolVersion|version)\s*[:=]\s*['"]0\.0\.0['"]/u.test(
     source,
   );
+}
+
+export function normalizePathForMatching(filePath, separator = pathSeparator) {
+  return filePath.split(separator).join('/');
+}
+
+export function isProductionSourceFile(filePath, separator = pathSeparator) {
+  const normalizedPath = normalizePathForMatching(filePath, separator);
+  return !/(?:^|\/)__tests__(?:\/|$)|\.(?:test|spec)\.ts$/u.test(normalizedPath);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
