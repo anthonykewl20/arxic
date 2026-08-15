@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, sep as pathSeparator } from 'node:path';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -19,7 +19,10 @@ export const FIXTURE_MANIFESTS = [
 
 export async function assertVersionProvenance({
   root = defaultRoot,
-  buildCli = () => execFileAsync('pnpm', ['--filter', './apps/cli', 'build'], { cwd: root }),
+  buildCli = () => {
+    const { command, args } = pnpmBuildCommand();
+    return execFileAsync(command, args, { cwd: root });
+  },
   cliVersion = async () => {
     const { stdout } = await execFileAsync('node', ['apps/cli/dist/cli.js', '--version'], {
       cwd: root,
@@ -83,7 +86,7 @@ async function productionSourceFiles(root) {
   const files = await Promise.all(
     sourceRoots.map((sourceRoot) => filesUnder(join(root, sourceRoot))),
   );
-  return files.flat().filter((path) => !/(?:\/__tests__\/|\.(?:test|spec)\.ts$)/u.test(path));
+  return files.flat().filter(isProductionSourceFile);
 }
 
 async function filesUnder(directory) {
@@ -101,6 +104,21 @@ function emitsPlaceholderVersion(source) {
   return /\b(?:generator|clientInfo|adapter|orchestratorVersion|verifierVersion|toolVersion|version)\s*[:=]\s*['"]0\.0\.0['"]/u.test(
     source,
   );
+}
+
+export function normalizePathForMatching(filePath) {
+  return filePath.split(pathSeparator).join('/').replaceAll('\\', '/');
+}
+
+export function isProductionSourceFile(filePath) {
+  const normalizedPath = normalizePathForMatching(filePath);
+  return !/(?:^|\/)__tests__(?:\/|$)|\.(?:test|spec)\.ts$/u.test(normalizedPath);
+}
+
+export function pnpmBuildCommand(platform = process.platform) {
+  return platform === 'win32'
+    ? { command: 'cmd.exe', args: ['/d', '/s', '/c', 'pnpm --filter "./apps/cli" build'] }
+    : { command: 'pnpm', args: ['--filter', './apps/cli', 'build'] };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

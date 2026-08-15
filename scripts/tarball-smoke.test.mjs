@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { assertTarballSmoke } from './tarball-smoke.mjs';
+import { assertTarballSmoke, packageManagerSpawnOptions } from './tarball-smoke.mjs';
 
 const packagedFiles = [
   'package/dist/cli.js',
@@ -83,6 +83,31 @@ describe('tarball smoke sad paths', () => {
 });
 
 describe('tarball smoke allowed path', () => {
+  it('uses a shell for Windows package-manager command shims', () => {
+    expect(packageManagerSpawnOptions('win32')).toEqual({ shell: true });
+    expect(packageManagerSpawnOptions('linux')).toEqual({});
+  });
+
+  it('accepts Windows-style tar entry separators', async () => {
+    await expect(
+      assertTarballSmoke({
+        version: '0.1.1',
+        buildCli: async () => {},
+        pack: async () => '/tmp/arxic.tgz',
+        listTarball: async () =>
+          packagedFiles.map((entry) =>
+            entry === 'package/dist/cli.js' ? 'package\\dist\\cli.js\r' : entry,
+          ),
+        install: async () => {},
+        runCli: async (args) => {
+          if (args[0] === '--version') return '0.1.1';
+          if (args[0] === 'run' && args[1] === '--config') throw configFailure();
+          return 'Usage: arxic';
+        },
+      }),
+    ).resolves.toBeUndefined();
+  });
+
   it('accepts a tarball whose CLI reports VERSION and serves help', async () => {
     await expect(
       assertTarballSmoke({

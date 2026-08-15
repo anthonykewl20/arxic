@@ -12,7 +12,11 @@ const defaultRoot = dirname(scriptDirectory);
 export async function assertTarballSmoke({
   root = defaultRoot,
   version = undefined,
-  buildCli = () => execFileAsync('pnpm', ['--filter', './apps/cli', 'build'], { cwd: root }),
+  buildCli = () =>
+    execFileAsync('pnpm', ['--filter', './apps/cli', 'build'], {
+      cwd: root,
+      ...packageManagerSpawnOptions(),
+    }),
   pack,
   listTarball,
   install,
@@ -57,15 +61,16 @@ async function listTarballContents(tarball) {
 }
 
 function assertTarballContents(entries) {
+  const normalizedEntries = entries.map((entry) => entry.replace(/\r$/u, '').split('\\').join('/'));
   for (const required of ['package/dist/cli.js', 'package/LICENSE', 'package/NOTICE']) {
-    if (!entries.includes(required)) {
+    if (!normalizedEntries.includes(required)) {
       throw new Error(`tarball is missing required entry ${required}`);
     }
   }
-  if (entries.some((entry) => entry.startsWith('package/src/'))) {
+  if (normalizedEntries.some((entry) => entry.startsWith('package/src/'))) {
     throw new Error('tarball must not contain source files');
   }
-  if (entries.some((entry) => entry.startsWith('package/node_modules/'))) {
+  if (normalizedEntries.some((entry) => entry.startsWith('package/node_modules/'))) {
     throw new Error('tarball must not contain node_modules');
   }
 }
@@ -73,6 +78,7 @@ function assertTarballContents(entries) {
 async function packCli({ root, tarballDirectory }) {
   await execFileAsync('npm', ['pack', '--pack-destination', tarballDirectory], {
     cwd: join(root, 'apps/cli'),
+    ...packageManagerSpawnOptions(),
   });
   const tarballs = (await readdir(tarballDirectory))
     .filter((entry) => entry.endsWith('.tgz'))
@@ -84,7 +90,14 @@ async function packCli({ root, tarballDirectory }) {
 async function installTarball({ tarball, installDirectory }) {
   await execFileAsync('npm', ['install', '--ignore-scripts', '--no-package-lock', tarball], {
     cwd: installDirectory,
+    ...packageManagerSpawnOptions(),
   });
+}
+
+// These package-manager commands and arguments are fixed literals owned by this
+// script. Windows needs a shell to invoke its pnpm.cmd/npm.cmd shims.
+export function packageManagerSpawnOptions(platform = process.platform) {
+  return platform === 'win32' ? { shell: true } : {};
 }
 
 async function runPackedCli({ installDirectory, argument }) {
