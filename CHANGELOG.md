@@ -11,8 +11,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
 
+### added
+
+- Added fail-closed provenance-enabled npm release automation, repository metadata, bundled schema support for packed CLI execution, cross-platform packed-CLI smoke coverage, and an installable CLI quickstart (refs #189, #186).
+- Added versioned user documentation with parser-derived CLI and configuration references, plus corrected README status and roadmap claims (refs #188).
+- Added release/support/deprecation policy, worker operator guidance, a gitleaks 8.30.1 full-history false-positive triage record, and the human screenshot-inspection release gate (refs #192, #197, #213).
+
+### changed
+
+- Consolidated M0 capstone verification on `@arxic/verifier` while retaining M0-specific orchestration gates and the real-Chromium capstone flow (refs #179).
+- Wired stage-7 fixture leases through stage-8 reversible exploration and terminal lifecycle cleanup (refs #180).
+- Re-scoped distribution to the bundled ESM `arxic` CLI only; synchronized non-fixture workspace metadata to `VERSION`, added version-provenance and tarball-smoke gates, and retained private source-only internal packages (refs #184, #185).
+- Routed reconciler topology ingestion and edge lookup through the evidence-graph service seam (refs #195).
+
+### fixed
+
+- Fail closed when a focus-time rerender detaches an identity-checked exploration control before its native action.
+- Hardened worker-result extraction by quota-bounded spooling and validation of the exact tar stream before host extraction, including PAX/GNU paths (refs #212).
+- Corrected screenshot-privacy traversal timeout behavior and remediated the esbuild alert with the 0.28.1 override (refs #219).
+- Corrected Windows portability in provenance path classification, `.cmd` spawning, and tar separators across the release-test matrix (refs #190, #183).
+- Made injected lease-clock authorization deterministic and made the canonical-helper structural gate portable without changing contract bytes (refs #194, #211).
+
+### security
+
+- Digest-pinned the worker Node base image and added worker-image CI coverage for build, non-root, no-egress, native-module, Chromium, and sandbox checks (refs #191, #193).
+- Extracted bounded realpath-contained no-follow source reads into `@arxic/fs-safe` for both source adapters (refs #211).
+
 ### internal
 
+- Added shared strict/legacy canonical-JSON and SHA-256 helpers in `@arxic/contracts`, preserving required wire-byte compatibility (refs #194).
+- Added the non-required Node 22/24 × Ubuntu/macOS/Windows six-cell release-test matrix; Docker and Mailpit tests remain Ubuntu-only (refs #190).
+- Recorded a fresh real-Docker stages-0–12 worker-pipeline proof with promotion and isolation invariants (refs #183).
 - Versioning correction (owner directive, 2026-08-14): the production-release milestone is re-versioned 1.0.0 → 0.1.1 — this is not v1; the production line stays pre-1.0 0.x. `VERSION`/`package.json` = `0.1.1`. Only `v0.2.0` was ever tagged; the never-tagged 0.3.0/0.3.1 entries are subsumed into the 0.1 line (see RELEASES.md "Versioning correction"). Maintainer follow-up: decide the v0.2.0-vs-0.1.1 tag ordering.
 
 ## [0.3.1] - 2026-08-14
