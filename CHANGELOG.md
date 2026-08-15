@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected screenshot-privacy traversal timeout behavior and remediated the esbuild alert with the 0.28.1 override (refs #219).
 - Corrected Windows portability in provenance path classification, `.cmd` spawning, and tar separators across the release-test matrix (refs #190, #183).
 - Made injected lease-clock authorization deterministic and made the canonical-helper structural gate portable without changing contract bytes (refs #194, #211).
+- Hardened canonical verification so fail-closed gates take precedence; reject privileged and padded GNU-L worker-result tar inputs; share unsafe-extraction wording; broaden worker-image input coverage; pin ASCII-key legacy payload ordering; and bound locator-policy readiness during Chromium startup contention (refs #236).
+- Hardened fixture-lease recovery after terminal cleanup failures, preserved preparation cleanup diagnostics, scoped reversible exploration authorization by fixture kind, restricted Mailpit reaping to explicit recipient-scoped maintenance, and made policy snapshot input hashes independent of injected time (refs #238).
 
 ### security
 
@@ -43,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the non-required Node 22/24 × Ubuntu/macOS/Windows six-cell release-test matrix; Docker and Mailpit tests remain Ubuntu-only (refs #190).
 - Recorded a fresh real-Docker stages-0–12 worker-pipeline proof with promotion and isolation invariants (refs #183).
 - Versioning correction (owner directive, 2026-08-14): the production-release milestone is re-versioned 1.0.0 → 0.1.1 — this is not v1; the production line stays pre-1.0 0.x. `VERSION`/`package.json` = `0.1.1`. Only `v0.2.0` was ever tagged; the never-tagged 0.3.0/0.3.1 entries are subsumed into the 0.1 line (see RELEASES.md "Versioning correction"). Maintainer follow-up: decide the v0.2.0-vs-0.1.1 tag ordering.
+- Recorded acceptance of the non-monotonic v0.2.0/v0.1.1 tag order, a real release-pipeline dry run, and manifest-first screenshot-inspection tooling with a per-file sign-off template (refs #237).
 
 ## [0.3.1] - 2026-08-14
 
