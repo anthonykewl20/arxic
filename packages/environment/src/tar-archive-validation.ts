@@ -3,7 +3,7 @@ import { ArtifactImportError } from './artifact-quota';
 
 const BLOCK_BYTES = 512;
 const MAX_EXTENSION_BYTES = 1024 * 1024;
-const UNSAFE_ARCHIVE_MESSAGE =
+export const UNSAFE_ARCHIVE_MESSAGE =
   'Worker result contains an unsafe filesystem entry; host extraction was blocked';
 
 type PaxOverrides = Readonly<{ path?: string; type?: '0' | '5' }>;
@@ -43,6 +43,7 @@ export async function validateTarArchive(path: string): Promise<void> {
       }
       if (zeroBlocks !== 0) throw unsafe();
       assertHeaderChecksum(header);
+      if ((parseOctal(header.subarray(100, 108)) & 0o6000) !== 0) throw unsafe();
       const memberBytes = parseOctal(header.subarray(124, 136));
       const paddedBytes = Math.ceil(memberBytes / BLOCK_BYTES) * BLOCK_BYTES;
       if (!Number.isSafeInteger(memberBytes) || offset + paddedBytes > archiveBytes) throw unsafe();
@@ -154,6 +155,8 @@ function decodeTarString(field: Uint8Array): string {
 }
 
 function parseGnuLongPath(data: Buffer): string {
+  // GNU tar emits precisely `<path>\0` for L records. Reject any additional
+  // NUL bytes rather than treating extension-record block padding as data.
   if (data.byteLength === 0 || data.at(-1) !== 0) throw unsafe();
   try {
     const path = new TextDecoder('utf-8', { fatal: true }).decode(data.subarray(0, -1));

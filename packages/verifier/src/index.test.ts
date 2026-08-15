@@ -266,7 +266,7 @@ describe('PlaywrightVerifier', () => {
     await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
-  test('keeps a failed run contradicted when its safe screenshot misses the required checkpoint', async () => {
+  test('blocks a failed run when artifact retention cannot prove its screenshot safe', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
       runSuite: async () => {
@@ -287,11 +287,11 @@ describe('PlaywrightVerifier', () => {
       screenshotCheckpoints: ['home'],
     });
 
-    expect(result.outcome).toBe('contradicted');
-    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_APP_DEFECT);
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_ARTIFACT_MISSING);
   });
 
-  test('maps a passing and failing split to contradicted rather than verified', async () => {
+  test('blocks a passing and failing split when artifact retention also fails', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
       runSuite: async (run) => ({
@@ -304,14 +304,14 @@ describe('PlaywrightVerifier', () => {
 
     const result = await verifier.verify(fixture.bundle, { ...policy(2), trace: 'retain' });
 
-    expect(result.outcome).toBe('contradicted');
+    expect(result.outcome).toBe('blocked');
     expect(result.runs).toEqual([{ passed: true }, { passed: false }]);
     expect(result.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: ARXIC_VERIFY_FLAKY_RUNS })]),
+      expect.arrayContaining([expect.objectContaining({ code: ARXIC_VERIFY_ARTIFACT_MISSING })]),
     );
   });
 
-  test('maps every failing runtime run to contradicted as an app defect', async () => {
+  test('blocks every failing runtime run when artifact retention also fails', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
       runSuite: async () => ({
@@ -324,8 +324,8 @@ describe('PlaywrightVerifier', () => {
 
     const result = await verifier.verify(fixture.bundle, policy(2));
 
-    expect(result.outcome).toBe('contradicted');
-    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_APP_DEFECT });
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_ARTIFACT_MISSING });
   });
 
   test('blocks when clean fixture reset or seed is unavailable', async () => {
@@ -503,6 +503,34 @@ describe('PlaywrightVerifier', () => {
 
     expect(result.outcome).toBe('blocked');
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_BLOCKED_NETWORK });
+  });
+
+  test('gives forbidden network errors blocked precedence over flaky run evidence', () => {
+    const result = classifyVerification({
+      subject: 'authentication.login',
+      runs: [{ passed: true }, { passed: false }],
+      policy: { requiredRuns: 2, forbidNetworkErrors: true },
+      networkErrors: ['run 2: console-error unexpected app error'],
+    });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: ARXIC_VERIFY_BLOCKED_NETWORK })]),
+    );
+  });
+
+  test.each([
+    { runs: [], requiredRuns: 2, label: 'zero runs' },
+    { runs: [{ passed: true }, { passed: false }], requiredRuns: 3, label: 'partial mixed runs' },
+  ])('blocks $label before classifying runtime evidence', ({ runs, requiredRuns }) => {
+    const result = classifyVerification({
+      subject: 'authentication.login',
+      runs,
+      policy: { requiredRuns, forbidNetworkErrors: true },
+    });
+
+    expect(result.outcome).toBe('blocked');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_SUITE_UNAVAILABLE });
   });
 
   test('validates receipt nonce, step names, URL witnesses, and structured page events', async () => {

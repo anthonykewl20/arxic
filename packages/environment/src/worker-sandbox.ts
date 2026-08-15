@@ -28,7 +28,7 @@ import {
   readArtifactWithinQuota,
   type ArtifactReadBudget,
 } from './artifact-quota';
-import { validateTarArchive } from './tar-archive-validation';
+import { UNSAFE_ARCHIVE_MESSAGE, validateTarArchive } from './tar-archive-validation';
 
 /**
  * Non-root fallback used where the host exposes no POSIX uid (e.g. Windows,
@@ -485,10 +485,7 @@ async function assertResultTreeSafeForExtraction(
     '-print',
   ]);
   if (unsafe.exit !== 0 || unsafe.stdout.length > 0) {
-    throw new ArtifactImportError(
-      'invalid',
-      'Worker result contains an unsafe filesystem entry; host extraction was blocked',
-    );
+    throw new ArtifactImportError('invalid', UNSAFE_ARCHIVE_MESSAGE);
   }
 }
 

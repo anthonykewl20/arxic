@@ -2,10 +2,10 @@ import { access, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { validateTarArchive } from '../tar-archive-validation';
+import { UNSAFE_ARCHIVE_MESSAGE, validateTarArchive } from '../tar-archive-validation';
 import { consumeSupervisorResultSpool } from '../worker-sandbox';
 
-type TarEntry = Readonly<{ name: string; type?: string; data?: Uint8Array }>;
+type TarEntry = Readonly<{ name: string; type?: string; mode?: number; data?: Uint8Array }>;
 
 const directories: string[] = [];
 
@@ -23,7 +23,7 @@ function tarEntry(entry: TarEntry): readonly Buffer[] {
   const data = Buffer.from(entry.data ?? []);
   const header = Buffer.alloc(512);
   writeString(header, 0, 100, entry.name);
-  writeOctal(header, 100, 8, 0o644);
+  writeOctal(header, 100, 8, entry.mode ?? 0o644);
   writeOctal(header, 108, 8, 0);
   writeOctal(header, 116, 8, 0);
   writeOctal(header, 124, 12, data.byteLength);
@@ -69,6 +69,27 @@ async function archive(entries: readonly TarEntry[]): Promise<string> {
 }
 
 describe('validateTarArchive', () => {
+  it('rejects a setuid regular-file member', async () => {
+    await expect(
+      validateTarArchive(await archive([{ name: 'unsafe', mode: 0o4644 }])),
+    ).rejects.toThrow(UNSAFE_ARCHIVE_MESSAGE);
+  });
+
+  it('rejects a setgid regular-file member', async () => {
+    await expect(
+      validateTarArchive(await archive([{ name: 'unsafe', mode: 0o2644 }])),
+    ).rejects.toThrow(UNSAFE_ARCHIVE_MESSAGE);
+  });
+
+  it.each([
+    { mode: 0o644, label: '0644' },
+    { mode: 0o755, label: '0755' },
+  ])('accepts a regular-file member with mode $label', async ({ mode }) => {
+    await expect(
+      validateTarArchive(await archive([{ name: 'safe', mode }])),
+    ).resolves.toBeUndefined();
+  });
+
   it('rejects a symbolic-link member', async () => {
     await expect(
       validateTarArchive(await archive([{ name: 'escape', type: '2' }])),
@@ -189,6 +210,18 @@ describe('validateTarArchive', () => {
         ]),
       ),
     ).resolves.toBeUndefined();
+  });
+
+  it('rejects a GNU long-name record with trailing NUL padding beyond the name terminator', async () => {
+    const longName = `nested/${'x'.repeat(120)}/artifact.json`;
+    await expect(
+      validateTarArchive(
+        await archive([
+          { name: '././@LongLink', type: 'L', data: Buffer.from(`${longName}\0\0`) },
+          { name: 'truncated-name', data: Buffer.from('{"safe":true}') },
+        ]),
+      ),
+    ).rejects.toThrow(UNSAFE_ARCHIVE_MESSAGE);
   });
 
   it('accepts plain directory and regular-file members', async () => {

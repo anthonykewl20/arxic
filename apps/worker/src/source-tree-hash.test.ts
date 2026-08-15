@@ -57,6 +57,15 @@ describe('hashSourceTree', () => {
     const oldBytes = Buffer.from(`${oldCanonicalPipelineJson(actual.manifest)}\n`, 'utf8');
     expect(actual.sourceSha256).toBe(createHash('sha256').update(oldBytes).digest('hex'));
   });
+
+  it('uses only ASCII keys in the canonicalized source payload', async () => {
+    const root = await repository();
+    await writeFile(join(root, 'source.ts'), 'export const source = true;\n');
+    const actual = await hashSourceTree(root);
+    const canonicalizedPayload = JSON.parse(oldCanonicalPipelineJson(actual.manifest)) as unknown;
+
+    expect(objectKeys(canonicalizedPayload).every((key) => /^[\x20-\x7E]+$/u.test(key))).toBe(true);
+  });
 });
 
 async function repository(): Promise<string> {
@@ -82,4 +91,15 @@ function oldSortValue(value: unknown): unknown {
     );
   }
   return value;
+}
+
+function objectKeys(value: unknown): string[] {
+  if (Array.isArray(value)) return value.flatMap(objectKeys);
+  if (value !== null && typeof value === 'object') {
+    return Object.entries(value as Record<string, unknown>).flatMap(([key, item]) => [
+      key,
+      ...objectKeys(item),
+    ]);
+  }
+  return [];
 }

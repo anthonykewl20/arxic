@@ -43,32 +43,6 @@ export function classifyVerification(input: ClassificationInput): Classification
     return { outcome: 'blocked', diagnostics: input.executionDiagnostics };
   }
   const passed = input.runs.filter((run) => run.passed).length;
-  if (passed > 0 && passed < input.runs.length) {
-    return {
-      outcome: 'contradicted',
-      diagnostics: [
-        verifyDiagnostic(
-          ARXIC_VERIFY_FLAKY_RUNS,
-          'contradicted',
-          input.subject,
-          'Verification split between passing and failing clean-fixture runs',
-        ),
-      ],
-    };
-  }
-  if (input.runs.length > 0 && passed === 0) {
-    return {
-      outcome: 'contradicted',
-      diagnostics: [
-        verifyDiagnostic(
-          ARXIC_VERIFY_APP_DEFECT,
-          'contradicted',
-          input.subject,
-          'Runtime disproved the candidate in every clean-fixture run',
-        ),
-      ],
-    };
-  }
   if (input.policy.forbidNetworkErrors !== false && input.networkErrors?.length) {
     return {
       outcome: 'blocked',
@@ -144,6 +118,32 @@ export function classifyVerification(input: ClassificationInput): Classification
           'blocked',
           input.subject,
           `Verification completed ${input.runs.length} of ${input.policy.requiredRuns} required runs`,
+        ),
+      ],
+    };
+  }
+  if (passed > 0 && passed < input.runs.length) {
+    return {
+      outcome: 'contradicted',
+      diagnostics: [
+        verifyDiagnostic(
+          ARXIC_VERIFY_FLAKY_RUNS,
+          'contradicted',
+          input.subject,
+          'Verification split between passing and failing clean-fixture runs',
+        ),
+      ],
+    };
+  }
+  if (input.runs.length > 0 && passed === 0) {
+    return {
+      outcome: 'contradicted',
+      diagnostics: [
+        verifyDiagnostic(
+          ARXIC_VERIFY_APP_DEFECT,
+          'contradicted',
+          input.subject,
+          'Runtime disproved the candidate in every clean-fixture run',
         ),
       ],
     };
