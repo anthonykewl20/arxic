@@ -33,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           base="$(git merge-base origin/main HEAD)"
-          if git diff --name-only "$base" HEAD | grep -E '^(apps/worker/|packages/environment/|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|package\.json$|\.github/workflows/ci\.yml$|\.github/dependabot\.yml$)' > /dev/null; then
+          if git diff --name-only "$base" HEAD | grep -E '^(apps/worker/|packages/contracts/|packages/environment/|packages/source-ua-adapter/|packages/playwright-agent-adapter/|test-fixtures/|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|package\.json$|\.github/workflows/ci\.yml$|\.github/dependabot\.yml$)' > /dev/null; then
             echo 'worker=true' >> "$GITHUB_OUTPUT"
           else
             echo 'worker=false' >> "$GITHUB_OUTPUT"

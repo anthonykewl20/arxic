@@ -67,7 +67,11 @@ describe('PlaywrightExplorationDriver locator policy', () => {
       reason: 'mismatch',
     },
   ] as const)('$name', async ({ html, locator, reason }) => {
-    const driver = new PlaywrightExplorationDriver({ timeoutMs: 250 });
+    // Each case navigates a new Chromium instance before resolving its static DOM. A
+    // 250 ms locator-readiness window can expire under suite contention before the
+    // semantic control attaches, masking the deliberately constructed execution
+    // failure below. Keep this bounded while allowing browser readiness to complete.
+    const driver = new PlaywrightExplorationDriver({ timeoutMs: 3_000 });
     try {
       const url = `data:text/html,${encodeURIComponent(html)}`;
       const result = await driver.execute(
