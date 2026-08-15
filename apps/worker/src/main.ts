@@ -1,8 +1,7 @@
 import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
-import type { Diagnostic, StagedBundle } from '@arxic/contracts';
+import { sha256, type Diagnostic, type StagedBundle } from '@arxic/contracts';
 import { authCandidates, type AuthSurface } from '@arxic/auth-domain-pack';
 import { ModelAdapter } from '@arxic/model-adapter';
 import {
@@ -159,7 +158,7 @@ function pipelineOptions(
       manifest: bundle.manifest,
       promotedAt: now(),
       location: `worker-candidate://${spec.runId}`,
-      checksumSha256: createHash('sha256').update(spec.runId).digest('hex'),
+      checksumSha256: sha256(spec.runId),
     }),
     verify: async (compilation) => {
       if (!compilation.stagedBundle) return uncompiledVerification();

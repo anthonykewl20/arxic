@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 import type { PolicyAuthorization } from './policy';
 
 export const ARXIC_POLICY_VERSION = 'arxic-policy-v1' as const;
@@ -37,7 +37,7 @@ export function computePolicySnapshot(
   };
   return {
     policyVersion,
-    inputSha256: createHash('sha256').update(stableStringify(canonicalInput)).digest('hex'),
+    inputSha256: sha256(stableStringify(canonicalInput)),
     decision,
     timestamp: now(),
   };

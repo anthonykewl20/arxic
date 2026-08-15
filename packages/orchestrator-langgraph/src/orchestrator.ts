@@ -1,5 +1,5 @@
 import { Annotation, END, MemorySaver, START, StateGraph } from '@langchain/langgraph';
-import { createHash } from 'node:crypto';
+import { canonicalJson as serializeCanonicalJson, sha256 } from '@arxic/contracts';
 import { resolve } from 'node:path';
 import type {
   Diagnostic,
@@ -1463,21 +1463,7 @@ function nextOutcome(
 }
 
 function stageDigest(value: unknown): string {
-  return createHash('sha256')
-    .update(JSON.stringify(sortKeys(value)))
-    .digest('hex');
-}
-
-function sortKeys(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(sortKeys);
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>)
-        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
-        .map(([key, nested]) => [key, sortKeys(nested)]),
-    );
-  }
-  return value;
+  return sha256(serializeCanonicalJson(value, { mode: 'legacy' }));
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {

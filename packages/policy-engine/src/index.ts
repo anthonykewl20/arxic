@@ -37,6 +37,7 @@ export type PolicyEngineConfig = {
   allowedOrigins: string[];
   policyVersion?: string;
   sandboxAdapterPresent?: boolean;
+  now?: () => number;
 };
 
 export type PolicyActionRequest = {
@@ -68,6 +69,7 @@ export class PolicyEngine {
       ...(this.#config.sandboxAdapterPresent === undefined
         ? {}
         : { sandboxAdapterPresent: this.#config.sandboxAdapterPresent }),
+      ...(this.#config.now === undefined ? {} : { now: this.#config.now() }),
     };
     return authorize(input);
   }

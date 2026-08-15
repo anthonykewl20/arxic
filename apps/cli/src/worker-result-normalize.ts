@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
 import {
+  sha256,
   validateDiagnostic,
   validateEvidenceIndex,
   validateManifest,
@@ -414,10 +414,6 @@ function exactKeys(record: Record<string, unknown>, allowed: readonly string[]):
 function exactRequiredKeys(record: Record<string, unknown>, required: readonly string[]): boolean {
   const keys = Object.keys(record);
   return keys.length === required.length && keys.every((key) => required.includes(key));
-}
-
-function sha256(bytes: Uint8Array): string {
-  return createHash('sha256').update(bytes).digest('hex');
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

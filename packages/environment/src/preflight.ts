@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, rename, unlink, writeFile } from 'node:fs/promises';
 import { basename, dirname, resolve } from 'node:path';
-import type { Diagnostic } from '@arxic/contracts';
+import { canonicalJson, type Diagnostic } from '@arxic/contracts';
 import {
   EnvironmentHandshake,
   type AttestationDecision,
@@ -24,19 +24,6 @@ type PreflightAttestationInput = {
   policy: AttestationPolicy;
   artifactsDir: string;
   now?: () => string;
-};
-
-const canonicalize = (value: unknown): unknown => {
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (value !== null && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value)
-        .filter(([, item]) => item !== undefined)
-        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
-        .map(([key, item]) => [key, canonicalize(item)]),
-    );
-  }
-  return value;
 };
 
 export async function runPreflightAttestation(
@@ -75,7 +62,7 @@ export async function runPreflightAttestation(
     dirname(artifactPath),
     `.${basename(artifactPath)}.${randomUUID()}.stage`,
   );
-  const bytes = `${JSON.stringify(canonicalize({ targets: results, generatedAt }))}\n`;
+  const bytes = `${canonicalJson({ targets: results, generatedAt }, { mode: 'legacy' })}\n`;
 
   try {
     await mkdir(dirname(artifactPath), { recursive: true });

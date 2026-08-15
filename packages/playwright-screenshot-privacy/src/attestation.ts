@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
 import { lstat, mkdir, realpath, rm, writeFile } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { canonicalJson as serializeCanonicalJson, sha256 } from '@arxic/contracts';
 import {
   assertTrustedScreenshotCaptureBinding,
   expectedScreenshotPathsFromTrustedSpec,
@@ -211,7 +211,7 @@ export async function retainPolicyAttestedScreenshots(input: {
           sources: input.binding.sources,
         },
       };
-      const provenanceBytes = canonicalJson(attestation);
+      const provenanceBytes = serializeCanonicalLine(attestation);
       retainedPaths.push(targetScreenshot, targetProvenance);
       const writes = await Promise.allSettled([
         writeFile(targetScreenshot, bytes, { flag: 'wx' }),
@@ -425,7 +425,7 @@ export function parseScreenshotPrivacyAttestation(
     },
     binding: { spec, runtime, sources },
   };
-  if (canonicalJson(attestation) !== bytes.toString('utf8'))
+  if (serializeCanonicalLine(attestation) !== bytes.toString('utf8'))
     attestationInvalid('provenance is not canonical');
   return deepFreeze(attestation);
 }
@@ -910,25 +910,8 @@ function normalizedRelative(base: string, path: string): string {
   return relative(resolve(base), path).split(sep).join('/');
 }
 
-function canonicalJson(value: unknown): string {
-  return `${JSON.stringify(canonicalize(value))}\n`;
-}
-
-function canonicalize(value: unknown): unknown {
-  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) attestationInvalid('provenance contains a non-finite number');
-    return value;
-  }
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value)
-        .sort(([left], [right]) => compare(left, right))
-        .map(([key, item]) => [key, canonicalize(item)]),
-    );
-  }
-  attestationInvalid(`provenance contains unsupported ${typeof value}`);
+function serializeCanonicalLine(value: unknown): string {
+  return `${serializeCanonicalJson(value)}\n`;
 }
 
 function deepFreeze<T>(value: T): T {
@@ -937,10 +920,6 @@ function deepFreeze<T>(value: T): T {
     for (const item of Object.values(value as Record<string, unknown>)) deepFreeze(item);
   }
   return value;
-}
-
-function sha256(value: string | Uint8Array): string {
-  return createHash('sha256').update(value).digest('hex');
 }
 
 function compare(left: string, right: string): number {

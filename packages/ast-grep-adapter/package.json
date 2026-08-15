@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@ast-grep/cli": "^0.45.0",
-    "@arxic/contracts": "workspace:*"
+    "@arxic/contracts": "workspace:*",
+    "@arxic/fs-safe": "workspace:*"
   }
 }

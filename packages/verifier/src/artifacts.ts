@@ -1,7 +1,6 @@
-import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import type { ArtifactRef } from '@arxic/contracts';
+import { sha256, type ArtifactRef } from '@arxic/contracts';
 import {
   retainCaptureArtifacts,
   type TraceSanitizationFailure,
@@ -64,9 +63,7 @@ export async function verifyArtifactHashes(
   for (const artifact of artifacts) {
     const path = baseDirectory ? resolveArtifactPath(baseDirectory, artifact.path) : artifact.path;
     try {
-      const digest = createHash('sha256')
-        .update(await readFile(path))
-        .digest('hex');
+      const digest = sha256(await readFile(path));
       if (digest !== artifact.sha256) failures.push({ artifact, reason: 'mismatch' });
     } catch {
       failures.push({ artifact, reason: 'missing' });
@@ -77,7 +74,7 @@ export async function verifyArtifactHashes(
 
 export async function artifactRef(kind: string, path: string): Promise<ArtifactRef> {
   const bytes = await readFile(path);
-  return { kind, path, sha256: createHash('sha256').update(bytes).digest('hex') };
+  return { kind, path, sha256: sha256(bytes) };
 }
 
 export function resolveArtifactPath(baseDirectory: string, path: string): string {

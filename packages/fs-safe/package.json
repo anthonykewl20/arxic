@@ -1,0 +1,10 @@
+{
+  "name": "@arxic/fs-safe",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

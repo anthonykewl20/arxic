@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import type {
@@ -269,8 +269,4 @@ function buildEvidenceIndex(workflow: Workflow, observations: EvidenceRef[]): Ev
     index[`${prefix}:observation-${sequence}`] = observation;
   });
   return index;
-}
-
-function sha256(content: string): string {
-  return createHash('sha256').update(content).digest('hex');
 }

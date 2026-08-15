@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { ARXIC_VERSION, type GateResult } from '@arxic/contracts';
+import { ARXIC_VERSION, canonicalJson, type GateResult } from '@arxic/contracts';
 import type { ArxicConfig } from '@arxic/worker';
 import type { RunResult } from './executor';
 
@@ -62,18 +62,22 @@ export async function writeRunDirectory(
   };
 
   const diagnosticsBytes = record.result.diagnostics
-    .map((diagnostic) => canonicalJson(diagnostic))
+    .map((diagnostic) => canonicalJson(diagnostic, { mode: 'legacy' }))
     .join('\n');
   await Promise.all([
-    writeFile(join(directory, 'run.json'), `${canonicalJson(runRecord)}\n`, { mode: 0o600 }),
+    writeFile(join(directory, 'run.json'), `${canonicalJson(runRecord, { mode: 'legacy' })}\n`, {
+      mode: 0o600,
+    }),
     writeFile(
       join(directory, 'diagnostics.jsonl'),
       diagnosticsBytes.length === 0 ? '' : `${diagnosticsBytes}\n`,
       { mode: 0o600 },
     ),
-    writeFile(join(directory, 'config.json'), `${canonicalJson(redactConfig(record.config))}\n`, {
-      mode: 0o600,
-    }),
+    writeFile(
+      join(directory, 'config.json'),
+      `${canonicalJson(redactConfig(record.config), { mode: 'legacy' })}\n`,
+      { mode: 0o600 },
+    ),
   ]);
 }
 
@@ -99,23 +103,4 @@ function assertRunId(runId: string): void {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u.test(runId)) {
     throw new Error('Run id must be a safe opaque identifier');
   }
-}
-
-export function canonicalJson(value: unknown): string {
-  const serialized = JSON.stringify(sortValue(value));
-  if (serialized === undefined) throw new Error('Run record is not JSON serializable');
-  return serialized;
-}
-
-function sortValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(sortValue);
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>)
-        .filter(([, item]) => item !== undefined)
-        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
-        .map(([key, item]) => [key, sortValue(item)]),
-    );
-  }
-  return value;
 }

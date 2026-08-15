@@ -1,5 +1,5 @@
+import { canonicalJson, sha256 } from '@arxic/contracts';
 import type { Diagnostic } from '@arxic/contracts';
-import { createHash } from 'node:crypto';
 import type { OpenAICompletion } from './client';
 import { ARXIC_MODEL_CREDENTIAL_LEAK_DETECTED, modelDiagnostic } from './diagnostics';
 
@@ -18,24 +18,8 @@ export type ModelRunRecord = {
 
 export type ProviderMeta = { retention?: string; region?: string; sourceSharing?: string };
 
-function canonicalize(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (typeof value !== 'object' || value === null) return value;
-  const source = value as Record<string, unknown>;
-  return Object.fromEntries(
-    Object.keys(source)
-      .sort()
-      .filter((key) => source[key] !== undefined)
-      .map((key) => [key, canonicalize(source[key])]),
-  );
-}
-
-function canonicalStringify(value: unknown): string {
-  return JSON.stringify(canonicalize(value));
-}
-
 export function computeSchemaSha256(schema: object): string {
-  return createHash('sha256').update(canonicalStringify(schema), 'utf8').digest('hex');
+  return sha256(canonicalJson(schema, { mode: 'legacy' }));
 }
 
 export function buildRunRecord(input: {
@@ -69,7 +53,7 @@ export function buildRunRecord(input: {
 }
 
 export function canonicalizeRecord(record: ModelRunRecord): string {
-  return canonicalStringify(record);
+  return canonicalJson(record, { mode: 'legacy' });
 }
 
 function sanitizeValue(value: unknown, forbidden: string[]): unknown {

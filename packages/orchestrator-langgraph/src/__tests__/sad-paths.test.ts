@@ -882,9 +882,10 @@ describe('orchestrator sad paths', () => {
       inferCandidates: async () => inferenceWithPersonaFixture(runId),
     }).run({ ...input(runId), requireExplorationApproval: true });
     expect(waiting.status).toBe('awaiting-approval');
+    expect(await checkpointer.verifyArtifact(runId, waiting.artifacts[7]!)).toBe(true);
 
     const driver = new RecordingExplorationDriver();
-    await new LangGraphOrchestrator({
+    const resumed = await new LangGraphOrchestrator({
       checkpointer,
       now: () => resumedNow,
       fixtureCoordinator: new FixtureCoordinator([provider], { now: () => new Date(resumedNow) }),
@@ -899,7 +900,7 @@ describe('orchestrator sad paths', () => {
       },
     );
 
-    expect(driver.executed).toHaveLength(1);
+    expect(driver.executed, JSON.stringify(resumed)).toHaveLength(1);
     expect(driver.executed[0]).toMatchObject({ kind: 'click', intent: 'submit login' });
   }, 60_000);
 

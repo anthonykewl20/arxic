@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdtemp, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -47,10 +48,38 @@ describe('hashSourceTree', () => {
     );
     expect(second.sourceSha256).not.toBe(first.sourceSha256);
   });
+
+  it('preserves the pre-extraction manifest bytes and source digest for a real staged tree', async () => {
+    const root = await repository();
+    await writeFile(join(root, 'z.ts'), 'export const z = true;\n');
+    await writeFile(join(root, 'a.ts'), 'export const a = true;\n');
+    const actual = await hashSourceTree(root);
+    const oldBytes = Buffer.from(`${oldCanonicalPipelineJson(actual.manifest)}\n`, 'utf8');
+    expect(actual.sourceSha256).toBe(createHash('sha256').update(oldBytes).digest('hex'));
+  });
 });
 
 async function repository(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'arxic-source-tree-'));
   await execute('git', ['init', '--quiet', root]);
   return root;
+}
+
+function oldCanonicalPipelineJson(value: unknown): string {
+  const encoded = JSON.stringify(oldSortValue(value));
+  if (encoded === undefined) throw new Error('PipelineResult is not JSON serializable');
+  return encoded;
+}
+
+function oldSortValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(oldSortValue);
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, item]) => item !== undefined)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, item]) => [key, oldSortValue(item)]),
+    );
+  }
+  return value;
 }
