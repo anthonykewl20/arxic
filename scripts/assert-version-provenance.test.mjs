@@ -3,7 +3,11 @@ import { tmpdir } from 'node:os';
 import { join, win32 } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { assertVersionProvenance, isProductionSourceFile } from './assert-version-provenance.mjs';
+import {
+  assertVersionProvenance,
+  isProductionSourceFile,
+  pnpmExecutable,
+} from './assert-version-provenance.mjs';
 
 async function makeWorkspace({ cliVersion = '0.1.1', producer = '0.1.1' } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'arxic-version-provenance-'));
@@ -68,6 +72,10 @@ describe('version provenance allowed path', () => {
 
     expect(isProductionSourceFile(fixturePath)).toBe(false);
     expect([fixturePath].filter(isProductionSourceFile)).toEqual([]);
+  });
+
+  it('uses the Windows pnpm command shim', () => {
+    expect(pnpmExecutable('win32')).toBe('pnpm.cmd');
   });
 
   it('accepts matching production manifests and built CLI output', async () => {

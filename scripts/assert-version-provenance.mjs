@@ -19,7 +19,8 @@ export const FIXTURE_MANIFESTS = [
 
 export async function assertVersionProvenance({
   root = defaultRoot,
-  buildCli = () => execFileAsync('pnpm', ['--filter', './apps/cli', 'build'], { cwd: root }),
+  buildCli = () =>
+    execFileAsync(pnpmExecutable(), ['--filter', './apps/cli', 'build'], { cwd: root }),
   cliVersion = async () => {
     const { stdout } = await execFileAsync('node', ['apps/cli/dist/cli.js', '--version'], {
       cwd: root,
@@ -110,6 +111,10 @@ export function normalizePathForMatching(filePath) {
 export function isProductionSourceFile(filePath) {
   const normalizedPath = normalizePathForMatching(filePath);
   return !/(?:^|\/)__tests__(?:\/|$)|\.(?:test|spec)\.ts$/u.test(normalizedPath);
+}
+
+export function pnpmExecutable(platform = process.platform) {
+  return platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
