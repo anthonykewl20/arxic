@@ -1,0 +1,13 @@
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":".gitignore"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":"app/globals.css"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":"package-lock.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":"package.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":"tsconfig.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":".gitignore"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":"app/globals.css"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":"package-lock.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":"package.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"Language unsupported is outside scan policy.","severity":"blocked","subject":"tsconfig.json"}
+{"code":"ARXIC-SURFACE-002","message":"Breadth discovery observed a POST form and did not submit it (default-deny mutation policy).","severity":"blocked","subject":"http://127.0.0.1:43493/forgot-password"}
+{"code":"ARXIC-SURFACE-002","message":"Breadth discovery observed a POST form and did not submit it (default-deny mutation policy).","severity":"blocked","subject":"http://127.0.0.1:43493/login"}
+{"code":"ARXIC-ORCH-HEALING-DEFERRED","message":"Healing is deferred to M2; no repair was attempted","severity":"observed","subject":"stage-11"}

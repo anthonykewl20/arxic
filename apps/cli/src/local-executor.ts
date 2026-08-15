@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { isAbsolute, join, resolve } from 'node:path';
+import { isAbsolute, join, relative, resolve } from 'node:path';
 import type { StagedBundle } from '@arxic/contracts';
 import { authCandidates, type AuthSurface } from '@arxic/auth-domain-pack';
-import { BundlePromoterAdapter } from '@arxic/bundle-promoter';
+import { assembleBundle, BundlePromoterAdapter } from '@arxic/bundle-promoter';
 import { ModelAdapter } from '@arxic/model-adapter';
 import {
   serializeScreenshotPrivacyPolicy,
@@ -132,11 +132,13 @@ function localPipelineOptions(
         gates: [{ gate: 'verify', passed: verification.outcome === 'verified' }],
       };
     },
-    promote: (bundle, gates) =>
-      new BundlePromoterAdapter({
+    promote: async (bundle, gates) => {
+      await assemblePromotedBundle(bundle, request);
+      return new BundlePromoterAdapter({
         publicPath: join(request.runDirectory, 'promoted', `${request.runId}.bundle.json`),
         ...(request.now === undefined ? {} : { now: request.now }),
-      }).promote(bundle, [...gates]),
+      }).promote(bundle, [...gates]);
+    },
   };
   if (!model) return options;
 
@@ -203,6 +205,37 @@ function localPipelineOptions(
       return withSourceEvidence(explored, inferredSourceEvidence);
     },
   };
+}
+
+async function assemblePromotedBundle(bundle: StagedBundle, request: RunRequest): Promise<void> {
+  const stagedDirectory = resolve(request.runDirectory, request.runId);
+  const verificationArtifacts = bundle.artifacts.filter(
+    ({ kind }) =>
+      kind === 'screenshot' ||
+      kind === 'screenshot-privacy-report' ||
+      kind === 'trace' ||
+      kind === 'trace-sanitization-report',
+  );
+  const stagedArtifacts = bundle.artifacts
+    .filter((artifact) => !verificationArtifacts.includes(artifact))
+    .map((artifact) => ({ ...artifact, path: relative(stagedDirectory, artifact.path) }));
+  const stagedBundle: StagedBundle = {
+    ...bundle,
+    artifacts: stagedArtifacts,
+  };
+  await assembleBundle({
+    bundle: stagedBundle,
+    stagedDirectory,
+    outputDirectory: join(request.runDirectory, 'promoted', `${request.runId}.bundle`),
+    verificationArtifacts,
+    provenance: {
+      repository: bundle.manifest.repository,
+      commit: bundle.manifest.commit,
+      appBuildDigest: bundle.manifest.appBuildDigest,
+      toolVersions: { '@arxic/cli': bundle.manifest.generator.version },
+    },
+    ...(request.now === undefined ? {} : { now: request.now }),
+  });
 }
 
 function promotionReadyBundle(bundle: StagedBundle, request: RunRequest): StagedBundle {

@@ -7,6 +7,8 @@ const packagedFiles = [
   'package/LICENSE',
   'package/NOTICE',
   'package/package.json',
+  'package/rulepacks/nextjs/pack.json',
+  'package/dist/standalone-runtime.ts',
 ];
 
 function configFailure({
@@ -79,6 +81,34 @@ describe('tarball smoke sad paths', () => {
         runCli: async () => '0.1.1',
       }),
     ).rejects.toThrow('tarball is missing required entry package/LICENSE');
+  });
+
+  it('rejects a tarball missing the installed Next.js rule pack', async () => {
+    await expect(
+      assertTarballSmoke({
+        version: '0.1.1',
+        buildCli: async () => {},
+        pack: async () => '/tmp/arxic.tgz',
+        listTarball: async () =>
+          packagedFiles.filter((path) => path !== 'package/rulepacks/nextjs/pack.json'),
+        install: async () => {},
+        runCli: async () => '0.1.1',
+      }),
+    ).rejects.toThrow('tarball is missing required entry package/rulepacks/nextjs/pack.json');
+  });
+
+  it('rejects a tarball missing the generated screenshot runtime source', async () => {
+    await expect(
+      assertTarballSmoke({
+        version: '0.1.1',
+        buildCli: async () => {},
+        pack: async () => '/tmp/arxic.tgz',
+        listTarball: async () =>
+          packagedFiles.filter((path) => path !== 'package/dist/standalone-runtime.ts'),
+        install: async () => {},
+        runCli: async () => '0.1.1',
+      }),
+    ).rejects.toThrow('tarball is missing required entry package/dist/standalone-runtime.ts');
   });
 });
 
