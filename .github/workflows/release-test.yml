@@ -1,0 +1,78 @@
+name: Release test matrix
+
+# This is intentionally separate from the required `ci` workflow. It exercises
+# release installability on every supported Node/OS cell without adding a branch
+# protection check. The release workflow must consume this matrix before it
+# publishes a tag.
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - '.github/workflows/release-test.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  release-test:
+    name: Release test (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.10
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Native dependencies are installed by pnpm above; explicitly installing
+      # Chromium makes browser availability a tested property of every cell.
+      - name: Install Playwright Chromium (Linux)
+        if: runner.os == 'Linux'
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
+
+      - name: Install Playwright Chromium (macOS and Windows)
+        if: runner.os != 'Linux'
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install chromium
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build CLI
+        run: pnpm --filter './apps/cli' build
+
+      - name: Verify version provenance
+        run: node scripts/assert-version-provenance.mjs
+
+      - name: Smoke-test packed CLI
+        run: node scripts/tarball-smoke.mjs
+
+      # The complete suite uses Docker and Mailpit. It is deliberately scoped
+      # to Ubuntu rather than silently skipped on Windows/macOS: those cells
+      # still prove frozen install, native modules, Chromium, lint, typecheck,
+      # build, provenance, and a fresh-install packed-CLI smoke test.
+      - name: Start Mailpit for the Ubuntu core suite
+        if: runner.os == 'Linux'
+        run: docker run -d --name mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit:v1.30.0
+
+      - name: Core test suite (Ubuntu only)
+        if: runner.os == 'Linux'
+        run: pnpm test
