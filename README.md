@@ -3,13 +3,14 @@
 ![CI](https://github.com/anthonykewl20/arxic/actions/workflows/ci.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
-![Status](https://img.shields.io/badge/status-M1%20complete%20%7C%20M2%20in%20progress-blue)
+![Status](https://img.shields.io/badge/status-0.1.1%20production%20hardening%20in%20progress-blue)
 
 Evidence-driven behavioral intent compiler that produces independently replayable
 Playwright workflow bundles with explicit evidence, provenance, and verifiable
 coverage.
 
-Status: pre-1.0. Milestone 1 is complete; Milestone 2 hardening is in progress.
+Status: pre-1.0.0. The CLI and both local and worker executors are implemented;
+the 0.1.1 production-hardening milestone is in progress.
 
 ## Install and quickstart
 
@@ -19,8 +20,10 @@ npx arxic@latest --version
 ```
 
 Then follow the [end-to-end quickstart](docs/quickstart.md) for prerequisites,
-an attested local target, `arxic.yaml`, and the expected no-model outcome.
-Local execution is the default; `--executor worker` requires Docker.
+an attested local target, `arxic.yaml`, and the expected no-model outcome. The
+[user documentation index](docs/README.md) links to the CLI and configuration
+references. Local execution is the default; `--executor worker` requires Docker
+and a lockstep worker image.
 
 ## What is Arxic?
 
@@ -48,7 +51,7 @@ and the pipeline in section 9.
 
 ## Repo map
 
-- `docs/` - ADR, engineering charter, SYNC
+- `docs/` - user guides, operator docs, ADRs, and engineering records
 - `CHANGELOG.md` and `RELEASES.md` - root-level release and version policy
 - `packages/` - package implementations
 - `apps/` - application-layer entry points
@@ -74,7 +77,7 @@ Milestones are tracked on GitHub: https://github.com/anthonykewl20/arxic/milesto
 
 - M0-EXIT (`#14`) - one manually-supplied login candidate compiles, verifies twice, and promotes with evidence
 - M1-EXIT (`#27`) - complete: two structurally different reference apps produce independently replayable bundles without app-specific generator code
-- M2 - hardening in progress, including the experimental worker-backed executor
+- 0.1.1 production hardening - in progress; local and worker executors are available
 
 ## Contributing
 
