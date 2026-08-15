@@ -78,6 +78,36 @@ describe('policy-engine contract gate', () => {
     expect(first.snapshot.inputSha256).toMatch(/^[a-f0-9]{64}$/);
   });
 
+  it('uses the injected decision clock for the timestamp without fingerprinting that clock', () => {
+    const input: PolicyAuthorization = {
+      action: 'navigation',
+      actionClass: 'read-only',
+      origin,
+      approvals: {},
+      allowedOrigins: [origin],
+      budget: { remaining: 1 },
+    };
+    const first = authorize({ ...input, now: Date.parse(firstTime) });
+    const second = authorize({ ...input, now: Date.parse(secondTime) });
+    const differentAuthorization = authorize({
+      ...input,
+      action: 'form-submit',
+      actionClass: 'reversible-mutation',
+      lease: {
+        id: 'persona:1',
+        owner: 'run-1',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        inUse: false,
+      },
+      now: Date.parse(secondTime),
+    });
+
+    expect(first.snapshot.timestamp).toBe(firstTime);
+    expect(second.snapshot.timestamp).toBe(secondTime);
+    expect(second.snapshot.inputSha256).toBe(first.snapshot.inputSha256);
+    expect(differentAuthorization.snapshot.inputSha256).not.toBe(first.snapshot.inputSha256);
+  });
+
   it('denies unknown actions and unknown origins', () => {
     const unknownAction = authorize({
       action: 'unknown',

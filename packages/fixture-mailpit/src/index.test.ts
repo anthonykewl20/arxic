@@ -86,6 +86,28 @@ describe('fixture service sad paths', () => {
     ).not.toThrow();
     expect(() => new PersonaProvisioner({ origin: 'http://[::1]:3000' })).not.toThrow();
   });
+
+  test('reaps mailbox messages expired before the supplied coordinator clock', async () => {
+    let requested = '';
+    const origin = await serve((request, response) => {
+      requested = request.url ?? '';
+      response.end();
+    });
+
+    await new InboxAdapter({ smtp: origin, api: origin }).reapExpired(
+      [
+        {
+          id: 'expired-inbox',
+          requirement: { kind: 'inbox', parameters: { recipient: 'expired@example.test' } },
+        },
+      ],
+      new Date('2026-08-15T12:34:56.000Z'),
+    );
+
+    expect(requested).toBe(
+      '/api/v1/search?query=to%3Aexpired%40example.test%20before%3A%222026%2F08%2F15%2012%3A34%3A56%22',
+    );
+  });
 });
 
 async function serve(

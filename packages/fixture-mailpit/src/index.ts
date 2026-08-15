@@ -119,6 +119,29 @@ export class InboxAdapter implements FixtureProvider {
     this.#recipients.delete(lease.id);
   }
 
+  /**
+   * Explicit maintenance for a configured shared Mailpit; never called by normal lifecycle.
+   * Mailpit parses `before:` in server-local time while this derives fields from UTC. At a
+   * timezone boundary it can over/under-delete only old messages for this same recipient.
+   */
+  async reapExpired(leases: readonly FixtureLease[], now: Date): Promise<void> {
+    const timestamp = mailpitSearchTimestamp(now);
+    const recipients = new Set(
+      leases.flatMap((lease) => {
+        const recipient = lease.requirement.parameters?.recipient;
+        if (isTestEmail(recipient)) return [recipient];
+        const retained = this.#recipients.get(lease.id);
+        return retained ? [retained] : [];
+      }),
+    );
+    for (const recipient of recipients) {
+      const query = `to:${recipient} before:"${timestamp}"`;
+      await this.#request(`/api/v1/search?query=${encodeURIComponent(query)}`, {
+        method: 'DELETE',
+      });
+    }
+  }
+
   async #request(path: string, init?: RequestInit): Promise<Response> {
     let response: Response;
     try {
@@ -239,6 +262,13 @@ function safeTestUrl(value: string, label: string): URL {
 
 function isTestEmail(value: unknown): value is string {
   return typeof value === 'string' && /^[^@\s]+@[^@\s]+\.test$/u.test(value);
+}
+
+function mailpitSearchTimestamp(now: Date): string {
+  if (Number.isNaN(now.getTime())) throw inboxError('mailpit', 'Expired lease clock is invalid');
+  return (
+    `${now.toISOString().slice(0, 10).replaceAll('-', '/')}` + ` ${now.toISOString().slice(11, 19)}`
+  );
 }
 
 type MessageSummary = Readonly<{ ID: string; Subject?: string; Created?: string }>;

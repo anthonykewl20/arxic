@@ -904,29 +904,21 @@ describe('orchestrator sad paths', () => {
     expect(driver.executed[0]).toMatchObject({ kind: 'click', intent: 'submit login' });
   }, 60_000);
 
-  it('passes stage-7 leases into exploration and resets/releases them after a partial run', async () => {
+  it('passes the complete stage-7 lease collection into exploration and resets/releases it after a partial run', async () => {
     const provider = new LifecycleFixtureProvider();
     const coordinator = new FixtureCoordinator([provider]);
-    let explorationLease: unknown;
     let explorationLeases: unknown;
     const result = await new LangGraphOrchestrator({
       checkpointer: new InMemoryStageCheckpointer(),
       fixtureCoordinator: coordinator,
       inferCandidates: async () => inferenceWithPersonaFixture('lease-completed'),
       explore: async (explorationInput) => {
-        explorationLease = explorationInput.lease;
         explorationLeases = explorationInput.leases;
         return { approved: true, evidenceRefs: [], decisions: [] };
       },
     }).run(input('lease-completed'));
 
     expect(result.status).toBe('partial');
-    expect(explorationLease).toMatchObject({
-      id: 'lifecycle:1',
-      owner: 'lease-completed',
-      inUse: false,
-      expiresAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
-    });
     expect(explorationLeases).toEqual([expect.objectContaining({ id: 'lifecycle:1' })]);
     expect(provider.resetIds).toEqual(['lifecycle:1']);
     expect(provider.releaseIds).toEqual(['lifecycle:1']);
@@ -1039,6 +1031,31 @@ describe('orchestrator sad paths', () => {
       expect.objectContaining({ code: ARXIC_FIXTURE_RELEASE_FAILED, severity: 'observed' }),
     );
   }, 60_000);
+
+  it('persists partial-provision cleanup failures from stage 7 on the blocked run', async () => {
+    const result = await new LangGraphOrchestrator({
+      checkpointer: new InMemoryStageCheckpointer(),
+      inferCandidates: async () => inferenceWithPersonaFixture('partial-fixture-cleanup'),
+      prepareFixtures: async () => ({
+        requirements: [],
+        leases: [],
+        provisioned: false as const,
+        diagnostics: [
+          {
+            code: ARXIC_FIXTURE_RELEASE_FAILED,
+            severity: 'observed' as const,
+            subject: 'partial:persona',
+            message: 'Fixture release failed during terminal cleanup',
+          },
+        ],
+      }),
+    }).run(input('partial-fixture-cleanup'));
+
+    expect(result).toMatchObject({ status: 'partial', outcome: 'blocked' });
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: ARXIC_FIXTURE_RELEASE_FAILED, severity: 'observed' }),
+    );
+  }, 60_000);
 });
 
 class RecordingExplorationDriver implements ExplorationDriver {
@@ -1068,6 +1085,7 @@ function reversibleClickPlan() {
         intent: 'submit login',
         action: 'form-submit',
         actionClass: 'reversible-mutation' as const,
+        fixtureKind: 'persona',
         kind: 'click' as const,
         locator: {
           semantic: { kind: 'role' as const, role: 'button', name: 'Login' },

@@ -111,6 +111,120 @@ describe('FixtureCoordinator sad paths', () => {
     expect(releaseFails.releaseIds).toEqual(['boundary:1']);
   });
 
+  test('drops a terminal cleanup failure so the next run proceeds with a one-shot observed leak warning', async () => {
+    const provider = new BoundaryProvider({ releaseFails: true });
+    const coordinator = new FixtureCoordinator([provider]);
+    const initial = await coordinator.prepare({
+      candidates: [candidate([{ fixture: 'persona' }])],
+      runId: 'terminal-cleanup-failure',
+    });
+
+    await expect(coordinator.release(initial.leases)).resolves.toContainEqual(
+      expect.objectContaining({ code: ARXIC_FIXTURE_RELEASE_FAILED, severity: 'observed' }),
+    );
+    await expect(coordinator.prepare({ candidates: [], runId: 'next-run' })).resolves.toMatchObject(
+      {
+        provisioned: true,
+        diagnostics: [
+          expect.objectContaining({
+            code: ARXIC_FIXTURE_LEASE_LEAK,
+            severity: 'observed',
+            subject: 'fixture-coordinator',
+          }),
+        ],
+      },
+    );
+    await expect(coordinator.prepare({ candidates: [], runId: 'following-run' })).resolves.toEqual({
+      requirements: [],
+      leases: [],
+      diagnostics: [],
+      provisioned: true,
+    });
+  });
+
+  test('drops an expired foreign lease from tracking without touching its provider', async () => {
+    let now = new Date('2026-08-15T00:00:00.000Z');
+    const provider = new BoundaryProvider();
+    const coordinator = new FixtureCoordinator([provider], { now: () => now });
+    await coordinator.prepare({
+      candidates: [candidate([{ fixture: 'persona' }])],
+      runId: 'hard-killed-run',
+    });
+    now = new Date('2026-08-15T00:06:00.000Z');
+
+    await expect(
+      coordinator.prepare({ candidates: [], runId: 'replacement-run' }),
+    ).resolves.toMatchObject({
+      provisioned: true,
+      diagnostics: [
+        expect.objectContaining({ code: ARXIC_FIXTURE_LEASE_LEAK, severity: 'observed' }),
+      ],
+    });
+    expect(provider.resetIds).toEqual([]);
+    expect(provider.releaseIds).toEqual([]);
+    await expect(coordinator.prepare({ candidates: [], runId: 'following-run' })).resolves.toEqual({
+      requirements: [],
+      leases: [],
+      diagnostics: [],
+      provisioned: true,
+    });
+  });
+
+  test('runs provider reaping only through explicit maintenance, never normal lifecycle', async () => {
+    const provider = new ReapingProvider();
+    const now = new Date('2026-08-15T00:00:00.000Z');
+    const result = await new FixtureCoordinator([provider], { now: () => now }).prepare({
+      candidates: [],
+      runId: 'reaper-run',
+    });
+
+    expect(provider.reapCalls).toEqual([]);
+    expect(result).toMatchObject({ provisioned: true });
+    const leases = [
+      {
+        id: 'maintenance:1',
+        owner: 'maintenance-run',
+        expiresAt: '2026-08-15T00:00:00.000Z',
+        inUse: false,
+        requirement: { kind: 'inbox', parameters: { recipient: 'maintenance@example.test' } },
+      },
+    ] as const;
+    await expect(
+      new FixtureCoordinator([provider]).reapExpiredLeases(leases, now),
+    ).resolves.toEqual([]);
+    expect(provider.reapCalls).toEqual([{ leases, now }]);
+  });
+
+  test('does not retry a provider after a failed terminal cleanup lease was dropped', async () => {
+    const provider = new BoundaryProvider({ releaseFails: true });
+    const coordinator = new FixtureCoordinator([provider]);
+    const prepared = await coordinator.prepare({
+      candidates: [candidate([{ fixture: 'persona' }])],
+      runId: 'dropped-release',
+    });
+
+    await coordinator.release(prepared.leases);
+    await expect(coordinator.release(prepared.leases)).resolves.toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_FIXTURE_RELEASE_FAILED,
+        message: 'Fixture lease was not registered for release',
+      }),
+    );
+    expect(provider.releaseIds).toEqual(['boundary:1']);
+  });
+
+  test('returns partial-provision cleanup failures in the blocked preparation result', async () => {
+    const result = await new FixtureCoordinator([new PartialFailureProvider()]).prepare({
+      candidates: [candidate([{ fixture: 'persona' }, { fixture: 'inbox' }])],
+      runId: 'partial-cleanup-failure',
+    });
+
+    expect(result).toMatchObject({ provisioned: false });
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: ARXIC_FIXTURE_RELEASE_FAILED, severity: 'observed' }),
+    );
+  });
+
   test('blocks and removes raw secret and PII when a provider leaks fixture values', async () => {
     const rawSecret = 'JBSWY3DPEHPK3PXP';
     const password = 'NeverPersistThis1!';
@@ -254,6 +368,43 @@ class DiagnosticProvider implements FixtureProvider {
   async reset(): Promise<void> {}
 
   async release(): Promise<void> {}
+}
+
+class PartialFailureProvider implements FixtureProvider {
+  async provision(requirement: FixtureRequirement): Promise<FixtureLease> {
+    if (requirement.kind === 'inbox') throw new Error('inbox provisioning failed');
+    return { id: 'partial:persona', requirement };
+  }
+
+  supports(requirement: FixtureRequirement): boolean {
+    return requirement.kind === 'persona' || requirement.kind === 'inbox';
+  }
+
+  async reset(): Promise<void> {}
+
+  async release(): Promise<void> {
+    throw new Error('release failed');
+  }
+}
+
+class ReapingProvider implements FixtureProvider {
+  readonly reapCalls: Array<Readonly<{ leases: readonly FixtureLease[]; now: Date }>> = [];
+
+  supports(): boolean {
+    return true;
+  }
+
+  async provision(): Promise<FixtureLease> {
+    throw new Error('not supported');
+  }
+
+  async reset(): Promise<void> {}
+
+  async release(): Promise<void> {}
+
+  async reapExpired(leases: readonly FixtureLease[], now: Date): Promise<void> {
+    this.reapCalls.push({ leases, now });
+  }
 }
 
 class DiagnosticBoundaryError extends Error {
