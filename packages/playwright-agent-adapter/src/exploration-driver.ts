@@ -1,7 +1,7 @@
-import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { sha256 } from '@arxic/contracts';
 import { sanitizeCapturedPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
 import {
   chromium,
@@ -212,9 +212,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
           ok: true,
           originDrifted: originOf(finalUrl) !== allowedOrigin,
           accessibilitySnapshot: snapshot,
-          accessibilitySnapshotSha256: createHash('sha256')
-            .update(stableStringify(snapshot))
-            .digest('hex'),
+          accessibilitySnapshotSha256: sha256(stableStringify(snapshot)),
           ...(locatorResolution ? { locatorResolution } : {}),
           ...(screenshotRef ? { screenshotRef } : {}),
           ...(browserVersion ? { browserVersion } : {}),

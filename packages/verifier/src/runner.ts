@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 import { readFile, rm } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
@@ -238,10 +238,6 @@ function childEnvironment(options: RunPlaywrightSuiteOptions): NodeJS.ProcessEnv
     delete env[TRANSITION_RECEIPT_NONCE_ENV];
   }
   return env;
-}
-
-function sha256(value: string): string {
-  return createHash('sha256').update(value).digest('hex');
 }
 
 function extractOutput(error: unknown): string {

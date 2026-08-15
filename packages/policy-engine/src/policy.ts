@@ -37,6 +37,8 @@ export type PolicyAuthorization = {
   budget?: BudgetState;
   sandboxAdapterPresent?: boolean;
   policyVersion?: string;
+  /** Action-owned clock for deterministic replay of time-bounded leases. */
+  now?: number;
 };
 
 export type PolicyDecision = {
@@ -129,7 +131,8 @@ export function authorize(input: PolicyAuthorization): PolicyDecision {
       return deny(ARXIC_POLICY_LEASE_COLLISION, `Lease is in use for action: ${input.action}`);
     }
     const expiresAt = new Date(input.lease.expiresAt).getTime();
-    if (Number.isNaN(expiresAt) || expiresAt <= Date.now()) {
+    const now = input.now ?? Date.now();
+    if (!Number.isFinite(now) || Number.isNaN(expiresAt) || expiresAt <= now) {
       return deny(ARXIC_POLICY_LEASE_EXPIRED, `Lease is expired for action: ${input.action}`);
     }
     if (input.budget !== undefined && input.budget.remaining <= 0) {

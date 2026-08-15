@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
 import { rm, truncate, writeFile } from 'node:fs/promises';
+import { canonicalJson as canonicalJsonValue, sha256 } from '@arxic/contracts';
 import {
   DEFAULT_TRACE_ARCHIVE_LIMITS,
   BoundedFileLimitError,
@@ -135,7 +135,7 @@ export async function sanitizePlaywrightTrace(
       },
     };
     await writeFile(options.outputPath, outputBytes);
-    await writeFile(options.provenancePath, canonicalJson(provenance), 'utf8');
+    await writeFile(options.provenancePath, serializeCanonicalLine(provenance), 'utf8');
     return { ok: true, provenance };
   } catch (error) {
     return failureFor(error);
@@ -187,7 +187,7 @@ export async function inspectPlaywrightTrace(
     const reportText = decodeText(reportBytes);
     if (reportText === undefined) throw provenanceError();
     const provenance = parseProvenance(reportText);
-    if (!reportBytes.equals(Buffer.from(canonicalJson(provenance), 'utf8'))) {
+    if (!reportBytes.equals(Buffer.from(serializeCanonicalLine(provenance), 'utf8'))) {
       return provenanceFailure();
     }
     if (
@@ -263,7 +263,7 @@ function sanitizeArchive(
     counters.retainedActions += projection.actionCount;
     output.set(
       `trace-${String(index + 1).padStart(3, '0')}.trace`,
-      Buffer.from(`${projection.events.map(canonicalJsonValue).join('\n')}\n`),
+      Buffer.from(`${projection.events.map((event) => canonicalJsonValue(event)).join('\n')}\n`),
     );
   }
   if (actionCount === 0) throw formatError('trace contains no complete action');
@@ -439,7 +439,7 @@ function inspectArchive(
       ) {
         return residualFailure('non-projected trace data');
       }
-      const canonical = `${projection.events.map(canonicalJsonValue).join('\n')}\n`;
+      const canonical = `${projection.events.map((event) => canonicalJsonValue(event)).join('\n')}\n`;
       if (!bytes.equals(Buffer.from(canonical, 'utf8'))) {
         return residualFailure('non-canonical trace bytes');
       }
@@ -639,29 +639,8 @@ function decodeRequiredText(bytes: Buffer): string {
   return value;
 }
 
-function canonicalJson(value: unknown): string {
+function serializeCanonicalLine(value: unknown): string {
   return `${canonicalJsonValue(value)}\n`;
-}
-
-function canonicalJsonValue(value: unknown): string {
-  return JSON.stringify(canonicalize(value));
-}
-
-function canonicalize(value: unknown): unknown {
-  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) throw formatError('non-finite number');
-    return value;
-  }
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (isRecord(value)) {
-    return Object.fromEntries(
-      Object.entries(value)
-        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
-        .map(([key, item]) => [key, canonicalize(item)]),
-    );
-  }
-  throw formatError('unsupported JSON value');
 }
 
 function isSensitiveKey(key: string): boolean {
@@ -695,10 +674,6 @@ function isSensitiveKey(key: string): boolean {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
-function sha256(bytes: Uint8Array): string {
-  return createHash('sha256').update(bytes).digest('hex');
 }
 
 async function readArchiveBytes(path: string, maxBytes: number): Promise<Buffer> {

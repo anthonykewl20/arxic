@@ -1,7 +1,12 @@
-import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve, sep } from 'node:path';
-import { ARXIC_VERSION, type ArtifactRef, type StagedBundle } from '@arxic/contracts';
+import {
+  ARXIC_VERSION,
+  canonicalJson,
+  sha256,
+  type ArtifactRef,
+  type StagedBundle,
+} from '@arxic/contracts';
 import { validateScreenshotArtifactSet } from '@arxic/playwright-screenshot-privacy';
 import { validateTraceArtifacts } from './trace-artifact-gate';
 
@@ -72,7 +77,7 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
   ]);
 
   const generatedAt = (input.now ?? (() => new Date().toISOString()))();
-  const provenance = canonicalJson({
+  const provenance = serializeBundleJson({
     schemaVersion: 1,
     generatedAt,
     repository: input.provenance.repository,
@@ -84,12 +89,12 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
   const notice = `Arxic verified workflow bundle.\nWorkflow: ${input.bundle.workflow.id}\nGenerated: ${generatedAt}\nLicense: MIT\nThis bundle contains independently inspectable privacy-preserving Playwright action timelines.\n`;
 
   await Promise.all([
-    writeFile(join(directory, 'manifest.json'), canonicalJson(input.bundle.manifest), 'utf8'),
-    writeFile(join(directory, 'workflow.json'), canonicalJson(input.bundle.workflow), 'utf8'),
+    writeFile(join(directory, 'manifest.json'), serializeBundleJson(input.bundle.manifest), 'utf8'),
+    writeFile(join(directory, 'workflow.json'), serializeBundleJson(input.bundle.workflow), 'utf8'),
     writeFile(join(directory, 'plan.md'), input.bundle.plan, 'utf8'),
     writeFile(
       join(directory, 'evidence', 'index.json'),
-      canonicalJson(input.bundle.evidenceIndex),
+      serializeBundleJson(input.bundle.evidenceIndex),
       'utf8',
     ),
     writeFile(join(directory, 'provenance.json'), provenance, 'utf8'),
@@ -180,7 +185,7 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
         return {
           kind: assembledArtifactKind(path),
           path,
-          sha256: createHash('sha256').update(bytes).digest('hex'),
+          sha256: sha256(bytes),
         };
       }),
     ),
@@ -266,29 +271,7 @@ function assembledArtifactKind(path: string): string {
   return 'bundle-file';
 }
 
-function canonicalJson(value: unknown): string {
-  return `${JSON.stringify(canonicalize(value))}\n`;
-}
-
-function canonicalize(value: unknown): unknown {
-  if (value === null || typeof value === 'string' || typeof value === 'boolean') return value;
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) throw new TypeError('bundle contains a non-finite number');
-    return value;
-  }
-  if (Array.isArray(value)) return value.map(canonicalize);
-  if (value !== null && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value)
-        .sort(([left], [right]) => compareCodepoints(left, right))
-        .map(([key, item]) => {
-          if (item === undefined) throw new TypeError(`bundle contains undefined at ${key}`);
-          return [key, canonicalize(item)];
-        }),
-    );
-  }
-  throw new TypeError(`bundle contains unsupported ${typeof value}`);
-}
+const serializeBundleJson = (value: unknown): string => `${canonicalJson(value)}\n`;
 
 function compareCodepoints(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
@@ -303,7 +286,7 @@ function safeResolve(baseDirectory: string, relativePath: string): string {
 }
 
 function assertHash(artifact: ArtifactRef, bytes: Uint8Array): void {
-  const actual = createHash('sha256').update(bytes).digest('hex');
+  const actual = sha256(bytes);
   if (actual !== artifact.sha256) {
     throw new Error(`Artifact hash mismatch for ${artifact.path}`);
   }
@@ -322,7 +305,7 @@ async function assembledFiles(
         const bytes = await readFile(join(directory, path));
         return {
           path,
-          sha256: createHash('sha256').update(bytes).digest('hex'),
+          sha256: sha256(bytes),
           size: (await stat(join(directory, path))).size,
         };
       }),

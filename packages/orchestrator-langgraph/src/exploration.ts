@@ -155,6 +155,7 @@ export async function runPlannedExploration(
   const engine = new PolicyEngine({
     allowedOrigins: [input.origin],
     sandboxAdapterPresent: input.sandboxAdapterPresent ?? false,
+    now: () => Date.parse((input.now ?? (() => new Date().toISOString()))()),
   });
   const approvals = approvalsFor(plan, input.approval, input.origin);
   const diagnostics: Diagnostic[] = [];

@@ -1,9 +1,6 @@
-import { createHash } from 'node:crypto';
-import { constants } from 'node:fs';
-import { lstat, mkdir, mkdtemp, open, realpath, rm, writeFile } from 'node:fs/promises';
-import type { FileHandle } from 'node:fs/promises';
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type {
   Diagnostic,
@@ -11,7 +8,13 @@ import type {
   EvidenceRefSource,
   SourceRevision,
 } from '@arxic/contracts';
-import { validateDiagnostic, validateEvidenceRef } from '@arxic/contracts';
+import {
+  canonicalJson as serializeCanonicalJson,
+  sha256,
+  validateDiagnostic,
+  validateEvidenceRef,
+} from '@arxic/contracts';
+import { readSafeSource } from '@arxic/fs-safe';
 import { ARXIC_RULES_DIRTY_TREE, ARXIC_RULES_FALLBACK, rulesDiagnostic } from './diagnostics';
 import { committedRevision, sourceFiles } from './git';
 import { interpretMatches, type EvidencedRuleMatch, type FeatureChain } from './interpret';
@@ -135,7 +138,7 @@ export class AstGrepAdapter {
           path: match.file,
           startLine: match.startLine,
           endLine: match.endLine,
-          blobSha256: createHash('sha256').update(bytes).digest('hex'),
+          blobSha256: sha256(bytes),
           extractor: PACKAGE_NAME,
           ruleId: `${match.packId}/${match.ruleId}@${match.ruleVersion}`,
         };
@@ -188,108 +191,7 @@ export function sourceRefsOf(events: EvidenceEvent[]): EvidenceRefSource[] {
     'ref' in event && event.ref.kind === 'source' ? [event.ref] : [],
   );
 }
-export function canonicalJson(value: unknown): string {
-  return JSON.stringify(sortValue(value));
-}
-function sortValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(sortValue);
-  if (value && typeof value === 'object')
-    return Object.fromEntries(
-      Object.entries(value)
-        .sort(([a], [b]) => codepointCompare(a, b))
-        .map(([key, item]) => [key, sortValue(item)]),
-    );
-  return value;
-}
+const serializeAstGrepResult = (value: unknown): string =>
+  serializeCanonicalJson(value, { mode: 'legacy' });
+export { serializeAstGrepResult as canonicalJson };
 export type { RuleMatch };
-
-type SafeRead =
-  { ok: true; bytes: Buffer } | { ok: false; kind: 'oversize' | 'unsafe'; detail: string };
-
-function isContained(root: string, candidate: string): boolean {
-  const path = relative(root, candidate);
-  return path === '' || (!path.startsWith('..') && !isAbsolute(path));
-}
-
-async function readSafeSource(root: string, path: string, maxBytes: number): Promise<SafeRead> {
-  const candidate = resolve(root, path);
-  if (!isContained(root, candidate))
-    return { ok: false, kind: 'unsafe', detail: 'Path escapes resolved source root.' };
-  let before: Awaited<ReturnType<typeof lstat>>;
-  try {
-    before = await lstat(candidate);
-  } catch (error) {
-    return { ok: false, kind: 'unsafe', detail: String(error) };
-  }
-  if (before.isSymbolicLink()) {
-    let detail = 'Symbolic links are not source files.';
-    try {
-      const target = await realpath(candidate);
-      if (!isContained(root, target))
-        detail = `Symbolic-link target escapes resolved source root: ${target}`;
-    } catch (error) {
-      detail = `Symbolic link cannot be resolved safely: ${String(error)}`;
-    }
-    return { ok: false, kind: 'unsafe', detail };
-  }
-  if (!before.isFile())
-    return { ok: false, kind: 'unsafe', detail: 'Only regular files may be collected.' };
-  let resolvedFile: string;
-  try {
-    resolvedFile = await realpath(candidate);
-  } catch (error) {
-    return { ok: false, kind: 'unsafe', detail: String(error) };
-  }
-  if (!isContained(root, resolvedFile))
-    return { ok: false, kind: 'unsafe', detail: 'Real path escapes resolved source root.' };
-  if (before.size > maxBytes)
-    return {
-      ok: false,
-      kind: 'oversize',
-      detail: `${before.size} bytes exceeds quota ${maxBytes}.`,
-    };
-
-  let handle: FileHandle | undefined;
-  try {
-    handle = await open(candidate, constants.O_RDONLY | constants.O_NOFOLLOW);
-    const after = await handle.stat();
-    const reopenedPath = await realpath(candidate);
-    let descriptorPath = reopenedPath;
-    if (process.platform === 'linux') descriptorPath = await realpath(`/proc/self/fd/${handle.fd}`);
-    else if (process.platform === 'darwin') descriptorPath = await realpath(`/dev/fd/${handle.fd}`);
-    if (
-      !after.isFile() ||
-      !isContained(root, descriptorPath) ||
-      !isContained(root, reopenedPath) ||
-      after.dev !== before.dev ||
-      after.ino !== before.ino ||
-      after.nlink > 1
-    )
-      return {
-        ok: false,
-        kind: 'unsafe',
-        detail: 'Opened source descriptor is not the contained regular file that was inspected.',
-      };
-    if (after.size > maxBytes)
-      return {
-        ok: false,
-        kind: 'oversize',
-        detail: `${after.size} bytes exceeds quota ${maxBytes}.`,
-      };
-    const bytes = Buffer.allocUnsafe(after.size);
-    let offset = 0;
-    while (offset < after.size) {
-      const length = Math.min(64 * 1024, after.size - offset);
-      const { bytesRead } = await handle.read(bytes, offset, length, offset);
-      if (bytesRead === 0) break;
-      offset += bytesRead;
-    }
-    if (offset !== after.size)
-      return { ok: false, kind: 'unsafe', detail: 'Source changed while reading.' };
-    return { ok: true, bytes };
-  } catch (error) {
-    return { ok: false, kind: 'unsafe', detail: String(error) };
-  } finally {
-    await handle?.close();
-  }
-}

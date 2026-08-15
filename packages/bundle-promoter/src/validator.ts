@@ -1,4 +1,5 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
+export { sha256 } from '@arxic/contracts';
 import type { Diagnostic, GateResult, StagedBundle } from '@arxic/contracts';
 import { validateEvidenceIndex, validateManifest, validateWorkflow } from '@arxic/contracts';
 import {
@@ -104,7 +105,7 @@ function planArtifactIsBound(bundle: StagedBundle): ValidationResult {
     bundle.artifacts.find(({ path }) => path === 'plan.md') ??
     bundle.artifacts.find(({ kind }) => kind === 'plan');
   if (!artifact) return { ok: true };
-  const planSha256 = createHash('sha256').update(bundle.plan, 'utf8').digest('hex');
+  const planSha256 = sha256(bundle.plan);
   if (planSha256 !== artifact.sha256) {
     return invalidBundle(
       'bundle.plan',
@@ -153,10 +154,6 @@ function workflowEvidenceResolves(bundle: StagedBundle): boolean {
     .every(({ evidenceRefs }) =>
       evidenceRefs.some((evidenceId) => bundle.evidenceIndex[evidenceId]?.kind === 'runtime'),
     );
-}
-
-export function sha256(bytes: Uint8Array): string {
-  return createHash('sha256').update(bytes).digest('hex');
 }
 
 export function validateStagedBytes(bytes: Uint8Array, expectedSha256: string): ValidationResult {

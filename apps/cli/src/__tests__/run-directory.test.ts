@@ -56,6 +56,10 @@ describe('writeRunDirectory', () => {
     expect(runBytes).not.toContain('DO-NOT-PERSIST');
     expect(runBytes.endsWith('\n')).toBe(true);
     expect(runBytes.startsWith('{"artifactHashes"')).toBe(true);
+    // Characterize the previous run-directory serializer byte-for-byte. These files
+    // are persisted observability artifacts, so the shared legacy mode must retain
+    // its JSON.stringify omission and codepoint ordering behavior.
+    expect(runBytes).toBe(`${previousRunDirectoryJson(run)}\n`);
 
     const diagnosticLines = (
       await readFile(join(directory, 'test-run', 'diagnostics.jsonl'), 'utf8')
@@ -75,5 +79,26 @@ describe('writeRunDirectory', () => {
     expect(echoedConfig).not.toHaveProperty('prompt');
     expect(echoedConfig).not.toHaveProperty('credentialBytes');
     expect(configBytes).not.toContain('DO-NOT-PERSIST');
+    expect(configBytes).toBe(`${previousRunDirectoryJson(echoedConfig)}\n`);
+    expect(diagnosticLines[0]).toBe(previousRunDirectoryJson(OBSERVED_DIAGNOSTIC));
   });
 });
+
+function previousRunDirectoryJson(value: unknown): string {
+  const serialized = JSON.stringify(sortPreviousRunDirectoryValue(value));
+  if (serialized === undefined) throw new Error('Run record is not JSON serializable');
+  return serialized;
+}
+
+function sortPreviousRunDirectoryValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sortPreviousRunDirectoryValue);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, item]) => item !== undefined)
+        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+        .map(([key, item]) => [key, sortPreviousRunDirectoryValue(item)]),
+    );
+  }
+  return value;
+}

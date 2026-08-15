@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+export { sha256 } from '@arxic/contracts';
 import { extname } from 'node:path';
 import type { SupportedSourceLanguage } from './policy';
 
@@ -33,10 +33,6 @@ export function detectCategory(path: string): SourceCategory {
   if (['.json', '.yaml', '.yml', '.toml'].includes(ext)) return 'config';
   if (LANGUAGES[ext]) return 'code';
   return 'other';
-}
-
-export function sha256(bytes: Uint8Array): string {
-  return createHash('sha256').update(bytes).digest('hex');
 }
 
 export function isBinary(bytes: Uint8Array): boolean {

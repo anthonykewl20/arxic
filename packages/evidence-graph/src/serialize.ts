@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { canonicalJson, sha256 } from '@arxic/contracts';
 import type { EvidenceRef } from '@arxic/contracts';
 import type Graph from 'graphology';
 import type { EvidenceGraphAttributes, GraphEdgeAttributes, GraphNodeAttributes } from './types';
@@ -13,24 +13,10 @@ export function codepointCompare(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-export function canonicalJson(value: unknown): string {
-  return JSON.stringify(sortValue(value));
-}
-
-function sortValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(sortValue);
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>)
-        .sort(([left], [right]) => codepointCompare(left, right))
-        .map(([key, item]) => [key, sortValue(item)]),
-    );
-  }
-  return value;
-}
+export { canonicalJson } from '@arxic/contracts';
 
 export function evidenceRefId(ref: EvidenceRef): string {
-  return `${ref.kind}:${createHash('sha256').update(canonicalJson(ref)).digest('hex')}`;
+  return `${ref.kind}:${sha256(canonicalJson(ref))}`;
 }
 
 export function canonicalGraphValue(graph: EvidenceGraph) {
@@ -67,7 +53,7 @@ export function createContentAddressedArtifacts(graph: EvidenceGraph) {
   const json = serializeCanonicalGraph(graph);
   const jsonl = serializeCanonicalJsonl(graph);
   return {
-    json: { bytes: json, sha256: createHash('sha256').update(json).digest('hex') },
-    jsonl: { bytes: jsonl, sha256: createHash('sha256').update(jsonl).digest('hex') },
+    json: { bytes: json, sha256: sha256(json) },
+    jsonl: { bytes: jsonl, sha256: sha256(jsonl) },
   };
 }

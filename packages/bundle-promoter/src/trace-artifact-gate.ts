@@ -1,5 +1,5 @@
 import type { ArtifactRef } from '@arxic/contracts';
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 import { basename } from 'node:path';
 import {
   classifyTraceCarrierPng,
@@ -158,8 +158,4 @@ export async function validateTraceArtifacts(
     return { ok: false, reason: 'Trace sanitization report has no matching trace artifact' };
   }
   return { ok: true, traces: matched, screenshots };
-}
-
-function sha256(bytes: Buffer): string {
-  return createHash('sha256').update(bytes).digest('hex');
 }

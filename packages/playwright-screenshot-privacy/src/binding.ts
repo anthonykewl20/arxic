@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
 import { basename, extname, resolve, sep } from 'node:path';
+import { sha256 } from '@arxic/contracts';
 import { screenshotPrivacyRuntimeSource } from './runtime-source';
 import { readBoundedRegularFile, walkStableWorkspace } from './safe-filesystem';
 import { ScreenshotPrivacyError } from './standalone-runtime';
@@ -243,10 +243,6 @@ function safeResolve(directory: string, path: string): string {
 
 function sameStrings(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((item, index) => item === right[index]);
-}
-
-function sha256(value: string | Uint8Array): string {
-  return createHash('sha256').update(value).digest('hex');
 }
 
 function invalid(message: string): never {

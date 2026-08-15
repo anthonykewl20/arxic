@@ -178,6 +178,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/fs-safe':
+        specifier: workspace:*
+        version: link:../fs-safe
       '@ast-grep/cli':
         specifier: ^0.45.0
         version: 0.45.0
@@ -294,6 +297,8 @@ importers:
       otplib:
         specifier: ^12.0.1
         version: 12.0.1
+
+  packages/fs-safe: {}
 
   packages/intent:
     dependencies:
@@ -444,6 +449,10 @@ importers:
         version: link:../real-world-testkit
 
   packages/playwright-screenshot-privacy:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
     devDependencies:
       '@playwright/test':
         specifier: 1.62.1
@@ -522,6 +531,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/fs-safe':
+        specifier: workspace:*
+        version: link:../fs-safe
       tree-sitter:
         specifier: ^0.22.4
         version: 0.22.4

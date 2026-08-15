@@ -1,8 +1,8 @@
 import { execFile } from 'node:child_process';
-import { createHash } from 'node:crypto';
 import { lstat, readFile, readlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
+import { sha256 } from '@arxic/contracts';
 import { canonicalPipelineJson } from './pipeline-result';
 
 const execute = promisify(execFile);
@@ -75,8 +75,4 @@ function decodePaths(output: Buffer): string[] {
 
 function bytewiseCompare(left: string, right: string): number {
   return Buffer.compare(Buffer.from(left), Buffer.from(right));
-}
-
-function sha256(bytes: Uint8Array): string {
-  return createHash('sha256').update(bytes).digest('hex');
 }

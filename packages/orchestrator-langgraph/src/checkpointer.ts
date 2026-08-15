@@ -1,6 +1,7 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { canonicalJson as serializeCanonicalJson, sha256 } from '@arxic/contracts';
 import type {
   ImmutableArtifactRef,
   RunState,
@@ -34,7 +35,7 @@ export class InMemoryStageCheckpointer implements StageCheckpointer {
     value: StageArtifact,
   ): Promise<ImmutableArtifactRef> {
     assertRunId(runId);
-    const bytes = canonicalJson(value);
+    const bytes = serializeStageArtifact(value);
     const ref = { id: `stage:${stage}`, sha256: sha256(bytes) } as const;
     this.#artifacts.set(`${runId}/${ref.id}`, bytes);
     return ref;
@@ -101,7 +102,7 @@ export class FileStageCheckpointer implements StageCheckpointer {
     assertRunId(runId);
     const directory = join(this.#runsDirectory, runId, 'artifacts');
     await mkdir(directory, { recursive: true });
-    const bytes = `${canonicalJson(value)}\n`;
+    const bytes = `${serializeStageArtifact(value)}\n`;
     const ref = { id: `stage:${stage}`, sha256: sha256(bytes) } as const;
     await atomicWrite(join(directory, `${pad(stage)}.json`), bytes);
     return ref;
@@ -140,7 +141,7 @@ export class FileStageCheckpointer implements StageCheckpointer {
     await mkdir(directory, { recursive: true });
     await atomicWrite(
       join(directory, `${pad(checkpoint.stage)}.json`),
-      `${canonicalJson({ checkpoint, state })}\n`,
+      `${serializeStageArtifact({ checkpoint, state })}\n`,
     );
   }
 
@@ -152,41 +153,24 @@ export class FileStageCheckpointer implements StageCheckpointer {
     await mkdir(directory, { recursive: true });
     await atomicWrite(
       join(directory, `${pad(checkpoint.stage)}.json`),
-      `${canonicalJson({ checkpoint, state })}\n`,
+      `${serializeStageArtifact({ checkpoint, state })}\n`,
     );
   }
 }
 
-export function canonicalJson(value: unknown): string {
-  const serialized = JSON.stringify(sortValue(value));
-  if (serialized === undefined) throw new Error('Artifact is not JSON serializable');
-  return serialized;
-}
+/** Legacy artifact bytes are a persisted compatibility surface. */
+const serializeStageArtifact = (value: unknown): string =>
+  serializeCanonicalJson(value, { mode: 'legacy' });
+
+export { serializeStageArtifact as canonicalJson };
 
 export function artifactHash(value: StageArtifact, fileBacked = false): string {
-  const bytes = `${canonicalJson(value)}${fileBacked ? '\n' : ''}`;
+  const bytes = `${serializeStageArtifact(value)}${fileBacked ? '\n' : ''}`;
   return sha256(bytes);
-}
-
-function sha256(value: string): string {
-  return createHash('sha256').update(value).digest('hex');
 }
 
 function pad(stage: number): string {
   return String(stage).padStart(2, '0');
-}
-
-function sortValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(sortValue);
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>)
-        .filter(([, item]) => item !== undefined)
-        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
-        .map(([key, item]) => [key, sortValue(item)]),
-    );
-  }
-  return value;
 }
 
 async function atomicWrite(path: string, bytes: string): Promise<void> {

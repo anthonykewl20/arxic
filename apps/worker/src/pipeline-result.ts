@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { canonicalJson, sha256 } from '@arxic/contracts';
 import type {
   Diagnostic,
   GateResult,
@@ -96,29 +96,13 @@ export function serializePipelineResult(result: PipelineResult): Uint8Array {
   return Buffer.from(`${canonicalPipelineJson(result)}\n`, 'utf8');
 }
 
-export function canonicalPipelineJson(value: unknown): string {
-  const encoded = JSON.stringify(sortValue(value));
-  if (encoded === undefined) throw new Error('PipelineResult is not JSON serializable');
-  return encoded;
-}
+export const canonicalPipelineJson = (value: unknown): string =>
+  canonicalJson(value, { mode: 'legacy', keyOrder: 'locale' });
 
 export function pipelineSha256(value: unknown): string {
-  return createHash('sha256').update(canonicalPipelineJson(value)).digest('hex');
+  return sha256(canonicalPipelineJson(value));
 }
 
 export function pipelineConfigSha256(config: ArxicConfig): string {
   return pipelineSha256(config);
-}
-
-function sortValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(sortValue);
-  if (value !== null && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>)
-        .filter(([, item]) => item !== undefined)
-        .sort(([left], [right]) => left.localeCompare(right))
-        .map(([key, item]) => [key, sortValue(item)]),
-    );
-  }
-  return value;
 }

@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 import type { RawArtifactSet } from './worker-sandbox';
 import {
   ArtifactImportError,
@@ -78,7 +78,7 @@ export function importArtifacts(
         'invalid',
         `Worker artifact byte count disagrees: ${declared.path}`,
       );
-    const digest = createHash('sha256').update(entry.bytes).digest('hex');
+    const digest = sha256(entry.bytes);
     if (digest !== declared.sha256)
       throw new ArtifactImportError(
         'invalid',

@@ -1,7 +1,6 @@
-import { createHash } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import type { ArtifactRef } from '@arxic/contracts';
+import { sha256, type ArtifactRef } from '@arxic/contracts';
 import {
   retainPolicyAttestedScreenshots,
   type ScreenshotPrivacyPolicy,
@@ -226,7 +225,7 @@ async function rejectCapturedSource(
 
 async function artifactRef(kind: string, path: string): Promise<ArtifactRef> {
   const bytes = await readFile(path);
-  return { kind, path, sha256: createHash('sha256').update(bytes).digest('hex') };
+  return { kind, path, sha256: sha256(bytes) };
 }
 
 function errorMessage(error: unknown): string {

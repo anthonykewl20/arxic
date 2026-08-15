@@ -1,24 +1,11 @@
+import { canonicalJson } from '@arxic/contracts';
 import type { SurfaceMap } from './types';
 
 export function codepointCompare(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-function sortValue(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(sortValue);
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>)
-        .sort(([left], [right]) => codepointCompare(left, right))
-        .map(([key, item]) => [key, sortValue(item)]),
-    );
-  }
-  return value;
-}
-
-export function canonicalJson(value: unknown): string {
-  return JSON.stringify(sortValue(value));
-}
+export { canonicalJson } from '@arxic/contracts';
 
 export function serializeSurfaceMap(map: SurfaceMap): string {
   return canonicalJson({

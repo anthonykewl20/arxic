@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 import type { ArtifactTransportManifest } from '@arxic/environment';
 import {
   ORCHESTRATOR_VERSION,
@@ -46,19 +46,19 @@ export function projectPipelineResult(
   input: ProjectPipelineResultInput,
 ): ProjectPipelineResultOutput {
   const filesByPath = new Map(input.volumeFiles.map((file) => [file.path, file]));
-  const filesBySha256 = new Map(input.volumeFiles.map((file) => [fileSha256(file.bytes), file]));
+  const filesBySha256 = new Map(input.volumeFiles.map((file) => [sha256(file.bytes), file]));
   const artifactRef = (ref: ImmutableArtifactRef): PipelineArtifactRef => {
     const path = artifactPath(input.spec.runId, ref.id);
     const file = filesByPath.get(path);
     if (!file) throw new Error(`Referenced stage artifact is missing: ${path}`);
-    const sha256 = fileSha256(file.bytes);
-    if (sha256 !== ref.sha256) {
+    const digest = sha256(file.bytes);
+    if (digest !== ref.sha256) {
       throw new Error(`Referenced stage artifact hash disagrees with checkpoint: ${path}`);
     }
     if (!filesBySha256.has(ref.sha256)) {
       throw new Error(`Referenced stage artifact hash does not resolve: ${path}`);
     }
-    return { id: ref.id, path, sha256, bytes: file.bytes.length };
+    return { id: ref.id, path, sha256: digest, bytes: file.bytes.length };
   };
   const checkpoints = input.state.checkpoints.map((checkpoint) =>
     projectCheckpoint(checkpoint, artifactRef),
@@ -136,7 +136,7 @@ export function projectPipelineResult(
     ),
     { path: PIPELINE_RESULT_PATH, bytes: pipelineResultBytes },
   ]
-    .map(({ path, bytes }) => ({ path, sha256: fileSha256(bytes), bytes: bytes.length }))
+    .map(({ path, bytes }) => ({ path, sha256: sha256(bytes), bytes: bytes.length }))
     .sort((left, right) => left.path.localeCompare(right.path));
   return {
     result,
@@ -194,8 +194,4 @@ function uniqueGateResults(checkpoints: readonly PipelineStageCheckpoint[]) {
       return true;
     }),
   );
-}
-
-function fileSha256(bytes: Uint8Array): string {
-  return createHash('sha256').update(bytes).digest('hex');
 }

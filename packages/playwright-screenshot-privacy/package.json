@@ -7,6 +7,9 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
+  "dependencies": {
+    "@arxic/contracts": "workspace:*"
+  },
   "devDependencies": {
     "@playwright/test": "1.62.1"
   }
