@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### added
 
+- Added the packed-install human-flow E2E release gate and release.yml pre-publish wiring (refs #241).
 - Added fail-closed provenance-enabled npm release automation, repository metadata, bundled schema support for packed CLI execution, cross-platform packed-CLI smoke coverage, and an installable CLI quickstart (refs #189, #186).
 - Added versioned user documentation with parser-derived CLI and configuration references, plus corrected README status and roadmap claims (refs #188).
 - Added release/support/deprecation policy, worker operator guidance, a gitleaks 8.30.1 full-history false-positive triage record, and the human screenshot-inspection release gate (refs #192, #197, #213).
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### fixed
 
+- Corrected packed CLI rulepack and screenshot-runtime-source packaging, and added an inspectable promoted-bundle layout beside the local receipt (refs #241).
 - Fail closed when a focus-time rerender detaches an identity-checked exploration control before its native action.
 - Hardened worker-result extraction by quota-bounded spooling and validation of the exact tar stream before host extraction, including PAX/GNU paths (refs #212).
 - Corrected screenshot-privacy traversal timeout behavior and remediated the esbuild alert with the 0.28.1 override (refs #219).
