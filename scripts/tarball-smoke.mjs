@@ -61,7 +61,7 @@ async function listTarballContents(tarball) {
 }
 
 function assertTarballContents(entries) {
-  const normalizedEntries = entries.map((entry) => entry.split('\\').join('/'));
+  const normalizedEntries = entries.map((entry) => entry.replace(/\r$/u, '').split('\\').join('/'));
   for (const required of ['package/dist/cli.js', 'package/LICENSE', 'package/NOTICE']) {
     if (!normalizedEntries.includes(required)) {
       throw new Error(`tarball is missing required entry ${required}`);

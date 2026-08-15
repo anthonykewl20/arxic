@@ -96,7 +96,7 @@ describe('tarball smoke allowed path', () => {
         pack: async () => '/tmp/arxic.tgz',
         listTarball: async () =>
           packagedFiles.map((entry) =>
-            entry === 'package/dist/cli.js' ? 'package\\dist\\cli.js' : entry,
+            entry === 'package/dist/cli.js' ? 'package\\dist\\cli.js\r' : entry,
           ),
         install: async () => {},
         runCli: async (args) => {
