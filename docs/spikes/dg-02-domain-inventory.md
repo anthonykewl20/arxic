@@ -173,21 +173,51 @@ routes. Unresolvable `Route::` statements become per-file `parse-error` gaps.
 
 ### 5.1 Clustering quality assessment (honest)
 
-- koel (188 routes → **19 domains**): resource clusters are excellent —
-  `album(…), song(…), playlist(…), playlist-folder(…), artist(…), genre(…),
-user(…), podcast(…), invitation(…)` match the app's real bounded contexts.
-  Weak spots: action-y segments become their own domains (`forgot-password`,
-  `auth` for SSO callbacks — defensible), and `me` aggregates the profile
-  endpoints (REST-honest but user-facing it is "profile").
+> **Correction (2026-08-16, post-review of PR #266):** this section originally
+> claimed "19 domains". That was a stale pre-fix number: the committed artifact
+> was regenerated after the nested-prefix-leak scanner fix (§7.2), which
+> dissolved the 156-route `/api/radio/…` blob into the real resources and
+> raised the cluster count to **43**. The facts below are read from
+> `docs/evidence/DG-02/koel-inventory.json` and pinned by
+> `koel-interchange.test.ts` so artifact and prose cannot drift apart again.
+
+- koel (188 routes → **43 clusters**). The distribution splits into three
+  clearly separable tiers:
+  - **9 resource clusters ≥7 rows** that map cleanly onto koel's real bounded
+    contexts: `artist(19)`, `album(15)`, `playlist(15)`, `song(15)`,
+    `podcast(12)`, `playlist-folder(10)`, `user(8)`, `radio(7)`, plus
+    `me(15)` — REST-honest but user-facing it is the "profile" context.
+  - **16 mid-tier clusters (2–6 rows)**: genuine minor contexts
+    (`download(6)`, `duplicate-upload(5)`, `favorite(4)`, `genre(4)`,
+    `interaction(4)`, `invitation(4)`, `lastfm(4)`, `queue(4)`, `embed(3)`,
+    `theme(3)`, `browse(2)`, `search(2)`, `setting(2)`, `demo(2)`) mixed with
+    integration surfaces (`auth(4)` SSO callbacks, `o(2)` — the oidc prefix
+    collapsed to one letter, a labeling wart) .
+  - **18 singleton utility/action clusters**: `ai`, `broadcasting`, `data`,
+    `dropbox`, `embed-option`, `forgot-password`, `itune`, `licens` (sic —
+    singularization artifact of `licenses`), `one-time-token`, `overview`,
+    `ping`, `play`, `remote`, `reset-password`, `root`, `uncategorized`,
+    `upload`, `youtube`. These are **artifacts of first-static-segment
+    labeling**, not bounded contexts: single endpoints whose leading segment
+    is an action or a protocol name.
+- The honest headline for ADR-008 is therefore **~9–13 of 43 clusters carry
+  the domain signal; ~24–30 are utility/action residue** — clustering is
+  useful for DG-04 prioritization (the big clusters are exactly the domains
+  that matter) but NOT yet a clean domain partition, and singleton utility
+  clusters should be folded into their resource context (e.g. `/api/me/password`
+  → `profile`) before any product surface consumes cluster labels directly.
 - Fixture apps: `login/logout/forgot/reset/mfa` clusters are semantically right
   without any auth-specific code — the nouns came from the paths.
 - **Known weaknesses (dissent, recorded):** (a) hyphenated compounds stay
-  verbatim (`playlist-folder` fine, `forgot-password` noisy); (b) one endpoint
-  serving two journeys lands in one cluster — ADR-008's acknowledged risk; the
-  ledger always exposes raw rows, so a weak grouping cannot hide the
-  denominator; (c) English-only singularization. All acceptable for a
-  deterministic v1; the report explicitly does NOT claim clustering is
-  production-ready — it claims it is deterministic, inspectable, and honest.
+  verbatim (`playlist-folder` fine, `forgot-password` noisy); (b) action-led
+  URIs spawn singleton clusters instead of joining their resource (the
+  dominant residue mode above); (c) one endpoint serving two journeys lands in
+  one cluster — ADR-008's acknowledged risk; the ledger always exposes raw
+  rows, so a weak grouping cannot hide the denominator; (d) English-only,
+  occasionally wrong singularization (`licens`); (e) single-letter clusters
+  from short prefixes (`o`). All acceptable for a deterministic v1; the report
+  explicitly does NOT claim clustering is production-ready — it claims it is
+  deterministic, inspectable, and honestly measured.
 
 ## 6. Measurement results
 
@@ -237,7 +267,7 @@ backend. Cloned `--depth 1` to `/tmp/opencode/koel` (outside the repo).
 | **Enumerated routes**         | **188** (after `apiResource` expansion; 116 carry `{param}`)                                                                                                                                                                                                                 |
 | Gaps                          | 1 `dynamic-registration` (`routes/subsonic.php` — ~48 loop-registered endpoints recorded as a gap, not faked)                                                                                                                                                                |
 | Conditional routes            | 7 (`if (config('koel.download.allow'))` download block, `if (ITunes::used())`, version-aware blocks)                                                                                                                                                                         |
-| **Inventory**                 | **189 rows**: 188 extracted + 1 unextracted-with-reason; 19 clusters; validation PASS                                                                                                                                                                                        |
+| **Inventory**                 | **189 rows**: 188 extracted + 1 unextracted-with-reason; **43 clusters** (9 resource clusters ≥7 rows + 16 mid-tier + 18 utility/action singletons — §5.1); validation PASS                                                                                                  |
 | Known misses                  | `/up` health route (registered in `bootstrap/app.php` `withRouting(health:)`, outside `routes/`); header-versioned `routes/{web,api}.<version>.php` overlays (mechanism exists — `RouteServiceProvider::loadVersionAwareRoutes` — but no version files exist at this commit) |
 
 Ground-truth caveat (honest limit): no PHP runtime on this host, so the 188
@@ -334,7 +364,10 @@ L226-244).
    route.ts/server actions; bootstrap-registered `/up`) — the enum is doing
    product work, not bookkeeping.
 5. **Deterministic clustering is good enough to feed DG-04 prioritization**
-   (resource clusters match koel's real domains) and honest about its limits.
+   (the 9 large resource clusters are exactly koel's dominant domains) and
+   honest about its limits: ~24–30 of the 43 clusters are utility/action
+   residue that must be folded into their resource contexts before cluster
+   labels become a product surface (§5.1).
 
 **Dissent to record for reviewers:** (a) `unsafe` currently conflates "we
 refused to submit the form" with "no source grounding" — arguably a grounded

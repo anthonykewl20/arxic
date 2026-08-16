@@ -61,6 +61,83 @@ Route::prefix('api')
     expect(uris).toEqual(['/api/me', '/api/ping']);
   });
 
+  // REGRESSION (review of PR #266, P2a): the real koel failure mode. A
+  // prefix-less outer group (Route::middleware('auth')->group(...)) containing
+  // a nested Route::group(['prefix' => 'radio'], ...) leaked the NESTED array
+  // prefix onto every sibling route — 156 of koel's routes resolved
+  // /api/radio/…-shaped (see docs/spikes/dg-02-domain-inventory.md §7.2).
+  // Prefix detection must inspect only the leading, pre-closure argument.
+  it('does not leak an array-form nested prefix onto sibling routes (koel radio-group bug)', async () => {
+    const root = await withRoutes({
+      'routes/api.php': `<?php
+Route::prefix('api')
+    ->group(static function (): void {
+        Route::middleware('auth')->group(static function (): void {
+            Route::apiResource('albums', AlbumController::class);
+
+            // Radio station routes
+            Route::group(['prefix' => 'radio'], static function (): void {
+                Route::get('stations', RadioStationController::class);
+            });
+
+            // Sibling registered AFTER the nested group must not inherit 'radio'.
+            Route::post('ai/prompt', AiController::class);
+            Route::apiResource('themes', ThemeController::class)->except('show', 'update');
+        });
+    });
+`,
+    });
+    const result = await enumeratePhpRoutes(root);
+    const keys = result.routes.map((route) => `${route.methods.join('|')} ${route.uri}`).sort();
+    expect(keys).toEqual(
+      [
+        'GET /api/albums',
+        'POST /api/albums',
+        'GET /api/albums/{album}',
+        'PUT /api/albums/{album}',
+        'DELETE /api/albums/{album}',
+        'POST /api/ai/prompt',
+        'GET /api/radio/stations',
+        'GET /api/themes',
+        'POST /api/themes',
+        'DELETE /api/themes/{theme}',
+      ].sort(),
+    );
+    const radioUris = result.routes
+      .map((route) => route.uri)
+      .filter((uri) => uri.startsWith('/api/radio/'));
+    expect(radioUris).toEqual(['/api/radio/stations']);
+    // And the leaked shape is exactly what must NOT appear:
+    expect(radioUris).not.toContain('/api/radio/albums');
+    expect(result.routes.map((route) => route.uri)).not.toContain('/api/radio/ai/prompt');
+    expect(result.routes.map((route) => route.uri)).not.toContain('/api/radio/themes');
+  });
+
+  // REGRESSION (review of PR #266, P2b): comments containing unbalanced
+  // brackets corrupted matchParen/matchBrace/findStatementEnd depth tracking,
+  // breaking group-closure detection for the rest of the file (observed on
+  // koel routes/api.base.php's mago-ignore and prose comments).
+  it('ignores brackets inside //, #, and block comments when balancing statement and group spans', async () => {
+    const root = await withRoutes({
+      'routes/api.php': `<?php
+// a comment with an open paren ( that never closes
+# another with braces { and parens ) mixed
+/* block comment with ( unbalanced { brackets */
+Route::prefix('api')
+    // @mago-ignore lint:halstead (a flat list, not logic [to break up)
+    ->group(static function (): void {
+        Route::get('ping', static fn () => null); // trailing ( comment
+        Route::get('pong', static fn () => null);
+    });
+Route::get('outside', static fn () => view('x'));
+`,
+    });
+    const result = await enumeratePhpRoutes(root);
+    const uris = result.routes.map((route) => route.uri).sort();
+    expect(uris).toEqual(['/api/ping', '/api/pong', '/outside']);
+    expect(result.gaps).toEqual([]);
+  });
+
   it('expands Route::apiResource into the five standard actions, including nested dot resources and except()', async () => {
     const root = await withRoutes({
       'routes/api.php': `<?php

@@ -114,4 +114,45 @@ describe('koel/koel real-repository interchange (stand-in PHP side)', () => {
     const rebuilt = buildInventory({ interchanges: [interchange] });
     expect(serializeInventory(rebuilt)).toBe(serializeInventory(inventory));
   });
+
+  // REGRESSION (review of PR #266, P1): prose claimed "19 clusters" while the
+  // committed artifact holds 43 — the count drifted when the artifact was
+  // regenerated after the nested-prefix-leak scanner fix. This pin makes any
+  // future artifact/prose drift machine-caught. The literals below are
+  // recorded from the 2026-08-16 measurement of the committed
+  // docs/evidence/DG-02/koel-interchange.json, not derived from the code.
+  it('pins the koel cluster count and the load-bearing distribution facts the report cites', async () => {
+    const interchange = JSON.parse(
+      await readFile(evidencePath, 'utf8'),
+    ) as RouteInventoryInterchange;
+    const inventory = buildInventory({ interchanges: [interchange] });
+    expect(inventory.clusters).toHaveLength(43);
+    const byDomain = new Map(inventory.clusters.map((cluster) => [cluster.domain, cluster]));
+    // Top resource clusters (≥7 rows) that map onto koel's real bounded contexts.
+    for (const [domain, size] of [
+      ['artist', 19],
+      ['album', 15],
+      ['me', 15],
+      ['playlist', 15],
+      ['song', 15],
+      ['podcast', 12],
+      ['playlist-folder', 10],
+      ['user', 8],
+      ['radio', 7],
+    ] as const) {
+      expect(byDomain.get(domain)?.rowKeys, `cluster ${domain}`).toHaveLength(size);
+    }
+    // Utility/action singleton clusters — first-static-segment artifacts, not
+    // bounded contexts; their existence is part of the honest record.
+    for (const domain of [
+      'ai',
+      'ping',
+      'remote',
+      'overview',
+      'one-time-token',
+      'upload',
+    ] as const) {
+      expect(byDomain.get(domain)?.rowKeys, `cluster ${domain}`).toHaveLength(1);
+    }
+  });
 });
