@@ -10,7 +10,17 @@ import { extractTypeScript, type SourceFinding } from './extractors/typescript';
 import { extractFrameworkRoutes } from './framework-registry';
 import { ARXIC_SOURCE_GRAMMAR_UNAVAILABLE } from './diagnostics';
 import { isExtraIgnored, type SourceScanPolicy, type SupportedSourceLanguage } from './policy';
-import { languagePackFor, type CrossFileFinding, type RouteFindingPack } from './language-packs';
+import {
+  extractWithPack,
+  languagePackFor,
+  type CrossFileFinding,
+  type RouteFindingPack,
+} from './language-packs';
+import {
+  toRouteInventoryInterchange,
+  type RouteInventoryInterchange,
+} from './language-packs/interchange';
+import type { LaravelGap, LaravelRouteRow } from './language-packs/php/laravel-routes';
 import { ARXIC_SOURCE_UNSAFE_FILE, readSafeSource } from './safe-source';
 
 const require = createRequire(import.meta.url);
@@ -20,6 +30,17 @@ export type ScanDocument = {
   manifest: ManifestFile[];
   events: EvidenceEvent[];
   toolVersions: Record<string, string>;
+  /** Per-pack route inventories (interchange v1); absent when not requested. */
+  inventories?: RouteInventoryInterchange[];
+};
+
+type PackInventoryAccumulator = {
+  packId: string;
+  language: string;
+  framework?: string;
+  routes: LaravelRouteRow[];
+  gaps: LaravelGap[];
+  files: Map<string, { path: string; sha256: string }>;
 };
 
 export async function scanRepository(
@@ -29,6 +50,25 @@ export async function scanRepository(
   const events: EvidenceEvent[] = [];
   const manifest: ManifestFile[] = [];
   const versions = toolVersions();
+  const packInventories = new Map<string, PackInventoryAccumulator>();
+  const inventoryOf = (language: string): PackInventoryAccumulator | null => {
+    const pack = languagePackFor(language);
+    if (!pack) return null;
+    let entry = packInventories.get(language);
+    if (!entry) {
+      const rule = pack.frameworkRules[0];
+      entry = {
+        packId: pack.inventoryPackId,
+        language,
+        ...(rule ? { framework: rule.framework } : {}),
+        routes: [],
+        gaps: [],
+        files: new Map(),
+      };
+      packInventories.set(language, entry);
+    }
+    return entry;
+  };
   const empty = (commit: string | null, dirty = false): ScanDocument => ({
     revision: { repository: input.revision.repository, commit, dirty },
     manifest,
@@ -192,7 +232,9 @@ export async function scanRepository(
         diagnostic: policy.classifyFailure(
           'unsupported-language',
           path,
-          `Language ${base.language} is outside scan policy.`,
+          base.language === 'unsupported'
+            ? `No language is identified for ${path}; the file is outside scan policy.`
+            : `Language ${base.language} is outside scan policy.`,
         ),
       });
       continue;
@@ -215,6 +257,15 @@ export async function scanRepository(
             message: error.message,
           },
         });
+        const inventory = inventoryOf(base.language);
+        if (inventory) {
+          inventory.gaps.push({
+            kind: 'unsupported',
+            sourcePath: path,
+            reason: `grammar unavailable in this runtime: ${error.message}`,
+          });
+          inventory.files.set(path, { path, sha256: base.blobSha256 });
+        }
         continue;
       }
       throw error;
@@ -230,17 +281,24 @@ export async function scanRepository(
             'Tree-sitter returned an error or partial parse tree.',
           ),
         });
+        // Pack-language parse failures join the interchange gaps[] (never a
+        // silent drop of a file the pack could not enumerate).
+        const inventory = inventoryOf(base.language);
+        if (inventory) {
+          inventory.gaps.push({
+            kind: 'parse-error',
+            sourcePath: path,
+            reason: 'Tree-sitter returned an error or partial parse tree.',
+          });
+          inventory.files.set(path, { path, sha256: base.blobSha256 });
+        }
         continue;
       }
       base.status = 'indexed';
       manifest.push(base);
       const pack = languagePackFor(base.language);
       if (pack) {
-        const extraction = await pack.extract({
-          path,
-          parsed,
-          access: packAccess,
-        });
+        const extraction = await extractWithPack({ path, parsed, access: packAccess, pack });
         for (const advisory of extraction.advisories) events.push({ diagnostic: advisory });
         for (const finding of extraction.findings) {
           events.push({ ref: toRef(input.revision.repository, commit, base, finding, versions) });
@@ -262,6 +320,15 @@ export async function scanRepository(
             ),
           });
         }
+        // Interchange aggregation: rows/gaps/files for this pack's language.
+        if (extraction.routes.length > 0 || extraction.gaps.length > 0) {
+          const inventory = inventoryOf(base.language);
+          if (inventory) {
+            inventory.routes.push(...extraction.routes);
+            inventory.gaps.push(...extraction.gaps);
+            inventory.files.set(path, { path, sha256: base.blobSha256 });
+          }
+        }
       } else {
         const findings: Array<SourceFinding | ReturnType<typeof extractFrameworkRoutes>[number]> = [
           ...extractTypeScript(parsed.root),
@@ -278,11 +345,33 @@ export async function scanRepository(
     }
   }
 
+  const inventories = [...packInventories.values()]
+    .filter(
+      (accumulator) =>
+        (accumulator.routes.length > 0 || accumulator.gaps.length > 0) &&
+        // Interchange provenance requires a real commit (40-hex). Every path
+        // that reaches file processing has one; guard rather than emit a
+        // document the validator would reject.
+        commit !== null,
+    )
+    .map((accumulator) =>
+      toRouteInventoryInterchange({
+        packId: accumulator.packId,
+        language: accumulator.language,
+        ...(accumulator.framework !== undefined ? { framework: accumulator.framework } : {}),
+        provenance: { repository: input.revision.repository, commit: commit as string },
+        routes: accumulator.routes,
+        gaps: accumulator.gaps,
+        files: [...accumulator.files.values()],
+      }),
+    );
+
   return {
     revision: { repository: input.revision.repository, commit, dirty: dirty.length > 0 },
     manifest,
     events,
     toolVersions: versions,
+    ...(inventories.length > 0 ? { inventories } : {}),
   };
 }
 

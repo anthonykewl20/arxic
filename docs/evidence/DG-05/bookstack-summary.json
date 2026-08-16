@@ -1,0 +1,40 @@
+{
+  "label": "bookstack",
+  "repository": "bookstack",
+  "commit": "c813c1b3628c0b6bd757c12cadaa56f50724117d",
+  "scannedAt": "2026-08-16T17:36:20.972Z",
+  "php": {
+    "filesTotal": 1770,
+    "indexed": 1769,
+    "parseErrors": 1,
+    "grammarUnavailable": 0
+  },
+  "inventories": [
+    {
+      "packId": "arxic-langpack-php@1.0.0",
+      "standIn": false,
+      "routes": 335,
+      "routesConditional": 0,
+      "routesWithMiddleware": 225,
+      "gaps": 3,
+      "gapsByKind": {
+        "unresolved-file": 2,
+        "parse-error": 1
+      },
+      "files": 4,
+      "handlerEvidenceRefs": 332
+    }
+  ],
+  "validation": [
+    {
+      "packId": "arxic-langpack-php@1.0.0",
+      "ok": true
+    }
+  ],
+  "toolVersions": {
+    "tree-sitter": "0.22.4",
+    "tree-sitter-javascript": "0.23.1",
+    "tree-sitter-typescript": "0.23.2",
+    "tree-sitter-php": "0.23.12"
+  }
+}

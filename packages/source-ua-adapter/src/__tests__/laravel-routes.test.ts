@@ -428,3 +428,136 @@ Route::get(
     expect(result.routes[0]?.endLine).toBe(8);
   });
 });
+
+describe('Laravel route inventory — extended never-silent accounting (DG-05)', () => {
+  it('stays silent for documented non-route registrar calls (bind/model/pattern)', async () => {
+    // Router's registration-config API — laravel/framework v13.24.0
+    // src/Illuminate/Routing/Router.php public methods bind/model/pattern.
+    const source = `<?php
+
+use App\\Models\\Song;
+use Illuminate\\Support\\Facades\\Route;
+
+Route::model('song', Song::class);
+Route::bind('slug', static fn (string $value) => $value);
+Route::pattern('id', '[0-9]+');
+`;
+    const result = await inventoryLaravelRoutes({
+      path: 'routes/api.php',
+      parsed: parse(source),
+      access: accessWith({ 'composer.json': COMPOSER }),
+    });
+    expect(result.routes).toEqual([]);
+    expect(result.gaps).toEqual([]);
+    expect(result.advisories).toEqual([]);
+  });
+
+  it('advises ARXIC-SOURCE-ROUTE-UNSUPPORTED-CONSTRUCT for an unknown Route:: registrar (never silent)', async () => {
+    const source = `<?php
+
+use Illuminate\\Support\\Facades\\Route;
+
+Route::macro('turbo', static fn () => null);
+Route::futureShinyRegistrar('x');
+`;
+    const result = await inventoryLaravelRoutes({
+      path: 'routes/api.php',
+      parsed: parse(source),
+      access: accessWith({ 'composer.json': COMPOSER }),
+    });
+    expect(result.routes).toEqual([]);
+    const codes = result.advisories.map((a) => a.code);
+    expect(codes).toContain('ARXIC-SOURCE-ROUTE-UNSUPPORTED-CONSTRUCT');
+    // Route::macro IS a documented non-route registrar — only the truly unknown
+    // call advises.
+    expect(codes).toHaveLength(1);
+    expect(result.advisories[0]?.message).toContain('futureShinyRegistrar');
+  });
+
+  it('advises ARXIC-SOURCE-ROUTE-FILE-INCLUDE for group file-includes (BookStack provider shape)', async () => {
+    // bookstack routes are included via
+    // Route::group(['prefix' => 'api'], function () { require base_path('routes/api.php'); })
+    // (app/App/Providers/RouteServiceProvider.php:64-73) — the per-file scan
+    // cannot apply the including group's prefix; the include must be visible.
+    const source = `<?php
+
+use Illuminate\\Support\\Facades\\Route;
+
+Route::group(['prefix' => 'api'], static function (): void {
+    require base_path('routes/api.php');
+});
+`;
+    const result = await inventoryLaravelRoutes({
+      path: 'app/Providers/RouteServiceProvider.php',
+      parsed: parse(source),
+      access: accessWith({ 'composer.json': COMPOSER }),
+    });
+    expect(result.routes).toEqual([]);
+    expect(result.advisories.map((a) => a.code)).toEqual(['ARXIC-SOURCE-ROUTE-FILE-INCLUDE']);
+    expect(result.advisories[0]?.message).toContain('routes/api.php');
+  });
+
+  it('advises ARXIC-SOURCE-ROUTE-FILE-INCLUDE for a direct string include group', async () => {
+    const source = `<?php
+
+use Illuminate\\Support\\Facades\\Route;
+
+Route::middleware('web')->group(base_path('routes/web.php'));
+`;
+    const result = await inventoryLaravelRoutes({
+      path: 'bootstrap/app.php',
+      parsed: parse(source),
+      access: accessWith({ 'composer.json': COMPOSER }),
+    });
+    expect(result.advisories.map((a) => a.code)).toEqual(['ARXIC-SOURCE-ROUTE-FILE-INCLUDE']);
+    expect(result.advisories[0]?.message).toContain('routes/web.php');
+  });
+
+  it('threads middleware through groups and per-route modifiers', async () => {
+    const source = `<?php
+
+use App\\Http\\Controllers\\API\\SongController;
+use Illuminate\\Support\\Facades\\Route;
+
+Route::prefix('api')
+    ->middleware(['web', 'auth'])
+    ->group(static function (): void {
+        Route::get('songs', [SongController::class, 'index'])->middleware('throttle:10,1');
+    });
+`;
+    const result = await inventoryLaravelRoutes({
+      path: 'routes/api.php',
+      parsed: parse(source),
+      access: accessWith({ 'composer.json': COMPOSER }),
+    });
+    expect(result.routes).toHaveLength(1);
+    expect(result.routes[0]?.middleware).toEqual(['web', 'auth', 'throttle:10,1']);
+  });
+
+  it('marks routes inside if-blocks conditional but literal foreach rows unconditional', async () => {
+    const source = `<?php
+
+use App\\Http\\Controllers\\API\\SongController;
+use Illuminate\\Support\\Facades\\Route;
+
+$set = ['a' => SongController::class];
+
+foreach ($set as $uri => $controller) {
+    Route::get("songs/{$uri}", $controller);
+}
+
+if (config('features.extra')) {
+    Route::get('extra', [SongController::class, 'index']);
+}
+`;
+    const result = await inventoryLaravelRoutes({
+      path: 'routes/api.php',
+      parsed: parse(source),
+      access: accessWith({ 'composer.json': COMPOSER }),
+    });
+    expect(result.routes.map((route) => `${route.uri}|${route.conditional === true}`)).toEqual([
+      '/songs/a|false',
+      '/extra|true',
+    ]);
+  });
+});

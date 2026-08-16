@@ -372,6 +372,7 @@ outside this slice's file ownership, the fix shipped here stays inside
 **DG-05 handoff (2 lines, owner of `apps/worker`):** add `tree-sitter-php` to the tsup externals
 regex and to `apps/worker/package.json` dependencies so the worker sandbox carries the PHP
 grammar natively; the lazy path then resolves it and the diagnostic disappears.
+_(Status: landed by DG-05 — refs #249, 2026-08-16.)_
 
 ---
 

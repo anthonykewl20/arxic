@@ -20,9 +20,12 @@ export type ManifestFile = {
     | 'grammar-unavailable';
 };
 
+/** Languages this adapter can PARSE (policy.supportedLanguages candidates). */
 const LANGUAGES: Record<string, SupportedSourceLanguage> = {
   '.ts': 'typescript',
   '.tsx': 'typescript',
+  '.mts': 'typescript',
+  '.cts': 'typescript',
   '.js': 'javascript',
   '.jsx': 'javascript',
   '.mjs': 'javascript',
@@ -30,8 +33,36 @@ const LANGUAGES: Record<string, SupportedSourceLanguage> = {
   '.php': 'php',
 };
 
+/**
+ * Languages this adapter can IDENTIFY but not parse. Detection-only map so
+ * unsupported-language diagnostics and manifest rows name the actual language
+ * (ADR-008 Decision 5) instead of the misleading literal `unsupported` that
+ * the 2026-08-16 campaign surfaced. Language ids follow the upstream
+ * Understand-Anything grammar-bearing config census (DG-01 §1.2).
+ */
+const DETECTED_LANGUAGES: Readonly<Record<string, string>> = Object.freeze({
+  '.rb': 'ruby',
+  '.py': 'python',
+  '.go': 'go',
+  '.rs': 'rust',
+  '.java': 'java',
+  '.kt': 'kotlin',
+  '.kts': 'kotlin',
+  '.cs': 'csharp',
+  '.swift': 'swift',
+  '.dart': 'dart',
+  '.scala': 'scala',
+  '.c': 'c',
+  '.h': 'c',
+  '.cpp': 'cpp',
+  '.cc': 'cpp',
+  '.hpp': 'cpp',
+  '.lua': 'lua',
+});
+
 export function detectLanguage(path: string): string {
-  return LANGUAGES[extname(path).toLowerCase()] ?? 'unsupported';
+  const extension = extname(path).toLowerCase();
+  return LANGUAGES[extension] ?? DETECTED_LANGUAGES[extension] ?? 'unsupported';
 }
 
 export function detectCategory(path: string): SourceCategory {
@@ -39,7 +70,7 @@ export function detectCategory(path: string): SourceCategory {
   if (['.md', '.mdx', '.txt'].includes(ext)) return 'docs';
   if (['.css', '.scss', '.html'].includes(ext)) return 'markup';
   if (['.json', '.yaml', '.yml', '.toml'].includes(ext)) return 'config';
-  if (LANGUAGES[ext]) return 'code';
+  if (LANGUAGES[ext] ?? DETECTED_LANGUAGES[ext]) return 'code';
   return 'other';
 }
 
