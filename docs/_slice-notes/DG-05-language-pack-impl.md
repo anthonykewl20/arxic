@@ -1,6 +1,6 @@
 # DG-05-language-pack-impl — staged doc updates (charter §10.2)
 
-Issue: #249 · PR: #271 · Disposition: verified
+Issue: #249 · PR: #270 · Disposition: verified
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
