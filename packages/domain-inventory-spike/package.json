@@ -1,5 +1,5 @@
 {
-  "name": "@arxic/domain-inventory-spike",
+  "name": "@arxic/domain-inventory",
   "version": "0.1.1",
   "private": true,
   "type": "module",
@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@arxic/crawlee-adapter": "workspace:*",
+    "@arxic/intent-proposal-spike": "workspace:*",
     "@arxic/real-world-testkit": "workspace:*",
     "@arxic/source-ua-adapter": "workspace:*"
   }

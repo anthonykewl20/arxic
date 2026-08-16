@@ -1,0 +1,58 @@
+{
+  "generatedBy": "packages/domain-inventory-spike/scripts/measure-fusion-evidence.mts",
+  "inputs": "committed DG-05 production-pack interchange artifacts (docs/evidence/DG-05)",
+  "corpora": [
+    {
+      "corpus": "bookstack",
+      "interchangeRoutes": 335,
+      "totalRows": 341,
+      "byDisposition": {
+        "extracted": 340,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 1
+      },
+      "clusters": 51,
+      "providerIncludeResolutions": [
+        {
+          "providerPath": "app/App/Providers/RouteServiceProvider.php",
+          "includeLine": 49,
+          "includedFile": "routes/web.php",
+          "prefixSegments": [],
+          "appliedRoutes": 257,
+          "estimatedRouteCount": 260
+        },
+        {
+          "providerPath": "app/App/Providers/RouteServiceProvider.php",
+          "includeLine": 72,
+          "includedFile": "routes/api.php",
+          "prefixSegments": ["api"],
+          "appliedRoutes": 78,
+          "estimatedRouteCount": 78
+        }
+      ],
+      "providerIncludeUnresolved": [],
+      "uriCollisionsWithoutResolution": 19,
+      "uriCollisionsWithResolution": 0
+    },
+    {
+      "corpus": "koel",
+      "interchangeRoutes": 239,
+      "totalRows": 306,
+      "byDisposition": {
+        "extracted": 304,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 2
+      },
+      "clusters": 44,
+      "providerIncludeResolutions": [],
+      "providerIncludeUnresolved": [
+        "app/Providers/BroadcastServiceProvider.php:14 (provider file unavailable to the fusion layer)",
+        "app/Providers/RouteServiceProvider.php:16 (no literal included file in the gap reason (path computed at runtime))"
+      ],
+      "uriCollisionsWithoutResolution": 0,
+      "uriCollisionsWithResolution": 0
+    }
+  ]
+}

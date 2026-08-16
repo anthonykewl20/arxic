@@ -1,6 +1,8 @@
 import { Annotation, END, MemorySaver, START, StateGraph } from '@langchain/langgraph';
 import { canonicalJson as serializeCanonicalJson, sha256 } from '@arxic/contracts';
-import { resolve } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type {
   Diagnostic,
   EvidenceEvent,
@@ -12,6 +14,18 @@ import type {
   Workflow,
 } from '@arxic/contracts';
 import { ARXIC_VERSION, validateWorkflow } from '@arxic/contracts';
+import {
+  PACKAGE_NAME as DOMAIN_INVENTORY_PACKAGE,
+  buildSourceInventory,
+  fuseRuntimeInventory,
+  resolveProviderIncludes,
+  serializeInventory,
+  validateInventory,
+} from '@arxic/domain-inventory';
+import {
+  createContentAddressedArtifacts,
+  buildInventoryEvidenceGraph,
+} from '@arxic/evidence-graph';
 import {
   AstGrepAdapter,
   PACKAGE_NAME as AST_GREP_PACKAGE,
@@ -82,6 +96,7 @@ import type {
   Candidate,
   CompilationResult,
   CoverageMatrix,
+  DomainInventoryStageArtifact,
   ExplorationResult,
   FixtureLeaseState,
   FixturePreparation,
@@ -100,7 +115,7 @@ import type {
 
 export const ORCHESTRATOR_VERSION = ARXIC_VERSION;
 
-const STAGES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+const STAGES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] as const;
 const STAGE_NAMES = [
   'attestation',
   'deterministic-scanning',
@@ -115,6 +130,12 @@ const STAGE_NAMES = [
   'verification',
   'healing',
   'promotion',
+  // Stage 13: the Domain Inventory (DG-06 #250). NUMBERING (ADR-008
+  // Consequences; decision recorded at DG-06): 13 is the NEXT AVAILABLE id —
+  // ids 0–12 stay stable for compatibility — while the stage's POSITION in
+  // the graph is immediately after structural extraction (2 → 13 → 3). See
+  // #buildGraph for the topology and types.ts for the full rationale.
+  'domain-inventory',
 ] as const;
 
 const StateAnnotation = Annotation.Root({
@@ -465,9 +486,17 @@ export class LangGraphOrchestrator {
       .addNode('stage-9', node(9))
       .addNode('stage-10', node(10))
       .addNode('stage-11', node(11))
-      .addNode('stage-12', node(12));
+      .addNode('stage-12', node(12))
+      .addNode('stage-13', node(13));
+    // Execution order: stage 13 (domain-inventory) runs BETWEEN structural
+    // extraction (2) and framework rules (3) — see the numbering comment at
+    // STAGE_NAMES; ids 0–12 execute in their original order.
     graph.addEdge(START, 'stage-0');
-    for (let stage = 0; stage < 12; stage += 1) {
+    graph.addEdge('stage-0', 'stage-1');
+    graph.addEdge('stage-1', 'stage-2');
+    graph.addEdge('stage-2', 'stage-13');
+    graph.addEdge('stage-13', 'stage-3');
+    for (let stage = 3; stage < 12; stage += 1) {
       graph.addEdge(
         `stage-${stage}` as `stage-${StageId}`,
         `stage-${stage + 1}` as `stage-${StageId}`,
@@ -534,7 +563,93 @@ export class LangGraphOrchestrator {
         decisions: ['Healing deferred to M2; no repair was attempted'],
       };
     }
-    return this.#promote(state, input);
+    if (stage === 12) return this.#promote(state, input);
+    return this.#inventory(state, input);
+  }
+
+  /**
+   * Stage 13 — the Domain Inventory (DG-06 #250, ADR-008 Decision 2): fuses
+   * the TS/JS source enumeration (stage 1) with the REAL DG-05 language-pack
+   * route inventories (`collectRouteInventories`, Tree-sitter PHP) and the
+   * fusion-layer provider-include prefix composition into ONE deduplicated
+   * denominator with a disposition on every row; projects every row into the
+   * evidence graph with ≥1 EvidenceRef on each output-influencing edge
+   * (ADR-001 §8.4, fail-closed by the graph container).
+   *
+   * The runtime crawl surface is fused by the SAME deterministic stage at
+   * reconciliation (stage 6 consumes this artifact together with the stage-5
+   * SurfaceMap) — the crawl has not happened yet at this graph position.
+   */
+  async #inventory(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
+    const source = await this.#artifact<NormalizedSourceIndex>(state, input, 1);
+    const adapter = new SourceUaAdapter({ now: this.#now });
+    const collected = await adapter.collectRouteInventories({
+      revision: input.revision,
+      ...(input.languages ? { languages: [...input.languages] } : {}),
+    });
+    const providerIncludes = await resolveProviderIncludes({
+      interchanges: collected,
+      readUtf8: repositoryFileReader(input.revision.repository),
+    });
+    const inventory = buildSourceInventory({
+      sourceIndex: source,
+      interchanges: providerIncludes.interchanges,
+    });
+    const validation = validateInventory(inventory);
+    const graph = buildInventoryEvidenceGraph({ inventory });
+    const canonical = createContentAddressedArtifacts(graph.graph);
+    let outputInfluencingEdges = 0;
+    graph.graph.forEachEdge((_edge, attributes) => {
+      if (attributes.outputInfluencing) outputInfluencingEdges += 1;
+    });
+    const artifact: DomainInventoryStageArtifact = {
+      kind: 'arxic-domain-inventory-stage-v1',
+      schemaVersion: 1,
+      inventory,
+      stableSha256: sha256(serializeInventory(inventory)),
+      providerIncludes: {
+        resolutions: providerIncludes.resolutions,
+        unresolved: providerIncludes.unresolved,
+      },
+      evidenceGraph: {
+        nodes: graph.graph.order,
+        edges: graph.graph.size,
+        outputInfluencingEdges,
+        canonicalSha256: canonical.json.sha256,
+        diagnostics: graph.diagnostics,
+      },
+    };
+    const observed = [
+      ...(inventory.diagnostics ?? []),
+      ...providerIncludes.diagnostics,
+      // ALL graph diagnostics flow into the stage: blocked-severity ones
+      // (e.g. ARXIC-GRAPH-EDGE-EVIDENCE-MISSING) must fail the stage closed
+      // via diagnosticBlocksStage — filtering them here would be fail-open.
+      ...graph.diagnostics,
+    ];
+    return {
+      artifact,
+      adapter: DOMAIN_INVENTORY_PACKAGE,
+      diagnostics: [...(validation.ok ? [] : validation.diagnostics), ...observed],
+      toolVersions: { [DOMAIN_INVENTORY_PACKAGE]: ORCHESTRATOR_VERSION },
+      decisions: [
+        'Stage numbering: id 13 is the next available id; position is after structural extraction (2 → 13 → 3); ids 0–12 unchanged (ADR-008 Consequences, decision recorded at DG-06)',
+        providerIncludes.resolutions.length > 0
+          ? `Provider-include prefix composition applied to ${providerIncludes.resolutions.length} include(s); ${providerIncludes.unresolved.length} left as visible gaps`
+          : 'No provider-include gaps to compose',
+        `Inventory denominator: ${inventory.stats.totalRows} rows (${Object.entries(
+          inventory.stats.byDisposition,
+        )
+          .map(([key, value]) => `${value} ${key}`)
+          .join(', ')})`,
+      ],
+      gates: [
+        {
+          gate: 'inventory-completeness',
+          passed: validation.ok && graph.diagnostics.length === 0,
+        },
+      ],
+    };
   }
 
   async #attest(input: OrchestratorInput): Promise<StageExecution> {
@@ -615,6 +730,13 @@ export class LangGraphOrchestrator {
       2,
     );
     const rules = await this.#artifact<AstGrepScanResult>(state, input, 3);
+    // The domain inventory (stage 13) runs before inference by graph order;
+    // it makes empty-coverage semantics inventory-derived (#250).
+    const inventoryEnvelope = await this.#optionalArtifact<DomainInventoryStageArtifact>(
+      state,
+      input,
+      13,
+    );
     const evidenceRefs = [...structural.events, ...rules.events].flatMap((event) =>
       'ref' in event && event.ref ? [event.ref] : [],
     );
@@ -646,7 +768,7 @@ export class LangGraphOrchestrator {
                   ARXIC_ORCH_EMPTY_COVERAGE,
                   'observed',
                   input.runId,
-                  'Inference yielded zero candidates; coverage remains empty',
+                  inventoryEmptyCoverageMessage(inventoryEnvelope),
                 ),
               ]
             : [];
@@ -707,11 +829,42 @@ export class LangGraphOrchestrator {
   async #reconcile(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
     const inference = await this.#artifact<InferenceResult>(state, input, 4);
     const surface = await this.#artifact<SurfaceMap>(state, input, 5);
-    const matrix = await (this.#options.reconcile ?? defaultReconcile)({
-      candidates: inference.candidates,
-      surface,
-    });
-    return { artifact: matrix, adapter: '@arxic/reconciler:seam' };
+    if (this.#options.reconcile) {
+      const matrix = await this.#options.reconcile({
+        candidates: inference.candidates,
+        surface,
+      });
+      return { artifact: matrix, adapter: '@arxic/reconciler:seam' };
+    }
+    // Default reconciliation is INVENTORY-DERIVED (#250: "coverage gates
+    // consume the inventory so empty-coverage semantics become
+    // inventory-derived"): the denominator is the runtime-fUSED Domain
+    // Inventory (stage-13 source denominator + stage-5 crawl surface map),
+    // not the candidate count.
+    const envelope = await this.#optionalArtifact<DomainInventoryStageArtifact>(state, input, 13);
+    const fused = envelope
+      ? fuseRuntimeInventory(envelope.inventory, surface, this.#now)
+      : undefined;
+    const runtimeEvidence = surface.routes.filter((route) => route.evidence).length;
+    const matrix: CoverageMatrix = {
+      denominator: fused ? fused.stats.totalRows : inference.candidates.length,
+      rows: inference.candidates.map((candidate) => ({
+        candidateId: candidate.id,
+        staticEvidence: candidate.evidenceRefs.length,
+        runtimeEvidence,
+        outcome: runtimeEvidence > 0 ? 'observed' : 'hypothesized',
+      })),
+      ...(fused ? { inventory: { ...fused.stats, source: 'domain-inventory' as const } } : {}),
+    };
+    return {
+      artifact: matrix,
+      adapter: '@arxic/reconciler:seam',
+      decisions: fused
+        ? [
+            `Coverage denominator derived from the runtime-fused domain inventory (${fused.stats.totalRows} rows)`,
+          ]
+        : ['Coverage denominator fell back to the candidate count (no inventory artifact)'],
+    };
   }
 
   async #fixtures(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
@@ -1092,6 +1245,16 @@ export class LangGraphOrchestrator {
     return value as T;
   }
 
+  /** Like #artifact, but returns undefined when the stage has not produced one yet. */
+  async #optionalArtifact<T>(
+    state: RunState,
+    input: OrchestratorInput,
+    stage: StageId,
+  ): Promise<T | undefined> {
+    if (!state.artifacts[stage]) return undefined;
+    return this.#artifact<T>(state, input, stage);
+  }
+
   async #commitStage(
     state: RunState,
     stage: StageId,
@@ -1311,6 +1474,37 @@ function approvalSummary(approval: HumanApproval): string {
   return `${approval.approver} at ${approval.approvedAt}: ${approval.reason}`;
 }
 
+/** Empty coverage is honest only relative to a denominator (#250). */
+function inventoryEmptyCoverageMessage(envelope: DomainInventoryStageArtifact | undefined): string {
+  if (!envelope) return 'Inference yielded zero candidates; coverage remains empty';
+  const { totalRows, byDisposition } = envelope.inventory.stats;
+  const accounted =
+    byDisposition.unsupported + byDisposition.unsafe + byDisposition['unextracted-with-reason'];
+  return `Inference yielded zero candidates over a domain inventory of ${totalRows} rows (${byDisposition.extracted} extracted, ${accounted} accounted by dispositions); coverage remains empty — honest zero, no fabricated intents`;
+}
+
+/**
+ * Root-relative UTF-8 reader for provider-include composition. Only local
+ * `file://` (or plain path) repositories can be read; anything else (or any
+ * escape out of the repository root) reads as null, which keeps the include a
+ * visible structured gap instead of guessing a prefix.
+ */
+function repositoryFileReader(repository: string): (path: string) => Promise<string | null> {
+  return async (path) => {
+    try {
+      const root = repository.startsWith('file://')
+        ? fileURLToPath(new URL(repository))
+        : repository;
+      const resolvedRoot = resolve(root);
+      const target = resolve(resolvedRoot, path);
+      if (target !== resolvedRoot && !target.startsWith(`${resolvedRoot}${sep}`)) return null;
+      return await readFile(target, 'utf8');
+    } catch {
+      return null;
+    }
+  };
+}
+
 async function defaultInference(input: InferenceInput): Promise<InferenceResult> {
   return {
     requestId: `stage4-no-model-${input.runId}-${input.attempt}`,
@@ -1359,22 +1553,6 @@ function parseInferenceResult(value: unknown): InferenceResult | undefined {
 
 function hasOnlyKeys(record: Record<string, unknown>, allowed: readonly string[]): boolean {
   return Object.keys(record).every((key) => allowed.includes(key));
-}
-
-async function defaultReconcile(input: {
-  candidates: readonly Candidate[];
-  surface: SurfaceMap;
-}): Promise<CoverageMatrix> {
-  const runtimeEvidence = input.surface.routes.filter((route) => route.evidence).length;
-  return {
-    denominator: input.candidates.length,
-    rows: input.candidates.map((candidate) => ({
-      candidateId: candidate.id,
-      staticEvidence: candidate.evidenceRefs.length,
-      runtimeEvidence,
-      outcome: runtimeEvidence > 0 ? 'observed' : 'hypothesized',
-    })),
-  };
 }
 
 async function defaultFixturePreparation(input: {

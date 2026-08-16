@@ -10,6 +10,7 @@
   "dependencies": {
     "@arxic/ast-grep-adapter": "workspace:*",
     "@arxic/contracts": "workspace:*",
+    "@arxic/domain-inventory": "workspace:*",
     "@arxic/source-ua-adapter": "workspace:*",
     "graphology": "^0.26.0"
   }
