@@ -326,10 +326,17 @@ function toRef(
 
 function toolVersions(): Record<string, string> {
   return Object.fromEntries(
-    ['tree-sitter', 'tree-sitter-javascript', 'tree-sitter-typescript', 'tree-sitter-php'].map(
+    ['tree-sitter', 'tree-sitter-javascript', 'tree-sitter-typescript', 'tree-sitter-php'].flatMap(
       (name) => {
-        const pkg = require(`${name}/package.json`) as { version: string };
-        return [name, pkg.version];
+        // The PHP grammar is an optional carrier in bundled runtimes (the
+        // worker bundle today); omit its version there instead of failing
+        // provenance for every scan.
+        try {
+          const pkg = require(`${name}/package.json`) as { version: string };
+          return [[name, pkg.version] as const];
+        } catch {
+          return [];
+        }
       },
     ),
   );
