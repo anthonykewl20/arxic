@@ -34,8 +34,13 @@ frozen `@arxic/model-adapter` structured-output boundary.
 - Malformed model output → bounded corrective retry → run **blocked**, no
   partial acceptance (stage-4 semantics unchanged).
 - Instruction-like model output (or a hostile repo payload echoed by the
-  model) → blocked as content-is-data; the policy context object is never
-  mutated by model output.
+  model) → blocked as content-is-data. The caller-supplied READ-ONLY
+  `policyContext` is digest-read at run entry (`SHA-256(canonicalJson(…))`,
+  stamped on every outcome — success and blocked) and proven deep-equal after
+  injection-block, hostile-source-block, retry-then-block, and
+  succeed-after-retry runs: model output can never mutate it (the digest
+  assertion proves the pipeline read the object, so the equality check is
+  not vacuous).
 - Proposals citing nonexistent inventory rows or unresolvable EvidenceRefs are
   **rejected** with stable `ARXIC-PROPOSAL-*` diagnostics (honest ledger, no
   silent drops).

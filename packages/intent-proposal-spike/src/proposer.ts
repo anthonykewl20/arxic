@@ -76,10 +76,19 @@ export type ProposalRunResult = {
   readonly coverage: CoverageReport;
   readonly calls: readonly CallRecord[];
   readonly dedupe: { inBatchDropped: number; crossBatchDropped: number };
+  /**
+   * SHA-256 of canonicalJson(policyContext) when a policy context was
+   * supplied. Present on EVERY outcome (success AND blocked): it proves the
+   * pipeline read (and held a reference to) the exact caller policy object
+   * for the whole run, which is what makes the tested no-mutation invariant
+   * non-vacuous.
+   */
+  readonly policyContextDigest?: string;
 };
 
 export type ProposalRunOutcome =
-  { ok: true; result: ProposalRunResult } | { ok: false; diagnostics: readonly Diagnostic[] };
+  | { ok: true; result: ProposalRunResult }
+  | { ok: false; diagnostics: readonly Diagnostic[]; readonly policyContextDigest?: string };
 
 const RETRYABLE_MODEL_CODES = new Set<string>([
   ARXIC_MODEL_RETRIES_EXHAUSTED,
@@ -370,7 +379,20 @@ export class IntentProposer {
     inventory: Pick<DomainInventory, 'rows'>;
     evidenceIndex: Readonly<Record<string, EvidenceRef>>;
     runId: string;
+    /**
+     * READ-ONLY caller policy context (origins, action classes, …). The
+     * proposer never mutates it and never sends it to the model; it is
+     * digest-stamped into every outcome (success AND blocked) so each run is
+     * provably bound to the policy it ran under. DG-08 wires the real policy
+     * engine here.
+     */
+    policyContext?: Readonly<Record<string, unknown>>;
   }): Promise<ProposalRunOutcome> {
+    // Read (never write) before any model interaction: computing the digest
+    // proves the pipeline held this exact object for the whole run.
+    const policyContextDigest = input.policyContext
+      ? sha256(canonicalJson(input.policyContext))
+      : undefined;
     const batches = partitionRows(input.inventory.rows, this.options.strategy);
     if (batches.length === 0) {
       return {
@@ -383,6 +405,7 @@ export class IntentProposer {
           coverage: coverageOf(input.inventory, []),
           calls: [],
           dedupe: { inBatchDropped: 0, crossBatchDropped: 0 },
+          ...(policyContextDigest !== undefined ? { policyContextDigest } : {}),
         },
       };
     }
@@ -454,6 +477,7 @@ export class IntentProposer {
             ),
             ...(failure ?? []),
           ],
+          ...(policyContextDigest !== undefined ? { policyContextDigest } : {}),
         };
       }
       rejected.push(...bound.rejected);
@@ -478,6 +502,7 @@ export class IntentProposer {
         coverage: coverageOf(input.inventory, accepted),
         calls,
         dedupe: { inBatchDropped, crossBatchDropped },
+        ...(policyContextDigest !== undefined ? { policyContextDigest } : {}),
       },
     };
   }
