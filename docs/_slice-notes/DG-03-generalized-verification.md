@@ -1,6 +1,6 @@
 # DG-03 — staged doc updates (charter §10.2)
 
-Issue: #247 · PR: (opened from branch dg03-generalized-verification-spike) · Disposition: verified (spike; conclusions provisional pending cross-review per ADR-008 §11)
+Issue: #247 · PR: #264 · Disposition: verified (spike; conclusions provisional pending cross-review per ADR-008 §11)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
