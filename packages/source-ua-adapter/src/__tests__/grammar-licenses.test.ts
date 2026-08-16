@@ -7,7 +7,7 @@ const require = createRequire(import.meta.url);
 
 describe('grammar license verification', () => {
   it('verifies each installed grammar package independently as MIT with a license file', async () => {
-    for (const name of ['tree-sitter-javascript', 'tree-sitter-typescript']) {
+    for (const name of ['tree-sitter-javascript', 'tree-sitter-typescript', 'tree-sitter-php']) {
       const packagePath = require.resolve(`${name}/package.json`);
       const pkg = JSON.parse(await readFile(packagePath, 'utf8')) as { license?: string };
       expect(pkg.license, name).toBe('MIT');

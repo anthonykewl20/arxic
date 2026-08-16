@@ -9,6 +9,7 @@ import { SourceParser } from './parser';
 import { extractTypeScript, type SourceFinding } from './extractors/typescript';
 import { extractFrameworkRoutes } from './framework-registry';
 import { isExtraIgnored, type SourceScanPolicy, type SupportedSourceLanguage } from './policy';
+import { languagePackFor, type CrossFileFinding, type RouteFindingPack } from './language-packs';
 import { ARXIC_SOURCE_UNSAFE_FILE, readSafeSource } from './safe-source';
 
 const require = createRequire(import.meta.url);
@@ -102,6 +103,28 @@ export async function scanRepository(
   }
 
   const parser = new SourceParser();
+  // Cross-file reads for framework packs (controller convention resolution),
+  // memoized per scan so handler EvidenceRefs can reuse the blob sha256.
+  const fileMemo = new Map<string, { text: string; blobSha256: string } | null>();
+  const packAccess = {
+    async readRelative(path: string) {
+      if (fileMemo.has(path)) {
+        const cached = fileMemo.get(path);
+        return cached
+          ? { ok: true as const, text: cached.text }
+          : { ok: false as const, reason: 'unreadable' };
+      }
+      const safeRead = await readSafeSource(resolvedRoot, path, policy.maxFileSizeBytes);
+      if (!safeRead.ok) {
+        fileMemo.set(path, null);
+        return { ok: false as const, reason: safeRead.kind };
+      }
+      const bytes = safeRead.bytes;
+      const entry = { text: bytes.toString('utf8'), blobSha256: sha256(bytes) };
+      fileMemo.set(path, entry);
+      return { ok: true as const, text: entry.text };
+    },
+  };
   for (const path of (await enumerateFiles(resolvedRoot)).filter(
     (item) => !isExtraIgnored(item, policy.extraIgnores),
   )) {
@@ -194,14 +217,44 @@ export async function scanRepository(
       }
       base.status = 'indexed';
       manifest.push(base);
-      const findings: Array<SourceFinding | ReturnType<typeof extractFrameworkRoutes>[number]> = [
-        ...extractTypeScript(parsed.root),
-        ...extractFrameworkRoutes(path, parsed.root),
-      ];
-      for (const finding of findings) {
-        events.push({
-          ref: toRef(input.revision.repository, commit, base, finding, versions),
+      const pack = languagePackFor(base.language);
+      if (pack) {
+        const extraction = await pack.extract({
+          path,
+          parsed,
+          access: packAccess,
         });
+        for (const advisory of extraction.advisories) events.push({ diagnostic: advisory });
+        for (const finding of extraction.findings) {
+          events.push({ ref: toRef(input.revision.repository, commit, base, finding, versions) });
+        }
+        for (const finding of [...extraction.routeFindings, ...extraction.crossFileFindings]) {
+          const sha =
+            finding.kind === 'handler'
+              ? (fileMemo.get(finding.path)?.blobSha256 ?? '')
+              : base.blobSha256;
+          events.push({
+            ref: toRef(
+              input.revision.repository,
+              commit,
+              finding.kind === 'handler'
+                ? { path: finding.path, blobSha256: sha, language: 'php' }
+                : base,
+              finding,
+              versions,
+            ),
+          });
+        }
+      } else {
+        const findings: Array<SourceFinding | ReturnType<typeof extractFrameworkRoutes>[number]> = [
+          ...extractTypeScript(parsed.root),
+          ...extractFrameworkRoutes(path, parsed.root),
+        ];
+        for (const finding of findings) {
+          events.push({
+            ref: toRef(input.revision.repository, commit, base, finding, versions),
+          });
+        }
       }
     } finally {
       parsed.dispose();
@@ -219,16 +272,26 @@ export async function scanRepository(
 function toRef(
   repo: string,
   commit: string,
-  file: ManifestFile,
-  finding: SourceFinding | ReturnType<typeof extractFrameworkRoutes>[number],
+  file: Pick<ManifestFile, 'path' | 'blobSha256' | 'language'>,
+  finding:
+    | SourceFinding
+    | ReturnType<typeof extractFrameworkRoutes>[number]
+    | RouteFindingPack
+    | CrossFileFinding,
   versions: Record<string, string>,
 ): EvidenceRefSource {
   let extractor: string;
   if ('extractor' in finding && finding.extractor === 'nextjs') {
     extractor = 'source-ua-adapter/nextjs-file-conventions@0.0.0';
+  } else if ('extractor' in finding && finding.extractor === 'laravel') {
+    extractor = 'source-ua-adapter/laravel-route-inventory@1';
   } else {
     const packageName =
-      file.language === 'typescript' ? 'tree-sitter-typescript' : 'tree-sitter-javascript';
+      file.language === 'typescript'
+        ? 'tree-sitter-typescript'
+        : file.language === 'php'
+          ? 'tree-sitter-php'
+          : 'tree-sitter-javascript';
     extractor = `${packageName}@${versions[packageName]}`;
   }
   return {
@@ -246,9 +309,11 @@ function toRef(
 
 function toolVersions(): Record<string, string> {
   return Object.fromEntries(
-    ['tree-sitter', 'tree-sitter-javascript', 'tree-sitter-typescript'].map((name) => {
-      const pkg = require(`${name}/package.json`) as { version: string };
-      return [name, pkg.version];
-    }),
+    ['tree-sitter', 'tree-sitter-javascript', 'tree-sitter-typescript', 'tree-sitter-php'].map(
+      (name) => {
+        const pkg = require(`${name}/package.json`) as { version: string };
+        return [name, pkg.version];
+      },
+    ),
   );
 }

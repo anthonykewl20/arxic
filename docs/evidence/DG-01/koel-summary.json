@@ -1,0 +1,40 @@
+{
+  "label": "koel",
+  "repository": "https://github.com/koel/koel",
+  "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+  "scannedAt": "2026-08-16T11:17:20.764Z",
+  "php": {
+    "filesTotal": 1412,
+    "filesIndexed": 1412,
+    "parseErrors": 0,
+    "parseFailureRate": 0,
+    "parseErrorPaths": [],
+    "otherSkips": []
+  },
+  "routes": {
+    "endpointRows": 304,
+    "distinctMethodUri": 304,
+    "duplicateMethodUri": []
+  },
+  "handlers": {
+    "resolved": 201,
+    "distinct": 195
+  },
+  "advisories": {
+    "routeDynamicRegistration": 0,
+    "handlerUnresolved": 32,
+    "byCode": {
+      "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE": 642,
+      "ARXIC-SOURCE-BINARY-FILE": 143,
+      "ARXIC-SOURCE-UNSAFE-FILE": 1,
+      "ARXIC-SOURCE-PARSE-ERROR": 14,
+      "ARXIC-SOURCE-HANDLER-UNRESOLVED": 32
+    }
+  },
+  "toolVersions": {
+    "tree-sitter": "0.22.4",
+    "tree-sitter-javascript": "0.23.1",
+    "tree-sitter-typescript": "0.23.2",
+    "tree-sitter-php": "0.23.12"
+  }
+}

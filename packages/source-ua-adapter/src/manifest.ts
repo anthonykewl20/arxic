@@ -20,6 +20,7 @@ const LANGUAGES: Record<string, SupportedSourceLanguage> = {
   '.jsx': 'javascript',
   '.mjs': 'javascript',
   '.cjs': 'javascript',
+  '.php': 'php',
 };
 
 export function detectLanguage(path: string): string {

@@ -1,5 +1,6 @@
 import Parser from 'tree-sitter';
 import JavaScript from 'tree-sitter-javascript';
+import PHP from 'tree-sitter-php';
 import TypeScript from 'tree-sitter-typescript';
 import type { SupportedSourceLanguage } from './policy';
 
@@ -22,6 +23,7 @@ export class SourceParser {
       let grammar = JavaScript;
       if (grammarKey === 'tsx') grammar = TypeScript.tsx;
       else if (language === 'typescript') grammar = TypeScript.typescript;
+      else if (language === 'php') grammar = PHP.php;
       parser.setLanguage(grammar as Parser.Language);
       this.parsers.set(grammarKey, parser);
     }

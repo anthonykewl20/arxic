@@ -1,0 +1,13 @@
+{
+  "name": "arxic/laravel-fixture-app",
+  "description": "Arxic-authored license-clean Laravel-shaped fixture for DG-01 route-inventory tests. Every route shape is drawn from real public Laravel applications (koel v13.24.0 / BookStack v12.64.0), but all code here is original Arxic authorship (MIT, same as the repository).",
+  "license": "MIT",
+  "require": {
+    "laravel/framework": "^13.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}
