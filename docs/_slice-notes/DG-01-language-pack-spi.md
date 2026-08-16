@@ -1,6 +1,6 @@
 # DG-01-language-pack-spi — staged doc updates (charter §10.2)
 
-Issue: #245 · PR: #264 · Disposition: verified (prototype + measurements) with recorded provisional conclusions pending ADR-008 §11 cross-review
+Issue: #245 · PR: #263 · Disposition: verified (prototype + measurements) with recorded provisional conclusions pending ADR-008 §11 cross-review
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
