@@ -112,6 +112,31 @@ function renderAction(transition: WorkflowTransition): {
 } {
   const inputRefs = Object.entries(transition.action.inputRefs ?? {});
   const intent = transition.action.intent.trim();
+  // DG-09 generic form-flow executor: when the intent names the submit
+  // control explicitly (`Submit <flow> via "<accessible name>"`), that
+  // inventory-supplied name parameterizes the form filter and click instead of
+  // the fixed auth submit-button list — domain-general by construction.
+  const viaControl = intent.match(/^submit\s+.+?\s+via\s+"(.+)"$/iu);
+  if (viaControl?.[1] && inputRefs.length > 0) {
+    const controlName = JSON.stringify(viaControl[1]);
+    const labels = inputRefs.map(([name]) => label(name));
+    const formFilter = labels
+      .map((value) => `.filter({ has: page.getByLabel(${JSON.stringify(value)}) })`)
+      .join('');
+    const submitButtonFilter = `.filter({ has: page.getByRole('button', { name: ${controlName}, exact: true }) })`;
+    return {
+      lines: [
+        `    const form = page.locator('form')${formFilter}${submitButtonFilter};`,
+        '    await expect(form).toHaveCount(1);',
+        ...inputRefs.map(
+          ([name, reference]) =>
+            `    await form.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
+        ),
+        `    await enforceNetworkContainment(page, () => form.getByRole('button', { name: ${controlName}, exact: true }).click());`,
+      ],
+      formScoped: true,
+    };
+  }
   if (/^(submit|log in|login|sign in)/iu.test(intent) && inputRefs.length > 0) {
     const labels = inputRefs.map(([name]) => label(name));
     const formFilter = labels

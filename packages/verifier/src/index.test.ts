@@ -26,6 +26,7 @@ import {
   ARXIC_VERIFY_DIAGNOSTIC_CODES,
   ARXIC_VERIFY_FLAKY_RUNS,
   ARXIC_VERIFY_REDACTION_FAILED,
+  ARXIC_VERIFY_RUN_FAILURE,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
   ARXIC_VERIFY_SCREENSHOT_PRIVACY,
   ARXIC_VERIFY_TRANSITIONS_MISSING,
@@ -266,7 +267,12 @@ describe('PlaywrightVerifier', () => {
     await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
-  test('blocks a failed run when artifact retention cannot prove its screenshot safe', async () => {
+  test('classifies a failed run honestly when artifact retention also fails (#258)', async () => {
+    // #258: a failed run structurally produces no checkpoint screenshots, so the
+    // screenshot inventory gate fails as a CONSEQUENCE. The old behavior let the
+    // artifact gate mask the run cause; the honest classification is
+    // contradicted with the failure evidence retained and the artifact gate
+    // reported alongside.
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
       runSuite: async () => {
@@ -275,7 +281,7 @@ describe('PlaywrightVerifier', () => {
         await writeFile(join(screenshots, 'step-1-login-page-profile.png'), validPng());
         return {
           passed: false,
-          output: 'assertion failed',
+          output: 'Error: expect(page).toHaveURL failed',
           exitCode: 1,
           networkErrors: [],
         };
@@ -287,36 +293,43 @@ describe('PlaywrightVerifier', () => {
       screenshotCheckpoints: ['home'],
     });
 
-    expect(result.outcome).toBe('blocked');
+    expect(result.outcome).toBe('contradicted');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_APP_DEFECT });
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_RUN_FAILURE);
     expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_ARTIFACT_MISSING);
   });
 
-  test('blocks a passing and failing split when artifact retention also fails', async () => {
+  test('classifies a passing and failing split honestly when artifact retention also fails (#258)', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
       runSuite: async (run) => ({
         passed: run === 1,
-        output: '',
+        output: run === 1 ? '' : 'Error: expect(page).toHaveURL failed',
         exitCode: run === 1 ? 0 : 1,
         networkErrors: [],
+        // The passing run carries its transition receipt; the failing run has
+        // none because the assertion aborted it — this test isolates the
+        // split + artifact-retention interaction, not receipt integrity.
+        ...(run === 1 ? { observedTransitions: ['login-page->home'] } : {}),
       }),
     });
 
     const result = await verifier.verify(fixture.bundle, { ...policy(2), trace: 'retain' });
 
-    expect(result.outcome).toBe('blocked');
+    expect(result.outcome).toBe('contradicted');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_FLAKY_RUNS });
     expect(result.runs).toEqual([{ passed: true }, { passed: false }]);
     expect(result.diagnostics).toEqual(
       expect.arrayContaining([expect.objectContaining({ code: ARXIC_VERIFY_ARTIFACT_MISSING })]),
     );
   });
 
-  test('blocks every failing runtime run when artifact retention also fails', async () => {
+  test('classifies every failing runtime run honestly when artifact retention also fails (#258)', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
       runSuite: async () => ({
         passed: false,
-        output: 'assertion failed',
+        output: 'Error: expect(page).toHaveURL failed',
         exitCode: 1,
         networkErrors: [],
       }),
@@ -324,8 +337,12 @@ describe('PlaywrightVerifier', () => {
 
     const result = await verifier.verify(fixture.bundle, policy(2));
 
-    expect(result.outcome).toBe('blocked');
-    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_ARTIFACT_MISSING });
+    expect(result.outcome).toBe('contradicted');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_APP_DEFECT });
+    expect(result.diagnostics.filter(({ code }) => code === ARXIC_VERIFY_RUN_FAILURE)).toHaveLength(
+      2,
+    );
+    expect(result.diagnostics.map(({ code }) => code)).toContain(ARXIC_VERIFY_ARTIFACT_MISSING);
   });
 
   test('blocks when clean fixture reset or seed is unavailable', async () => {
@@ -818,7 +835,9 @@ test('receipt-free probe', async ({ page }) => {
   test('validates every verifier diagnostic through the frozen contract', () => {
     for (const code of ARXIC_VERIFY_DIAGNOSTIC_CODES) {
       const severity =
-        code === ARXIC_VERIFY_FLAKY_RUNS || code === ARXIC_VERIFY_APP_DEFECT
+        code === ARXIC_VERIFY_FLAKY_RUNS ||
+        code === ARXIC_VERIFY_APP_DEFECT ||
+        code === ARXIC_VERIFY_RUN_FAILURE
           ? 'contradicted'
           : 'blocked';
       expect(

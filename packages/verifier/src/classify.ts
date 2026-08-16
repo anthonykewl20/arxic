@@ -6,6 +6,7 @@ import {
   ARXIC_VERIFY_BLOCKED_NETWORK,
   ARXIC_VERIFY_FLAKY_RUNS,
   ARXIC_VERIFY_REDACTION_FAILED,
+  ARXIC_VERIFY_RUN_FAILURE,
   ARXIC_VERIFY_SUITE_UNAVAILABLE,
   ARXIC_VERIFY_TRANSITIONS_MISSING,
   verifyDiagnostic,
@@ -17,6 +18,8 @@ export type ClassificationInput = {
   policy: VerificationPolicy;
   executionDiagnostics?: Diagnostic[];
   artifactFailures?: Array<{ reason: 'missing' | 'mismatch'; detail: string }>;
+  /** Redacted per-run failure summaries for failed runs (#258 evidence retention). */
+  runFailures?: string[];
   networkErrors?: string[];
   receiptFailures?: string[];
   receiptRedactionFailures?: string[];
@@ -52,20 +55,6 @@ export function classifyVerification(input: ClassificationInput): Classification
           'blocked',
           input.subject,
           `Network or console errors violated verification policy: ${input.networkErrors.join(', ')}`,
-        ),
-      ],
-    };
-  }
-  if (input.artifactFailures?.length) {
-    const mismatch = input.artifactFailures.some(({ reason }) => reason === 'mismatch');
-    return {
-      outcome: 'blocked',
-      diagnostics: [
-        verifyDiagnostic(
-          mismatch ? ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH : ARXIC_VERIFY_ARTIFACT_MISSING,
-          'blocked',
-          input.subject,
-          `Verification artifacts failed the gate: ${input.artifactFailures.map(({ detail }) => detail).join('; ')}`,
         ),
       ],
     };
@@ -122,31 +111,75 @@ export function classifyVerification(input: ClassificationInput): Classification
       ],
     };
   }
+  // #258: real run failures classify BEFORE the artifact gate. A failed run
+  // structurally produces no checkpoint screenshots, so the screenshot
+  // inventory gate fails as a consequence — reporting it INSTEAD of the run
+  // cause masked genuine app defects behind ARXIC-VERIFY-ARTIFACT-MISSING.
+  // The artifact-gate failure is now appended ALONGSIDE the honest cause.
+  const runOutcome = runOutcomeClassification(input, passed);
+  if (runOutcome) {
+    return {
+      outcome: runOutcome.outcome,
+      diagnostics: [
+        runOutcome.diagnostic,
+        ...runFailureDiagnostics(input),
+        ...artifactFailureDiagnostics(input),
+      ],
+    };
+  }
+  if (input.artifactFailures?.length) {
+    return {
+      outcome: 'blocked',
+      diagnostics: [artifactFailureDiagnostics(input)].flat(),
+    };
+  }
+  return { outcome: 'verified', diagnostics: [] };
+}
+
+function runOutcomeClassification(
+  input: ClassificationInput,
+  passed: number,
+): { outcome: 'contradicted'; diagnostic: Diagnostic } | undefined {
   if (passed > 0 && passed < input.runs.length) {
     return {
       outcome: 'contradicted',
-      diagnostics: [
-        verifyDiagnostic(
-          ARXIC_VERIFY_FLAKY_RUNS,
-          'contradicted',
-          input.subject,
-          'Verification split between passing and failing clean-fixture runs',
-        ),
-      ],
+      diagnostic: verifyDiagnostic(
+        ARXIC_VERIFY_FLAKY_RUNS,
+        'contradicted',
+        input.subject,
+        'Verification split between passing and failing clean-fixture runs',
+      ),
     };
   }
   if (input.runs.length > 0 && passed === 0) {
     return {
       outcome: 'contradicted',
-      diagnostics: [
-        verifyDiagnostic(
-          ARXIC_VERIFY_APP_DEFECT,
-          'contradicted',
-          input.subject,
-          'Runtime disproved the candidate in every clean-fixture run',
-        ),
-      ],
+      diagnostic: verifyDiagnostic(
+        ARXIC_VERIFY_APP_DEFECT,
+        'contradicted',
+        input.subject,
+        'Runtime disproved the candidate in every clean-fixture run',
+      ),
     };
   }
-  return { outcome: 'verified', diagnostics: [] };
+  return undefined;
+}
+
+function runFailureDiagnostics(input: ClassificationInput): Diagnostic[] {
+  return (input.runFailures ?? []).map((evidence) =>
+    verifyDiagnostic(ARXIC_VERIFY_RUN_FAILURE, 'contradicted', input.subject, evidence),
+  );
+}
+
+function artifactFailureDiagnostics(input: ClassificationInput): Diagnostic[] {
+  if (!input.artifactFailures?.length) return [];
+  const mismatch = input.artifactFailures.some(({ reason }) => reason === 'mismatch');
+  return [
+    verifyDiagnostic(
+      mismatch ? ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH : ARXIC_VERIFY_ARTIFACT_MISSING,
+      'blocked',
+      input.subject,
+      `Verification artifacts failed the gate: ${input.artifactFailures.map(({ detail }) => detail).join('; ')}`,
+    ),
+  ];
 }
