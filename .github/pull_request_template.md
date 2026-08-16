@@ -2,7 +2,7 @@
 
 ## Slice
 
-Closes #<issue number>  ·  Slice id: `<M0-03>`  ·  Milestone: `<Milestone 0 - Contracts and Spikes>`
+Refs #<issue number> · Slice id: `<M0-03>` · Milestone: `<Milestone 0 - Contracts and Spikes>`
 
 ## What & why
 
@@ -24,6 +24,15 @@ Closes #<issue number>  ·  Slice id: `<M0-03>`  ·  Milestone: `<Milestone 0 - 
 - [ ] `pnpm lint` green
 - [ ] `pnpm -r test` green
 - [ ] License gate (#7) green
+
+## Issue workflow (mandatory)
+
+- [ ] Issue labeled `in-progress` while worked
+- [ ] Progress comments posted on the issue for every meaningful change
+- [ ] Hand-off comment posted if stopping mid-flight
+- [ ] All Markdown documentation updated; no stale docs
+- [ ] Real-world proof attached: commands, artifacts, and CI-green result
+- [ ] Worktree (if any) was created under `.worktrees/` and removed after merge
 
 ## Slice completion ritual (charter §8 — MANDATORY, do not skip)
 

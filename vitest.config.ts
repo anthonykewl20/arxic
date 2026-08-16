@@ -5,6 +5,6 @@ export default defineConfig({
     environment: 'node',
     fileParallelism: false,
     include: ['packages/**/*.test.ts', 'apps/**/*.test.ts', 'scripts/**/*.test.mjs'],
-    exclude: ['**/node_modules/**', '**/dist/**', 'test-fixtures/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', 'test-fixtures/**', '.worktrees/**'],
   },
 });
