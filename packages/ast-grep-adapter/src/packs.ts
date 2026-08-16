@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { isAbsolute, join, relative, resolve } from 'node:path';
+import { basename, isAbsolute, join, relative, resolve } from 'node:path';
 import { ARXIC_RULES_CONFLICT, ARXIC_RULES_PACK_INVALID, rulesDiagnostic } from './diagnostics';
 import type { Diagnostic } from '@arxic/contracts';
 
@@ -133,12 +133,15 @@ export async function loadPacks(directories: string[]): Promise<PackLoadResult> 
   for (const directory of [...directories].sort()) {
     try {
       packs.push(await loadPack(resolve(directory)));
-    } catch (error) {
+    } catch {
+      // User-facing diagnostics never carry install paths (DG-10, #254): the
+      // pack directory NAME identifies the pack; the underlying error text
+      // (e.g. an ENOENT with the full path) stays in process logs only.
       diagnostics.push(
         rulesDiagnostic(
           ARXIC_RULES_PACK_INVALID,
-          directory,
-          error instanceof Error ? error.message : String(error),
+          basename(resolve(directory)),
+          `rulepack '${basename(resolve(directory))}' could not be loaded: it is missing a readable pack.json or its rules are malformed`,
         ),
       );
     }

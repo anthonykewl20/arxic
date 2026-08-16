@@ -44,13 +44,14 @@
     "tree-sitter-typescript": "^0.23.2"
   },
   "devDependencies": {
+    "@arxic/ast-grep-adapter": "workspace:*",
     "@arxic/auth-domain-pack": "workspace:*",
     "@arxic/bundle-promoter": "workspace:*",
     "@arxic/contracts": "workspace:*",
     "@arxic/model-adapter": "workspace:*",
+    "@arxic/orchestrator-langgraph": "workspace:*",
     "@arxic/playwright-screenshot-privacy": "workspace:*",
     "@arxic/verifier": "workspace:*",
-    "@arxic/orchestrator-langgraph": "workspace:*",
     "@arxic/worker": "workspace:*",
     "tsup": "^8.5.0",
     "yaml": "^2.9.0"

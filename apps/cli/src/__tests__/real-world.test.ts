@@ -278,7 +278,9 @@ source:
   languages: [typescript, javascript]
 scope:
   domains: [authentication]
-  frameworks: [nextjs, react]
+  # DG-10 (#254): only frameworks with an installed rulepack may be scoped —
+  # the react placeholder dir ships no pack, so naming it now fails fast.
+  frameworks: [nextjs]
   browsers: [chromium]
   personas: [anonymous, registered-user]
 target:

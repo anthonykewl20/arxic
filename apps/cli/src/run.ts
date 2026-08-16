@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { sha256, validateDiagnostic, type Diagnostic } from '@arxic/contracts';
 import type { RunState } from '@arxic/orchestrator-langgraph';
 import { loadConfig } from './config/parse';
+import { frameworkGateDiagnostics } from './config/framework-gate';
 import { ARXIC_CLI_INTERNAL, ARXIC_EXEC_CRASH, cliDiagnostic } from './diagnostics';
 import type { CliRunOutcome, DiagnosticSink, RunExecutor, RunResult } from './executor';
 import { writeRunDirectory } from './run-directory';
@@ -50,6 +51,19 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
     },
   };
   const startedAt = now();
+  // DG-10 (#254): unknown or out-of-range frameworks fail fast here — before
+  // any crawl — instead of surfacing as a late stage-3 block. Waived and
+  // accepted verdicts ride along as observed diagnostics for the run record.
+  const gate = await frameworkGateDiagnostics({
+    rulepacksDir,
+    frameworks: loaded.value.scope.frameworks,
+    repositoryRoot: repositoryDirectory,
+  });
+  if (gate) {
+    for (const diagnostic of gate) recordingSink.emit(diagnostic);
+    if (gate.some((diagnostic) => diagnostic.severity === 'blocked'))
+      return { exitCode: 2, diagnostics };
+  }
   let result: RunResult;
   try {
     result = await options.executor.execute(

@@ -1,0 +1,42 @@
+{
+  "label": "koel/koel @ dfec91ff290509c622ff7cf392fb5e506841ee2b (MIT; DG-05-pinned commit)",
+  "sources": ["composer.json (real, complete)", "composer.lock (real excerpt: laravel/framework)"],
+  "detected": [
+    {
+      "name": "laravel",
+      "version": "13.24.0",
+      "tier": "lockfile",
+      "evidence": [
+        {
+          "path": "composer.lock",
+          "startLine": 5,
+          "endLine": 5,
+          "ruleId": "framework-evidence:laravel@13.24.0",
+          "blobSha256": "7db507d10545…"
+        },
+        {
+          "path": "composer.json",
+          "startLine": 13,
+          "endLine": 13,
+          "ruleId": "framework-evidence:laravel",
+          "blobSha256": "fa70b56745ea…"
+        }
+      ]
+    }
+  ],
+  "gateVerdicts": [
+    {
+      "framework": "laravel",
+      "packId": "",
+      "verdict": "unknown"
+    }
+  ],
+  "gateDiagnostics": [
+    {
+      "code": "ARXIC-RULES-FRAMEWORK-UNKNOWN",
+      "severity": "blocked",
+      "subject": "framework:laravel",
+      "message": "framework 'laravel' has no installed rulepack (available: express, nextjs); no rules can run"
+    }
+  ]
+}

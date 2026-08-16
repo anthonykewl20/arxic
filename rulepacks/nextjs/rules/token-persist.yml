@@ -8,7 +8,7 @@ metadata:
   arxic:
     category: token-persist
     semver: 1.0.0
-    frameworkVersions: '>=15 <16'
+    frameworkVersions: '>=15 <17'
     precision: Captures prepared write statement and values for later SQL classification
     fallback: ORM persistence requires provider-specific rules
     license: MIT

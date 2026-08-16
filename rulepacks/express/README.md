@@ -1,6 +1,6 @@
 # Express auth rule pack
 
-Pack `express-auth@0.1.0` declares framework metadata `express` with version range `>=4 <6`; callers select it with `framework: 'express'`. Version-range enforcement is deferred to M1 orchestration. All rules are original Arxic work, MIT licensed, with provenance `original-arxic`.
+Pack `express-auth@0.1.0` declares framework metadata `express` with version range `>=4 <6`; callers select it with `framework: 'express'`. **Since DG-10 (#254, ADR-008 Decision 9) the range is normative**: framework+version are detected from source evidence (lockfiles first, then package.json manifests — a declared range like `^5.1.0` accepts only when every installable version lies inside the pack range — then imports), and an out-of-range detection blocks rule selection with `ARXIC-RULES-FRAMEWORK-REJECTED`. A deliberate operator override is a recorded waiver in the target repository's `arxic.waivers.json` (`ARXIC-RULES-FRAMEWORK-WAIVED`), never an implicit compatibility claim. All rules are original Arxic work, MIT licensed, with provenance `original-arxic`.
 
 | Rule id                  | Category       | Language   | Semver | Precision / fallback note                                                        |
 | ------------------------ | -------------- | ---------- | ------ | -------------------------------------------------------------------------------- |

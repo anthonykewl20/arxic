@@ -1,0 +1,142 @@
+[
+  {
+    "scenario": "cell-1-accept",
+    "verdict": "accepted",
+    "matchedRules": 1,
+    "frameworks": [
+      {
+        "name": "nextjs",
+        "version": "16.2.6",
+        "tier": "lockfile",
+        "evidence": [
+          {
+            "path": "pnpm-lock.yaml",
+            "startLine": 12,
+            "endLine": 12,
+            "ruleId": "framework-evidence:nextjs@16.2.6",
+            "blobSha256": "8d0775bdcb30…"
+          },
+          {
+            "path": "package.json",
+            "startLine": 5,
+            "endLine": 5,
+            "ruleId": "framework-evidence:nextjs@16.2.6",
+            "blobSha256": "d70ab04f262f…"
+          }
+        ]
+      },
+      {
+        "name": "react",
+        "version": "19.2.3",
+        "tier": "lockfile",
+        "evidence": [
+          {
+            "path": "pnpm-lock.yaml",
+            "startLine": 15,
+            "endLine": 15,
+            "ruleId": "framework-evidence:react@19.2.3",
+            "blobSha256": "8d0775bdcb30…"
+          },
+          {
+            "path": "package.json",
+            "startLine": 6,
+            "endLine": 6,
+            "ruleId": "framework-evidence:react@19.2.3",
+            "blobSha256": "d70ab04f262f…"
+          }
+        ]
+      }
+    ],
+    "diagnostics": [
+      {
+        "code": "ARXIC-RULES-CHAIN-INCOMPLETE",
+        "severity": "hypothesized",
+        "subject": "nextjs:/login",
+        "message": "Route /login has no evidenced handler; feature is not claimed"
+      },
+      {
+        "code": "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+        "severity": "observed",
+        "subject": "framework:nextjs",
+        "message": "framework 'nextjs' 16.2.6 (lockfile evidence) is inside pack nextjs-auth@0.1.0 range >=15 <17"
+      }
+    ]
+  },
+  {
+    "scenario": "cell-2-reject-campaign",
+    "verdict": "rejected",
+    "matchedRules": 0,
+    "diagnostics": [
+      {
+        "code": "ARXIC-RULES-FRAMEWORK-REJECTED",
+        "severity": "blocked",
+        "subject": "framework:nextjs",
+        "message": "framework 'nextjs' 16.2.6 (lockfile evidence) is outside pack nextjs-campaign@1.0.0 range >=15 <16; record a waiver in arxic.waivers.json to override deliberately"
+      }
+    ],
+    "evidenceRefs": [
+      {
+        "path": "package.json",
+        "startLine": 5,
+        "endLine": 5,
+        "ruleId": "framework-evidence:nextjs@16.2.6",
+        "blobSha256": "d70ab04f262f…"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "startLine": 12,
+        "endLine": 12,
+        "ruleId": "framework-evidence:nextjs@16.2.6",
+        "blobSha256": "8d0775bdcb30…"
+      }
+    ]
+  },
+  {
+    "scenario": "cell-3-unknown",
+    "verdict": "unknown",
+    "matchedRules": 0,
+    "diagnostics": [
+      {
+        "code": "ARXIC-RULES-FRAMEWORK-UNKNOWN",
+        "severity": "blocked",
+        "subject": "framework:laravel",
+        "message": "framework 'laravel' has no installed rulepack (available: express, nextjs); no rules can run"
+      }
+    ]
+  },
+  {
+    "scenario": "cell-4-waived",
+    "verdict": "waived",
+    "matchedRules": 1,
+    "diagnostics": [
+      {
+        "code": "ARXIC-RULES-FRAMEWORK-WAIVED",
+        "severity": "observed",
+        "subject": "framework:nextjs",
+        "message": "operator anthonykewl20 waived 'nextjs' 16.2.6 against pack nextjs-campaign@1.0.0 range >=15 <16: operator reviewed the rules against this build (DG-10 evidence run) (recorded 2026-08-17T00:00:00.000Z)"
+      }
+    ],
+    "waiverEvidence": [
+      {
+        "path": "arxic.waivers.json",
+        "startLine": 5,
+        "endLine": 5,
+        "ruleId": "framework-waiver:nextjs@16.2.6",
+        "blobSha256": "1275e86b5490…"
+      }
+    ]
+  },
+  {
+    "scenario": "waiver-abuse-wrong-version",
+    "verdict": "rejected",
+    "matchedRules": 0,
+    "diagnostics": [
+      {
+        "code": "ARXIC-RULES-FRAMEWORK-REJECTED",
+        "severity": "blocked",
+        "subject": "framework:nextjs",
+        "message": "framework 'nextjs' 16.2.6 (lockfile evidence) is outside pack nextjs-campaign@1.0.0 range >=15 <16; record a waiver in arxic.waivers.json to override deliberately"
+      }
+    ]
+  }
+]

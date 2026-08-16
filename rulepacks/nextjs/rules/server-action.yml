@@ -10,7 +10,7 @@ metadata:
   arxic:
     category: handler
     semver: 1.0.0
-    frameworkVersions: '>=15 <16'
+    frameworkVersions: '>=15 <17'
     precision: Applied in use-server action modules and captures exported handler name
     fallback: Bound or composed actions need runtime reconciliation
     license: MIT

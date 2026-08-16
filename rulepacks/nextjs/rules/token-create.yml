@@ -8,7 +8,7 @@ metadata:
   arxic:
     category: token-create
     semver: 1.0.0
-    frameworkVersions: '>=15 <16'
+    frameworkVersions: '>=15 <17'
     precision: Direct cryptographic random byte token with size and encoding captures
     fallback: Provider-issued tokens require another rule
     license: MIT

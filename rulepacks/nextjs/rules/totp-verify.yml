@@ -10,7 +10,7 @@ metadata:
   arxic:
     category: totp-verify
     semver: 1.0.0
-    frameworkVersions: '>=15 <16'
+    frameworkVersions: '>=15 <17'
     precision: Direct otplib authenticator verification call
     fallback: Wrapped OTP providers require another rule
     license: MIT
