@@ -57,6 +57,8 @@ export type LaravelGap = {
   startLine?: number;
   endLine?: number;
   reason: string;
+  /** Best-effort estimate of routes hidden behind the gap, when knowable. */
+  estimatedRouteCount?: number;
 };
 
 export type LaravelHandlerRef = {
@@ -169,6 +171,23 @@ export async function inventoryLaravelRoutes(
     if (gapKeys.has(key)) return;
     gapKeys.add(key);
     gaps.push(gap);
+  };
+
+  /**
+   * Best-effort route-count estimate for an included route file (literal
+   * includes only): parse through the safe access seam and count Route::
+   * facade calls. Unreadable/unparseable targets return undefined — the gap is
+   * still emitted, the estimate is simply not claimed (DG-05 review P2).
+   */
+  const estimateRoutesInFile = async (includePath: string): Promise<number | undefined> => {
+    const read = await input.access.readRelative(includePath);
+    if (!read.ok) return undefined;
+    const parsed = parser.parse(includePath, 'php', read.text);
+    try {
+      return countRouteCalls(parsed.root);
+    } finally {
+      parsed.dispose();
+    }
   };
 
   const resolveHandlerRef = async (
@@ -299,6 +318,14 @@ export async function inventoryLaravelRoutes(
         ARXIC_SOURCE_ROUTE_DYNAMIC_REGISTRATION,
         `foreach over a non-literal iterable declares ${count} route call(s) that cannot be statically resolved`,
       );
+      recordGap({
+        kind: 'dynamic-registration',
+        sourcePath: input.path,
+        startLine: node.startPosition.row + 1,
+        endLine: node.endPosition.row + 1,
+        reason: `foreach over a non-literal iterable declares route call(s) that cannot be statically resolved`,
+        estimatedRouteCount: count,
+      });
       return;
     }
     const [keyVar, valueVar] = pair.namedChildren;
@@ -340,6 +367,8 @@ export async function inventoryLaravelRoutes(
           includeCall.path !== null
             ? `includes route file ${includeCall.path} (including group context not applied)`
             : 'includes a route file whose path is computed at runtime';
+        const estimate =
+          includeCall.path !== null ? await estimateRoutesInFile(includeCall.path) : undefined;
         advise(
           ARXIC_SOURCE_ROUTE_FILE_INCLUDE,
           `a ${expr.type.replace('_expression', '')} statement ${reason}`,
@@ -350,6 +379,7 @@ export async function inventoryLaravelRoutes(
           startLine: expr.startPosition.row + 1,
           endLine: expr.endPosition.row + 1,
           reason,
+          ...(estimate !== undefined ? { estimatedRouteCount: estimate } : {}),
         });
       }
       return;
@@ -420,6 +450,7 @@ export async function inventoryLaravelRoutes(
           const includeCall = basePathIncludeCall(argument);
           if (includeCall) {
             if (includeCall.path !== null) {
+              const estimate = await estimateRoutesInFile(includeCall.path);
               advise(
                 ARXIC_SOURCE_ROUTE_FILE_INCLUDE,
                 `route file ${includeCall.path} is included via Route::group; the including group prefix (${prefixes.slice(ctx.prefixes.length).join('/') || 'none'}) cannot be applied by the per-file scan`,
@@ -430,6 +461,7 @@ export async function inventoryLaravelRoutes(
                 startLine: groupCall.startPosition.row + 1,
                 endLine: groupCall.endPosition.row + 1,
                 reason: `includes route file ${includeCall.path} (including group context not applied)`,
+                ...(estimate !== undefined ? { estimatedRouteCount: estimate } : {}),
               });
             } else {
               advise(

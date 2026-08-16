@@ -31,3 +31,22 @@ the recorded literal counts. DG-02's stand-in on the same koel commit produced
 production pack resolves the subsonic literal `foreach` (the stand-in's gap),
 merges `Route::match`/resource update verb pairs to `route:list` shape, and
 adds provider-include accounting.
+
+**Cross-tool arithmetic (review fix, 2026-08-17):** the two tools reconcile
+exactly at koel@`dfec91ff` — the DG-02 stand-in's 188 routes are precisely the
+non-subsonic routes (verified: 188 interchange rows with
+`sourcePath != routes/subsonic.php`), and the subsonic
+`foreach`-driven file registers **51** `$endpoints` entries
+(`routes/subsonic.php:58-110` — each emitted as one merged `GET|POST` row):
+**188 non-subsonic + 51 subsonic = 239** interchange routes. (DG-01 §5.2 had
+recorded "49 subsonic endpoints" — stale; corrected in place with a dated
+note. DG-01's per-evidence-row count of 304 used the un-merged per-method
+evidence model and slightly undercounted the loop; DG-05's `route:list`-shaped
+239 is the more correct registration count.)
+
+Literal-include gaps carry `estimatedRouteCount` (parsed from the included
+file through the safe access seam; DG-02 interchange contract field, exercised
+since the DG-05 review round): BookStack `routes/web.php` include → 260,
+`routes/api.php` include → 78; koel `routes/channels.php` include → 0 (it
+registers `Broadcast::channel`, not routes — an honest zero); koel's
+dynamic-path include correctly omits the field (not knowable statically).

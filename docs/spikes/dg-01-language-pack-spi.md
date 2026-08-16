@@ -302,9 +302,14 @@ Both sit in the campaign's ~340-endpoint band, which was the point of the substi
 | `HANDLER-UNRESOLVED` advisories                  | 32                                                                                                 | 1                                                                                                |
 | Cross-check                                      | 304 = hand-count of call sites (103 verb + 83 resource-expanded + 20 web + 98 subsonic match rows) | 335 rows = 338 `Route::` call sites minus fallback/view/redirect collapses                       |
 
-The koel subsonic file's 49 loop+interpolation endpoints **resolved fully** (literal-array foreach
+The koel subsonic file's loop+interpolation endpoints **resolved fully** (literal-array foreach
 binding), which is why koel shows zero dynamic gaps — the pattern that motivated the loop
 resolution is real in the wild, not a toy.
+**Correction (2026-08-17, DG-05 review):** the subsonic `$endpoints` table has **51** entries at
+`routes/subsonic.php:58-110`, not 49 — DG-05's `route:list`-shaped interchange count at the same
+commit confirms exactly 51 subsonic routes (and 304 was correspondingly a slight undercount of
+the per-method evidence rows; the correct non-subsonic/subsonic reconciliation is 188 + 51 = 239
+registrations, recorded in `docs/evidence/DG-05/README.md`).
 
 ### 5.3 Version distribution (GitHub code search, `filename:composer.json`, 2026-08-16)
 

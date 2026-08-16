@@ -2922,14 +2922,16 @@
       "sourcePath": "app/App/Providers/RouteServiceProvider.php",
       "startLine": 49,
       "endLine": 49,
-      "reason": "includes route file routes/web.php (including group context not applied)"
+      "reason": "includes route file routes/web.php (including group context not applied)",
+      "estimatedRouteCount": 260
     },
     {
       "kind": "unresolved-file",
       "sourcePath": "app/App/Providers/RouteServiceProvider.php",
       "startLine": 72,
       "endLine": 72,
-      "reason": "includes route file routes/api.php (including group context not applied)"
+      "reason": "includes route file routes/api.php (including group context not applied)",
+      "estimatedRouteCount": 78
     },
     {
       "kind": "parse-error",

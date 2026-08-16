@@ -80,7 +80,9 @@ Route::match(['get', 'post'], "{$prefix}/ping", SongController::class);
     const source = `<?php
 use Illuminate\\Support\\Facades\\Route;
 
-foreach (config('subsonic.endpoints') as $endpoint => $controller) {
+$endpoints = config('subsonic.endpoints');
+
+foreach ($endpoints as $endpoint => $controller) {
     Route::match(['get', 'post'], "{$endpoint}", $controller);
 }
 `;
@@ -92,6 +94,20 @@ foreach (config('subsonic.endpoints') as $endpoint => $controller) {
     expect(result.routes).toEqual([]);
     expect(result.advisories.map((a) => a.code)).toEqual([
       'ARXIC-SOURCE-ROUTE-DYNAMIC-REGISTRATION',
+    ]);
+    // The gap reaches the interchange channel (not just the advisory stream)
+    // and carries the estimated route count from the loop body (DG-05 review:
+    // estimatedRouteCount must be exercised, never merely declared).
+    expect(result.gaps).toEqual([
+      {
+        kind: 'dynamic-registration',
+        sourcePath: 'routes/api.php',
+        startLine: 6,
+        endLine: 8,
+        reason:
+          'foreach over a non-literal iterable declares route call(s) that cannot be statically resolved',
+        estimatedRouteCount: 1,
+      },
     ]);
   });
 
@@ -478,7 +494,9 @@ Route::futureShinyRegistrar('x');
     // bookstack routes are included via
     // Route::group(['prefix' => 'api'], function () { require base_path('routes/api.php'); })
     // (app/App/Providers/RouteServiceProvider.php:64-73) — the per-file scan
-    // cannot apply the including group's prefix; the include must be visible.
+    // cannot apply the including group's prefix; the include must be visible,
+    // with an estimated route count parsed from the included file when the
+    // path is literal and readable (DG-05 review fix).
     const source = `<?php
 
 use Illuminate\\Support\\Facades\\Route;
@@ -490,11 +508,30 @@ Route::group(['prefix' => 'api'], static function (): void {
     const result = await inventoryLaravelRoutes({
       path: 'app/Providers/RouteServiceProvider.php',
       parsed: parse(source),
-      access: accessWith({ 'composer.json': COMPOSER }),
+      access: accessWith({
+        'composer.json': COMPOSER,
+        'routes/api.php': `<?php
+
+use Illuminate\\Support\\Facades\\Route;
+
+Route::get('songs', static fn () => null);
+Route::post('albums', static fn () => null);
+`,
+      }),
     });
     expect(result.routes).toEqual([]);
     expect(result.advisories.map((a) => a.code)).toEqual(['ARXIC-SOURCE-ROUTE-FILE-INCLUDE']);
     expect(result.advisories[0]?.message).toContain('routes/api.php');
+    expect(result.gaps).toEqual([
+      {
+        kind: 'unresolved-file',
+        sourcePath: 'app/Providers/RouteServiceProvider.php',
+        startLine: 6,
+        endLine: 6,
+        reason: expect.stringContaining('routes/api.php'),
+        estimatedRouteCount: 2,
+      },
+    ]);
   });
 
   it('advises ARXIC-SOURCE-ROUTE-FILE-INCLUDE for a direct string include group', async () => {

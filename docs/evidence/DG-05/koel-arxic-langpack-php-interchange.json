@@ -2341,7 +2341,8 @@
       "sourcePath": "app/Providers/BroadcastServiceProvider.php",
       "startLine": 14,
       "endLine": 14,
-      "reason": "includes route file routes/channels.php (including group context not applied)"
+      "reason": "includes route file routes/channels.php (including group context not applied)",
+      "estimatedRouteCount": 0
     },
     {
       "kind": "unresolved-file",

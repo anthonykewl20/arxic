@@ -41,6 +41,8 @@ export type InterchangeGap = {
   startLine?: number;
   endLine?: number;
   reason: string;
+  /** Best-effort estimate of routes hidden behind the gap, when knowable. */
+  estimatedRouteCount?: number;
 };
 
 export type RouteInventoryInterchange = {
@@ -127,6 +129,9 @@ export function toRouteInventoryInterchange(input: {
           }
         : {}),
       reason: gap.reason,
+      ...(gap.estimatedRouteCount !== undefined
+        ? { estimatedRouteCount: gap.estimatedRouteCount }
+        : {}),
     }))
     .sort((a, b) =>
       codepointCompare(
