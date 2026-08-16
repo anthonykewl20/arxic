@@ -22,15 +22,17 @@ import {
   ARXIC_VERIFY_ARTIFACT_MISSING,
   ARXIC_VERIFY_RUN_FAILURE,
 } from './diagnostics';
+import { PlaywrightCompiler, buildFormFlowWorkflow } from '@arxic/playwright-compiler';
+// Deep import: the redirect app is TEST SUPPORT (node:sqlite) and is
+// deliberately not re-exported from the package index — see the note in
+// packages/playwright-compiler/src/index.ts.
 import {
-  PlaywrightCompiler,
-  buildFormFlowWorkflow,
   resetAndSeedRedirectApp,
   startRedirectLoginApp,
   stopRedirectLoginApp,
   redirectAppReady,
   type RedirectLoginAppOptions,
-} from '@arxic/playwright-compiler';
+} from '@arxic/playwright-compiler/src/test-support/redirect-login-app';
 
 const COMMIT = '0123456789abcdef0123456789abcdef01234567';
 const PERSONA = {
