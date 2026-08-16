@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### changed
 
+- Changed ADR-008 Decision 5 to a reuse-first language-breadth mandate after an
+  owner challenge, recording the verified upstream Understand-Anything language
+  surface and re-scoping DG-01 (refs #244, refs #245).
 - Changed repository issue governance: mandatory `in-progress` labeling and progress comments, proof-gated closure, hand-offs, current documentation, and inside-project `.worktrees/` cleanup (refs #244).
 - Consolidated M0 capstone verification on `@arxic/verifier` while retaining M0-specific orchestration gates and the real-Chromium capstone flow (refs #179).
 - Wired stage-7 fixture leases through stage-8 reversible exploration and terminal lifecycle cleanup (refs #180).
