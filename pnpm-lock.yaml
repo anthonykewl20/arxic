@@ -540,6 +540,9 @@ importers:
       tree-sitter-javascript:
         specifier: ^0.23.1
         version: 0.23.1(tree-sitter@0.22.4)
+      tree-sitter-php:
+        specifier: ^0.23.12
+        version: 0.23.12(tree-sitter@0.22.4)
       tree-sitter-typescript:
         specifier: ^0.23.2
         version: 0.23.2(tree-sitter@0.22.4)
@@ -4721,6 +4724,14 @@ packages:
 
   tree-sitter-javascript@0.23.1:
     resolution: {integrity: sha512-/bnhbrTD9frUYHQTiYnPcxyHORIw157ERBa6dqzaKxvR/x3PC4Yzd+D1pZIMS6zNg2v3a8BZ0oK7jHqsQo9fWA==}
+    peerDependencies:
+      tree-sitter: ^0.21.1
+    peerDependenciesMeta:
+      tree-sitter:
+        optional: true
+
+  tree-sitter-php@0.23.12:
+    resolution: {integrity: sha512-VwkBVOahhC2NYXK/Fuqq30NxuL/6c2hmbxEF4jrB7AyR5rLc7nT27mzF3qoi+pqx9Gy2AbXnGezF7h4MeM6YRA==}
     peerDependencies:
       tree-sitter: ^0.21.1
     peerDependenciesMeta:
@@ -9543,6 +9554,13 @@ snapshots:
   tree-kill@1.2.2: {}
 
   tree-sitter-javascript@0.23.1(tree-sitter@0.22.4):
+    dependencies:
+      node-addon-api: 8.9.1
+      node-gyp-build: 4.8.4
+    optionalDependencies:
+      tree-sitter: 0.22.4
+
+  tree-sitter-php@0.23.12(tree-sitter@0.22.4):
     dependencies:
       node-addon-api: 8.9.1
       node-gyp-build: 4.8.4

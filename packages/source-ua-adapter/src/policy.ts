@@ -12,7 +12,7 @@ import {
   type SourceDiagnosticCode,
 } from './diagnostics';
 
-export type SupportedSourceLanguage = 'typescript' | 'javascript';
+export type SupportedSourceLanguage = 'typescript' | 'javascript' | 'php';
 
 export type SourceScanFailure =
   | 'binary'
@@ -50,7 +50,7 @@ const FAILURE_CODES: Record<SourceScanFailure, SourceDiagnosticCode> = {
 
 export const DEFAULT_SOURCE_SCAN_POLICY: SourceScanPolicy = Object.freeze({
   maxFileSizeBytes: 1024 * 1024,
-  supportedLanguages: Object.freeze<SupportedSourceLanguage[]>(['typescript', 'javascript']),
+  supportedLanguages: Object.freeze<SupportedSourceLanguage[]>(['typescript', 'javascript', 'php']),
   extraIgnores: Object.freeze<string[]>([]),
   classifyFailure: (failure: SourceScanFailure, subject: string, detail: string) =>
     sourceDiagnostic(FAILURE_CODES[failure], subject, detail),

@@ -10,7 +10,14 @@ export type ManifestFile = {
   language: string;
   category: SourceCategory;
   status: 'indexed' | 'skipped';
-  reason?: 'binary' | 'oversize' | 'parse-error' | 'unsupported-language' | 'dirty' | 'unsafe-file';
+  reason?:
+    | 'binary'
+    | 'oversize'
+    | 'parse-error'
+    | 'unsupported-language'
+    | 'dirty'
+    | 'unsafe-file'
+    | 'grammar-unavailable';
 };
 
 const LANGUAGES: Record<string, SupportedSourceLanguage> = {
@@ -20,6 +27,7 @@ const LANGUAGES: Record<string, SupportedSourceLanguage> = {
   '.jsx': 'javascript',
   '.mjs': 'javascript',
   '.cjs': 'javascript',
+  '.php': 'php',
 };
 
 export function detectLanguage(path: string): string {

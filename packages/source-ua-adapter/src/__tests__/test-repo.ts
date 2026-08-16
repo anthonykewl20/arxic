@@ -32,9 +32,12 @@ async function git(cwd: string, ...args: string[]): Promise<string> {
 export async function makeRepository(
   fixture?: 'reference-auth-app' | 'vulnerable-auth-app',
   extraFiles: Record<string, string | Buffer> = {},
+  fixtureDirectory?: string,
 ): Promise<TestRepository> {
   const directory = await mkdtemp(join(tmpdir(), 'arxic-source-ua-'));
-  if (fixture) {
+  if (fixtureDirectory) {
+    await cp(fixtureDirectory, directory, { recursive: true });
+  } else if (fixture) {
     const source = join(root, 'test-fixtures', fixture);
     await cp(source, directory, {
       recursive: true,

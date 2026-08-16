@@ -1,0 +1,76 @@
+{
+  "label": "bookstack",
+  "repository": "https://github.com/BookStackApp/BookStack",
+  "commit": "c813c1b3628c0b6bd757c12cadaa56f50724117d",
+  "scannedAt": "2026-08-16T11:17:39.000Z",
+  "php": {
+    "filesTotal": 1770,
+    "filesIndexed": 1769,
+    "parseErrors": 1,
+    "parseFailureRate": 0.000565,
+    "parseErrorPaths": ["resources/views/misc/opensearch.blade.php"],
+    "otherSkips": []
+  },
+  "routes": {
+    "endpointRows": 335,
+    "distinctMethodUri": 326,
+    "duplicateMethodUri": [
+      {
+        "key": "GET /books",
+        "count": 2
+      },
+      {
+        "key": "POST /books",
+        "count": 2
+      },
+      {
+        "key": "DELETE /books/{id}",
+        "count": 2
+      },
+      {
+        "key": "GET /shelves",
+        "count": 2
+      },
+      {
+        "key": "POST /shelves",
+        "count": 2
+      },
+      {
+        "key": "GET /attachments/{id}",
+        "count": 2
+      },
+      {
+        "key": "PUT /attachments/{id}",
+        "count": 2
+      },
+      {
+        "key": "DELETE /attachments/{id}",
+        "count": 2
+      },
+      {
+        "key": "GET /search",
+        "count": 2
+      }
+    ]
+  },
+  "handlers": {
+    "resolved": 332,
+    "distinct": 327
+  },
+  "advisories": {
+    "routeDynamicRegistration": 0,
+    "handlerUnresolved": 1,
+    "byCode": {
+      "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE": 368,
+      "ARXIC-SOURCE-BINARY-FILE": 20,
+      "ARXIC-SOURCE-PARSE-ERROR": 2,
+      "ARXIC-SOURCE-HANDLER-UNRESOLVED": 1
+    }
+  },
+  "toolVersions": {
+    "tree-sitter": "0.22.4",
+    "tree-sitter-javascript": "0.23.1",
+    "tree-sitter-typescript": "0.23.2",
+    "tree-sitter-php": "0.23.12"
+  }
+}
