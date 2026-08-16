@@ -1,0 +1,1330 @@
+{
+  "kind": "dg04-scale-matrix",
+  "generatedAt": "2026-08-16T11:07:46.694Z",
+  "target": {
+    "repository": "/tmp/opencode/directus",
+    "commit": "cb846b6a1ddc4811359bc52b74bb31a42eab33db",
+    "rows": 272,
+    "domainHints": 80,
+    "unsupportedLanguageDiagnostics": 1291
+  },
+  "model": "openai/gpt-4o-mini",
+  "pricing": {
+    "note": "Cost = measured tokens x list price passed by the operator; prices must be re-verified at read time.",
+    "pricePerMillionPrompt": 0.15,
+    "pricePerMillionCompletion": 0.6
+  },
+  "runs": [
+    {
+      "strategy": "per-domain",
+      "calls": 80,
+      "promptTokens": 42374,
+      "completionTokens": 23114,
+      "latencyMsTotal": 332992,
+      "latencyMsMaxCall": 12085,
+      "proposals": 202,
+      "coveredRows": 226,
+      "rejected": 0,
+      "dedupeDropped": 0,
+      "estimatedPromptTokens": 15812,
+      "estimatedCostUsd": 0.0202245
+    },
+    {
+      "strategy": "one-shot",
+      "calls": 1,
+      "promptTokens": 18595,
+      "completionTokens": 958,
+      "latencyMsTotal": 9888,
+      "latencyMsMaxCall": 9888,
+      "proposals": 10,
+      "coveredRows": 10,
+      "rejected": 0,
+      "dedupeDropped": 0,
+      "estimatedPromptTokens": 15812,
+      "estimatedCostUsd": 0.00336405
+    }
+  ],
+  "details": [
+    {
+      "strategy": "per-domain",
+      "calls": [
+        {
+          "callId": "call:0:1",
+          "strategyTag": "per-domain:access:0",
+          "rows": 7,
+          "latencyMs": 6802,
+          "requestId": "gen-1786878123-hsm7T9C0wJQYZm1E7kH1",
+          "tokens": {
+            "prompt": 733,
+            "completion": 573,
+            "total": 1306
+          }
+        },
+        {
+          "callId": "call:1:1",
+          "strategyTag": "per-domain:acs:0",
+          "rows": 1,
+          "latencyMs": 2884,
+          "requestId": "gen-1786878130-14sQUvP7XFNNsZwyl2rf",
+          "tokens": {
+            "prompt": 369,
+            "completion": 132,
+            "total": 501
+          }
+        },
+        {
+          "callId": "call:2:1",
+          "strategyTag": "per-domain:activate:0",
+          "rows": 1,
+          "latencyMs": 2483,
+          "requestId": "gen-1786878133-QJXFsXkconHU4ZGpB4aP",
+          "tokens": {
+            "prompt": 372,
+            "completion": 121,
+            "total": 493
+          }
+        },
+        {
+          "callId": "call:3:1",
+          "strategyTag": "per-domain:activity:0",
+          "rows": 2,
+          "latencyMs": 3140,
+          "requestId": "gen-1786878136-8KojLFNDYYQJoHNOkp0d",
+          "tokens": {
+            "prompt": 432,
+            "completion": 218,
+            "total": 650
+          }
+        },
+        {
+          "callId": "call:4:1",
+          "strategyTag": "per-domain:addons:0",
+          "rows": 5,
+          "latencyMs": 5811,
+          "requestId": "gen-1786878139-fO3ygObWMnu2uECIP6m1",
+          "tokens": {
+            "prompt": 643,
+            "completion": 479,
+            "total": 1122
+          }
+        },
+        {
+          "callId": "call:5:1",
+          "strategyTag": "per-domain:admin:0",
+          "rows": 6,
+          "latencyMs": 6804,
+          "requestId": "gen-1786878144-1voCUIuTxdEifgaVyitG",
+          "tokens": {
+            "prompt": 735,
+            "completion": 529,
+            "total": 1264
+          }
+        },
+        {
+          "callId": "call:6:1",
+          "strategyTag": "per-domain:app:0",
+          "rows": 3,
+          "latencyMs": 4060,
+          "requestId": "gen-1786878151-KVl5QnPFUDPOF7ciuTZu",
+          "tokens": {
+            "prompt": 504,
+            "completion": 319,
+            "total": 823
+          }
+        },
+        {
+          "callId": "call:7:1",
+          "strategyTag": "per-domain:apply:0",
+          "rows": 1,
+          "latencyMs": 3014,
+          "requestId": "gen-1786878155-lHzsS29FArt8BdiuB6LS",
+          "tokens": {
+            "prompt": 365,
+            "completion": 124,
+            "total": 489
+          }
+        },
+        {
+          "callId": "call:8:1",
+          "strategyTag": "per-domain:assets:0",
+          "rows": 1,
+          "latencyMs": 2064,
+          "requestId": "gen-1786878158-vnNhYxzRL3ZuVe9JTQ1U",
+          "tokens": {
+            "prompt": 374,
+            "completion": 143,
+            "total": 517
+          }
+        },
+        {
+          "callId": "call:9:1",
+          "strategyTag": "per-domain:assets-test:0",
+          "rows": 1,
+          "latencyMs": 2532,
+          "requestId": "gen-1786878160-ojX0nIulqYNlEC8krfLk",
+          "tokens": {
+            "prompt": 368,
+            "completion": 114,
+            "total": 482
+          }
+        },
+        {
+          "callId": "call:10:1",
+          "strategyTag": "per-domain:auth:0",
+          "rows": 2,
+          "latencyMs": 3504,
+          "requestId": "gen-1786878163-PLGrvbaHeJonnkbHH6ik",
+          "tokens": {
+            "prompt": 431,
+            "completion": 204,
+            "total": 635
+          }
+        },
+        {
+          "callId": "call:11:1",
+          "strategyTag": "per-domain:cache:0",
+          "rows": 1,
+          "latencyMs": 2001,
+          "requestId": "gen-1786878166-MrRIe3Bm1dXjocUnhgDu",
+          "tokens": {
+            "prompt": 368,
+            "completion": 120,
+            "total": 488
+          }
+        },
+        {
+          "callId": "call:12:1",
+          "strategyTag": "per-domain:callback:0",
+          "rows": 4,
+          "latencyMs": 3975,
+          "requestId": "gen-1786878168-SIj472PXcUFF9YaOpV6P",
+          "tokens": {
+            "prompt": 581,
+            "completion": 266,
+            "total": 847
+          }
+        },
+        {
+          "callId": "call:13:1",
+          "strategyTag": "per-domain:collections:0",
+          "rows": 6,
+          "latencyMs": 5038,
+          "requestId": "gen-1786878172-odloBwIshOQhGMTMzk9e",
+          "tokens": {
+            "prompt": 697,
+            "completion": 428,
+            "total": 1125
+          }
+        },
+        {
+          "callId": "call:14:1",
+          "strategyTag": "per-domain:comments:0",
+          "rows": 7,
+          "latencyMs": 6572,
+          "requestId": "gen-1786878177-ilfRN9Miqh6EuRzvikjq",
+          "tokens": {
+            "prompt": 754,
+            "completion": 635,
+            "total": 1389
+          }
+        },
+        {
+          "callId": "call:15:1",
+          "strategyTag": "per-domain:dashboards:0",
+          "rows": 7,
+          "latencyMs": 5940,
+          "requestId": "gen-1786878184-XWkcYk7JOUjCgG55ualS",
+          "tokens": {
+            "prompt": 775,
+            "completion": 411,
+            "total": 1186
+          }
+        },
+        {
+          "callId": "call:16:1",
+          "strategyTag": "per-domain:deactivate:0",
+          "rows": 1,
+          "latencyMs": 2468,
+          "requestId": "gen-1786878190-ltu5nMDYNSkgPbb7tyfA",
+          "tokens": {
+            "prompt": 371,
+            "completion": 124,
+            "total": 495
+          }
+        },
+        {
+          "callId": "call:17:1",
+          "strategyTag": "per-domain:deployment:0",
+          "rows": 14,
+          "latencyMs": 6402,
+          "requestId": "gen-1786878192-evbR3yGVJr9KZ0Ia8jxZ",
+          "tokens": {
+            "prompt": 1299,
+            "completion": 509,
+            "total": 1808
+          }
+        },
+        {
+          "callId": "call:18:1",
+          "strategyTag": "per-domain:deployment-webhooks:0",
+          "rows": 1,
+          "latencyMs": 3340,
+          "requestId": "gen-1786878199-IKYgQslBnrfU8Cj4STNF",
+          "tokens": {
+            "prompt": 374,
+            "completion": 135,
+            "total": 509
+          }
+        },
+        {
+          "callId": "call:19:1",
+          "strategyTag": "per-domain:diff:0",
+          "rows": 1,
+          "latencyMs": 4138,
+          "requestId": "gen-1786878202-nVmNaI6JDw967CXUo3pT",
+          "tokens": {
+            "prompt": 365,
+            "completion": 225,
+            "total": 590
+          }
+        },
+        {
+          "callId": "call:20:1",
+          "strategyTag": "per-domain:error-handler-test:0",
+          "rows": 1,
+          "latencyMs": 2986,
+          "requestId": "gen-1786878206-NnEsyBwxGNstR69o6AA0",
+          "tokens": {
+            "prompt": 369,
+            "completion": 130,
+            "total": 499
+          }
+        },
+        {
+          "callId": "call:21:1",
+          "strategyTag": "per-domain:export:0",
+          "rows": 1,
+          "latencyMs": 2941,
+          "requestId": "gen-1786878209-K8luGu1niUchgj75dzDd",
+          "tokens": {
+            "prompt": 368,
+            "completion": 137,
+            "total": 505
+          }
+        },
+        {
+          "callId": "call:22:1",
+          "strategyTag": "per-domain:extensions:0",
+          "rows": 1,
+          "latencyMs": 2958,
+          "requestId": "gen-1786878212-hMwDyQZSoOsgMuzdZvWx",
+          "tokens": {
+            "prompt": 365,
+            "completion": 123,
+            "total": 488
+          }
+        },
+        {
+          "callId": "call:23:1",
+          "strategyTag": "per-domain:fields:0",
+          "rows": 7,
+          "latencyMs": 12085,
+          "requestId": "gen-1786878215-yruFVP2hJl40wPVK3pQJ",
+          "tokens": {
+            "prompt": 786,
+            "completion": 686,
+            "total": 1472
+          }
+        },
+        {
+          "callId": "call:24:1",
+          "strategyTag": "per-domain:files:0",
+          "rows": 8,
+          "latencyMs": 6636,
+          "requestId": "gen-1786878227-Y9duCyOKMlwjbdvP6Vsq",
+          "tokens": {
+            "prompt": 820,
+            "completion": 548,
+            "total": 1368
+          }
+        },
+        {
+          "callId": "call:25:1",
+          "strategyTag": "per-domain:flows:0",
+          "rows": 7,
+          "latencyMs": 7541,
+          "requestId": "gen-1786878234-ZB1gMC8rkCMkkvTUWU5b",
+          "tokens": {
+            "prompt": 768,
+            "completion": 592,
+            "total": 1360
+          }
+        },
+        {
+          "callId": "call:26:1",
+          "strategyTag": "per-domain:folder:0",
+          "rows": 1,
+          "latencyMs": 3058,
+          "requestId": "gen-1786878242-Ci3xOsFMHvnMcKrxItmc",
+          "tokens": {
+            "prompt": 370,
+            "completion": 125,
+            "total": 495
+          }
+        },
+        {
+          "callId": "call:27:1",
+          "strategyTag": "per-domain:folders:0",
+          "rows": 7,
+          "latencyMs": 6075,
+          "requestId": "gen-1786878245-iWkUhpkWJW5eAAeKe0qS",
+          "tokens": {
+            "prompt": 758,
+            "completion": 498,
+            "total": 1256
+          }
+        },
+        {
+          "callId": "call:28:1",
+          "strategyTag": "per-domain:health:0",
+          "rows": 1,
+          "latencyMs": 3992,
+          "requestId": "gen-1786878251-ThLurllQ7RNiVtdcOyrs",
+          "tokens": {
+            "prompt": 366,
+            "completion": 119,
+            "total": 485
+          }
+        },
+        {
+          "callId": "call:29:1",
+          "strategyTag": "per-domain:import:0",
+          "rows": 3,
+          "latencyMs": 4216,
+          "requestId": "gen-1786878255-QcTJDXI30ESyPg5aDdny",
+          "tokens": {
+            "prompt": 496,
+            "completion": 375,
+            "total": 871
+          }
+        },
+        {
+          "callId": "call:30:1",
+          "strategyTag": "per-domain:index:0",
+          "rows": 4,
+          "latencyMs": 3766,
+          "requestId": "gen-1786878259-g7RuhofpJ0PJ1NAAtgty",
+          "tokens": {
+            "prompt": 585,
+            "completion": 306,
+            "total": 891
+          }
+        },
+        {
+          "callId": "call:31:1",
+          "strategyTag": "per-domain:info:0",
+          "rows": 1,
+          "latencyMs": 2113,
+          "requestId": "gen-1786878263-Ul2geieXzaIEvxaZ5JPc",
+          "tokens": {
+            "prompt": 366,
+            "completion": 115,
+            "total": 481
+          }
+        },
+        {
+          "callId": "call:32:1",
+          "strategyTag": "per-domain:invite:0",
+          "rows": 3,
+          "latencyMs": 4611,
+          "requestId": "gen-1786878265-PZdmsTIflsEjhbOfy2f8",
+          "tokens": {
+            "prompt": 504,
+            "completion": 320,
+            "total": 824
+          }
+        },
+        {
+          "callId": "call:33:1",
+          "strategyTag": "per-domain:items:0",
+          "rows": 7,
+          "latencyMs": 7602,
+          "requestId": "gen-1786878269-o8HKNL606tBKTaxJa5He",
+          "tokens": {
+            "prompt": 768,
+            "completion": 677,
+            "total": 1445
+          }
+        },
+        {
+          "callId": "call:34:1",
+          "strategyTag": "per-domain:ldap:0",
+          "rows": 1,
+          "latencyMs": 3190,
+          "requestId": "gen-1786878277-iUKdP0H5PZF5qy3VThm4",
+          "tokens": {
+            "prompt": 370,
+            "completion": 230,
+            "total": 600
+          }
+        },
+        {
+          "callId": "call:35:1",
+          "strategyTag": "per-domain:license:0",
+          "rows": 4,
+          "latencyMs": 4910,
+          "requestId": "gen-1786878280-9KPHwzfd5whh0RdOydak",
+          "tokens": {
+            "prompt": 549,
+            "completion": 429,
+            "total": 978
+          }
+        },
+        {
+          "callId": "call:36:1",
+          "strategyTag": "per-domain:local:0",
+          "rows": 1,
+          "latencyMs": 2713,
+          "requestId": "gen-1786878285-frwvaMhSMuzaqmKQMGQR",
+          "tokens": {
+            "prompt": 365,
+            "completion": 129,
+            "total": 494
+          }
+        },
+        {
+          "callId": "call:37:1",
+          "strategyTag": "per-domain:logout:0",
+          "rows": 2,
+          "latencyMs": 3194,
+          "requestId": "gen-1786878288-zE6ISelA5QcniCt8kljA",
+          "tokens": {
+            "prompt": 434,
+            "completion": 166,
+            "total": 600
+          }
+        },
+        {
+          "callId": "call:38:1",
+          "strategyTag": "per-domain:me:0",
+          "rows": 10,
+          "latencyMs": 5747,
+          "requestId": "gen-1786878291-je6YthYqPb3MuuVkpHWK",
+          "tokens": {
+            "prompt": 1006,
+            "completion": 525,
+            "total": 1531
+          }
+        },
+        {
+          "callId": "call:39:1",
+          "strategyTag": "per-domain:metadata:0",
+          "rows": 1,
+          "latencyMs": 2574,
+          "requestId": "gen-1786878297-VhqczAobyCUWNUucesKn",
+          "tokens": {
+            "prompt": 369,
+            "completion": 122,
+            "total": 491
+          }
+        },
+        {
+          "callId": "call:40:1",
+          "strategyTag": "per-domain:metrics:0",
+          "rows": 1,
+          "latencyMs": 1942,
+          "requestId": "gen-1786878299-Hog8IfGEMUPpxehdFydg",
+          "tokens": {
+            "prompt": 364,
+            "completion": 119,
+            "total": 483
+          }
+        },
+        {
+          "callId": "call:41:1",
+          "strategyTag": "per-domain:notifications:0",
+          "rows": 7,
+          "latencyMs": 8181,
+          "requestId": "gen-1786878301-u3GmQWoTlX7OIsTMLB0R",
+          "tokens": {
+            "prompt": 775,
+            "completion": 443,
+            "total": 1218
+          }
+        },
+        {
+          "callId": "call:42:1",
+          "strategyTag": "per-domain:oauth-clients:0",
+          "rows": 4,
+          "latencyMs": 5932,
+          "requestId": "gen-1786878309-cndYgJyOhCre3qXe6bm5",
+          "tokens": {
+            "prompt": 603,
+            "completion": 489,
+            "total": 1092
+          }
+        },
+        {
+          "callId": "call:43:1",
+          "strategyTag": "per-domain:oauth2:0",
+          "rows": 1,
+          "latencyMs": 2706,
+          "requestId": "gen-1786878315-8IDv62qJCLhlARXTJ8ms",
+          "tokens": {
+            "prompt": 371,
+            "completion": 136,
+            "total": 507
+          }
+        },
+        {
+          "callId": "call:44:1",
+          "strategyTag": "per-domain:openid:0",
+          "rows": 1,
+          "latencyMs": 2120,
+          "requestId": "gen-1786878318-MN7tjfWoHRt1Mm7m8U3i",
+          "tokens": {
+            "prompt": 368,
+            "completion": 133,
+            "total": 501
+          }
+        },
+        {
+          "callId": "call:45:1",
+          "strategyTag": "per-domain:operations:0",
+          "rows": 7,
+          "latencyMs": 6883,
+          "requestId": "gen-1786878321-tG6kLUWiRNK75c0CtHGq",
+          "tokens": {
+            "prompt": 747,
+            "completion": 448,
+            "total": 1195
+          }
+        },
+        {
+          "callId": "call:46:1",
+          "strategyTag": "per-domain:options:0",
+          "rows": 1,
+          "latencyMs": 1971,
+          "requestId": "gen-1786878327-AbEts7aWP9U62MKyw99M",
+          "tokens": {
+            "prompt": 374,
+            "completion": 139,
+            "total": 513
+          }
+        },
+        {
+          "callId": "call:47:1",
+          "strategyTag": "per-domain:owner:0",
+          "rows": 1,
+          "latencyMs": 2769,
+          "requestId": "gen-1786878329-2mIBBJIosLnQwwwqcaam",
+          "tokens": {
+            "prompt": 367,
+            "completion": 127,
+            "total": 494
+          }
+        },
+        {
+          "callId": "call:48:1",
+          "strategyTag": "per-domain:panels:0",
+          "rows": 7,
+          "latencyMs": 5100,
+          "requestId": "gen-1786878332-gtoIF1W3LC2XF9ukPqIT",
+          "tokens": {
+            "prompt": 782,
+            "completion": 406,
+            "total": 1188
+          }
+        },
+        {
+          "callId": "call:49:1",
+          "strategyTag": "per-domain:password:0",
+          "rows": 2,
+          "latencyMs": 3693,
+          "requestId": "gen-1786878337-Ii36bLbD9TUGSTR8bq0y",
+          "tokens": {
+            "prompt": 435,
+            "completion": 230,
+            "total": 665
+          }
+        },
+        {
+          "callId": "call:50:1",
+          "strategyTag": "per-domain:pending-resolution:0",
+          "rows": 1,
+          "latencyMs": 2194,
+          "requestId": "gen-1786878341-NGFNhUigBBD2Rd3T2niO",
+          "tokens": {
+            "prompt": 368,
+            "completion": 128,
+            "total": 496
+          }
+        },
+        {
+          "callId": "call:51:1",
+          "strategyTag": "per-domain:permissions:0",
+          "rows": 7,
+          "latencyMs": 6023,
+          "requestId": "gen-1786878343-2JctLkvgSB0INqQR3Q2j",
+          "tokens": {
+            "prompt": 754,
+            "completion": 487,
+            "total": 1241
+          }
+        },
+        {
+          "callId": "call:52:1",
+          "strategyTag": "per-domain:policies:0",
+          "rows": 7,
+          "latencyMs": 5877,
+          "requestId": "gen-1786878349-1r4KHdOVm4Nec1qtVrfh",
+          "tokens": {
+            "prompt": 768,
+            "completion": 482,
+            "total": 1250
+          }
+        },
+        {
+          "callId": "call:53:1",
+          "strategyTag": "per-domain:portal:0",
+          "rows": 2,
+          "latencyMs": 2936,
+          "requestId": "gen-1786878355-eAp0wX808nsuxle44CVj",
+          "tokens": {
+            "prompt": 437,
+            "completion": 239,
+            "total": 676
+          }
+        },
+        {
+          "callId": "call:54:1",
+          "strategyTag": "per-domain:presets:0",
+          "rows": 7,
+          "latencyMs": 5819,
+          "requestId": "gen-1786878358-8OVTBBezb186whaiOl34",
+          "tokens": {
+            "prompt": 761,
+            "completion": 488,
+            "total": 1249
+          }
+        },
+        {
+          "callId": "call:55:1",
+          "strategyTag": "per-domain:preview:0",
+          "rows": 2,
+          "latencyMs": 4263,
+          "requestId": "gen-1786878363-w57xMQrcm69Q5lpoGyzK",
+          "tokens": {
+            "prompt": 435,
+            "completion": 252,
+            "total": 687
+          }
+        },
+        {
+          "callId": "call:56:1",
+          "strategyTag": "per-domain:random:0",
+          "rows": 1,
+          "latencyMs": 3159,
+          "requestId": "gen-1786878368-u9yHZAaBylYNtP4w9C51",
+          "tokens": {
+            "prompt": 366,
+            "completion": 222,
+            "total": 588
+          }
+        },
+        {
+          "callId": "call:57:1",
+          "strategyTag": "per-domain:refresh:0",
+          "rows": 2,
+          "latencyMs": 3910,
+          "requestId": "gen-1786878371-pQTU9PfMf5qHhp8oDVzL",
+          "tokens": {
+            "prompt": 436,
+            "completion": 231,
+            "total": 667
+          }
+        },
+        {
+          "callId": "call:58:1",
+          "strategyTag": "per-domain:register:0",
+          "rows": 2,
+          "latencyMs": 3912,
+          "requestId": "gen-1786878375-ePUKDykzfcuKXxOZVufX",
+          "tokens": {
+            "prompt": 439,
+            "completion": 240,
+            "total": 679
+          }
+        },
+        {
+          "callId": "call:59:1",
+          "strategyTag": "per-domain:registry:0",
+          "rows": 3,
+          "latencyMs": 4756,
+          "requestId": "gen-1786878379-IQWtolI3GGIGeB39IY9s",
+          "tokens": {
+            "prompt": 505,
+            "completion": 385,
+            "total": 890
+          }
+        },
+        {
+          "callId": "call:60:1",
+          "strategyTag": "per-domain:relations:0",
+          "rows": 6,
+          "latencyMs": 5547,
+          "requestId": "gen-1786878383-Uqv3dwa9PgER8BnVQZgi",
+          "tokens": {
+            "prompt": 707,
+            "completion": 487,
+            "total": 1194
+          }
+        },
+        {
+          "callId": "call:61:1",
+          "strategyTag": "per-domain:resolve:0",
+          "rows": 1,
+          "latencyMs": 2065,
+          "requestId": "gen-1786878389-MO7YKVhItMmLOSbOa3Dq",
+          "tokens": {
+            "prompt": 365,
+            "completion": 122,
+            "total": 487
+          }
+        },
+        {
+          "callId": "call:62:1",
+          "strategyTag": "per-domain:resolve-redirect:0",
+          "rows": 1,
+          "latencyMs": 3295,
+          "requestId": "gen-1786878391-RRFIILNakXg3aXkrFXQY",
+          "tokens": {
+            "prompt": 370,
+            "completion": 151,
+            "total": 521
+          }
+        },
+        {
+          "callId": "call:63:1",
+          "strategyTag": "per-domain:revert:0",
+          "rows": 1,
+          "latencyMs": 3063,
+          "requestId": "gen-1786878394-sDzBuQuHWuecXaTm6hMv",
+          "tokens": {
+            "prompt": 371,
+            "completion": 135,
+            "total": 506
+          }
+        },
+        {
+          "callId": "call:64:1",
+          "strategyTag": "per-domain:revisions:0",
+          "rows": 2,
+          "latencyMs": 3982,
+          "requestId": "gen-1786878397-Uvy2ypFMc4rPh3mnBTgs",
+          "tokens": {
+            "prompt": 435,
+            "completion": 249,
+            "total": 684
+          }
+        },
+        {
+          "callId": "call:65:1",
+          "strategyTag": "per-domain:roles:0",
+          "rows": 7,
+          "latencyMs": 4458,
+          "requestId": "gen-1786878401-Jkby85ycgM9rxuJtdBGS",
+          "tokens": {
+            "prompt": 758,
+            "completion": 389,
+            "total": 1147
+          }
+        },
+        {
+          "callId": "call:66:1",
+          "strategyTag": "per-domain:saml:0",
+          "rows": 1,
+          "latencyMs": 2423,
+          "requestId": "gen-1786878406-XWtdm8FVUM4rU5dUgsqp",
+          "tokens": {
+            "prompt": 368,
+            "completion": 123,
+            "total": 491
+          }
+        },
+        {
+          "callId": "call:67:1",
+          "strategyTag": "per-domain:server:0",
+          "rows": 1,
+          "latencyMs": 3025,
+          "requestId": "gen-1786878408-MCnQcnBAPFXYNvFjM11t",
+          "tokens": {
+            "prompt": 366,
+            "completion": 144,
+            "total": 510
+          }
+        },
+        {
+          "callId": "call:68:1",
+          "strategyTag": "per-domain:settings:0",
+          "rows": 2,
+          "latencyMs": 3248,
+          "requestId": "gen-1786878411-sOa1yG4ych6CtLyDOlu5",
+          "tokens": {
+            "prompt": 429,
+            "completion": 237,
+            "total": 666
+          }
+        },
+        {
+          "callId": "call:69:1",
+          "strategyTag": "per-domain:setup:0",
+          "rows": 1,
+          "latencyMs": 2186,
+          "requestId": "gen-1786878414-8QbTN7XdhKfC77PEehgV",
+          "tokens": {
+            "prompt": 366,
+            "completion": 120,
+            "total": 486
+          }
+        },
+        {
+          "callId": "call:70:1",
+          "strategyTag": "per-domain:shares:0",
+          "rows": 4,
+          "latencyMs": 4529,
+          "requestId": "gen-1786878417-7LIADXmSkBLNVoxIbkeK",
+          "tokens": {
+            "prompt": 565,
+            "completion": 391,
+            "total": 956
+          }
+        },
+        {
+          "callId": "call:71:1",
+          "strategyTag": "per-domain:snapshot:0",
+          "rows": 1,
+          "latencyMs": 3133,
+          "requestId": "gen-1786878421-4B9IABIOq5YOCNyNMEUC",
+          "tokens": {
+            "prompt": 365,
+            "completion": 134,
+            "total": 499
+          }
+        },
+        {
+          "callId": "call:72:1",
+          "strategyTag": "per-domain:sort:0",
+          "rows": 1,
+          "latencyMs": 2125,
+          "requestId": "gen-1786878424-yTUOqeQS2uoXiyL86jcs",
+          "tokens": {
+            "prompt": 368,
+            "completion": 132,
+            "total": 500
+          }
+        },
+        {
+          "callId": "call:73:1",
+          "strategyTag": "per-domain:sources:0",
+          "rows": 2,
+          "latencyMs": 3844,
+          "requestId": "gen-1786878427-0WFLI7bfWEbfgkSN9uKJ",
+          "tokens": {
+            "prompt": 442,
+            "completion": 245,
+            "total": 687
+          }
+        },
+        {
+          "callId": "call:74:1",
+          "strategyTag": "per-domain:specs:0",
+          "rows": 2,
+          "latencyMs": 3407,
+          "requestId": "gen-1786878430-ZwPcIc1u7TlGf5kruwI0",
+          "tokens": {
+            "prompt": 450,
+            "completion": 256,
+            "total": 706
+          }
+        },
+        {
+          "callId": "call:75:1",
+          "strategyTag": "per-domain:translations:0",
+          "rows": 8,
+          "latencyMs": 5485,
+          "requestId": "gen-1786878434-SJTdec3ALNKQWNyMdR0Y",
+          "tokens": {
+            "prompt": 821,
+            "completion": 423,
+            "total": 1244
+          }
+        },
+        {
+          "callId": "call:76:1",
+          "strategyTag": "per-domain:tus:0",
+          "rows": 3,
+          "latencyMs": 3900,
+          "requestId": "gen-1786878439-9vuy4MMqFt8DhBRQAWfX",
+          "tokens": {
+            "prompt": 504,
+            "completion": 295,
+            "total": 799
+          }
+        },
+        {
+          "callId": "call:77:1",
+          "strategyTag": "per-domain:update:0",
+          "rows": 1,
+          "latencyMs": 1822,
+          "requestId": "gen-1786878443-MsnJ5bnH21dIQsefJRjs",
+          "tokens": {
+            "prompt": 371,
+            "completion": 119,
+            "total": 490
+          }
+        },
+        {
+          "callId": "call:78:1",
+          "strategyTag": "per-domain:users:0",
+          "rows": 8,
+          "latencyMs": 5448,
+          "requestId": "gen-1786878445-ezXCArdFhbLLZ4tVUBmG",
+          "tokens": {
+            "prompt": 841,
+            "completion": 506,
+            "total": 1347
+          }
+        },
+        {
+          "callId": "call:79:1",
+          "strategyTag": "per-domain:versions:0",
+          "rows": 10,
+          "latencyMs": 5981,
+          "requestId": "gen-1786878450-wbwWjTI9XMAkeG7Oh2Lx",
+          "tokens": {
+            "prompt": 965,
+            "completion": 471,
+            "total": 1436
+          }
+        }
+      ],
+      "domains": [
+        "access",
+        "acs",
+        "activate",
+        "activity",
+        "addons",
+        "admin",
+        "app",
+        "apply",
+        "assets",
+        "assets-test",
+        "auth",
+        "authentication",
+        "cache",
+        "callback",
+        "collections",
+        "comments",
+        "dashboards",
+        "deactivate",
+        "deployment",
+        "deployment-webhooks",
+        "diff",
+        "error-handler-test",
+        "export",
+        "extensions",
+        "fields",
+        "files",
+        "flows",
+        "folder",
+        "folders",
+        "health",
+        "import",
+        "index",
+        "info",
+        "invite",
+        "items",
+        "ldap",
+        "license",
+        "logout",
+        "me",
+        "metadata",
+        "metrics",
+        "notifications",
+        "oauth-clients",
+        "oauth2",
+        "openid",
+        "operations",
+        "options",
+        "owner",
+        "panels",
+        "password",
+        "pending-resolution",
+        "permissions",
+        "policies",
+        "portal",
+        "presets",
+        "preview",
+        "random",
+        "refresh",
+        "register",
+        "registry",
+        "relations",
+        "resolve",
+        "resolve-redirect",
+        "revert",
+        "revisions",
+        "roles",
+        "saml",
+        "server",
+        "settings",
+        "setup",
+        "shares",
+        "snapshot",
+        "sort",
+        "sources",
+        "specs",
+        "translations",
+        "tus",
+        "update",
+        "users",
+        "versions"
+      ]
+    },
+    {
+      "strategy": "one-shot",
+      "calls": [
+        {
+          "callId": "call:0:1",
+          "strategyTag": "one-shot",
+          "rows": 272,
+          "latencyMs": 9888,
+          "requestId": "gen-1786878456-kOupwfxgQva5ohPFm39t",
+          "tokens": {
+            "prompt": 18595,
+            "completion": 958,
+            "total": 19553
+          }
+        }
+      ],
+      "domains": [
+        "admin",
+        "comments",
+        "deployment",
+        "files",
+        "items",
+        "notifications",
+        "oauth-clients",
+        "relations",
+        "translations",
+        "users"
+      ]
+    }
+  ],
+  "proposalSamples": [
+    [
+      {
+        "id": "prop:9f96e82901ec1d1c",
+        "domain": "access",
+        "intent": "Enable resource deletion via API",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-pk:756bf097:186"],
+        "evidenceRefIds": ["src:api-src-controllers-access.ts:186-199"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:5484502b9b6620cc",
+        "domain": "access",
+        "intent": "Retrieve existing resources",
+        "action": "GET",
+        "inventoryRowIds": ["inv:route:GET:/-pk:756bf097:83"],
+        "evidenceRefIds": ["src:api-src-controllers-access.ts:83-99"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:1a04db02136ed015",
+        "domain": "access",
+        "intent": "Update existing resources",
+        "action": "PATCH",
+        "inventoryRowIds": ["inv:route:PATCH:/-pk:756bf097:137"],
+        "evidenceRefIds": ["src:api-src-controllers-access.ts:137-161"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:fbf41e590052fead",
+        "domain": "access",
+        "intent": "Create new resources",
+        "action": "POST",
+        "inventoryRowIds": ["inv:route:POST:/:756bf097:16"],
+        "evidenceRefIds": ["src:api-src-controllers-access.ts:16-53"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:9ec1f61c07aadbeb",
+        "domain": "access",
+        "intent": "List all resources",
+        "action": "GET",
+        "inventoryRowIds": ["inv:route:GET:/:756bf097:80"],
+        "evidenceRefIds": ["src:api-src-controllers-access.ts:80-80"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:33c029ea870230a6",
+        "domain": "access",
+        "intent": "Reset resource availability",
+        "action": "PATCH",
+        "inventoryRowIds": ["inv:route:PATCH:/:756bf097:101"],
+        "evidenceRefIds": ["src:api-src-controllers-access.ts:101-135"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:63a5f48fc54d54ac",
+        "domain": "acs",
+        "intent": "Authenticate User",
+        "action": "Initiate Authentication Process",
+        "inventoryRowIds": ["inv:route:POST:/acs:8583b495:174"],
+        "evidenceRefIds": ["src:api-src-auth-drivers-saml.ts:174-240"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:ef55a1bd80beb6ef",
+        "domain": "activate",
+        "intent": "Enable user activation process",
+        "action": "Activate user license",
+        "inventoryRowIds": ["inv:route:POST:/:362c8d98:18"],
+        "evidenceRefIds": ["src:tests-mock-license-server-src-routes-activate.ts:18-70"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:662936b6d01b392e",
+        "domain": "activity",
+        "intent": "Improve user engagement through activity tracking",
+        "action": "Analyze existing route capabilities",
+        "inventoryRowIds": ["inv:route:GET:/-pk:d811b6e1:49"],
+        "evidenceRefIds": ["src:api-src-controllers-activity.ts:49-66"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:44b9dd4cb5fba084",
+        "domain": "activity",
+        "intent": "Enhance API performance",
+        "action": "Review and optimize GET requests",
+        "inventoryRowIds": ["inv:route:GET:/:d811b6e1:47"],
+        "evidenceRefIds": ["src:api-src-controllers-activity.ts:47-47"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:3e9d25e239e1a963",
+        "domain": "addons",
+        "intent": "Enhance the ability to remove addons from the system",
+        "action": "Implement a user-friendly UI for DELETE requests",
+        "inventoryRowIds": ["inv:route:DELETE:/addons/-id:3f4ec201:193"],
+        "evidenceRefIds": ["src:api-src-controllers-license.ts:193-204"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:f98455f352cb8d42",
+        "domain": "addons",
+        "intent": "Improve the process of retrieving existing addons",
+        "action": "Introduce a caching mechanism on GET requests",
+        "inventoryRowIds": ["inv:route:GET:/addons:3f4ec201:162"],
+        "evidenceRefIds": ["src:api-src-controllers-license.ts:162-174"],
+        "truthState": "hypothesized"
+      }
+    ],
+    [
+      {
+        "id": "prop:7b053deebb082fc2",
+        "domain": "relations",
+        "intent": "Delete Collection Field",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-collection/-field:120b490d:153"],
+        "evidenceRefIds": ["src:api-src-controllers-relations.ts:153-166"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:37a8b4baf5d21f7d",
+        "domain": "items",
+        "intent": "Delete Item",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-collection/-pk:65023d06:228"],
+        "evidenceRefIds": ["src:api-src-controllers-items.ts:228-243"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:8a22036a0ed73716",
+        "domain": "admin",
+        "intent": "Delete License Key",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-license_key:4ce3b9d8:40"],
+        "evidenceRefIds": ["src:tests-mock-license-server-src-routes-admin.ts:40-48"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:6569e46c6078ac2d",
+        "domain": "users",
+        "intent": "Delete User Profile",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-pk:b3b3f1c9:270"],
+        "evidenceRefIds": ["src:api-src-controllers-users.ts:270-283"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:3bdad15ed67f46a7",
+        "domain": "deployment",
+        "intent": "Delete Provider Configuration",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-provider:e2b99997:378"],
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:378-397"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:d76187172ec09905",
+        "domain": "translations",
+        "intent": "Delete Translation Resource",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-pk:45fd895d:186"],
+        "evidenceRefIds": ["src:api-src-controllers-translations.ts:186-199"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:10aebfc212cc735e",
+        "domain": "files",
+        "intent": "Delete File",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-pk:de8b3fe8:347"],
+        "evidenceRefIds": ["src:api-src-controllers-files.ts:347-360"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:5b9b32d415eb2d02",
+        "domain": "notifications",
+        "intent": "Delete Notification",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-pk:5fb8c2c8:186"],
+        "evidenceRefIds": ["src:api-src-controllers-notifications.ts:186-199"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:ffa3cabb87df26d1",
+        "domain": "comments",
+        "intent": "Delete Comment",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-pk:4d95be1e:184"],
+        "evidenceRefIds": ["src:api-src-controllers-comments.ts:184-197"],
+        "truthState": "hypothesized"
+      },
+      {
+        "id": "prop:0efd0b2cb2a77266",
+        "domain": "oauth-clients",
+        "intent": "Delete OAuth Client",
+        "action": "DELETE",
+        "inventoryRowIds": ["inv:route:DELETE:/-id:f20c8bd2:86"],
+        "evidenceRefIds": ["src:api-src-controllers-mcp-oauth-clients.ts:86-98"],
+        "truthState": "hypothesized"
+      }
+    ]
+  ],
+  "failures": []
+}

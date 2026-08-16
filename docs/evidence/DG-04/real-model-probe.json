@@ -1,0 +1,70 @@
+{
+  "kind": "dg04-real-model-probe",
+  "model": "openai/gpt-4o-mini",
+  "strategy": "one-shot",
+  "outcome": {
+    "requestId": "dg04-dg04-real-model",
+    "strategy": {
+      "kind": "one-shot"
+    },
+    "proposals": [
+      {
+        "domain": "items",
+        "intent": "Enhance item retrieval mechanisms",
+        "action": "Optimize the GET /items route for performance",
+        "fromState": "Current state with slow response times",
+        "toState": "Improved state with faster response times",
+        "persona": "Backend Developer",
+        "inventoryRowIds": ["inv:route:GET:/items:00000001:12"],
+        "evidenceRefIds": ["src:api-src-controllers-items-ts:12-30"],
+        "rationale": "The current GET /items route has been identified as a performance bottleneck, which can lead to delays in item retrieval.",
+        "id": "prop:51ee7a5311d7ea35",
+        "truthState": "hypothesized"
+      },
+      {
+        "domain": "users",
+        "intent": "Increase user account creation speed",
+        "action": "Improve the efficiency of the POST /users route",
+        "fromState": "Existing state with long user registration wait times",
+        "toState": "Streamlined state with rapid user registration",
+        "persona": "Backend Developer",
+        "inventoryRowIds": ["inv:route:POST:/users:00000002:8"],
+        "evidenceRefIds": ["src:api-src-controllers-users-ts:8-25"],
+        "rationale": "The POST /users route currently exhibits delays that negatively impact user experience during account creation.",
+        "id": "prop:94a8439bc2ed4691",
+        "truthState": "hypothesized"
+      }
+    ],
+    "rejected": [],
+    "coverage": {
+      "inventoryRows": 2,
+      "coveredRows": 2,
+      "uncoveredRows": []
+    },
+    "calls": [
+      {
+        "callId": "call:0:1",
+        "strategyTag": "one-shot",
+        "rows": 2,
+        "attempts": 1,
+        "latencyMs": 3895,
+        "runRecord": {
+          "requestId": "gen-1786878080-xFCwLmegxwBvpAAkWT2G",
+          "schemaVersion": "arxic-intent-proposal-v1",
+          "schemaSha256": "f34d896d0d38dcc59eeb3d3a92df388065540f04d5095c5a37d09934a1140507",
+          "model": "openai/gpt-4o-mini",
+          "tokens": {
+            "prompt": 425,
+            "completion": 245,
+            "total": 670
+          },
+          "timestamp": "2026-08-16T11:01:24.584Z"
+        }
+      }
+    ],
+    "dedupe": {
+      "inBatchDropped": 0,
+      "crossBatchDropped": 0
+    }
+  }
+}

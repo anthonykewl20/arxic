@@ -1,0 +1,2464 @@
+{
+  "kind": "dg04-inventory-summary",
+  "target": {
+    "repository": "/tmp/opencode/directus",
+    "commit": "cb846b6a1ddc4811359bc52b74bb31a42eab33db",
+    "rows": 272,
+    "domainHints": 80,
+    "unsupportedLanguageDiagnostics": 1291
+  },
+  "rows": [
+    {
+      "id": "inv:route:DELETE:/-collection/-field:120b490d:153",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:collection/:field",
+      "sourcePath": "api/src/controllers/relations.ts",
+      "domainHint": "relations",
+      "evidenceIds": ["src:api-src-controllers-relations.ts:153-166"]
+    },
+    {
+      "id": "inv:route:DELETE:/-collection/-field:d6e3a5da:233",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:collection/:field",
+      "sourcePath": "api/src/controllers/fields.ts",
+      "domainHint": "fields",
+      "evidenceIds": ["src:api-src-controllers-fields.ts:233-250"]
+    },
+    {
+      "id": "inv:route:DELETE:/-collection/-pk:65023d06:228",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:collection/:pk",
+      "sourcePath": "api/src/controllers/items.ts",
+      "domainHint": "items",
+      "evidenceIds": ["src:api-src-controllers-items.ts:228-243"]
+    },
+    {
+      "id": "inv:route:DELETE:/-collection:18bb33e8:140",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/collections.ts",
+      "domainHint": "collections",
+      "evidenceIds": ["src:api-src-controllers-collections.ts:140-153"]
+    },
+    {
+      "id": "inv:route:DELETE:/-collection:65023d06:202",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/items.ts",
+      "domainHint": "items",
+      "evidenceIds": ["src:api-src-controllers-items.ts:202-226"]
+    },
+    {
+      "id": "inv:route:DELETE:/-id:27c133e8:95",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:id",
+      "sourcePath": "api/src/controllers/tus.ts",
+      "domainHint": "tus",
+      "evidenceIds": ["src:api-src-controllers-tus.ts:95-95"]
+    },
+    {
+      "id": "inv:route:DELETE:/-id:f20c8bd2:86",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:id",
+      "sourcePath": "api/src/controllers/mcp/oauth-clients.ts",
+      "domainHint": "oauth-clients",
+      "evidenceIds": ["src:api-src-controllers-mcp-oauth-clients.ts:86-98"]
+    },
+    {
+      "id": "inv:route:DELETE:/-license_key:4ce3b9d8:40",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:license_key",
+      "sourcePath": "tests/mock-license-server/src/routes/admin.ts",
+      "domainHint": "admin",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-admin.ts:40-48"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:0987c532:187",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:187-200"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:0c5b2352:176",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/panels.ts",
+      "domainHint": "panels",
+      "evidenceIds": ["src:api-src-controllers-panels.ts:176-189"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:2329016d:211",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/permissions.ts",
+      "domainHint": "permissions",
+      "evidenceIds": ["src:api-src-controllers-permissions.ts:211-224"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:2828a478:176",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/dashboards.ts",
+      "domainHint": "dashboards",
+      "evidenceIds": ["src:api-src-controllers-dashboards.ts:176-189"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:3e0431e6:208",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/flows.ts",
+      "domainHint": "flows",
+      "evidenceIds": ["src:api-src-controllers-flows.ts:208-221"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:45fd895d:186",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/translations.ts",
+      "domainHint": "translations",
+      "evidenceIds": ["src:api-src-controllers-translations.ts:186-199"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:4d95be1e:184",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/comments.ts",
+      "domainHint": "comments",
+      "evidenceIds": ["src:api-src-controllers-comments.ts:184-197"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:5fb8c2c8:186",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/notifications.ts",
+      "domainHint": "notifications",
+      "evidenceIds": ["src:api-src-controllers-notifications.ts:186-199"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:756bf097:186",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/access.ts",
+      "domainHint": "access",
+      "evidenceIds": ["src:api-src-controllers-access.ts:186-199"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:abd619dd:186",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/presets.ts",
+      "domainHint": "presets",
+      "evidenceIds": ["src:api-src-controllers-presets.ts:186-199"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:b3b3f1c9:270",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "users",
+      "evidenceIds": ["src:api-src-controllers-users.ts:270-283"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:bccde500:176",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/operations.ts",
+      "domainHint": "operations",
+      "evidenceIds": ["src:api-src-controllers-operations.ts:176-189"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:cc6fba33:214",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/policies.ts",
+      "domainHint": "policies",
+      "evidenceIds": ["src:api-src-controllers-policies.ts:214-227"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:d6460f66:207",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/roles.ts",
+      "domainHint": "roles",
+      "evidenceIds": ["src:api-src-controllers-roles.ts:207-220"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:de8b3fe8:347",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/files.ts",
+      "domainHint": "files",
+      "evidenceIds": ["src:api-src-controllers-files.ts:347-360"]
+    },
+    {
+      "id": "inv:route:DELETE:/-pk:e700b8ed:186",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/folders.ts",
+      "domainHint": "folders",
+      "evidenceIds": ["src:api-src-controllers-folders.ts:186-199"]
+    },
+    {
+      "id": "inv:route:DELETE:/-provider:e2b99997:378",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/:provider",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:378-397"]
+    },
+    {
+      "id": "inv:route:DELETE:/:0987c532:164",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:164-185"]
+    },
+    {
+      "id": "inv:route:DELETE:/:0c5b2352:154",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/panels.ts",
+      "domainHint": "panels",
+      "evidenceIds": ["src:api-src-controllers-panels.ts:154-174"]
+    },
+    {
+      "id": "inv:route:DELETE:/:2329016d:188",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/permissions.ts",
+      "domainHint": "permissions",
+      "evidenceIds": ["src:api-src-controllers-permissions.ts:188-209"]
+    },
+    {
+      "id": "inv:route:DELETE:/:2828a478:154",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/dashboards.ts",
+      "domainHint": "dashboards",
+      "evidenceIds": ["src:api-src-controllers-dashboards.ts:154-174"]
+    },
+    {
+      "id": "inv:route:DELETE:/:3e0431e6:186",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/flows.ts",
+      "domainHint": "flows",
+      "evidenceIds": ["src:api-src-controllers-flows.ts:186-206"]
+    },
+    {
+      "id": "inv:route:DELETE:/:3f4ec201:105",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "license",
+      "evidenceIds": ["src:api-src-controllers-license.ts:105-116"]
+    },
+    {
+      "id": "inv:route:DELETE:/:45fd895d:163",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/translations.ts",
+      "domainHint": "translations",
+      "evidenceIds": ["src:api-src-controllers-translations.ts:163-184"]
+    },
+    {
+      "id": "inv:route:DELETE:/:4d95be1e:161",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/comments.ts",
+      "domainHint": "comments",
+      "evidenceIds": ["src:api-src-controllers-comments.ts:161-182"]
+    },
+    {
+      "id": "inv:route:DELETE:/:5fb8c2c8:163",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/notifications.ts",
+      "domainHint": "notifications",
+      "evidenceIds": ["src:api-src-controllers-notifications.ts:163-184"]
+    },
+    {
+      "id": "inv:route:DELETE:/:756bf097:163",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/access.ts",
+      "domainHint": "access",
+      "evidenceIds": ["src:api-src-controllers-access.ts:163-184"]
+    },
+    {
+      "id": "inv:route:DELETE:/:7a80924e:84",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/addons.ts",
+      "domainHint": "addons",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-addons.ts:84-108"]
+    },
+    {
+      "id": "inv:route:DELETE:/:abd619dd:163",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/presets.ts",
+      "domainHint": "presets",
+      "evidenceIds": ["src:api-src-controllers-presets.ts:163-184"]
+    },
+    {
+      "id": "inv:route:DELETE:/:b3b3f1c9:247",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "users",
+      "evidenceIds": ["src:api-src-controllers-users.ts:247-268"]
+    },
+    {
+      "id": "inv:route:DELETE:/:bccde500:154",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/operations.ts",
+      "domainHint": "operations",
+      "evidenceIds": ["src:api-src-controllers-operations.ts:154-174"]
+    },
+    {
+      "id": "inv:route:DELETE:/:c97e9c2f:276",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/shares.ts",
+      "domainHint": "shares",
+      "evidenceIds": ["src:api-src-controllers-shares.ts:276-296"]
+    },
+    {
+      "id": "inv:route:DELETE:/:cc6fba33:191",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/policies.ts",
+      "domainHint": "policies",
+      "evidenceIds": ["src:api-src-controllers-policies.ts:191-212"]
+    },
+    {
+      "id": "inv:route:DELETE:/:d6460f66:184",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/roles.ts",
+      "domainHint": "roles",
+      "evidenceIds": ["src:api-src-controllers-roles.ts:184-205"]
+    },
+    {
+      "id": "inv:route:DELETE:/:de8b3fe8:324",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/files.ts",
+      "domainHint": "files",
+      "evidenceIds": ["src:api-src-controllers-files.ts:324-345"]
+    },
+    {
+      "id": "inv:route:DELETE:/:e700b8ed:163",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/folders.ts",
+      "domainHint": "folders",
+      "evidenceIds": ["src:api-src-controllers-folders.ts:163-184"]
+    },
+    {
+      "id": "inv:route:DELETE:/:f20c8bd2:62",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/",
+      "sourcePath": "api/src/controllers/mcp/oauth-clients.ts",
+      "domainHint": "oauth-clients",
+      "evidenceIds": ["src:api-src-controllers-mcp-oauth-clients.ts:62-83"]
+    },
+    {
+      "id": "inv:route:DELETE:/addons/-id:3f4ec201:193",
+      "surface": "route",
+      "method": "DELETE",
+      "path": "/addons/:id",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "addons",
+      "evidenceIds": ["src:api-src-controllers-license.ts:193-204"]
+    },
+    {
+      "id": "inv:route:GET:/-collection/-field:120b490d:47",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:collection/:field",
+      "sourcePath": "api/src/controllers/relations.ts",
+      "domainHint": "relations",
+      "evidenceIds": ["src:api-src-controllers-relations.ts:47-62"]
+    },
+    {
+      "id": "inv:route:GET:/-collection/-field:d6e3a5da:52",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:collection/:field",
+      "sourcePath": "api/src/controllers/fields.ts",
+      "domainHint": "fields",
+      "evidenceIds": ["src:api-src-controllers-fields.ts:52-67"]
+    },
+    {
+      "id": "inv:route:GET:/-collection/-pk:65023d06:100",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:collection/:pk",
+      "sourcePath": "api/src/controllers/items.ts",
+      "domainHint": "items",
+      "evidenceIds": ["src:api-src-controllers-items.ts:100-120"]
+    },
+    {
+      "id": "inv:route:GET:/-collection:120b490d:30",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/relations.ts",
+      "domainHint": "relations",
+      "evidenceIds": ["src:api-src-controllers-relations.ts:30-45"]
+    },
+    {
+      "id": "inv:route:GET:/-collection:18bb33e8:72",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/collections.ts",
+      "domainHint": "collections",
+      "evidenceIds": ["src:api-src-controllers-collections.ts:72-86"]
+    },
+    {
+      "id": "inv:route:GET:/-collection:65023d06:98",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/items.ts",
+      "domainHint": "items",
+      "evidenceIds": ["src:api-src-controllers-items.ts:98-98"]
+    },
+    {
+      "id": "inv:route:GET:/-collection:d6e3a5da:35",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/fields.ts",
+      "domainHint": "fields",
+      "evidenceIds": ["src:api-src-controllers-fields.ts:35-50"]
+    },
+    {
+      "id": "inv:route:GET:/-id:f20c8bd2:46",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:id",
+      "sourcePath": "api/src/controllers/mcp/oauth-clients.ts",
+      "domainHint": "oauth-clients",
+      "evidenceIds": ["src:api-src-controllers-mcp-oauth-clients.ts:46-59"]
+    },
+    {
+      "id": "inv:route:GET:/-license_key:4ce3b9d8:17",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:license_key",
+      "sourcePath": "tests/mock-license-server/src/routes/admin.ts",
+      "domainHint": "admin",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-admin.ts:17-26"]
+    },
+    {
+      "id": "inv:route:GET:/-pk/-filename-:4dad9f4b:158",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk/:filename?",
+      "sourcePath": "api/src/controllers/assets.ts",
+      "domainHint": "assets",
+      "evidenceIds": ["src:api-src-controllers-assets.ts:158-470"]
+    },
+    {
+      "id": "inv:route:GET:/-pk/compare:0987c532:202",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk/compare",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:202-228"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:0987c532:86",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:86-100"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:0c5b2352:76",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/panels.ts",
+      "domainHint": "panels",
+      "evidenceIds": ["src:api-src-controllers-panels.ts:76-90"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:2329016d:108",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/permissions.ts",
+      "domainHint": "permissions",
+      "evidenceIds": ["src:api-src-controllers-permissions.ts:108-124"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:2828a478:76",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/dashboards.ts",
+      "domainHint": "dashboards",
+      "evidenceIds": ["src:api-src-controllers-dashboards.ts:76-90"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:35ff22a8:37",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/revisions.ts",
+      "domainHint": "revisions",
+      "evidenceIds": ["src:api-src-controllers-revisions.ts:37-51"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:3e0431e6:108",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/flows.ts",
+      "domainHint": "flows",
+      "evidenceIds": ["src:api-src-controllers-flows.ts:108-122"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:45fd895d:85",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/translations.ts",
+      "domainHint": "translations",
+      "evidenceIds": ["src:api-src-controllers-translations.ts:85-99"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:4d95be1e:83",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/comments.ts",
+      "domainHint": "comments",
+      "evidenceIds": ["src:api-src-controllers-comments.ts:83-97"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:5fb8c2c8:85",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/notifications.ts",
+      "domainHint": "notifications",
+      "evidenceIds": ["src:api-src-controllers-notifications.ts:85-99"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:756bf097:83",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/access.ts",
+      "domainHint": "access",
+      "evidenceIds": ["src:api-src-controllers-access.ts:83-99"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:abd619dd:85",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/presets.ts",
+      "domainHint": "presets",
+      "evidenceIds": ["src:api-src-controllers-presets.ts:85-99"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:b3b3f1c9:127",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "users",
+      "evidenceIds": ["src:api-src-controllers-users.ts:127-143"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:bc141441:52",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/assets.test.ts",
+      "domainHint": "assets-test",
+      "evidenceIds": ["src:api-src-controllers-assets.test.ts:52-62"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:bccde500:76",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/operations.ts",
+      "domainHint": "operations",
+      "evidenceIds": ["src:api-src-controllers-operations.ts:76-90"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:cc6fba33:111",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/policies.ts",
+      "domainHint": "policies",
+      "evidenceIds": ["src:api-src-controllers-policies.ts:111-127"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:d6460f66:106",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/roles.ts",
+      "domainHint": "roles",
+      "evidenceIds": ["src:api-src-controllers-roles.ts:106-120"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:d811b6e1:49",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/activity.ts",
+      "domainHint": "activity",
+      "evidenceIds": ["src:api-src-controllers-activity.ts:49-66"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:de8b3fe8:246",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/files.ts",
+      "domainHint": "files",
+      "evidenceIds": ["src:api-src-controllers-files.ts:246-259"]
+    },
+    {
+      "id": "inv:route:GET:/-pk:e700b8ed:85",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/folders.ts",
+      "domainHint": "folders",
+      "evidenceIds": ["src:api-src-controllers-folders.ts:85-99"]
+    },
+    {
+      "id": "inv:route:GET:/-provider/dashboard:e2b99997:262",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:provider/dashboard",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:262-292"]
+    },
+    {
+      "id": "inv:route:GET:/-provider/projects/-id/runs/stats:e2b99997:448",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:provider/projects/:id/runs/stats",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:448-487"]
+    },
+    {
+      "id": "inv:route:GET:/-provider/projects/-id/runs:e2b99997:400",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:provider/projects/:id/runs",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:400-444"]
+    },
+    {
+      "id": "inv:route:GET:/-provider/projects/-id:e2b99997:155",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:provider/projects/:id",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:155-196"]
+    },
+    {
+      "id": "inv:route:GET:/-provider/projects:e2b99997:122",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:provider/projects",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:122-152"]
+    },
+    {
+      "id": "inv:route:GET:/-provider/runs/-id:e2b99997:495",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:provider/runs/:id",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:495-524"]
+    },
+    {
+      "id": "inv:route:GET:/-provider:e2b99997:100",
+      "surface": "route",
+      "method": "GET",
+      "path": "/:provider",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:100-119"]
+    },
+    {
+      "id": "inv:route:GET:/.well-known/jwks.json:682f7de7:47",
+      "surface": "route",
+      "method": "GET",
+      "path": "/.well-known/jwks.json",
+      "sourcePath": "tests/mock-license-server/src/app.ts",
+      "domainHint": "app",
+      "evidenceIds": ["src:tests-mock-license-server-src-app.ts:47-51"]
+    },
+    {
+      "id": "inv:route:GET:/:0987c532:83",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:83-83"]
+    },
+    {
+      "id": "inv:route:GET:/:0ada6b25:441",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/auth/drivers/openid.ts",
+      "domainHint": "openid",
+      "evidenceIds": ["src:api-src-auth-drivers-openid.ts:441-492"]
+    },
+    {
+      "id": "inv:route:GET:/:0c5b2352:73",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/panels.ts",
+      "domainHint": "panels",
+      "evidenceIds": ["src:api-src-controllers-panels.ts:73-73"]
+    },
+    {
+      "id": "inv:route:GET:/:0c768e17:60",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/mcp/index.ts",
+      "domainHint": "index",
+      "evidenceIds": ["src:api-src-controllers-mcp-index.ts:60-60"]
+    },
+    {
+      "id": "inv:route:GET:/:120b490d:15",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/relations.ts",
+      "domainHint": "relations",
+      "evidenceIds": ["src:api-src-controllers-relations.ts:15-28"]
+    },
+    {
+      "id": "inv:route:GET:/:18bb33e8:69",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/collections.ts",
+      "domainHint": "collections",
+      "evidenceIds": ["src:api-src-controllers-collections.ts:69-69"]
+    },
+    {
+      "id": "inv:route:GET:/:2329016d:88",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/permissions.ts",
+      "domainHint": "permissions",
+      "evidenceIds": ["src:api-src-controllers-permissions.ts:88-88"]
+    },
+    {
+      "id": "inv:route:GET:/:2828a478:73",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/dashboards.ts",
+      "domainHint": "dashboards",
+      "evidenceIds": ["src:api-src-controllers-dashboards.ts:73-73"]
+    },
+    {
+      "id": "inv:route:GET:/:35ec4e4c:254",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/auth.ts",
+      "domainHint": "auth",
+      "evidenceIds": ["src:api-src-controllers-auth.ts:254-277"]
+    },
+    {
+      "id": "inv:route:GET:/:35ff22a8:34",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/revisions.ts",
+      "domainHint": "revisions",
+      "evidenceIds": ["src:api-src-controllers-revisions.ts:34-34"]
+    },
+    {
+      "id": "inv:route:GET:/:3e0431e6:105",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/flows.ts",
+      "domainHint": "flows",
+      "evidenceIds": ["src:api-src-controllers-flows.ts:105-105"]
+    },
+    {
+      "id": "inv:route:GET:/:3f4ec201:16",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "license",
+      "evidenceIds": ["src:api-src-controllers-license.ts:16-69"]
+    },
+    {
+      "id": "inv:route:GET:/:45fd895d:82",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/translations.ts",
+      "domainHint": "translations",
+      "evidenceIds": ["src:api-src-controllers-translations.ts:82-82"]
+    },
+    {
+      "id": "inv:route:GET:/:4b57e0c0:12",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/settings.ts",
+      "domainHint": "settings",
+      "evidenceIds": ["src:api-src-controllers-settings.ts:12-25"]
+    },
+    {
+      "id": "inv:route:GET:/:4b9f14e1:4",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "packages/extensions-sdk/templates/endpoint/typescript/source/index.ts",
+      "domainHint": "index",
+      "evidenceIds": [
+        "src:packages-extensions-sdk-templates-endpoint-typescript-source-index.ts:4-4"
+      ]
+    },
+    {
+      "id": "inv:route:GET:/:4ce3b9d8:13",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/admin.ts",
+      "domainHint": "admin",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-admin.ts:13-15"]
+    },
+    {
+      "id": "inv:route:GET:/:4d95be1e:80",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/comments.ts",
+      "domainHint": "comments",
+      "evidenceIds": ["src:api-src-controllers-comments.ts:80-80"]
+    },
+    {
+      "id": "inv:route:GET:/:4e8e8083:33",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/extensions.ts",
+      "domainHint": "extensions",
+      "evidenceIds": ["src:api-src-controllers-extensions.ts:33-46"]
+    },
+    {
+      "id": "inv:route:GET:/:5fb8c2c8:82",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/notifications.ts",
+      "domainHint": "notifications",
+      "evidenceIds": ["src:api-src-controllers-notifications.ts:82-82"]
+    },
+    {
+      "id": "inv:route:GET:/:756bf097:80",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/access.ts",
+      "domainHint": "access",
+      "evidenceIds": ["src:api-src-controllers-access.ts:80-80"]
+    },
+    {
+      "id": "inv:route:GET:/:8583b495:132",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/auth/drivers/saml.ts",
+      "domainHint": "saml",
+      "evidenceIds": ["src:api-src-auth-drivers-saml.ts:132-154"]
+    },
+    {
+      "id": "inv:route:GET:/:93da4f4c:357",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/auth/drivers/oauth2.ts",
+      "domainHint": "oauth2",
+      "evidenceIds": ["src:api-src-auth-drivers-oauth2.ts:357-399"]
+    },
+    {
+      "id": "inv:route:GET:/:a053b4a4:266",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/app.ts",
+      "domainHint": "app",
+      "evidenceIds": ["src:api-src-app.ts:266-272"]
+    },
+    {
+      "id": "inv:route:GET:/:a0ce3a87:2",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "packages/extensions-sdk/templates/endpoint/javascript/source/index.js",
+      "domainHint": "index",
+      "evidenceIds": [
+        "src:packages-extensions-sdk-templates-endpoint-javascript-source-index.js:2-2"
+      ]
+    },
+    {
+      "id": "inv:route:GET:/:abd619dd:82",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/presets.ts",
+      "domainHint": "presets",
+      "evidenceIds": ["src:api-src-controllers-presets.ts:82-82"]
+    },
+    {
+      "id": "inv:route:GET:/:ac496a46:11",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/metrics.ts",
+      "domainHint": "metrics",
+      "evidenceIds": ["src:api-src-controllers-metrics.ts:11-45"]
+    },
+    {
+      "id": "inv:route:GET:/:b3b3f1c9:85",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "users",
+      "evidenceIds": ["src:api-src-controllers-users.ts:85-85"]
+    },
+    {
+      "id": "inv:route:GET:/:bccde500:73",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/operations.ts",
+      "domainHint": "operations",
+      "evidenceIds": ["src:api-src-controllers-operations.ts:73-73"]
+    },
+    {
+      "id": "inv:route:GET:/:c97e9c2f:146",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/shares.ts",
+      "domainHint": "shares",
+      "evidenceIds": ["src:api-src-controllers-shares.ts:146-146"]
+    },
+    {
+      "id": "inv:route:GET:/:cc6fba33:82",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/policies.ts",
+      "domainHint": "policies",
+      "evidenceIds": ["src:api-src-controllers-policies.ts:82-82"]
+    },
+    {
+      "id": "inv:route:GET:/:d6460f66:73",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/roles.ts",
+      "domainHint": "roles",
+      "evidenceIds": ["src:api-src-controllers-roles.ts:73-73"]
+    },
+    {
+      "id": "inv:route:GET:/:d6e3a5da:19",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/fields.ts",
+      "domainHint": "fields",
+      "evidenceIds": ["src:api-src-controllers-fields.ts:19-33"]
+    },
+    {
+      "id": "inv:route:GET:/:d811b6e1:47",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/activity.ts",
+      "domainHint": "activity",
+      "evidenceIds": ["src:api-src-controllers-activity.ts:47-47"]
+    },
+    {
+      "id": "inv:route:GET:/:de8b3fe8:243",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/files.ts",
+      "domainHint": "files",
+      "evidenceIds": ["src:api-src-controllers-files.ts:243-243"]
+    },
+    {
+      "id": "inv:route:GET:/:e2b99997:96",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:96-96"]
+    },
+    {
+      "id": "inv:route:GET:/:e700b8ed:82",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/folders.ts",
+      "domainHint": "folders",
+      "evidenceIds": ["src:api-src-controllers-folders.ts:82-82"]
+    },
+    {
+      "id": "inv:route:GET:/:f20c8bd2:42",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/controllers/mcp/oauth-clients.ts",
+      "domainHint": "oauth-clients",
+      "evidenceIds": ["src:api-src-controllers-mcp-oauth-clients.ts:42-42"]
+    },
+    {
+      "id": "inv:route:GET:/:f89790bf:60",
+      "surface": "route",
+      "method": "GET",
+      "path": "/",
+      "sourcePath": "api/src/middleware/error-handler.test.ts",
+      "domainHint": "error-handler-test",
+      "evidenceIds": ["src:api-src-middleware-error-handler.test.ts:60-63"]
+    },
+    {
+      "id": "inv:route:GET:/addons:3f4ec201:162",
+      "surface": "route",
+      "method": "GET",
+      "path": "/addons",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "addons",
+      "evidenceIds": ["src:api-src-controllers-license.ts:162-174"]
+    },
+    {
+      "id": "inv:route:GET:/admin:a053b4a4:305",
+      "surface": "route",
+      "method": "GET",
+      "path": "/admin",
+      "sourcePath": "api/src/app.ts",
+      "domainHint": "admin",
+      "evidenceIds": ["src:api-src-app.ts:305-305"]
+    },
+    {
+      "id": "inv:route:GET:/callback:0ada6b25:503",
+      "surface": "route",
+      "method": "GET",
+      "path": "/callback",
+      "sourcePath": "api/src/auth/drivers/openid.ts",
+      "domainHint": "callback",
+      "evidenceIds": ["src:api-src-auth-drivers-openid.ts:503-619"]
+    },
+    {
+      "id": "inv:route:GET:/callback:93da4f4c:410",
+      "surface": "route",
+      "method": "GET",
+      "path": "/callback",
+      "sourcePath": "api/src/auth/drivers/oauth2.ts",
+      "domainHint": "callback",
+      "evidenceIds": ["src:api-src-auth-drivers-oauth2.ts:410-523"]
+    },
+    {
+      "id": "inv:route:GET:/health:f4a5ce2b:79",
+      "surface": "route",
+      "method": "GET",
+      "path": "/health",
+      "sourcePath": "api/src/controllers/server.ts",
+      "domainHint": "health",
+      "evidenceIds": ["src:api-src-controllers-server.ts:79-97"]
+    },
+    {
+      "id": "inv:route:GET:/info:f4a5ce2b:63",
+      "surface": "route",
+      "method": "GET",
+      "path": "/info",
+      "sourcePath": "api/src/controllers/server.ts",
+      "domainHint": "info",
+      "evidenceIds": ["src:api-src-controllers-server.ts:63-76"]
+    },
+    {
+      "id": "inv:route:GET:/me/-collection/-pk-:2329016d:226",
+      "surface": "route",
+      "method": "GET",
+      "path": "/me/:collection/:pk?",
+      "sourcePath": "api/src/controllers/permissions.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-permissions.ts:226-243"]
+    },
+    {
+      "id": "inv:route:GET:/me/globals:cc6fba33:85",
+      "surface": "route",
+      "method": "GET",
+      "path": "/me/globals",
+      "sourcePath": "api/src/controllers/policies.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-policies.ts:85-109"]
+    },
+    {
+      "id": "inv:route:GET:/me:2329016d:91",
+      "surface": "route",
+      "method": "GET",
+      "path": "/me",
+      "sourcePath": "api/src/controllers/permissions.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-permissions.ts:91-106"]
+    },
+    {
+      "id": "inv:route:GET:/me:b3b3f1c9:88",
+      "surface": "route",
+      "method": "GET",
+      "path": "/me",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-users.ts:88-125"]
+    },
+    {
+      "id": "inv:route:GET:/me:d6460f66:76",
+      "surface": "route",
+      "method": "GET",
+      "path": "/me",
+      "sourcePath": "api/src/controllers/roles.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-roles.ts:76-104"]
+    },
+    {
+      "id": "inv:route:GET:/metadata:8583b495:124",
+      "surface": "route",
+      "method": "GET",
+      "path": "/metadata",
+      "sourcePath": "api/src/auth/drivers/saml.ts",
+      "domainHint": "metadata",
+      "evidenceIds": ["src:api-src-auth-drivers-saml.ts:124-130"]
+    },
+    {
+      "id": "inv:route:GET:/options:7a80924e:35",
+      "surface": "route",
+      "method": "GET",
+      "path": "/options",
+      "sourcePath": "tests/mock-license-server/src/routes/addons.ts",
+      "domainHint": "options",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-addons.ts:35-46"]
+    },
+    {
+      "id": "inv:route:GET:/portal:3f4ec201:150",
+      "surface": "route",
+      "method": "GET",
+      "path": "/portal",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "portal",
+      "evidenceIds": ["src:api-src-controllers-license.ts:150-160"]
+    },
+    {
+      "id": "inv:route:GET:/random/string:1c524188:34",
+      "surface": "route",
+      "method": "GET",
+      "path": "/random/string",
+      "sourcePath": "api/src/controllers/utils.ts",
+      "domainHint": "random",
+      "evidenceIds": ["src:api-src-controllers-utils.ts:34-45"]
+    },
+    {
+      "id": "inv:route:GET:/register/verify-email:b3b3f1c9:482",
+      "surface": "route",
+      "method": "GET",
+      "path": "/register/verify-email",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "register",
+      "evidenceIds": ["src:api-src-controllers-users.ts:482-497"]
+    },
+    {
+      "id": "inv:route:GET:/registry:4e8e8083:48",
+      "surface": "route",
+      "method": "GET",
+      "path": "/registry",
+      "sourcePath": "api/src/controllers/extensions.ts",
+      "domainHint": "registry",
+      "evidenceIds": ["src:api-src-controllers-extensions.ts:48-120"]
+    },
+    {
+      "id": "inv:route:GET:/robots.txt:a053b4a4:274",
+      "surface": "route",
+      "method": "GET",
+      "path": "/robots.txt",
+      "sourcePath": "api/src/app.ts",
+      "domainHint": "app",
+      "evidenceIds": ["src:api-src-app.ts:274-278"]
+    },
+    {
+      "id": "inv:route:GET:/server/ping:a053b4a4:319",
+      "surface": "route",
+      "method": "GET",
+      "path": "/server/ping",
+      "sourcePath": "api/src/app.ts",
+      "domainHint": "server",
+      "evidenceIds": ["src:api-src-app.ts:319-319"]
+    },
+    {
+      "id": "inv:route:GET:/snapshot:b3eff9b8:34",
+      "surface": "route",
+      "method": "GET",
+      "path": "/snapshot",
+      "sourcePath": "api/src/controllers/schema.ts",
+      "domainHint": "snapshot",
+      "evidenceIds": ["src:api-src-controllers-schema.ts:34-47"]
+    },
+    {
+      "id": "inv:route:GET:/sources/-chunk:4e8e8083:319",
+      "surface": "route",
+      "method": "GET",
+      "path": "/sources/:chunk",
+      "sourcePath": "api/src/controllers/extensions.ts",
+      "domainHint": "sources",
+      "evidenceIds": ["src:api-src-controllers-extensions.ts:319-348"]
+    },
+    {
+      "id": "inv:route:GET:/sources/-chunk:84cd50e9:44",
+      "surface": "route",
+      "method": "GET",
+      "path": "/sources/:chunk",
+      "sourcePath": "api/src/controllers/extensions.test.ts",
+      "domainHint": "sources",
+      "evidenceIds": ["src:api-src-controllers-extensions.test.ts:44-52"]
+    },
+    {
+      "id": "inv:route:GET:/specs/graphql/-scope-:f4a5ce2b:36",
+      "surface": "route",
+      "method": "GET",
+      "path": "/specs/graphql/:scope?",
+      "sourcePath": "api/src/controllers/server.ts",
+      "domainHint": "specs",
+      "evidenceIds": ["src:api-src-controllers-server.ts:36-60"]
+    },
+    {
+      "id": "inv:route:GET:/specs/oas:f4a5ce2b:20",
+      "surface": "route",
+      "method": "GET",
+      "path": "/specs/oas",
+      "sourcePath": "api/src/controllers/server.ts",
+      "domainHint": "specs",
+      "evidenceIds": ["src:api-src-controllers-server.ts:20-32"]
+    },
+    {
+      "id": "inv:route:PATCH:/-collection/-field:120b490d:120",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:collection/:field",
+      "sourcePath": "api/src/controllers/relations.ts",
+      "domainHint": "relations",
+      "evidenceIds": ["src:api-src-controllers-relations.ts:120-151"]
+    },
+    {
+      "id": "inv:route:PATCH:/-collection/-field:d6e3a5da:187",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:collection/:field",
+      "sourcePath": "api/src/controllers/fields.ts",
+      "domainHint": "fields",
+      "evidenceIds": ["src:api-src-controllers-fields.ts:187-231"]
+    },
+    {
+      "id": "inv:route:PATCH:/-collection/-pk:65023d06:169",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:collection/:pk",
+      "sourcePath": "api/src/controllers/items.ts",
+      "domainHint": "items",
+      "evidenceIds": ["src:api-src-controllers-items.ts:169-200"]
+    },
+    {
+      "id": "inv:route:PATCH:/-collection:18bb33e8:114",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/collections.ts",
+      "domainHint": "collections",
+      "evidenceIds": ["src:api-src-controllers-collections.ts:114-138"]
+    },
+    {
+      "id": "inv:route:PATCH:/-collection:65023d06:122",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/items.ts",
+      "domainHint": "items",
+      "evidenceIds": ["src:api-src-controllers-items.ts:122-167"]
+    },
+    {
+      "id": "inv:route:PATCH:/-collection:d6e3a5da:124",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/fields.ts",
+      "domainHint": "fields",
+      "evidenceIds": ["src:api-src-controllers-fields.ts:124-171"]
+    },
+    {
+      "id": "inv:route:PATCH:/-id:27c133e8:94",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:id",
+      "sourcePath": "api/src/controllers/tus.ts",
+      "domainHint": "tus",
+      "evidenceIds": ["src:api-src-controllers-tus.ts:94-94"]
+    },
+    {
+      "id": "inv:route:PATCH:/-license_key:4ce3b9d8:28",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:license_key",
+      "sourcePath": "tests/mock-license-server/src/routes/admin.ts",
+      "domainHint": "admin",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-admin.ts:28-38"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:0987c532:138",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:138-162"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:0c5b2352:128",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/panels.ts",
+      "domainHint": "panels",
+      "evidenceIds": ["src:api-src-controllers-panels.ts:128-152"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:2329016d:162",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/permissions.ts",
+      "domainHint": "permissions",
+      "evidenceIds": ["src:api-src-controllers-permissions.ts:162-186"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:2828a478:128",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/dashboards.ts",
+      "domainHint": "dashboards",
+      "evidenceIds": ["src:api-src-controllers-dashboards.ts:128-152"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:3e0431e6:160",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/flows.ts",
+      "domainHint": "flows",
+      "evidenceIds": ["src:api-src-controllers-flows.ts:160-184"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:45fd895d:137",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/translations.ts",
+      "domainHint": "translations",
+      "evidenceIds": ["src:api-src-controllers-translations.ts:137-161"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:4d95be1e:135",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/comments.ts",
+      "domainHint": "comments",
+      "evidenceIds": ["src:api-src-controllers-comments.ts:135-159"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:5fb8c2c8:137",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/notifications.ts",
+      "domainHint": "notifications",
+      "evidenceIds": ["src:api-src-controllers-notifications.ts:137-161"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:756bf097:137",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/access.ts",
+      "domainHint": "access",
+      "evidenceIds": ["src:api-src-controllers-access.ts:137-161"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:abd619dd:137",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/presets.ts",
+      "domainHint": "presets",
+      "evidenceIds": ["src:api-src-controllers-presets.ts:137-161"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:b3b3f1c9:221",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "users",
+      "evidenceIds": ["src:api-src-controllers-users.ts:221-245"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:bccde500:128",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/operations.ts",
+      "domainHint": "operations",
+      "evidenceIds": ["src:api-src-controllers-operations.ts:128-152"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:cc6fba33:165",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/policies.ts",
+      "domainHint": "policies",
+      "evidenceIds": ["src:api-src-controllers-policies.ts:165-189"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:d6460f66:158",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/roles.ts",
+      "domainHint": "roles",
+      "evidenceIds": ["src:api-src-controllers-roles.ts:158-182"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:de8b3fe8:297",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/files.ts",
+      "domainHint": "files",
+      "evidenceIds": ["src:api-src-controllers-files.ts:297-322"]
+    },
+    {
+      "id": "inv:route:PATCH:/-pk:e700b8ed:137",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:pk",
+      "sourcePath": "api/src/controllers/folders.ts",
+      "domainHint": "folders",
+      "evidenceIds": ["src:api-src-controllers-folders.ts:137-161"]
+    },
+    {
+      "id": "inv:route:PATCH:/-provider/projects:e2b99997:211",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:provider/projects",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:211-253"]
+    },
+    {
+      "id": "inv:route:PATCH:/-provider:e2b99997:334",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/:provider",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:334-375"]
+    },
+    {
+      "id": "inv:route:PATCH:/:0987c532:102",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:102-136"]
+    },
+    {
+      "id": "inv:route:PATCH:/:0c5b2352:92",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/panels.ts",
+      "domainHint": "panels",
+      "evidenceIds": ["src:api-src-controllers-panels.ts:92-126"]
+    },
+    {
+      "id": "inv:route:PATCH:/:18bb33e8:88",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/collections.ts",
+      "domainHint": "collections",
+      "evidenceIds": ["src:api-src-controllers-collections.ts:88-112"]
+    },
+    {
+      "id": "inv:route:PATCH:/:2329016d:126",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/permissions.ts",
+      "domainHint": "permissions",
+      "evidenceIds": ["src:api-src-controllers-permissions.ts:126-160"]
+    },
+    {
+      "id": "inv:route:PATCH:/:2828a478:92",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/dashboards.ts",
+      "domainHint": "dashboards",
+      "evidenceIds": ["src:api-src-controllers-dashboards.ts:92-126"]
+    },
+    {
+      "id": "inv:route:PATCH:/:3e0431e6:124",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/flows.ts",
+      "domainHint": "flows",
+      "evidenceIds": ["src:api-src-controllers-flows.ts:124-158"]
+    },
+    {
+      "id": "inv:route:PATCH:/:3f4ec201:88",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "license",
+      "evidenceIds": ["src:api-src-controllers-license.ts:88-103"]
+    },
+    {
+      "id": "inv:route:PATCH:/:45fd895d:101",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/translations.ts",
+      "domainHint": "translations",
+      "evidenceIds": ["src:api-src-controllers-translations.ts:101-135"]
+    },
+    {
+      "id": "inv:route:PATCH:/:4b57e0c0:42",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/settings.ts",
+      "domainHint": "settings",
+      "evidenceIds": ["src:api-src-controllers-settings.ts:42-66"]
+    },
+    {
+      "id": "inv:route:PATCH:/:4d95be1e:99",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/comments.ts",
+      "domainHint": "comments",
+      "evidenceIds": ["src:api-src-controllers-comments.ts:99-133"]
+    },
+    {
+      "id": "inv:route:PATCH:/:5fb8c2c8:101",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/notifications.ts",
+      "domainHint": "notifications",
+      "evidenceIds": ["src:api-src-controllers-notifications.ts:101-135"]
+    },
+    {
+      "id": "inv:route:PATCH:/:756bf097:101",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/access.ts",
+      "domainHint": "access",
+      "evidenceIds": ["src:api-src-controllers-access.ts:101-135"]
+    },
+    {
+      "id": "inv:route:PATCH:/:7a80924e:48",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/addons.ts",
+      "domainHint": "addons",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-addons.ts:48-82"]
+    },
+    {
+      "id": "inv:route:PATCH:/:abd619dd:101",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/presets.ts",
+      "domainHint": "presets",
+      "evidenceIds": ["src:api-src-controllers-presets.ts:101-135"]
+    },
+    {
+      "id": "inv:route:PATCH:/:b3b3f1c9:185",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "users",
+      "evidenceIds": ["src:api-src-controllers-users.ts:185-219"]
+    },
+    {
+      "id": "inv:route:PATCH:/:bccde500:92",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/operations.ts",
+      "domainHint": "operations",
+      "evidenceIds": ["src:api-src-controllers-operations.ts:92-126"]
+    },
+    {
+      "id": "inv:route:PATCH:/:c97e9c2f:214",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/shares.ts",
+      "domainHint": "shares",
+      "evidenceIds": ["src:api-src-controllers-shares.ts:214-248"]
+    },
+    {
+      "id": "inv:route:PATCH:/:cc6fba33:129",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/policies.ts",
+      "domainHint": "policies",
+      "evidenceIds": ["src:api-src-controllers-policies.ts:129-163"]
+    },
+    {
+      "id": "inv:route:PATCH:/:d6460f66:122",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/roles.ts",
+      "domainHint": "roles",
+      "evidenceIds": ["src:api-src-controllers-roles.ts:122-156"]
+    },
+    {
+      "id": "inv:route:PATCH:/:de8b3fe8:261",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/files.ts",
+      "domainHint": "files",
+      "evidenceIds": ["src:api-src-controllers-files.ts:261-295"]
+    },
+    {
+      "id": "inv:route:PATCH:/:e700b8ed:101",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/",
+      "sourcePath": "api/src/controllers/folders.ts",
+      "domainHint": "folders",
+      "evidenceIds": ["src:api-src-controllers-folders.ts:101-135"]
+    },
+    {
+      "id": "inv:route:PATCH:/addons/-id:3f4ec201:176",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/addons/:id",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "addons",
+      "evidenceIds": ["src:api-src-controllers-license.ts:176-191"]
+    },
+    {
+      "id": "inv:route:PATCH:/me/track/page:b3b3f1c9:166",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/me/track/page",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-users.ts:166-183"]
+    },
+    {
+      "id": "inv:route:PATCH:/me:b3b3f1c9:145",
+      "surface": "route",
+      "method": "PATCH",
+      "path": "/me",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-users.ts:145-164"]
+    },
+    {
+      "id": "inv:route:POST:/-collection:65023d06:18",
+      "surface": "route",
+      "method": "POST",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/items.ts",
+      "domainHint": "items",
+      "evidenceIds": ["src:api-src-controllers-items.ts:18-62"]
+    },
+    {
+      "id": "inv:route:POST:/-collection:d6e3a5da:86",
+      "surface": "route",
+      "method": "POST",
+      "path": "/:collection",
+      "sourcePath": "api/src/controllers/fields.ts",
+      "domainHint": "fields",
+      "evidenceIds": ["src:api-src-controllers-fields.ts:86-122"]
+    },
+    {
+      "id": "inv:route:POST:/-pk/promote:0987c532:259",
+      "surface": "route",
+      "method": "POST",
+      "path": "/:pk/promote",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:259-277"]
+    },
+    {
+      "id": "inv:route:POST:/-pk/save:0987c532:230",
+      "surface": "route",
+      "method": "POST",
+      "path": "/:pk/save",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:230-257"]
+    },
+    {
+      "id": "inv:route:POST:/-pk/tfa/disable:b3b3f1c9:435",
+      "surface": "route",
+      "method": "POST",
+      "path": "/:pk/tfa/disable",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "users",
+      "evidenceIds": ["src:api-src-controllers-users.ts:435-455"]
+    },
+    {
+      "id": "inv:route:POST:/-provider/projects/-id/deploy:e2b99997:300",
+      "surface": "route",
+      "method": "POST",
+      "path": "/:provider/projects/:id/deploy",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:300-331"]
+    },
+    {
+      "id": "inv:route:POST:/-provider/runs/-id/cancel:e2b99997:527",
+      "surface": "route",
+      "method": "POST",
+      "path": "/:provider/runs/:id/cancel",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:527-549"]
+    },
+    {
+      "id": "inv:route:POST:/-provider:e083c4fd:15",
+      "surface": "route",
+      "method": "POST",
+      "path": "/:provider",
+      "sourcePath": "api/src/controllers/deployment-webhooks.ts",
+      "domainHint": "deployment-webhooks",
+      "evidenceIds": ["src:api-src-controllers-deployment-webhooks.ts:15-120"]
+    },
+    {
+      "id": "inv:route:POST:/:0987c532:17",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/versions.ts",
+      "domainHint": "versions",
+      "evidenceIds": ["src:api-src-controllers-versions.ts:17-54"]
+    },
+    {
+      "id": "inv:route:POST:/:0c5b2352:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/panels.ts",
+      "domainHint": "panels",
+      "evidenceIds": ["src:api-src-controllers-panels.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/:0c768e17:62",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/mcp/index.ts",
+      "domainHint": "index",
+      "evidenceIds": ["src:api-src-controllers-mcp-index.ts:62-62"]
+    },
+    {
+      "id": "inv:route:POST:/:120b490d:76",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/relations.ts",
+      "domainHint": "relations",
+      "evidenceIds": ["src:api-src-controllers-relations.ts:76-106"]
+    },
+    {
+      "id": "inv:route:POST:/:18bb33e8:12",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/collections.ts",
+      "domainHint": "collections",
+      "evidenceIds": ["src:api-src-controllers-collections.ts:12-42"]
+    },
+    {
+      "id": "inv:route:POST:/:19a91930:63",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/auth/drivers/local.ts",
+      "domainHint": "local",
+      "evidenceIds": ["src:api-src-auth-drivers-local.ts:63-119"]
+    },
+    {
+      "id": "inv:route:POST:/:2329016d:18",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/permissions.ts",
+      "domainHint": "permissions",
+      "evidenceIds": ["src:api-src-controllers-permissions.ts:18-55"]
+    },
+    {
+      "id": "inv:route:POST:/:252f53e5:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/preview.ts",
+      "domainHint": "preview",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-preview.ts:16-37"]
+    },
+    {
+      "id": "inv:route:POST:/:27c133e8:93",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/tus.ts",
+      "domainHint": "tus",
+      "evidenceIds": ["src:api-src-controllers-tus.ts:93-93"]
+    },
+    {
+      "id": "inv:route:POST:/:2828a478:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/dashboards.ts",
+      "domainHint": "dashboards",
+      "evidenceIds": ["src:api-src-controllers-dashboards.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/:362c8d98:18",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/activate.ts",
+      "domainHint": "activate",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-activate.ts:18-70"]
+    },
+    {
+      "id": "inv:route:POST:/:3e0431e6:48",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/flows.ts",
+      "domainHint": "flows",
+      "evidenceIds": ["src:api-src-controllers-flows.ts:48-85"]
+    },
+    {
+      "id": "inv:route:POST:/:3eb4d4f9:439",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/auth/drivers/ldap.ts",
+      "domainHint": "ldap",
+      "evidenceIds": ["src:api-src-auth-drivers-ldap.ts:439-495"]
+    },
+    {
+      "id": "inv:route:POST:/:3f4ec201:71",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "license",
+      "evidenceIds": ["src:api-src-controllers-license.ts:71-86"]
+    },
+    {
+      "id": "inv:route:POST:/:43023411:6",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/deactivate.ts",
+      "domainHint": "deactivate",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-deactivate.ts:6-22"]
+    },
+    {
+      "id": "inv:route:POST:/:45fd895d:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/translations.ts",
+      "domainHint": "translations",
+      "evidenceIds": ["src:api-src-controllers-translations.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/:4ce3b9d8:7",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/admin.ts",
+      "domainHint": "admin",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-admin.ts:7-11"]
+    },
+    {
+      "id": "inv:route:POST:/:4d95be1e:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/comments.ts",
+      "domainHint": "comments",
+      "evidenceIds": ["src:api-src-controllers-comments.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/:5fb8c2c8:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/notifications.ts",
+      "domainHint": "notifications",
+      "evidenceIds": ["src:api-src-controllers-notifications.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/:756bf097:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/access.ts",
+      "domainHint": "access",
+      "evidenceIds": ["src:api-src-controllers-access.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/:79d2f50a:7",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/portal.ts",
+      "domainHint": "portal",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-portal.ts:7-23"]
+    },
+    {
+      "id": "inv:route:POST:/:a0bb630e:28",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/refresh.ts",
+      "domainHint": "refresh",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-refresh.ts:28-42"]
+    },
+    {
+      "id": "inv:route:POST:/:abd619dd:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/presets.ts",
+      "domainHint": "presets",
+      "evidenceIds": ["src:api-src-controllers-presets.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/:b3b3f1c9:28",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "users",
+      "evidenceIds": ["src:api-src-controllers-users.ts:28-65"]
+    },
+    {
+      "id": "inv:route:POST:/:ba1a7f63:19",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "tests/mock-license-server/src/routes/update.ts",
+      "domainHint": "update",
+      "evidenceIds": ["src:tests-mock-license-server-src-routes-update.ts:19-50"]
+    },
+    {
+      "id": "inv:route:POST:/:bccde500:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/operations.ts",
+      "domainHint": "operations",
+      "evidenceIds": ["src:api-src-controllers-operations.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/:c97e9c2f:95",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/shares.ts",
+      "domainHint": "shares",
+      "evidenceIds": ["src:api-src-controllers-shares.ts:95-132"]
+    },
+    {
+      "id": "inv:route:POST:/:cc6fba33:18",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/policies.ts",
+      "domainHint": "policies",
+      "evidenceIds": ["src:api-src-controllers-policies.ts:18-55"]
+    },
+    {
+      "id": "inv:route:POST:/:d6460f66:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/roles.ts",
+      "domainHint": "roles",
+      "evidenceIds": ["src:api-src-controllers-roles.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/:de8b3fe8:133",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/files.ts",
+      "domainHint": "files",
+      "evidenceIds": ["src:api-src-controllers-files.ts:133-176"]
+    },
+    {
+      "id": "inv:route:POST:/:e2b99997:42",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/deployment.ts",
+      "domainHint": "deployment",
+      "evidenceIds": ["src:api-src-controllers-deployment.ts:42-74"]
+    },
+    {
+      "id": "inv:route:POST:/:e700b8ed:16",
+      "surface": "route",
+      "method": "POST",
+      "path": "/",
+      "sourcePath": "api/src/controllers/folders.ts",
+      "domainHint": "folders",
+      "evidenceIds": ["src:api-src-controllers-folders.ts:16-53"]
+    },
+    {
+      "id": "inv:route:POST:/acs:8583b495:174",
+      "surface": "route",
+      "method": "POST",
+      "path": "/acs",
+      "sourcePath": "api/src/auth/drivers/saml.ts",
+      "domainHint": "acs",
+      "evidenceIds": ["src:api-src-auth-drivers-saml.ts:174-240"]
+    },
+    {
+      "id": "inv:route:POST:/apply:b3eff9b8:81",
+      "surface": "route",
+      "method": "POST",
+      "path": "/apply",
+      "sourcePath": "api/src/controllers/schema.ts",
+      "domainHint": "apply",
+      "evidenceIds": ["src:api-src-controllers-schema.ts:81-92"]
+    },
+    {
+      "id": "inv:route:POST:/auth:c97e9c2f:26",
+      "surface": "route",
+      "method": "POST",
+      "path": "/auth",
+      "sourcePath": "api/src/controllers/shares.ts",
+      "domainHint": "auth",
+      "evidenceIds": ["src:api-src-controllers-shares.ts:26-67"]
+    },
+    {
+      "id": "inv:route:POST:/cache/clear:1c524188:197",
+      "surface": "route",
+      "method": "POST",
+      "path": "/cache/clear",
+      "sourcePath": "api/src/controllers/utils.ts",
+      "domainHint": "cache",
+      "evidenceIds": ["src:api-src-controllers-utils.ts:197-211"]
+    },
+    {
+      "id": "inv:route:POST:/callback:0ada6b25:494",
+      "surface": "route",
+      "method": "POST",
+      "path": "/callback",
+      "sourcePath": "api/src/auth/drivers/openid.ts",
+      "domainHint": "callback",
+      "evidenceIds": ["src:api-src-auth-drivers-openid.ts:494-501"]
+    },
+    {
+      "id": "inv:route:POST:/callback:93da4f4c:401",
+      "surface": "route",
+      "method": "POST",
+      "path": "/callback",
+      "sourcePath": "api/src/auth/drivers/oauth2.ts",
+      "domainHint": "callback",
+      "evidenceIds": ["src:api-src-auth-drivers-oauth2.ts:401-408"]
+    },
+    {
+      "id": "inv:route:POST:/diff:b3eff9b8:54",
+      "surface": "route",
+      "method": "POST",
+      "path": "/diff",
+      "sourcePath": "api/src/controllers/schema.ts",
+      "domainHint": "diff",
+      "evidenceIds": ["src:api-src-controllers-schema.ts:54-79"]
+    },
+    {
+      "id": "inv:route:POST:/export/-collection:1c524188:145",
+      "surface": "route",
+      "method": "POST",
+      "path": "/export/:collection",
+      "sourcePath": "api/src/controllers/utils.ts",
+      "domainHint": "export",
+      "evidenceIds": ["src:api-src-controllers-utils.ts:145-172"]
+    },
+    {
+      "id": "inv:route:POST:/files/:4dad9f4b:89",
+      "surface": "route",
+      "method": "POST",
+      "path": "/files/",
+      "sourcePath": "api/src/controllers/assets.ts",
+      "domainHint": "files",
+      "evidenceIds": ["src:api-src-controllers-assets.ts:89-156"]
+    },
+    {
+      "id": "inv:route:POST:/folder/-pk:4dad9f4b:34",
+      "surface": "route",
+      "method": "POST",
+      "path": "/folder/:pk",
+      "sourcePath": "api/src/controllers/assets.ts",
+      "domainHint": "folder",
+      "evidenceIds": ["src:api-src-controllers-assets.ts:34-87"]
+    },
+    {
+      "id": "inv:route:POST:/import/-collection:1c524188:86",
+      "surface": "route",
+      "method": "POST",
+      "path": "/import/:collection",
+      "sourcePath": "api/src/controllers/utils.ts",
+      "domainHint": "import",
+      "evidenceIds": ["src:api-src-controllers-utils.ts:86-106"]
+    },
+    {
+      "id": "inv:route:POST:/import:1c524188:117",
+      "surface": "route",
+      "method": "POST",
+      "path": "/import",
+      "sourcePath": "api/src/controllers/utils.ts",
+      "domainHint": "import",
+      "evidenceIds": ["src:api-src-controllers-utils.ts:117-143"]
+    },
+    {
+      "id": "inv:route:POST:/import:de8b3fe8:184",
+      "surface": "route",
+      "method": "POST",
+      "path": "/import",
+      "sourcePath": "api/src/controllers/files.ts",
+      "domainHint": "import",
+      "evidenceIds": ["src:api-src-controllers-files.ts:184-214"]
+    },
+    {
+      "id": "inv:route:POST:/invite/accept:b3b3f1c9:322",
+      "surface": "route",
+      "method": "POST",
+      "path": "/invite/accept",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "invite",
+      "evidenceIds": ["src:api-src-controllers-users.ts:322-337"]
+    },
+    {
+      "id": "inv:route:POST:/invite:b3b3f1c9:291",
+      "surface": "route",
+      "method": "POST",
+      "path": "/invite",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "invite",
+      "evidenceIds": ["src:api-src-controllers-users.ts:291-315"]
+    },
+    {
+      "id": "inv:route:POST:/invite:c97e9c2f:74",
+      "surface": "route",
+      "method": "POST",
+      "path": "/invite",
+      "sourcePath": "api/src/controllers/shares.ts",
+      "domainHint": "invite",
+      "evidenceIds": ["src:api-src-controllers-shares.ts:74-93"]
+    },
+    {
+      "id": "inv:route:POST:/logout:35ec4e4c:156",
+      "surface": "route",
+      "method": "POST",
+      "path": "/logout",
+      "sourcePath": "api/src/controllers/auth.ts",
+      "domainHint": "logout",
+      "evidenceIds": ["src:api-src-controllers-auth.ts:156-194"]
+    },
+    {
+      "id": "inv:route:POST:/logout:8583b495:156",
+      "surface": "route",
+      "method": "POST",
+      "path": "/logout",
+      "sourcePath": "api/src/auth/drivers/saml.ts",
+      "domainHint": "logout",
+      "evidenceIds": ["src:api-src-auth-drivers-saml.ts:156-172"]
+    },
+    {
+      "id": "inv:route:POST:/me/tfa/disable:b3b3f1c9:407",
+      "surface": "route",
+      "method": "POST",
+      "path": "/me/tfa/disable",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-users.ts:407-433"]
+    },
+    {
+      "id": "inv:route:POST:/me/tfa/enable/:b3b3f1c9:380",
+      "surface": "route",
+      "method": "POST",
+      "path": "/me/tfa/enable/",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-users.ts:380-405"]
+    },
+    {
+      "id": "inv:route:POST:/me/tfa/generate/:b3b3f1c9:339",
+      "surface": "route",
+      "method": "POST",
+      "path": "/me/tfa/generate/",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "me",
+      "evidenceIds": ["src:api-src-controllers-users.ts:339-378"]
+    },
+    {
+      "id": "inv:route:POST:/owner:4b57e0c0:27",
+      "surface": "route",
+      "method": "POST",
+      "path": "/owner",
+      "sourcePath": "api/src/controllers/settings.ts",
+      "domainHint": "owner",
+      "evidenceIds": ["src:api-src-controllers-settings.ts:27-40"]
+    },
+    {
+      "id": "inv:route:POST:/password/request:35ec4e4c:196",
+      "surface": "route",
+      "method": "POST",
+      "path": "/password/request",
+      "sourcePath": "api/src/controllers/auth.ts",
+      "domainHint": "password",
+      "evidenceIds": ["src:api-src-controllers-auth.ts:196-226"]
+    },
+    {
+      "id": "inv:route:POST:/password/reset:35ec4e4c:228",
+      "surface": "route",
+      "method": "POST",
+      "path": "/password/reset",
+      "sourcePath": "api/src/controllers/auth.ts",
+      "domainHint": "password",
+      "evidenceIds": ["src:api-src-controllers-auth.ts:228-252"]
+    },
+    {
+      "id": "inv:route:POST:/pending-resolution:3f4ec201:206",
+      "surface": "route",
+      "method": "POST",
+      "path": "/pending-resolution",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "pending-resolution",
+      "evidenceIds": ["src:api-src-controllers-license.ts:206-221"]
+    },
+    {
+      "id": "inv:route:POST:/preview:3f4ec201:118",
+      "surface": "route",
+      "method": "POST",
+      "path": "/preview",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "preview",
+      "evidenceIds": ["src:api-src-controllers-license.ts:118-148"]
+    },
+    {
+      "id": "inv:route:POST:/refresh:35ec4e4c:105",
+      "surface": "route",
+      "method": "POST",
+      "path": "/refresh",
+      "sourcePath": "api/src/controllers/auth.ts",
+      "domainHint": "refresh",
+      "evidenceIds": ["src:api-src-controllers-auth.ts:105-154"]
+    },
+    {
+      "id": "inv:route:POST:/register:b3b3f1c9:465",
+      "surface": "route",
+      "method": "POST",
+      "path": "/register",
+      "sourcePath": "api/src/controllers/users.ts",
+      "domainHint": "register",
+      "evidenceIds": ["src:api-src-controllers-users.ts:465-478"]
+    },
+    {
+      "id": "inv:route:POST:/registry/install:4e8e8083:184",
+      "surface": "route",
+      "method": "POST",
+      "path": "/registry/install",
+      "sourcePath": "api/src/controllers/extensions.ts",
+      "domainHint": "registry",
+      "evidenceIds": ["src:api-src-controllers-extensions.ts:184-206"]
+    },
+    {
+      "id": "inv:route:POST:/registry/reinstall:4e8e8083:208",
+      "surface": "route",
+      "method": "POST",
+      "path": "/registry/reinstall",
+      "sourcePath": "api/src/controllers/extensions.ts",
+      "domainHint": "registry",
+      "evidenceIds": ["src:api-src-controllers-extensions.ts:208-230"]
+    },
+    {
+      "id": "inv:route:POST:/resolve-redirect:1c524188:213",
+      "surface": "route",
+      "method": "POST",
+      "path": "/resolve-redirect",
+      "sourcePath": "api/src/controllers/utils.ts",
+      "domainHint": "resolve-redirect",
+      "evidenceIds": ["src:api-src-controllers-utils.ts:213-234"]
+    },
+    {
+      "id": "inv:route:POST:/resolve:3f4ec201:223",
+      "surface": "route",
+      "method": "POST",
+      "path": "/resolve",
+      "sourcePath": "api/src/controllers/license.ts",
+      "domainHint": "resolve",
+      "evidenceIds": ["src:api-src-controllers-license.ts:223-240"]
+    },
+    {
+      "id": "inv:route:POST:/revert/-revision:1c524188:72",
+      "surface": "route",
+      "method": "POST",
+      "path": "/revert/:revision",
+      "sourcePath": "api/src/controllers/utils.ts",
+      "domainHint": "revert",
+      "evidenceIds": ["src:api-src-controllers-utils.ts:72-84"]
+    },
+    {
+      "id": "inv:route:POST:/setup:f4a5ce2b:118",
+      "surface": "route",
+      "method": "POST",
+      "path": "/setup",
+      "sourcePath": "api/src/controllers/server.ts",
+      "domainHint": "setup",
+      "evidenceIds": ["src:api-src-controllers-server.ts:118-164"]
+    },
+    {
+      "id": "inv:route:POST:/sort/-collection:1c524188:54",
+      "surface": "route",
+      "method": "POST",
+      "path": "/sort/:collection",
+      "sourcePath": "api/src/controllers/utils.ts",
+      "domainHint": "sort",
+      "evidenceIds": ["src:api-src-controllers-utils.ts:54-70"]
+    },
+    {
+      "id": "inv:route:POST:/translations/generate:1c524188:174",
+      "surface": "route",
+      "method": "POST",
+      "path": "/translations/generate",
+      "sourcePath": "api/src/controllers/utils.ts",
+      "domainHint": "translations",
+      "evidenceIds": ["src:api-src-controllers-utils.ts:174-195"]
+    }
+  ]
+}
