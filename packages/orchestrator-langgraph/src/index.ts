@@ -8,5 +8,6 @@ export * from './input-fingerprint';
 export * from './inference';
 export * from './orchestrator';
 export * from './sensitivity-probe-adapter';
+export * from './stage-order';
 export * from './types';
 export * from './worker-candidate-promotion';

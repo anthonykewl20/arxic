@@ -10,6 +10,7 @@ import {
   FileStageCheckpointer,
   InMemoryStageCheckpointer,
   LangGraphOrchestrator,
+  STAGE_EXECUTION_ORDER,
   type DomainInventoryStageArtifact,
   type RunState,
   type StageCheckpointer,
@@ -91,7 +92,11 @@ describe('stage-13 domain-inventory (real DG-05 translator, real fusion)', () =>
     const result = await run('stage13-happy');
 
     expect(result.status).toMatch(/completed|partial/);
-    // POSITION: 13 executes between 2 (structural-extraction) and 3.
+    // POSITION: 13 executes between 2 (structural-extraction) and 3 — and
+    // the REAL full-run order deep-equals the exported canonical constant
+    // (single source of truth for CLI/worker sequence validation; pins
+    // constant ↔ graph-topology drift machine-caught).
+    expect(result.completedStages).toEqual(STAGE_EXECUTION_ORDER);
     expect(result.completedStages.slice(0, 4)).toEqual([0, 1, 2, 13]);
     expect(result.completedStages).toHaveLength(14);
     // Existing stage IDs remain stable and ordered after the insertion.

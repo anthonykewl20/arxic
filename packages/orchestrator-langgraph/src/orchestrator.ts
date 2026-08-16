@@ -133,8 +133,10 @@ const STAGE_NAMES = [
   // Stage 13: the Domain Inventory (DG-06 #250). NUMBERING (ADR-008
   // Consequences; decision recorded at DG-06): 13 is the NEXT AVAILABLE id —
   // ids 0–12 stay stable for compatibility — while the stage's POSITION in
-  // the graph is immediately after structural extraction (2 → 13 → 3). See
-  // #buildGraph for the topology and types.ts for the full rationale.
+  // the graph is immediately after structural extraction (2 → 13 → 3). The
+  // canonical order lives in ./stage-order.ts (STAGE_EXECUTION_ORDER) —
+  // exported for consumers that validate stage sequences; keep this topology
+  // and that constant in sync (pinned by the orchestrator suites).
   'domain-inventory',
 ] as const;
 

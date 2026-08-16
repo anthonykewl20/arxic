@@ -90,10 +90,106 @@ describe('worker PipelineResult fail-closed normalization', () => {
     expect(workerResult).toEqual(localResult);
     expect(workerResult.state.artifacts[10]).toEqual({ id: 'stage:10', sha256: stageHash });
   });
+
+  // ---- stage-13 execution-order semantics (DG-06, exception 2 on #250) ----
+  // Stage 13 (domain-inventory) uses the next available ID but EXECUTES at
+  // position 3 (graph order 2 → 13 → 3, ADR-008 numbering recorded at DG-06),
+  // so "monotonic" means a PREFIX OF THE CANONICAL EXECUTION ORDER
+  // (STAGE_EXECUTION_ORDER, exported by @arxic/orchestrator-langgraph) —
+  // never `stage === index`. The five tests below are the mandated no-weakening
+  // contract: the honest rejections that held before must still hold.
+  describe('execution-order prefix validation (stage 13 between 2 and 3)', () => {
+    it('accepts the real full execution sequence [0,1,2,13,3,…,12]', () => {
+      const result = normalizeWorkerResult(
+        request,
+        imported(
+          envelope({ outcome: 'observed', stages: [0, 1, 2, 13, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }),
+        ),
+        trustedSourceSha256,
+      );
+      expect(result).toMatchObject({ ok: true });
+    });
+
+    it('accepts an incomplete-but-gapless 0–12-only prefix (old worker result without stage 13) unchanged', () => {
+      // Backward compat: a pre-DG-06 worker result has no stage-13 checkpoint
+      // at all; its sequence [0,1,2,3,…] is a prefix of the 0–12 order and
+      // must validate exactly as before.
+      const result = normalizeWorkerResult(
+        request,
+        imported(envelope({ outcome: 'observed' })),
+        trustedSourceSha256,
+      );
+      expect(result).toMatchObject({ ok: true });
+    });
+
+    it('rejects a genuinely out-of-order sequence (e.g. [0,2,1] in canonical-order terms)', () => {
+      const result = normalizeWorkerResult(
+        request,
+        imported(envelope({ stages: [0, 2, 1, 3, 4, 5, 6, 7, 8, 9] })),
+        trustedSourceSha256,
+      );
+      expect(result).toMatchObject({ ok: false, kind: 'protocol' });
+    });
+
+    it('rejects stage 13 misplaced in the sequence (id is not position)', () => {
+      // [0,1,2,3,13,…] looks numeric-sorted but is NOT the canonical order —
+      // 13 must appear between 2 and 3, never after 3.
+      const result = normalizeWorkerResult(
+        request,
+        imported(envelope({ stages: [0, 1, 2, 3, 13, 4, 5, 6, 7, 8, 9, 10, 11, 12] })),
+        trustedSourceSha256,
+      );
+      expect(result).toMatchObject({ ok: false, kind: 'protocol' });
+    });
+
+    it('rejects a sequence missing an intermediate stage (gap mid-sequence)', () => {
+      const result = normalizeWorkerResult(
+        request,
+        imported(envelope({ stages: [0, 1, 2, 13, 3, 4, 6, 7, 8, 9, 10] })),
+        trustedSourceSha256,
+      );
+      expect(result).toMatchObject({ ok: false, kind: 'protocol' });
+    });
+
+    it('rejects a duplicate stage in the checkpoint sequence', () => {
+      const result = normalizeWorkerResult(
+        request,
+        imported(envelope({ stages: [0, 1, 2, 13, 3, 3, 4] })),
+        trustedSourceSha256,
+      );
+      expect(result).toMatchObject({ ok: false, kind: 'protocol' });
+    });
+
+    it('rejects completed stages ordered against a DIFFERENT execution order than the checkpoints', () => {
+      // Checkpoints in the current order, completed stages in the legacy
+      // order — a mixed envelope is internally inconsistent (stage 3 cannot
+      // complete while stage 13, which precedes it, has a checkpoint but did
+      // not complete) and must be rejected exactly like the id≡position
+      // check it replaces.
+      const current = envelope({ stages: [0, 1, 2, 13, 3] });
+      const mixed = {
+        ...current,
+        state: { ...current.state, completedStages: [0, 1, 2, 3] as unknown },
+      };
+      const result = normalizeWorkerResult(
+        request,
+        imported(mixed as unknown as PipelineResult),
+        trustedSourceSha256,
+      );
+      expect(result).toMatchObject({ ok: false, kind: 'protocol' });
+    });
+  });
 });
 
-function envelope(overrides: { outcome?: 'verified' | 'observed' } = {}): PipelineResult {
+function envelope(
+  overrides: {
+    outcome?: 'verified' | 'observed';
+    /** Checkpoint sequence in the given order (default: the 0–12 legacy order). */
+    stages?: readonly number[];
+  } = {},
+): PipelineResult {
   const outcome = overrides.outcome ?? 'verified';
+  const stages = overrides.stages ?? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const ref = {
     id: 'stage:10',
     path: 'stages/10.json',
@@ -115,13 +211,13 @@ function envelope(overrides: { outcome?: 'verified' | 'observed' } = {}): Pipeli
     gateResults: [{ gate: 'verify', passed: true }],
     redaction: { passed: true, redactedFields: [] },
   };
-  const checkpoints = Array.from({ length: 11 }, (_, stage) =>
+  const checkpoints = stages.map((stage, index) =>
     stage === 10
       ? checkpoint
       : {
           ...checkpoint,
-          stage: stage as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
-          name: `stage-${stage}`,
+          stage: stage as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 11 | 12 | 13,
+          name: `stage-${stage}-${index}`,
           adapter: { name: '@arxic/orchestrator-langgraph', version: '0.0.0' },
           artifacts: [],
           gateResults: [],
@@ -148,8 +244,8 @@ function envelope(overrides: { outcome?: 'verified' | 'observed' } = {}): Pipeli
       runId: request.runId,
       status: outcome === 'verified' ? 'partial' : 'partial',
       outcome,
-      activeStage: 10,
-      completedStages: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      activeStage: stages.at(-1) as PipelineResult['state']['activeStage'],
+      completedStages: [...stages] as PipelineResult['state']['completedStages'],
       artifacts: [{ stage: 10, ref }],
       checkpoints,
       diagnostics: [],
