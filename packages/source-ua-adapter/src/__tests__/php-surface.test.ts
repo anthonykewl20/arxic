@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SOURCE_SCAN_POLICY, SourceUaAdapter } from '../index';
 import type { SourceScanPolicy, SupportedSourceLanguage } from '../policy';
+import { GrammarUnavailableError, SourceParser } from '../parser';
 import { makeRepository } from './test-repo';
 
 // Sad paths first: a PHP file that fails to parse must be a visible per-file
@@ -55,6 +56,44 @@ describe('PHP language surface behind the SourceIndexer seam — sad paths', () 
     expect(diagnostic && 'diagnostic' in diagnostic && diagnostic.diagnostic.message).toContain(
       'Language php is outside scan policy',
     );
+  });
+
+  it('skips php files with a blocked ARXIC-SOURCE-GRAMMAR-UNAVAILABLE diagnostic when the runtime lacks the grammar (bundled-worker shape)', async () => {
+    const repo = await makeRepository(undefined, {
+      'app/Thing.php': '<?php\n\nnamespace App;\n\nclass Thing\n{\n}\n',
+    });
+    // Simulate the esbuild-bundled worker runtime, where the lazily-required
+    // grammar package is absent: the parse call throws GrammarUnavailableError.
+    const spy = vi.spyOn(SourceParser.prototype, 'parse').mockImplementation((path, language) => {
+      if (language === 'php') throw new GrammarUnavailableError('tree-sitter-php');
+      return SourceParser.prototype.parse.call(
+        { parsers: new Map() } as unknown as SourceParser,
+        path,
+        language,
+        '',
+      ) as ReturnType<SourceParser['parse']>;
+    });
+    try {
+      const adapter = new SourceUaAdapter();
+      const document = await adapter.collect(repo.request);
+      const php = document.manifest.find((file) => file.path === 'app/Thing.php');
+      expect(php).toMatchObject({
+        language: 'php',
+        status: 'skipped',
+        reason: 'grammar-unavailable',
+      });
+      const diagnostic = document.events.find(
+        (event) =>
+          'diagnostic' in event &&
+          event.diagnostic.code === 'ARXIC-SOURCE-GRAMMAR-UNAVAILABLE' &&
+          event.diagnostic.subject === 'app/Thing.php',
+      );
+      expect(diagnostic && 'diagnostic' in diagnostic && diagnostic.diagnostic.severity).toBe(
+        'blocked',
+      );
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it('does not laravel-scan a php file outside any Route facade use', async () => {

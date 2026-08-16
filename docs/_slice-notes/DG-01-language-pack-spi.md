@@ -32,13 +32,16 @@ no — research spike; no user-observable capability ships (PHP scanning exists 
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
-| Trigger                                                             | Expected disposition                                                            | Test                                   |
-| ------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------- |
-| Route URI uses unresolvable interpolation                           | `observed` advisory ARXIC-SOURCE-ROUTE-DYNAMIC-REGISTRATION, no row             | `laravel-routes.test.ts`               |
-| foreach over non-literal iterable declares routes                   | `observed` advisory, no silent skip                                             | `laravel-routes.test.ts`               |
-| foreach over non-literal iterable declares NO routes (config files) | no advisory (walk-through) — proven on BookStack app/Config/*.php               | `laravel-routes.test.ts` + measurement |
-| Controller class has no PSR-4 file                                  | route row emitted + ARXIC-SOURCE-HANDLER-UNRESOLVED                             | `laravel-routes.test.ts`               |
-| Controller file lacks referenced method                             | route row emitted + ARXIC-SOURCE-HANDLER-UNRESOLVED                             | `laravel-routes.test.ts`               |
-| Malformed PHP file                                                  | manifest `skipped/parse-error` + ARXIC-SOURCE-PARSE-ERROR diagnostic            | `php-surface.test.ts`                  |
-| Policy narrowed to TS/JS                                            | php skipped with unsupported-language naming the real language (campaign shape) | `php-surface.test.ts`                  |
-| Resource controller unresolvable                                    | apiResource rows still emitted + one advisory per distinct action               | `laravel-routes.test.ts`               |
+| Trigger                                                                                    | Expected disposition                                                                                | Test                                   |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Route URI uses unresolvable interpolation                                                  | `observed` advisory ARXIC-SOURCE-ROUTE-DYNAMIC-REGISTRATION, no row                                 | `laravel-routes.test.ts`               |
+| foreach over non-literal iterable declares routes                                          | `observed` advisory, no silent skip                                                                 | `laravel-routes.test.ts`               |
+| foreach over non-literal iterable declares NO routes (config files)                        | no advisory (walk-through) — proven on BookStack app/Config/*.php                                   | `laravel-routes.test.ts` + measurement |
+| Controller class has no PSR-4 file                                                         | route row emitted + ARXIC-SOURCE-HANDLER-UNRESOLVED                                                 | `laravel-routes.test.ts`               |
+| Controller file lacks referenced method                                                    | route row emitted + ARXIC-SOURCE-HANDLER-UNRESOLVED                                                 | `laravel-routes.test.ts`               |
+| Malformed PHP file                                                                         | manifest `skipped/parse-error` + ARXIC-SOURCE-PARSE-ERROR diagnostic                                | `php-surface.test.ts`                  |
+| Policy narrowed to TS/JS                                                                   | php skipped with unsupported-language naming the real language (campaign shape)                     | `php-surface.test.ts`                  |
+| Resource controller unresolvable                                                           | apiResource rows still emitted + one advisory per distinct action                                   | `laravel-routes.test.ts`               |
+| Runtime lacks the php grammar (esbuild-bundled worker shape — found by CI run 31945782192) | boot succeeds; per-file `blocked` ARXIC-SOURCE-GRAMMAR-UNAVAILABLE + manifest `grammar-unavailable` | `php-surface.test.ts`                  |
+
+**Cross-package handoff for the integrator (outside this slice's ownership):** `apps/worker/tsup.config.ts:39` externals regex + `apps/worker/package.json` deps need `tree-sitter-php` added so the worker sandbox carries the PHP grammar (DG-05); until then the worker reports grammar-unavailable visibly instead of crashing at boot.

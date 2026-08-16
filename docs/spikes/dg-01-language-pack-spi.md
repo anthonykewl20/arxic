@@ -350,6 +350,29 @@ GetAlbumInfo2Controller {}` — `__invoke` lives on the parent. The prototype do
    against a booted `php artisan route:list` (no PHP runtime in this environment) — DG-02/DG-12
    should add that ground truth on a live app.
 
+### 5.5 Bundled-runtime finding (found by CI, fixed inside this slice)
+
+The worker's esbuild bundle declares grammar packages **external by an explicit regex**
+(`apps/worker/tsup.config.ts:39`: `/^tree-sitter(?:-javascript|-typescript)?(?:\/.*)?$/`) —
+`tree-sitter-php` was not on that list, so the first CI run bundled the native binding loader and
+the worker crashed at boot inside the container (`ARXIC-WORKER-RUN-FAILED` with the
+`tree-sitter-php/bindings/node/index.js` stack; run 31945782192). Because `apps/worker/**` is
+outside this slice's file ownership, the fix shipped here stays inside
+`@arxic/source-adapter`:
+
+- the PHP grammar is now loaded **lazily via `createRequire`** (`src/parser.ts`) — bundlers no
+  longer inline the native loader, so every runtime boots for every other language;
+- a PHP parse in a runtime without the grammar throws `GrammarUnavailableError`, which the
+  scanner converts into a **blocked `ARXIC-SOURCE-GRAMMAR-UNAVAILABLE` diagnostic + manifest
+  `reason: 'grammar-unavailable'`** — never a silent gap and never a boot crash (unit-tested in
+  `php-surface.test.ts`);
+- verified by rebuilding the worker bundle locally: it boots to its own run-spec validation
+  where the pre-fix bundle crashed on the binding stack.
+
+**DG-05 handoff (2 lines, owner of `apps/worker`):** add `tree-sitter-php` to the tsup externals
+regex and to `apps/worker/package.json` dependencies so the worker sandbox carries the PHP
+grammar natively; the lazy path then resolves it and the diagnostic disappears.
+
 ---
 
 ## 6. What this spike did NOT do

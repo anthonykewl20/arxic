@@ -5,9 +5,10 @@ import type { EvidenceEvent, EvidenceRefSource, SourceIndexRequest } from '@arxi
 import { dirtyPaths, enumerateFiles, isShallowRepository, resolveCommit } from './git';
 import { sha256 } from '@arxic/contracts';
 import { detectCategory, detectLanguage, isBinary, type ManifestFile } from './manifest';
-import { SourceParser } from './parser';
+import { GrammarUnavailableError, SourceParser, type ParsedSource } from './parser';
 import { extractTypeScript, type SourceFinding } from './extractors/typescript';
 import { extractFrameworkRoutes } from './framework-registry';
+import { ARXIC_SOURCE_GRAMMAR_UNAVAILABLE } from './diagnostics';
 import { isExtraIgnored, type SourceScanPolicy, type SupportedSourceLanguage } from './policy';
 import { languagePackFor, type CrossFileFinding, type RouteFindingPack } from './language-packs';
 import { ARXIC_SOURCE_UNSAFE_FILE, readSafeSource } from './safe-source';
@@ -197,11 +198,27 @@ export async function scanRepository(
       continue;
     }
 
-    const parsed = parser.parse(
-      path,
-      base.language as SupportedSourceLanguage,
-      bytes.toString('utf8'),
-    );
+    let parsed: ParsedSource;
+    try {
+      parsed = parser.parse(path, base.language as SupportedSourceLanguage, bytes.toString('utf8'));
+    } catch (error) {
+      if (error instanceof GrammarUnavailableError) {
+        // Bundled runtimes that do not carry the grammar package (the worker
+        // bundle today) must fail visibly per file, never silently or at boot.
+        base.reason = 'grammar-unavailable';
+        manifest.push(base);
+        events.push({
+          diagnostic: {
+            code: ARXIC_SOURCE_GRAMMAR_UNAVAILABLE,
+            severity: 'blocked',
+            subject: path,
+            message: error.message,
+          },
+        });
+        continue;
+      }
+      throw error;
+    }
     try {
       if (parsed.hasError) {
         base.reason = 'parse-error';
