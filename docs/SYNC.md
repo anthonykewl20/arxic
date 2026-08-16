@@ -8,7 +8,7 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** **Milestone 0.1.1 — Production Hardening: 18/20 complete; #196 owner screenshot inspection and #242 human-flow follow-ups remain open.** The human-flow E2E release gate is built and locally proven (PASS 84.5s; three real packed-CLI defects found and corrected), landed via PR #241, and is wired before publishing in `release.yml`. The release workflow is fail-closed and provenance-ready; `main` branch protection remains enabled (required `ci`, `strict: true`).
+**Status:** **Milestone 0.1.1 — Production Hardening: 18/20 complete; #196 owner screenshot inspection and #242 human-flow follow-ups remain open.** Milestone 0.4.0 is filed for ALL-domain business-intent extraction after the 2026-08-16 third-party campaign exposed the auth-only extraction gap. The human-flow E2E release gate is built and locally proven (PASS 84.5s; three real packed-CLI defects found and corrected), landed via PR #241, and is wired before publishing in `release.yml`. The release workflow is fail-closed and provenance-ready; `main` branch protection remains enabled (required `ci`, `strict: true`).
 
 **Parallel batch (charter §10) — COMPLETE.** Four slices plus an M1-EXIT de-risk spike were built concurrently, one agent per worktree, with the merge queue serialized by the integrator. All merged: #26 CLI↔worker seam types (#84), #42 M1-14 (#92), the #27 de-risk spike (#91), #25 M1-11 (#94), #43 M1-15 (#85), #26 M1-12 (#93). Every worker reported "done" at least once before it was — four of five needed a fix round — so **verify slice claims against CI and the disk artifact, never against the report**. Two systemic causes, both now closed: charter §10 landed after the workers had already started (so `docs/_slice-notes/` and `_TEMPLATE.md` did not exist and three agents invented `docs/_slice_notes/`), and no check enforces the §10.2 path — the format gate caught the wrong directory twice by luck, and #91 slipped through green with it. That CI guard was subsequently added (see Wave 0 below) and the second batch had zero slice-note defects.
 
@@ -152,6 +152,26 @@ _The "0.1.1 - Production Release" milestone contains 20 hardening issues. Eighte
 | #219 | Screenshot-privacy traversal timeout and esbuild remediation | ☑ done (PR #221) |
 | #242 | Follow-ups from the human-flow E2E release gate | in-flight |
 
+### Milestone 0.4.0 — ALL-Domain Business Intent Extraction
+
+_GOAL: extract ALL business-intent domains of any project — not only authentication._
+
+| # | Issue | Status |
+|---|---|---|
+| #244 | [DG-00] ADR-008: research spec for domain-general business-intent extraction | in-flight |
+| #245 | [DG-01] Research spike: Language Pack SPI + PHP/Laravel route extraction | open |
+| #246 | [DG-02] Research spike: Domain Inventory — complete deterministic denominator | open |
+| #247 | [DG-03] Research spike: generalized verification — observation-derived assertions + API-level replay | open |
+| #248 | [DG-04] Research spike: model-driven intent proposal at scale | open |
+| #249 | [DG-05] Implement: Language Pack SPI + PHP pack behind SourceIndexer | open |
+| #250 | [DG-06] Implement: Domain Inventory pipeline stage + evidence-graph fusion | open |
+| #251 | [DG-07] Implement: intent ledger as first-class bundle artifact + `arxic intents` command | open |
+| #252 | [DG-08] Implement: model-driven candidates end-to-end; demote canned auth template to seeder | open |
+| #253 | [DG-09] Implement: generalized compiler — observation-bound assertions + generic form-flow executor | open |
+| #254 | [DG-10] Implement: framework detection + enforced rulepack version ranges | open |
+| #255 | [DG-11] Real-model validation program (owner-gated) | open |
+| #256 | [DG-12] EXIT GATE: ALL-domain intent extraction proven on two real third-party apps | open |
+
 _Milestone 3 (service mode) remains NOT yet filed — deferred (ADR §22)._
 
 _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #10's healer-policy rejection and #43's exploration policy touch it today). M1 issue keys skip `M1-13` by design — the M1 gate is `M1-EXIT` = #27._
@@ -186,6 +206,7 @@ _Notes: pipeline **stage 11 (healing)** is intentionally deferred to M2 (only #1
 
 | Date | What happened |
 |---|---|
+| 2026-08-16 (4) | Third-party campaign against a real private third-party monorepo (Laravel 13 backend + Next.js 16 frontend, ~340 API endpoints, ~311k LOC) exposed the auth-only extraction gap; three defects filed (#257–#259), ADR-008 Proposed, and milestone 0.4.0 filed (#244–#256). |
 | 2026-08-13 (7) | **#103 (M2-WORKER-CLI) COMPLETE — ADR-006 Accepted (refs #103).** Built the in-container worker runner (`apps/worker/src/main.ts` + pure `runner-project.ts` projection) that the sandbox `CMD` invokes via a built `dist/main.js` (tsup, like the CLI — runtime tsx broke `page.evaluate` via an esbuild `__name` helper); the runner drives a `LangGraphOrchestrator` with `artifactsDir=/work/pipeline` + checkpoints under `/work/result/checkpoints`, writes the versioned `PipelineResult` + transport manifest to the result volume, and the CLI rewrites artifact paths to imported locations + performs authoritative `promoteWorkerCandidate`. Worker-client refactored to command-based supervision (poll container to exit, classify OOM/timeout, import result volume); `WORKER_SOURCE_PATH` makes the binding `configSha256`/`sourceSha256` symmetric across the host→container source-path rewrite. Sandbox sized for Chromium (512 MiB tmpfs, 2048 MiB quota), `networkCreate` tolerates a precreated internal network for siblings, `procps` added for Crawlee. Real-Docker e2e proof: `arxic run --executor worker` against the `vulnerable-auth-app` + model stub as sibling containers → `verified` PROMOTED bundle (2 clean Chromium replays), all #26 isolation invariants re-proven in-sandbox (read-only rootfs, non-root, cap-drop ALL, no socket, internal network, default-deny egress), and a hostile `README.injection.md` in source did not alter the outcome (content-is-data). Sad-path: unreachable target → blocked. Disposition: **verified**. ADR-006 Proposed→Accepted (ADR-004 pattern). Residuals: worker Dockerfile re-downloads Chromium on source changes (CI-efficiency follow-up); #115 human screenshot inspection. |
 | 2026-08-04 | Built §18 monorepo layout; wrote root tooling (pnpm, tsconfig.base, eslint/prettier stubs, LICENSE/NOTICE/README); filed milestones + 12 area labels + 27 issues (M0 14, M1 13); saved canonical end-to-end architecture diagram into ADR §8. |
 | 2026-08-04 (2) | Release readiness: complete MIT licensing; versioning (`VERSION` + `RELEASES.md` + always-synced `CHANGELOG.md` wired into charter §8 + PR template); maturity docs (CONTRIBUTING/CODE_OF_CONDUCT/SECURITY/SUPPORT/GOVERNANCE) + expanded README; functional tooling (eslint flat + tsconfig, contracts entry, pnpm-lock); GitHub CI + release workflows, Dependabot, issue templates, CODEOWNERS; repo settings (squash-only, delete-branch-on-merge) + security alerts; **CI green**; `main` branch protection (PR flow). |
