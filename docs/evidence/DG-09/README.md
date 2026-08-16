@@ -30,7 +30,16 @@ ARXIC_DG09_EVIDENCE_DIR=docs/evidence/DG-09 pnpm exec vitest run \
 
 Privacy notes: the retained evidence contains only loopback URLs, assertion
 text, and diagnostic codes — no persona credentials (asserted in the suite
-itself). No screenshots or raw trace ZIPs are retained here.
+itself). No screenshots or raw trace ZIPs are retained here. Since #258 made
+failed-run output RETAINED, failure-evidence redaction is fail-closed against
+non-persona secrets as well: secret-bearing patterns (`token=`/`session=`/
+`api_key=`-style query values, `bearer` credentials, `authorization` headers,
+`user:pass@` URL userinfo) are scrubbed from all retained evidence, and
+content that cannot be confidently classified (non-URL `Received "…"` values,
+unrecognized fallback output) is scrubbed AND flagged — the run's diagnostics
+carry an `ARXIC-VERIFY-REDACTION-FAILED` signal alongside the honest
+`contradicted` cause, so retention is never silently dropped and secrets are
+never silently retained.
 
 [#253]: https://github.com/anthonykewl20/arxic/issues/253
 [#258]: https://github.com/anthonykewl20/arxic/issues/258

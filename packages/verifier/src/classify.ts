@@ -20,6 +20,10 @@ export type ClassificationInput = {
   artifactFailures?: Array<{ reason: 'missing' | 'mismatch'; detail: string }>;
   /** Redacted per-run failure summaries for failed runs (#258 evidence retention). */
   runFailures?: string[];
+  /** Per-run signals that retained failure evidence is pattern-scrubbed only
+   * (parts of the source output could not be confidently classified as
+   * secret-free). Reported alongside the honest cause, never instead of it. */
+  failureEvidenceRedactionFailures?: string[];
   networkErrors?: string[];
   receiptFailures?: string[];
   receiptRedactionFailures?: string[];
@@ -123,6 +127,7 @@ export function classifyVerification(input: ClassificationInput): Classification
       diagnostics: [
         runOutcome.diagnostic,
         ...runFailureDiagnostics(input),
+        ...failureEvidenceRedactionDiagnostics(input),
         ...artifactFailureDiagnostics(input),
       ],
     };
@@ -168,6 +173,17 @@ function runOutcomeClassification(
 function runFailureDiagnostics(input: ClassificationInput): Diagnostic[] {
   return (input.runFailures ?? []).map((evidence) =>
     verifyDiagnostic(ARXIC_VERIFY_RUN_FAILURE, 'contradicted', input.subject, evidence),
+  );
+}
+
+function failureEvidenceRedactionDiagnostics(input: ClassificationInput): Diagnostic[] {
+  return (input.failureEvidenceRedactionFailures ?? []).map((detail) =>
+    verifyDiagnostic(
+      ARXIC_VERIFY_REDACTION_FAILED,
+      'blocked',
+      input.subject,
+      `Failure-evidence retention could not be confidently sanitized: ${detail}`,
+    ),
   );
 }
 

@@ -11,6 +11,7 @@ import {
   ARXIC_VERIFY_APP_DEFECT,
   ARXIC_VERIFY_ARTIFACT_MISSING,
   ARXIC_VERIFY_FLAKY_RUNS,
+  ARXIC_VERIFY_REDACTION_FAILED,
   ARXIC_VERIFY_RUN_FAILURE,
 } from './diagnostics';
 import { classifyVerification } from './classify';
@@ -97,5 +98,27 @@ describe('classifyVerification failure-evidence ordering (#258)', () => {
 
     expect(result.outcome).toBe('blocked');
     expect(result.diagnostics[0]).toMatchObject({ code: 'ARXIC-VERIFY-SUITE-UNAVAILABLE' });
+  });
+
+  it('reports failure-evidence redaction gaps ALONGSIDE the contradicted cause (P2: fail-closed without re-masking #258)', () => {
+    const result = classifyVerification({
+      subject: 'authentication.login',
+      runs: [{ passed: false }, { passed: false }],
+      policy,
+      artifactFailures,
+      runFailures: ['run 1: Error: expect(page).toHaveURL failed | Received string: "[REDACTED]"'],
+      failureEvidenceRedactionFailures: [
+        'run 1: retained failure evidence is pattern-scrubbed only',
+      ],
+    });
+
+    // The honest run classification stays contradicted (escalating to blocked
+    // would regress the exact masking #258 mandates away); the redaction gap
+    // is surfaced as a blocked-severity diagnostic alongside the cause.
+    expect(result.outcome).toBe('contradicted');
+    expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_APP_DEFECT });
+    const redaction = result.diagnostics.find(({ code }) => code === ARXIC_VERIFY_REDACTION_FAILED);
+    expect(redaction).toMatchObject({ severity: 'blocked' });
+    expect(redaction?.message).toContain('pattern-scrubbed only');
   });
 });
