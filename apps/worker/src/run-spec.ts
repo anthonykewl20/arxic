@@ -19,13 +19,39 @@ import type {
   ImportedArtifact,
   ImportedArtifacts,
 } from '@arxic/environment';
+// Type-only (erased at runtime — no new runtime dependency edge; both apps
+// already depend on this package). Used solely by the StageId lockstep
+// assertion below, mirroring the DG-05 interchange-mirror guard pattern
+// (packages/source-ua-adapter/src/__tests__/interchange-lockstep.test.ts).
+import type { StageId as OrchestratorStageId } from '@arxic/orchestrator-langgraph';
 export type { ArtifactTransportManifest, ImportedArtifact, ImportedArtifacts };
 
 /** The in-container mount path of the read-only source bind; CLI and worker hashing must agree. */
 export const WORKER_SOURCE_PATH = '/work/source' as const;
 
-/** Pipeline stage identifiers (mirror ADR §9 stages 0–12). */
-export type StageId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+/**
+ * Pipeline stage identifiers (mirror the orchestrator's stage ids, now 0–13).
+ *
+ * Stage 13 is `domain-inventory` (DG-06, #250): it uses the next AVAILABLE id
+ * while EXECUTING between stages 2 and 3 (structural extraction →
+ * domain-inventory → framework rules) — ids 0–12 are unchanged
+ * (ADR-008 Consequences; numbering decision recorded at DG-06).
+ *
+ * LOCKSTEP GUARD (added DG-06, scoped apps/worker exception): this union is a
+ * hand-maintained mirror of the canonical `StageId` in
+ * packages/orchestrator-langgraph (src/types.ts). Stage 13 drifted exactly
+ * here first (the mirror stayed 0–12 and failed the CI Typecheck gate while
+ * also breaking the worker's runtime artifact-id regex); the compile-time
+ * assertion below makes this drift class machine-caught from now on — the
+ * orchestrator type changes without this mirror failing its own typecheck.
+ */
+export type StageId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
+
+type Equal<X, Y> =
+  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false;
+type Expect<T extends true> = T;
+type StageIdMirrorLockstep = Expect<Equal<StageId, OrchestratorStageId>>;
+void ({} as StageIdMirrorLockstep);
 
 /** Lifecycle of a run as observed by the CLI (mirror orchestrator run state). */
 export type RunStatus =
