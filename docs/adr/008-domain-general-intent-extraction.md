@@ -140,10 +140,23 @@ bounded-retry then blocked failure behavior for malformed model output.
 
 ### 5. Language breadth uses a Language Pack SPI behind SourceIndexer
 
-Language breadth is delivered through a Language Pack SPI behind the frozen
-`SourceIndexer` seam. A pack consists of a Tree-sitter grammar and data-driven
-extractor rules for routes, handlers, templates, and i18n strings used as intent
-evidence.
+Reuse upstream before writing parsers. Understand-Anything already provides the
+broad language surface: its main tree was source-level verified on 2026-08-16 to
+contain 13 dedicated language extractors (`cpp`, `csharp`, `dart`, `go`, `java`,
+`kotlin`, `php`, `python`, `ruby`, `rust`, `scala`, `swift`, and `typescript`) and
+16 code-language configurations in its registry. Arxic's TypeScript/JavaScript-
+only limit is its own policy pin in
+`packages/source-ua-adapter/src/policy.ts`, inherited from the M0-07
+subset-extraction scope; it is not an upstream limitation.
+
+The Language Pack SPI therefore re-exposes that upstream language surface through
+the frozen `SourceIndexer` seam. The dependency, vendoring, or adaptation
+mechanism is decided by the DG-01 vendored-vs-upstream inventory (refs #245). An
+Arxic language pack is the upstream language surface plus Arxic-owned framework
+route and handler inventory rules with line-anchored `EvidenceRef`s, and
+provenance/manifest integration. Writing new per-language parsers is explicitly
+out of scope unless DG-01 produces citable evidence that the upstream extractors
+are unusable.
 
 PHP/Laravel is first because the campaign measured roughly two-thirds of the
 intent in PHP. Packs are adapter-level additions; frozen contracts do not
@@ -152,6 +165,10 @@ change. Any frozen-schema change requires its own ADR.
 Unsupported-language diagnostics become per-pack advisories that name the
 actual language correctly. A missing PHP pack must not be reported as a generic
 or misleading source condition. DG-01 and DG-05 are tracked by #245 and #249.
+
+Understand-Anything's business-domain mapping is LLM-agent-driven and
+non-deterministic, so it cannot serve as the deterministic completeness
+denominator. The Domain Inventory in Decision 2 remains Arxic-owned.
 
 ### 6. Grounding is preserved for every ledger intent
 
@@ -274,6 +291,11 @@ through ledger-completeness percentages rather than aspirational language.
 The trust spine is reused unchanged: attestation, evidence resolution,
 redaction, policy, deterministic verification, and promotion retain their
 existing authority boundaries.
+
+- Reuse-first language breadth: upstream Understand-Anything's 13 extractors /
+  16 code-language configs are the language surface; Arxic builds only the
+  evidence/inventory layer they lack, so the cost of language breadth drops
+  accordingly.
 
 ADR-004 IntentSpec reaches users through the ledger and compilation path instead
 of remaining an internal-only seam. PHP ecosystems become first-class, and the
