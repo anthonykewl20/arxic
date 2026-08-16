@@ -58,6 +58,35 @@ export async function capturePostActionObservation(input: {
       ],
     };
   }
+  // Pre-flight origin gate (review P2 remediation): the exploration driver
+  // performs page.goto(step.url) inside execute(), so an off-origin step URL
+  // must be rejected BEFORE any navigation happens — not only post-hoc via
+  // the post-action drift check. Every step URL (navigate steps always carry
+  // one; fill/click steps optionally do) must resolve against the attested
+  // origin; unparseable URLs fail closed the same way.
+  const allowedOrigin = originOf(input.origin);
+  for (const step of input.steps) {
+    if (!('url' in step) || step.url === undefined) continue;
+    let resolved: URL | undefined;
+    try {
+      resolved = new URL(step.url, input.origin);
+    } catch {
+      resolved = undefined;
+    }
+    if (resolved === undefined || resolved.origin !== allowedOrigin) {
+      return {
+        ok: false,
+        diagnostics: [
+          dg03Diagnostic(
+            ARXIC_DG03_OBSERVATION_DRIFTED,
+            'blocked',
+            step.intent,
+            `Pre-flight origin gate rejected step URL ${step.url}: it does not resolve to the allowed origin ${input.origin}; no navigation was performed`,
+          ),
+        ],
+      };
+    }
+  }
   const driver = input.driver ?? new PlaywrightExplorationDriver({ headless: true });
   const ownsDriver = input.driver === undefined;
   try {

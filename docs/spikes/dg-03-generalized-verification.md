@@ -98,6 +98,22 @@ action-step failure → `ARXIC-DG03-OBSERVATION-STEP_FAILED` `blocked`;
 origin drift → `ARXIC-DG03-OBSERVATION-DRIFTED` `blocked`; no stabilization →
 `blocked`. Nothing drifts into a silent pass.
 
+**Pre-flight origin gate (review remediation, 2026-08-16).** The first
+revision of this spike checked origin drift only _after_ `driver.execute()`
+had already run — and the driver performs `page.goto(step.url)` inside
+`execute()` (`exploration-driver.ts:133-136`), so a step carrying an off-origin
+absolute URL caused one unauthenticated off-origin navigation before the
+`blocked` classification (P2 review finding on PR #264).
+`capturePostActionObservation()` now runs the same URL-parity gate as the API
+replay executor (§4, gate 2) **before any navigation**: every step URL
+(navigate steps always carry one; fill/click steps optionally do) must resolve
+against the attested origin or the capture fails closed with
+`ARXIC-DG03-OBSERVATION-DRIFTED` `blocked` and **zero** `driver.execute()`
+invocations — proven by a counting-driver unit test. Unparseable step URLs
+fail closed the same way; a merely-garbage _relative_ path is same-origin by
+URL semantics and is not a pre-flight concern (it is still subject to the
+post-action drift and stabilization gates).
+
 ### 3.2 Derivation
 
 `deriveAssertionsFromObservation()` (`src/derive-assertions.ts`):
@@ -248,7 +264,9 @@ Sad-path unit coverage beyond the proofs (all `blocked`/`contradicted`,
 red-first): missing attestation endpoint (0 hits), production-looking
 attestation (0 hits), expired lease (0 hits), destructive method without
 approval (0 hits), forbidden substring in path (0 hits), off-origin absolute
-step path (0 hits), fixture reset failure mid-run, split runs, zero
+step path (0 hits), off-origin observation step URL rejected pre-flight with
+zero navigations, unparseable observation step URL rejected pre-flight with
+zero navigations, fixture reset failure mid-run, split runs, zero
 requiredRuns, stabilization failures, derivation failures, oracle-provenance
 failures.
 
@@ -316,6 +334,14 @@ API replay of webhook intents is representative, not synthetic.
   closed to `blocked`; but reviewers should confirm the placement is
   acceptable vs. extending the driver itself (which would touch a forbidden
   package). Mitigation: the loop is read-only and budget-bounded.
+  **Review remediation (2026-08-16, P2):** the same file's first revision
+  checked off-origin drift only _post-hoc_, after `driver.execute()` had
+  already navigated (`exploration-driver.ts:133-136` performs
+  `page.goto(step.url)` before any caller-side check) — one unauthenticated
+  off-origin request escaped per capture before the `blocked`. The
+  observation path now carries the same pre-flight URL-parity gate as the
+  API replay executor, before any navigation, with a counting-driver test
+  proving zero `execute()` invocations on rejection (§3.1).
 - **D2 — #258 masking reproduced, not fixed.** The canned-literal sad path
   shows `blocked` (artifact gate) masking `contradicted` (run classification)
   on failed runs, because checkpoint screenshots never happen on failure.

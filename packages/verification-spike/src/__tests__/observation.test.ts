@@ -18,12 +18,14 @@ import { capturePostActionObservation } from '../observation';
 class ScriptedDriver implements ExplorationDriver {
   readonly #results: readonly ExplorationDriverResult[];
   #call = 0;
+  executeCalls = 0;
 
   constructor(results: readonly ExplorationDriverResult[]) {
     this.#results = results;
   }
 
   execute(): Promise<ExplorationDriverResult> {
+    this.executeCalls += 1;
     const result = this.#results[Math.min(this.#call, this.#results.length - 1)];
     this.#call += 1;
     return Promise.resolve(result!);
@@ -72,6 +74,104 @@ const steps: readonly PlannedExplorationStep[] = [
 ];
 
 describe('capturePostActionObservation', () => {
+  it('blocks an off-origin step URL pre-flight with ZERO navigations (review P2 remediation)', async () => {
+    // The browser must never navigate to an off-origin URL before the drift
+    // block: page.goto happens inside driver.execute, so the gate has to fire
+    // BEFORE any execute call. A counting driver proves zero navigations.
+    const driver = new ScriptedDriver([
+      { observations: [snapshotObservation('http://127.0.0.1:9/login', 'Log in')] },
+    ]);
+    const result = await capturePostActionObservation({
+      runId: 'dg03-preflight-origin-escape',
+      origin: 'http://127.0.0.1:9',
+      steps: [
+        { intent: 'open attacker page', kind: 'navigate', url: 'http://evil.example.test/login' },
+      ],
+      driver,
+      stabilizationBudget: 4,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0]?.code).toBe(ARXIC_DG03_OBSERVATION_DRIFTED);
+      expect(result.diagnostics[0]?.severity).toBe('blocked');
+      expect(result.diagnostics[0]?.message.toLowerCase()).toContain('pre-flight');
+    }
+    // Zero navigations: the driver was never invoked.
+    expect(driver.executeCalls).toBe(0);
+  });
+
+  it('blocks an off-origin fill-step URL pre-flight with ZERO navigations', async () => {
+    const driver = new ScriptedDriver([
+      { observations: [snapshotObservation('http://127.0.0.1:9/login', 'Log in')] },
+    ]);
+    const result = await capturePostActionObservation({
+      runId: 'dg03-preflight-fill-escape',
+      origin: 'http://127.0.0.1:9',
+      steps: [
+        {
+          intent: 'fill email elsewhere',
+          kind: 'fill',
+          url: 'https://attacker.example.test/login',
+          locator: {
+            semantic: { kind: 'label', text: 'Email' },
+            execution: { kind: 'label', text: 'Email' },
+          },
+          value: 'persona@example.test',
+        },
+      ],
+      driver,
+      stabilizationBudget: 4,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.diagnostics[0]?.code).toBe(ARXIC_DG03_OBSERVATION_DRIFTED);
+    }
+    expect(driver.executeCalls).toBe(0);
+  });
+
+  it('blocks an unparseable step URL pre-flight with ZERO navigations', async () => {
+    const driver = new ScriptedDriver([
+      { observations: [snapshotObservation('http://127.0.0.1:9/login', 'Log in')] },
+    ]);
+    const result = await capturePostActionObservation({
+      runId: 'dg03-preflight-bad-url',
+      origin: 'http://127.0.0.1:9',
+      // 'http://' is unparseable even against the base (new URL throws);
+      // note that a merely-garbage RELATIVE path like 'not a url' legally
+      // resolves same-origin and is not a pre-flight concern.
+      steps: [{ intent: 'open broken page', kind: 'navigate', url: 'http://' }],
+      driver,
+      stabilizationBudget: 4,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.diagnostics[0]?.code).toBe(ARXIC_DG03_OBSERVATION_DRIFTED);
+      expect(result.diagnostics[0]?.severity).toBe('blocked');
+    }
+    expect(driver.executeCalls).toBe(0);
+  });
+
+  it('accepts origin-relative step URLs pre-flight and proceeds to execute', async () => {
+    const driver = new ScriptedDriver([
+      {
+        observations: [
+          snapshotObservation('http://127.0.0.1:9/login', 'Log in'),
+          snapshotObservation('http://127.0.0.1:9/login', 'Log in'),
+        ],
+      },
+    ]);
+    const result = await capturePostActionObservation({
+      runId: 'dg03-preflight-ok',
+      origin: 'http://127.0.0.1:9',
+      steps: [{ intent: 'open login page', kind: 'navigate', url: '/login' }],
+      driver,
+      stabilizationBudget: 4,
+    });
+    expect(result.ok, JSON.stringify((result as { diagnostics?: unknown }).diagnostics)).toBe(true);
+    expect(driver.executeCalls).toBeGreaterThan(0);
+  });
+
   it('blocks when the final action step fails (never invents a post-action state)', async () => {
     const driver = new ScriptedDriver([
       {
