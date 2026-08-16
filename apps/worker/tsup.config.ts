@@ -36,7 +36,7 @@ export default defineConfig({
     /^crawlee(?:\/.*)?$/,
     /^playwright(?:-core)?(?:\/.*)?$/,
     /^testcontainers(?:\/.*)?$/,
-    /^tree-sitter(?:-javascript|-typescript)?(?:\/.*)?$/,
+    /^tree-sitter(?:-javascript|-typescript|-php)?(?:\/.*)?$/,
     /^yauzl(?:\/.*)?$/,
     /^yazl(?:\/.*)?$/,
   ],

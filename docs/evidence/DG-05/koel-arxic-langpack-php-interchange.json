@@ -1,0 +1,2377 @@
+{
+  "schemaVersion": 1,
+  "packId": "arxic-langpack-php@1.0.0",
+  "language": "php",
+  "framework": "laravel",
+  "standIn": false,
+  "provenance": {
+    "repository": "file:///tmp/opencode/koel",
+    "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b"
+  },
+  "routes": [
+    {
+      "methods": ["GET"],
+      "action": "Closure",
+      "middleware": ["web"],
+      "uri": "/",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 25,
+      "endLine": 27
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\AiController",
+      "middleware": ["api", "auth", "throttle:10,1"],
+      "uri": "/api/ai/prompt",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 305,
+      "endLine": 305
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchAlbumThumbnailController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/album/{album}/thumbnail",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 269,
+      "endLine": 269
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\AlbumController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\AlbumController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchRandomAlbumsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/random",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 156,
+      "endLine": 156
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\AlbumController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\AlbumController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\AlbumController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchAlbumInformationController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}/information",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 259,
+      "endLine": 259
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\RateAlbumController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}/rating",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 207,
+      "endLine": 207
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\AlbumSongController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\AlbumSongController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\AlbumSongController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\AlbumSongController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\AlbumSongController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchAlbumThumbnailController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/albums/{album}/thumbnail",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 266,
+      "endLine": 266
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchRandomArtistsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/random",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 160,
+      "endLine": 160
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistAlbumController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/albums",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistAlbumController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/albums",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistAlbumController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistAlbumController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistAlbumController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\FetchArtistEventsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/events",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 263,
+      "endLine": 263
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\FetchArtistInformationController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/information",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 260,
+      "endLine": 260
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\RateArtistController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/rating",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 208,
+      "endLine": 208
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistSongController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistSongController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistSongController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistSongController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\Artist\\ArtistSongController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/artists/{artist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["POST"],
+      "name": "broadcasting.auth",
+      "action": "Closure",
+      "middleware": ["api", "auth"],
+      "uri": "/api/broadcasting/auth",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 129,
+      "endLine": 141
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\MediaBrowser\\FetchSubfoldersController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/browse/folders",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 295,
+      "endLine": 295
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\MediaBrowser\\PaginateFolderSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/browse/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 296,
+      "endLine": 296
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchInitialDataController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/data",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 144,
+      "endLine": 144
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchDemoCreditsController",
+      "middleware": ["api"],
+      "uri": "/api/demo/credits",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 324,
+      "endLine": 324
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\Download\\CheckDownloadableCountController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/download/check",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 154,
+      "endLine": 154
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Upload\\DiscardAllDuplicateUploadsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/duplicate-uploads",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 187,
+      "endLine": 187
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Upload\\FetchDuplicateUploadsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/duplicate-uploads",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 183,
+      "endLine": 183
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Upload\\KeepAllDuplicateUploadsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/duplicate-uploads",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 185,
+      "endLine": 185
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Upload\\DiscardDuplicateUploadController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/duplicate-uploads/{duplicateUpload}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 186,
+      "endLine": 186
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Upload\\KeepDuplicateUploadController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/duplicate-uploads/{duplicateUpload}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 184,
+      "endLine": 184
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Embed\\EmbedOptionsController@encrypt",
+      "middleware": ["api", "throttle:10,1", "embeds.enabled"],
+      "uri": "/api/embed-options",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 122,
+      "endLine": 122
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Embed\\EmbedController@resolveForEmbeddable",
+      "middleware": ["api", "auth", "embeds.enabled"],
+      "uri": "/api/embeds/resolve",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 312,
+      "endLine": 312
+    },
+    {
+      "methods": ["GET"],
+      "name": "embeds.payload",
+      "action": "App\\Http\\Controllers\\API\\Embed\\EmbedController@getPayload",
+      "middleware": ["api", "throttle:10,1", "embeds.enabled"],
+      "uri": "/api/embeds/{embed}/{options}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 121,
+      "endLine": 121
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\FavoriteController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/favorites",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 200,
+      "endLine": 200
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\FavoriteController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/favorites",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 199,
+      "endLine": 199
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\MoveFavoriteSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/favorites/move",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 198,
+      "endLine": 198
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\FavoriteController@toggle",
+      "middleware": ["api", "auth"],
+      "uri": "/api/favorites/toggle",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 197,
+      "endLine": 197
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\ForgotPasswordController",
+      "middleware": ["api", "throttle:10,1"],
+      "uri": "/api/forgot-password",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 114,
+      "endLine": 114
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\GenreController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/genres",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 229,
+      "endLine": 229
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PaginateSongsByGenreController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/genres/{genre?}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 227,
+      "endLine": 227
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchSongsToQueueByGenreController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/genres/{genre?}/songs/queue",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 228,
+      "endLine": 228
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\GenreController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/genres/{genre}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 230,
+      "endLine": 230
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\LikeMultipleSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/interaction/batch/like",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 194,
+      "endLine": 194
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\UnlikeMultipleSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/interaction/batch/unlike",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 195,
+      "endLine": 195
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\ToggleLikeSongController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/interaction/like",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 193,
+      "endLine": 193
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\RegisterPlayController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/interaction/play",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 190,
+      "endLine": 190
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\UserInvitationController@revoke",
+      "middleware": ["api", "auth"],
+      "uri": "/api/invitations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 275,
+      "endLine": 275
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\UserInvitationController@get",
+      "middleware": ["api", "throttle:10,1"],
+      "uri": "/api/invitations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 117,
+      "endLine": 117
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\UserInvitationController@invite",
+      "middleware": ["api", "auth"],
+      "uri": "/api/invitations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 274,
+      "endLine": 274
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\UserInvitationController@accept",
+      "middleware": ["api", "throttle:10,1"],
+      "uri": "/api/invitations/accept",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 118,
+      "endLine": 118
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "lastfm.disconnect",
+      "action": "App\\Http\\Controllers\\API\\DisconnectFromLastfmController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/lastfm/disconnect",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 251,
+      "endLine": 251
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\SetLastfmSessionKeyController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/lastfm/session-key",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 250,
+      "endLine": 250
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\ActivateLicenseController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/licenses/activate",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 281,
+      "endLine": 281
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Auth\\LogoutController",
+      "middleware": ["api", "throttle:10,1"],
+      "uri": "/api/me",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 112,
+      "endLine": 112
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\ProfileController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 236,
+      "endLine": 236
+    },
+    {
+      "methods": ["POST"],
+      "name": "auth.login",
+      "action": "App\\Http\\Controllers\\API\\Auth\\LoginWithCredentialsController",
+      "middleware": ["api", "throttle:10,1"],
+      "uri": "/api/me",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 108,
+      "endLine": 108
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\ProfileController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 237,
+      "endLine": 237
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\EqualizerPresetController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me/equalizer-presets",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 240,
+      "endLine": 240
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\EqualizerPresetController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me/equalizer-presets/{id}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 241,
+      "endLine": 241
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Auth\\LoginWithOneTimeTokenController",
+      "middleware": ["api", "throttle:10,1"],
+      "uri": "/api/me/otp",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 109,
+      "endLine": 109
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\ChangePasswordController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me/password",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 238,
+      "endLine": 238
+    },
+    {
+      "methods": ["PATCH"],
+      "action": "App\\Http\\Controllers\\API\\UpdateUserPreferenceController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me/preferences",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 239,
+      "endLine": 239
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Me\\RegenerateSubsonicApiKeyController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me/subsonic-api-key/regenerate",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 242,
+      "endLine": 242
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Auth\\TwoFactor\\DisableController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me/two-factor",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 247,
+      "endLine": 247
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Auth\\TwoFactor\\EnrollController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me/two-factor",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 244,
+      "endLine": 244
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Auth\\TwoFactorChallengeController",
+      "middleware": ["api", "throttle:10,1"],
+      "uri": "/api/me/two-factor-challenge",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 110,
+      "endLine": 110
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Auth\\TwoFactor\\ConfirmController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me/two-factor/confirm",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 245,
+      "endLine": 245
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Auth\\TwoFactor\\RegenerateRecoveryCodesController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/me/two-factor/recovery-codes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 246,
+      "endLine": 246
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\GetOneTimeTokenController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/one-time-token",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 128,
+      "endLine": 128
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "s3.song.remove",
+      "action": "App\\Http\\Controllers\\API\\LambdaSongController@remove",
+      "middleware": ["api", "os.auth"],
+      "uri": "/api/os/s3/song",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 321,
+      "endLine": 321
+    },
+    {
+      "methods": ["POST"],
+      "name": "s3.song.put",
+      "action": "App\\Http\\Controllers\\API\\LambdaSongController@put",
+      "middleware": ["api", "os.auth"],
+      "uri": "/api/os/s3/song",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 320,
+      "endLine": 320
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchOverviewController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/overview",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 143,
+      "endLine": 143
+    },
+    {
+      "methods": ["GET"],
+      "action": "Closure",
+      "middleware": ["api"],
+      "uri": "/api/ping",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 105,
+      "endLine": 105
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderPlaylistController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders/{playlistFolder}/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 215,
+      "endLine": 218
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders/{playlist_folder}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders/{playlist_folder}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders/{playlist_folder}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderPlaylistController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders/{playlist_folder}/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 212,
+      "endLine": 212
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderPlaylistController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders/{playlist_folder}/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 212,
+      "endLine": 212
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderPlaylistController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders/{playlist_folder}/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 212,
+      "endLine": 212
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistFolderPlaylistController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlist-folders/{playlist_folder}/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 212,
+      "endLine": 212
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistCollaboration\\AcceptPlaylistCollaborationInviteController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/collaborators/accept",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 285,
+      "endLine": 285
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistCollaboration\\PlaylistCollaboratorController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}/collaborators",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 287,
+      "endLine": 287
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistCollaboration\\PlaylistCollaboratorController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}/collaborators",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 286,
+      "endLine": 286
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistCollaboration\\CreatePlaylistCollaborationTokenController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}/collaborators/invite",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 284,
+      "endLine": 284
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistSongController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 223,
+      "endLine": 223
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistSongController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 222,
+      "endLine": 222
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistSongController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 222,
+      "endLine": 222
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\MovePlaylistSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}/songs/move",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 224,
+      "endLine": 224
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistSongController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 222,
+      "endLine": 222
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\PlaylistSongController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/playlists/{playlist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 222,
+      "endLine": 222
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastEpisodeController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}/episodes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastEpisodeController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}/episodes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastEpisodeController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}/episodes/{episode}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastEpisodeController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}/episodes/{episode}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\PodcastEpisodeController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}/episodes/{episode}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\RatePodcastController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}/rating",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 209,
+      "endLine": 209
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\Podcast\\UnsubscribeFromPodcastController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/podcasts/{podcast}/subscriptions",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 292,
+      "endLine": 292
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchSongsForQueueController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/queue/fetch",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 146,
+      "endLine": 146
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\UpdatePlaybackStatusController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/queue/playback-status",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 147,
+      "endLine": 147
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\QueueStateController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/queue/state",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 148,
+      "endLine": 148
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\QueueStateController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/queue/state",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 149,
+      "endLine": 149
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\RadioStationController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/radio/stations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\RadioStationController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/radio/stations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\RadioStationNowPlayingController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/radio/stations/{radioStation}/now-playing",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 301,
+      "endLine": 301
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\RadioStationController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/radio/stations/{station}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\RadioStationController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/radio/stations/{station}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\RadioStationController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/radio/stations/{station}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\ResetPasswordController",
+      "middleware": ["api", "throttle:10,1"],
+      "uri": "/api/reset-password",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 115,
+      "endLine": 115
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\ExcerptSearchController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/search",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 271,
+      "endLine": 271
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\SongSearchController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/search/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 272,
+      "endLine": 272
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\Settings\\UpdateBrandingController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/settings/branding",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 152,
+      "endLine": 152
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\Settings\\UpdateMediaPathController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/settings/media-path",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 151,
+      "endLine": 151
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\SongController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 172,
+      "endLine": 172
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\SongController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 167,
+      "endLine": 167
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\SongController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 167,
+      "endLine": 167
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\SongController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 171,
+      "endLine": 171
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\MediaBrowser\\FetchRecursiveFolderSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/by-folders",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 176,
+      "endLine": 176
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\FetchSongsByIdsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/by-ids",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 177,
+      "endLine": 177
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchFavoriteSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/favorite",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 203,
+      "endLine": 203
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchFavoriteSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/favorites",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 204,
+      "endLine": 204
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\MediaBrowser\\FetchFolderSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/in-folder",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 180,
+      "endLine": 180
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\PrivatizeSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/privatize",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 278,
+      "endLine": 278
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\PublicizeSongsController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/publicize",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 277,
+      "endLine": 277
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\FetchRecentlyPlayedSongController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/recently-played",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 202,
+      "endLine": 202
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\SongController@show",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 167,
+      "endLine": 167
+    },
+    {
+      "methods": ["PUT"],
+      "action": "App\\Http\\Controllers\\API\\RateSongController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/{song}/rating",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 206,
+      "endLine": 206
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\ScrobbleController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/songs/{song}/scrobble",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 165,
+      "endLine": 165
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\ThemeController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/themes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 308,
+      "endLine": 308
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\ThemeController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/themes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 308,
+      "endLine": 308
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\ThemeController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/themes/{theme}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 308,
+      "endLine": 308
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\Upload\\UploadSongController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/upload",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 182,
+      "endLine": 182
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\UserController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/user",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 235,
+      "endLine": 235
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\UserController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/user",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 235,
+      "endLine": 235
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\UserController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/user/{user}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 235,
+      "endLine": 235
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\UserController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/user/{user}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 235,
+      "endLine": 235
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\UserController@index",
+      "middleware": ["api", "auth"],
+      "uri": "/api/users",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 232,
+      "endLine": 232
+    },
+    {
+      "methods": ["POST"],
+      "action": "App\\Http\\Controllers\\API\\UserController@store",
+      "middleware": ["api", "auth"],
+      "uri": "/api/users",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 232,
+      "endLine": 232
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "App\\Http\\Controllers\\API\\UserController@destroy",
+      "middleware": ["api", "auth"],
+      "uri": "/api/users/{user}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 232,
+      "endLine": 232
+    },
+    {
+      "methods": ["PUT", "PATCH"],
+      "action": "App\\Http\\Controllers\\API\\UserController@update",
+      "middleware": ["api", "auth"],
+      "uri": "/api/users/{user}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 232,
+      "endLine": 232
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\API\\SearchYouTubeController",
+      "middleware": ["api", "auth"],
+      "uri": "/api/youtube/search/song/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 255,
+      "endLine": 255,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\SSO\\GoogleCallbackController",
+      "middleware": ["web"],
+      "uri": "/auth/google/callback",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 43,
+      "endLine": 43
+    },
+    {
+      "methods": ["GET"],
+      "action": "Closure",
+      "middleware": ["web"],
+      "uri": "/auth/google/redirect",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 42,
+      "endLine": 42
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\SSO\\OpenIDConnectCallbackController",
+      "middleware": ["web"],
+      "uri": "/auth/oidc/callback",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 46,
+      "endLine": 46
+    },
+    {
+      "methods": ["GET"],
+      "action": "Closure",
+      "middleware": ["web"],
+      "uri": "/auth/oidc/redirect",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 45,
+      "endLine": 45
+    },
+    {
+      "methods": ["GET"],
+      "name": "demo.new-session",
+      "action": "App\\Http\\Controllers\\Demo\\NewSessionController",
+      "middleware": ["web", "throttle:10,1"],
+      "uri": "/demo/new-session",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 74,
+      "endLine": 74
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\Download\\DownloadAlbumController",
+      "middleware": ["web", "audio.auth"],
+      "uri": "/download/album/{album}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 58,
+      "endLine": 58,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\Download\\DownloadArtistController",
+      "middleware": ["web", "audio.auth"],
+      "uri": "/download/artist/{artist}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 59,
+      "endLine": 59,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\Download\\DownloadFavoritesController",
+      "middleware": ["web", "audio.auth"],
+      "uri": "/download/favorites",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 61,
+      "endLine": 61,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\Download\\DownloadPlaylistController",
+      "middleware": ["web", "audio.auth"],
+      "uri": "/download/playlist/{playlist}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 60,
+      "endLine": 60,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "App\\Http\\Controllers\\Download\\DownloadSongsController",
+      "middleware": ["web", "audio.auth"],
+      "uri": "/download/songs",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 57,
+      "endLine": 57,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "name": "dropbox.authorize",
+      "action": "App\\Http\\Controllers\\AuthorizeDropboxController",
+      "middleware": ["web"],
+      "uri": "/dropbox/authorize/{key}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 48,
+      "endLine": 48
+    },
+    {
+      "methods": ["GET"],
+      "name": "embeds.stream",
+      "action": "App\\Http\\Controllers\\StreamEmbedController",
+      "middleware": ["web", "embeds.enabled", "signed", "throttle:10,1"],
+      "uri": "/embeds/{embed}/stream/{song}/{options}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 66,
+      "endLine": 66
+    },
+    {
+      "methods": ["GET"],
+      "name": "iTunes.viewSong",
+      "action": "App\\Http\\Controllers\\ViewSongOnITunesController",
+      "middleware": ["web", "auth"],
+      "uri": "/itunes/song/{album}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 38,
+      "endLine": 38,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "name": "lastfm.callback",
+      "action": "App\\Http\\Controllers\\LastfmController@callback",
+      "middleware": ["web", "auth"],
+      "uri": "/lastfm/callback",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 34,
+      "endLine": 34
+    },
+    {
+      "methods": ["GET"],
+      "name": "lastfm.connect",
+      "action": "App\\Http\\Controllers\\LastfmController@connect",
+      "middleware": ["web", "auth"],
+      "uri": "/lastfm/connect",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 33,
+      "endLine": 33
+    },
+    {
+      "methods": ["GET"],
+      "name": "song.play",
+      "action": "App\\Http\\Controllers\\PlayController",
+      "middleware": ["web", "audio.auth"],
+      "uri": "/play/{song}/{transcode?}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 51,
+      "endLine": 51
+    },
+    {
+      "methods": ["GET"],
+      "name": "radio.stream",
+      "action": "App\\Http\\Controllers\\StreamRadioController",
+      "middleware": ["web", "audio.auth"],
+      "uri": "/radio/stream/{radioStation}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 53,
+      "endLine": 53
+    },
+    {
+      "methods": ["GET"],
+      "action": "Closure",
+      "middleware": ["web"],
+      "uri": "/remote",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 29,
+      "endLine": 29
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\CreateInternetRadioStationController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/createInternetRadioStation{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\CreatePlaylistController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/createPlaylist{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\CreatePodcastChannelController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/createPodcastChannel{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\DeleteInternetRadioStationController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/deleteInternetRadioStation{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\DeletePlaylistController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/deletePlaylist{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\DeletePodcastChannelController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/deletePodcastChannel{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\DownloadController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/download{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetAlbumInfo2Controller",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getAlbumInfo2{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetAlbumInfoController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getAlbumInfo{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetAlbumList2Controller",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getAlbumList2{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetAlbumListController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getAlbumList{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetAlbumController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getAlbum{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetArtistInfo2Controller",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getArtistInfo2{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetArtistInfoController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getArtistInfo{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetArtistsController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getArtists{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetArtistController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getArtist{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetAvatarController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getAvatar{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetCoverArtController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getCoverArt{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetGenresController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getGenres{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetIndexesController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getIndexes{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetInternetRadioStationsController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getInternetRadioStations{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetLicenseController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getLicense{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetLyricsBySongIdController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getLyricsBySongId{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetLyricsController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getLyrics{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetMusicDirectoryController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getMusicDirectory{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetMusicFoldersController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getMusicFolders{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetNewestPodcastsController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getNewestPodcasts{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetNowPlayingController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getNowPlaying{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetOpenSubsonicExtensionsController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getOpenSubsonicExtensions{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetPlayQueueController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getPlayQueue{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetPlaylistsController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getPlaylists{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetPlaylistController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getPlaylist{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetPodcastsController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getPodcasts{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetRandomSongsController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getRandomSongs{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetSongsByGenreController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getSongsByGenre{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetSongController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getSong{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetStarred2Controller",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getStarred2{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetStarredController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getStarred{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\GetUserController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/getUser{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\PingController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/ping{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\RefreshPodcastsController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/refreshPodcasts{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\SavePlayQueueController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/savePlayQueue{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\ScrobbleController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/scrobble{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\Search2Controller",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/search2{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\Search3Controller",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/search3{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\SetRatingController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/setRating{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\StarController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/star{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\StreamController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/stream{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\UnstarController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/unstar{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\UpdateInternetRadioStationController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/updateInternetRadioStation{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET", "POST"],
+      "action": "App\\Http\\Controllers\\Subsonic\\UpdatePlaylistController",
+      "middleware": [
+        "App\\Http\\Middleware\\NormalizeSubsonicArrayParams",
+        "App\\Http\\Middleware\\AuthenticateSubsonicRequests"
+      ],
+      "uri": "/rest/updatePlaylist{format?}",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116
+    }
+  ],
+  "gaps": [
+    {
+      "kind": "unresolved-file",
+      "sourcePath": "app/Providers/BroadcastServiceProvider.php",
+      "startLine": 14,
+      "endLine": 14,
+      "reason": "includes route file routes/channels.php (including group context not applied)",
+      "estimatedRouteCount": 0
+    },
+    {
+      "kind": "unresolved-file",
+      "sourcePath": "app/Providers/RouteServiceProvider.php",
+      "startLine": 16,
+      "endLine": 16,
+      "reason": "includes a route file whose path is computed at runtime"
+    }
+  ],
+  "files": [
+    {
+      "path": "app/Providers/BroadcastServiceProvider.php",
+      "sha256": "1581cddaca8fe91adbe734132e02f6ee5f6aca396aaf96bccc3cfed58678b7be"
+    },
+    {
+      "path": "app/Providers/RouteServiceProvider.php",
+      "sha256": "c9209c5630a9d746a9b085d99a477622f4e2a73a2e8b90d8fad8225b6aa00574"
+    },
+    {
+      "path": "routes/api.base.php",
+      "sha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e"
+    },
+    {
+      "path": "routes/subsonic.php",
+      "sha256": "10b171364214692331d49b0831265c6cee33384578b9ff379ccd053b5fff8394"
+    },
+    {
+      "path": "routes/web.base.php",
+      "sha256": "9426a523f0e7afeeb537cbd88ca4b6e66d84748b2142bd1510ad76382b843ba3"
+    }
+  ]
+}

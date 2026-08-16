@@ -1,0 +1,2960 @@
+{
+  "schemaVersion": 1,
+  "packId": "arxic-langpack-php@1.0.0",
+  "language": "php",
+  "framework": "laravel",
+  "standIn": false,
+  "provenance": {
+    "repository": "file:///tmp/opencode/bookstack",
+    "commit": "c813c1b3628c0b6bd757c12cadaa56f50724117d"
+  },
+  "routes": [
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\App\\HomeController@index",
+      "middleware": ["auth"],
+      "uri": "/",
+      "sourcePath": "routes/web.php",
+      "startLine": 223,
+      "endLine": 223
+    },
+    {
+      "methods": ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      "name": "fallback",
+      "action": "BookStack\\App\\MetaController@notFound",
+      "uri": "/",
+      "sourcePath": "routes/web.php",
+      "startLine": 385,
+      "endLine": 385
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@ajaxDestroy",
+      "middleware": ["auth"],
+      "uri": "/ajax/page/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 173,
+      "endLine": 173
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@getPageAjax",
+      "middleware": ["auth"],
+      "uri": "/ajax/page/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 172,
+      "endLine": 172
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@saveDraft",
+      "middleware": ["auth"],
+      "uri": "/ajax/page/{id}/save-draft",
+      "sourcePath": "routes/web.php",
+      "startLine": 171,
+      "endLine": 171
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\TagController@getNameSuggestions",
+      "middleware": ["auth"],
+      "uri": "/ajax/tags/suggest/names",
+      "sourcePath": "routes/web.php",
+      "startLine": 177,
+      "endLine": 177
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\TagController@getValueSuggestions",
+      "middleware": ["auth"],
+      "uri": "/ajax/tags/suggest/values",
+      "sourcePath": "routes/web.php",
+      "startLine": 178,
+      "endLine": 178
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Api\\ApiDocsController@redirect",
+      "middleware": ["auth"],
+      "uri": "/api",
+      "sourcePath": "routes/web.php",
+      "startLine": 40,
+      "endLine": 40
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Api\\UserApiTokenController@create",
+      "middleware": ["auth"],
+      "uri": "/api-tokens/{userId}/create",
+      "sourcePath": "routes/web.php",
+      "startLine": 277,
+      "endLine": 277
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Api\\UserApiTokenController@store",
+      "middleware": ["auth"],
+      "uri": "/api-tokens/{userId}/create",
+      "sourcePath": "routes/web.php",
+      "startLine": 278,
+      "endLine": 278
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Api\\UserApiTokenController@destroy",
+      "middleware": ["auth"],
+      "uri": "/api-tokens/{userId}/{tokenId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 282,
+      "endLine": 282
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Api\\UserApiTokenController@edit",
+      "middleware": ["auth"],
+      "uri": "/api-tokens/{userId}/{tokenId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 279,
+      "endLine": 279
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Api\\UserApiTokenController@update",
+      "middleware": ["auth"],
+      "uri": "/api-tokens/{userId}/{tokenId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 280,
+      "endLine": 280
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Api\\UserApiTokenController@delete",
+      "middleware": ["auth"],
+      "uri": "/api-tokens/{userId}/{tokenId}/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 281,
+      "endLine": 281
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Api\\ApiDocsController@display",
+      "middleware": ["auth"],
+      "uri": "/api/docs",
+      "sourcePath": "routes/web.php",
+      "startLine": 41,
+      "endLine": 41
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentApiController@list",
+      "uri": "/attachments",
+      "sourcePath": "routes/api.php",
+      "startLine": 66,
+      "endLine": 66
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentApiController@create",
+      "uri": "/attachments",
+      "sourcePath": "routes/api.php",
+      "startLine": 67,
+      "endLine": 67
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentController@getUpdateForm",
+      "middleware": ["auth"],
+      "uri": "/attachments/edit/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 165,
+      "endLine": 165
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentController@listForPage",
+      "middleware": ["auth"],
+      "uri": "/attachments/get/page/{pageId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 166,
+      "endLine": 166
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentController@attachLink",
+      "middleware": ["auth"],
+      "uri": "/attachments/link",
+      "sourcePath": "routes/web.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentController@sortForPage",
+      "middleware": ["auth"],
+      "uri": "/attachments/sort/page/{pageId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 167,
+      "endLine": 167
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentController@upload",
+      "middleware": ["auth"],
+      "uri": "/attachments/upload",
+      "sourcePath": "routes/web.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentController@uploadUpdate",
+      "middleware": ["auth"],
+      "uri": "/attachments/upload/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentApiController@delete",
+      "uri": "/attachments/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 70,
+      "endLine": 70
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentController@delete",
+      "middleware": ["auth"],
+      "uri": "/attachments/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 168,
+      "endLine": 168
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentApiController@read",
+      "uri": "/attachments/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 68,
+      "endLine": 68
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentController@get",
+      "middleware": ["auth"],
+      "uri": "/attachments/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 160,
+      "endLine": 160
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentApiController@update",
+      "uri": "/attachments/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 69,
+      "endLine": 69
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Uploads\\Controllers\\AttachmentController@update",
+      "middleware": ["auth"],
+      "uri": "/attachments/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 164,
+      "endLine": 164
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\AuditLogApiController@list",
+      "uri": "/audit-log",
+      "sourcePath": "routes/api.php",
+      "startLine": 72,
+      "endLine": 72
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookApiController@list",
+      "uri": "/books",
+      "sourcePath": "routes/api.php",
+      "startLine": 47,
+      "endLine": 47
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@index",
+      "middleware": ["auth"],
+      "uri": "/books",
+      "sourcePath": "routes/web.php",
+      "startLine": 65,
+      "endLine": 65
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\BookApiController@create",
+      "uri": "/books",
+      "sourcePath": "routes/api.php",
+      "startLine": 48,
+      "endLine": 48
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@store",
+      "middleware": ["auth"],
+      "uri": "/books",
+      "sourcePath": "routes/web.php",
+      "startLine": 66,
+      "endLine": 66
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@destroy",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 142,
+      "endLine": 142
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@show",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 125,
+      "endLine": 125
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@update",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 126,
+      "endLine": 126
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@convertToBook",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/convert-to-book",
+      "sourcePath": "routes/web.php",
+      "startLine": 132,
+      "endLine": 132
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@showCopy",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/copy",
+      "sourcePath": "routes/web.php",
+      "startLine": 129,
+      "endLine": 129
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@copy",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/copy",
+      "sourcePath": "routes/web.php",
+      "startLine": 130,
+      "endLine": 130
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@createAsGuest",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/create-guest-page",
+      "sourcePath": "routes/web.php",
+      "startLine": 122,
+      "endLine": 122
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@create",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/create-page",
+      "sourcePath": "routes/web.php",
+      "startLine": 121,
+      "endLine": 121
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@showDelete",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 141,
+      "endLine": 141
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@edit",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/edit",
+      "sourcePath": "routes/web.php",
+      "startLine": 131,
+      "endLine": 131
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportController@html",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/export/html",
+      "sourcePath": "routes/web.php",
+      "startLine": 135,
+      "endLine": 135
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportController@markdown",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/export/markdown",
+      "sourcePath": "routes/web.php",
+      "startLine": 136,
+      "endLine": 136
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportController@pdf",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/export/pdf",
+      "sourcePath": "routes/web.php",
+      "startLine": 134,
+      "endLine": 134
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportController@plainText",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/export/plaintext",
+      "sourcePath": "routes/web.php",
+      "startLine": 137,
+      "endLine": 137
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportController@zip",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/export/zip",
+      "sourcePath": "routes/web.php",
+      "startLine": 138,
+      "endLine": 138
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@showMove",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/move",
+      "sourcePath": "routes/web.php",
+      "startLine": 127,
+      "endLine": 127
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@move",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/move",
+      "sourcePath": "routes/web.php",
+      "startLine": 128,
+      "endLine": 128
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Permissions\\PermissionsController@showForChapter",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/permissions",
+      "sourcePath": "routes/web.php",
+      "startLine": 133,
+      "endLine": 133
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Permissions\\PermissionsController@updateForChapter",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/permissions",
+      "sourcePath": "routes/web.php",
+      "startLine": 139,
+      "endLine": 139
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\References\\ReferenceController@chapter",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/chapter/{chapterSlug}/references",
+      "sourcePath": "routes/web.php",
+      "startLine": 140,
+      "endLine": 140
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@convertToShelf",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/convert-to-shelf",
+      "sourcePath": "routes/web.php",
+      "startLine": 77,
+      "endLine": 77
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@showCopy",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/copy",
+      "sourcePath": "routes/web.php",
+      "startLine": 75,
+      "endLine": 75
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@copy",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/copy",
+      "sourcePath": "routes/web.php",
+      "startLine": 76,
+      "endLine": 76
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@create",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/create-chapter",
+      "sourcePath": "routes/web.php",
+      "startLine": 123,
+      "endLine": 123
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterController@store",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/create-chapter",
+      "sourcePath": "routes/web.php",
+      "startLine": 124,
+      "endLine": 124
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@createAsGuest",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/create-guest-page",
+      "sourcePath": "routes/web.php",
+      "startLine": 89,
+      "endLine": 89
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@create",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/create-page",
+      "sourcePath": "routes/web.php",
+      "startLine": 88,
+      "endLine": 88
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@destroyDraft",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/draft/{pageId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 110,
+      "endLine": 110
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@editDraft",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/draft/{pageId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 90,
+      "endLine": 90
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@store",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/draft/{pageId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 91,
+      "endLine": 91
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@showDeleteDraft",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/draft/{pageId}/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 104,
+      "endLine": 104
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportController@html",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/export/html",
+      "sourcePath": "routes/web.php",
+      "startLine": 81,
+      "endLine": 81
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportController@markdown",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/export/markdown",
+      "sourcePath": "routes/web.php",
+      "startLine": 83,
+      "endLine": 83
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportController@pdf",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/export/pdf",
+      "sourcePath": "routes/web.php",
+      "startLine": 82,
+      "endLine": 82
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportController@plainText",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/export/plaintext",
+      "sourcePath": "routes/web.php",
+      "startLine": 85,
+      "endLine": 85
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportController@zip",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/export/zip",
+      "sourcePath": "routes/web.php",
+      "startLine": 84,
+      "endLine": 84
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@destroy",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 109,
+      "endLine": 109
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@show",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 92,
+      "endLine": 92
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@update",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 108,
+      "endLine": 108
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@showCopy",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/copy",
+      "sourcePath": "routes/web.php",
+      "startLine": 101,
+      "endLine": 101
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@copy",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/copy",
+      "sourcePath": "routes/web.php",
+      "startLine": 102,
+      "endLine": 102
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@showDelete",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 103,
+      "endLine": 103
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@edit",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/edit",
+      "sourcePath": "routes/web.php",
+      "startLine": 98,
+      "endLine": 98
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportController@html",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/export/html",
+      "sourcePath": "routes/web.php",
+      "startLine": 94,
+      "endLine": 94
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportController@markdown",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/export/markdown",
+      "sourcePath": "routes/web.php",
+      "startLine": 95,
+      "endLine": 95
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportController@pdf",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/export/pdf",
+      "sourcePath": "routes/web.php",
+      "startLine": 93,
+      "endLine": 93
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportController@plainText",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/export/plaintext",
+      "sourcePath": "routes/web.php",
+      "startLine": 96,
+      "endLine": 96
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportController@zip",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/export/zip",
+      "sourcePath": "routes/web.php",
+      "startLine": 97,
+      "endLine": 97
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@showMove",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/move",
+      "sourcePath": "routes/web.php",
+      "startLine": 99,
+      "endLine": 99
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@move",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/move",
+      "sourcePath": "routes/web.php",
+      "startLine": 100,
+      "endLine": 100
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Permissions\\PermissionsController@showForPage",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/permissions",
+      "sourcePath": "routes/web.php",
+      "startLine": 105,
+      "endLine": 105
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Permissions\\PermissionsController@updateForPage",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/permissions",
+      "sourcePath": "routes/web.php",
+      "startLine": 106,
+      "endLine": 106
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\References\\ReferenceController@page",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/references",
+      "sourcePath": "routes/web.php",
+      "startLine": 107,
+      "endLine": 107
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageRevisionController@index",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/revisions",
+      "sourcePath": "routes/web.php",
+      "startLine": 113,
+      "endLine": 113
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageRevisionController@show",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/revisions/{revId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 114,
+      "endLine": 114
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageRevisionController@changes",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/revisions/{revId}/changes",
+      "sourcePath": "routes/web.php",
+      "startLine": 115,
+      "endLine": 115
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\PageRevisionController@destroy",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/revisions/{revId}/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 117,
+      "endLine": 117
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\PageRevisionController@restore",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/page/{pageSlug}/revisions/{revId}/restore",
+      "sourcePath": "routes/web.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Permissions\\PermissionsController@showForBook",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/permissions",
+      "sourcePath": "routes/web.php",
+      "startLine": 72,
+      "endLine": 72
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Permissions\\PermissionsController@updateForBook",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/permissions",
+      "sourcePath": "routes/web.php",
+      "startLine": 73,
+      "endLine": 73
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Sorting\\BookSortController@show",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/sort",
+      "sourcePath": "routes/web.php",
+      "startLine": 78,
+      "endLine": 78
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Sorting\\BookSortController@update",
+      "middleware": ["auth"],
+      "uri": "/books/{bookSlug}/sort",
+      "sourcePath": "routes/web.php",
+      "startLine": 79,
+      "endLine": 79
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\BookApiController@delete",
+      "uri": "/books/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 51,
+      "endLine": 51
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@destroy",
+      "middleware": ["auth"],
+      "uri": "/books/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 69,
+      "endLine": 69
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookApiController@read",
+      "uri": "/books/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 49,
+      "endLine": 49
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\BookApiController@update",
+      "uri": "/books/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 50,
+      "endLine": 50
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportApiController@exportHtml",
+      "uri": "/books/{id}/export/html",
+      "sourcePath": "routes/api.php",
+      "startLine": 52,
+      "endLine": 52
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportApiController@exportMarkdown",
+      "uri": "/books/{id}/export/markdown",
+      "sourcePath": "routes/api.php",
+      "startLine": 55,
+      "endLine": 55
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportApiController@exportPdf",
+      "uri": "/books/{id}/export/pdf",
+      "sourcePath": "routes/api.php",
+      "startLine": 53,
+      "endLine": 53
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportApiController@exportPlainText",
+      "uri": "/books/{id}/export/plaintext",
+      "sourcePath": "routes/api.php",
+      "startLine": 54,
+      "endLine": 54
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\BookExportApiController@exportZip",
+      "uri": "/books/{id}/export/zip",
+      "sourcePath": "routes/api.php",
+      "startLine": 56,
+      "endLine": 56
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@show",
+      "middleware": ["auth"],
+      "uri": "/books/{slug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 71,
+      "endLine": 71
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@update",
+      "middleware": ["auth"],
+      "uri": "/books/{slug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 68,
+      "endLine": 68
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@showDelete",
+      "middleware": ["auth"],
+      "uri": "/books/{slug}/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 74,
+      "endLine": 74
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@edit",
+      "middleware": ["auth"],
+      "uri": "/books/{slug}/edit",
+      "sourcePath": "routes/web.php",
+      "startLine": 67,
+      "endLine": 67
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\References\\ReferenceController@book",
+      "middleware": ["auth"],
+      "uri": "/books/{slug}/references",
+      "sourcePath": "routes/web.php",
+      "startLine": 80,
+      "endLine": 80
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Sorting\\BookSortController@showItem",
+      "middleware": ["auth"],
+      "uri": "/books/{slug}/sort-item",
+      "sourcePath": "routes/web.php",
+      "startLine": 70,
+      "endLine": 70
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterApiController@list",
+      "uri": "/chapters",
+      "sourcePath": "routes/api.php",
+      "startLine": 36,
+      "endLine": 36
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterApiController@create",
+      "uri": "/chapters",
+      "sourcePath": "routes/api.php",
+      "startLine": 37,
+      "endLine": 37
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterApiController@delete",
+      "uri": "/chapters/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 40,
+      "endLine": 40
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterApiController@read",
+      "uri": "/chapters/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 38,
+      "endLine": 38
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\ChapterApiController@update",
+      "uri": "/chapters/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 39,
+      "endLine": 39
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportApiController@exportHtml",
+      "uri": "/chapters/{id}/export/html",
+      "sourcePath": "routes/api.php",
+      "startLine": 41,
+      "endLine": 41
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportApiController@exportMarkdown",
+      "uri": "/chapters/{id}/export/markdown",
+      "sourcePath": "routes/api.php",
+      "startLine": 44,
+      "endLine": 44
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportApiController@exportPdf",
+      "uri": "/chapters/{id}/export/pdf",
+      "sourcePath": "routes/api.php",
+      "startLine": 42,
+      "endLine": 42
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportApiController@exportPlainText",
+      "uri": "/chapters/{id}/export/plaintext",
+      "sourcePath": "routes/api.php",
+      "startLine": 43,
+      "endLine": 43
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ChapterExportApiController@exportZip",
+      "uri": "/chapters/{id}/export/zip",
+      "sourcePath": "routes/api.php",
+      "startLine": 45,
+      "endLine": 45
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Activity\\Controllers\\CommentController@destroy",
+      "middleware": ["auth"],
+      "uri": "/comment/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 185,
+      "endLine": 185
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Activity\\Controllers\\CommentController@update",
+      "middleware": ["auth"],
+      "uri": "/comment/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 184,
+      "endLine": 184
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Activity\\Controllers\\CommentController@archive",
+      "middleware": ["auth"],
+      "uri": "/comment/{id}/archive",
+      "sourcePath": "routes/web.php",
+      "startLine": 182,
+      "endLine": 182
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Activity\\Controllers\\CommentController@unarchive",
+      "middleware": ["auth"],
+      "uri": "/comment/{id}/unarchive",
+      "sourcePath": "routes/web.php",
+      "startLine": 183,
+      "endLine": 183
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Activity\\Controllers\\CommentController@savePageComment",
+      "middleware": ["auth"],
+      "uri": "/comment/{pageId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 181,
+      "endLine": 181
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\CommentApiController@list",
+      "uri": "/comments",
+      "sourcePath": "routes/api.php",
+      "startLine": 74,
+      "endLine": 74
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Activity\\Controllers\\CommentApiController@create",
+      "uri": "/comments",
+      "sourcePath": "routes/api.php",
+      "startLine": 75,
+      "endLine": 75
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Activity\\Controllers\\CommentApiController@delete",
+      "uri": "/comments/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 78,
+      "endLine": 78
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\CommentApiController@read",
+      "uri": "/comments/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 76,
+      "endLine": 76
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Activity\\Controllers\\CommentApiController@update",
+      "uri": "/comments/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 77,
+      "endLine": 77
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Permissions\\ContentPermissionApiController@read",
+      "uri": "/content-permissions/{contentType}/{contentId}",
+      "sourcePath": "routes/api.php",
+      "startLine": 80,
+      "endLine": 80
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Permissions\\ContentPermissionApiController@update",
+      "uri": "/content-permissions/{contentType}/{contentId}",
+      "sourcePath": "routes/api.php",
+      "startLine": 81,
+      "endLine": 81
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@create",
+      "middleware": ["auth"],
+      "uri": "/create-book",
+      "sourcePath": "routes/web.php",
+      "startLine": 62,
+      "endLine": 62
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfController@create",
+      "middleware": ["auth"],
+      "uri": "/create-shelf",
+      "sourcePath": "routes/web.php",
+      "startLine": 46,
+      "endLine": 46
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Api\\ApiDocsController@json",
+      "uri": "/docs.json",
+      "sourcePath": "routes/api.php",
+      "startLine": 83,
+      "endLine": 83
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\App\\MetaController@favicon",
+      "uri": "/favicon.ico",
+      "sourcePath": "routes/web.php",
+      "startLine": 27,
+      "endLine": 27
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\FavouriteController@index",
+      "middleware": ["auth"],
+      "uri": "/favourites",
+      "sourcePath": "routes/web.php",
+      "startLine": 208,
+      "endLine": 208
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Activity\\Controllers\\FavouriteController@add",
+      "middleware": ["auth"],
+      "uri": "/favourites/add",
+      "sourcePath": "routes/web.php",
+      "startLine": 209,
+      "endLine": 209
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Activity\\Controllers\\FavouriteController@remove",
+      "middleware": ["auth"],
+      "uri": "/favourites/remove",
+      "sourcePath": "routes/web.php",
+      "startLine": 210,
+      "endLine": 210
+    },
+    {
+      "methods": ["GET"],
+      "uri": "/help/tinymce",
+      "sourcePath": "routes/web.php",
+      "startLine": 378,
+      "endLine": 378
+    },
+    {
+      "methods": ["GET"],
+      "uri": "/help/wysiwyg",
+      "sourcePath": "routes/web.php",
+      "startLine": 379,
+      "endLine": 379
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\App\\HomeController@index",
+      "middleware": ["auth"],
+      "uri": "/home",
+      "sourcePath": "routes/web.php",
+      "startLine": 224,
+      "endLine": 224
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageGalleryApiController@list",
+      "uri": "/image-gallery",
+      "sourcePath": "routes/api.php",
+      "startLine": 85,
+      "endLine": 85
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageGalleryApiController@create",
+      "uri": "/image-gallery",
+      "sourcePath": "routes/api.php",
+      "startLine": 86,
+      "endLine": 86
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageGalleryApiController@readDataForUrl",
+      "uri": "/image-gallery/url/data",
+      "sourcePath": "routes/api.php",
+      "startLine": 87,
+      "endLine": 87
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageGalleryApiController@delete",
+      "uri": "/image-gallery/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 91,
+      "endLine": 91
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageGalleryApiController@read",
+      "uri": "/image-gallery/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 88,
+      "endLine": 88
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageGalleryApiController@update",
+      "uri": "/image-gallery/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 90,
+      "endLine": 90
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageGalleryApiController@readData",
+      "uri": "/image-gallery/{id}/data",
+      "sourcePath": "routes/api.php",
+      "startLine": 89,
+      "endLine": 89
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\DrawioImageController@list",
+      "middleware": ["auth"],
+      "uri": "/images/drawio",
+      "sourcePath": "routes/web.php",
+      "startLine": 150,
+      "endLine": 150
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Uploads\\Controllers\\DrawioImageController@create",
+      "middleware": ["auth"],
+      "uri": "/images/drawio",
+      "sourcePath": "routes/web.php",
+      "startLine": 152,
+      "endLine": 152
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\DrawioImageController@getAsBase64",
+      "middleware": ["auth"],
+      "uri": "/images/drawio/base64/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 151,
+      "endLine": 151
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageController@edit",
+      "middleware": ["auth"],
+      "uri": "/images/edit/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 153,
+      "endLine": 153
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\GalleryImageController@list",
+      "middleware": ["auth"],
+      "uri": "/images/gallery",
+      "sourcePath": "routes/web.php",
+      "startLine": 148,
+      "endLine": 148
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Uploads\\Controllers\\GalleryImageController@create",
+      "middleware": ["auth"],
+      "uri": "/images/gallery",
+      "sourcePath": "routes/web.php",
+      "startLine": 149,
+      "endLine": 149
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageController@destroy",
+      "middleware": ["auth"],
+      "uri": "/images/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageController@update",
+      "middleware": ["auth"],
+      "uri": "/images/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 156,
+      "endLine": 156
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageController@updateFile",
+      "middleware": ["auth"],
+      "uri": "/images/{id}/file",
+      "sourcePath": "routes/web.php",
+      "startLine": 154,
+      "endLine": 154
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageController@rebuildThumbnails",
+      "middleware": ["auth"],
+      "uri": "/images/{id}/rebuild-thumbnails",
+      "sourcePath": "routes/web.php",
+      "startLine": 155,
+      "endLine": 155
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ImportController@start",
+      "middleware": ["auth"],
+      "uri": "/import",
+      "sourcePath": "routes/web.php",
+      "startLine": 216,
+      "endLine": 216
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Exports\\Controllers\\ImportController@upload",
+      "middleware": ["auth"],
+      "uri": "/import",
+      "sourcePath": "routes/web.php",
+      "startLine": 217,
+      "endLine": 217
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Exports\\Controllers\\ImportController@delete",
+      "middleware": ["auth"],
+      "uri": "/import/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 220,
+      "endLine": 220
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ImportController@show",
+      "middleware": ["auth"],
+      "uri": "/import/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 218,
+      "endLine": 218
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Exports\\Controllers\\ImportController@run",
+      "middleware": ["auth"],
+      "uri": "/import/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 219,
+      "endLine": 219
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ImportApiController@list",
+      "uri": "/imports",
+      "sourcePath": "routes/api.php",
+      "startLine": 93,
+      "endLine": 93
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Exports\\Controllers\\ImportApiController@create",
+      "uri": "/imports",
+      "sourcePath": "routes/api.php",
+      "startLine": 94,
+      "endLine": 94
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Exports\\Controllers\\ImportApiController@delete",
+      "uri": "/imports/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 97,
+      "endLine": 97
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\ImportApiController@read",
+      "uri": "/imports/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 95,
+      "endLine": 95
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Exports\\Controllers\\ImportApiController@run",
+      "uri": "/imports/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 96,
+      "endLine": 96
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\App\\MetaController@licenses",
+      "uri": "/licenses",
+      "sourcePath": "routes/web.php",
+      "startLine": 29,
+      "endLine": 29
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@redirectFromLink",
+      "middleware": ["auth"],
+      "uri": "/link/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 188,
+      "endLine": 188
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\LoginController@getLogin",
+      "uri": "/login",
+      "sourcePath": "routes/web.php",
+      "startLine": 337,
+      "endLine": 337
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\LoginController@login",
+      "uri": "/login",
+      "sourcePath": "routes/web.php",
+      "startLine": 338,
+      "endLine": 338
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\SocialController@login",
+      "uri": "/login/service/{socialDriver}",
+      "sourcePath": "routes/web.php",
+      "startLine": 331,
+      "endLine": 331
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\SocialController@callback",
+      "uri": "/login/service/{socialDriver}/callback",
+      "sourcePath": "routes/web.php",
+      "startLine": 332,
+      "endLine": 332
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\SocialController@detach",
+      "middleware": ["auth"],
+      "uri": "/login/service/{socialDriver}/detach",
+      "sourcePath": "routes/web.php",
+      "startLine": 333,
+      "endLine": 333
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\LoginController@logout",
+      "uri": "/logout",
+      "sourcePath": "routes/web.php",
+      "startLine": 339,
+      "endLine": 339
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\App\\MetaController@pwaManifest",
+      "uri": "/manifest.json",
+      "sourcePath": "routes/web.php",
+      "startLine": 28,
+      "endLine": 28
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\MfaBackupCodesController@confirm",
+      "middleware": ["mfa-setup"],
+      "uri": "/mfa/backup_codes/confirm",
+      "sourcePath": "routes/web.php",
+      "startLine": 321,
+      "endLine": 321
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\MfaBackupCodesController@generate",
+      "middleware": ["mfa-setup"],
+      "uri": "/mfa/backup_codes/generate",
+      "sourcePath": "routes/web.php",
+      "startLine": 320,
+      "endLine": 320
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\MfaBackupCodesController@verify",
+      "middleware": ["guest"],
+      "uri": "/mfa/backup_codes/verify",
+      "sourcePath": "routes/web.php",
+      "startLine": 326,
+      "endLine": 326
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\MfaController@setup",
+      "middleware": ["mfa-setup"],
+      "uri": "/mfa/setup",
+      "sourcePath": "routes/web.php",
+      "startLine": 317,
+      "endLine": 317
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\MfaTotpController@confirm",
+      "middleware": ["mfa-setup"],
+      "uri": "/mfa/totp/confirm",
+      "sourcePath": "routes/web.php",
+      "startLine": 319,
+      "endLine": 319
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\MfaTotpController@generate",
+      "middleware": ["mfa-setup"],
+      "uri": "/mfa/totp/generate",
+      "sourcePath": "routes/web.php",
+      "startLine": 318,
+      "endLine": 318
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\MfaTotpController@verify",
+      "middleware": ["guest"],
+      "uri": "/mfa/totp/verify",
+      "sourcePath": "routes/web.php",
+      "startLine": 325,
+      "endLine": 325
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\MfaController@verify",
+      "middleware": ["guest"],
+      "uri": "/mfa/verify",
+      "sourcePath": "routes/web.php",
+      "startLine": 324,
+      "endLine": 324
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Access\\Controllers\\MfaController@remove",
+      "middleware": ["auth"],
+      "uri": "/mfa/{method}/remove",
+      "sourcePath": "routes/web.php",
+      "startLine": 328,
+      "endLine": 328
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@destroy",
+      "middleware": ["auth"],
+      "uri": "/my-account",
+      "sourcePath": "routes/web.php",
+      "startLine": 267,
+      "endLine": 267
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@redirect",
+      "middleware": ["auth"],
+      "uri": "/my-account",
+      "sourcePath": "routes/web.php",
+      "startLine": 257,
+      "endLine": 257
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@showAuth",
+      "middleware": ["auth"],
+      "uri": "/my-account/auth",
+      "sourcePath": "routes/web.php",
+      "startLine": 264,
+      "endLine": 264
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@updatePassword",
+      "middleware": ["auth"],
+      "uri": "/my-account/auth/password",
+      "sourcePath": "routes/web.php",
+      "startLine": 265,
+      "endLine": 265
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@delete",
+      "middleware": ["auth"],
+      "uri": "/my-account/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 266,
+      "endLine": 266
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@showNotifications",
+      "middleware": ["auth"],
+      "uri": "/my-account/notifications",
+      "sourcePath": "routes/web.php",
+      "startLine": 262,
+      "endLine": 262
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@updateNotifications",
+      "middleware": ["auth"],
+      "uri": "/my-account/notifications",
+      "sourcePath": "routes/web.php",
+      "startLine": 263,
+      "endLine": 263
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@showProfile",
+      "middleware": ["auth"],
+      "uri": "/my-account/profile",
+      "sourcePath": "routes/web.php",
+      "startLine": 258,
+      "endLine": 258
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@updateProfile",
+      "middleware": ["auth"],
+      "uri": "/my-account/profile",
+      "sourcePath": "routes/web.php",
+      "startLine": 259,
+      "endLine": 259
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@showShortcuts",
+      "middleware": ["auth"],
+      "uri": "/my-account/shortcuts",
+      "sourcePath": "routes/web.php",
+      "startLine": 260,
+      "endLine": 260
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Users\\Controllers\\UserAccountController@updateShortcuts",
+      "middleware": ["auth"],
+      "uri": "/my-account/shortcuts",
+      "sourcePath": "routes/web.php",
+      "startLine": 261,
+      "endLine": 261
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\OidcController@callback",
+      "uri": "/oidc/callback",
+      "sourcePath": "routes/web.php",
+      "startLine": 362,
+      "endLine": 362
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\OidcController@login",
+      "uri": "/oidc/login",
+      "sourcePath": "routes/web.php",
+      "startLine": 361,
+      "endLine": 361
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\OidcController@logout",
+      "uri": "/oidc/logout",
+      "sourcePath": "routes/web.php",
+      "startLine": 363,
+      "endLine": 363
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\App\\MetaController@opensearch",
+      "uri": "/opensearch.xml",
+      "sourcePath": "routes/web.php",
+      "startLine": 30,
+      "endLine": 30
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\PageRevisionController@destroyUserDraft",
+      "middleware": ["auth"],
+      "uri": "/page-revisions/user-drafts/{pageId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 118,
+      "endLine": 118
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageApiController@list",
+      "uri": "/pages",
+      "sourcePath": "routes/api.php",
+      "startLine": 25,
+      "endLine": 25
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\PageApiController@create",
+      "uri": "/pages",
+      "sourcePath": "routes/api.php",
+      "startLine": 26,
+      "endLine": 26
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageController@showRecentlyUpdated",
+      "middleware": ["auth"],
+      "uri": "/pages/recently-updated",
+      "sourcePath": "routes/web.php",
+      "startLine": 43,
+      "endLine": 43
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\PageApiController@delete",
+      "uri": "/pages/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 29,
+      "endLine": 29
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageApiController@read",
+      "uri": "/pages/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 27,
+      "endLine": 27
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\PageApiController@update",
+      "uri": "/pages/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 28,
+      "endLine": 28
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportApiController@exportHtml",
+      "uri": "/pages/{id}/export/html",
+      "sourcePath": "routes/api.php",
+      "startLine": 30,
+      "endLine": 30
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportApiController@exportMarkdown",
+      "uri": "/pages/{id}/export/markdown",
+      "sourcePath": "routes/api.php",
+      "startLine": 33,
+      "endLine": 33
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportApiController@exportPdf",
+      "uri": "/pages/{id}/export/pdf",
+      "sourcePath": "routes/api.php",
+      "startLine": 31,
+      "endLine": 31
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportApiController@exportPlainText",
+      "uri": "/pages/{id}/export/plaintext",
+      "sourcePath": "routes/api.php",
+      "startLine": 32,
+      "endLine": 32
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Exports\\Controllers\\PageExportApiController@exportZip",
+      "uri": "/pages/{id}/export/zip",
+      "sourcePath": "routes/api.php",
+      "startLine": 34,
+      "endLine": 34
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\ForgotPasswordController@showLinkRequestForm",
+      "uri": "/password/email",
+      "sourcePath": "routes/web.php",
+      "startLine": 370,
+      "endLine": 370
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\ForgotPasswordController@sendResetLinkEmail",
+      "middleware": ["throttle:public"],
+      "uri": "/password/email",
+      "sourcePath": "routes/web.php",
+      "startLine": 371,
+      "endLine": 371
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\ResetPasswordController@reset",
+      "middleware": ["throttle:public"],
+      "uri": "/password/reset",
+      "sourcePath": "routes/web.php",
+      "startLine": 375,
+      "endLine": 375
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\ResetPasswordController@showResetForm",
+      "uri": "/password/reset/{token}",
+      "sourcePath": "routes/web.php",
+      "startLine": 374,
+      "endLine": 374
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Permissions\\PermissionsController@formRowForRole",
+      "middleware": ["auth"],
+      "uri": "/permissions/form-row/{entityType}/{roleId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 227,
+      "endLine": 227
+    },
+    {
+      "methods": ["PATCH"],
+      "action": "BookStack\\Users\\Controllers\\UserPreferencesController@changeExpansion",
+      "middleware": ["auth"],
+      "uri": "/preferences/change-expansion/{type}",
+      "sourcePath": "routes/web.php",
+      "startLine": 272,
+      "endLine": 272
+    },
+    {
+      "methods": ["PATCH"],
+      "action": "BookStack\\Users\\Controllers\\UserPreferencesController@changeSort",
+      "middleware": ["auth"],
+      "uri": "/preferences/change-sort/{type}",
+      "sourcePath": "routes/web.php",
+      "startLine": 271,
+      "endLine": 271
+    },
+    {
+      "methods": ["PATCH"],
+      "action": "BookStack\\Users\\Controllers\\UserPreferencesController@changeView",
+      "middleware": ["auth"],
+      "uri": "/preferences/change-view/{type}",
+      "sourcePath": "routes/web.php",
+      "startLine": 270,
+      "endLine": 270
+    },
+    {
+      "methods": ["PATCH"],
+      "action": "BookStack\\Users\\Controllers\\UserPreferencesController@toggleDarkMode",
+      "middleware": ["auth"],
+      "uri": "/preferences/toggle-dark-mode",
+      "sourcePath": "routes/web.php",
+      "startLine": 273,
+      "endLine": 273
+    },
+    {
+      "methods": ["PATCH"],
+      "action": "BookStack\\Users\\Controllers\\UserPreferencesController@updateCodeLanguageFavourite",
+      "middleware": ["auth"],
+      "uri": "/preferences/update-code-language-favourite",
+      "sourcePath": "routes/web.php",
+      "startLine": 274,
+      "endLine": 274
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\RecycleBinApiController@list",
+      "uri": "/recycle-bin",
+      "sourcePath": "routes/api.php",
+      "startLine": 99,
+      "endLine": 99
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\RecycleBinApiController@destroy",
+      "uri": "/recycle-bin/{deletionId}",
+      "sourcePath": "routes/api.php",
+      "startLine": 101,
+      "endLine": 101
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\RecycleBinApiController@restore",
+      "uri": "/recycle-bin/{deletionId}",
+      "sourcePath": "routes/api.php",
+      "startLine": 100,
+      "endLine": 100
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\RegisterController@getRegister",
+      "uri": "/register",
+      "sourcePath": "routes/web.php",
+      "startLine": 340,
+      "endLine": 340
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\RegisterController@postRegister",
+      "middleware": ["throttle:public"],
+      "uri": "/register",
+      "sourcePath": "routes/web.php",
+      "startLine": 346,
+      "endLine": 346
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\ConfirmEmailController@show",
+      "uri": "/register/confirm",
+      "sourcePath": "routes/web.php",
+      "startLine": 341,
+      "endLine": 341
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\ConfirmEmailController@confirm",
+      "middleware": ["throttle:public"],
+      "uri": "/register/confirm/accept",
+      "sourcePath": "routes/web.php",
+      "startLine": 345,
+      "endLine": 345
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\ConfirmEmailController@showAwaiting",
+      "uri": "/register/confirm/awaiting",
+      "sourcePath": "routes/web.php",
+      "startLine": 342,
+      "endLine": 342
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\ConfirmEmailController@resend",
+      "uri": "/register/confirm/resend",
+      "sourcePath": "routes/web.php",
+      "startLine": 343,
+      "endLine": 343
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\ConfirmEmailController@showAcceptForm",
+      "uri": "/register/confirm/{token}",
+      "sourcePath": "routes/web.php",
+      "startLine": 344,
+      "endLine": 344
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\UserInviteController@showSetPassword",
+      "middleware": ["throttle:public"],
+      "uri": "/register/invite/{token}",
+      "sourcePath": "routes/web.php",
+      "startLine": 366,
+      "endLine": 366
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\UserInviteController@setPassword",
+      "middleware": ["throttle:public"],
+      "uri": "/register/invite/{token}",
+      "sourcePath": "routes/web.php",
+      "startLine": 367,
+      "endLine": 367
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\SocialController@register",
+      "uri": "/register/service/{socialDriver}",
+      "sourcePath": "routes/web.php",
+      "startLine": 334,
+      "endLine": 334
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\App\\MetaController@robots",
+      "uri": "/robots.txt",
+      "sourcePath": "routes/web.php",
+      "startLine": 26,
+      "endLine": 26
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\RoleApiController@list",
+      "uri": "/roles",
+      "sourcePath": "routes/api.php",
+      "startLine": 103,
+      "endLine": 103
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Users\\Controllers\\RoleApiController@create",
+      "uri": "/roles",
+      "sourcePath": "routes/api.php",
+      "startLine": 104,
+      "endLine": 104
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Users\\Controllers\\RoleApiController@delete",
+      "uri": "/roles/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 107,
+      "endLine": 107
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\RoleApiController@read",
+      "uri": "/roles/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 105,
+      "endLine": 105
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Users\\Controllers\\RoleApiController@update",
+      "uri": "/roles/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 106,
+      "endLine": 106
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\Saml2Controller@processAcs",
+      "uri": "/saml2/acs",
+      "sourcePath": "routes/web.php",
+      "startLine": 358,
+      "endLine": 358
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\Saml2Controller@startAcs",
+      "uri": "/saml2/acs",
+      "sourcePath": "routes/web.php",
+      "startLine": 353,
+      "endLine": 353
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\Saml2Controller@login",
+      "uri": "/saml2/login",
+      "sourcePath": "routes/web.php",
+      "startLine": 349,
+      "endLine": 349
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Access\\Controllers\\Saml2Controller@logout",
+      "uri": "/saml2/logout",
+      "sourcePath": "routes/web.php",
+      "startLine": 350,
+      "endLine": 350
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\Saml2Controller@metadata",
+      "uri": "/saml2/metadata",
+      "sourcePath": "routes/web.php",
+      "startLine": 351,
+      "endLine": 351
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Access\\Controllers\\Saml2Controller@sls",
+      "uri": "/saml2/sls",
+      "sourcePath": "routes/web.php",
+      "startLine": 352,
+      "endLine": 352
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Search\\SearchApiController@all",
+      "uri": "/search",
+      "sourcePath": "routes/api.php",
+      "startLine": 109,
+      "endLine": 109
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Search\\SearchController@search",
+      "middleware": ["auth"],
+      "uri": "/search",
+      "sourcePath": "routes/web.php",
+      "startLine": 191,
+      "endLine": 191
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Search\\SearchController@searchBook",
+      "middleware": ["auth"],
+      "uri": "/search/book/{bookId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 192,
+      "endLine": 192
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Search\\SearchController@searchChapter",
+      "middleware": ["auth"],
+      "uri": "/search/chapter/{bookId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 193,
+      "endLine": 193
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Search\\SearchController@searchForSelector",
+      "middleware": ["auth"],
+      "uri": "/search/entity-selector",
+      "sourcePath": "routes/web.php",
+      "startLine": 195,
+      "endLine": 195
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Search\\SearchController@templatesForSelector",
+      "middleware": ["auth"],
+      "uri": "/search/entity-selector-templates",
+      "sourcePath": "routes/web.php",
+      "startLine": 196,
+      "endLine": 196
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Search\\SearchController@searchSiblings",
+      "middleware": ["auth"],
+      "uri": "/search/entity/siblings",
+      "sourcePath": "routes/web.php",
+      "startLine": 194,
+      "endLine": 194
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Search\\SearchController@searchSuggestions",
+      "middleware": ["auth"],
+      "uri": "/search/suggest",
+      "sourcePath": "routes/web.php",
+      "startLine": 197,
+      "endLine": 197
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserSearchController@forMentions",
+      "middleware": ["auth"],
+      "uri": "/search/users/mention",
+      "sourcePath": "routes/web.php",
+      "startLine": 201,
+      "endLine": 201
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserSearchController@forSelect",
+      "middleware": ["auth"],
+      "uri": "/search/users/select",
+      "sourcePath": "routes/web.php",
+      "startLine": 200,
+      "endLine": 200
+    },
+    {
+      "methods": ["GET"],
+      "name": "settings",
+      "action": "BookStack\\Settings\\SettingController@index",
+      "middleware": ["auth"],
+      "uri": "/settings",
+      "sourcePath": "routes/web.php",
+      "startLine": 310,
+      "endLine": 310
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\AuditLogController@index",
+      "middleware": ["auth"],
+      "uri": "/settings/audit",
+      "sourcePath": "routes/web.php",
+      "startLine": 244,
+      "endLine": 244
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Settings\\MaintenanceController@index",
+      "middleware": ["auth"],
+      "uri": "/settings/maintenance",
+      "sourcePath": "routes/web.php",
+      "startLine": 230,
+      "endLine": 230
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Settings\\MaintenanceController@cleanupImages",
+      "middleware": ["auth"],
+      "uri": "/settings/maintenance/cleanup-images",
+      "sourcePath": "routes/web.php",
+      "startLine": 231,
+      "endLine": 231
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Settings\\MaintenanceController@regenerateReferences",
+      "middleware": ["auth"],
+      "uri": "/settings/maintenance/regenerate-references",
+      "sourcePath": "routes/web.php",
+      "startLine": 233,
+      "endLine": 233
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Settings\\MaintenanceController@sendTestEmail",
+      "middleware": ["auth"],
+      "uri": "/settings/maintenance/send-test-email",
+      "sourcePath": "routes/web.php",
+      "startLine": 232,
+      "endLine": 232
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\RecycleBinController@index",
+      "middleware": ["auth"],
+      "uri": "/settings/recycle-bin",
+      "sourcePath": "routes/web.php",
+      "startLine": 236,
+      "endLine": 236
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\RecycleBinController@empty",
+      "middleware": ["auth"],
+      "uri": "/settings/recycle-bin/empty",
+      "sourcePath": "routes/web.php",
+      "startLine": 237,
+      "endLine": 237
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\RecycleBinController@destroy",
+      "middleware": ["auth"],
+      "uri": "/settings/recycle-bin/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 239,
+      "endLine": 239
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\RecycleBinController@showDestroy",
+      "middleware": ["auth"],
+      "uri": "/settings/recycle-bin/{id}/destroy",
+      "sourcePath": "routes/web.php",
+      "startLine": 238,
+      "endLine": 238
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\RecycleBinController@showRestore",
+      "middleware": ["auth"],
+      "uri": "/settings/recycle-bin/{id}/restore",
+      "sourcePath": "routes/web.php",
+      "startLine": 240,
+      "endLine": 240
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\RecycleBinController@restore",
+      "middleware": ["auth"],
+      "uri": "/settings/recycle-bin/{id}/restore",
+      "sourcePath": "routes/web.php",
+      "startLine": 241,
+      "endLine": 241
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\RoleController@index",
+      "middleware": ["auth"],
+      "uri": "/settings/roles",
+      "sourcePath": "routes/web.php",
+      "startLine": 285,
+      "endLine": 285
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Users\\Controllers\\RoleController@delete",
+      "middleware": ["auth"],
+      "uri": "/settings/roles/delete/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 289,
+      "endLine": 289
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\RoleController@showDelete",
+      "middleware": ["auth"],
+      "uri": "/settings/roles/delete/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 288,
+      "endLine": 288
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\RoleController@create",
+      "middleware": ["auth"],
+      "uri": "/settings/roles/new",
+      "sourcePath": "routes/web.php",
+      "startLine": 286,
+      "endLine": 286
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Users\\Controllers\\RoleController@store",
+      "middleware": ["auth"],
+      "uri": "/settings/roles/new",
+      "sourcePath": "routes/web.php",
+      "startLine": 287,
+      "endLine": 287
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\RoleController@edit",
+      "middleware": ["auth"],
+      "uri": "/settings/roles/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Users\\Controllers\\RoleController@update",
+      "middleware": ["auth"],
+      "uri": "/settings/roles/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Sorting\\SortRuleController@store",
+      "middleware": ["auth"],
+      "uri": "/settings/sorting/rules",
+      "sourcePath": "routes/web.php",
+      "startLine": 304,
+      "endLine": 304
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Sorting\\SortRuleController@create",
+      "middleware": ["auth"],
+      "uri": "/settings/sorting/rules/new",
+      "sourcePath": "routes/web.php",
+      "startLine": 303,
+      "endLine": 303
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Sorting\\SortRuleController@destroy",
+      "middleware": ["auth"],
+      "uri": "/settings/sorting/rules/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 307,
+      "endLine": 307
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Sorting\\SortRuleController@edit",
+      "middleware": ["auth"],
+      "uri": "/settings/sorting/rules/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 305,
+      "endLine": 305
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Sorting\\SortRuleController@update",
+      "middleware": ["auth"],
+      "uri": "/settings/sorting/rules/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 306,
+      "endLine": 306
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserController@index",
+      "middleware": ["auth"],
+      "uri": "/settings/users",
+      "sourcePath": "routes/web.php",
+      "startLine": 247,
+      "endLine": 247
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserController@create",
+      "middleware": ["auth"],
+      "uri": "/settings/users/create",
+      "sourcePath": "routes/web.php",
+      "startLine": 248,
+      "endLine": 248
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Users\\Controllers\\UserController@store",
+      "middleware": ["auth"],
+      "uri": "/settings/users/create",
+      "sourcePath": "routes/web.php",
+      "startLine": 250,
+      "endLine": 250
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Users\\Controllers\\UserController@destroy",
+      "middleware": ["auth"],
+      "uri": "/settings/users/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 253,
+      "endLine": 253
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserController@edit",
+      "middleware": ["auth"],
+      "uri": "/settings/users/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 251,
+      "endLine": 251
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Users\\Controllers\\UserController@update",
+      "middleware": ["auth"],
+      "uri": "/settings/users/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 252,
+      "endLine": 252
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserController@delete",
+      "middleware": ["auth"],
+      "uri": "/settings/users/{id}/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 249,
+      "endLine": 249
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Users\\Controllers\\UserController@resetMfa",
+      "middleware": ["auth"],
+      "uri": "/settings/users/{id}/mfa",
+      "sourcePath": "routes/web.php",
+      "startLine": 254,
+      "endLine": 254
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\WebhookController@index",
+      "middleware": ["auth"],
+      "uri": "/settings/webhooks",
+      "sourcePath": "routes/web.php",
+      "startLine": 294,
+      "endLine": 294
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\WebhookController@create",
+      "middleware": ["auth"],
+      "uri": "/settings/webhooks/create",
+      "sourcePath": "routes/web.php",
+      "startLine": 295,
+      "endLine": 295
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Activity\\Controllers\\WebhookController@store",
+      "middleware": ["auth"],
+      "uri": "/settings/webhooks/create",
+      "sourcePath": "routes/web.php",
+      "startLine": 296,
+      "endLine": 296
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Activity\\Controllers\\WebhookController@destroy",
+      "middleware": ["auth"],
+      "uri": "/settings/webhooks/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\WebhookController@edit",
+      "middleware": ["auth"],
+      "uri": "/settings/webhooks/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 297,
+      "endLine": 297
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Activity\\Controllers\\WebhookController@update",
+      "middleware": ["auth"],
+      "uri": "/settings/webhooks/{id}",
+      "sourcePath": "routes/web.php",
+      "startLine": 298,
+      "endLine": 298
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\WebhookController@delete",
+      "middleware": ["auth"],
+      "uri": "/settings/webhooks/{id}/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 299,
+      "endLine": 299
+    },
+    {
+      "methods": ["GET"],
+      "name": "settings.category",
+      "action": "BookStack\\Settings\\SettingController@category",
+      "middleware": ["auth"],
+      "uri": "/settings/{category}",
+      "sourcePath": "routes/web.php",
+      "startLine": 311,
+      "endLine": 311
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Settings\\SettingController@update",
+      "middleware": ["auth"],
+      "uri": "/settings/{category}",
+      "sourcePath": "routes/web.php",
+      "startLine": 312,
+      "endLine": 312
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfApiController@list",
+      "uri": "/shelves",
+      "sourcePath": "routes/api.php",
+      "startLine": 58,
+      "endLine": 58
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfController@index",
+      "middleware": ["auth"],
+      "uri": "/shelves",
+      "sourcePath": "routes/web.php",
+      "startLine": 47,
+      "endLine": 47
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfApiController@create",
+      "uri": "/shelves",
+      "sourcePath": "routes/api.php",
+      "startLine": 59,
+      "endLine": 59
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfController@store",
+      "middleware": ["auth"],
+      "uri": "/shelves",
+      "sourcePath": "routes/web.php",
+      "startLine": 48,
+      "endLine": 48
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfApiController@delete",
+      "uri": "/shelves/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 62,
+      "endLine": 62
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfApiController@read",
+      "uri": "/shelves/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 60,
+      "endLine": 60
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfApiController@update",
+      "uri": "/shelves/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 61,
+      "endLine": 61
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@create",
+      "middleware": ["auth"],
+      "uri": "/shelves/{shelfSlug}/create-book",
+      "sourcePath": "routes/web.php",
+      "startLine": 60,
+      "endLine": 60
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Entities\\Controllers\\BookController@store",
+      "middleware": ["auth"],
+      "uri": "/shelves/{shelfSlug}/create-book",
+      "sourcePath": "routes/web.php",
+      "startLine": 61,
+      "endLine": 61
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfController@destroy",
+      "middleware": ["auth"],
+      "uri": "/shelves/{slug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 53,
+      "endLine": 53
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfController@show",
+      "middleware": ["auth"],
+      "uri": "/shelves/{slug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 51,
+      "endLine": 51
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfController@update",
+      "middleware": ["auth"],
+      "uri": "/shelves/{slug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 52,
+      "endLine": 52
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Permissions\\PermissionsController@copyShelfPermissionsToBooks",
+      "middleware": ["auth"],
+      "uri": "/shelves/{slug}/copy-permissions",
+      "sourcePath": "routes/web.php",
+      "startLine": 56,
+      "endLine": 56
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfController@showDelete",
+      "middleware": ["auth"],
+      "uri": "/shelves/{slug}/delete",
+      "sourcePath": "routes/web.php",
+      "startLine": 50,
+      "endLine": 50
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\BookshelfController@edit",
+      "middleware": ["auth"],
+      "uri": "/shelves/{slug}/edit",
+      "sourcePath": "routes/web.php",
+      "startLine": 49,
+      "endLine": 49
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Permissions\\PermissionsController@showForShelf",
+      "middleware": ["auth"],
+      "uri": "/shelves/{slug}/permissions",
+      "sourcePath": "routes/web.php",
+      "startLine": 54,
+      "endLine": 54
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Permissions\\PermissionsController@updateForShelf",
+      "middleware": ["auth"],
+      "uri": "/shelves/{slug}/permissions",
+      "sourcePath": "routes/web.php",
+      "startLine": 55,
+      "endLine": 55
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\References\\ReferenceController@shelf",
+      "middleware": ["auth"],
+      "uri": "/shelves/{slug}/references",
+      "sourcePath": "routes/web.php",
+      "startLine": 57,
+      "endLine": 57
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Settings\\StatusController@show",
+      "uri": "/status",
+      "sourcePath": "routes/web.php",
+      "startLine": 25,
+      "endLine": 25
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\App\\SystemApiController@read",
+      "uri": "/system",
+      "sourcePath": "routes/api.php",
+      "startLine": 111,
+      "endLine": 111
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\TagController@index",
+      "middleware": ["auth"],
+      "uri": "/tags",
+      "sourcePath": "routes/web.php",
+      "startLine": 176,
+      "endLine": 176
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\TagApiController@listNames",
+      "uri": "/tags/names",
+      "sourcePath": "routes/api.php",
+      "startLine": 113,
+      "endLine": 113
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Activity\\Controllers\\TagApiController@listValues",
+      "uri": "/tags/values-for-name",
+      "sourcePath": "routes/api.php",
+      "startLine": 114,
+      "endLine": 114
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageTemplateController@list",
+      "middleware": ["auth"],
+      "uri": "/templates",
+      "sourcePath": "routes/web.php",
+      "startLine": 204,
+      "endLine": 204
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Entities\\Controllers\\PageTemplateController@get",
+      "middleware": ["auth"],
+      "uri": "/templates/{templateId}",
+      "sourcePath": "routes/web.php",
+      "startLine": 205,
+      "endLine": 205
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Theming\\ThemeController@publicFile",
+      "uri": "/theme/{theme}/{path}",
+      "sourcePath": "routes/web.php",
+      "startLine": 382,
+      "endLine": 382
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Uploads\\Controllers\\ImageController@showImage",
+      "middleware": ["auth"],
+      "uri": "/uploads/images/{path}",
+      "sourcePath": "routes/web.php",
+      "startLine": 36,
+      "endLine": 36
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserProfileController@show",
+      "middleware": ["auth"],
+      "uri": "/user/{slug}",
+      "sourcePath": "routes/web.php",
+      "startLine": 145,
+      "endLine": 145
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserApiController@list",
+      "uri": "/users",
+      "sourcePath": "routes/api.php",
+      "startLine": 116,
+      "endLine": 116
+    },
+    {
+      "methods": ["POST"],
+      "action": "BookStack\\Users\\Controllers\\UserApiController@create",
+      "uri": "/users",
+      "sourcePath": "routes/api.php",
+      "startLine": 117,
+      "endLine": 117
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "BookStack\\Users\\Controllers\\UserApiController@delete",
+      "uri": "/users/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 120,
+      "endLine": 120
+    },
+    {
+      "methods": ["GET"],
+      "action": "BookStack\\Users\\Controllers\\UserApiController@read",
+      "uri": "/users/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 118,
+      "endLine": 118
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Users\\Controllers\\UserApiController@update",
+      "uri": "/users/{id}",
+      "sourcePath": "routes/api.php",
+      "startLine": 119,
+      "endLine": 119
+    },
+    {
+      "methods": ["PUT"],
+      "action": "BookStack\\Activity\\Controllers\\WatchController@update",
+      "middleware": ["auth"],
+      "uri": "/watching/update",
+      "sourcePath": "routes/web.php",
+      "startLine": 213,
+      "endLine": 213
+    }
+  ],
+  "gaps": [
+    {
+      "kind": "unresolved-file",
+      "sourcePath": "app/App/Providers/RouteServiceProvider.php",
+      "startLine": 49,
+      "endLine": 49,
+      "reason": "includes route file routes/web.php (including group context not applied)",
+      "estimatedRouteCount": 260
+    },
+    {
+      "kind": "unresolved-file",
+      "sourcePath": "app/App/Providers/RouteServiceProvider.php",
+      "startLine": 72,
+      "endLine": 72,
+      "reason": "includes route file routes/api.php (including group context not applied)",
+      "estimatedRouteCount": 78
+    },
+    {
+      "kind": "parse-error",
+      "sourcePath": "resources/views/misc/opensearch.blade.php",
+      "reason": "Tree-sitter returned an error or partial parse tree."
+    }
+  ],
+  "files": [
+    {
+      "path": "app/App/Providers/RouteServiceProvider.php",
+      "sha256": "7ebc1609bfb157a009856b0c3f0e96424aae5c2d5a230167fdccb4611631cba6"
+    },
+    {
+      "path": "resources/views/misc/opensearch.blade.php",
+      "sha256": "c363ee3ca65fd365a2c5d42a6a6efa9f8e3fa6b2b7cf14455d0a752bf0463964"
+    },
+    {
+      "path": "routes/api.php",
+      "sha256": "8e898e82eed82a9005610834c94ef2f84cd23e9257cc22c4f186d4162cde6055"
+    },
+    {
+      "path": "routes/web.php",
+      "sha256": "c23f96bf6270e06a1d37ddaf354ecc9862058223956910b74db8b005c1c08a5b"
+    }
+  ]
+}

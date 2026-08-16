@@ -15,16 +15,36 @@ rather than importing its internals or copying the project wholesale.
 - Native `tree-sitter` with separately packaged TypeScript/TSX and
   JavaScript/JSX grammars extracts symbols, imports, calls, Next.js App Router
   file-convention routes, and Express route registrations.
-- PHP is indexed through the same seam (DG-01, refs #245): the `tree-sitter-php`
-  grammar (the same npm package upstream's PHP config declares) powers symbol,
-  import, and call extraction, and the Arxic-owned Laravel rule layer
-  (`src/language-packs/php/`) inventories routes declared via `Route::`
-  verbs/groups/resources — including dot-notation `apiResource` expansion,
-  prefix chains, aliased `use` imports, PSR-4 controller convention resolution,
-  and literal `foreach`+interpolation loops — with line-anchored `EvidenceRef`s.
-  Route rows that cannot be statically resolved emit
+- PHP is indexed through the same seam (DG-01 → productionized by DG-05,
+  refs #245/#249): the `tree-sitter-php` grammar (the same npm package
+  upstream's PHP config declares) powers symbol, import, and call extraction,
+  and the Arxic-owned Laravel rule layer (`src/language-packs/php/`) inventories
+  routes declared via `Route::` verbs/groups/resources — including dot-notation
+  `apiResource` expansion, prefix and middleware chains (service-provider
+  methods included), aliased `use` imports, PSR-4 controller convention
+  resolution, literal `foreach`+interpolation loops, and `conditional` marking
+  for if-block registrations — with line-anchored `EvidenceRef`s. Route rows
+  that cannot be statically resolved emit
   `ARXIC-SOURCE-ROUTE-DYNAMIC-REGISTRATION`; handlers that cannot be grounded
-  emit `ARXIC-SOURCE-HANDLER-UNRESOLVED`; neither gap is ever silent.
+  emit `ARXIC-SOURCE-HANDLER-UNRESOLVED`; unknown `Route::` constructs emit
+  `ARXIC-SOURCE-ROUTE-UNSUPPORTED-CONSTRUCT`; route file includes
+  (`require base_path(...)`, `Route::group(..., base_path(...))`) emit
+  `ARXIC-SOURCE-ROUTE-FILE-INCLUDE`; a runtime without the grammar emits
+  `ARXIC-SOURCE-GRAMMAR-UNAVAILABLE` per file. No gap is ever silent.
+- Language packs are DATA-DRIVEN (`src/language-packs/index.ts`): a pack
+  declares its grammar (npm package reference) + versioned framework inventory
+  rules; `builtinLanguagePacks` is frozen per release for byte-stable evidence.
+- `SourceUaAdapter.collectRouteInventories()` emits one Route Inventory
+  Interchange v1 document per route-producing pack (`arxic-langpack-php@1.0.0`,
+  `standIn: false`) — the Domain Inventory's documented input contract
+  (`packages/domain-inventory-spike/src/interchange.ts`). Conformance is
+  integration-tested against the REAL DG-02 `validateInterchange`, including
+  fail-closed rejection of corrupted documents.
+- Unsupported-language diagnostics name the actual language: `.mts`/`.cts`
+  parse as TypeScript; known-but-unpackable extensions (`.rb`, `.py`, …) are
+  identified by language id in manifest and diagnostics; only genuinely
+  unidentified extensions report an explicit no-language condition
+  (ADR-008 Decision 5).
 - Every source claim is a frozen `EvidenceRef`; dirty-file bytes never receive
   committed provenance. Gaps are frozen-contract-valid, blocked diagnostics.
 
@@ -41,9 +61,13 @@ The `ADR §23.14 SourceIndexer engine-upgrade contract gate` test must pass
 before replacing or upgrading the parser engine. Integration tests run the real
 native parser against both real fixture-app source trees and the Arxic-authored
 Laravel fixture app (`src/__tests__/fixtures/laravel-app/`, license-clean per
-the DG-01 fixture strategy). A separate test checks that each installed grammar
+the DG-01 fixture strategy). Mixed-language monorepo classification
+(TS/JS/PHP/known-unsupported/unknown) is covered by
+`src/__tests__/mixed-language.test.ts`; interchange conformance by
+`src/__tests__/interchange.test.ts` and the committed koel artifact test. A separate test checks that each installed grammar
 package declares MIT and ships its own `LICENSE`.
 
-The measurement harness `scripts/measure-laravel.mjs` runs this adapter against
-a real Laravel working copy and emits the parse-failure-rate / route-inventory
-summary used by the DG-01 spike evidence.
+The measurement harnesses `scripts/measure-laravel.mjs` (DG-01 evidence) and
+`scripts/measure-laravel-inventory.mts` (DG-05: interchange + real-validator
+summary) run this adapter against a real Laravel working copy; committed
+aggregate evidence lives under `docs/evidence/DG-05/`.

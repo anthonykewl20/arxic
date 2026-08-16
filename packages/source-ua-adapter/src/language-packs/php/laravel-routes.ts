@@ -18,6 +18,8 @@ import type { Diagnostic } from '@arxic/contracts';
 import {
   ARXIC_SOURCE_HANDLER_UNRESOLVED,
   ARXIC_SOURCE_ROUTE_DYNAMIC_REGISTRATION,
+  ARXIC_SOURCE_ROUTE_FILE_INCLUDE,
+  ARXIC_SOURCE_ROUTE_UNSUPPORTED_CONSTRUCT,
 } from '../../diagnostics';
 import type { ParsedSource, SyntaxNode } from '../../parser';
 import { SourceParser } from '../../parser';
@@ -36,8 +38,27 @@ export type LaravelRouteRow = {
   controller?: string;
   action?: string;
   kind: 'static' | 'loop-resolved';
+  sourcePath: string;
+  /** Route is registered inside a runtime-evaluated if/elseif/else block. */
+  conditional?: boolean;
+  /** Group + per-route middleware in declaration order (route:list parity). */
+  middleware?: string[];
   startLine: number;
   endLine: number;
+};
+
+/** Gap kinds mirror DG-02's RouteInventoryInterchange gap vocabulary 1:1. */
+export type LaravelGapKind =
+  'dynamic-registration' | 'parse-error' | 'unresolved-file' | 'conditional-block' | 'unsupported';
+
+export type LaravelGap = {
+  kind: LaravelGapKind;
+  sourcePath: string;
+  startLine?: number;
+  endLine?: number;
+  reason: string;
+  /** Best-effort estimate of routes hidden behind the gap, when knowable. */
+  estimatedRouteCount?: number;
 };
 
 export type LaravelHandlerRef = {
@@ -52,6 +73,8 @@ export type LaravelInventoryResult = {
   routes: LaravelRouteRow[];
   handlerRefs: LaravelHandlerRef[];
   advisories: Diagnostic[];
+  /** Structured never-silent accounting; feeds the interchange gaps[] array. */
+  gaps: LaravelGap[];
 };
 
 export type LaravelInventoryInput = {
@@ -76,6 +99,38 @@ const VERB_METHODS = new Set([
 
 const RESOURCE_METHODS = new Set(['resource', 'apiResource']);
 
+/**
+ * Route facade calls that legitimately register NO routes — the Router's
+ * binding/config API (laravel/framework v13.24.0
+ * src/Illuminate/Routing/Router.php: bind, model, pattern(s), macro,
+ * resourceVerbs, singularParameters) plus registrar-builder calls that are
+ * only meaningful in a chain (prefix/middleware/name/domain/where/namespace/
+ * withoutMiddleware/withTrashed). Calls outside every known set advise.
+ */
+const NON_ROUTE_REGISTRARS = new Set([
+  'bind',
+  'model',
+  'pattern',
+  'patterns',
+  'macro',
+  'can',
+  'resourceVerbs',
+  'singularParameters',
+  'matched',
+  'current',
+  'currentRouteName',
+  'prefix',
+  'middleware',
+  'name',
+  'domain',
+  'where',
+  'namespace',
+  'withoutMiddleware',
+  'withTrashed',
+  'scoped',
+  'covers',
+]);
+
 /** PSR-4 prefix → directory, parsed from composer.json "autoload". */
 type Psr4Map = ReadonlyMap<string, string>;
 
@@ -83,7 +138,9 @@ type Bindings = ReadonlyMap<string, readonly string[]>;
 
 type WalkContext = {
   prefixes: readonly string[];
+  middleware: readonly string[];
   bindings: Bindings;
+  conditional: boolean;
 };
 
 export async function inventoryLaravelRoutes(
@@ -92,7 +149,9 @@ export async function inventoryLaravelRoutes(
   const routes: LaravelRouteRow[] = [];
   const handlerRefs: LaravelHandlerRef[] = [];
   const advisories: Diagnostic[] = [];
+  const gaps: LaravelGap[] = [];
   const advisoryKeys = new Set<string>();
+  const gapKeys = new Set<string>();
 
   const imports = collectUseImports(input.parsed.root);
   const composer = await loadComposerPsr4(input.access);
@@ -105,6 +164,30 @@ export async function inventoryLaravelRoutes(
     if (advisoryKeys.has(key)) return;
     advisoryKeys.add(key);
     advisories.push({ code, severity: 'observed', subject: input.path, message });
+  };
+
+  const recordGap = (gap: LaravelGap) => {
+    const key = `${gap.kind}:${gap.sourcePath}:${gap.startLine ?? 0}:${gap.reason}`;
+    if (gapKeys.has(key)) return;
+    gapKeys.add(key);
+    gaps.push(gap);
+  };
+
+  /**
+   * Best-effort route-count estimate for an included route file (literal
+   * includes only): parse through the safe access seam and count Route::
+   * facade calls. Unreadable/unparseable targets return undefined — the gap is
+   * still emitted, the estimate is simply not claimed (DG-05 review P2).
+   */
+  const estimateRoutesInFile = async (includePath: string): Promise<number | undefined> => {
+    const read = await input.access.readRelative(includePath);
+    if (!read.ok) return undefined;
+    const parsed = parser.parse(includePath, 'php', read.text);
+    try {
+      return countRouteCalls(parsed.root);
+    } finally {
+      parsed.dispose();
+    }
   };
 
   const resolveHandlerRef = async (
@@ -173,14 +256,37 @@ export async function inventoryLaravelRoutes(
           break;
         }
         case 'if_statement':
-        case 'compound_statement':
         case 'else_clause':
         case 'elseif_clause':
+          // Routes inside runtime-evaluated conditionals may not exist at
+          // runtime — rows are still emitted, marked conditional (DG-02
+          // interchange semantics).
+          await walk(child, ctx.conditional ? ctx : { ...ctx, conditional: true });
+          break;
+        case 'compound_statement':
           await walk(child, ctx);
           break;
         case 'foreach_statement':
           await handleForeach(child, ctx);
           break;
+        case 'class_declaration':
+        case 'enum_declaration':
+        case 'trait_declaration': {
+          // Service providers register routes from inside methods
+          // (BookStack's RouteServiceProvider::mapApiRoutes wraps
+          // `require base_path('routes/api.php')` in a group) — descend.
+          const list = child.namedChildren.find(
+            (grandchild) => grandchild.type === 'declaration_list',
+          );
+          if (list) await walk(list, ctx);
+          break;
+        }
+        case 'method_declaration':
+        case 'function_definition': {
+          const body = child.childForFieldName('body');
+          if (body) await walk(body, ctx);
+          break;
+        }
         default:
           break;
       }
@@ -212,6 +318,14 @@ export async function inventoryLaravelRoutes(
         ARXIC_SOURCE_ROUTE_DYNAMIC_REGISTRATION,
         `foreach over a non-literal iterable declares ${count} route call(s) that cannot be statically resolved`,
       );
+      recordGap({
+        kind: 'dynamic-registration',
+        sourcePath: input.path,
+        startLine: node.startPosition.row + 1,
+        endLine: node.endPosition.row + 1,
+        reason: `foreach over a non-literal iterable declares route call(s) that cannot be statically resolved`,
+        estimatedRouteCount: count,
+      });
       return;
     }
     const [keyVar, valueVar] = pair.namedChildren;
@@ -236,6 +350,40 @@ export async function inventoryLaravelRoutes(
       // already harvested by collectTopLevelArrays
       return;
     }
+    if (
+      expr.type === 'require_expression' ||
+      expr.type === 'require_once_expression' ||
+      expr.type === 'include_expression' ||
+      expr.type === 'include_once_expression'
+    ) {
+      // A route file included from another file (the BookStack
+      // RouteServiceProvider shape): the included file is scanned standalone
+      // but the INCLUDING group's prefix/middleware cannot be applied by the
+      // per-file scan — surfaced, never silent.
+      const call = expr.namedChildren[0] ?? expr;
+      const includeCall = basePathIncludeCall(call);
+      if (includeCall) {
+        const reason =
+          includeCall.path !== null
+            ? `includes route file ${includeCall.path} (including group context not applied)`
+            : 'includes a route file whose path is computed at runtime';
+        const estimate =
+          includeCall.path !== null ? await estimateRoutesInFile(includeCall.path) : undefined;
+        advise(
+          ARXIC_SOURCE_ROUTE_FILE_INCLUDE,
+          `a ${expr.type.replace('_expression', '')} statement ${reason}`,
+        );
+        recordGap({
+          kind: 'unresolved-file',
+          sourcePath: input.path,
+          startLine: expr.startPosition.row + 1,
+          endLine: expr.endPosition.row + 1,
+          reason,
+          ...(estimate !== undefined ? { estimatedRouteCount: estimate } : {}),
+        });
+      }
+      return;
+    }
     // Other statement-level expressions cannot declare routes.
   };
 
@@ -249,32 +397,173 @@ export async function inventoryLaravelRoutes(
 
     const members = chain.members;
     const memberNames = members.map((member) => methodName(member));
+    const chainNames = [method, ...memberNames];
 
-    if (memberNames.includes('group') || method === 'group') {
-      const groupCall = method === 'group' ? base : members[memberNames.indexOf('group')];
-      const prefixes: string[] = [...ctx.prefixes];
-      prefixes.push(...prefixesFromChain(base, method, members, memberNames, ctx));
-      for (const argument of argumentNodes(groupCall)) {
-        if (argument.type === 'anonymous_function' || argument.type === 'arrow_function') {
-          const body = argument.childForFieldName('body');
-          if (body) await walk(body, { ...ctx, prefixes });
-        } else if (argument.type === 'string') {
-          // Route::group([], base_path('routes/x.php')) includes another file;
-          // that file is scanned independently. The including group's prefix is
-          // not applied to it — recorded as a limitation in the spike report.
-        }
+    // The registrar may sit anywhere in the chain: at the head
+    // (`Route::get(...)->name(...)`) or behind registrar builders
+    // (`Route::middleware('auth')->get(...)` — RouteRegistrar passthrough).
+    // Builders BEFORE the registrar become prefix/middleware context.
+    const registrarIndex = chainNames.findIndex(
+      (name) => VERB_METHODS.has(name) || RESOURCE_METHODS.has(name) || name === 'group',
+    );
+    if (registrarIndex === -1) {
+      // Unknown `Route::` facade constructs are never silently dropped: the
+      // documented non-route registration API (bind/model/pattern/…,
+      // laravel/framework v13.24.0 Router public methods) is whitelisted, and
+      // anything else advises + records an `unsupported` gap.
+      const unknownName = chainNames.find((name) => !NON_ROUTE_REGISTRARS.has(name));
+      if (unknownName !== undefined) {
+        advise(
+          ARXIC_SOURCE_ROUTE_UNSUPPORTED_CONSTRUCT,
+          `Route::${unknownName} at line ${base.startPosition.row + 1} is not a known route registrar; the call produced no inventory rows`,
+        );
+        recordGap({
+          kind: 'unsupported',
+          sourcePath: input.path,
+          startLine: base.startPosition.row + 1,
+          endLine: base.endPosition.row + 1,
+          reason: `Route::${unknownName} is not a known route registrar`,
+        });
       }
       return;
     }
 
-    if (RESOURCE_METHODS.has(method)) {
-      await handleResourceRoute(base, members, memberNames, ctx);
+    if (chainNames[registrarIndex] === 'group') {
+      const groupCall = method === 'group' ? base : members[memberNames.indexOf('group')];
+      const prefixes: string[] = [...ctx.prefixes];
+      prefixes.push(...prefixesFromChain(base, method, members, memberNames, ctx));
+      const middleware: string[] = [...ctx.middleware];
+      middleware.push(...middlewareFromChain(base, method, members, memberNames));
+      if (method === 'group') {
+        const attrs = attributeArray(argumentNodes(base)[0], imports);
+        if (attrs) middleware.push(...attrs.middleware);
+      }
+      let closure: SyntaxNode | null = null;
+      for (const argument of argumentNodes(groupCall)) {
+        if (argument.type === 'anonymous_function' || argument.type === 'arrow_function') {
+          closure = argument;
+        } else {
+          // Route::group(attrs, base_path('routes/x.php')) includes another
+          // file: the included file is scanned independently, but the including
+          // group's prefix/middleware cannot be applied by the per-file scan —
+          // surfaced as an advisory + gap, never silent.
+          const includeCall = basePathIncludeCall(argument);
+          if (includeCall) {
+            if (includeCall.path !== null) {
+              const estimate = await estimateRoutesInFile(includeCall.path);
+              advise(
+                ARXIC_SOURCE_ROUTE_FILE_INCLUDE,
+                `route file ${includeCall.path} is included via Route::group; the including group prefix (${prefixes.slice(ctx.prefixes.length).join('/') || 'none'}) cannot be applied by the per-file scan`,
+              );
+              recordGap({
+                kind: 'unresolved-file',
+                sourcePath: input.path,
+                startLine: groupCall.startPosition.row + 1,
+                endLine: groupCall.endPosition.row + 1,
+                reason: `includes route file ${includeCall.path} (including group context not applied)`,
+                ...(estimate !== undefined ? { estimatedRouteCount: estimate } : {}),
+              });
+            } else {
+              advise(
+                ARXIC_SOURCE_ROUTE_FILE_INCLUDE,
+                `Route::group includes a route file whose path is computed at runtime (line ${groupCall.startPosition.row + 1}); the include cannot be followed statically`,
+              );
+              recordGap({
+                kind: 'unresolved-file',
+                sourcePath: input.path,
+                startLine: groupCall.startPosition.row + 1,
+                endLine: groupCall.endPosition.row + 1,
+                reason: 'includes a route file whose path is computed at runtime',
+              });
+            }
+          }
+        }
+      }
+      if (closure) {
+        const body = closure.childForFieldName('body');
+        if (body) await walk(body, { ...ctx, prefixes, middleware });
+      }
       return;
     }
 
-    if (VERB_METHODS.has(method)) {
-      await handleVerbRoute(base, members, memberNames, ctx);
+    // Verb/resource registrar — normalize so the handler sees the registrar
+    // call as `base` and only its TRAILING modifiers as members; builders that
+    // preceded the registrar are merged into the walk context.
+    const registrarCall = registrarIndex === 0 ? base : (members[registrarIndex - 1] as SyntaxNode);
+    const trailingMembers = members.slice(registrarIndex);
+    const trailingNames = memberNames.slice(registrarIndex);
+    const builderCtx: WalkContext = {
+      ...ctx,
+      prefixes: [
+        ...ctx.prefixes,
+        ...builderPrefixes(chainNames, registrarIndex, base, members, ctx),
+      ],
+      middleware: [
+        ...ctx.middleware,
+        ...builderMiddleware(chainNames, registrarIndex, base, members),
+      ],
+    };
+
+    if (RESOURCE_METHODS.has(chainNames[registrarIndex] ?? '')) {
+      await handleResourceRoute(registrarCall, trailingMembers, trailingNames, builderCtx);
+      return;
     }
+
+    await handleVerbRoute(registrarCall, trailingMembers, trailingNames, builderCtx);
+  };
+
+  /** Prefix context from chain builders that PRECEDE the registrar. */
+  const builderPrefixes = (
+    chainNames: readonly string[],
+    registrarIndex: number,
+    base: SyntaxNode,
+    members: readonly SyntaxNode[],
+    ctx: WalkContext,
+  ): string[] => {
+    const prefixes: string[] = [];
+    for (let index = 0; index < registrarIndex; index += 1) {
+      if (chainNames[index] !== 'prefix') continue;
+      const call = index === 0 ? base : (members[index - 1] as SyntaxNode);
+      const literal = literalStringOrStrings(argumentNodes(call)[0], ctx);
+      if (literal) prefixes.push(...literal);
+    }
+    return prefixes;
+  };
+
+  /** Middleware context from chain builders that PRECEDE the registrar. */
+  const builderMiddleware = (
+    chainNames: readonly string[],
+    registrarIndex: number,
+    base: SyntaxNode,
+    members: readonly SyntaxNode[],
+  ): string[] => {
+    const middleware: string[] = [];
+    for (let index = 0; index < registrarIndex; index += 1) {
+      if (chainNames[index] !== 'middleware') continue;
+      const call = index === 0 ? base : (members[index - 1] as SyntaxNode);
+      for (const argument of argumentNodes(call)) {
+        middleware.push(...middlewareValues(argument, imports));
+      }
+    }
+    return middleware;
+  };
+
+  const middlewareFromChain = (
+    base: SyntaxNode,
+    method: string,
+    members: readonly SyntaxNode[],
+    memberNames: readonly string[],
+  ): string[] => {
+    const middleware: string[] = [];
+    const collect = (call: SyntaxNode, name: string): void => {
+      if (name !== 'middleware') return;
+      for (const argument of argumentNodes(call)) {
+        middleware.push(...middlewareValues(argument, imports));
+      }
+    };
+    collect(base, method);
+    members.forEach((member, index) => collect(member, memberNames[index] ?? ''));
+    return middleware;
   };
 
   const prefixesFromChain = (
@@ -298,7 +587,7 @@ export async function inventoryLaravelRoutes(
       }
     });
     if (method === 'group') {
-      const attrs = attributeArray(argumentNodes(base)[0]);
+      const attrs = attributeArray(argumentNodes(base)[0], imports);
       if (attrs) prefixes.push(...attrs.prefix);
     }
     return prefixes;
@@ -328,6 +617,13 @@ export async function inventoryLaravelRoutes(
           ARXIC_SOURCE_ROUTE_DYNAMIC_REGISTRATION,
           `Route::match at line ${startLine} has a non-literal method list`,
         );
+        recordGap({
+          kind: 'dynamic-registration',
+          sourcePath: input.path,
+          startLine,
+          endLine,
+          reason: 'Route::match method list cannot be statically resolved',
+        });
         return;
       }
     }
@@ -338,6 +634,13 @@ export async function inventoryLaravelRoutes(
         ARXIC_SOURCE_ROUTE_DYNAMIC_REGISTRATION,
         `Route::${method} declares a route whose URI cannot be statically resolved (line ${startLine})`,
       );
+      recordGap({
+        kind: 'dynamic-registration',
+        sourcePath: input.path,
+        startLine,
+        endLine,
+        reason: `Route::${method} URI cannot be statically resolved`,
+      });
       return;
     }
 
@@ -377,6 +680,10 @@ export async function inventoryLaravelRoutes(
       );
     }
 
+    const rowMiddleware = [
+      ...ctx.middleware,
+      ...middlewareFromChain(base, method, members, memberNames),
+    ].filter((value, index, all) => all.indexOf(value) === index);
     for (const httpMethod of httpMethods) {
       routes.push({
         method: httpMethod,
@@ -393,6 +700,9 @@ export async function inventoryLaravelRoutes(
                 ? 'closure'
                 : undefined,
         kind,
+        sourcePath: input.path,
+        ...(ctx.conditional ? { conditional: true } : {}),
+        ...(rowMiddleware.length > 0 ? { middleware: rowMiddleware } : {}),
         startLine,
         endLine,
       });
@@ -412,20 +722,31 @@ export async function inventoryLaravelRoutes(
     const method = methodName(base);
     const args = argumentNodes(base);
     const nameArg = args[0] ? literalString(args[0], ctx) : null;
+    const startLine = base.startPosition.row + 1;
+    const endLine = base.endPosition.row + 1;
     if (nameArg === null) {
       advise(
         ARXIC_SOURCE_ROUTE_DYNAMIC_REGISTRATION,
-        `Route::${method} at line ${base.startPosition.row + 1} has a non-literal resource name`,
+        `Route::${method} at line ${startLine} has a non-literal resource name`,
       );
+      recordGap({
+        kind: 'dynamic-registration',
+        sourcePath: input.path,
+        startLine,
+        endLine,
+        reason: `Route::${method} resource name cannot be statically resolved`,
+      });
       return;
     }
     const controllerArg = args[1] ? classReference(args[1], ctx) : null;
     const only = modifierActionList(members, memberNames, 'only');
     const except = modifierActionList(members, memberNames, 'except');
 
-    const startLine = base.startPosition.row + 1;
-    const endLine = base.endPosition.row + 1;
     const kind = ctx.bindings.size > 0 ? 'loop-resolved' : 'static';
+    const rowMiddleware = [
+      ...ctx.middleware,
+      ...middlewareFromChain(base, method, members, memberNames),
+    ].filter((value, index, all) => all.indexOf(value) === index);
 
     for (const route of expandResource(nameArg, undefined, {
       api: method === 'apiResource',
@@ -438,6 +759,9 @@ export async function inventoryLaravelRoutes(
         controller: controllerArg ?? undefined,
         action: route.action,
         kind,
+        sourcePath: input.path,
+        ...(ctx.conditional ? { conditional: true } : {}),
+        ...(rowMiddleware.length > 0 ? { middleware: rowMiddleware } : {}),
         startLine,
         endLine,
       });
@@ -595,9 +919,14 @@ export async function inventoryLaravelRoutes(
   const literalString = (node: SyntaxNode, ctx: WalkContext): string | null =>
     node.type === 'string' || node.type === 'encapsed_string' ? interpolateString(node, ctx) : null;
 
-  await walk(input.parsed.root, { prefixes: [], bindings: new Map() });
+  await walk(input.parsed.root, {
+    prefixes: [],
+    middleware: [],
+    bindings: new Map(),
+    conditional: false,
+  });
 
-  return { routes, handlerRefs, advisories };
+  return { routes, handlerRefs, advisories, gaps };
 }
 
 // ---------------------------------------------------------------------------
@@ -718,23 +1047,81 @@ function stringArrayValues(node: SyntaxNode): string[] | null {
   return values;
 }
 
-function attributeArray(node: SyntaxNode | undefined): { prefix: string[] } | null {
+function attributeArray(
+  node: SyntaxNode | undefined,
+  imports?: ReadonlyMap<string, string>,
+): { prefix: string[]; middleware: string[] } | null {
   if (!node || node.type !== 'array_creation_expression') return null;
   const prefix: string[] = [];
+  const middleware: string[] = [];
   for (const element of node.namedChildren) {
     if (element.type !== 'array_element_initializer') continue;
     const [key, value] = element.namedChildren;
     if (!key || !value || key.type !== 'string') continue;
     const keyText = key.namedChildren.find((child) => child.type === 'string_content')?.text;
-    if (keyText !== 'prefix') continue;
-    if (value.type === 'string') {
-      const literal = literalStatic(value);
-      if (literal !== null) prefix.push(literal);
-    } else if (value.type === 'array_creation_expression') {
-      prefix.push(...(stringArrayValues(value) ?? []));
+    if (keyText === 'prefix') {
+      if (value.type === 'string') {
+        const literal = literalStatic(value);
+        if (literal !== null) prefix.push(literal);
+      } else if (value.type === 'array_creation_expression') {
+        prefix.push(...(stringArrayValues(value) ?? []));
+      }
+    } else if (keyText === 'middleware') {
+      middleware.push(...middlewareValues(value, imports ?? new Map()));
     }
   }
-  return { prefix };
+  return { prefix, middleware };
+}
+
+/**
+ * Middleware argument values: string aliases ('auth'), arrays mixing aliases
+ * and class constants ([EnsureFrontendRequestsAreStateful::class, 'throttle']),
+ * and class-constant references resolved through the file's use-imports
+ * (route:list shows fully-qualified class middleware).
+ */
+function middlewareValues(node: SyntaxNode, imports: ReadonlyMap<string, string>): string[] {
+  if (node.type === 'string') {
+    const literal = literalStatic(node);
+    return literal !== null ? [literal] : [];
+  }
+  if (node.type === 'array_creation_expression') {
+    const values: string[] = [];
+    for (const element of node.namedChildren) {
+      if (element.type !== 'array_element_initializer') continue;
+      const value = element.namedChildren[element.namedChildren.length - 1];
+      if (value) values.push(...middlewareValues(value, imports));
+    }
+    return values;
+  }
+  if (node.type === 'class_constant_access_expression') {
+    const target = node.namedChildren.find(
+      (child) => child.type === 'name' || child.type === 'qualified_name',
+    );
+    if (!target) return [];
+    const reference = target.text.replace(/^\\/u, '');
+    const first = reference.split('\\')[0] ?? reference;
+    return [imports.get(first) ?? reference];
+  }
+  return [];
+}
+
+/**
+ * Resolves `base_path('routes/api.php')`-shaped include arguments. Returns
+ * `{ path: string }` for literal includes and `{ path: null }` for base_path
+ * calls whose argument is NOT a literal (koel's
+ * `base_path(sprintf('routes/%s.base.php', $type))`) — a dynamic include the
+ * per-file scan cannot follow, which callers must surface, never drop.
+ */
+function basePathIncludeCall(node: SyntaxNode): { path: string } | { path: null } | null {
+  if (node.type !== 'function_call_expression') return null;
+  // tree-sitter-php: the callee of a plain function call is the `function` field.
+  const name = node.childForFieldName('function');
+  if (!name || name.type !== 'name' || name.text !== 'base_path') return null;
+  const argument = argumentNodes(node)[0];
+  if (!argument) return { path: null };
+  if (argument.type !== 'string') return { path: null };
+  const literal = literalStatic(argument);
+  return literal === null ? { path: null } : { path: literal };
 }
 
 function collectUseImports(root: SyntaxNode): Map<string, string> {
