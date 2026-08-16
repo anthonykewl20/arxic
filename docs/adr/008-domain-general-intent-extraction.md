@@ -110,6 +110,17 @@ The denominator is deliberately broader than the verified subset. This makes a
 zero result accountable: it means every discovered surface was classified, not
 that an unobservable filter happened to produce no candidates.
 
+Domain clustering over inventory rows is an **advisory prioritization
+heuristic, not a domain partition**. Measured on koel by DG-02
+(`docs/spikes/dg-02-domain-inventory.md` §5.1): 43 deterministic clusters, of
+which only ~9–13 carry real domain signal, while 18 are utility/action
+singletons — first-static-segment labeling artifacts, not bounded contexts.
+Clustering may order work (per-domain batching in DG-04/DG-08, extraction
+prioritization) but MUST NOT define row membership, coverage, completeness, or
+any product surface. The ledger always exposes raw inventory rows regardless of
+clustering, so a weak grouping can neither hide the denominator nor manufacture
+a result.
+
 ### 3. Domain generality forbids domain literals in pipeline code
 
 Authentication becomes one domain pack among many. Pipeline code MUST NOT
@@ -138,25 +149,51 @@ intent and retains inventory dispositions rather than inventing candidates.
 This decision is implemented in DG-08 (#252). It preserves the existing
 bounded-retry then blocked failure behavior for malformed model output.
 
+DG-04 measured the batching cost profile on directus (272 inventory rows,
+gpt-4o-mini — `docs/spikes/dg-04-model-proposal.md` §5.3): **per-domain
+grounded proposals with bounded concurrency are the production path**; a
+one-shot single call is **forbidden as the proposal path**. Measured: one-shot
+covered 10/272 rows at $0.0034 in one ~10 s call, while per-domain covered
+226/272 rows (83.1%) at $0.0202 and 333 s sequential (80 independent calls —
+embarrassingly parallel; measured max call ~12 s bounds concurrent latency).
+One-shot output was schema-valid but summarized the inventory into 10 umbrella
+proposals: grounding collapses ~22×. One-shot remains permissible only as a
+cheap domain-summarization pre-pass, never as the proposal path.
+
+Budget: the owner MUST set the per-app model budget before DG-08 (#252) lands.
+Until then the provisional default is the measured **~$0.025 per ~340-row
+application** per full run (provisional, owner-overridable; linear in rows, and
+a frontier-priced model at ~30× gpt-4o-mini stays under $1 per run).
+
 ### 5. Language breadth uses a Language Pack SPI behind SourceIndexer
 
 Reuse upstream before writing parsers. Understand-Anything already provides the
 broad language surface: its main tree was source-level verified on 2026-08-16 to
 contain 13 dedicated language extractors (`cpp`, `csharp`, `dart`, `go`, `java`,
-`kotlin`, `php`, `python`, `ruby`, `rust`, `scala`, `swift`, and `typescript`) and
-16 code-language configurations in its registry. Arxic's TypeScript/JavaScript-
+`kotlin`, `php`, `python`, `ruby`, `rust`, `scala`, `swift`, and `typescript`)
+and 15 grammar-bearing code-language configurations in its registry (the DG-01
+source-level census at upstream main `32944829` corrected the earlier figure of
+16: `lua` registers without a `treeSitter` grammar —
+`docs/spikes/dg-01-language-pack-spi.md` §1.2). Arxic's TypeScript/JavaScript-
 only limit is its own policy pin in
 `packages/source-ua-adapter/src/policy.ts`, inherited from the M0-07
 subset-extraction scope; it is not an upstream limitation.
 
 The Language Pack SPI therefore re-exposes that upstream language surface through
-the frozen `SourceIndexer` seam. The dependency, vendoring, or adaptation
-mechanism is decided by the DG-01 vendored-vs-upstream inventory (refs #245). An
-Arxic language pack is the upstream language surface plus Arxic-owned framework
-route and handler inventory rules with line-anchored `EvidenceRef`s, and
-provenance/manifest integration. Writing new per-language parsers is explicitly
-out of scope unless DG-01 produces citable evidence that the upstream extractors
-are unusable.
+the frozen `SourceIndexer` seam. The reuse mechanism is now decided:
+**adaptation** (DG-01, `docs/spikes/dg-01-language-pack-spi.md` §1.4). Upstream
+is MIT-licensed but unpublished on npm, so an npm dependency is unavailable;
+vendoring its code was rejected as maintenance and review-surface cost.
+Instead, Arxic consumes the same grammar npm packages upstream declares —
+`tree-sitter-php@0.23.12`, exactly pinned because the 0.23.x line is
+ABI-compatible with Arxic's native `tree-sitter@0.22.4` runtime while `0.24.2`
+is not — and owns the Laravel route-inventory rules outright (upstream ships no
+route inventory and no laravel framework config). The pinned upstream tree
+remains a LOCAL-ONLY reference. An Arxic language pack is the upstream language
+surface plus Arxic-owned framework route and handler inventory rules with
+line-anchored `EvidenceRef`s, and provenance/manifest integration. Writing new
+per-language parsers is explicitly out of scope unless citable evidence shows
+the upstream extractors are unusable; DG-01 found no such evidence for PHP.
 
 PHP/Laravel is first because the campaign measured roughly two-thirds of the
 intent in PHP. Packs are adapter-level additions; frozen contracts do not
@@ -262,7 +299,23 @@ any dissent MUST be recorded. This protocol binds DG-01 through DG-04
 
 DG-12 is the acceptance gate for this ADR. It runs on two real third-party
 applications: one TypeScript/JavaScript application and one PHP/Laravel
-application. The following hard criteria MUST all pass:
+application.
+
+**Pre-exit requirement (added after the wave-1 spikes):** both target
+applications MUST be nominated and owner-ratified **before exit runs begin**.
+Nomination is by objective criteria, each verifiable: a real third-party
+application (not Arxic-authored), bootable, attestable under the existing
+attestation policy, and with at least one recorded real-model, non-stub run.
+The original campaign monorepo is unlocatable locally (recorded independently
+by three spikes — `docs/spikes/dg-01-language-pack-spi.md` §5.1,
+`docs/spikes/dg-02-domain-inventory.md` §6.2,
+`docs/spikes/dg-04-model-proposal.md` §5.2 — none could find a clone path).
+The current candidates are therefore **koel** (PHP/Laravel 13.24, campaign
+framework major) and **directus** (TypeScript/JavaScript), pending owner
+ratification. Any substitution of a ratified target must be recorded before
+measurement, consistent with the threshold-tuning rule below.
+
+The following hard criteria MUST all pass:
 
 1. The ledger covers 100% of Domain Inventory rows, and every row has a
    disposition.
@@ -293,9 +346,9 @@ redaction, policy, deterministic verification, and promotion retain their
 existing authority boundaries.
 
 - Reuse-first language breadth: upstream Understand-Anything's 13 extractors /
-  16 code-language configs are the language surface; Arxic builds only the
-  evidence/inventory layer they lack, so the cost of language breadth drops
-  accordingly.
+  15 grammar-bearing code-language configs are the language surface, consumed by
+  adaptation (Decision 5); Arxic builds only the evidence/inventory layer they
+  lack, so the cost of language breadth drops accordingly.
 
 ADR-004 IntentSpec reaches users through the ledger and compilation path instead
 of remaining an internal-only seam. PHP ecosystems become first-class, and the
@@ -307,9 +360,11 @@ The pipeline gains an inventory stage. For compatibility, existing stage IDs
 remain stable; the inventory stage uses the next available ID after structural
 extraction. Exact numbering is an implementation decision recorded at DG-06.
 
-Model cost scales with inventory size. DG-04 measures batching and per-domain
-calls before implementation commits to a cost profile. Non-TypeScript fixtures
-need license review, and real-model evidence requires owner-gated credentials.
+Model cost scales with inventory size. DG-04 measured the profile (Decision 4):
+per-domain with bounded concurrency is the production path, one-shot is
+forbidden as the proposal path, and the provisional per-app budget default is
+recorded pending owner override. Non-TypeScript fixtures need license review,
+and real-model evidence requires owner-gated credentials.
 
 The ledger increases bundle contents and review surface. Its inclusion is
 therefore hash-covered and redaction-gated, and its CLI access is read-only.
@@ -341,9 +396,15 @@ dispositions. Completeness of the ledger is never sacrificed.
 ### Domain clustering quality
 
 Grouping surfaces into domains may be imperfect, especially where an endpoint
-serves multiple user journeys. Deterministic heuristics come first. The ledger
-always exposes raw inventory rows regardless of clustering, so a weak grouping
-does not hide the denominator or manufacture a result.
+serves multiple user journeys. Measured by DG-02 on koel
+(`docs/spikes/dg-02-domain-inventory.md` §5.1): 43 clusters, of which only ~9–13
+carry domain signal and 18 are utility/action singletons. Clustering is
+therefore demoted to an advisory prioritization heuristic, never a domain
+partition (Decision 2). Deterministic heuristics come first; singleton utility
+clusters must be folded into their resource contexts before any product surface
+consumes cluster labels directly. The ledger always exposes raw inventory rows
+regardless of clustering, so a weak grouping does not hide the denominator or
+manufacture a result.
 
 ### Scope explosion
 
