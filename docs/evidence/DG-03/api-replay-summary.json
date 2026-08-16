@@ -1,0 +1,32 @@
+{
+  "subject": "orders.webhook.order-created (verified)",
+  "engine": "real HTTP (node:http) + HMAC-SHA256 signature replay",
+  "outcome": "verified",
+  "runs": [
+    {
+      "passed": true
+    },
+    {
+      "passed": true
+    }
+  ],
+  "attestedEnvironmentClass": "local-test",
+  "artifacts": [
+    {
+      "kind": "dg03-api-request-response",
+      "sha256": "835de5369ab0f7befea336efa3a76158cf18b35d82b4fc8be2ab9abd95a2cae3"
+    },
+    {
+      "kind": "dg03-api-request-response",
+      "sha256": "0dd8cb3199f36624ab1e511fb0b17679e3e682ae1bc7256c998eb507703d19a2"
+    },
+    {
+      "kind": "dg03-api-request-response",
+      "sha256": "7e691836d3fddff62bad2d1ff13518ca88e1b73bfeadab844ce11cc3f1f676cc"
+    },
+    {
+      "kind": "dg03-api-request-response",
+      "sha256": "7772a86a88400e7e4d4b4046c127e3c52035490a9675bc45a6d54a3091ae2570"
+    }
+  ]
+}

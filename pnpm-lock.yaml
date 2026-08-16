@@ -563,6 +563,39 @@ importers:
         specifier: ^0.23.2
         version: 0.23.2(tree-sitter@0.22.4)
 
+  packages/verification-spike:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@arxic/environment':
+        specifier: workspace:*
+        version: link:../environment
+      '@arxic/intent':
+        specifier: workspace:*
+        version: link:../intent
+      '@arxic/playwright-agent-adapter':
+        specifier: workspace:*
+        version: link:../playwright-agent-adapter
+      '@arxic/playwright-compiler':
+        specifier: workspace:*
+        version: link:../playwright-compiler
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
+      '@arxic/policy-engine':
+        specifier: workspace:*
+        version: link:../policy-engine
+      '@arxic/real-world-testkit':
+        specifier: workspace:*
+        version: link:../real-world-testkit
+      '@arxic/verifier':
+        specifier: workspace:*
+        version: link:../verifier
+      '@playwright/test':
+        specifier: 1.62.1
+        version: 1.62.1
+
   packages/verifier:
     dependencies:
       '@arxic/contracts':
