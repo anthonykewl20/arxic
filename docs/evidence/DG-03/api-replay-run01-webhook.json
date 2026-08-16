@@ -1,0 +1,17 @@
+{
+  "run": 1,
+  "step": 0,
+  "intent": "accept order.created webhook from the provider",
+  "method": "POST",
+  "url": "http://127.0.0.1:44009/api/webhooks/order.created",
+  "status": 201,
+  "requestHeaders": {
+    "content-type": "application/json",
+    "x-arxic-signature": "sha256:c359049f4cb4430a"
+  },
+  "requestBody": "{\"eventType\":\"order.created\",\"providerEventId\":\"evt-dg03-proof-001\",\"orderNumber\":\"ORD-1001\",\"amount\":\"42.50\"}",
+  "responseContentType": "application/json",
+  "responseBody": "{\"ok\":true,\"orderId\":\"ord_ed6eca21badfbaa1\"}",
+  "durationMs": 16,
+  "recordedAt": "2026-08-16T11:41:43.694Z"
+}

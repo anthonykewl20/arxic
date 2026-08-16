@@ -1,0 +1,22 @@
+{
+  "name": "@arxic/verification-spike",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@arxic/contracts": "workspace:*",
+    "@arxic/environment": "workspace:*",
+    "@arxic/intent": "workspace:*",
+    "@arxic/playwright-agent-adapter": "workspace:*",
+    "@arxic/playwright-compiler": "workspace:*",
+    "@arxic/playwright-screenshot-privacy": "workspace:*",
+    "@arxic/policy-engine": "workspace:*",
+    "@arxic/real-world-testkit": "workspace:*",
+    "@arxic/verifier": "workspace:*",
+    "@playwright/test": "1.62.1"
+  }
+}

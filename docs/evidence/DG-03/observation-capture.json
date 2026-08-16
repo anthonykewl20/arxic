@@ -1,0 +1,9 @@
+{
+  "subject": "dg03.redirect-login.observation-capture",
+  "engine": "real Chromium via PlaywrightExplorationDriver (stage-8 seam)",
+  "postActionUrl": "http://127.0.0.1:35815/dashboard",
+  "domSnapshotSha256": "146b9b08e06fbdc9ca0ce0c274730b78437aca3b11e1bfd5914c725d95ed702b",
+  "headings": ["Dashboard"],
+  "runtimeEvidenceId": "dg03-run:b51183a6ea24060f",
+  "browserVersion": "151.0.7922.34"
+}
