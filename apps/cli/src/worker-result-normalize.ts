@@ -11,7 +11,7 @@ import {
   // CLI must NOT re-derive or hand-maintain it (DG-06, exception 2 on #250:
   // stage 13 executes between 2 and 3, so a stage ID is not a position).
   STAGE_EXECUTION_ORDER,
-  matchingStageExecutionOrder,
+  isCommonStageExecutionPrefix,
   type RunState,
 } from '@arxic/orchestrator-langgraph';
 import {
@@ -231,24 +231,28 @@ function validateVerifier(
 }
 
 /**
- * A pipeline result is complete-monotonic when its checkpoint sequence and its
- * completed-stage sequence are each a gapless prefix of the SAME known
- * execution order — the current order (stage 13 between 2 and 3) or, for
- * pre-DG-06 worker results, the legacy 0–12 order — with every completed
- * stage carrying a checkpoint. Sequence POSITION is validated against the
+ * A pipeline result is complete-monotonic when SOME known execution order
+ * explains the whole envelope: the checkpoint sequence and the
+ * completed-stage sequence are each gapless prefixes of the SAME known order
+ * — the current order (stage 13 between 2 and 3) or, for pre-DG-06 worker
+ * results, the legacy 0–12 order — with every completed stage carrying a
+ * checkpoint. Sequences confined to the agreement region (positions 0–2,
+ * where the orders coincide) match both orders, which keeps a legacy run
+ * that failed at stage 3 (checkpoints `[0,1,2,3]`, completedStages
+ * `[0,1,2]`) valid; mixed-order envelopes (current-only checkpoints +
+ * legacy-only completed stages beyond that region) match no single order and
+ * are rejected. Sequence POSITION is validated against the
  * orchestrator-owned canonical order, never `stage === index` (which
  * conflated id with position and rejected the honest `[0,1,2,13,3,…]`
- * sequence); requiring both sequences to resolve to the SAME order keeps the
- * original check's consistency property (DG-06, exception 2 on #250).
+ * sequence) — and never first-match-wins per sequence (review round on
+ * PR #273, P2). The CLI derives nothing itself.
  */
 function monotonicCompletePrefix(result: PipelineResult): boolean {
   const stages = result.state.checkpoints.map(({ stage }) => stage);
-  const order = matchingStageExecutionOrder(stages);
-  if (!order) return false;
   if (new Set(result.state.completedStages).size !== result.state.completedStages.length)
     return false;
   return (
-    matchingStageExecutionOrder(result.state.completedStages) === order &&
+    isCommonStageExecutionPrefix(stages, result.state.completedStages) &&
     result.state.completedStages.every((stage) => stages.includes(stage))
   );
 }

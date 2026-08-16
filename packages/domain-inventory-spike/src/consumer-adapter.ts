@@ -27,14 +27,18 @@ import type { DomainInventory, InventoryDisposition } from './types';
  * Id grammar settlement (DG-02 §7 dissent): the stand-in grammar
  * `inv:<surface>:<METHOD>:<sanitized path>:<sha8>:<line>` inherits
  * separator-collision ambiguity (sanitize maps distinct paths onto one id
- * component). The reconciled grammar is collision-free BY CONSTRUCTION:
+ * component). The reconciled grammar is collision-RESISTANT
+ * (validator-deduped):
  *
  *   inv:<surface>:<METHOD>:<sha256(fusion key) first 12 hex>
  *
- * The fusion key is unique across the inventory (validator-enforced), so the
- * digest is unique; the id is content-derived and line-independent, so
- * re-scans of the same tree (and refactors that only move lines) reproduce
- * identical ids — proposals can cite them verbatim across runs.
+ * The fusion key is unique across the inventory (validator-enforced), and a
+ * 48-bit truncated sha256 over unique inputs makes an accidental id collision
+ * impractical — not impossible — so the ids are additionally checked for
+ * uniqueness in their unit suite (a set-size assertion); the id is
+ * content-derived and line-independent, so re-scans of the same tree (and
+ * refactors that only move lines) reproduce identical ids — proposals can
+ * cite them verbatim across runs.
  *
  * The type below is DG-04's actual `InventoryRow` (type-only import): the
  * Equal<> lockstep assertion in `__tests__/consumer-adapter.test.ts` fails

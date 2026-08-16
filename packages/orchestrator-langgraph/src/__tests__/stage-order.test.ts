@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   LEGACY_STAGE_EXECUTION_ORDER,
   STAGE_EXECUTION_ORDER,
+  isCommonStageExecutionPrefix,
   isStageExecutionPrefix,
   matchingStageExecutionOrder,
 } from '../stage-order';
@@ -80,5 +81,43 @@ describe('isStageExecutionPrefix (sequence validation)', () => {
     // The orders agree on the first 3 positions: the CURRENT order wins ties.
     expect(matchingStageExecutionOrder([0, 1, 2])).toBe(STAGE_EXECUTION_ORDER);
     expect(matchingStageExecutionOrder([0, 2])).toBeUndefined();
+  });
+});
+
+describe('isCommonStageExecutionPrefix (one order explains the whole envelope)', () => {
+  it('ACCEPTS the review-P2 shape: legacy checkpoints past the divergence point, completed stages in the agreement region', () => {
+    // A pre-DG-06 worker run that failed at stage 3: the failed stage has a
+    // checkpoint, completedStages stop at 2. The LEGACY order explains both.
+    // First-match-wins per-sequence comparison spuriously rejected this
+    // (completedStages [0,1,2] resolves CURRENT, checkpoints [0,1,2,3]
+    // resolve LEGACY) — the exact PR #273 review finding.
+    expect(isCommonStageExecutionPrefix([0, 1, 2, 3], [0, 1, 2])).toBe(true);
+  });
+
+  it('ACCEPTS the mirror shape: current-order checkpoints [0,1,2,13,3], completedStages [0,1,2,13]', () => {
+    // Stage 3 failed after 13 ran on a current worker — the CURRENT order
+    // explains both sequences.
+    expect(isCommonStageExecutionPrefix([0, 1, 2, 13, 3], [0, 1, 2, 13])).toBe(true);
+  });
+
+  it('ACCEPTS agreement-region envelopes under either checkpoint extension', () => {
+    expect(isCommonStageExecutionPrefix([0, 1, 2], [0, 1, 2])).toBe(true);
+    expect(isCommonStageExecutionPrefix([0, 1, 2, 3, 4, 5], [0, 1, 2])).toBe(true);
+    expect(isCommonStageExecutionPrefix([0, 1, 2, 13, 3, 4], [0, 1, 2])).toBe(true);
+    expect(isCommonStageExecutionPrefix([0, 1, 2, 3], [])).toBe(true);
+  });
+
+  it('still REJECTS mixed-order envelopes beyond the agreement region', () => {
+    // Checkpoints current-only, completed legacy-only: no single known order
+    // has both as prefixes.
+    expect(isCommonStageExecutionPrefix([0, 1, 2, 13, 3], [0, 1, 2, 3])).toBe(false);
+    expect(isCommonStageExecutionPrefix([0, 1, 2, 13, 3, 4], [0, 1, 2, 3, 4])).toBe(false);
+  });
+
+  it('still REJECTS out-of-order, gaps, duplicates, and unknown ids in either sequence', () => {
+    expect(isCommonStageExecutionPrefix([0, 2, 1], [0, 1])).toBe(false);
+    expect(isCommonStageExecutionPrefix([0, 1, 2, 13, 3], [0, 1, 2, 13, 3, 5])).toBe(false);
+    expect(isCommonStageExecutionPrefix([0, 1, 2, 13, 3, 3], [0, 1, 2])).toBe(false);
+    expect(isCommonStageExecutionPrefix([0, 99], [0])).toBe(false);
   });
 });

@@ -220,7 +220,7 @@ describe('canonical → DG-04 consumer adapter (real adapter scan, real consumer
     expect(consumer.rows.length).toBe(3);
   });
 
-  it('mints collision-free stable ids and keeps non-extracted mass visible (no silent drops)', async () => {
+  it('mints collision-resistant (validator-deduped) stable ids and keeps non-extracted mass visible (no silent drops)', async () => {
     const commit = 'd'.repeat(40);
     const canonical = buildInventory({
       sourceIndex: {
@@ -256,7 +256,7 @@ describe('canonical → DG-04 consumer adapter (real adapter scan, real consumer
     });
 
     // Id grammar: content-derived from the unique canonical key → rebuild
-    // stability + collision freedom (DG-02 §7 dissent settlement).
+    // stability + collision resistance (DG-02 §7 dissent settlement).
     const first = toProposalConsumerInventory(canonical);
     expect(first.rows.map((row) => row.id)).toEqual(consumer.rows.map((row) => row.id));
     const ids = new Set(first.rows.map((row) => row.id));

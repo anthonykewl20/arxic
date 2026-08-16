@@ -178,6 +178,45 @@ describe('worker PipelineResult fail-closed normalization', () => {
       );
       expect(result).toMatchObject({ ok: false, kind: 'protocol' });
     });
+
+    // REVIEW ROUND (P2): a PRE-DG-06 worker run that failed at stage 3 writes
+    // checkpoints [0,1,2,3] (the failed stage still has a checkpoint) with
+    // completedStages [0,1,2] — LEGACY-order checkpoints + agreement-region
+    // completed stages. The baseline id≡position check passed this shape; a
+    // first-match-wins order comparison rejected it as a protocol failure.
+    // The ORDER gate must accept the shape again. (The envelope as a whole is
+    // still rejected — by the PRE-EXISTING unconditional stage-10 requirement
+    // in validateVerifier, exactly as at baseline — so the pin here is that
+    // the failure is NOT the order gate's 'protocol'. The order-gate
+    // acceptance itself is pinned directly on the exported predicate in
+    // packages/orchestrator-langgraph/src/__tests__/stage-order.test.ts.)
+    it('passes the order gate for a legacy envelope that failed at stage 3: checkpoints [0,1,2,3], completedStages [0,1,2]', () => {
+      const legacy = envelope({ stages: [0, 1, 2, 3] });
+      const failedAtThree = {
+        ...legacy,
+        state: { ...legacy.state, completedStages: [0, 1, 2] as unknown },
+      };
+      const result = normalizeWorkerResult(
+        request,
+        imported(failedAtThree as unknown as PipelineResult),
+        trustedSourceSha256,
+      );
+      expect(result).toMatchObject({ ok: false, kind: 'verifier' });
+    });
+
+    it('passes the order gate for the mirror shape on a current worker: checkpoints [0,1,2,13,3], completedStages [0,1,2,13]', () => {
+      const current = envelope({ outcome: 'observed', stages: [0, 1, 2, 13, 3] });
+      const failedAtThree = {
+        ...current,
+        state: { ...current.state, completedStages: [0, 1, 2, 13] as unknown },
+      };
+      const result = normalizeWorkerResult(
+        request,
+        imported(failedAtThree as unknown as PipelineResult),
+        trustedSourceSha256,
+      );
+      expect(result).toMatchObject({ ok: false, kind: 'verifier' });
+    });
   });
 });
 

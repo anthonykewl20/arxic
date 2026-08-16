@@ -62,7 +62,8 @@ gap — an unproven context is never defaulted to an empty prefix. See
 The canonical row is the DG-02 shape (dispositions + structured
 line-anchored `EvidenceRef`s are product requirements, ADR-008 Decisions 2
 and 6). `toProposalConsumerInventory()` projects it into the DG-04 consumer
-shape (`id`/`surface`/`domainHint`/`evidenceIds`) with a collision-free
+shape (`id`/`surface`/`domainHint`/`evidenceIds`) with a collision-resistant
+(validator-deduped)
 content-derived id grammar — see `src/consumer-adapter.ts` for the full
 decision record and the lockstep test that pins the shapes together.
 

@@ -54,12 +54,12 @@ export function isStageExecutionPrefix(stages: readonly number[]): boolean {
 /**
  * The KNOWN execution order a sequence is a gapless prefix of (the CURRENT
  * order when both match — they agree on the first 3 positions), or undefined
- * when the sequence is not a prefix of any known order. Consumers that
- * validate multiple related sequences (checkpoints AND completed stages of
- * one pipeline result) should require BOTH to resolve to the SAME order, so a
- * mixed envelope (checkpoints in current order, completed stages in legacy
- * order, or vice versa) is rejected exactly like the id≡position check it
- * replaces.
+ * when the sequence is not a prefix of any known order. NOTE: first-match
+ * wins, so a sequence confined to the agreement region (positions 0–2)
+ * resolves to the CURRENT order — consumers validating multiple related
+ * sequences (checkpoints AND completed stages of one pipeline result) must
+ * use {@link isCommonStageExecutionPrefix}, which checks that ONE known
+ * order explains the whole envelope, not first-match per sequence.
  */
 export function matchingStageExecutionOrder(
   stages: readonly number[],
@@ -67,4 +67,34 @@ export function matchingStageExecutionOrder(
   if (isPrefixOf(stages, STAGE_EXECUTION_ORDER)) return STAGE_EXECUTION_ORDER;
   if (isPrefixOf(stages, LEGACY_STAGE_EXECUTION_ORDER)) return LEGACY_STAGE_EXECUTION_ORDER;
   return undefined;
+}
+
+/** Every execution order a worker result may legitimately follow (newest first). */
+export const KNOWN_STAGE_EXECUTION_ORDERS: readonly (readonly StageId[])[] = [
+  STAGE_EXECUTION_ORDER,
+  LEGACY_STAGE_EXECUTION_ORDER,
+];
+
+/**
+ * True when SOME known execution order explains the WHOLE envelope: both the
+ * checkpoint sequence and the completed-stage sequence are gapless prefixes
+ * of the SAME known order (current or legacy).
+ *
+ * Sequences confined to the agreement region (positions 0–2, where the two
+ * orders are identical) are prefixes of BOTH orders, so a legacy envelope
+ * whose checkpoints reach past the divergence point while its completed
+ * stages do not (a pre-DG-06 worker run that failed at stage 3: checkpoints
+ * `[0,1,2,3]`, completedStages `[0,1,2]`) resolves — the LEGACY order
+ * explains it. A first-match-wins per-sequence comparison spuriously rejects
+ * exactly that shape (review round on PR #273, P2). Mixed-order envelopes
+ * (current-only checkpoints + legacy-only completed stages beyond the
+ * agreement region) are prefixes of no single order and are rejected.
+ */
+export function isCommonStageExecutionPrefix(
+  checkpoints: readonly number[],
+  completedStages: readonly number[],
+): boolean {
+  return KNOWN_STAGE_EXECUTION_ORDERS.some(
+    (order) => isPrefixOf(checkpoints, order) && isPrefixOf(completedStages, order),
+  );
 }
