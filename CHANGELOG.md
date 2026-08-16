@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### changed
 
+- Changed repository issue governance: mandatory `in-progress` labeling and progress comments, proof-gated closure, hand-offs, current documentation, and inside-project `.worktrees/` cleanup (refs #244).
 - Consolidated M0 capstone verification on `@arxic/verifier` while retaining M0-specific orchestration gates and the real-Chromium capstone flow (refs #179).
 - Wired stage-7 fixture leases through stage-8 reversible exploration and terminal lifecycle cleanup (refs #180).
 - Re-scoped distribution to the bundled ESM `arxic` CLI only; synchronized non-fixture workspace metadata to `VERSION`, added version-provenance and tarball-smoke gates, and retained private source-only internal packages (refs #184, #185).

@@ -60,6 +60,18 @@ Every PR must also satisfy the checklist in
 ritual (`docs/SYNC.md` flip, `CHANGELOG.md` entry, `VERSION` sync, and staleness
 sweep).
 
+## Issue workflow (mandatory)
+
+These rules apply to every issue and must never be bypassed or ignored:
+
+1. Start work by adding the `in-progress` label and posting a comment so others can see the issue is taken.
+2. Create worktrees only inside the project at `.worktrees/<branch-or-slice-id>` and remove them after merge or abandonment.
+3. Set clear, zero-ambiguity acceptance criteria requiring real-world, real-live-data validation and proof.
+4. Post real issue comments for every meaningful change; do not bury history or information.
+5. Close an issue only with real proof and validation; do not leave completed work open.
+6. If work stops mid-flight, post an update and hand-off comment so the next contributor can continue.
+7. Update `README` and every affected Markdown document before closure; no documentation may be stale.
+
 ## Commit messages
 
 Use Conventional Commits, for example:

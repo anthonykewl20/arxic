@@ -177,7 +177,9 @@ Several slices may be built concurrently, **one agent per git worktree**, all br
 ### 10.1 Isolation (mandatory)
 
 - **One worktree per concurrent slice**, each with its own `pnpm install`:
-  `git worktree add -b <branch> ../arxic-wt/<slice> origin/main`.
+  `mkdir -p .worktrees && git worktree add -b <branch> .worktrees/<branch-or-slice-id> origin/main`.
+- **Keep worktrees inside this project only:** `.worktrees/<branch-or-slice-id>`. Remove each worktree immediately after merge or abandonment with
+  `git worktree remove .worktrees/<branch-or-slice-id>` so the workspace stays clean and uncluttered.
 - **Never run two slices in one working directory.** The real-world suites run `pnpm --filter reference-auth-app build` in `beforeAll` and share `test-fixtures/reference-auth-app/.next` plus the workspace `node_modules`; concurrent runs corrupt each other.
 - **Leave `ARXIC_MAILPIT_SMTP` / `ARXIC_MAILPIT_API` unset.** Unset, every run provisions its own Mailpit Testcontainer on random mapped ports. A shared Mailpit makes reset-token and inbox assertions read each other's mail and go non-deterministic.
 - Real-world suites already allocate ephemeral ports (`freePort()`) and per-run temp sqlite (`ARXIC_DB_PATH` → `mkdtemp`). Any new real-world test MUST do the same — a hardcoded port is a defect under §10.

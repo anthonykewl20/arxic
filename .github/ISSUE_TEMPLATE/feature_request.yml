@@ -8,6 +8,23 @@ body:
       value: |
         For current slice work, route requests through the roadmap milestones.
 
+        ## Mandatory issue workflow
+
+        1. Work on an issue starts by adding the `in-progress` label and a
+           comment so agents and humans can see it is taken.
+        2. Create worktrees inside the project at `.worktrees/<branch-or-slice-id>`;
+           remove each worktree after merge or abandonment so the workspace stays clean.
+        3. Define clear, zero-ambiguity acceptance criteria requiring real-world,
+           real-live-data validation and proof.
+        4. Post real issue comments for every meaningful change; never bury history
+           or information.
+        5. Close issues only with real proof and validation; do not leave completed
+           work open.
+        6. If work stops mid-flight, post an update and hand-off comment so the next
+           agent can continue.
+        7. Update all documentation, including `README` and every Markdown file, so
+           no documentation is stale before the issue is closed.
+
   - type: textarea
     id: proposal
     attributes:

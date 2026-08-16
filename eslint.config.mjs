@@ -10,6 +10,7 @@ export default tseslint.config(
       'coverage/**',
       'pnpm-lock.yaml',
       '.opencode/**',
+      '.worktrees/**',
       '**/*.config.{js,mjs,cjs,ts}',
     ],
   },

@@ -3,6 +3,7 @@ test-fixtures/
 dist/
 coverage/
 .opencode/
+.worktrees/
 docs/engineering-charter.md
 docs/SYNC.md
 .github/pull_request_template.md

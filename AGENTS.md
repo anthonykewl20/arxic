@@ -19,9 +19,21 @@ Loaded automatically by opencode (and other agent CLIs) for every agent working 
 - **Secrecy:** the detailed internal ADR + upstream reference trees are **LOCAL-ONLY** (outside the repo). Never commit them or reference them in tracked files.
 - **Catastrophic commands** are blocked by the command-guard plugin; do not attempt to circumvent it.
 
-## Parallel slices (charter §10) — applies whenever you are in a worktree under `../arxic-wt/`
+## Issue workflow (mandatory)
 
-If your `pwd` is a worktree (not `/home/soultransit/devtony/arxic`), other agents are building other slices at the same time. Read [`engineering-charter.md` §10](./docs/engineering-charter.md). The three rules that bite:
+These rules are mandatory and must never be bypassed or ignored:
+
+1. Start issue work by adding the `in-progress` label and posting a real opening comment; the label and real issue comments are required.
+2. Create worktrees only inside this project at `.worktrees/<branch-or-slice-id>`; remove each one immediately after merge or abandonment.
+3. Define clear, zero-ambiguity acceptance criteria that require real-world, real-live-data validation and proof.
+4. Post real issue comments for every meaningful change; never bury history or information.
+5. Close an issue only with real proof and validation; do not leave completed work open.
+6. If stopping mid-flight, post an update and hand-off comment so the next agent can continue.
+7. Update `README` and every affected Markdown document before closure; documentation must never be stale.
+
+## Parallel slices (charter §10) — applies whenever you are in a worktree under `.worktrees/` inside this project
+
+If your `pwd` is a worktree under `.worktrees/` (not the primary project directory), other agents are building other slices at the same time. Read [`engineering-charter.md` §10](./docs/engineering-charter.md). Remove the worktree immediately after merge or abandonment. The three rules that bite:
 
 - **NEVER edit `docs/SYNC.md`, `CHANGELOG.md`, or `VERSION`.** They conflict on every branch. Write `docs/_slice-notes/<SLICE-ID>.md` from `docs/_slice-notes/_TEMPLATE.md` instead — that file IS your doc deliverable, and the integrator folds it in at merge. The rest of the §8 ritual (gates, real-world proof, staleness sweep, closing the loop) is unchanged.
 - **Stay inside the files your slice owns.** Overlapping edits to a shared file are allowed only inside distinct functions. Do not refactor shared helpers, rename exports, or reformat a file another slice owns — extract into a new file and leave one call site behind.
@@ -37,7 +49,7 @@ Every agent in that batch reported `STATUS: done` at least once before it was tr
 - **`ls docs/_slice-notes/` before you write the note.** Copy the path from that output. Three agents wrote `_slice_notes` (underscore) from memory; CI now rejects it outright.
 - **A test that passes locally and fails in CI is a bug until proven otherwise.** In this batch it was a real portability defect: the sandbox hardcoded `--user 1000:1000` and the dev host uid happened to be 1000, so `0700` fixture dirs were readable locally and unreadable on the runner. Reproduce the CI condition; do not re-run until green.
 - **Never resolve a red assertion by loosening it without saying so, in the report and in the PR.** Widening a matcher can make the test stop checking the property it exists to check.
-- **Never write `close #<n>`, `fixes #<n>`, or `resolves #<n>` in a PR title, a PR body, OR A COMMIT MESSAGE, unless you intend that issue to close — including when you negate it, and including when you are quoting the phrase to warn about it.** GitHub's closing-keyword parser is not negation-aware and runs over commit messages on the default branch as well as PR text. `does not close #27` contains `close #27` and closes it. This closed the M1-EXIT gate issue **three times**: once from a PR body, once from a PR body that said "do not close #27", and once from the commit message of the very commit that documented the trap. Use `refs #<n>`; if you must be explicit, write "#<n> stays open". To discuss the keyword itself, break it up (`clos&#8203;e #<n>`) or name the issue without the number.
+- **Never put a closing keyword next to an issue number in a PR title, PR body, or commit message.** GitHub's parser is not negation-aware and runs over commit messages on the default branch as well as PR text. Use `refs #<n>`; if you must be explicit, write "#<n> stays open". To discuss the keyword itself, break it up or omit the issue number.
 - **Report what you did NOT do.** Deferrals, provisional types, and known-weak spots are more useful to the integrator than a clean-looking summary. The most valuable output of that batch was a spike's honest gap list.
 
 ## Start here
