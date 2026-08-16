@@ -1,0 +1,1644 @@
+{
+  "schemaVersion": 1,
+  "packId": "arxic-langpack-php-standin@0.1.0",
+  "language": "php",
+  "framework": "laravel",
+  "standIn": true,
+  "provenance": {
+    "repository": "https://github.com/koel/koel.git",
+    "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b"
+  },
+  "routes": [
+    {
+      "methods": ["GET"],
+      "action": "DemoIndexController",
+      "uri": "/",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 25,
+      "endLine": 27
+    },
+    {
+      "methods": ["POST"],
+      "action": "AiController",
+      "middleware": ["throttle:10,1"],
+      "uri": "/api/ai/prompt",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 305,
+      "endLine": 305
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchAlbumThumbnailController",
+      "uri": "/api/album/{album}/thumbnail",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 269,
+      "endLine": 269
+    },
+    {
+      "methods": ["GET"],
+      "name": "albums.index",
+      "action": "AlbumController@index",
+      "uri": "/api/albums",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["POST"],
+      "name": "albums.store",
+      "action": "AlbumController@store",
+      "uri": "/api/albums",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchRandomAlbumsController",
+      "uri": "/api/albums/random",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 156,
+      "endLine": 156
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "albums.destroy",
+      "action": "AlbumController@destroy",
+      "uri": "/api/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["GET"],
+      "name": "albums.show",
+      "action": "AlbumController@show",
+      "uri": "/api/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["PUT"],
+      "name": "albums.update",
+      "action": "AlbumController@update",
+      "uri": "/api/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 157,
+      "endLine": 157
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchAlbumInformationController",
+      "uri": "/api/albums/{album}/information",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 259,
+      "endLine": 259
+    },
+    {
+      "methods": ["PUT"],
+      "action": "RateAlbumController",
+      "uri": "/api/albums/{album}/rating",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 207,
+      "endLine": 207
+    },
+    {
+      "methods": ["GET"],
+      "name": "albums.songs.index",
+      "action": "AlbumSongController@index",
+      "uri": "/api/albums/{album}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["POST"],
+      "name": "albums.songs.store",
+      "action": "AlbumSongController@store",
+      "uri": "/api/albums/{album}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "albums.songs.destroy",
+      "action": "AlbumSongController@destroy",
+      "uri": "/api/albums/{album}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["GET"],
+      "name": "albums.songs.show",
+      "action": "AlbumSongController@show",
+      "uri": "/api/albums/{album}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["PUT"],
+      "name": "albums.songs.update",
+      "action": "AlbumSongController@update",
+      "uri": "/api/albums/{album}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 158,
+      "endLine": 158
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchAlbumThumbnailController",
+      "uri": "/api/albums/{album}/thumbnail",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 266,
+      "endLine": 266
+    },
+    {
+      "methods": ["GET"],
+      "name": "artists.index",
+      "action": "ArtistController@index",
+      "uri": "/api/artists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["POST"],
+      "name": "artists.store",
+      "action": "ArtistController@store",
+      "uri": "/api/artists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchRandomArtistsController",
+      "uri": "/api/artists/random",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 160,
+      "endLine": 160
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "artists.destroy",
+      "action": "ArtistController@destroy",
+      "uri": "/api/artists/{artist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["GET"],
+      "name": "artists.show",
+      "action": "ArtistController@show",
+      "uri": "/api/artists/{artist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["PUT"],
+      "name": "artists.update",
+      "action": "ArtistController@update",
+      "uri": "/api/artists/{artist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 161,
+      "endLine": 161
+    },
+    {
+      "methods": ["GET"],
+      "name": "artists.albums.index",
+      "action": "ArtistAlbumController@index",
+      "uri": "/api/artists/{artist}/albums",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["POST"],
+      "name": "artists.albums.store",
+      "action": "ArtistAlbumController@store",
+      "uri": "/api/artists/{artist}/albums",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "artists.albums.destroy",
+      "action": "ArtistAlbumController@destroy",
+      "uri": "/api/artists/{artist}/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["GET"],
+      "name": "artists.albums.show",
+      "action": "ArtistAlbumController@show",
+      "uri": "/api/artists/{artist}/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["PUT"],
+      "name": "artists.albums.update",
+      "action": "ArtistAlbumController@update",
+      "uri": "/api/artists/{artist}/albums/{album}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 162,
+      "endLine": 162
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchArtistEventsController",
+      "uri": "/api/artists/{artist}/events",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 263,
+      "endLine": 263
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchArtistInformationController",
+      "uri": "/api/artists/{artist}/information",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 260,
+      "endLine": 260
+    },
+    {
+      "methods": ["PUT"],
+      "action": "RateArtistController",
+      "uri": "/api/artists/{artist}/rating",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 208,
+      "endLine": 208
+    },
+    {
+      "methods": ["GET"],
+      "name": "artists.songs.index",
+      "action": "ArtistSongController@index",
+      "uri": "/api/artists/{artist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["POST"],
+      "name": "artists.songs.store",
+      "action": "ArtistSongController@store",
+      "uri": "/api/artists/{artist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "artists.songs.destroy",
+      "action": "ArtistSongController@destroy",
+      "uri": "/api/artists/{artist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["GET"],
+      "name": "artists.songs.show",
+      "action": "ArtistSongController@show",
+      "uri": "/api/artists/{artist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["PUT"],
+      "name": "artists.songs.update",
+      "action": "ArtistSongController@update",
+      "uri": "/api/artists/{artist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 163,
+      "endLine": 163
+    },
+    {
+      "methods": ["POST"],
+      "name": "broadcasting.auth",
+      "action": "Closure",
+      "uri": "/api/broadcasting/auth",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 129,
+      "endLine": 141
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchSubfoldersController",
+      "uri": "/api/browse/folders",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 295,
+      "endLine": 295
+    },
+    {
+      "methods": ["GET"],
+      "action": "PaginateFolderSongsController",
+      "uri": "/api/browse/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 296,
+      "endLine": 296
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchInitialDataController",
+      "uri": "/api/data",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 144,
+      "endLine": 144
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchDemoCreditsController",
+      "uri": "/api/demo/credits",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 324,
+      "endLine": 324
+    },
+    {
+      "methods": ["GET"],
+      "action": "CheckDownloadableCountController",
+      "uri": "/api/download/check",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 154,
+      "endLine": 154
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "DiscardAllDuplicateUploadsController",
+      "uri": "/api/duplicate-uploads",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 187,
+      "endLine": 187
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchDuplicateUploadsController",
+      "uri": "/api/duplicate-uploads",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 183,
+      "endLine": 183
+    },
+    {
+      "methods": ["POST"],
+      "action": "KeepAllDuplicateUploadsController",
+      "uri": "/api/duplicate-uploads",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 185,
+      "endLine": 185
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "DiscardDuplicateUploadController",
+      "uri": "/api/duplicate-uploads/{duplicateUpload}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 186,
+      "endLine": 186
+    },
+    {
+      "methods": ["POST"],
+      "action": "KeepDuplicateUploadController",
+      "uri": "/api/duplicate-uploads/{duplicateUpload}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 184,
+      "endLine": 184
+    },
+    {
+      "methods": ["POST"],
+      "action": "EmbedOptionsController",
+      "uri": "/api/embed-options",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 122,
+      "endLine": 122
+    },
+    {
+      "methods": ["POST"],
+      "action": "EmbedController",
+      "uri": "/api/embeds/resolve",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 312,
+      "endLine": 312
+    },
+    {
+      "methods": ["GET"],
+      "name": "embeds.payload",
+      "action": "EmbedController",
+      "uri": "/api/embeds/{embed}/{options}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 121,
+      "endLine": 121
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "FavoriteController",
+      "uri": "/api/favorites",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 200,
+      "endLine": 200
+    },
+    {
+      "methods": ["POST"],
+      "action": "FavoriteController",
+      "uri": "/api/favorites",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 199,
+      "endLine": 199
+    },
+    {
+      "methods": ["POST"],
+      "action": "MoveFavoriteSongsController",
+      "uri": "/api/favorites/move",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 198,
+      "endLine": 198
+    },
+    {
+      "methods": ["POST"],
+      "action": "FavoriteController",
+      "uri": "/api/favorites/toggle",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 197,
+      "endLine": 197
+    },
+    {
+      "methods": ["POST"],
+      "action": "ForgotPasswordController",
+      "uri": "/api/forgot-password",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 114,
+      "endLine": 114
+    },
+    {
+      "methods": ["GET"],
+      "action": "GenreController",
+      "uri": "/api/genres",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 229,
+      "endLine": 229
+    },
+    {
+      "methods": ["GET"],
+      "action": "PaginateSongsByGenreController",
+      "uri": "/api/genres/{genre?}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 227,
+      "endLine": 227
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchSongsToQueueByGenreController",
+      "uri": "/api/genres/{genre?}/songs/queue",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 228,
+      "endLine": 228
+    },
+    {
+      "methods": ["GET"],
+      "action": "GenreController",
+      "uri": "/api/genres/{genre}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 230,
+      "endLine": 230
+    },
+    {
+      "methods": ["POST"],
+      "action": "LikeMultipleSongsController",
+      "uri": "/api/interaction/batch/like",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 194,
+      "endLine": 194
+    },
+    {
+      "methods": ["POST"],
+      "action": "UnlikeMultipleSongsController",
+      "uri": "/api/interaction/batch/unlike",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 195,
+      "endLine": 195
+    },
+    {
+      "methods": ["POST"],
+      "action": "ToggleLikeSongController",
+      "uri": "/api/interaction/like",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 193,
+      "endLine": 193
+    },
+    {
+      "methods": ["POST"],
+      "action": "RegisterPlayController",
+      "uri": "/api/interaction/play",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 190,
+      "endLine": 190
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "UserInvitationController",
+      "uri": "/api/invitations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 275,
+      "endLine": 275
+    },
+    {
+      "methods": ["GET"],
+      "action": "UserInvitationController",
+      "uri": "/api/invitations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 117,
+      "endLine": 117
+    },
+    {
+      "methods": ["POST"],
+      "action": "UserInvitationController",
+      "uri": "/api/invitations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 274,
+      "endLine": 274
+    },
+    {
+      "methods": ["POST"],
+      "action": "UserInvitationController",
+      "uri": "/api/invitations/accept",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 118,
+      "endLine": 118
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "lastfm.disconnect",
+      "action": "DisconnectFromLastfmController",
+      "uri": "/api/lastfm/disconnect",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 251,
+      "endLine": 251
+    },
+    {
+      "methods": ["POST"],
+      "action": "SetLastfmSessionKeyController",
+      "uri": "/api/lastfm/session-key",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 250,
+      "endLine": 250
+    },
+    {
+      "methods": ["POST"],
+      "action": "ActivateLicenseController",
+      "uri": "/api/licenses/activate",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 281,
+      "endLine": 281
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "LogoutController",
+      "uri": "/api/me",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 112,
+      "endLine": 112
+    },
+    {
+      "methods": ["GET"],
+      "action": "ProfileController",
+      "uri": "/api/me",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 236,
+      "endLine": 236
+    },
+    {
+      "methods": ["POST"],
+      "name": "auth.login",
+      "action": "LoginWithCredentialsController",
+      "uri": "/api/me",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 108,
+      "endLine": 108
+    },
+    {
+      "methods": ["PUT"],
+      "action": "ProfileController",
+      "uri": "/api/me",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 237,
+      "endLine": 237
+    },
+    {
+      "methods": ["POST"],
+      "action": "EqualizerPresetController",
+      "uri": "/api/me/equalizer-presets",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 240,
+      "endLine": 240
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "EqualizerPresetController",
+      "uri": "/api/me/equalizer-presets/{id}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 241,
+      "endLine": 241
+    },
+    {
+      "methods": ["POST"],
+      "action": "LoginWithOneTimeTokenController",
+      "uri": "/api/me/otp",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 109,
+      "endLine": 109
+    },
+    {
+      "methods": ["PUT"],
+      "action": "ChangePasswordController",
+      "uri": "/api/me/password",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 238,
+      "endLine": 238
+    },
+    {
+      "methods": ["PATCH"],
+      "action": "UpdateUserPreferenceController",
+      "uri": "/api/me/preferences",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 239,
+      "endLine": 239
+    },
+    {
+      "methods": ["POST"],
+      "action": "RegenerateSubsonicApiKeyController",
+      "uri": "/api/me/subsonic-api-key/regenerate",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 242,
+      "endLine": 242
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "DisableTwoFactorController",
+      "uri": "/api/me/two-factor",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 247,
+      "endLine": 247
+    },
+    {
+      "methods": ["POST"],
+      "action": "EnrollTwoFactorController",
+      "uri": "/api/me/two-factor",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 244,
+      "endLine": 244
+    },
+    {
+      "methods": ["POST"],
+      "action": "TwoFactorChallengeController",
+      "uri": "/api/me/two-factor-challenge",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 110,
+      "endLine": 110
+    },
+    {
+      "methods": ["POST"],
+      "action": "ConfirmTwoFactorController",
+      "uri": "/api/me/two-factor/confirm",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 245,
+      "endLine": 245
+    },
+    {
+      "methods": ["POST"],
+      "action": "RegenerateRecoveryCodesController",
+      "uri": "/api/me/two-factor/recovery-codes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 246,
+      "endLine": 246
+    },
+    {
+      "methods": ["GET"],
+      "action": "GetOneTimeTokenController",
+      "uri": "/api/one-time-token",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 128,
+      "endLine": 128
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "s3.song.remove",
+      "action": "S3SongController",
+      "uri": "/api/os/s3/song",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 321,
+      "endLine": 321
+    },
+    {
+      "methods": ["POST"],
+      "name": "s3.song.put",
+      "action": "S3SongController",
+      "uri": "/api/os/s3/song",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 320,
+      "endLine": 320
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchOverviewController",
+      "uri": "/api/overview",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 143,
+      "endLine": 143
+    },
+    {
+      "methods": ["GET"],
+      "action": "Closure",
+      "uri": "/api/ping",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 105,
+      "endLine": 105
+    },
+    {
+      "methods": ["GET"],
+      "name": "playlist-folders.index",
+      "action": "PlaylistFolderController@index",
+      "uri": "/api/playlist-folders",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["POST"],
+      "name": "playlist-folders.store",
+      "action": "PlaylistFolderController@store",
+      "uri": "/api/playlist-folders",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "playlist-folders.destroy",
+      "action": "PlaylistFolderController@destroy",
+      "uri": "/api/playlist-folders/{playlist-folder}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["GET"],
+      "name": "playlist-folders.show",
+      "action": "PlaylistFolderController@show",
+      "uri": "/api/playlist-folders/{playlist-folder}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["PUT"],
+      "name": "playlist-folders.update",
+      "action": "PlaylistFolderController@update",
+      "uri": "/api/playlist-folders/{playlist-folder}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 211,
+      "endLine": 211
+    },
+    {
+      "methods": ["GET"],
+      "name": "playlist-folders.playlists.index",
+      "action": "PlaylistFolderPlaylistController@index",
+      "uri": "/api/playlist-folders/{playlist-folder}/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 212,
+      "endLine": 214
+    },
+    {
+      "methods": ["POST"],
+      "name": "playlist-folders.playlists.store",
+      "action": "PlaylistFolderPlaylistController@store",
+      "uri": "/api/playlist-folders/{playlist-folder}/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 212,
+      "endLine": 214
+    },
+    {
+      "methods": ["GET"],
+      "name": "playlist-folders.playlists.show",
+      "action": "PlaylistFolderPlaylistController@show",
+      "uri": "/api/playlist-folders/{playlist-folder}/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 212,
+      "endLine": 214
+    },
+    {
+      "methods": ["PUT"],
+      "name": "playlist-folders.playlists.update",
+      "action": "PlaylistFolderPlaylistController@update",
+      "uri": "/api/playlist-folders/{playlist-folder}/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 212,
+      "endLine": 214
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "PlaylistFolderPlaylistController",
+      "uri": "/api/playlist-folders/{playlistFolder}/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 215,
+      "endLine": 218
+    },
+    {
+      "methods": ["GET"],
+      "name": "playlists.index",
+      "action": "PlaylistController@index",
+      "uri": "/api/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["POST"],
+      "name": "playlists.store",
+      "action": "PlaylistController@store",
+      "uri": "/api/playlists",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["POST"],
+      "action": "AcceptPlaylistCollaborationInviteController",
+      "uri": "/api/playlists/collaborators/accept",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 285,
+      "endLine": 285
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "playlists.destroy",
+      "action": "PlaylistController@destroy",
+      "uri": "/api/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["GET"],
+      "name": "playlists.show",
+      "action": "PlaylistController@show",
+      "uri": "/api/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["PUT"],
+      "name": "playlists.update",
+      "action": "PlaylistController@update",
+      "uri": "/api/playlists/{playlist}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 221,
+      "endLine": 221
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "PlaylistCollaboratorController",
+      "uri": "/api/playlists/{playlist}/collaborators",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 287,
+      "endLine": 287
+    },
+    {
+      "methods": ["GET"],
+      "action": "PlaylistCollaboratorController",
+      "uri": "/api/playlists/{playlist}/collaborators",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 286,
+      "endLine": 286
+    },
+    {
+      "methods": ["POST"],
+      "action": "CreatePlaylistCollaborationTokenController",
+      "uri": "/api/playlists/{playlist}/collaborators/invite",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 284,
+      "endLine": 284
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "PlaylistSongController",
+      "uri": "/api/playlists/{playlist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 223,
+      "endLine": 223
+    },
+    {
+      "methods": ["GET"],
+      "name": "playlists.songs.index",
+      "action": "PlaylistSongController@index",
+      "uri": "/api/playlists/{playlist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 222,
+      "endLine": 222
+    },
+    {
+      "methods": ["POST"],
+      "name": "playlists.songs.store",
+      "action": "PlaylistSongController@store",
+      "uri": "/api/playlists/{playlist}/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 222,
+      "endLine": 222
+    },
+    {
+      "methods": ["POST"],
+      "action": "MovePlaylistSongsController",
+      "uri": "/api/playlists/{playlist}/songs/move",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 224,
+      "endLine": 224
+    },
+    {
+      "methods": ["GET"],
+      "name": "playlists.songs.show",
+      "action": "PlaylistSongController@show",
+      "uri": "/api/playlists/{playlist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 222,
+      "endLine": 222
+    },
+    {
+      "methods": ["PUT"],
+      "name": "playlists.songs.update",
+      "action": "PlaylistSongController@update",
+      "uri": "/api/playlists/{playlist}/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 222,
+      "endLine": 222
+    },
+    {
+      "methods": ["GET"],
+      "name": "podcasts.index",
+      "action": "PodcastController@index",
+      "uri": "/api/podcasts",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["POST"],
+      "name": "podcasts.store",
+      "action": "PodcastController@store",
+      "uri": "/api/podcasts",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "podcasts.destroy",
+      "action": "PodcastController@destroy",
+      "uri": "/api/podcasts/{podcast}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["GET"],
+      "name": "podcasts.show",
+      "action": "PodcastController@show",
+      "uri": "/api/podcasts/{podcast}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["PUT"],
+      "name": "podcasts.update",
+      "action": "PodcastController@update",
+      "uri": "/api/podcasts/{podcast}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 290,
+      "endLine": 290
+    },
+    {
+      "methods": ["GET"],
+      "name": "podcasts.episodes.index",
+      "action": "PodcastEpisodeController@index",
+      "uri": "/api/podcasts/{podcast}/episodes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["POST"],
+      "name": "podcasts.episodes.store",
+      "action": "PodcastEpisodeController@store",
+      "uri": "/api/podcasts/{podcast}/episodes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "podcasts.episodes.destroy",
+      "action": "PodcastEpisodeController@destroy",
+      "uri": "/api/podcasts/{podcast}/episodes/{episode}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["GET"],
+      "name": "podcasts.episodes.show",
+      "action": "PodcastEpisodeController@show",
+      "uri": "/api/podcasts/{podcast}/episodes/{episode}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["PUT"],
+      "name": "podcasts.episodes.update",
+      "action": "PodcastEpisodeController@update",
+      "uri": "/api/podcasts/{podcast}/episodes/{episode}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 291,
+      "endLine": 291
+    },
+    {
+      "methods": ["PUT"],
+      "action": "RatePodcastController",
+      "uri": "/api/podcasts/{podcast}/rating",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 209,
+      "endLine": 209
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "UnsubscribeFromPodcastController",
+      "uri": "/api/podcasts/{podcast}/subscriptions",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 292,
+      "endLine": 292
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchSongsForQueueController",
+      "uri": "/api/queue/fetch",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 146,
+      "endLine": 146
+    },
+    {
+      "methods": ["PUT"],
+      "action": "UpdatePlaybackStatusController",
+      "uri": "/api/queue/playback-status",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 147,
+      "endLine": 147
+    },
+    {
+      "methods": ["GET"],
+      "action": "QueueStateController",
+      "uri": "/api/queue/state",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 148,
+      "endLine": 148
+    },
+    {
+      "methods": ["PUT"],
+      "action": "QueueStateController",
+      "uri": "/api/queue/state",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 149,
+      "endLine": 149
+    },
+    {
+      "methods": ["GET"],
+      "name": "stations.index",
+      "action": "RadioStationController@index",
+      "uri": "/api/radio/stations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["POST"],
+      "name": "stations.store",
+      "action": "RadioStationController@store",
+      "uri": "/api/radio/stations",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["GET"],
+      "action": "RadioStationNowPlayingController",
+      "uri": "/api/radio/stations/{radioStation}/now-playing",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 301,
+      "endLine": 301
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "stations.destroy",
+      "action": "RadioStationController@destroy",
+      "uri": "/api/radio/stations/{station}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["GET"],
+      "name": "stations.show",
+      "action": "RadioStationController@show",
+      "uri": "/api/radio/stations/{station}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["PUT"],
+      "name": "stations.update",
+      "action": "RadioStationController@update",
+      "uri": "/api/radio/stations/{station}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 300,
+      "endLine": 300
+    },
+    {
+      "methods": ["POST"],
+      "action": "ResetPasswordController",
+      "uri": "/api/reset-password",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 115,
+      "endLine": 115
+    },
+    {
+      "methods": ["GET"],
+      "action": "ExcerptSearchController",
+      "uri": "/api/search",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 271,
+      "endLine": 271
+    },
+    {
+      "methods": ["GET"],
+      "action": "SongSearchController",
+      "uri": "/api/search/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 272,
+      "endLine": 272
+    },
+    {
+      "methods": ["PUT"],
+      "action": "UpdateBrandingController",
+      "uri": "/api/settings/branding",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 152,
+      "endLine": 152
+    },
+    {
+      "methods": ["PUT"],
+      "action": "UpdateMediaPathController",
+      "uri": "/api/settings/media-path",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 151,
+      "endLine": 151
+    },
+    {
+      "methods": ["DELETE"],
+      "action": "SongController",
+      "uri": "/api/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 172,
+      "endLine": 172
+    },
+    {
+      "methods": ["GET"],
+      "name": "songs.index",
+      "action": "SongController@index",
+      "uri": "/api/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 167,
+      "endLine": 169
+    },
+    {
+      "methods": ["POST"],
+      "name": "songs.store",
+      "action": "SongController@store",
+      "uri": "/api/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 167,
+      "endLine": 169
+    },
+    {
+      "methods": ["PUT"],
+      "action": "SongController",
+      "uri": "/api/songs",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 171,
+      "endLine": 171
+    },
+    {
+      "methods": ["POST"],
+      "action": "FetchRecursiveFolderSongsController",
+      "uri": "/api/songs/by-folders",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 176,
+      "endLine": 176
+    },
+    {
+      "methods": ["POST"],
+      "action": "FetchSongsByIdsController",
+      "uri": "/api/songs/by-ids",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 177,
+      "endLine": 177
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchFavoriteSongsController",
+      "uri": "/api/songs/favorite",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 203,
+      "endLine": 203
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchFavoriteSongsController",
+      "uri": "/api/songs/favorites",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 204,
+      "endLine": 204
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchFolderSongsController",
+      "uri": "/api/songs/in-folder",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 180,
+      "endLine": 180
+    },
+    {
+      "methods": ["PUT"],
+      "action": "PrivatizeSongsController",
+      "uri": "/api/songs/privatize",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 278,
+      "endLine": 278
+    },
+    {
+      "methods": ["PUT"],
+      "action": "PublicizeSongsController",
+      "uri": "/api/songs/publicize",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 277,
+      "endLine": 277
+    },
+    {
+      "methods": ["GET"],
+      "action": "FetchRecentlyPlayedSongController",
+      "uri": "/api/songs/recently-played",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 202,
+      "endLine": 202
+    },
+    {
+      "methods": ["GET"],
+      "name": "songs.show",
+      "action": "SongController@show",
+      "uri": "/api/songs/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 167,
+      "endLine": 169
+    },
+    {
+      "methods": ["PUT"],
+      "action": "RateSongController",
+      "uri": "/api/songs/{song}/rating",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 206,
+      "endLine": 206
+    },
+    {
+      "methods": ["POST"],
+      "action": "ScrobbleController",
+      "uri": "/api/songs/{song}/scrobble",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 165,
+      "endLine": 165
+    },
+    {
+      "methods": ["GET"],
+      "name": "themes.index",
+      "action": "ThemeController@index",
+      "uri": "/api/themes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 308,
+      "endLine": 308
+    },
+    {
+      "methods": ["POST"],
+      "name": "themes.store",
+      "action": "ThemeController@store",
+      "uri": "/api/themes",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 308,
+      "endLine": 308
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "themes.destroy",
+      "action": "ThemeController@destroy",
+      "uri": "/api/themes/{theme}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 308,
+      "endLine": 308
+    },
+    {
+      "methods": ["POST"],
+      "action": "UploadSongController",
+      "uri": "/api/upload",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 182,
+      "endLine": 182
+    },
+    {
+      "methods": ["GET"],
+      "name": "user.index",
+      "action": "UserController@index",
+      "uri": "/api/user",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 235,
+      "endLine": 235
+    },
+    {
+      "methods": ["POST"],
+      "name": "user.store",
+      "action": "UserController@store",
+      "uri": "/api/user",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 235,
+      "endLine": 235
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "user.destroy",
+      "action": "UserController@destroy",
+      "uri": "/api/user/{user}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 235,
+      "endLine": 235
+    },
+    {
+      "methods": ["PUT"],
+      "name": "user.update",
+      "action": "UserController@update",
+      "uri": "/api/user/{user}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 235,
+      "endLine": 235
+    },
+    {
+      "methods": ["GET"],
+      "name": "users.index",
+      "action": "UserController@index",
+      "uri": "/api/users",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 232,
+      "endLine": 232
+    },
+    {
+      "methods": ["POST"],
+      "name": "users.store",
+      "action": "UserController@store",
+      "uri": "/api/users",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 232,
+      "endLine": 232
+    },
+    {
+      "methods": ["DELETE"],
+      "name": "users.destroy",
+      "action": "UserController@destroy",
+      "uri": "/api/users/{user}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 232,
+      "endLine": 232
+    },
+    {
+      "methods": ["PUT"],
+      "name": "users.update",
+      "action": "UserController@update",
+      "uri": "/api/users/{user}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 232,
+      "endLine": 232
+    },
+    {
+      "methods": ["GET"],
+      "action": "SearchYouTubeController",
+      "uri": "/api/youtube/search/song/{song}",
+      "sourcePath": "routes/api.base.php",
+      "startLine": 255,
+      "endLine": 255,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "GoogleCallbackController",
+      "uri": "/auth/google/callback",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 43,
+      "endLine": 43
+    },
+    {
+      "methods": ["GET"],
+      "action": "Closure",
+      "uri": "/auth/google/redirect",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 42,
+      "endLine": 42
+    },
+    {
+      "methods": ["GET"],
+      "action": "OpenIDConnectCallbackController",
+      "uri": "/auth/oidc/callback",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 46,
+      "endLine": 46
+    },
+    {
+      "methods": ["GET"],
+      "action": "Closure",
+      "uri": "/auth/oidc/redirect",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 45,
+      "endLine": 45
+    },
+    {
+      "methods": ["GET"],
+      "name": "demo.new-session",
+      "action": "NewSessionController",
+      "middleware": ["throttle:10,1"],
+      "uri": "/demo/new-session",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 74,
+      "endLine": 74
+    },
+    {
+      "methods": ["GET"],
+      "action": "DownloadAlbumController",
+      "uri": "/download/album/{album}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 58,
+      "endLine": 58,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "DownloadArtistController",
+      "uri": "/download/artist/{artist}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 59,
+      "endLine": 59,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "DownloadFavoritesController",
+      "uri": "/download/favorites",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 61,
+      "endLine": 61,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "DownloadPlaylistController",
+      "uri": "/download/playlist/{playlist}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 60,
+      "endLine": 60,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "action": "DownloadSongsController",
+      "uri": "/download/songs",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 57,
+      "endLine": 57,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "name": "dropbox.authorize",
+      "action": "AuthorizeDropboxController",
+      "uri": "/dropbox/authorize/{key}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 48,
+      "endLine": 48
+    },
+    {
+      "methods": ["GET"],
+      "name": "embeds.stream",
+      "action": "StreamEmbedController",
+      "middleware": ["embeds.enabled", "signed", "throttle:10,1"],
+      "uri": "/embeds/{embed}/stream/{song}/{options}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 66,
+      "endLine": 68
+    },
+    {
+      "methods": ["GET"],
+      "name": "iTunes.viewSong",
+      "action": "ViewSongOnITunesController",
+      "uri": "/itunes/song/{album}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 38,
+      "endLine": 38,
+      "conditional": true
+    },
+    {
+      "methods": ["GET"],
+      "name": "lastfm.callback",
+      "action": "LastfmController",
+      "uri": "/lastfm/callback",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 34,
+      "endLine": 34
+    },
+    {
+      "methods": ["GET"],
+      "name": "lastfm.connect",
+      "action": "LastfmController",
+      "uri": "/lastfm/connect",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 33,
+      "endLine": 33
+    },
+    {
+      "methods": ["GET"],
+      "name": "song.play",
+      "action": "PlayController",
+      "uri": "/play/{song}/{transcode?}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 51,
+      "endLine": 51
+    },
+    {
+      "methods": ["GET"],
+      "name": "radio.stream",
+      "action": "StreamRadioController",
+      "uri": "/radio/stream/{radioStation}",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 53,
+      "endLine": 53
+    },
+    {
+      "methods": ["GET"],
+      "action": "Closure",
+      "uri": "/remote",
+      "sourcePath": "routes/web.base.php",
+      "startLine": 29,
+      "endLine": 29
+    }
+  ],
+  "gaps": [
+    {
+      "kind": "dynamic-registration",
+      "sourcePath": "routes/subsonic.php",
+      "startLine": 116,
+      "endLine": 116,
+      "reason": "URI is built from runtime values (e.g. a foreach over an endpoint table); it cannot be enumerated statically without fabrication."
+    }
+  ],
+  "files": [
+    {
+      "path": "routes/api.base.php",
+      "sha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e"
+    },
+    {
+      "path": "routes/channels.php",
+      "sha256": "b5c8a243f97a2e9f5d5e35ad55b6204594f05ab734ce34878f101922b23f1706"
+    },
+    {
+      "path": "routes/console.php",
+      "sha256": "9adc83a690616812f5c383bf3ab82eaf56bfd85c6d04bf3b7e6a0671ec6c4b21"
+    },
+    {
+      "path": "routes/subsonic.php",
+      "sha256": "10b171364214692331d49b0831265c6cee33384578b9ff379ccd053b5fff8394"
+    },
+    {
+      "path": "routes/web.base.php",
+      "sha256": "9426a523f0e7afeeb537cbd88ca4b6e66d84748b2142bd1510ad76382b843ba3"
+    }
+  ]
+}

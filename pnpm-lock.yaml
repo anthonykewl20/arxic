@@ -246,6 +246,22 @@ importers:
         specifier: 1.62.1
         version: 1.62.1
 
+  packages/domain-inventory-spike:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      '@arxic/crawlee-adapter':
+        specifier: workspace:*
+        version: link:../crawlee-adapter
+      '@arxic/real-world-testkit':
+        specifier: workspace:*
+        version: link:../real-world-testkit
+      '@arxic/source-ua-adapter':
+        specifier: workspace:*
+        version: link:../source-ua-adapter
+
   packages/environment:
     dependencies:
       '@arxic/contracts':

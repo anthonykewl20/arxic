@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 1,
+  "inputs": {
+    "sourceIndex": true,
+    "interchangePacks": [],
+    "surfaceMapOrigin": "http://127.0.0.1:40501"
+  },
+  "rows": [
+    {
+      "key": "GET /",
+      "surfaceKind": "page",
+      "method": "GET",
+      "path": "/",
+      "origin": "both",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-pGexp5",
+          "commit": "e27327cd20558e07949eb219d72bd0e8345d649b",
+          "path": "app/page.tsx",
+          "startLine": 1,
+          "endLine": 23,
+          "blobSha256": "48274a4887c44ffbe18c63e649aec56e3b22670139417d8ff63b474984e0daa6",
+          "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+          "ruleId": "route:GET /"
+        }
+      ],
+      "runtimeRefs": [{ "kind": "runtime", "url": "http://127.0.0.1:40501/" }],
+      "runtimeUrls": ["http://127.0.0.1:40501/"],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "root",
+      "verbs": ["read-list"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "GET /change-password",
+      "surfaceKind": "page",
+      "method": "GET",
+      "path": "/change-password",
+      "origin": "source",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-pGexp5",
+          "commit": "e27327cd20558e07949eb219d72bd0e8345d649b",
+          "path": "app/change-password/page.tsx",
+          "startLine": 1,
+          "endLine": 23,
+          "blobSha256": "8d8351a42f6f42f1e70f464e9773249358637c97b72a0db274e55b94e950aac6",
+          "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+          "ruleId": "route:GET /change-password"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "change-password",
+      "verbs": ["read-list"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "GET /forgot-password",
+      "surfaceKind": "page",
+      "method": "GET",
+      "path": "/forgot-password",
+      "origin": "both",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-pGexp5",
+          "commit": "e27327cd20558e07949eb219d72bd0e8345d649b",
+          "path": "app/forgot-password/page.tsx",
+          "startLine": 1,
+          "endLine": 18,
+          "blobSha256": "1c50747b8f893d31d7ead1ca5c72f9c0f19c87e8c43bb5a06e0c49112cf3354b",
+          "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+          "ruleId": "route:GET /forgot-password"
+        }
+      ],
+      "runtimeRefs": [{ "kind": "runtime", "url": "http://127.0.0.1:40501/forgot-password" }],
+      "runtimeUrls": ["http://127.0.0.1:40501/forgot-password"],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "forgot-password",
+      "verbs": ["read-list"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "POST /forgot-password",
+      "surfaceKind": "endpoint",
+      "method": "POST",
+      "path": "/forgot-password",
+      "origin": "runtime",
+      "sourceRefs": [],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [
+        {
+          "action": "http://127.0.0.1:40501/forgot-password",
+          "method": "POST",
+          "destructive": true
+        }
+      ],
+      "disposition": "unsafe",
+      "reason": "destructive-form-not-submitted",
+      "domain": "forgot-password",
+      "verbs": ["create"],
+      "count": 1
+    },
+    {
+      "key": "GET /login",
+      "surfaceKind": "page",
+      "method": "GET",
+      "path": "/login",
+      "origin": "both",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-pGexp5",
+          "commit": "e27327cd20558e07949eb219d72bd0e8345d649b",
+          "path": "app/login/page.tsx",
+          "startLine": 1,
+          "endLine": 23,
+          "blobSha256": "d019d940829e5f092314b0652fca15ff664c66dd9708472bdcba6978865aea6a",
+          "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+          "ruleId": "route:GET /login"
+        }
+      ],
+      "runtimeRefs": [{ "kind": "runtime", "url": "http://127.0.0.1:40501/login" }],
+      "runtimeUrls": ["http://127.0.0.1:40501/login"],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "login",
+      "verbs": ["login", "read-list"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "POST /login",
+      "surfaceKind": "endpoint",
+      "method": "POST",
+      "path": "/login",
+      "origin": "runtime",
+      "sourceRefs": [],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [
+        { "action": "http://127.0.0.1:40501/login", "method": "POST", "destructive": true }
+      ],
+      "disposition": "unsafe",
+      "reason": "destructive-form-not-submitted",
+      "domain": "login",
+      "verbs": ["create", "login"],
+      "count": 1
+    },
+    {
+      "key": "GET /mfa/challenge",
+      "surfaceKind": "page",
+      "method": "GET",
+      "path": "/mfa/challenge",
+      "origin": "source",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-pGexp5",
+          "commit": "e27327cd20558e07949eb219d72bd0e8345d649b",
+          "path": "app/mfa/challenge/page.tsx",
+          "startLine": 1,
+          "endLine": 21,
+          "blobSha256": "29cddcce6442b8fe75c0049a923792e463074472db2ce536f6851a8b0c33f022",
+          "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+          "ruleId": "route:GET /mfa/challenge"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "mfa",
+      "verbs": ["read-list"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "GET /mfa/enroll",
+      "surfaceKind": "page",
+      "method": "GET",
+      "path": "/mfa/enroll",
+      "origin": "source",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-pGexp5",
+          "commit": "e27327cd20558e07949eb219d72bd0e8345d649b",
+          "path": "app/mfa/enroll/page.tsx",
+          "startLine": 1,
+          "endLine": 41,
+          "blobSha256": "017f99d1d945150a14f6b4bd465b6b97b0def34957c4c21ada0ac388ac90a5b2",
+          "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+          "ruleId": "route:GET /mfa/enroll"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "mfa",
+      "verbs": ["read-list"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "GET /reset-password",
+      "surfaceKind": "page",
+      "method": "GET",
+      "path": "/reset-password",
+      "origin": "source",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-pGexp5",
+          "commit": "e27327cd20558e07949eb219d72bd0e8345d649b",
+          "path": "app/reset-password/page.tsx",
+          "startLine": 1,
+          "endLine": 18,
+          "blobSha256": "6b987deb254705f9f637fc1a74d5772734fe0a1881130d19dcdb1d29c2bd0fe4",
+          "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+          "ruleId": "route:GET /reset-password"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "reset-password",
+      "verbs": ["read-list"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "* source-scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+      "surfaceKind": "unknown",
+      "method": "*",
+      "path": "<scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE>",
+      "origin": "source",
+      "sourceRefs": [],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [],
+      "disposition": "unextracted-with-reason",
+      "reason": "source-scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+      "domain": "uncategorized",
+      "verbs": [],
+      "count": 1
+    }
+  ],
+  "clusters": [
+    {
+      "domain": "change-password",
+      "rowKeys": ["GET /change-password"],
+      "verbs": ["read-list"],
+      "methods": ["GET"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "forgot-password",
+      "rowKeys": ["GET /forgot-password", "POST /forgot-password"],
+      "verbs": ["create", "read-list"],
+      "methods": ["GET", "POST"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 1,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "login",
+      "rowKeys": ["GET /login", "POST /login"],
+      "verbs": ["create", "login", "read-list"],
+      "methods": ["GET", "POST"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 1,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "mfa",
+      "rowKeys": ["GET /mfa/challenge", "GET /mfa/enroll"],
+      "verbs": ["read-list"],
+      "methods": ["GET"],
+      "dispositions": {
+        "extracted": 2,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "reset-password",
+      "rowKeys": ["GET /reset-password"],
+      "verbs": ["read-list"],
+      "methods": ["GET"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "root",
+      "rowKeys": ["GET /"],
+      "verbs": ["read-list"],
+      "methods": ["GET"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "uncategorized",
+      "rowKeys": ["* source-scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE"],
+      "verbs": [],
+      "methods": ["*"],
+      "dispositions": {
+        "extracted": 0,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 1
+      }
+    }
+  ],
+  "stats": {
+    "totalRows": 10,
+    "byDisposition": {
+      "extracted": 7,
+      "unsupported": 0,
+      "unsafe": 2,
+      "unextracted-with-reason": 1
+    },
+    "byOrigin": { "source": 5, "runtime": 2, "both": 3 },
+    "dedupe": {
+      "sourceRouteEvents": 7,
+      "interchangeRoutes": 0,
+      "runtimeSurfaces": 3,
+      "runtimeForms": 2,
+      "mergedRows": 3
+    }
+  }
+}

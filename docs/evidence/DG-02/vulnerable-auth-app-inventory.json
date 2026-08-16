@@ -1,0 +1,381 @@
+{
+  "schemaVersion": 1,
+  "inputs": {
+    "sourceIndex": true,
+    "interchangePacks": [],
+    "surfaceMapOrigin": "http://127.0.0.1:42305"
+  },
+  "rows": [
+    {
+      "key": "GET /",
+      "surfaceKind": "page",
+      "method": "GET",
+      "path": "/",
+      "origin": "both",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-c7Wa0K",
+          "commit": "39202b2c03a2284ecc41d022f742297a2e122d41",
+          "path": "src/server.ts",
+          "startLine": 30,
+          "endLine": 32,
+          "blobSha256": "3fc5d703ae32b50244a3d730cfd61fdb61118e874aeb12538c1df87912129d69",
+          "extractor": "tree-sitter-typescript@0.23.2",
+          "ruleId": "route:GET /"
+        }
+      ],
+      "runtimeRefs": [{ "kind": "runtime", "url": "http://127.0.0.1:42305/" }],
+      "runtimeUrls": ["http://127.0.0.1:42305/"],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "root",
+      "verbs": ["read-list"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "GET /.well-known/arxic-test-target.json",
+      "surfaceKind": "page",
+      "method": "GET",
+      "path": "/.well-known/arxic-test-target.json",
+      "origin": "source",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-c7Wa0K",
+          "commit": "39202b2c03a2284ecc41d022f742297a2e122d41",
+          "path": "src/server.ts",
+          "startLine": 109,
+          "endLine": 118,
+          "blobSha256": "3fc5d703ae32b50244a3d730cfd61fdb61118e874aeb12538c1df87912129d69",
+          "extractor": "tree-sitter-typescript@0.23.2",
+          "ruleId": "route:GET /.well-known/arxic-test-target.json"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": ".well-known",
+      "verbs": ["read-list"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "POST /__arxic/reset",
+      "surfaceKind": "endpoint",
+      "method": "POST",
+      "path": "/__arxic/reset",
+      "origin": "source",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-c7Wa0K",
+          "commit": "39202b2c03a2284ecc41d022f742297a2e122d41",
+          "path": "src/server.ts",
+          "startLine": 104,
+          "endLine": 107,
+          "blobSha256": "3fc5d703ae32b50244a3d730cfd61fdb61118e874aeb12538c1df87912129d69",
+          "extractor": "tree-sitter-typescript@0.23.2",
+          "ruleId": "route:POST /__arxic/reset"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "__arxic",
+      "verbs": ["create", "reset"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "POST /__arxic/seed",
+      "surfaceKind": "endpoint",
+      "method": "POST",
+      "path": "/__arxic/seed",
+      "origin": "source",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-c7Wa0K",
+          "commit": "39202b2c03a2284ecc41d022f742297a2e122d41",
+          "path": "src/server.ts",
+          "startLine": 90,
+          "endLine": 102,
+          "blobSha256": "3fc5d703ae32b50244a3d730cfd61fdb61118e874aeb12538c1df87912129d69",
+          "extractor": "tree-sitter-typescript@0.23.2",
+          "ruleId": "route:POST /__arxic/seed"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "__arxic",
+      "verbs": ["create"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "POST /forgot",
+      "surfaceKind": "endpoint",
+      "method": "POST",
+      "path": "/forgot",
+      "origin": "both",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-c7Wa0K",
+          "commit": "39202b2c03a2284ecc41d022f742297a2e122d41",
+          "path": "src/server.ts",
+          "startLine": 55,
+          "endLine": 71,
+          "blobSha256": "3fc5d703ae32b50244a3d730cfd61fdb61118e874aeb12538c1df87912129d69",
+          "extractor": "tree-sitter-typescript@0.23.2",
+          "ruleId": "route:POST /forgot"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [
+        { "action": "http://127.0.0.1:42305/forgot", "method": "POST", "destructive": true }
+      ],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "forgot",
+      "verbs": ["create", "reset"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "POST /login",
+      "surfaceKind": "endpoint",
+      "method": "POST",
+      "path": "/login",
+      "origin": "both",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-c7Wa0K",
+          "commit": "39202b2c03a2284ecc41d022f742297a2e122d41",
+          "path": "src/server.ts",
+          "startLine": 34,
+          "endLine": 48,
+          "blobSha256": "3fc5d703ae32b50244a3d730cfd61fdb61118e874aeb12538c1df87912129d69",
+          "extractor": "tree-sitter-typescript@0.23.2",
+          "ruleId": "route:POST /login"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [
+        { "action": "http://127.0.0.1:42305/login", "method": "POST", "destructive": true }
+      ],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "login",
+      "verbs": ["create", "login"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "POST /logout",
+      "surfaceKind": "endpoint",
+      "method": "POST",
+      "path": "/logout",
+      "origin": "both",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-c7Wa0K",
+          "commit": "39202b2c03a2284ecc41d022f742297a2e122d41",
+          "path": "src/server.ts",
+          "startLine": 50,
+          "endLine": 53,
+          "blobSha256": "3fc5d703ae32b50244a3d730cfd61fdb61118e874aeb12538c1df87912129d69",
+          "extractor": "tree-sitter-typescript@0.23.2",
+          "ruleId": "route:POST /logout"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [
+        { "action": "http://127.0.0.1:42305/logout", "method": "POST", "destructive": true }
+      ],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "logout",
+      "verbs": ["create", "logout"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "POST /reset",
+      "surfaceKind": "endpoint",
+      "method": "POST",
+      "path": "/reset",
+      "origin": "both",
+      "sourceRefs": [
+        {
+          "kind": "source",
+          "repo": "file:///tmp/dg02-scratch-src-c7Wa0K",
+          "commit": "39202b2c03a2284ecc41d022f742297a2e122d41",
+          "path": "src/server.ts",
+          "startLine": 73,
+          "endLine": 88,
+          "blobSha256": "3fc5d703ae32b50244a3d730cfd61fdb61118e874aeb12538c1df87912129d69",
+          "extractor": "tree-sitter-typescript@0.23.2",
+          "ruleId": "route:POST /reset"
+        }
+      ],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [
+        { "action": "http://127.0.0.1:42305/reset", "method": "POST", "destructive": true }
+      ],
+      "disposition": "extracted",
+      "reason": "",
+      "domain": "reset",
+      "verbs": ["create", "reset"],
+      "count": 1,
+      "language": "typescript"
+    },
+    {
+      "key": "* source-scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+      "surfaceKind": "unknown",
+      "method": "*",
+      "path": "<scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE>",
+      "origin": "source",
+      "sourceRefs": [],
+      "runtimeRefs": [],
+      "runtimeUrls": [],
+      "observedForms": [],
+      "disposition": "unextracted-with-reason",
+      "reason": "source-scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+      "domain": "uncategorized",
+      "verbs": [],
+      "count": 1
+    }
+  ],
+  "clusters": [
+    {
+      "domain": ".well-known",
+      "rowKeys": ["GET /.well-known/arxic-test-target.json"],
+      "verbs": ["read-list"],
+      "methods": ["GET"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "__arxic",
+      "rowKeys": ["POST /__arxic/reset", "POST /__arxic/seed"],
+      "verbs": ["create", "reset"],
+      "methods": ["POST"],
+      "dispositions": {
+        "extracted": 2,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "forgot",
+      "rowKeys": ["POST /forgot"],
+      "verbs": ["create", "reset"],
+      "methods": ["POST"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "login",
+      "rowKeys": ["POST /login"],
+      "verbs": ["create", "login"],
+      "methods": ["POST"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "logout",
+      "rowKeys": ["POST /logout"],
+      "verbs": ["create", "logout"],
+      "methods": ["POST"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "reset",
+      "rowKeys": ["POST /reset"],
+      "verbs": ["create", "reset"],
+      "methods": ["POST"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "root",
+      "rowKeys": ["GET /"],
+      "verbs": ["read-list"],
+      "methods": ["GET"],
+      "dispositions": {
+        "extracted": 1,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 0
+      }
+    },
+    {
+      "domain": "uncategorized",
+      "rowKeys": ["* source-scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE"],
+      "verbs": [],
+      "methods": ["*"],
+      "dispositions": {
+        "extracted": 0,
+        "unsupported": 0,
+        "unsafe": 0,
+        "unextracted-with-reason": 1
+      }
+    }
+  ],
+  "stats": {
+    "totalRows": 9,
+    "byDisposition": {
+      "extracted": 8,
+      "unsupported": 0,
+      "unsafe": 0,
+      "unextracted-with-reason": 1
+    },
+    "byOrigin": { "source": 4, "runtime": 0, "both": 5 },
+    "dedupe": {
+      "sourceRouteEvents": 8,
+      "interchangeRoutes": 0,
+      "runtimeSurfaces": 1,
+      "runtimeForms": 4,
+      "mergedRows": 4
+    }
+  }
+}
