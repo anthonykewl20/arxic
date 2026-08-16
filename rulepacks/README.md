@@ -57,7 +57,10 @@ framework in `scope.frameworks` fails fast at config validation.
    Semantics: a waiver applies only when its framework, **exact detected
    version**, and the pack's **current declared range** all match — bump the
    pack range and the waiver stops applying; detect a different version and it
-   stops applying. A malformed or incomplete waivers file fails closed as
+   stops applying. Because of that, **every range change ships with a pack
+   `version` bump in `pack.json`** (widening compatibility = minor, narrowing
+   = major): the bump is the operator-visible signal of the waiver boundary
+   that just moved. A malformed or incomplete waivers file fails closed as
    `ARXIC-RULES-WAIVER-INVALID` (blocked) even when the run would otherwise be
    in range. A valid, applicable waiver emits
    `ARXIC-RULES-FRAMEWORK-WAIVED` (observed) naming the approving operator and

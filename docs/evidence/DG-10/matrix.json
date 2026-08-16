@@ -58,7 +58,7 @@
         "code": "ARXIC-RULES-FRAMEWORK-ACCEPTED",
         "severity": "observed",
         "subject": "framework:nextjs",
-        "message": "framework 'nextjs' 16.2.6 (lockfile evidence) is inside pack nextjs-auth@0.1.0 range >=15 <17"
+        "message": "framework 'nextjs' 16.2.6 (lockfile evidence) is inside pack nextjs-auth@0.2.0 range >=15 <17"
       }
     ]
   },

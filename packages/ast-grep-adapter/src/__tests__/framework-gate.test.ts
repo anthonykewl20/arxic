@@ -52,6 +52,39 @@ async function campaignPack(parent: string): Promise<string> {
   );
 }
 
+// PR #272 P2: the shipped-pack waiver-voiding scenario. next 17.0.0 sits
+// outside the shipped nextjs-auth range (>=15 <17), so an out-of-range
+// verdict is certain and only a waiver recorded against the CURRENT pack
+// range can unblock it — exactly where a silently-voided waiver bites.
+function next17WaiverFiles(packVersionRange: string): Record<string, string> {
+  return {
+    'package.json': JSON.stringify(
+      { name: 'next-17-app', dependencies: { next: '17.0.0' } },
+      undefined,
+      2,
+    ),
+    'app/login/page.tsx':
+      'export default async function LoginPage() {\n  return <main>login</main>;\n}\n',
+    'arxic.waivers.json': JSON.stringify(
+      {
+        version: 1,
+        frameworkWaivers: [
+          {
+            framework: 'nextjs',
+            version: '17.0.0',
+            packVersionRange,
+            reason: `operator reviewed nextjs-auth rules against Next 17 (${packVersionRange} pack)`,
+            approvedBy: 'anthonykewl20',
+            recordedAt: '2026-08-17T00:00:00.000Z',
+          },
+        ],
+      },
+      undefined,
+      2,
+    ),
+  };
+}
+
 describe('Decision 9 four-cell matrix: framework+version detection enforces pack ranges', () => {
   it('cell 1 — declared-range acceptance: next 16.2.6 inside the shipped nextjs range is accepted with lockfile-grade evidence', async () => {
     const repo = await makeRepository(undefined, await campaignFiles());
@@ -286,6 +319,61 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
     expect(diagnostics.some((diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_WAIVED)).toBe(
       false,
     );
+  });
+
+  it('PR #272 P2 — shipped-pack coherence: a range change carries a semver bump so voided waivers are visible', async () => {
+    // `framework.versions` is normative and waivers bind to the exact current
+    // range, so a range change voids recorded waivers; the pack version bump
+    // is the operator-visible signal of that boundary (widening = minor,
+    // narrowing = major). Pin the shipped pair — change either side without
+    // the other and this fails red.
+    const manifest = JSON.parse(
+      await readFile(join(workspaceRoot, 'rulepacks/nextjs/pack.json'), 'utf8'),
+    ) as { version: string; framework: Record<string, unknown> };
+    expect(manifest.version).toBe('0.2.0');
+    expect(manifest.framework).toEqual({ name: 'nextjs', versions: '>=15 <17' });
+    const readme = await readFile(join(workspaceRoot, 'rulepacks/nextjs/README.md'), 'utf8');
+    expect(readme).toContain('nextjs-auth@0.2.0');
+  });
+
+  it('PR #272 P2 — stale-range waiver voided by the pack change: a waiver recorded against >=15 <16 (pack 0.1.0) does not waive next 17 against the shipped pack', async () => {
+    // The widening >=15 <16 → >=15 <17 (0.1.0 → 0.2.0) voids waivers recorded
+    // against the old range: a waiver applies only when its packVersionRange
+    // equals the pack's CURRENT declared range.
+    const repo = await makeRepository(undefined, next17WaiverFiles('>=15 <16'));
+    const result = await new AstGrepAdapter({
+      packs: [join(workspaceRoot, 'rulepacks/nextjs')],
+      now: () => '2026-08-17T12:00:00.000Z',
+    }).scan({ revision: repo.revision, framework: 'nextjs' });
+    const diagnostics = diagnosticsOf(result.events);
+    const rejected = diagnostics.find(
+      (diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_REJECTED,
+    );
+    expect(rejected).toMatchObject({ severity: 'blocked', subject: 'framework:nextjs' });
+    expect(rejected?.message).toContain('nextjs-auth@0.2.0');
+    expect(rejected?.message).toContain('>=15 <17');
+    expect(diagnostics.some((diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_WAIVED)).toBe(
+      false,
+    );
+    expect(result.matches).toEqual([]);
+  });
+
+  it('PR #272 P2 — only a waiver re-recorded against the current range+version applies', async () => {
+    const repo = await makeRepository(undefined, next17WaiverFiles('>=15 <17'));
+    const result = await new AstGrepAdapter({
+      packs: [join(workspaceRoot, 'rulepacks/nextjs')],
+      now: () => '2026-08-17T12:00:00.000Z',
+    }).scan({ revision: repo.revision, framework: 'nextjs' });
+    const diagnostics = diagnosticsOf(result.events);
+    const waived = diagnostics.find(
+      (diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_WAIVED,
+    );
+    expect(waived).toMatchObject({ severity: 'observed', subject: 'framework:nextjs' });
+    expect(waived?.message).toContain('anthonykewl20');
+    // the pack version that voided the old waiver is named in the diagnostic
+    expect(waived?.message).toContain('nextjs-auth@0.2.0');
+    expect(diagnostics.some((diagnostic) => diagnostic.severity === 'blocked')).toBe(false);
+    expect(result.matches.length).toBeGreaterThan(0);
   });
 
   it('waiver tampering: a malformed waivers file fails closed as blocked even when a scan would otherwise be accepted', async () => {

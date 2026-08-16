@@ -1,6 +1,6 @@
 {
   "id": "nextjs-auth",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "framework": { "name": "nextjs", "versions": ">=15 <17" },
   "license": "MIT",
   "provenance": "original-arxic",
