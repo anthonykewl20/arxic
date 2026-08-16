@@ -332,6 +332,27 @@ importers:
         specifier: workspace:*
         version: link:../real-world-testkit
 
+  packages/intent-proposal-spike:
+    dependencies:
+      '@arxic/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@arxic/intent':
+        specifier: workspace:*
+        version: link:../intent
+      '@arxic/model-adapter':
+        specifier: workspace:*
+        version: link:../model-adapter
+      '@arxic/source-ua-adapter':
+        specifier: workspace:*
+        version: link:../source-ua-adapter
+      ajv:
+        specifier: ^8.17.1
+        version: 8.20.0
+      ajv-formats:
+        specifier: ^3.0.1
+        version: 3.0.1(ajv@8.20.0)
+
   packages/m0-pipeline:
     dependencies:
       '@arxic/ast-grep-adapter':

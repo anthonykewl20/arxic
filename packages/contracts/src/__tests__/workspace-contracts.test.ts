@@ -12,9 +12,10 @@ const workspaceDirectories = ['packages', 'apps'].flatMap((workspaceRoot) =>
 
 describe('workspace tooling contracts', () => {
   it('provides a per-workspace TypeScript typecheck contract', () => {
-    // 27 = 25 prior workspaces + packages/domain-inventory-spike (DG-02 #246)
-    // + packages/verification-spike (DG-03 #247), combined at integration.
-    expect(workspaceDirectories).toHaveLength(27);
+    // 28 = 25 prior workspaces + packages/domain-inventory-spike (DG-02 #246)
+    // + packages/verification-spike (DG-03 #247)
+    // + packages/intent-proposal-spike (DG-04 #248), combined at integration.
+    expect(workspaceDirectories).toHaveLength(28);
 
     for (const workspaceDirectory of workspaceDirectories) {
       const packageJsonPath = join(workspaceDirectory, 'package.json');
