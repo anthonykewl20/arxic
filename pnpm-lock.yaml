@@ -474,6 +474,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/playwright-agent-adapter':
+        specifier: workspace:*
+        version: link:../playwright-agent-adapter
       '@arxic/playwright-screenshot-privacy':
         specifier: workspace:*
         version: link:../playwright-screenshot-privacy

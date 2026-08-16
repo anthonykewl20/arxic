@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@arxic/contracts": "workspace:*",
+    "@arxic/playwright-agent-adapter": "workspace:*",
     "@arxic/playwright-screenshot-privacy": "workspace:*",
     "@playwright/test": "1.62.1"
   },

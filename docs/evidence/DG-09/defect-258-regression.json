@@ -1,0 +1,35 @@
+{
+  "subject": "authentication.login.canned-literal",
+  "engine": "real Chromium via PlaywrightVerifier (two clean-fixture runs)",
+  "runs": [
+    {
+      "passed": false
+    },
+    {
+      "passed": false
+    }
+  ],
+  "outcome": "contradicted",
+  "diagnosticCodes": [
+    {
+      "code": "ARXIC-VERIFY-APP-DEFECT",
+      "severity": "contradicted"
+    },
+    {
+      "code": "ARXIC-VERIFY-RUN-FAILURE",
+      "severity": "contradicted"
+    },
+    {
+      "code": "ARXIC-VERIFY-RUN-FAILURE",
+      "severity": "contradicted"
+    },
+    {
+      "code": "ARXIC-VERIFY-ARTIFACT-MISSING",
+      "severity": "blocked"
+    }
+  ],
+  "retainedFailureEvidence": [
+    "run 1: 1) tests/workflow.spec.ts:7:5 › authentication.login.canned-literal › login-page → home ────────── | Error: expect(page).toHaveURL(expected) failed | Expected pattern: /^http:\\/\\/127\\.0\\.0\\.1:43485\\/(?:[?#].*)?$/ | Received string:  \"http://127.0.0.1:43485/dashboard\" | > 18 |     await expect(page).toHaveURL(/^http:\\/\\/127\\.0\\.0\\.1:43485\\/(?:[?#].*)?$/);…",
+    "run 2: 1) tests/workflow.spec.ts:7:5 › authentication.login.canned-literal › login-page → home ────────── | Error: expect(page).toHaveURL(expected) failed | Expected pattern: /^http:\\/\\/127\\.0\\.0\\.1:43485\\/(?:[?#].*)?$/ | Received string:  \"http://127.0.0.1:43485/dashboard\" | > 18 |     await expect(page).toHaveURL(/^http:\\/\\/127\\.0\\.0\\.1:43485\\/(?:[?#].*)?$/);…"
+  ]
+}

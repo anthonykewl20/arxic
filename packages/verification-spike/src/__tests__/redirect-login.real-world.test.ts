@@ -331,16 +331,17 @@ describe.sequential(
       expect(result.artifacts.length).toBeGreaterThan(0);
     }, 420_000);
 
-    test('the canned url:/ literal fails on this app — and the failure classification is masked blocked (reproduces #257 + #258)', async () => {
-      // The canned post-login assertion `url:/` is FALSE on this app (it redirects
-      // to /dashboard) — the #257 defect class. The honest classification would be
-      // `contradicted`; what the CURRENT verifier actually reports is `blocked`
-      // with ARXIC-VERIFY-ARTIFACT-MISSING, because the failed assertion means the
-      // checkpoint screenshot is never taken, the screenshot-privacy inventory gate
-      // then fails, failure-evidence retention is purged, and the artifact gate
-      // outranks the run classification — exactly the masking recorded as #258.
-      // The run outcomes below still prove the canned literal fails; the
-      // observation-derived assertion is what fixes #257 by construction.
+    test('the canned url:/ literal fails on this app and now classifies honestly as contradicted (#257 repro; #258 resolved by DG-09)', async () => {
+      // The canned post-login assertion `url:/` is FALSE on this app (it
+      // redirects to /dashboard) — the #257 defect class. This test originally
+      // documented the #258 masking: the failed assertion meant no checkpoint
+      // screenshot, the privacy-inventory gate then failed structurally, and
+      // the artifact gate replaced the honest `contradicted` classification
+      // with `blocked` + ARXIC-VERIFY-ARTIFACT-MISSING. DG-09 (#253) resolved
+      // the verifier defect: run failures now classify FIRST, the artifact
+      // gate is reported alongside, and the failure evidence is retained.
+      // (Expectation updated by DG-09 — the spike package is otherwise
+      // untouched evidence.)
       const cannedOutput = await mkdtemp(join(tmpdir(), 'dg03-canned-output-'));
       const cannedArtifacts = await mkdtemp(join(tmpdir(), 'dg03-canned-artifacts-'));
       try {
@@ -381,9 +382,11 @@ describe.sequential(
         });
         // The canned literal genuinely fails in every clean run (never a silent pass).
         expect(result.runs).toEqual([{ passed: false }, { passed: false }]);
-        expect(result.outcome).not.toBe('verified');
-        // The current verifier masks the contradiction behind the artifact gate (#258).
-        expect(result.outcome).toBe('blocked');
+        // DG-09/#258: the contradiction is no longer masked — the run-failure
+        // cause classifies first and the artifact gate is reported alongside.
+        expect(result.outcome).toBe('contradicted');
+        expect(result.diagnostics[0]?.code).toBe('ARXIC-VERIFY-APP-DEFECT');
+        expect(result.diagnostics.map(({ code }) => code)).toContain('ARXIC-VERIFY-RUN-FAILURE');
         expect(result.diagnostics.map(({ code }) => code)).toContain(
           'ARXIC-VERIFY-ARTIFACT-MISSING',
         );

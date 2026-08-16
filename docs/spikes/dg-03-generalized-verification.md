@@ -349,6 +349,11 @@ API replay of webhook intents is representative, not synthetic.
   out of this spike's file ownership. The spike's runs array still exposes
   the true per-run failures, and the observation-derived assertion removes
   the underlying #257 cause by construction.
+  **Resolved 2026-08-17 by DG-09 (#253):** `classifyVerification` now
+  classifies run failures first with the artifact gate alongside, and failed
+  runs retain redacted failure evidence (`ARXIC-VERIFY-RUN-FAILURE`); this
+  spike's canned-literal regression now expects the fixed behavior
+  (see `docs/evidence/DG-09/defect-258-regression.json`).
 - **D3 — The proof app is spike-owned, not a third-party app.** The #257
   defect class is exercised on a purpose-built real app because both fixture
   apps redirect to `/` (§2). External code-search evidence (§7.1) supports

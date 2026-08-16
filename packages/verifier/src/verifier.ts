@@ -47,6 +47,7 @@ import {
 } from './diagnostics';
 import { resetAndSeedFixtures, type VerificationPersona } from './reset';
 import { runPlaywrightSuite, type RunPass, type TransitionReceiptExpectation } from './runner';
+import { extractRunFailureEvidence } from './failure-evidence';
 
 const require = createRequire(import.meta.url);
 
@@ -235,6 +236,8 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     const receiptFailures: string[] = [];
     const receiptRedactionFailures: string[] = [];
     const missingTransitions: string[] = [];
+    const runFailures: string[] = [];
+    const failureEvidenceRedactionFailures: string[] = [];
     const executionDiagnostics: Diagnostic[] = [];
     for (let run = 1; run <= policy.requiredRuns; run += 1) {
       const captureCorrelation = this.#captureCorrelation(run);
@@ -298,6 +301,23 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         break;
       }
       runs.push({ passed: result.passed });
+      // #258: failed runs retain a bounded, redacted failure summary so the
+      // classification surfaces WHY the replay failed instead of purging it.
+      // Redaction is fail-closed: confident secret patterns are scrubbed, and
+      // content that cannot be confidently classified is scrubbed AND flagged
+      // so the result carries an ARXIC-VERIFY-REDACTION-FAILED signal.
+      if (!result.passed) {
+        const evidence = extractRunFailureEvidence(
+          result.output,
+          personaForbiddenSubstrings(this.#persona),
+        );
+        runFailures.push(`run ${run}: ${evidence.evidence}`);
+        if (evidence.redactionIncomplete) {
+          failureEvidenceRedactionFailures.push(
+            `run ${run}: retained failure evidence is pattern-scrubbed only`,
+          );
+        }
+      }
       networkErrors.push(...result.networkErrors.map((item) => `run ${run}: ${item}`));
       if (result.passed && result.receiptRedactionFailure) {
         receiptRedactionFailures.push(`run ${run}: ${result.receiptRedactionFailure}`);
@@ -365,6 +385,8 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       policy,
       executionDiagnostics,
       artifactFailures,
+      runFailures,
+      failureEvidenceRedactionFailures,
       networkErrors,
       receiptFailures,
       receiptRedactionFailures,
