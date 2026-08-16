@@ -1,6 +1,6 @@
 # DG-09 — staged doc updates (charter §10.2)
 
-Issue: #253 · PR: #270 · Also resolves: #258 (refs #258; issue stays open for the orchestrator) · Disposition: verified
+Issue: #253 · PR: #269 · Also resolves: #258 (refs #258; issue stays open for the orchestrator) · Disposition: verified
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
