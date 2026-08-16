@@ -1,11 +1,11 @@
 # ADR-008: Domain-general business-intent extraction (ALL domains)
 
-| Field      | Value                                                                                                                     |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Status     | Proposed (2026-08-16) — flips to Accepted only via the DG-12 exit gate (#256)                                             |
-| Decides    | The architecture by which Arxic extracts and verifies ALL business-intent domains of any project, not only authentication |
-| Relates to | ADR-001 §2/§8/§9/§10/§12/§16, ADR-002, ADR-004, ADR-006, issues #244–#256 (0.4.0 milestone)                               |
-| Owners     | Arxic maintainers                                                                                                         |
+| Field      | Value                                                                                                                       |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Status     | Proposed (2026-08-16) — flips to Accepted only via the DG-12 exit gate (#256)                                               |
+| Decides    | The architecture by which Arxic extracts and verifies ALL business-intent domains of any project, not only authentication   |
+| Relates to | ADR-001 §2/§8/§9/§10/§12/§16, ADR-002, ADR-004, ADR-006, issues #244–#256 (ALL-Domain Business Intent Extraction milestone) |
+| Owners     | Arxic maintainers                                                                                                           |
 
 ## Context
 
@@ -13,6 +13,10 @@ Arxic exists to accurately extract the business intent of a codebase and prove
 that intent with verified tests. The product promise is not a narrow
 authentication-workflow generator: it is evidence-grounded understanding of a
 project's user-facing behavior.
+
+Issues #244–#256 form the ALL-Domain Business Intent Extraction milestone,
+which is version-neutral by owner directive: the project stays on the v0.1.x
+lane and the release version is decided at release time.
 
 The 2026-08-16 third-party campaign measured the gap between that purpose and
 the present product. It ran the packed 0.1.1 CLI against a real private
@@ -219,6 +223,24 @@ This ADR remains Proposed until the DG-12 exit gate (#256) passes. Proposal is
 not authorization to claim full-domain extraction, change frozen contracts, or
 represent an unmeasured model program as production capability.
 
+### 11. Research method — code is the source of truth, adversarially validated
+
+Every piece of prior information—including campaign measurements, issue
+premises, documentation, and agent memory—is treated as possibly stale or
+incorrect until validated. Research uses this source-of-truth hierarchy:
+Arxic repository code for Arxic behavior; upstream source and tags for
+dependencies; then version-matched official documentation as secondary
+evidence.
+
+Design assumptions, including Laravel route-shape diversity, Tree-sitter PHP
+binding APIs, and framework-version distributions, MUST be validated against
+real repositories through GitHub code search rather than synthetic examples,
+with URL-and-commit citations. Every spike conclusion remains provisional until
+it passes consensus (`consensus-terra`) and/or specialized-agent cross-review
+(`reviewer-deepseek` with `reviewer-hy3` or `codex-reviewer`); the evidence and
+any dissent MUST be recorded. This protocol binds DG-01 through DG-04
+(#245–#248) and this ADR.
+
 ## Exit criteria
 
 DG-12 is the acceptance gate for this ADR. It runs on two real third-party
@@ -245,7 +267,8 @@ remain excluded under ADR-001's existing redaction policy.
 
 ### Positive
 
-The 0.4.0 milestone's single goal—ALL-domain extraction—becomes measurable
+The ALL-Domain Business Intent Extraction milestone's single goal—ALL-domain
+extraction—becomes measurable
 through ledger-completeness percentages rather than aspirational language.
 
 The trust spine is reused unchanged: attestation, evidence resolution,
@@ -335,7 +358,7 @@ a proposed business intent.
 The 2026-08-16 third-party campaign measured the auth-only design at zero of
 approximately 340 endpoints of core value on a real application. Continuing
 that path would preserve a successful trust spine around the wrong product
-scope, so it is rejected as the 0.4.0 goal.
+scope, so it is rejected as the ALL-Domain Business Intent Extraction goal.
 
 ### Defer the gap to service mode (M3) — rejected
 

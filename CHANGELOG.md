@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### added
 
-- Docs: ADR-008 (Proposed) domain-general business-intent extraction; milestone 0.4.0 filed (#244–#256); campaign defects filed (#257–#259).
+- Docs: ADR-008 (Proposed) domain-general business-intent extraction; ALL-domain intent extraction milestone filed (#244–#256); campaign defects filed (#257–#259).
 - Added the packed-install human-flow E2E release gate and release.yml pre-publish wiring (refs #241).
 - Added fail-closed provenance-enabled npm release automation, repository metadata, bundled schema support for packed CLI execution, cross-platform packed-CLI smoke coverage, and an installable CLI quickstart (refs #189, #186).
 - Added versioned user documentation with parser-derived CLI and configuration references, plus corrected README status and roadmap claims (refs #188).
