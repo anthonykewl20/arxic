@@ -50,9 +50,6 @@ importers:
 
   apps/cli:
     dependencies:
-      '@arxic/environment':
-        specifier: workspace:*
-        version: link:../../packages/environment
       '@ast-grep/cli':
         specifier: ^0.45.0
         version: 0.45.0
@@ -90,6 +87,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@arxic/environment':
+        specifier: workspace:*
+        version: link:../../packages/environment
       '@arxic/model-adapter':
         specifier: workspace:*
         version: link:../../packages/model-adapter
