@@ -176,6 +176,7 @@ export async function runPlannedExploration(
   const evidenceRefs: EvidenceRef[] = [];
   const locatorProvenance: LocatorProvenanceRecord[] = [];
   const executable: PlanStep[] = [];
+  const observations: StepObservation[] = [];
   let budgetRemaining = input.budget;
   let approved = true;
   let safeToExecute = true;
@@ -251,6 +252,7 @@ export async function runPlannedExploration(
         allowedOrigin: input.origin,
       });
       for (const [index, observation] of result.observations.entries()) {
+        observations.push(observation);
         const step = executable[index];
         if (!step) continue;
         if (observation.locatorResolution) {
@@ -318,12 +320,48 @@ export async function runPlannedExploration(
     }
   }
   decisions.push(...diagnostics.map(formatDiagnostic));
+  // DG-08: expose the post-action observation for the compile stage. The
+  // observation anchor is the FINAL successful CLICK step — the form-drive
+  // plan's submit — so the observation genuinely describes the post-action
+  // state (ADR-008 Decision 7); navigate-only runs expose nothing and the
+  // compile stage blocks OBSERVATION-MISSING instead of guessing.
+  const postAction = postActionOf(executable, observations);
   return {
     approved,
     evidenceRefs,
     decisions,
     ...(locatorProvenance.length > 0 ? { locatorProvenance: { records: locatorProvenance } } : {}),
+    ...(postAction ? { postAction } : {}),
   };
+}
+
+const MAX_POST_ACTION_HEADINGS = 3;
+
+function postActionOf(
+  executable: readonly PlanStep[],
+  observations: readonly StepObservation[],
+): { url: string; headings: readonly string[] } | undefined {
+  for (let index = executable.length - 1; index >= 0; index -= 1) {
+    const step = executable[index];
+    const observation = observations[index];
+    if (!step || !observation) continue;
+    if (step.kind !== 'click') continue;
+    if (!observation.ok || observation.originDrifted) continue;
+    if (!observation.accessibilitySnapshot) continue;
+    const headings = headingNames(observation.accessibilitySnapshot).slice(
+      0,
+      MAX_POST_ACTION_HEADINGS,
+    );
+    return { url: observation.url, headings };
+  }
+  return undefined;
+}
+
+function headingNames(node: import('@arxic/playwright-agent-adapter').AccessibilityNode): string[] {
+  const names: string[] = [];
+  if (node.role === 'heading' && node.name) names.push(node.name);
+  for (const child of node.children ?? []) names.push(...headingNames(child));
+  return names;
 }
 
 function selectLease(
@@ -358,7 +396,7 @@ function mapIntent(
       ...(path ? { url: new URL(path, origin).href } : {}),
     };
   }
-  if (/submit|login|form/i.test(intent))
+  if (/submit|form/i.test(intent))
     return { action: 'form-submit', actionClass: 'reversible-mutation' };
   if (/delete|remove|destroy/i.test(intent))
     return { action: 'delete-user', actionClass: 'destructive' };
@@ -418,7 +456,14 @@ function toDriverStep(step: PlanStep): PlannedExplorationStep {
 
 function isExecutableStep(step: PlanStep): boolean {
   if (step.actionClass === 'read-only') {
-    return step.kind === 'snapshot' || step.kind === 'navigate' || Boolean(step.url);
+    // DG-08: `fill` is a DOM-local, policy-registered read-only action —
+    // the page-local half of a leased form submit.
+    return (
+      step.kind === 'snapshot' ||
+      step.kind === 'navigate' ||
+      step.kind === 'fill' ||
+      Boolean(step.url)
+    );
   }
   return (
     step.actionClass === 'reversible-mutation' && (step.kind === 'fill' || step.kind === 'click')

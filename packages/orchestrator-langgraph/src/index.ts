@@ -11,3 +11,5 @@ export * from './sensitivity-probe-adapter';
 export * from './stage-order';
 export * from './types';
 export * from './worker-candidate-promotion';
+export * from './intent-proposer';
+export * from './proposal-compile';

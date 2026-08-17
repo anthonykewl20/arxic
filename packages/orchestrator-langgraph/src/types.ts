@@ -155,6 +155,13 @@ export type ExplorationResult = Readonly<{
   evidenceRefs: readonly EvidenceRef[];
   decisions: readonly string[];
   locatorProvenance?: Readonly<{ records: readonly LocatorProvenanceRecord[] }>;
+  /**
+   * DG-08: the post-action observation (stabilized URL + bounded heading
+   * anchors) when the run's final successful step was a form submit. The
+   * compile stage binds assertions from THIS (ADR-008 Decision 7); absent
+   * for navigate-only runs.
+   */
+  postAction?: Readonly<{ url: string; headings: readonly string[] }>;
 }>;
 
 export type OracleRule = Readonly<{

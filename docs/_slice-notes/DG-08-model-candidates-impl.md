@@ -1,0 +1,48 @@
+# DG-08-model-candidates-impl — staged doc updates (charter §10.2)
+
+Issue: #252 · PR: #272 · Disposition: mixed (verified-by-CI for the pipeline semantics incl. the real Chromium E2E; the stub-model proof satisfies the issue acceptance — the real-model run remains owner-gated under #255)
+
+## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
+
+```
+| #252 | [DG-08] Implement: model-driven candidates end-to-end; demote canned auth template to seeder | ☑ done |
+```
+
+## 2. `docs/SYNC.md` — session-log row (append to the table)
+
+```
+| 2026-08-17 | **#252 (DG-08) model-driven candidates end-to-end DONE.** Stage 4 is now the IntentProposer over Domain-Inventory rows (`orchestrator-langgraph/src/intent-proposer.ts`, DG-04 design extracted per the DG-09 precedent — spike packages untouched): DG-04 schema vNext (`arxic-intent-proposal-v1`, no truth-state field, wire schema without uniqueItems), per-domain batching (one-shot forbidden per ADR Decision 4), content-as-data, bounded retry-then-block fail-closed per run, dangling-citation rejection, 3-layer dedupe, and a PRE-CALL budget gate (env `ARXIC_MODEL_BUDGET_USD`, ADR provisional default $0.025, DG-04-measured per-row profile). Proposal candidates carry identity+evidence only — no fabricated workflow (a canned assertion is the #257 defect class); the workflow is BORN at stage 9 from the cited inventory row's crawl-form geometry + the stage-8 POLICY-GATED form-drive observation (persona lease; fills registered as a read-only policy action; submit click anchors the post-action record) through the UNCHANGED DG-09 `buildFormFlowWorkflow` → real compiler: observation-bound assertions only. Auth pack DEMOTED to an optional seeder (`authDomainSeeder`, `AUTH_DOMAIN` literal lives only in the pack) whose proposals merge through the same gates — never override; `authCandidates`/assembler kept for backward compat. CLI canned-replacement gate REMOVED (`authDomainCandidates`, fabricated `AuthSurface` with canned `url:/`, hardcoded `/login` exploration, `stage4Infer` usage) — honest zero with no model unchanged. ADR Decision 3 is machine-enforced by two domain-literal gate tests (orchestrator + CLI non-test source). Legacy `stage4Infer` kept compiling for `apps/worker` (its mirrored canned gate reported as a follow-up — outside this slice's files). Two disclosed out-of-named-ownership fixes: `packages/policy-engine` ACTION_REGISTRY + fill (additive, least-privileged, registry test 6→7) and `packages/verifier` pre-run clean narrowed from `rm(output/artifacts)` to the verifier's own receipt file (the wholesale rm destroyed the pipeline's stage artifacts under the CLI layout — a pre-existing data-loss exposed by the new E2E). Real-engine proof: CLI E2E boots the real reference app + real Mailpit + real local model endpoint echoing REAL inventory ids — a NON-auth proposal (account-recovery / /forgot-password) compiled with observation-bound assertions and verified 2× in real Chromium → promoted, twice consecutively; honest-zero, malformed→blocked, injection→content-is-data, budget-block proven over real endpoints. Dispositions: hypothesized/observed/blocked; `verified` only ever from the deterministic verifier. Next: cross-review; worker mirror demotion follow-up; #255 real-model program. |
+```
+
+## 3. `CHANGELOG.md` — entry under `## [Unreleased]` → `### changed`
+
+```
+- DG-08 model-driven candidates end-to-end (#252): stage 4 is now an IntentProposer over Domain-Inventory rows (DG-04 schema vNext — inventory-row + EvidenceRef citations enforced, no truth-state field, per-domain batching, content-as-data, bounded retry-then-block, pre-call budget cap `ARXIC_MODEL_BUDGET_USD`); proposals drive the DG-09 form-flow compile path with observation-bound assertions via a policy-gated stage-8 form drive under a persona lease; the auth domain pack is demoted to an optional seeder competing through the same gates; the CLI canned authentication.login replacement gate is removed (honest zero with no model); ADR-008 Decision 3 enforced by domain-literal gate tests; verifier pre-run clean narrowed to its own receipt file (stage artifacts no longer destroyed under the CLI layout).
+```
+
+## 4. VERSION bump required?
+
+no — internal pipeline behavior change; no new user-facing command surface (the budget env var is documented in `docs/configuration.md`; versioning per RELEASES.md stays with the owner's release decision on the v0.1.x lane)
+
+## 5. Evidence pointers
+
+- Real-world proof: `apps/cli/src/__tests__/real-world.test.ts` — real reference app + real Mailpit Testcontainer + real local OpenAI-compatible endpoint; NON-auth stub proposal (account-recovery, `/forgot-password`) compiles through the DG-09 path with observation-bound assertions and verifies 2× in real Chromium → promoted, twice consecutively; honest-zero (no model) test unchanged and green.
+- Sad-path suites: `packages/orchestrator-langgraph/src/__tests__/intent-proposer.test.ts` (malformed→retry→blocked; injection→content-as-data; dangling refs→rejected; budget→blocked pre-call with ZERO requests; seeder same-gates; honest zero), `proposal-compile.test.ts` (no form surface / no observation → honest block, never fabricated assertions; #257 redirect scenario binds the OBSERVED url).
+- Machine gate: `domain-literal-gate.test.ts` in orchestrator + CLI (ADR-008 Decision 3 in CI).
+- Evidence dir: `docs/evidence/DG-08/README.md`.
+- Gates: typecheck ☐ · lint ☐ · format ☐ · test (179 files / 1483 tests) ☐ · license gate ☐ (no new external deps)
+
+## 6. Sad paths proved (each mapped to a truth state, charter §4)
+
+| Trigger                                                                   | Expected disposition                                                                                        | Test                                                      |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Model output stays malformed (real endpoint)                              | blocked after LAYERED bounded retries (proposer 1+1 × orchestrator 2), zero candidates, fail-closed per run | `intent-proposer.test.ts`, `inference-real-world.test.ts` |
+| Injection payload in model output                                         | blocked as content-is-data (adapter INSTRUCTION_LIKE_OUTPUT gate)                                           | `intent-proposer.test.ts`                                 |
+| Dangling inventory-row / EvidenceRef citation                             | proposal rejected, `ARXIC-ORCH-PROPOSAL-*-DANGLING`, honest ledger                                          | `intent-proposer.test.ts`                                 |
+| Budget estimate exceeds cap                                               | blocked `ARXIC-ORCH-MODEL-BUDGET-EXCEEDED` BEFORE any provider call (zero requests)                         | `intent-proposer.test.ts`                                 |
+| No model configured                                                       | honest zero — no candidates, inventory dispositions retained (empty-coverage message inventory-derived)     | `real-world.test.ts` (no-model test)                      |
+| No form surface on the crawl map                                          | compile blocked `ARXIC-ORCH-PROPOSAL-SURFACE-MISSING`, no fabricated workflow                               | `proposal-compile.test.ts`                                |
+| No post-action observation (values/lease missing → policy-skipped submit) | compile blocked `ARXIC-ORCH-PROPOSAL-OBSERVATION-MISSING`, no fabricated assertions                         | `proposal-compile.test.ts`                                |
+| Seeder emits a dangling citation                                          | rejected exactly like a model proposal                                                                      | `intent-proposer.test.ts`                                 |
+| Seeder emits an invalid payload                                           | run blocked, no partial acceptance                                                                          | `intent-proposer.test.ts`                                 |
+| Model/seeder content-equal proposals                                      | deterministic dedupe (single candidate)                                                                     | `intent-proposer.test.ts`                                 |
