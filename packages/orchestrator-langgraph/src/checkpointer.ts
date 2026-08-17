@@ -88,10 +88,28 @@ export class FileStageCheckpointer implements StageCheckpointer {
       return undefined;
     }
     if (names.length === 0) return undefined;
-    const record = JSON.parse(
-      await readFile(join(stagesDirectory, names[names.length - 1]), 'utf8'),
-    ) as { state: RunState };
-    return record.state;
+    // Stage 13 (domain-inventory) EXECUTES between stages 2 and 3, so its
+    // file `13.json` sorts LAST while holding an EARLIER state than
+    // `03.json`–`12.json`. The most-advanced persisted state is therefore
+    // NOT always the lexicographically-last file: every checkpoint persists
+    // the full state, so select the state with the most completed stages
+    // (ties broken by checkpoint count, which grows monotonically).
+    let best: RunState | undefined;
+    for (const name of names) {
+      const record = JSON.parse(await readFile(join(stagesDirectory, name), 'utf8')) as {
+        state: RunState;
+      };
+      const state = record.state;
+      if (
+        best === undefined ||
+        state.completedStages.length > best.completedStages.length ||
+        (state.completedStages.length === best.completedStages.length &&
+          state.checkpoints.length > best.checkpoints.length)
+      ) {
+        best = state;
+      }
+    }
+    return best;
   }
 
   async saveArtifact(
@@ -190,5 +208,6 @@ function assertRunId(runId: string): void {
 }
 
 function assertArtifactId(id: string): void {
-  if (!/^stage:(?:[0-9]|1[0-2])$/u.test(id)) throw new Error('Artifact id is invalid');
+  // Stage 13 (domain-inventory, DG-06) is the next available id after 0–12.
+  if (!/^stage:(?:[0-9]|1[0-3])$/u.test(id)) throw new Error('Artifact id is invalid');
 }

@@ -6,7 +6,14 @@ import {
   validateWorkflow,
   type StagedBundle,
 } from '@arxic/contracts';
-import type { RunState } from '@arxic/orchestrator-langgraph';
+import {
+  // Canonical stage-order truth is owned by the orchestrator package — the
+  // CLI must NOT re-derive or hand-maintain it (DG-06, exception 2 on #250:
+  // stage 13 executes between 2 and 3, so a stage ID is not a position).
+  STAGE_EXECUTION_ORDER,
+  isCommonStageExecutionPrefix,
+  type RunState,
+} from '@arxic/orchestrator-langgraph';
 import {
   PIPELINE_RESULT_PATH,
   PIPELINE_RESULT_VERSION,
@@ -223,13 +230,30 @@ function validateVerifier(
   return undefined;
 }
 
+/**
+ * A pipeline result is complete-monotonic when SOME known execution order
+ * explains the whole envelope: the checkpoint sequence and the
+ * completed-stage sequence are each gapless prefixes of the SAME known order
+ * — the current order (stage 13 between 2 and 3) or, for pre-DG-06 worker
+ * results, the legacy 0–12 order — with every completed stage carrying a
+ * checkpoint. Sequences confined to the agreement region (positions 0–2,
+ * where the orders coincide) match both orders, which keeps a legacy run
+ * that failed at stage 3 (checkpoints `[0,1,2,3]`, completedStages
+ * `[0,1,2]`) valid; mixed-order envelopes (current-only checkpoints +
+ * legacy-only completed stages beyond that region) match no single order and
+ * are rejected. Sequence POSITION is validated against the
+ * orchestrator-owned canonical order, never `stage === index` (which
+ * conflated id with position and rejected the honest `[0,1,2,13,3,…]`
+ * sequence) — and never first-match-wins per sequence (review round on
+ * PR #273, P2). The CLI derives nothing itself.
+ */
 function monotonicCompletePrefix(result: PipelineResult): boolean {
   const stages = result.state.checkpoints.map(({ stage }) => stage);
-  if (stages.some((stage, index) => stage !== index)) return false;
   if (new Set(result.state.completedStages).size !== result.state.completedStages.length)
     return false;
-  return result.state.completedStages.every(
-    (stage, index) => stage === index && stages.includes(stage),
+  return (
+    isCommonStageExecutionPrefix(stages, result.state.completedStages) &&
+    result.state.completedStages.every((stage) => stages.includes(stage))
   );
 }
 
@@ -309,7 +333,15 @@ function isPipelineResult(value: unknown): value is PipelineResult {
 }
 
 function isStage(value: unknown): value is PipelineResult['state']['completedStages'][number] {
-  return Number.isSafeInteger(value) && typeof value === 'number' && value >= 0 && value <= 12;
+  // Valid stage ids are exactly the ids in the orchestrator-owned canonical
+  // execution order (0–13 today) — single source of truth, not a hand-kept
+  // numeric bound (the `<= 12` bound here was the same drift class as the
+  // worker's StageId mirror; DG-06, exception 2 on #250).
+  return (
+    Number.isSafeInteger(value) &&
+    typeof value === 'number' &&
+    STAGE_EXECUTION_ORDER.includes(value as (typeof STAGE_EXECUTION_ORDER)[number])
+  );
 }
 
 function isArtifactRef(value: unknown): value is PipelineArtifactRef {

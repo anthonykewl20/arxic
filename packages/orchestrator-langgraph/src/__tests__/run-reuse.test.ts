@@ -17,7 +17,7 @@ import {
   type StageId,
 } from '..';
 
-const stages = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+const stages = [0, 1, 2, 13, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const; // stage 13 = domain-inventory (DG-06), runs between 2 and 3
 
 const baseline: OrchestratorInput = {
   runId: 'reused-terminal-run',

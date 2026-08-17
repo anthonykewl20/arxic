@@ -113,7 +113,7 @@ describe('real LangGraph orchestration proof', () => {
 
     expect(inferenceCalls).toBe(2);
     expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: ARXIC_ORCH_RESUME }));
-    expect(result.checkpoints.filter(({ stage }) => stage <= 3)).toHaveLength(4);
+    expect(result.checkpoints.map(({ stage }) => stage).slice(0, 5)).toEqual([0, 1, 2, 13, 3]); // stage 13 runs between 2 and 3
     expect(
       await Promise.all(
         [0, 1, 2, 3].map((stage) =>
@@ -173,7 +173,17 @@ describe('real LangGraph orchestration proof', () => {
       revision: { ...orchestratorInput(runId).revision, commit: 'f'.repeat(40) },
     });
 
-    expect(first.completedStages).toHaveLength(13);
+    expect(first.completedStages).toHaveLength(14);
+    // DG-06: the domain-inventory stage ran on the REAL reference app —
+    // fused by the real DG-05 translator path and projected into the
+    // evidence graph before inference.
+    const inventoryCheckpoint = first.checkpoints.find(({ stage }) => stage === 13);
+    expect(inventoryCheckpoint).toMatchObject({
+      name: 'domain-inventory',
+      status: 'completed',
+      adapter: { name: '@arxic/domain-inventory' },
+    });
+    expect(inventoryCheckpoint?.artifacts).toHaveLength(1);
     expect(persisted?.inputFingerprint).toMatch(/^[a-f0-9]{64}$/u);
     expect(reused.status).toBe('failed');
     expect(reused.outcome).toBe('blocked');

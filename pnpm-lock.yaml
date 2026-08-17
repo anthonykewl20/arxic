@@ -261,6 +261,9 @@ importers:
       '@arxic/crawlee-adapter':
         specifier: workspace:*
         version: link:../crawlee-adapter
+      '@arxic/intent-proposal-spike':
+        specifier: workspace:*
+        version: link:../intent-proposal-spike
       '@arxic/real-world-testkit':
         specifier: workspace:*
         version: link:../real-world-testkit
@@ -285,6 +288,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/domain-inventory':
+        specifier: workspace:*
+        version: link:../domain-inventory-spike
       '@arxic/source-ua-adapter':
         specifier: workspace:*
         version: link:../source-ua-adapter
@@ -419,9 +425,15 @@ importers:
       '@arxic/crawlee-adapter':
         specifier: workspace:*
         version: link:../crawlee-adapter
+      '@arxic/domain-inventory':
+        specifier: workspace:*
+        version: link:../domain-inventory-spike
       '@arxic/environment':
         specifier: workspace:*
         version: link:../environment
+      '@arxic/evidence-graph':
+        specifier: workspace:*
+        version: link:../evidence-graph
       '@arxic/intent':
         specifier: workspace:*
         version: link:../intent

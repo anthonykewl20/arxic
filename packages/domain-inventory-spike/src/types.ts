@@ -1,10 +1,10 @@
-import type { EvidenceRefRuntime, EvidenceRefSource } from '@arxic/contracts';
+import type { Diagnostic, EvidenceRefRuntime, EvidenceRefSource } from '@arxic/contracts';
 import type { RouteInventoryInterchange } from './interchange';
 
 /**
- * DG-02 spike types. One row per deduplicated surface in the deterministic
- * denominator (issue #246 / ADR-008 Decision 2). NO LLM participates anywhere
- * in building this inventory.
+ * The Domain Inventory (DG-02 #246, productionized by DG-06 #250): one row per
+ * deduplicated surface in the deterministic denominator (ADR-008 Decision 2).
+ * NO LLM participates anywhere in building this inventory.
  */
 
 export const INVENTORY_SCHEMA_VERSION = 1;
@@ -148,4 +148,12 @@ export type DomainInventory = {
   rows: InventoryRow[];
   clusters: DomainCluster[];
   stats: InventoryStats;
+  /**
+   * Structured fusion observations (severity `observed`, never blocking):
+   * cross-file URI collisions that fused onto one key (visible structured
+   * gaps — DG-06 #250) and provider-include composition outcomes. Absent
+   * when nothing was observed. NOT validator inputs: the completeness
+   * invariant is rows == sum(dispositions) regardless of these.
+   */
+  diagnostics?: readonly Diagnostic[];
 };
