@@ -14,7 +14,7 @@ Arxic separates **orchestration (actions)** from **operational mechanics (servic
 
 | Layer | Owns | In Arxic |
 |---|---|---|
-| **Actions / orchestration** | the *why/when*: business rules, state transitions, auth/ownership + policy checks, **failure classification**, user-facing errors | `packages/orchestrator-langgraph` (RunState + pipeline stages 0–12, §8.1/§9), `packages/reconciler` (dispositions), `packages/verifier` (gate decision), `packages/bundle-promoter` (promotion policy) |
+| **Actions / orchestration** | the *why/when*: business rules, state transitions, auth/ownership + policy checks, **failure classification**, user-facing errors | `packages/orchestrator-langgraph` (RunState + pipeline stages 0–13, §8.1/§9), `packages/reconciler` (dispositions), `packages/verifier` (gate decision), `packages/bundle-promoter` (promotion policy) |
 | **Service / capability blocks** | the *how*: reusable operational mechanics, provider/SDK interactions, readiness, retries — returning **structured results** | the §10.5 adapters: `SourceIndexer`, `SurfaceDiscoverer`, `FixtureProvider`, `WorkflowPlanner`, `WorkflowCompiler`, `WorkflowVerifier`, `BundlePromoter` (+ `EnvironmentAdapter`, `ModelAdapter`, `PersonaProvisioner`, `InboxAdapter`, `OtpAdapter`) |
 
 `verifier` and `bundle-promoter` are orchestration components because they own

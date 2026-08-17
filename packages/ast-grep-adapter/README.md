@@ -22,7 +22,7 @@ Version 0.45.0 warns that `sg` is deprecated and delegates to `ast-grep`. The ad
 
 ## API
 
-`new AstGrepAdapter({ packs, sgBinary?, now? })` exposes `scan({ revision, features?, framework? })` and an `AsyncIterable` `index()` method. The optional `framework` is the caller's pack-selection policy input and runs only packs whose declared framework name matches. Pack version ranges remain declarative metadata; `@arxic/orchestrator-langgraph` owns the stage-3 selection policy. This spike proves the selection seam.
+`new AstGrepAdapter({ packs, sgBinary?, now? })` exposes `scan({ revision, features?, framework? })` and an `AsyncIterable` `index()` method. The optional `framework` is the caller's pack-selection policy input and runs only packs whose declared framework name matches. Since DG-10 (#254) pack `framework.versions` ranges are NORMATIVE: `framework-gate.ts` detects framework+version from source evidence (lockfile → manifest → imports) and enforcement at selection accepts/rejects/waives with `ARXIC-RULES-FRAMEWORK-*` diagnostics — name-only matching is corroboration, never a version decision.
 
 A dirty or mismatched Git revision, malformed pack/rule, process failure, parse failure, or duplicate rule id fails closed. Conflicts are checked globally across loaded packs before framework selection. Source refs use committed file bytes and rule ids shaped as `<pack>/<rule>@<semver>`.
 
