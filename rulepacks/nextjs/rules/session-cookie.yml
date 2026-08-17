@@ -8,7 +8,7 @@ metadata:
   arxic:
     category: session-cookie
     semver: 1.0.0
-    frameworkVersions: '>=15 <16'
+    frameworkVersions: '>=15 <17'
     precision: Captures cookie name value and options including httpOnly
     fallback: Cookie wrapper methods require another rule
     license: MIT

@@ -11,7 +11,7 @@ metadata:
   arxic:
     category: form
     semver: 1.0.0
-    frameworkVersions: '>=15 <16'
+    frameworkVersions: '>=15 <17'
     precision: Structural JSX form only; fields are exposed through CHILDREN
     fallback: Component-composed forms are not primary evidence
     license: MIT

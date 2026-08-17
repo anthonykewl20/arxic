@@ -75,6 +75,9 @@ importers:
         specifier: ^0.23.2
         version: 0.23.2(tree-sitter@0.22.4)
     devDependencies:
+      '@arxic/ast-grep-adapter':
+        specifier: workspace:*
+        version: link:../../packages/ast-grep-adapter
       '@arxic/auth-domain-pack':
         specifier: workspace:*
         version: link:../../packages/auth-domain-pack

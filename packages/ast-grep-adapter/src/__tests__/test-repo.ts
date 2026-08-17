@@ -56,6 +56,8 @@ export async function writePack(
   id: string,
   ruleId: string,
   malformed = false,
+  framework: { name: string; versions: string } = { name: 'test', versions: '>=1' },
+  rule: { language?: string; pattern?: string } = {},
 ): Promise<string> {
   const directory = join(parent, id);
   await mkdir(join(directory, 'rules'), { recursive: true });
@@ -66,15 +68,17 @@ export async function writePack(
       : JSON.stringify({
           id,
           version: '1.0.0',
-          framework: { name: 'test', versions: '>=1' },
+          framework,
           license: 'MIT',
           provenance: 'original-arxic',
           ruleDir: 'rules',
         }),
   );
+  const language = rule.language ?? 'TypeScript';
+  const pattern = rule.pattern ?? 'app.post($PATH, $$$ARGS)';
   await writeFile(
     join(directory, 'rules/rule.yml'),
-    `id: ${ruleId}\nlanguage: TypeScript\nmessage: test\nseverity: info\nrule:\n  pattern: app.post($PATH, $$$ARGS)\nmetadata:\n  arxic:\n    category: route\n    semver: 1.0.0\n    frameworkVersions: ">=1"\n    precision: test precision\n    fallback: test fallback\n    license: MIT\n    provenance: original-arxic\n`,
+    `id: ${ruleId}\nlanguage: ${language}\nmessage: test\nseverity: info\nrule:\n  pattern: ${pattern}\nmetadata:\n  arxic:\n    category: route\n    semver: 1.0.0\n    frameworkVersions: "${framework.versions}"\n    precision: test precision\n    fallback: test fallback\n    license: MIT\n    provenance: original-arxic\n`,
   );
   return directory;
 }

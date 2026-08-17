@@ -13,7 +13,7 @@ metadata:
   arxic:
     category: guard
     semver: 1.0.0
-    frameworkVersions: '>=15 <16'
+    frameworkVersions: '>=15 <17'
     precision: Named fixture guard and credential calls
     fallback: Aliases and wrappers require evidence reconciliation
     license: MIT

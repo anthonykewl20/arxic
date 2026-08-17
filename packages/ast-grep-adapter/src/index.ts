@@ -17,11 +17,19 @@ import {
 import { readSafeSource } from '@arxic/fs-safe';
 import { ARXIC_RULES_DIRTY_TREE, ARXIC_RULES_FALLBACK, rulesDiagnostic } from './diagnostics';
 import { committedRevision, sourceFiles } from './git';
+import {
+  detectFrameworkEvidence,
+  evaluateFrameworkGate,
+  frameworkGateEvidence,
+  type DetectedFramework,
+} from './framework-gate';
 import { interpretMatches, type EvidencedRuleMatch, type FeatureChain } from './interpret';
 import { loadPacks, type LoadedPack } from './packs';
 import { codepointCompare, runRules, type RuleMatch } from './runner';
 
 export * from './diagnostics';
+export * from './framework-gate';
+export * from './git';
 export * from './interpret';
 export * from './packs';
 export * from './runner';
@@ -46,6 +54,11 @@ export type AstGrepScanResult = {
   chains: FeatureChain[];
   packs: LoadedPack[];
   generatedAt: string;
+  /** DG-10: deterministic framework detection over the scanned revision
+   * (empty when no framework was requested). Optional so consumers that
+   * construct result literals — the evidence graph, checkpoint rehydration —
+   * keep compiling without knowing the field. */
+  frameworks?: DetectedFramework[];
 };
 
 export class AstGrepAdapter {
@@ -80,7 +93,14 @@ export class AstGrepAdapter {
           ),
         ),
       );
-      return { events, matches: [], chains: [], packs: packs.packs, generatedAt: this.now() };
+      return {
+        events,
+        matches: [],
+        chains: [],
+        packs: packs.packs,
+        frameworks: [],
+        generatedAt: this.now(),
+      };
     }
     const files = await sourceFiles(root);
     const safeFiles = new Map<string, Buffer>();
@@ -98,6 +118,42 @@ export class AstGrepAdapter {
             message: read.detail,
           }),
         );
+    }
+    // DG-10 (ADR-008 Decision 9): normative framework gating at rulepack
+    // selection time. Runs only when a framework is requested — the config
+    // surface always supplies one; framework-less scans keep legacy behavior.
+    let frameworks: DetectedFramework[] = [];
+    if (input.framework) {
+      const detection = await detectFrameworkEvidence({
+        root,
+        repository: input.revision.repository,
+        commit: provenance.commit,
+        sourceBytes: safeFiles,
+      });
+      frameworks = detection.frameworks;
+      const gate = evaluateFrameworkGate({
+        frameworks: [input.framework],
+        packs: packs.packs,
+        detection,
+      });
+      events.push(...gate.diagnostics.map((diagnostic) => eventDiagnostic(diagnostic)));
+      for (const ref of frameworkGateEvidence({
+        frameworks: [input.framework],
+        detection,
+        verdicts: gate.verdicts,
+      }))
+        events.push({ ref });
+      if (!gate.runRules) {
+        events.sort((left, right) => codepointCompare(JSON.stringify(left), JSON.stringify(right)));
+        return {
+          events,
+          matches: [],
+          chains: [],
+          packs: packs.packs,
+          frameworks,
+          generatedAt: this.now(),
+        };
+      }
     }
     const selectedPackIds = input.framework
       ? new Set(
@@ -169,6 +225,7 @@ export class AstGrepAdapter {
       matches,
       chains: interpreted.chains,
       packs: packs.packs,
+      frameworks,
       generatedAt: this.now(),
     };
   }
