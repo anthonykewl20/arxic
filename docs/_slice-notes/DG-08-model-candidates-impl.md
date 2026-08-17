@@ -1,6 +1,6 @@
 # DG-08-model-candidates-impl — staged doc updates (charter §10.2)
 
-Issue: #252 · PR: #272 · Disposition: mixed (verified-by-CI for the pipeline semantics incl. the real Chromium E2E; the stub-model proof satisfies the issue acceptance — the real-model run remains owner-gated under #255)
+Issue: #252 · PR: #276 · Disposition: mixed (verified-by-CI for the pipeline semantics incl. the real Chromium E2E; the stub-model proof satisfies the issue acceptance — the real-model run remains owner-gated under #255)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
@@ -20,6 +20,14 @@ Issue: #252 · PR: #272 · Disposition: mixed (verified-by-CI for the pipeline s
 - DG-08 model-driven candidates end-to-end (#252): stage 4 is now an IntentProposer over Domain-Inventory rows (DG-04 schema vNext — inventory-row + EvidenceRef citations enforced, no truth-state field, per-domain batching, content-as-data, bounded retry-then-block, pre-call budget cap `ARXIC_MODEL_BUDGET_USD`); proposals drive the DG-09 form-flow compile path with observation-bound assertions via a policy-gated stage-8 form drive under a persona lease; the auth domain pack is demoted to an optional seeder competing through the same gates; the CLI canned authentication.login replacement gate is removed (honest zero with no model); ADR-008 Decision 3 enforced by domain-literal gate tests; verifier pre-run clean narrowed to its own receipt file (stage artifacts no longer destroyed under the CLI layout).
 ```
 
+### Remediation round (review P1 + P3s, ownership extended to `apps/worker/**`)
+
+**P1 fixed — the worker canned-substitution mirror is GONE** (red-first: the new worker gate FAILED against the pre-fix source with 14 literal violations + the symbol pin). `apps/worker/src/main.ts` now mirrors the CLI local executor: `domainSeeders: [authDomainSeeder]` when scoped, budget env, persona lease + transient input values; exploration is the orchestrator's inventory-derived form drive. Deleted: `authDomainCandidates`, `authSurfaceFromEvidence`, `toCandidate`, `withSourceEvidence`, `isInferenceResult`, the `stage4Infer` wiring, and the hardcoded `/login` exploration override. **Worker real-Docker E2E green with the new wiring**: a NON-auth stub proposal (`sessions` on the real `POST /login` inventory row) → IntentProposer → policy-gated form drive → observation → DG-09 compile → **verified 2× in real Chromium in-sandbox → promoted**, all isolation invariants re-proven. Honest-zero no-model path unchanged (`if (!model) return options`).
+
+Three honesty gaps the E2E exposed, fixed in owned code: (1) exploration fills were page-global → `semantic-ambiguous` on multi-form pages — the plan now carries a `formScope` (the DG-09 spec generator's form-filter grammar) resolved additively by the driver (disclosed out-of-ownership additive change in `packages/playwright-agent-adapter/src/exploration-driver.ts`: optional `formScope` on fill/click steps; every pre-existing step behaves byte-identically); (2) a FAILED drive's final page could be bound as the observation — `postActionOf` now requires every executable step to have succeeded AND drops ambiguous headings (strict-mode-safe), and `#proposalCompileInput` binds assertions only from an APPROVED exploration (else OBSERVATION-MISSING); (3) the crawl-surface form lookup now also matches by FORM ACTION (a page hosting forms that POST to separately inventoried routes — the Express pattern), navigation goes to the form's ENTRY route.
+
+**P3s fixed**: gate vocabulary extended (`signin`/`signup`/`register`/`registration`/`reset` as word-shape patterns — bare substrings would false-positive on the frozen fixture API `provider.reset(`/`ARXIC-FIXTURE-RESET-FAILED`/"registered fixture provider", which are allowlisted tokens; the local `reset` variable in fixture-coordinator was renamed `fixtureReset` rather than allowlisted) with genuine RED-PROOF controls in all three gates (planted literals in a temp scanned tree); `docs/configuration.md` budget default 0.025 → 0.0253.
+
 ## 4. VERSION bump required?
 
 no — internal pipeline behavior change; no new user-facing command surface (the budget env var is documented in `docs/configuration.md`; versioning per RELEASES.md stays with the owner's release decision on the v0.1.x lane)
@@ -30,7 +38,7 @@ no — internal pipeline behavior change; no new user-facing command surface (th
 - Sad-path suites: `packages/orchestrator-langgraph/src/__tests__/intent-proposer.test.ts` (malformed→retry→blocked; injection→content-as-data; dangling refs→rejected; budget→blocked pre-call with ZERO requests; seeder same-gates; honest zero), `proposal-compile.test.ts` (no form surface / no observation → honest block, never fabricated assertions; #257 redirect scenario binds the OBSERVED url).
 - Machine gate: `domain-literal-gate.test.ts` in orchestrator + CLI (ADR-008 Decision 3 in CI).
 - Evidence dir: `docs/evidence/DG-08/README.md`.
-- Gates: typecheck ☐ · lint ☐ · format ☐ · test (179 files / 1483 tests) ☐ · license gate ☐ (no new external deps)
+- Gates: typecheck ☐ · lint ☐ · format ☐ · test (180 files / 1488 tests incl. the real-Docker worker E2E on the new wiring) ☐ · license gate ☐ (no new external deps)
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 

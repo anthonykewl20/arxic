@@ -28,6 +28,7 @@ import {
  */
 
 export type ProposalFormSurface = Readonly<{
+  /** The ENTRY route: the crawl-surface page the form lives ON. */
   route: string;
   fields: readonly FormFlowField[];
   submitControlName: string;
@@ -44,35 +45,83 @@ function inputRefForLabel(label: string): string {
 }
 
 /**
- * Project the crawl surface's form for a route into the form-flow inventory
- * inputs: labelled, fillable controls plus the submit control's accessible
- * name. Hidden/unlabelled inputs are not fillable persona inputs. The crawl's
+ * Project the crawl surface's form for a proposal-cited route into the
+ * form-flow inventory inputs: labelled, fillable controls plus the submit
+ * control's accessible name, and the ENTRY route (the page the form lives
+ * on). Hidden/unlabelled inputs are not fillable persona inputs. The crawl's
  * conservative `destructive` flag (method !== GET means "breadth discovery did
  * not submit it") does NOT deselect a form here — driving it is a policy
  * decision owned by the stage-8 exploration gate, not by projection.
+ *
+ * Two generic lookup strategies, both domain-free:
+ * 1. EXACT route path — the form lives on the cited route itself (e.g.
+ *    file-convention pages whose server action posts back to the same path);
+ * 2. FORM ACTION match — the cited route is the POST target and the form
+ *    lives on a different page (e.g. a page hosting forms that submit to
+ *    separately inventoried POST routes). The entry route is then the page
+ *    HOLDING the form; exploration navigates there.
  */
 export function formSurfaceForRoute(
   surface: SurfaceMap,
   route: string,
 ): ProposalFormSurface | undefined {
-  const routeSurface = surface.routes.find((candidate) => candidate.path === route);
-  if (!routeSurface) return undefined;
-  for (const form of routeSurface.forms) {
-    const fields: FormFlowField[] = [];
-    let submitControlName: string | undefined;
-    for (const control of form.controls) {
-      const label = control.label?.trim();
-      if (!label) continue; // hidden csrf tokens and unlabelled controls
-      if (control.tag === 'button' || control.type === 'submit' || control.type === 'button') {
-        if (control.type === 'submit') submitControlName ??= label;
-        continue;
-      }
-      if (control.tag === 'input' && FIELD_TYPES.has(control.type)) {
-        fields.push({ label, inputRef: inputRefForLabel(label) });
+  const byAction = () => {
+    for (const routeSurface of surface.routes) {
+      for (const form of routeSurface.forms) {
+        let actionPath: string | undefined;
+        try {
+          actionPath = new URL(form.action).pathname;
+        } catch {
+          actionPath = form.action;
+        }
+        if (actionPath !== route) continue;
+        const fields = fillableFields(form.controls);
+        const submitControlName = submitControl(form.controls);
+        if (fields.length > 0 && submitControlName !== undefined) {
+          return { route: routeSurface.path, fields, submitControlName };
+        }
       }
     }
-    if (fields.length > 0 && submitControlName !== undefined) {
-      return { route, fields, submitControlName };
+    return undefined;
+  };
+  const exact = surface.routes.find((candidate) => candidate.path === route);
+  if (exact) {
+    for (const form of exact.forms) {
+      const fields = fillableFields(form.controls);
+      const submitControlName = submitControl(form.controls);
+      if (fields.length > 0 && submitControlName !== undefined) {
+        return { route, fields, submitControlName };
+      }
+    }
+  }
+  return byAction();
+}
+
+function fillableFields(
+  controls: ReadonlyArray<{ tag: string; type: string; label?: string }>,
+): FormFlowField[] {
+  const fields: FormFlowField[] = [];
+  for (const control of controls) {
+    const label = control.label?.trim();
+    if (!label) continue; // hidden csrf tokens and unlabelled controls
+    if (control.tag === 'button' || control.type === 'submit' || control.type === 'button') {
+      continue;
+    }
+    if (control.tag === 'input' && FIELD_TYPES.has(control.type)) {
+      fields.push({ label, inputRef: inputRefForLabel(label) });
+    }
+  }
+  return fields;
+}
+
+function submitControl(
+  controls: ReadonlyArray<{ tag: string; type: string; label?: string }>,
+): string | undefined {
+  for (const control of controls) {
+    const label = control.label?.trim();
+    if (!label) continue;
+    if (control.type === 'submit' || (control.tag === 'button' && control.type !== 'button')) {
+      return label;
     }
   }
   return undefined;

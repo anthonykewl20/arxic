@@ -83,7 +83,8 @@ export type PlanStep = Readonly<{
   fixtureKind?: string;
   required: boolean;
 }> &
-  PlanStepExecution;
+  PlanStepExecution &
+  Readonly<{ formScope?: Readonly<{ fieldLabel: string; submitName: string }> }>;
 
 export type ExplorationPlan = Readonly<{ steps: readonly PlanStep[] }>;
 
@@ -341,14 +342,21 @@ function postActionOf(
   executable: readonly PlanStep[],
   observations: readonly StepObservation[],
 ): { url: string; headings: readonly string[] } | undefined {
+  // The observation describes the post-action state ONLY when the ENTIRE
+  // drive succeeded: any failed or drifted step means the final page is not
+  // the intended outcome (e.g. a submit clicked with empty fields).
+  for (const [index, step] of executable.entries()) {
+    const observation = observations[index];
+    if (!step || !observation) continue;
+    if (!observation.ok || observation.originDrifted) return undefined;
+  }
   for (let index = executable.length - 1; index >= 0; index -= 1) {
     const step = executable[index];
     const observation = observations[index];
     if (!step || !observation) continue;
     if (step.kind !== 'click') continue;
-    if (!observation.ok || observation.originDrifted) continue;
     if (!observation.accessibilitySnapshot) continue;
-    const headings = headingNames(observation.accessibilitySnapshot).slice(
+    const headings = unambiguousHeadingNames(observation.accessibilitySnapshot).slice(
       0,
       MAX_POST_ACTION_HEADINGS,
     );
@@ -362,6 +370,24 @@ function headingNames(node: import('@arxic/playwright-agent-adapter').Accessibil
   if (node.role === 'heading' && node.name) names.push(node.name);
   for (const child of node.children ?? []) names.push(...headingNames(child));
   return names;
+}
+
+/**
+ * Headings whose accessible name is UNIQUE among all accessible names on the
+ * page. An ambiguous heading (e.g. an h2 "Login" next to a "Login" button)
+ * would compile to a strict-mode-violating getByText assertion — it is
+ * dropped (honest omission), never asserted loosely.
+ */
+function unambiguousHeadingNames(
+  node: import('@arxic/playwright-agent-adapter').AccessibilityNode,
+): string[] {
+  const nameCounts = new Map<string, number>();
+  const countNames = (current: typeof node): void => {
+    if (current.name) nameCounts.set(current.name, (nameCounts.get(current.name) ?? 0) + 1);
+    for (const child of current.children ?? []) countNames(child);
+  };
+  countNames(node);
+  return headingNames(node).filter((name) => (nameCounts.get(name) ?? 0) === 1);
 }
 
 function selectLease(
@@ -437,6 +463,7 @@ function toDriverStep(step: PlanStep): PlannedExplorationStep {
         locator: step.locator,
         value: step.value,
         ...(step.url ? { url: step.url } : {}),
+        ...(step.formScope ? { formScope: step.formScope } : {}),
       };
     case 'click':
       return {
@@ -444,6 +471,7 @@ function toDriverStep(step: PlanStep): PlannedExplorationStep {
         kind: 'click',
         locator: step.locator,
         ...(step.url ? { url: step.url } : {}),
+        ...(step.formScope ? { formScope: step.formScope } : {}),
       };
     case 'snapshot':
       return { intent: step.intent, kind: 'snapshot' };

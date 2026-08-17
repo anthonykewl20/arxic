@@ -907,16 +907,25 @@ export class LangGraphOrchestrator {
     const values = this.#options.explorationInputValues ?? {};
     const steps: import('./exploration').PlanStep[] = [
       {
-        intent: `observe route ${row.path}`,
+        // Navigate to the form's ENTRY route (the crawl page the form lives
+        // ON — e.g. a page hosting forms that POST to separately inventoried
+        // routes), not the cited route itself.
+        intent: `observe route ${form.route}`,
         action: 'navigation',
         actionClass: 'read-only',
-        url: new URL(row.path, input.origin).href,
+        url: new URL(form.route, input.origin).href,
         required: true,
         kind: 'navigate',
       },
     ];
     const fills = form.fields.filter((field) => values[field.inputRef] !== undefined);
     if (fills.length === form.fields.length && fills.length > 0) {
+      // DG-08: scope every control to the unique inventoried FORM (pages may
+      // host several forms with identically labelled fields).
+      const formScope = {
+        fieldLabel: form.fields[0]!.label,
+        submitName: form.submitControlName,
+      };
       for (const field of fills) {
         steps.push({
           intent: `fill ${field.label}`,
@@ -928,6 +937,7 @@ export class LangGraphOrchestrator {
             semantic: { kind: 'label', text: field.label },
             execution: { kind: 'label', text: field.label },
           },
+          formScope,
           // Transient in-memory value (never journaled; redaction policy holds).
           value: values[field.inputRef]!,
         });
@@ -942,6 +952,7 @@ export class LangGraphOrchestrator {
           semantic: { kind: 'role', role: 'button', name: form.submitControlName },
           execution: { kind: 'role', role: 'button', name: form.submitControlName },
         },
+        formScope,
         ...(proposal.fixtureKinds && proposal.fixtureKinds.length === 1
           ? { fixtureKind: proposal.fixtureKinds[0] }
           : this.#options.explorationInputKind
@@ -1285,12 +1296,17 @@ export class LangGraphOrchestrator {
     const evidenceIndex = envelope
       ? toProposalConsumerInventory(envelope.inventory).evidenceIndex
       : {};
+    // Honesty gate: assertions may bind ONLY from a CLEAN form drive (the
+    // stage-8 run approved every required step). A failed drive's final page
+    // is NOT the proposal's outcome — compile then blocks
+    // OBSERVATION-MISSING instead of fabricating assertions from it.
+    const observation = exploration.approved ? postActionObservationFrom(exploration) : undefined;
     return {
       proposal,
       row,
       evidenceIndex,
       surface,
-      observation: postActionObservationFrom(exploration),
+      observation,
       scope: {
         commit: input.revision.commit ?? '0'.repeat(40),
         environment: 'local-test',

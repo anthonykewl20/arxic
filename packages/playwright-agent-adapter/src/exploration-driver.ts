@@ -57,8 +57,29 @@ export type LocatorResolution =
 export type PlannedExplorationStep = Readonly<
   | { intent: string; url: string; kind: 'navigate' }
   | { intent: string; kind: 'snapshot' }
-  | { intent: string; kind: 'fill'; locator: LocatorPair; value: string; url?: string }
-  | { intent: string; kind: 'click'; locator: LocatorPair; url?: string }
+  | {
+      intent: string;
+      kind: 'fill';
+      locator: LocatorPair;
+      value: string;
+      url?: string;
+      /**
+       * DG-08: optional FORM SCOPE for pages hosting multiple forms. When
+       * present, the control locators resolve INSIDE the unique form that has
+       * a field labelled `fieldLabel` and a submit button named `submitName`
+       * — the same form-filter grammar the DG-09 spec generator emits. Without
+       * it (every pre-existing step), resolution stays page-global and behaves
+       * byte-identically.
+       */
+      formScope?: Readonly<{ fieldLabel: string; submitName: string }>;
+    }
+  | {
+      intent: string;
+      kind: 'click';
+      locator: LocatorPair;
+      url?: string;
+      formScope?: Readonly<{ fieldLabel: string; submitName: string }>;
+    }
 >;
 
 export type AccessibilityNode = Readonly<{
@@ -136,7 +157,11 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
           await page.goto(step.url, { waitUntil: 'load', timeout: NAVIGATION_TIMEOUT_MS });
         }
         if (step.kind === 'fill' || step.kind === 'click') {
-          const resolution = await this.#resolveControl(page, step.locator);
+          const resolution = await this.#resolveControl(
+            page,
+            step.locator,
+            step.formScope === undefined ? undefined : step.formScope,
+          );
           locatorResolution = resolution.resolved
             ? {
                 resolved: true,
@@ -336,7 +361,11 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     return accessibilityTree(response.nodes);
   }
 
-  async #resolveControl(page: Page, pair: LocatorPair): Promise<ControlResolution> {
+  async #resolveControl(
+    page: Page,
+    pair: LocatorPair,
+    scope?: Readonly<{ fieldLabel: string; submitName: string }>,
+  ): Promise<ControlResolution> {
     if (!validRoleSpecification(pair.semantic)) {
       return { resolved: false, reason: 'semantic-invalid', ...pair };
     }
@@ -344,9 +373,25 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       return { resolved: false, reason: 'execution-invalid', ...pair };
     }
 
+    // DG-08 form scope: resolve the unique scoping form first (the DG-09
+    // spec generator's filter grammar); locators then resolve within it. A
+    // page whose forms cannot be uniquely scoped fails closed as ambiguous.
+    let root: Page | Locator = page;
+    if (scope) {
+      const form = page
+        .locator('form')
+        .filter({ has: page.getByLabel(scope.fieldLabel) })
+        .filter({ has: page.getByRole('button', { name: scope.submitName, exact: true }) });
+      const formCount = await form.count();
+      if (formCount !== 1) {
+        return { resolved: false, reason: 'semantic-ambiguous', ...pair };
+      }
+      root = form;
+    }
+
     let semanticLocator: Locator;
     try {
-      semanticLocator = playwrightLocator(page, pair.semantic);
+      semanticLocator = playwrightLocator(root, pair.semantic);
       await semanticLocator.first().waitFor({
         state: 'attached',
         timeout: this.#options.timeoutMs,
@@ -374,7 +419,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
 
     let executionLocator: Locator;
     try {
-      executionLocator = playwrightLocator(page, pair.execution);
+      executionLocator = playwrightLocator(root, pair.execution);
       await executionLocator.first().waitFor({
         state: 'attached',
         timeout: this.#options.timeoutMs,
@@ -497,23 +542,26 @@ function originOf(url: string): string | undefined {
   }
 }
 
-function playwrightLocator(page: Page, specification: ValidatedLocatorSpecification): Locator {
+function playwrightLocator(
+  root: Page | Locator,
+  specification: ValidatedLocatorSpecification,
+): Locator {
   switch (specification.kind) {
     case 'role':
-      return page.getByRole(specification.role, {
+      return root.getByRole(specification.role, {
         ...(specification.name === undefined ? {} : { name: specification.name }),
         ...(specification.exact === undefined ? {} : { exact: specification.exact }),
       });
     case 'label':
-      return page.getByLabel(specification.text, {
+      return root.getByLabel(specification.text, {
         ...(specification.exact === undefined ? {} : { exact: specification.exact }),
       });
     case 'text':
-      return page.getByText(specification.text, {
+      return root.getByText(specification.text, {
         ...(specification.exact === undefined ? {} : { exact: specification.exact }),
       });
     case 'test-id':
-      return page.getByTestId(specification.id);
+      return root.getByTestId(specification.id);
   }
 }
 

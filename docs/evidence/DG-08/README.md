@@ -26,6 +26,8 @@ suites (no synthetic mocks at the system boundary):
   rejected (honest ledger); honest zero for empty proposals; budget cap blocks
   BEFORE any provider call (zero requests); seeder proposals merge through the
   SAME gates (never override); no truth-state field anywhere.
+- The **worker real-Docker E2E** (`apps/cli/src/__tests__/worker-real-world.test.ts`, remediation round): the worker mirror of the canned gate is gone — a NON-auth stub proposal (`sessions` on the real `POST /login` inventory row of the vulnerable Express app, derived from the INVENTORY_DATA the worker sends as data) runs stage-13 inventory → IntentProposer → policy-gated form drive (persona lease; form-scoped fills) → observation → DG-09 compile → **verified 2× in real Chromium inside the sandbox → promoted**, with all #26 isolation invariants re-proven and the promoted bundle asserted to be the model's `prop:<sha16>` workflow with observation-bound assertions.
+- The **domain-literal gates** now cover orchestrator + CLI + **worker** non-test source, with an extended vocabulary (signin/signup/register/registration/reset word-shape patterns) and genuine RED-PROOF controls (planted literals in a temp scanned tree are flagged).
 - The **demoted auth seeder** (`packages/auth-domain-pack/src/seeder.test.ts`):
   honest-zero without matching rows, deterministic, fixture kinds declared,
   grounding verifiable.

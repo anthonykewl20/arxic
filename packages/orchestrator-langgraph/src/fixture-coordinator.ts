@@ -247,9 +247,9 @@ export class FixtureCoordinator {
   ): Promise<readonly Diagnostic[]> {
     const diagnostics: Diagnostic[] = [];
     for (const item of outstanding) {
-      const reset = await attemptCleanup(() => item.provider.reset(item.lease));
+      const fixtureReset = await attemptCleanup(() => item.provider.reset(item.lease));
       const released = await attemptCleanup(() => item.provider.release(item.lease));
-      if (!reset) {
+      if (!fixtureReset) {
         diagnostics.push(
           cleanupDiagnostic(
             ARXIC_FIXTURE_RESET_FAILED,
@@ -268,7 +268,7 @@ export class FixtureCoordinator {
         );
       }
       this.#outstanding.delete(item.lease.id);
-      if ((!reset || !released) && recordDroppedLeak) {
+      if ((!fixtureReset || !released) && recordDroppedLeak) {
         this.#deferredDiagnostics.push(
           cleanupDiagnostic(
             ARXIC_FIXTURE_LEASE_LEAK,

@@ -121,7 +121,7 @@ an honest partial run rather than inventing a candidate.
 Since DG-08 (#252), a configured model drives candidate proposals directly
 over the Domain Inventory (the canned authentication candidate replacement is
 removed), and the per-app cost is capped by a pre-call estimate:
-`ARXIC_MODEL_BUDGET_USD` (optional, default `0.025` — the ADR-008 provisional
+`ARXIC_MODEL_BUDGET_USD` (optional, default `0.0253` — the ADR-008 provisional
 budget for a ~340-row application, owner-overridable). A run whose estimated
 cost exceeds the cap blocks with `ARXIC-ORCH-MODEL-BUDGET-EXCEEDED` before any
 provider call is made.
