@@ -11,7 +11,11 @@ import { MailpitContainer, type StartedMailpit } from '@arxic/environment';
 import { scanBundleForSensitiveData, scanTextForSecrets } from '@arxic/bundle-promoter';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runCli } from '../index';
-import { normalizeLedgerBytes, validateIntentLedger, type IntentLedger } from '../../../../packages/intent/src/ledger';
+import {
+  normalizeLedgerBytes,
+  validateIntentLedger,
+  type IntentLedger,
+} from '../../../../packages/intent/src/ledger';
 
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, '../../../..');

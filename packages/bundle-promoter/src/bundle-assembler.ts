@@ -45,11 +45,11 @@ export type BundleAssembly = Readonly<{
   sbom?: string;
 }>;
 
-  const stagedFiles = [
-    'tests/workflow.spec.ts',
-    'fixtures/workflow.fixture.ts',
-    'playwright.config.ts',
-  ] as const;
+const stagedFiles = [
+  'tests/workflow.spec.ts',
+  'fixtures/workflow.fixture.ts',
+  'playwright.config.ts',
+] as const;
 
 /** DG-07 (#251): the bundle-root intent ledger artifact marker. */
 const INTENT_LEDGER_PATH = 'intents.json';

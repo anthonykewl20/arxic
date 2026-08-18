@@ -4,8 +4,9 @@
 false` at every level) validates the ADR-008 Decision 1 product artifact: the
 intent ledger written at the run root as `intents.json`, shipped hash-covered in
 every promoted bundle (local lane: bundle-root file under `manifest.fileHashes`
-+ `checksums.sha256`; worker lane: content inside the frozen
-`promoted/RUNID.bundle.json`), and rendered read-only by `arxic intents`.
+
+- `checksums.sha256`; worker lane: content inside the frozen
+  `promoted/RUNID.bundle.json`), and rendered read-only by `arxic intents`.
 
 Key invariants the schema pins:
 

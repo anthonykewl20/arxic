@@ -1,4 +1,9 @@
-import { validateDiagnostic, type ArtifactRef, type Diagnostic, type StagedBundle } from '@arxic/contracts';
+import {
+  validateDiagnostic,
+  type ArtifactRef,
+  type Diagnostic,
+  type StagedBundle,
+} from '@arxic/contracts';
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { promoteWorkerCandidate, type RunState } from '@arxic/orchestrator-langgraph';

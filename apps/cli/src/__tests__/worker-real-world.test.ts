@@ -301,10 +301,12 @@ describe('worker-backed CLI real Docker proof', () => {
           ({ kind, sha256 }) => kind === 'intent-ledger' && /^[0-9a-f]{64}$/u.test(sha256),
         ),
       ).toBe(true);
-      expect(
-        bundle.manifest!.fileHashes.some(({ path }) => path.endsWith('intents.json')),
-      ).toBe(true);
-      expect(run.receipt!.checksumSha256).toBe(createHash('sha256').update(frozenBytes).digest('hex'));
+      expect(bundle.manifest!.fileHashes.some(({ path }) => path.endsWith('intents.json'))).toBe(
+        true,
+      );
+      expect(run.receipt!.checksumSha256).toBe(
+        createHash('sha256').update(frozenBytes).digest('hex'),
+      );
       await expect(stat(join(outDir, 'promoted', `${runId}.bundle`))).rejects.toThrow();
       // The imported run dir renders through `arxic intents` using the nested
       // worker lane layout (RUNID/artifacts/checkpoints/RUNID/artifacts/13.json).

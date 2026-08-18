@@ -40,7 +40,8 @@ import intentLedgerSchema from '../../../schemas/intent-ledger/intent-ledger.sch
 export const INTENT_LEDGER_SCHEMA_VERSION = 'arxic-intent-ledger-v1' as const;
 export const INTENT_LEDGER_FILENAME = 'intents.json' as const;
 
-export const ARXIC_INTENT_LEDGER_INVENTORY_MISSING = 'ARXIC-INTENT-LEDGER-INVENTORY-MISSING' as const;
+export const ARXIC_INTENT_LEDGER_INVENTORY_MISSING =
+  'ARXIC-INTENT-LEDGER-INVENTORY-MISSING' as const;
 export const ARXIC_INTENT_LEDGER_INPUT_INVALID = 'ARXIC-INTENT-LEDGER-INPUT-INVALID' as const;
 export const ARXIC_INTENT_LEDGER_EVIDENCE_UNRESOLVED =
   'ARXIC-INTENT-LEDGER-EVIDENCE-UNRESOLVED' as const;
@@ -62,7 +63,8 @@ export function ledgerDiagnostic(
   message: string,
 ): Diagnostic {
   const diagnostic: Diagnostic = { code, severity: 'blocked', subject, message };
-  if (!validateDiagnostic(diagnostic).ok) throw new Error('intent ledger made an invalid Diagnostic');
+  if (!validateDiagnostic(diagnostic).ok)
+    throw new Error('intent ledger made an invalid Diagnostic');
   return diagnostic;
 }
 
@@ -71,16 +73,10 @@ export function ledgerDiagnostic(
 // ---------------------------------------------------------------------------
 
 export type IntentLedgerReplayStatus =
-  | 'not-attempted'
-  | 'attempted:passed'
-  | 'attempted:failed'
-  | 'attempted:blocked';
+  'not-attempted' | 'attempted:passed' | 'attempted:failed' | 'attempted:blocked';
 
 export type IntentLedgerDisposition =
-  | 'extracted'
-  | 'unsupported'
-  | 'unsafe'
-  | 'unextracted-with-reason';
+  'extracted' | 'unsupported' | 'unsafe' | 'unextracted-with-reason';
 
 export type IntentLedgerObservedForm = Readonly<{
   action: string;
@@ -203,8 +199,7 @@ export type IntentLedgerBuildInput = Readonly<{
 }>;
 
 export type LedgerOutcome<T> =
-  | { ok: true; value: T }
-  | { ok: false; diagnostics: readonly Diagnostic[] };
+  { ok: true; value: T } | { ok: false; diagnostics: readonly Diagnostic[] };
 
 // ---------------------------------------------------------------------------
 // Evidence id grammar — LOCKSTEP with the Domain Inventory consumer projection
@@ -379,13 +374,10 @@ export function buildIntentLedger(input: IntentLedgerBuildInput): LedgerOutcome<
       return inputInvalid(`inventory row ${row.key} carries an unknown disposition`);
     }
     byDisposition[row.disposition] += 1;
-    const inventoryRowId =
-      row.disposition === 'extracted' ? consumerRowId(row) : undefined;
+    const inventoryRowId = row.disposition === 'extracted' ? consumerRowId(row) : undefined;
     const rowIntents: IntentLedgerIntent[] = proposals
       .filter((proposal) =>
-        inventoryRowId === undefined
-          ? false
-          : proposal.inventoryRowIds.includes(inventoryRowId),
+        inventoryRowId === undefined ? false : proposal.inventoryRowIds.includes(inventoryRowId),
       )
       .sort((left, right) => compare(left.id, right.id))
       .map((proposal) => {
@@ -401,7 +393,8 @@ export function buildIntentLedger(input: IntentLedgerBuildInput): LedgerOutcome<
           toState: proposal.toState,
           evidenceRefIds: [...proposal.evidenceRefIds].sort(compare),
           oracleKinds: ['repository-specification' as const],
-          truthState: replay === 'attempted:passed' ? ('verified' as const) : ('hypothesized' as const),
+          truthState:
+            replay === 'attempted:passed' ? ('verified' as const) : ('hypothesized' as const),
           replayStatus: replay,
           isCandidate,
         };
@@ -538,9 +531,7 @@ export async function resolveStageArtifact(
     if (await isFile(nested)) candidates.push(nested);
   }
   if (candidates.length > 1) {
-    throw new Error(
-      `ambiguous nested stage-${stage} artifacts: ${candidates.sort().join(', ')}`,
-    );
+    throw new Error(`ambiguous nested stage-${stage} artifacts: ${candidates.sort().join(', ')}`);
   }
   return candidates[0];
 }
@@ -604,7 +595,9 @@ async function optionalStageJson(
 ): Promise<Partial<LedgerStageInputs>> {
   const path = await resolveStageArtifact(runDirectory, stage);
   if (path === undefined) return {};
-  return { [stageKey(stage)]: JSON.parse(await readFile(path, 'utf8')) } as Partial<LedgerStageInputs>;
+  return {
+    [stageKey(stage)]: JSON.parse(await readFile(path, 'utf8')),
+  } as Partial<LedgerStageInputs>;
 }
 
 function stageKey(stage: number): keyof LedgerStageInputs {
@@ -668,13 +661,15 @@ export type StageIntentLedgerOutcome =
  * `skipIfPresent` an existing ledger is kept byte-identical (idempotent
  * post-run hook); without it a resume rebuilds over it deterministically.
  */
-export async function stageIntentLedger(input: Readonly<{
-  runDirectory: string;
-  generatedAt: string;
-  scan?: (text: string) => readonly Diagnostic[];
-  skipIfPresent?: boolean;
-  verificationOverride?: unknown;
-}>): Promise<StageIntentLedgerOutcome> {
+export async function stageIntentLedger(
+  input: Readonly<{
+    runDirectory: string;
+    generatedAt: string;
+    scan?: (text: string) => readonly Diagnostic[];
+    skipIfPresent?: boolean;
+    verificationOverride?: unknown;
+  }>,
+): Promise<StageIntentLedgerOutcome> {
   const outputPath = join(input.runDirectory, INTENT_LEDGER_FILENAME);
   if (input.skipIfPresent && (await isFile(outputPath))) {
     try {

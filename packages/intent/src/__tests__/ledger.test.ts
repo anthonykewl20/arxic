@@ -113,7 +113,12 @@ function inventoryEnvelope() {
     },
     stableSha256: 'c'.repeat(64),
     providerIncludes: { resolutions: [], unresolved: [] },
-    evidenceGraph: { nodes: 0, edges: 0, outputInfluencingEdges: 0, canonicalSha256: '0'.repeat(64) },
+    evidenceGraph: {
+      nodes: 0,
+      edges: 0,
+      outputInfluencingEdges: 0,
+      canonicalSha256: '0'.repeat(64),
+    },
   };
 }
 
@@ -178,7 +183,8 @@ function forgotRow(ledger: IntentLedger): {
 
 function buildOk(input: Record<string, unknown>): IntentLedger {
   const built = buildIntentLedger(input as Parameters<typeof buildIntentLedger>[0]);
-  if (!built.ok) throw new Error(`fixture ledger build failed: ${JSON.stringify(built.diagnostics)}`);
+  if (!built.ok)
+    throw new Error(`fixture ledger build failed: ${JSON.stringify(built.diagnostics)}`);
   return built.value;
 }
 
@@ -280,7 +286,11 @@ describe('intent ledger builder join and derivation', () => {
     expect(forgot.replayStatus).toBe('attempted:passed');
     // Non-candidate rows never carry attempted:* (D-4).
     expect(
-      verified.rows.every((row) => row.intents.every((intent) => !intent.isCandidate || intent.replayStatus.startsWith('attempted:'))),
+      verified.rows.every((row) =>
+        row.intents.every(
+          (intent) => !intent.isCandidate || intent.replayStatus.startsWith('attempted:'),
+        ),
+      ),
     ).toBe(true);
 
     const unverified = buildOk(
@@ -293,7 +303,9 @@ describe('intent ledger builder join and derivation', () => {
     ).toMatchObject({ truthState: 'hypothesized', replayStatus: 'attempted:failed' });
 
     const blocked = buildOk(
-      buildFixtureInput({ verification: { ...verificationArtifact, outcome: 'blocked', runs: [] } }),
+      buildFixtureInput({
+        verification: { ...verificationArtifact, outcome: 'blocked', runs: [] },
+      }),
     );
     expect(
       blocked.rows.find((row) => row.inventoryKey === 'POST /forgot-password')!.intents[0],
@@ -305,7 +317,11 @@ describe('intent ledger builder join and derivation', () => {
     expect(uncompiled.candidate).toBeUndefined();
     expect(
       uncompiled.rows.find((row) => row.inventoryKey === 'POST /forgot-password')!.intents[0],
-    ).toMatchObject({ truthState: 'hypothesized', replayStatus: 'not-attempted', isCandidate: false });
+    ).toMatchObject({
+      truthState: 'hypothesized',
+      replayStatus: 'not-attempted',
+      isCandidate: false,
+    });
   });
 
   it('fails closed when a proposal claims truthState verified (ADR-001 §2)', () => {
@@ -324,9 +340,7 @@ describe('intent ledger builder join and derivation', () => {
     const outcome = buildIntentLedger(buildFixtureInput({ inference }));
     expect(outcome).toMatchObject({
       ok: false,
-      diagnostics: [
-        expect.objectContaining({ code: ARXIC_INTENT_LEDGER_EVIDENCE_UNRESOLVED }),
-      ],
+      diagnostics: [expect.objectContaining({ code: ARXIC_INTENT_LEDGER_EVIDENCE_UNRESOLVED })],
     });
   });
 
@@ -346,9 +360,7 @@ describe('intent ledger builder join and derivation', () => {
       diagnostics: [expect.objectContaining({ code: ARXIC_INTENT_LEDGER_INPUT_INVALID })],
     });
     expect(
-      buildIntentLedger(
-        buildFixtureInput({ verification: { outcome: 'so-so', runs: [] } }),
-      ),
+      buildIntentLedger(buildFixtureInput({ verification: { outcome: 'so-so', runs: [] } })),
     ).toMatchObject({ ok: false });
   });
 
@@ -493,10 +505,7 @@ describe('redaction-gated write (C-6a) and staging', () => {
   });
 });
 
-async function runDirWithArtifacts(
-  runId: string,
-  layout: 'flat' | 'nested',
-): Promise<string> {
+async function runDirWithArtifacts(runId: string, layout: 'flat' | 'nested'): Promise<string> {
   const runDirectory = join(await mkdtemp(join(tmpdir(), `arxic-ledger-${runId}-`)), runId);
   const artifacts =
     layout === 'flat'

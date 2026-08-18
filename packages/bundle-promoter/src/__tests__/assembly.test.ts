@@ -123,7 +123,10 @@ describe('bundle assembly and redaction gate', () => {
       artifacts: [...bundle.artifacts, ledgerArtifact],
       manifest: {
         ...bundle.manifest,
-        fileHashes: [...bundle.manifest.fileHashes, { path: 'intents.json', sha256: hash(ledgerBytes) }],
+        fileHashes: [
+          ...bundle.manifest.fileHashes,
+          { path: 'intents.json', sha256: hash(ledgerBytes) },
+        ],
       },
     };
 
@@ -137,7 +140,9 @@ describe('bundle assembly and redaction gate', () => {
     const assembled = await readFile(join(assembly.directory, 'intents.json'), 'utf8');
     expect(assembled).toBe(ledgerBytes);
     expect(assembly.checksumsSha256).toContain(`  intents.json\n`);
-    const manifest = JSON.parse(await readFile(join(assembly.directory, 'manifest.json'), 'utf8')) as {
+    const manifest = JSON.parse(
+      await readFile(join(assembly.directory, 'manifest.json'), 'utf8'),
+    ) as {
       fileHashes: Array<{ path: string; sha256: string }>;
     };
     expect(manifest.fileHashes).toContainEqual({ path: 'intents.json', sha256: hash(ledgerBytes) });

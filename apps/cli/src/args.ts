@@ -96,7 +96,9 @@ function parseIntentsArgs(argv: readonly string[]): ParseResult {
     });
     if (parsed.values.help) return { ok: true, command: { kind: 'help', command: 'intents' } };
     if (parsed.positionals.length !== 1 || parsed.positionals[0] === '') {
-      return usage('intents requires exactly one PATH argument (a run directory or bundle directory)');
+      return usage(
+        'intents requires exactly one PATH argument (a run directory or bundle directory)',
+      );
     }
     return {
       ok: true,

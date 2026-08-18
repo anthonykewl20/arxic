@@ -232,7 +232,12 @@ function inventoryEnvelope() {
     },
     stableSha256: 'c'.repeat(64),
     providerIncludes: { resolutions: [], unresolved: [] },
-    evidenceGraph: { nodes: 0, edges: 0, outputInfluencingEdges: 0, canonicalSha256: '0'.repeat(64) },
+    evidenceGraph: {
+      nodes: 0,
+      edges: 0,
+      outputInfluencingEdges: 0,
+      canonicalSha256: '0'.repeat(64),
+    },
   };
 }
 
@@ -275,10 +280,7 @@ async function fixtureRunDir(
   options: { bearerInAction?: boolean } = {},
 ): Promise<string> {
   const runId = 'fixture-run';
-  const runDirectory = join(
-    await mkdtemp(join(tmpdir(), `arxic-intents-${lane}-`)),
-    runId,
-  );
+  const runDirectory = join(await mkdtemp(join(tmpdir(), `arxic-intents-${lane}-`)), runId);
   const artifacts =
     lane === 'local'
       ? join(runDirectory, 'artifacts')

@@ -118,7 +118,10 @@ export async function intentsAction(
   const validated = validateIntentLedger(parsed);
   if (!validated.ok) return refuse(stderr, 1, ...validated.diagnostics);
 
-  print(stdout, command.json ? serializeIntentLedger(validated.value) : renderTable(validated.value));
+  print(
+    stdout,
+    command.json ? serializeIntentLedger(validated.value) : renderTable(validated.value),
+  );
   return { exitCode: 0 };
 }
 
