@@ -659,7 +659,8 @@ export type StageIntentLedgerOutcome =
  * deterministically (C-5), validate, redact-scan, and atomically write
  * `intents.json` at the run ROOT (sibling of run.json — D-3). With
  * `skipIfPresent` an existing ledger is kept byte-identical (idempotent
- * post-run hook); without it a resume rebuilds over it deterministically.
+ * post-run hook) — but only after its exact on-disk bytes clear the
+ * redaction scan; without it a resume rebuilds over it deterministically.
  */
 export async function stageIntentLedger(
   input: Readonly<{
@@ -673,18 +674,26 @@ export async function stageIntentLedger(
   const outputPath = join(input.runDirectory, INTENT_LEDGER_FILENAME);
   if (input.skipIfPresent && (await isFile(outputPath))) {
     try {
-      const existing = validateIntentLedger(JSON.parse(await readFile(outputPath, 'utf8')));
-      if (existing.ok) {
-        return {
-          ok: true,
-          runDirectory: input.runDirectory,
-          ledger: existing.value,
-          wrote: false,
-          sha256: sha256(await readFile(outputPath)),
-        };
+      const raw = await readFile(outputPath);
+      const text = raw.toString('utf8');
+      const existing = validateIntentLedger(JSON.parse(text));
+      if (!existing.ok) {
+        // A present-but-invalid ledger is never silently kept.
+        return { ok: false, diagnostics: existing.diagnostics };
       }
-      // A present-but-invalid ledger is never silently kept.
-      return { ok: false, diagnostics: existing.diagnostics };
+      // Remediation (#251 review P1, defense in depth): a KEPT ledger must
+      // also clear the redaction scan over its exact bytes — a schema-valid
+      // caller-planted ledger carrying secret-shaped strings fails closed
+      // instead of riding into a promotion unscanned (C-6a).
+      const findings = input.scan ? input.scan(text) : [];
+      if (findings.length > 0) return { ok: false, diagnostics: findings };
+      return {
+        ok: true,
+        runDirectory: input.runDirectory,
+        ledger: existing.value,
+        wrote: false,
+        sha256: sha256(raw),
+      };
     } catch {
       return {
         ok: false,
@@ -761,7 +770,11 @@ function isSourceRefs(value: unknown): value is EvidenceRefSource[] {
         isRecord(ref) &&
         typeof ref.path === 'string' &&
         typeof ref.startLine === 'number' &&
-        typeof ref.endLine === 'number',
+        typeof ref.endLine === 'number' &&
+        // Required by EvidenceRefSource; consumerRowId dereferences
+        // `extractor.includes(...)` — a missing field must fail closed as
+        // INPUT_INVALID, never a raw TypeError (#251 remediation P2).
+        typeof ref.extractor === 'string',
     )
   );
 }

@@ -364,6 +364,20 @@ describe('intent ledger builder join and derivation', () => {
     ).toMatchObject({ ok: false });
   });
 
+  it('returns the structured INPUT_INVALID (never a raw TypeError) when a sourceRef lacks extractor (#251 remediation P2)', () => {
+    // EvidenceRefSource requires `extractor`; a 13.json row missing it used to
+    // crash consumerRowId (`ref.extractor.includes`) as an unstructured
+    // TypeError instead of the stable ARXIC-INTENT-LEDGER-INPUT_INVALID.
+    const inventory = inventoryEnvelope();
+    delete (inventory.inventory.rows[0]!.sourceRefs[0] as { extractor?: string }).extractor;
+    const attempt = () => buildIntentLedger(buildFixtureInput({ inventory }));
+    expect(attempt).not.toThrow();
+    expect(attempt()).toMatchObject({
+      ok: false,
+      diagnostics: [expect.objectContaining({ code: ARXIC_INTENT_LEDGER_INPUT_INVALID })],
+    });
+  });
+
   it('excludes run-volatile fields and is byte-stable modulo generatedAt', () => {
     const first = buildOk(buildFixtureInput());
     const second = buildOk(
@@ -495,6 +509,47 @@ describe('redaction-gated write (C-6a) and staging', () => {
     expect(outcome).toMatchObject({
       ok: false,
       diagnostics: [expect.objectContaining({ code: ARXIC_INTENT_LEDGER_VERSION_UNKNOWN })],
+    });
+  });
+
+  it('fails closed when a KEPT (skipIfPresent) schema-valid ledger trips the redaction scan (#251 remediation P1)', async () => {
+    // Defense in depth: even a schema-valid pre-existing intents.json must
+    // clear the scan over its exact on-disk bytes — a caller-planted ledger
+    // carrying secret-shaped strings must never ride a promotion unscanned.
+    const runDirectory = await runDirWithArtifacts('kept-secret-run', 'flat');
+    const planted = buildOk(buildFixtureInput());
+    const plantedWithSecret = {
+      ...planted,
+      rows: planted.rows.map((row) =>
+        row.inventoryKey === 'POST /forgot-password'
+          ? { ...row, reason: `${row.reason}planted bearer abcdefghijklmnopqrstuvwxyz1234` }
+          : row,
+      ),
+    };
+    await writeFile(
+      join(runDirectory, INTENT_LEDGER_FILENAME),
+      JSON.stringify(plantedWithSecret, null, 2),
+    );
+    const scan = (text: string) =>
+      /bearer\s+[A-Za-z0-9._-]{20,}/iu.test(text)
+        ? [
+            {
+              code: 'ARXIC_PROMOTION_REDACTION_FAILED',
+              severity: 'blocked' as const,
+              subject: 'bearer-token',
+              message: 'Sensitive data matched bearer-token',
+            },
+          ]
+        : [];
+    const outcome = await stageIntentLedger({
+      runDirectory,
+      generatedAt: '2026-08-19T14:00:00.000Z',
+      skipIfPresent: true,
+      scan,
+    });
+    expect(outcome).toMatchObject({
+      ok: false,
+      diagnostics: [expect.objectContaining({ code: 'ARXIC_PROMOTION_REDACTION_FAILED' })],
     });
   });
 

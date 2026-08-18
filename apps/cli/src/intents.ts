@@ -154,22 +154,33 @@ function renderTable(ledger: IntentLedger): string {
     `${pad('SURFACE', 26)}${pad('DOMAIN', 18)}${pad('TRUTH', 14)}${pad('REPLAY', 18)}INTENT`,
   );
   for (const row of ledger.rows) {
-    const surface = `${row.surface.method} ${row.surface.path}`;
+    const surface = sanitizeCell(`${row.surface.method} ${row.surface.path}`);
     const linkage = row.inventoryRowId === undefined ? '' : ` @${row.inventoryRowId}`;
     if (row.intents.length === 0) {
-      const prefix = `${pad(truncate(surface, 25), 26)}${pad(truncate(row.domain, 17), 18)}${pad(row.truthState, 14)}${pad(row.replayStatus, 18)}`;
+      const prefix = `${pad(truncate(surface, 25), 26)}${pad(truncate(sanitizeCell(row.domain), 17), 18)}${pad(row.truthState, 14)}${pad(row.replayStatus, 18)}`;
       lines.push(`${prefix}${truncate(`(no proposal; ${row.disposition})${linkage}`, 96)}`);
       continue;
     }
     for (const intent of row.intents) {
-      const prefix = `${pad(truncate(surface, 25), 26)}${pad(truncate(intent.domain, 17), 18)}${pad(intent.truthState, 14)}${pad(intent.replayStatus, 18)}`;
+      const prefix = `${pad(truncate(surface, 25), 26)}${pad(truncate(sanitizeCell(intent.domain), 17), 18)}${pad(intent.truthState, 14)}${pad(intent.replayStatus, 18)}`;
       const candidate = intent.isCandidate ? ' *' : '';
       lines.push(
-        `${prefix}${truncate(`${intent.intent} [${intent.proposalId}${candidate}]${linkage}`, 96)}`,
+        `${prefix}${truncate(`${sanitizeCell(intent.intent)} [${intent.proposalId}${candidate}]${linkage}`, 96)}`,
       );
     }
   }
   return lines.join('\n');
+}
+
+/**
+ * C0/C1 control characters (newlines, tabs, ESC/ANSI, NUL, DEL — Unicode
+ * category Cc) in model-derived fields are replaced with a space BEFORE
+ * padding/truncation, so a field can never break the one-line-per-row table
+ * layout or emit raw escape bytes (#251 review P3). `proposalId` needs no
+ * sanitization: the ledger schema pins it to `^prop:[0-9a-f]{16}$`.
+ */
+function sanitizeCell(value: string): string {
+  return value.replace(/[\p{Cc}]/gu, ' ');
 }
 
 function truncate(value: string, width: number): string {

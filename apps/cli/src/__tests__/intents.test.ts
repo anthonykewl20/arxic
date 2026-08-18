@@ -181,6 +181,43 @@ describe('runCli: arxic intents', () => {
     // exist after a failed staging attempt over the same run dir.
     await expect(readdir(runDirectory)).resolves.not.toContain('intents.json');
   });
+
+  it('renders control characters in model-derived fields as one sanitized table line (#251 remediation P3)', async () => {
+    // Newline/ANSI injection in surface.path, domain, or intent must never
+    // break the one-line-per-row table layout or emit raw escape bytes.
+    const runDirectory = await fixtureRunDir('local');
+    const ledger = JSON.parse(await readFile(join(runDirectory, 'intents.json'), 'utf8')) as {
+      rows: Array<{
+        surface: { path: string };
+        domain: string;
+        intents: Array<{ intent: string; domain: string }>;
+      }>;
+    };
+    ledger.rows[0]!.surface.path = '/re\x1b[31mset\nEVIL';
+    ledger.rows[0]!.intents[0]!.domain = 'account-re\x00covery\nEVIL';
+    ledger.rows[0]!.intents[0]!.intent = 'request a reset\x1b[0m\n\tEVIL';
+    await writeFile(join(runDirectory, 'intents.json'), JSON.stringify(ledger, null, 2));
+
+    const output: string[] = [];
+    const result = await runCli(['intents', runDirectory], {
+      stdout: { write: (message) => void output.push(message) },
+    });
+    expect(result.exitCode).toBe(0);
+    const rendered = output.join('');
+    // No raw C0/C1 control byte survives into any rendered line (the \n
+    // separators between lines excepted) — no ESC, NUL, or tab injection.
+    // \p{Cc} is the Unicode control category: U+0000–001F, U+007F–009F.
+    for (const line of rendered.split('\n')) {
+      expect(line).not.toMatch(/[\p{Cc}]/u);
+    }
+    // The injected content never gets its own table line, and the tainted row
+    // still renders as exactly one (sanitized) line carrying all its content.
+    const rowLines = rendered.split('\n').filter((line) => line.includes('POST /re'));
+    expect(rowLines.length).toBe(1);
+    expect(rowLines[0]).toContain('set');
+    expect(rowLines[0]).toContain('EVIL');
+    expect(rendered.split('\n').some((line) => line.trim().startsWith('EVIL'))).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------

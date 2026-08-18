@@ -210,12 +210,18 @@ export class WorkerRunExecutor implements RunExecutor {
     // verified candidate the ledger content then rides INSIDE the frozen
     // single-file bundle (this lane has no assembled directory) — a staging
     // failure blocks promotion fail-closed.
+    //
+    // Remediation (#251 review P1): NO skipIfPresent here — the run root is
+    // caller-controlled (`--out`/`--run-id`), so a pre-existing schema-valid
+    // intents.json is untrusted caller input. The ledger is ALWAYS rebuilt
+    // from the imported stage artifacts and redaction-scanned; a planted
+    // ledger (fabricated `verified` states, secret strings) is overwritten,
+    // never kept (mirrors the local verify callback).
     const runRoot = resolve(request.runDirectory, request.runId);
     const ledger = await stageIntentLedger({
       runDirectory: runRoot,
       generatedAt: (request.now ?? (() => new Date().toISOString()))(),
       scan: scanTextForSecrets,
-      skipIfPresent: true,
     });
     if (!ledger.ok) {
       for (const diagnostic of ledger.diagnostics) record(diagnostic);
