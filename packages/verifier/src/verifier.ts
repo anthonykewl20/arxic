@@ -244,7 +244,15 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       const capturedAt = this.#now();
       try {
         await Promise.all([
-          rm(join(this.#outputDirectory, 'artifacts'), { recursive: true, force: true }),
+          // Clean ONLY this verifier's own receipt file (the sole thing it
+          // writes under outputDirectory/artifacts). The pre-DG-08 wholesale
+          // `rm(outputDirectory/artifacts)` destroyed the pipeline's stage
+          // artifacts whenever the caller's output directory was also the
+          // run directory (the CLI layout) — a pre-existing data-loss that
+          // purged failure evidence before stage 10 could report it.
+          rm(join(this.#outputDirectory, 'artifacts', 'arxic-transition-receipts.json'), {
+            force: true,
+          }),
           rm(join(this.#outputDirectory, 'test-results'), { recursive: true, force: true }),
         ]);
       } catch (error) {

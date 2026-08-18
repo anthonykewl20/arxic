@@ -15,6 +15,8 @@ export const NODE_KINDS = [
   'Validator',
   'Document',
   'RuntimeSurface',
+  /** DG-06: a Domain Inventory row that is mass accounting, not a concrete surface. */
+  'InventoryRow',
 ] as const;
 
 export type NodeKind = (typeof NODE_KINDS)[number];

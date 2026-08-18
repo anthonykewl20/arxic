@@ -9,6 +9,11 @@ import type {
   TruthState,
   Workflow,
 } from '@arxic/contracts';
+import type {
+  DomainInventory,
+  ProviderIncludeResolution,
+  UnresolvedProviderInclude,
+} from '@arxic/domain-inventory';
 import type { IntentLineage, IntentSpec, OracleSpec, ResolvedAssertion } from '@arxic/intent';
 import type { LeaseState } from '@arxic/policy-engine';
 import type {
@@ -20,7 +25,17 @@ import type {
 export type RunStatus =
   'queued' | 'running' | 'awaiting-approval' | 'completed' | 'partial' | 'failed';
 
-export type StageId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+/**
+ * Stage 13 is the Domain Inventory (DG-06 #250). NUMBERING DECISION (recorded
+ * per ADR-008 Consequences "the inventory stage uses the next available ID
+ * after structural extraction; exact numbering is an implementation decision
+ * recorded at DG-06"): 13 is the next AVAILABLE id — every existing stage id
+ * (0–12) remains stable so persisted runs, checkpoint files, and external
+ * stage references do not shift. Its POSITION in the graph is immediately
+ * after structural extraction (2 → 13 → 3), which is also the position DG-08
+ * (#252) needs: stage 4 becomes an IntentProposer over Domain Inventory rows.
+ */
+export type StageId = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
 export type StageStatus = 'completed' | 'awaiting-approval' | 'skipped' | 'deferred' | 'failed';
 
 export type ImmutableArtifactRef = Readonly<{ id: string; sha256: string }>;
@@ -77,6 +92,38 @@ export type CoverageMatrix = Readonly<{
     runtimeEvidence: number;
     outcome: Exclude<TruthState, 'verified'>;
   }>[];
+  /**
+   * DG-06 (#250: "coverage gates consume the inventory so empty-coverage
+   * semantics become inventory-derived"): when the default reconciliation
+   * runs, the denominator is the runtime-fused Domain Inventory row count and
+   * this summary records the disposition split it came from.
+   */
+  inventory?: Readonly<{
+    totalRows: number;
+    byDisposition: DomainInventory['stats']['byDisposition'];
+    source: 'domain-inventory';
+  }>;
+}>;
+
+/** The stage-13 artifact envelope (the run-dir inventory + fusion proofs). */
+export type DomainInventoryStageArtifact = Readonly<{
+  kind: 'arxic-domain-inventory-stage-v1';
+  schemaVersion: 1;
+  inventory: DomainInventory;
+  /** SHA-256 of the canonical stabilized inventory bytes (determinism proof). */
+  stableSha256: string;
+  providerIncludes: Readonly<{
+    resolutions: readonly ProviderIncludeResolution[];
+    unresolved: readonly UnresolvedProviderInclude[];
+  }>;
+  evidenceGraph: Readonly<{
+    nodes: number;
+    edges: number;
+    outputInfluencingEdges: number;
+    /** SHA-256 of the canonical evidence-graph projection. */
+    canonicalSha256: string;
+    diagnostics: readonly Diagnostic[];
+  }>;
 }>;
 
 /**
@@ -108,6 +155,13 @@ export type ExplorationResult = Readonly<{
   evidenceRefs: readonly EvidenceRef[];
   decisions: readonly string[];
   locatorProvenance?: Readonly<{ records: readonly LocatorProvenanceRecord[] }>;
+  /**
+   * DG-08: the post-action observation (stabilized URL + bounded heading
+   * anchors) when the run's final successful step was a form submit. The
+   * compile stage binds assertions from THIS (ADR-008 Decision 7); absent
+   * for navigate-only runs.
+   */
+  postAction?: Readonly<{ url: string; headings: readonly string[] }>;
 }>;
 
 export type OracleRule = Readonly<{

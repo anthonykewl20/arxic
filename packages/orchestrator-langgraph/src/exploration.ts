@@ -83,7 +83,8 @@ export type PlanStep = Readonly<{
   fixtureKind?: string;
   required: boolean;
 }> &
-  PlanStepExecution;
+  PlanStepExecution &
+  Readonly<{ formScope?: Readonly<{ fieldLabel: string; submitName: string }> }>;
 
 export type ExplorationPlan = Readonly<{ steps: readonly PlanStep[] }>;
 
@@ -176,6 +177,7 @@ export async function runPlannedExploration(
   const evidenceRefs: EvidenceRef[] = [];
   const locatorProvenance: LocatorProvenanceRecord[] = [];
   const executable: PlanStep[] = [];
+  const observations: StepObservation[] = [];
   let budgetRemaining = input.budget;
   let approved = true;
   let safeToExecute = true;
@@ -251,6 +253,7 @@ export async function runPlannedExploration(
         allowedOrigin: input.origin,
       });
       for (const [index, observation] of result.observations.entries()) {
+        observations.push(observation);
         const step = executable[index];
         if (!step) continue;
         if (observation.locatorResolution) {
@@ -318,12 +321,83 @@ export async function runPlannedExploration(
     }
   }
   decisions.push(...diagnostics.map(formatDiagnostic));
+  // DG-08: expose the post-action observation for the compile stage. The
+  // observation anchor is the FINAL successful CLICK step — the form-drive
+  // plan's submit — so the observation genuinely describes the post-action
+  // state (ADR-008 Decision 7); navigate-only runs expose nothing and the
+  // compile stage blocks OBSERVATION-MISSING instead of guessing.
+  const postAction = postActionOf(executable, observations, (pruned) => {
+    // Fail-visible (DG-08 final review P2): ambiguous headings are dropped,
+    // never asserted loosely — the omission is RECORDED so the run record
+    // shows why a text assertion is absent while the url assertion still
+    // binds. Bounded by design: ambiguity never blocks the observation.
+    decisions.push(
+      `Omitted ${String(pruned)} ambiguous post-action heading${pruned === 1 ? '' : 's'} from the observation (name collision on the page would compile to a strict-mode-violating text assertion); the url assertion still binds`,
+    );
+  });
   return {
     approved,
     evidenceRefs,
     decisions,
     ...(locatorProvenance.length > 0 ? { locatorProvenance: { records: locatorProvenance } } : {}),
+    ...(postAction ? { postAction } : {}),
   };
+}
+
+const MAX_POST_ACTION_HEADINGS = 3;
+
+function postActionOf(
+  executable: readonly PlanStep[],
+  observations: readonly StepObservation[],
+  onAmbiguousHeadingsPruned?: (count: number) => void,
+): { url: string; headings: readonly string[] } | undefined {
+  // The observation describes the post-action state ONLY when the ENTIRE
+  // drive succeeded: any failed or drifted step means the final page is not
+  // the intended outcome (e.g. a submit clicked with empty fields).
+  for (const [index, step] of executable.entries()) {
+    const observation = observations[index];
+    if (!step || !observation) continue;
+    if (!observation.ok || observation.originDrifted) return undefined;
+  }
+  for (let index = executable.length - 1; index >= 0; index -= 1) {
+    const step = executable[index];
+    const observation = observations[index];
+    if (!step || !observation) continue;
+    if (step.kind !== 'click') continue;
+    if (!observation.accessibilitySnapshot) continue;
+    const all = headingNames(observation.accessibilitySnapshot);
+    const unambiguous = unambiguousHeadingNames(observation.accessibilitySnapshot);
+    if (all.length > unambiguous.length)
+      onAmbiguousHeadingsPruned?.(all.length - unambiguous.length);
+    const headings = unambiguous.slice(0, MAX_POST_ACTION_HEADINGS);
+    return { url: observation.url, headings };
+  }
+  return undefined;
+}
+
+function headingNames(node: import('@arxic/playwright-agent-adapter').AccessibilityNode): string[] {
+  const names: string[] = [];
+  if (node.role === 'heading' && node.name) names.push(node.name);
+  for (const child of node.children ?? []) names.push(...headingNames(child));
+  return names;
+}
+
+/**
+ * Headings whose accessible name is UNIQUE among all accessible names on the
+ * page. An ambiguous heading (e.g. an h2 "Login" next to a "Login" button)
+ * would compile to a strict-mode-violating getByText assertion — it is
+ * dropped (honest omission), never asserted loosely.
+ */
+function unambiguousHeadingNames(
+  node: import('@arxic/playwright-agent-adapter').AccessibilityNode,
+): string[] {
+  const nameCounts = new Map<string, number>();
+  const countNames = (current: typeof node): void => {
+    if (current.name) nameCounts.set(current.name, (nameCounts.get(current.name) ?? 0) + 1);
+    for (const child of current.children ?? []) countNames(child);
+  };
+  countNames(node);
+  return headingNames(node).filter((name) => (nameCounts.get(name) ?? 0) === 1);
 }
 
 function selectLease(
@@ -358,7 +432,7 @@ function mapIntent(
       ...(path ? { url: new URL(path, origin).href } : {}),
     };
   }
-  if (/submit|login|form/i.test(intent))
+  if (/submit|form/i.test(intent))
     return { action: 'form-submit', actionClass: 'reversible-mutation' };
   if (/delete|remove|destroy/i.test(intent))
     return { action: 'delete-user', actionClass: 'destructive' };
@@ -399,6 +473,7 @@ function toDriverStep(step: PlanStep): PlannedExplorationStep {
         locator: step.locator,
         value: step.value,
         ...(step.url ? { url: step.url } : {}),
+        ...(step.formScope ? { formScope: step.formScope } : {}),
       };
     case 'click':
       return {
@@ -406,6 +481,7 @@ function toDriverStep(step: PlanStep): PlannedExplorationStep {
         kind: 'click',
         locator: step.locator,
         ...(step.url ? { url: step.url } : {}),
+        ...(step.formScope ? { formScope: step.formScope } : {}),
       };
     case 'snapshot':
       return { intent: step.intent, kind: 'snapshot' };
@@ -418,7 +494,14 @@ function toDriverStep(step: PlanStep): PlannedExplorationStep {
 
 function isExecutableStep(step: PlanStep): boolean {
   if (step.actionClass === 'read-only') {
-    return step.kind === 'snapshot' || step.kind === 'navigate' || Boolean(step.url);
+    // DG-08: `fill` is a DOM-local, policy-registered read-only action —
+    // the page-local half of a leased form submit.
+    return (
+      step.kind === 'snapshot' ||
+      step.kind === 'navigate' ||
+      step.kind === 'fill' ||
+      Boolean(step.url)
+    );
   }
   return (
     step.actionClass === 'reversible-mutation' && (step.kind === 'fill' || step.kind === 'click')

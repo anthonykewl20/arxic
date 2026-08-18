@@ -123,7 +123,7 @@ describe('orchestrator sad paths', () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_RESUME, severity: 'observed' }),
     );
-    expect(result.checkpoints.filter(({ stage }) => stage <= 3)).toHaveLength(4);
+    expect(result.checkpoints.map(({ stage }) => stage).slice(0, 5)).toEqual([0, 1, 2, 13, 3]); // stage 13 runs between 2 and 3
     expect(
       await Promise.all(
         [0, 1, 2, 3].map((stage) => readFile(join(runs, 'restart', 'stages', `0${stage}.json`))),
@@ -242,7 +242,7 @@ describe('orchestrator sad paths', () => {
 
     expect(result.status).toBe('partial');
     expect(result.outcome).toBe('observed');
-    expect(result.completedStages).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    expect(result.completedStages).toEqual([0, 1, 2, 13, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_EMPTY_COVERAGE, severity: 'observed' }),
     );
@@ -317,7 +317,7 @@ describe('orchestrator sad paths', () => {
       checkpointer: new FileStageCheckpointer(runs),
     }).run(input('terminal-hash'));
 
-    expect(initial.completedStages).toHaveLength(13);
+    expect(initial.completedStages).toHaveLength(14);
     expect(reused.status).toBe('failed');
     expect(reused.outcome).toBe('blocked');
     expect(reused.diagnostics).toContainEqual(
@@ -686,7 +686,7 @@ describe('orchestrator sad paths', () => {
       },
     }).run(input('soft-block'));
 
-    expect(result.completedStages).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    expect(result.completedStages).toEqual([0, 1, 2, 13, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     expect(result.checkpoints.find(({ stage }) => stage === 8)?.status).toBe('completed');
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ severity: 'blocked', subject: 'stage-8' }),
@@ -750,7 +750,7 @@ describe('orchestrator sad paths', () => {
 
     expect(result.status).toBe('failed');
     expect(result.outcome).toBe('blocked');
-    expect(result.completedStages).toEqual([0, 1, 2, 3]);
+    expect(result.completedStages).toEqual([0, 1, 2, 13, 3]);
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_HASH_MISMATCH, severity: 'blocked' }),
     );
@@ -774,7 +774,7 @@ describe('orchestrator sad paths', () => {
     }).run(input('inbound-hash'));
 
     expect(result.status).toBe('failed');
-    expect(result.completedStages).toEqual([0, 1, 2, 3]);
+    expect(result.completedStages).toEqual([0, 1, 2, 13, 3]);
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_ORCH_HASH_MISMATCH, severity: 'blocked' }),
     );
@@ -810,7 +810,7 @@ describe('orchestrator sad paths', () => {
     });
 
     expect(waiting.status).toBe('awaiting-approval');
-    expect(waiting.completedStages).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+    expect(waiting.completedStages).toEqual([0, 1, 2, 13, 3, 4, 5, 6, 7]);
     expect(waiting.checkpoints.at(-1)).toMatchObject({ stage: 8, status: 'awaiting-approval' });
 
     const completed = await orchestrator.run(
@@ -822,7 +822,7 @@ describe('orchestrator sad paths', () => {
       },
     );
     expect(completed.status).toBe('partial');
-    expect(completed.completedStages).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    expect(completed.completedStages).toEqual([0, 1, 2, 13, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     expect(completed.checkpoints.filter(({ stage }) => stage === 8)).toEqual([
       expect.objectContaining({ status: 'awaiting-approval' }),
       expect.objectContaining({

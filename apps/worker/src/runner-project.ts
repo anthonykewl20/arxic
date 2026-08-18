@@ -170,7 +170,10 @@ function projectCheckpoint(
 }
 
 function artifactPath(runId: string, id: string): string {
-  const match = /^stage:(\d|1[0-2])$/u.exec(id);
+  // Stage ids 0–13 (13 = domain-inventory, DG-06 — mirrors run-spec's StageId
+  // lockstep-guarded union; artifact files are zero-padded to 2 digits by the
+  // orchestrator's FileStageCheckpointer, so 13 → '13.json').
+  const match = /^stage:(\d|1[0-3])$/u.exec(id);
   if (!match) throw new Error(`Unsupported stage artifact id: ${id}`);
   return `checkpoints/${runId}/artifacts/${String(Number(match[1])).padStart(2, '0')}.json`;
 }

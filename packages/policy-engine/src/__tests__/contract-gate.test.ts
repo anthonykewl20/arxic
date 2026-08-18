@@ -159,17 +159,22 @@ describe('policy-engine contract gate', () => {
     }
   });
 
-  it('exposes an exact frozen six-action registry', () => {
+  it('exposes an exact frozen seven-action registry', () => {
     expect(Object.isFrozen(ACTION_REGISTRY)).toBe(true);
+    // DG-08 (#252): `fill` was ADDED (DOM-local form-field fill, read-only —
+    // the least-privileged class; the application mutation remains the
+    // separately leased `form-submit`). Additive only: the six pre-existing
+    // entries are byte-identical and unknown actions still fail closed.
     expect(ACTION_REGISTRY).toEqual({
       navigation: 'read-only',
+      fill: 'read-only',
       'form-submit': 'reversible-mutation',
       'fixture-change': 'reversible-mutation',
       'file-write': 'external-side-effect',
       promotion: 'destructive',
       'delete-user': 'destructive',
     });
-    expect(Object.keys(ACTION_REGISTRY)).toHaveLength(6);
+    expect(Object.keys(ACTION_REGISTRY)).toHaveLength(7);
   });
 
   it('detects the first collision without mutating leases', () => {

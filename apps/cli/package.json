@@ -48,6 +48,7 @@
     "@arxic/auth-domain-pack": "workspace:*",
     "@arxic/bundle-promoter": "workspace:*",
     "@arxic/contracts": "workspace:*",
+    "@arxic/environment": "workspace:*",
     "@arxic/model-adapter": "workspace:*",
     "@arxic/orchestrator-langgraph": "workspace:*",
     "@arxic/playwright-screenshot-privacy": "workspace:*",
