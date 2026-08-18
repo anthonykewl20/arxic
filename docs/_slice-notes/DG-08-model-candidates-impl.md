@@ -28,6 +28,10 @@ Three honesty gaps the E2E exposed, fixed in owned code: (1) exploration fills w
 
 **P3s fixed**: gate vocabulary extended (`signin`/`signup`/`register`/`registration`/`reset` as word-shape patterns — bare substrings would false-positive on the frozen fixture API `provider.reset(`/`ARXIC-FIXTURE-RESET-FAILED`/"registered fixture provider", which are allowlisted tokens; the local `reset` variable in fixture-coordinator was renamed `fixtureReset` rather than allowlisted) with genuine RED-PROOF controls in all three gates (planted literals in a temp scanned tree); `docs/configuration.md` budget default 0.025 → 0.0253.
 
+### Final review P2 round (invariant pins + fail-visible pruning)
+
+One P2 accepted: policy-critical post-action observation invariants were correct-by-construction but unpinned. Landed: (1) five + two pin tests through the public runPlannedExploration seam — unapproved drive binds nothing; failed FINAL step binds nothing; failed EARLIER step with a SUCCEEDING final click binds nothing (the every-step guard, unpinned by the first round); early origin drift with succeeding final click binds nothing; ambiguous post-action headings pruned fail-visibly (decision recorded; red-proved: the pin fails against pre-change impl) while the url assertion still binds; unambiguous page records no pruning decision. No implementation behavior changed by the pins. (2) `postActionOf` now records an `Omitted N ambiguous post-action heading(s)` decision (bounded: ambiguity never blocks the observation; url-floor assertion still derives). Recorded follow-up (out of slice ownership per charter §10): the heading-name tree walk is now near-identical in three packages (orchestrator-langgraph exploration, verification-spike observation, playwright-compiler observation-capture) — extract a canonical helper into @arxic/playwright-agent-adapter and migrate call sites as a separate slice.
+
 ## 4. VERSION bump required?
 
 no — internal pipeline behavior change; no new user-facing command surface (the budget env var is documented in `docs/configuration.md`; versioning per RELEASES.md stays with the owner's release decision on the v0.1.x lane)
@@ -38,7 +42,7 @@ no — internal pipeline behavior change; no new user-facing command surface (th
 - Sad-path suites: `packages/orchestrator-langgraph/src/__tests__/intent-proposer.test.ts` (malformed→retry→blocked; injection→content-as-data; dangling refs→rejected; budget→blocked pre-call with ZERO requests; seeder same-gates; honest zero), `proposal-compile.test.ts` (no form surface / no observation → honest block, never fabricated assertions; #257 redirect scenario binds the OBSERVED url).
 - Machine gate: `domain-literal-gate.test.ts` in orchestrator + CLI (ADR-008 Decision 3 in CI).
 - Evidence dir: `docs/evidence/DG-08/README.md`.
-- Gates: typecheck ☐ · lint ☐ · format ☐ · test (180 files / 1488 tests incl. the real-Docker worker E2E on the new wiring) ☐ · license gate ☐ (no new external deps)
+- Gates: typecheck ✓ · lint ✓ · format ✓ (re-run after this note edit) · test (180 files / 1493+2 tests locally; full suite incl. real-Docker worker E2E; CI re-run on push) ✓ · license gate ✓ (no new external deps)
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 

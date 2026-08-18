@@ -326,7 +326,15 @@ export async function runPlannedExploration(
   // plan's submit — so the observation genuinely describes the post-action
   // state (ADR-008 Decision 7); navigate-only runs expose nothing and the
   // compile stage blocks OBSERVATION-MISSING instead of guessing.
-  const postAction = postActionOf(executable, observations);
+  const postAction = postActionOf(executable, observations, (pruned) => {
+    // Fail-visible (DG-08 final review P2): ambiguous headings are dropped,
+    // never asserted loosely — the omission is RECORDED so the run record
+    // shows why a text assertion is absent while the url assertion still
+    // binds. Bounded by design: ambiguity never blocks the observation.
+    decisions.push(
+      `Omitted ${String(pruned)} ambiguous post-action heading${pruned === 1 ? '' : 's'} from the observation (name collision on the page would compile to a strict-mode-violating text assertion); the url assertion still binds`,
+    );
+  });
   return {
     approved,
     evidenceRefs,
@@ -341,6 +349,7 @@ const MAX_POST_ACTION_HEADINGS = 3;
 function postActionOf(
   executable: readonly PlanStep[],
   observations: readonly StepObservation[],
+  onAmbiguousHeadingsPruned?: (count: number) => void,
 ): { url: string; headings: readonly string[] } | undefined {
   // The observation describes the post-action state ONLY when the ENTIRE
   // drive succeeded: any failed or drifted step means the final page is not
@@ -356,10 +365,11 @@ function postActionOf(
     if (!step || !observation) continue;
     if (step.kind !== 'click') continue;
     if (!observation.accessibilitySnapshot) continue;
-    const headings = unambiguousHeadingNames(observation.accessibilitySnapshot).slice(
-      0,
-      MAX_POST_ACTION_HEADINGS,
-    );
+    const all = headingNames(observation.accessibilitySnapshot);
+    const unambiguous = unambiguousHeadingNames(observation.accessibilitySnapshot);
+    if (all.length > unambiguous.length)
+      onAmbiguousHeadingsPruned?.(all.length - unambiguous.length);
+    const headings = unambiguous.slice(0, MAX_POST_ACTION_HEADINGS);
     return { url: observation.url, headings };
   }
   return undefined;
