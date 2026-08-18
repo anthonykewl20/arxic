@@ -308,9 +308,9 @@ export function buildIntentLedger(input: IntentLedgerBuildInput): LedgerOutcome<
       proposals.push(...inference.proposalRun.proposals);
     }
   }
-  for (const proposal of proposals) {
+  for (const [proposalIndex, proposal] of proposals.entries()) {
     if (!isProposalShape(proposal)) {
-      return inputInvalid(`stage-04 proposal ${String(proposal.id)} violates the bound shape`);
+      return inputInvalid(`stage-04 proposal at index ${proposalIndex} violates the bound shape`);
     }
     if (proposal.truthState === 'verified') {
       // ADR-001 §2: model output can never assert `verified`; the build
@@ -658,7 +658,7 @@ export async function writeIntentLedger(
 }
 
 export type StageIntentLedgerOutcome =
-  | { ok: true; runDirectory: string; ledger: IntentLedger; wrote: boolean }
+  | { ok: true; runDirectory: string; ledger: IntentLedger; wrote: boolean; sha256: string }
   | { ok: false; diagnostics: readonly Diagnostic[] };
 
 /**
@@ -680,7 +680,13 @@ export async function stageIntentLedger(input: Readonly<{
     try {
       const existing = validateIntentLedger(JSON.parse(await readFile(outputPath, 'utf8')));
       if (existing.ok) {
-        return { ok: true, runDirectory: input.runDirectory, ledger: existing.value, wrote: false };
+        return {
+          ok: true,
+          runDirectory: input.runDirectory,
+          ledger: existing.value,
+          wrote: false,
+          sha256: sha256(await readFile(outputPath)),
+        };
       }
       // A present-but-invalid ledger is never silently kept.
       return { ok: false, diagnostics: existing.diagnostics };
@@ -711,7 +717,13 @@ export async function stageIntentLedger(input: Readonly<{
     ...(input.scan === undefined ? {} : { scan: input.scan }),
   });
   if (!written.ok) return { ok: false, diagnostics: written.diagnostics };
-  return { ok: true, runDirectory: input.runDirectory, ledger: built.value, wrote: true };
+  return {
+    ok: true,
+    runDirectory: input.runDirectory,
+    ledger: built.value,
+    wrote: true,
+    sha256: written.sha256,
+  };
 }
 
 // ---------------------------------------------------------------------------

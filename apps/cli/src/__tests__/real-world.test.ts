@@ -1,15 +1,17 @@
 import { execFile, spawn, type ChildProcess } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { createServer as createHttpServer, type Server as HttpServer } from 'node:http';
-import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { validateDiagnostic, type Diagnostic } from '@arxic/contracts';
 import { MailpitContainer, type StartedMailpit } from '@arxic/environment';
+import { scanBundleForSensitiveData, scanTextForSecrets } from '@arxic/bundle-promoter';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runCli } from '../index';
+import { normalizeLedgerBytes, validateIntentLedger, type IntentLedger } from '../../../../packages/intent/src/ledger';
 
 const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, '../../../..');
@@ -140,6 +142,29 @@ describe('real CLI pipeline proof', () => {
       expect.arrayContaining(['/', '/login', '/forgot-password']),
     );
 
+    // DG-07 (#251, C-1 + C-7): even the honest no-model run ships a ledger at
+    // its run root — every inventory row present with its disposition, ZERO
+    // fabricated intents — and it renders read-only before any bundle exists.
+    const noModelLedgerBytes = await readFile(join(runDirectory, 'intents.json'), 'utf8');
+    const noModelLedger = validateIntentLedger(JSON.parse(noModelLedgerBytes));
+    if (!noModelLedger.ok) throw new Error(`no-model ledger invalid: ${noModelLedgerBytes}`);
+    const noModelRows = noModelLedger.value.rows;
+    const noModelInventory = JSON.parse(
+      await readFile(join(runDirectory, 'artifacts', '13.json'), 'utf8'),
+    ) as { inventory: { rows: Array<{ key: string }> } };
+    expect(noModelRows.map((row) => row.inventoryKey).sort()).toEqual(
+      noModelInventory.inventory.rows.map((row) => row.key).sort(),
+    );
+    expect(noModelRows.every((row) => row.intents.length === 0)).toBe(true);
+    expect(scanTextForSecrets(noModelLedgerBytes)).toEqual([]);
+    const noModelRender: string[] = [];
+    expect(
+      await runCli(['intents', runDirectory], {
+        stdout: { write: (message) => void noModelRender.push(message) },
+      }),
+    ).toMatchObject({ exitCode: 0 });
+    expect(noModelRender.join('')).toContain('(no proposal');
+
     const diagnostics = await readDiagnostics(runDirectory);
     expect(diagnostics.length).toBeGreaterThanOrEqual(1);
     expect(diagnostics.every((diagnostic) => validateDiagnostic(diagnostic).ok)).toBe(true);
@@ -167,6 +192,9 @@ describe('real CLI pipeline proof', () => {
     process.env.ARXIC_MODEL_API_KEY = 'release-cli-stub-key';
     process.env.ARXIC_INPUT_PERSONA_EMAIL = 'm1-11@example.test';
     process.env.ARXIC_INPUT_PERSONA_PASSWORD = 'Hunter2!';
+    const ledgerBytesByRun = new Map<string, string>();
+    const bundleDirectories: string[] = [];
+    const promotedRunDirectories: string[] = [];
     try {
       for (const sequence of ['first', 'second']) {
         const runId = `release-cli-default-${sequence}-${randomUUID()}`;
@@ -234,7 +262,107 @@ describe('real CLI pipeline proof', () => {
           assertions.every(({ intent }) => intent.startsWith('url:') || intent.startsWith('text:')),
         ).toBe(true);
         expect(assertions.map(({ intent }) => intent)).not.toContain('url:/');
+
+        // DG-07 (#251): the intent ledger — run-root copy (C-1, D-3), the
+        // hash-covered bundle-root copy (C-2, D-1, AC-3), the 100% inventory
+        // join (AC-2), the C-6 redaction wiring (AC-7), and determinism
+        // inputs for the G-5 byte-compare after the loop.
+        const ledgerBytes = await readFile(join(runDirectory, 'intents.json'), 'utf8');
+        const ledger = validateIntentLedger(JSON.parse(ledgerBytes));
+        expect(ledger.ok, ledgerBytes).toBe(true);
+        ledgerBytesByRun.set(sequence, ledgerBytes);
+        const inventory = JSON.parse(
+          await readFile(join(runDirectory, 'artifacts', '13.json'), 'utf8'),
+        ) as {
+          inventory: {
+            rows: Array<{ key: string; disposition: string; sourceRefs: unknown[] }>;
+          };
+        };
+        // AC-2: every stage-13 InventoryRow appears in >=1 ledger row.
+        const ledgerValue: IntentLedger = ledger.ok
+          ? ledger.value
+          : (() => {
+              throw new Error(`ledger invalid: ${ledgerBytes}`);
+            })();
+        const ledgerKeys = new Set(ledgerValue.rows.map((row) => row.inventoryKey));
+        for (const row of inventory.inventory.rows) {
+          expect(ledgerKeys, `inventory row ${row.key} missing from the ledger`).toContain(row.key);
+        }
+        expect(ledgerValue.rows).toHaveLength(inventory.inventory.rows.length);
+        // The promoted candidate row carries verified + attempted:passed —
+        // derived ONLY from the deterministic verifier output (C-5, D-4).
+        const candidateRow = ledgerValue.rows.find((row) =>
+          row.intents.some((intent) => intent.isCandidate),
+        );
+        expect(candidateRow).toBeDefined();
+        expect(candidateRow!.intents.find((intent) => intent.isCandidate)).toMatchObject({
+          truthState: 'verified',
+          replayStatus: 'attempted:passed',
+        });
+        // AC-7 (build-time half): the exact ledger bytes pass the real
+        // scanner with zero findings.
+        expect(scanTextForSecrets(ledgerBytes)).toEqual([]);
+
+        const bundleDirectory = run.receipt!.location.replace(/\.json$/u, '');
+        bundleDirectories.push(bundleDirectory);
+        promotedRunDirectories.push(runDirectory);
+        const bundleLedgerBytes = await readFile(join(bundleDirectory, 'intents.json'), 'utf8');
+        expect(bundleLedgerBytes).toBe(ledgerBytes);
+        const bundleManifest = JSON.parse(
+          await readFile(join(bundleDirectory, 'manifest.json'), 'utf8'),
+        ) as { fileHashes: Array<{ path: string; sha256: string }> };
+        expect(
+          bundleManifest.fileHashes.some(
+            ({ path, sha256 }) => path.endsWith('intents.json') && /^[0-9a-f]{64}$/u.test(sha256),
+          ),
+        ).toBe(true);
+        const checksums = await readFile(join(bundleDirectory, 'checksums.sha256'), 'utf8');
+        expect(checksums).toMatch(/^[0-9a-f]{64} {2}intents\.json$/mu);
+        // AC-7 (assembly-time half): the assembled bundle sweep is green.
+        expect(await scanBundleForSensitiveData(bundleDirectory)).toMatchObject({
+          passed: true,
+          findings: [],
+        });
       }
+
+      // G-5 (determinism): two consecutive fixture runs produce ledgers that
+      // are byte-identical after normalizing the timestamp field — mirroring
+      // the two-promotion byte-compare proof in the promoter's real-world
+      // suite (raw bytes differ only by generatedAt).
+      const first = ledgerBytesByRun.get('first')!;
+      const second = ledgerBytesByRun.get('second')!;
+      expect(first).not.toBe(second);
+      expect(normalizeLedgerBytes(first)).toBe(normalizeLedgerBytes(second));
+
+      // AC-4: read-only rendering over the run dir and the assembled bundle
+      // dir, with ZERO file writes, plus the SP-5 garbage-PATH refusal.
+      const firstRunDirectory = promotedRunDirectories[0]!;
+      expect(promotedRunDirectories.length).toBe(2);
+      const before = await directoryFingerprint(firstRunDirectory);
+      const beforeBundle = await directoryFingerprint(bundleDirectories[0]!);
+      const tableOutput: string[] = [];
+      const jsonOutput: string[] = [];
+      const tableResult = await runCli(['intents', firstRunDirectory], {
+        stdout: { write: (message) => void tableOutput.push(message) },
+      });
+      const jsonResult = await runCli(['intents', bundleDirectories[0]!, '--json'], {
+        stdout: { write: (message) => void jsonOutput.push(message) },
+      });
+      expect(tableResult.exitCode).toBe(0);
+      expect(jsonResult.exitCode).toBe(0);
+      expect(tableOutput.join('')).toContain('account-recovery');
+      expect(tableOutput.join('')).toContain('attempted:passed');
+      expect((JSON.parse(jsonOutput.join('')) as { schemaVersion: string }).schemaVersion).toBe(
+        'arxic-intent-ledger-v1',
+      );
+      expect(await directoryFingerprint(firstRunDirectory)).toEqual(before);
+      expect(await directoryFingerprint(bundleDirectories[0]!)).toEqual(beforeBundle);
+      const garbageErrors: string[] = [];
+      const garbage = await runCli(['intents', join(tmpdir(), `no-such-${randomUUID()}`)], {
+        stderr: { write: (message) => void garbageErrors.push(message) },
+      });
+      expect(garbage.exitCode).toBe(2);
+      expect(garbageErrors.join('')).toContain('ARXIC-CLI-USAGE');
     } finally {
       restoreModelEnvironment(previous);
     }
@@ -292,6 +420,16 @@ type RunRecord = {
   toolVersions: Record<string, string>;
   receipt?: { location: string };
 };
+
+async function directoryFingerprint(directory: string): Promise<Record<string, string>> {
+  const entries = (await readdir(directory, { recursive: true })).sort();
+  const fingerprint: Record<string, string> = {};
+  for (const entry of entries) {
+    const info = await stat(join(directory, entry));
+    fingerprint[entry] = `${info.mtimeMs}:${info.size}`;
+  }
+  return fingerprint;
+}
 
 type SurfaceArtifact = { routes: Array<{ path: string }> };
 

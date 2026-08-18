@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { isAbsolute, join, relative, resolve } from 'node:path';
-import type { StagedBundle } from '@arxic/contracts';
+import type { ArtifactRef, StagedBundle } from '@arxic/contracts';
 import { AUTH_DOMAIN, authDomainSeeder } from '@arxic/auth-domain-pack';
-import { assembleBundle, BundlePromoterAdapter } from '@arxic/bundle-promoter';
+import { assembleBundle, BundlePromoterAdapter, scanTextForSecrets } from '@arxic/bundle-promoter';
 import { ModelAdapter } from '@arxic/model-adapter';
 import {
   serializeScreenshotPrivacyPolicy,
@@ -23,6 +23,11 @@ import {
   type OrchestratorOptions,
   type RunState,
 } from '@arxic/orchestrator-langgraph';
+import {
+  INTENT_LEDGER_FILENAME,
+  stageIntentLedger,
+  type StageIntentLedgerOutcome,
+} from '../../../packages/intent/src/ledger';
 import { ARXIC_EXEC_RESUMED, cliDiagnostic } from './diagnostics';
 import {
   runResultFromState,
@@ -64,6 +69,18 @@ export class LocalRunExecutor implements RunExecutor {
       emitted.push(resumed);
       state = await orchestrator.run(input);
     }
+    // DG-07 (#251, C-1): every run that produced a stage-13 inventory carries
+    // an `intents.json` at its run root. Promoted/compiled runs staged it
+    // before freeze inside the verify callback; this idempotent hook covers
+    // the remaining runs (no model, uncompiled, blocked).
+    const runRoot = resolve(request.runDirectory, request.runId);
+    const postRunLedger = await stageIntentLedger({
+      runDirectory: runRoot,
+      generatedAt: ledgerTimestamp(request),
+      scan: scanTextForSecrets,
+      skipIfPresent: true,
+    });
+    if (!postRunLedger.ok) postRunLedger.diagnostics.forEach((diagnostic) => sink.emit(diagnostic));
     state.diagnostics.forEach((diagnostic) => sink.emit(diagnostic));
     const diagnostics = [...emitted, ...state.diagnostics];
     return runResultFromState(request, state, diagnostics);
@@ -113,16 +130,47 @@ function localPipelineOptions(
         ),
         ...(request.now === undefined ? {} : { now: request.now }),
       }).verify(compilation.stagedBundle, compilation.stagedBundle.workflow.verification);
+      // DG-07 (#251, C-2 + C-6a): the deterministic ledger is built from the
+      // run's stage artifacts (13/04/09 resolved from the run root; stage 10
+      // supplied in-memory), redaction-scanned over its exact bytes, and
+      // staged on the bundle BEFORE freeze. Any failure blocks the verified
+      // result fail-closed — no ledger, no promotion.
+      const ledger = await stageIntentLedger({
+        runDirectory: outputDirectory,
+        generatedAt: ledgerTimestamp(request),
+        scan: scanTextForSecrets,
+        verificationOverride: {
+          outcome: verification.outcome,
+          runs: verification.runs.map(({ passed }) => ({ passed })),
+        },
+      });
+      if (!ledger.ok) {
+        return {
+          ...verification,
+          outcome: 'blocked',
+          diagnostics: [...verification.diagnostics, ...ledger.diagnostics],
+          gates: [
+            { gate: 'verify', passed: false },
+            { gate: 'intent-ledger', passed: false },
+          ],
+        };
+      }
       return {
         ...verification,
-        stagedBundle: promotionReadyBundle(compilation.stagedBundle, request),
+        stagedBundle: promotionReadyBundle(
+          withIntentLedgerArtifact(compilation.stagedBundle, ledger),
+          request,
+        ),
         artifacts: verification.artifacts.map((artifact) => ({
           ...artifact,
           path: isAbsolute(artifact.path)
             ? artifact.path
             : resolve(request.runDirectory, artifact.path),
         })),
-        gates: [{ gate: 'verify', passed: verification.outcome === 'verified' }],
+        gates: [
+          { gate: 'verify', passed: verification.outcome === 'verified' },
+          { gate: 'intent-ledger', passed: true },
+        ],
       };
     },
     promote: async (bundle, gates) => {
@@ -258,6 +306,28 @@ function promotionReadyBundle(bundle: StagedBundle, request: RunRequest): Staged
       fileHashes: artifacts.map(({ path, sha256 }) => ({ path, sha256 })),
     },
   };
+}
+
+/**
+ * DG-07 (#251, C-2 + D-1): declares the run-root `intents.json` as a staged
+ * bundle artifact (kind `intent-ledger`) so it rides `manifest.fileHashes`,
+ * the frozen bundle artifact refs, and — via `assembleBundle` — the assembled
+ * bundle root + `checksums.sha256`. NO manifest schema change.
+ */
+function withIntentLedgerArtifact(
+  bundle: StagedBundle,
+  ledger: Extract<StageIntentLedgerOutcome, { ok: true }>,
+): StagedBundle {
+  const artifact: ArtifactRef = {
+    kind: 'intent-ledger',
+    path: INTENT_LEDGER_FILENAME,
+    sha256: ledger.sha256,
+  };
+  return { ...bundle, artifacts: [...bundle.artifacts, artifact] };
+}
+
+function ledgerTimestamp(request: RunRequest): string {
+  return request.now?.() ?? new Date().toISOString();
 }
 
 function configuredModel(request: RunRequest): { adapter: ModelAdapter; name: string } | undefined {

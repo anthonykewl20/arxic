@@ -8,6 +8,8 @@ import {
   type StagedBundle,
 } from '@arxic/contracts';
 import { validateScreenshotArtifactSet } from '@arxic/playwright-screenshot-privacy';
+import { ARXIC_PROMOTION_REDACTION_FAILED } from './diagnostics';
+import { scanBundleForSensitiveData } from './redaction-gate';
 import { validateTraceArtifacts } from './trace-artifact-gate';
 
 export type ProvenanceInput = Readonly<{
@@ -43,11 +45,14 @@ export type BundleAssembly = Readonly<{
   sbom?: string;
 }>;
 
-const stagedFiles = [
-  'tests/workflow.spec.ts',
-  'fixtures/workflow.fixture.ts',
-  'playwright.config.ts',
-] as const;
+  const stagedFiles = [
+    'tests/workflow.spec.ts',
+    'fixtures/workflow.fixture.ts',
+    'playwright.config.ts',
+  ] as const;
+
+/** DG-07 (#251): the bundle-root intent ledger artifact marker. */
+const INTENT_LEDGER_PATH = 'intents.json';
 
 export async function assembleBundle(input: BundleAssemblyInput): Promise<BundleAssembly> {
   const stagedDirectory = resolve(input.stagedDirectory);
@@ -109,6 +114,18 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
     const bytes = await readFile(source);
     assertHash(artifact, bytes);
     await copyFile(source, join(directory, relativePath));
+  }
+  // DG-07 (#251, C-2): when the staged bundle declares the intent ledger, it
+  // ships as a PLAIN bundle-root file (D-1) — hash-checked against its staged
+  // artifact reference like every other staged runtime file.
+  const intentLedger = input.bundle.artifacts.find(
+    ({ kind, path }) => kind === 'intent-ledger' || path === INTENT_LEDGER_PATH,
+  );
+  if (intentLedger) {
+    const source = safeResolve(stagedDirectory, intentLedger.path);
+    const bytes = await readFile(source);
+    assertHash(intentLedger, bytes);
+    await writeFile(join(directory, INTENT_LEDGER_PATH), bytes);
   }
   const transitionReceiptsRuntime = input.bundle.artifacts.find(
     ({ path }) => path === 'fixtures/transition-receipts.ts',
@@ -194,6 +211,19 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
   const files = await assembledFiles(directory, false);
   const checksumsSha256 = `${files.map((file) => `${file.sha256}  ${file.path}`).join('\n')}\n`;
   await writeFile(join(directory, 'checksums.sha256'), checksumsSha256, 'utf8');
+
+  // DG-07 (#251, C-6b): the sensitive-data sweep is wired INTO assembly so
+  // every assembled TEXT file — including the bundle-root intents.json — is
+  // scanned as a file before the bundle can be promoted. Findings block the
+  // assembly fail-closed and the partially written directory is removed.
+  const sweep = await scanBundleForSensitiveData(directory);
+  if (!sweep.passed) {
+    await rm(directory, { recursive: true, force: true });
+    const findings = sweep.findings.map(({ file, pattern }) => `${file}:${pattern}`).join(', ');
+    throw new Error(
+      `${ARXIC_PROMOTION_REDACTION_FAILED} [bundle.assembly] Sensitive data matched in assembled bundle files (${findings})`,
+    );
+  }
   return {
     directory,
     files: await assembledFiles(directory, true),

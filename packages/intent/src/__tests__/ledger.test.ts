@@ -1,8 +1,9 @@
-import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import type { IntentLedger } from '../ledger';
 import {
   ARXIC_INTENT_LEDGER_EVIDENCE_UNRESOLVED,
   ARXIC_INTENT_LEDGER_INVENTORY_MISSING,
@@ -164,7 +165,7 @@ function digest(key: string): string {
   return createHash('sha256').update(key).digest('hex').slice(0, 12);
 }
 
-function forgotRow(ledger: { rows: Array<{ inventoryKey: string; intents?: unknown[] }> }): {
+function forgotRow(ledger: IntentLedger): {
   truthState: string;
   replayStatus: string;
   oracleKinds: string[];
@@ -173,6 +174,12 @@ function forgotRow(ledger: { rows: Array<{ inventoryKey: string; intents?: unkno
   const row = ledger.rows.find((candidate) => candidate.inventoryKey === 'POST /forgot-password');
   if (!row) throw new Error('fixture lost the POST /forgot-password row');
   return row as unknown as ReturnType<typeof forgotRow>;
+}
+
+function buildOk(input: Record<string, unknown>): IntentLedger {
+  const built = buildIntentLedger(input as Parameters<typeof buildIntentLedger>[0]);
+  if (!built.ok) throw new Error(`fixture ledger build failed: ${JSON.stringify(built.diagnostics)}`);
+  return built.value;
 }
 
 function buildFixtureInput(overrides: Record<string, unknown> = {}) {
@@ -190,7 +197,7 @@ describe('intent ledger schema validation', () => {
   it('validates a real builder-produced ledger and rejects mutated copies with stable codes', () => {
     const built = buildIntentLedger(buildFixtureInput());
     expect(built.ok).toBe(true);
-    const real = built.value!;
+    const real = buildOk(buildFixtureInput());
     expect(validateIntentLedger(real)).toMatchObject({ ok: true });
 
     // AC-1 mutation class 1: unknown top-level property (closed schema).
@@ -225,7 +232,7 @@ describe('intent ledger schema validation', () => {
 
     // SP-3: unknown schemaVersion is its own stable diagnostic.
     const badVersion = structuredClone(real);
-    badVersion.schemaVersion = 'arxic-intent-ledger-v2';
+    (badVersion as { schemaVersion: string }).schemaVersion = 'arxic-intent-ledger-v2';
     expect(validateIntentLedger(badVersion)).toMatchObject({
       ok: false,
       diagnostics: [expect.objectContaining({ code: ARXIC_INTENT_LEDGER_VERSION_UNKNOWN })],
@@ -235,9 +242,7 @@ describe('intent ledger schema validation', () => {
 
 describe('intent ledger builder join and derivation', () => {
   it('joins 100% of the stage-13 inventory and keeps no-proposal rows with their disposition (C-7)', () => {
-    const built = buildIntentLedger(buildFixtureInput());
-    expect(built.ok).toBe(true);
-    const ledger = built.value!;
+    const ledger = buildOk(buildFixtureInput());
     const envelope = inventoryEnvelope();
     const expectedKeys = envelope.inventory.rows.map((row) => row.key).sort();
     expect(ledger.rows.map((row) => row.inventoryKey)).toEqual(expectedKeys);
@@ -264,7 +269,7 @@ describe('intent ledger builder join and derivation', () => {
   });
 
   it('derives verified + attempted:passed ONLY from the deterministic verifier artifact (C-5, D-4)', () => {
-    const verified = buildIntentLedger(buildFixtureInput()).value!;
+    const verified = buildOk(buildFixtureInput());
     const forgot = verified.rows.find((row) => row.inventoryKey === 'POST /forgot-password')!;
     expect(forgot.intents[0]).toMatchObject({
       isCandidate: true,
@@ -278,25 +283,25 @@ describe('intent ledger builder join and derivation', () => {
       verified.rows.every((row) => row.intents.every((intent) => !intent.isCandidate || intent.replayStatus.startsWith('attempted:'))),
     ).toBe(true);
 
-    const unverified = buildIntentLedger(
+    const unverified = buildOk(
       buildFixtureInput({
         verification: { ...verificationArtifact, outcome: 'observed', runs: [{ passed: false }] },
       }),
-    ).value!;
+    );
     expect(
       unverified.rows.find((row) => row.inventoryKey === 'POST /forgot-password')!.intents[0],
     ).toMatchObject({ truthState: 'hypothesized', replayStatus: 'attempted:failed' });
 
-    const blocked = buildIntentLedger(
+    const blocked = buildOk(
       buildFixtureInput({ verification: { ...verificationArtifact, outcome: 'blocked', runs: [] } }),
-    ).value!;
+    );
     expect(
       blocked.rows.find((row) => row.inventoryKey === 'POST /forgot-password')!.intents[0],
     ).toMatchObject({ truthState: 'hypothesized', replayStatus: 'not-attempted' });
 
-    const uncompiled = buildIntentLedger(
+    const uncompiled = buildOk(
       buildFixtureInput({ compilation: { compiled: false, plan: 'none' } }),
-    ).value!;
+    );
     expect(uncompiled.candidate).toBeUndefined();
     expect(
       uncompiled.rows.find((row) => row.inventoryKey === 'POST /forgot-password')!.intents[0],
@@ -348,8 +353,8 @@ describe('intent ledger builder join and derivation', () => {
   });
 
   it('excludes run-volatile fields and is byte-stable modulo generatedAt', () => {
-    const first = buildIntentLedger(buildFixtureInput()).value!;
-    const second = buildIntentLedger(
+    const first = buildOk(buildFixtureInput());
+    const second = buildOk(
       buildFixtureInput({
         generatedAt: '2026-08-18T13:00:00.000Z',
         inference: {
@@ -362,7 +367,7 @@ describe('intent ledger builder join and derivation', () => {
           },
         },
       }),
-    ).value!;
+    );
     const firstBytes = serializeIntentLedger(first);
     const secondBytes = serializeIntentLedger(second);
     expect(firstBytes).not.toEqual(secondBytes);
@@ -371,7 +376,7 @@ describe('intent ledger builder join and derivation', () => {
     expect(firstBytes).not.toContain('requestId');
     expect(firstBytes).not.toContain('dedupe');
     // Same inputs, same generatedAt: byte-identical pure rebuild (C-1).
-    expect(serializeIntentLedger(buildIntentLedger(buildFixtureInput()).value!)).toBe(firstBytes);
+    expect(serializeIntentLedger(buildOk(buildFixtureInput()))).toBe(firstBytes);
   });
 });
 
@@ -421,7 +426,7 @@ describe('redaction-gated write (C-6a) and staging', () => {
     const inference = proposalArtifact(true);
     const built = buildIntentLedger(buildFixtureInput({ inference }));
     expect(built.ok).toBe(true);
-    const ledger = built.value!;
+    const ledger = buildOk(buildFixtureInput({ inference }));
     const directory = await mkdtemp(join(tmpdir(), 'arxic-ledger-redact-'));
     const scan = (text: string) =>
       /bearer\s+[A-Za-z0-9._-]{20,}/iu.test(text)

@@ -1,6 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { Diagnostic } from '@arxic/contracts';
+import type { OutputSink } from './cli';
 import { ARXIC_CLI_USAGE, cliDiagnostic } from './diagnostics';
 import {
   ARXIC_INTENT_LEDGER_INVENTORY_MISSING,
@@ -26,8 +27,8 @@ import {
 export type IntentsCommand = Readonly<{ kind: 'intents'; path: string; json?: boolean }>;
 
 export type IntentsActionOptions = Readonly<{
-  stdout?: { write(message: string): unknown };
-  stderr?: { write(message: string): unknown };
+  stdout?: OutputSink;
+  stderr?: OutputSink;
 }>;
 
 export async function intentsAction(
@@ -177,7 +178,7 @@ function pad(value: string, width: number): string {
 }
 
 function refuse(
-  sink: { write(message: string): unknown },
+  sink: OutputSink,
   exitCode: number,
   ...diagnostics: readonly Diagnostic[]
 ): { exitCode: number } {
@@ -187,7 +188,7 @@ function refuse(
   return { exitCode };
 }
 
-function print(sink: { write(message: string): unknown } | { log(message: string): unknown }, message: string): void {
+function print(sink: OutputSink, message: string): void {
   if ('write' in sink) sink.write(`${message}\n`);
   else sink.log(message);
 }

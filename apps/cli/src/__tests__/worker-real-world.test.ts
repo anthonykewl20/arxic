@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
-import { cp, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join, resolve } from 'node:path';
@@ -18,6 +18,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runCli } from '../index';
 import { normalizeWorkerResult } from '../worker-result-normalize';
+import { validateIntentLedger } from '../../../../packages/intent/src/ledger';
 
 const execute = promisify(execFile);
 const repoRoot = resolve(import.meta.dirname, '../../../..');
@@ -35,7 +36,7 @@ type RunRecord = {
   outcome: string;
   stages: Array<{ name: string; status: string }>;
   diagnostics: Diagnostic[];
-  receipt?: { location: string };
+  receipt?: { location: string; checksumSha256: string };
 };
 
 type Isolation = {
@@ -275,7 +276,13 @@ describe('worker-backed CLI real Docker proof', () => {
       const bundlePath = isAbsolute(receiptLocation)
         ? receiptLocation
         : resolve(outDir, receiptLocation);
-      const bundle = JSON.parse(await readFile(bundlePath, 'utf8')) as {
+      const frozenBytes = await readFile(bundlePath);
+      const bundle = JSON.parse(frozenBytes.toString('utf8')) as {
+        intentsLedger?: { schemaVersion: string; rows: Array<{ inventoryKey: string }> };
+        artifacts?: Array<{ kind: string; path: string; sha256: string }>;
+        manifest?: {
+          fileHashes: Array<{ path: string; sha256: string }>;
+        };
         workflow?: {
           id: string;
           domain: string;
@@ -284,6 +291,41 @@ describe('worker-backed CLI real Docker proof', () => {
       };
       expect(bundle).toHaveProperty('workflow');
       expect(bundle).toHaveProperty('manifest');
+      // DG-07 (#251, AC-5): the ledger CONTENT rides inside the frozen
+      // single-file worker bundle — no assembled directory exists in this
+      // lane — and the receipt checksumSha256 covers exactly those bytes.
+      expect(bundle.intentsLedger?.schemaVersion).toBe('arxic-intent-ledger-v1');
+      expect(bundle.intentsLedger!.rows.length).toBeGreaterThan(0);
+      expect(
+        bundle.artifacts!.some(
+          ({ kind, sha256 }) => kind === 'intent-ledger' && /^[0-9a-f]{64}$/u.test(sha256),
+        ),
+      ).toBe(true);
+      expect(
+        bundle.manifest!.fileHashes.some(({ path }) => path.endsWith('intents.json')),
+      ).toBe(true);
+      expect(run.receipt!.checksumSha256).toBe(createHash('sha256').update(frozenBytes).digest('hex'));
+      await expect(stat(join(outDir, 'promoted', `${runId}.bundle`))).rejects.toThrow();
+      // The imported run dir renders through `arxic intents` using the nested
+      // worker lane layout (RUNID/artifacts/checkpoints/RUNID/artifacts/13.json).
+      const runLedgerBytes = await readFile(join(runDirectory, 'intents.json'), 'utf8');
+      expect(validateIntentLedger(JSON.parse(runLedgerBytes)).ok).toBe(true);
+      expect(
+        await stat(join(runDirectory, 'artifacts', 'checkpoints', runId, 'artifacts', '13.json')),
+      ).toBeInstanceOf(Object);
+      const intentsOutput: string[] = [];
+      const intentsResult = await runCli(['intents', runDirectory], {
+        cwd: repoRoot,
+        stdout: { write: (message) => void intentsOutput.push(message) },
+      });
+      expect(intentsResult.exitCode).toBe(0);
+      expect(intentsOutput.join('')).toContain('sessions');
+      expect(intentsOutput.join('')).toContain('attempted:passed');
+      // The embedded copy is byte-equal to the run-root copy modulo the
+      // generatedAt timestamp (same builder, same artifacts).
+      expect(bundle.intentsLedger!.rows.length).toBe(
+        (JSON.parse(runLedgerBytes) as { rows: unknown[] }).rows.length,
+      );
       // DG-08 worker-mirror remediation: the promoted workflow is the MODEL's
       // proposal (non-auth domain, content-derived id), compiled through the
       // DG-09 path with OBSERVATION-bound assertions — the canned
