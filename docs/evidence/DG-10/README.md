@@ -2,14 +2,18 @@
 
 Produced by `packages/ast-grep-adapter/scripts/measure-framework-gate.mts`
 (invoked `npx tsx packages/ast-grep-adapter/scripts/measure-framework-gate.mts
-docs/evidence/DG-10`, 2026-08-17) against the real installed rulepacks with the
+docs/evidence/DG-10`, 2026-08-18) against the real installed rulepacks with the
 real `sg` CLI, using the committed real-source evidence fixtures:
 
 - `campaign-next-16.2.6/` — a **real** pnpm 11 lockfile (lockfileVersion 9.0)
-  resolving `next@16.2.6` from the npm registry, regenerating the recorded
-  campaign dependency pins (the original campaign monorepo is unlocatable —
-  ADR-008 Exit criteria note). The cell-2 pack reproduces the **historical**
-  `>=15 <16` range the campaign shipped with.
+  resolving `next@16.2.11` (postcss 8.5.26, sharp 0.35.3) from the npm
+  registry, regenerating the recorded campaign dependency pins (the original
+  campaign monorepo is unlocatable — ADR-008 Exit criteria note). The cell-2
+  pack reproduces the **historical** `>=15 <16` range the campaign shipped
+  with. Lockfile security-refreshed by issue #278; the original campaign
+  lockfile is preserved in git history at baseline SHA `8cf21e6` (sha256
+  `8d0775bd…`), and the `16.2.6` in the dir name is 2026-08-16 campaign
+  provenance, not the current resolution (see the fixture README).
 - `koel/` — `composer.json` (complete) and a `composer.lock` excerpt
   (`laravel/framework v13.24.0`) from koel/koel at
   `dfec91ff290509c622ff7cf392fb5e506841ee2b`, the commit DG-05 pinned. MIT.

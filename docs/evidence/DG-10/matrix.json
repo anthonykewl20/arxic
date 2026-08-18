@@ -6,22 +6,22 @@
     "frameworks": [
       {
         "name": "nextjs",
-        "version": "16.2.6",
+        "version": "16.2.11",
         "tier": "lockfile",
         "evidence": [
           {
             "path": "pnpm-lock.yaml",
-            "startLine": 12,
-            "endLine": 12,
-            "ruleId": "framework-evidence:nextjs@16.2.6",
-            "blobSha256": "8d0775bdcb30…"
+            "startLine": 16,
+            "endLine": 16,
+            "ruleId": "framework-evidence:nextjs@16.2.11",
+            "blobSha256": "094212ea1123…"
           },
           {
             "path": "package.json",
             "startLine": 5,
             "endLine": 5,
-            "ruleId": "framework-evidence:nextjs@16.2.6",
-            "blobSha256": "d70ab04f262f…"
+            "ruleId": "framework-evidence:nextjs@16.2.11",
+            "blobSha256": "ca407e6cb5cd…"
           }
         ]
       },
@@ -32,17 +32,17 @@
         "evidence": [
           {
             "path": "pnpm-lock.yaml",
-            "startLine": 15,
-            "endLine": 15,
+            "startLine": 19,
+            "endLine": 19,
             "ruleId": "framework-evidence:react@19.2.3",
-            "blobSha256": "8d0775bdcb30…"
+            "blobSha256": "094212ea1123…"
           },
           {
             "path": "package.json",
             "startLine": 6,
             "endLine": 6,
             "ruleId": "framework-evidence:react@19.2.3",
-            "blobSha256": "d70ab04f262f…"
+            "blobSha256": "ca407e6cb5cd…"
           }
         ]
       }
@@ -58,7 +58,7 @@
         "code": "ARXIC-RULES-FRAMEWORK-ACCEPTED",
         "severity": "observed",
         "subject": "framework:nextjs",
-        "message": "framework 'nextjs' 16.2.6 (lockfile evidence) is inside pack nextjs-auth@0.2.0 range >=15 <17"
+        "message": "framework 'nextjs' 16.2.11 (lockfile evidence) is inside pack nextjs-auth@0.2.0 range >=15 <17"
       }
     ]
   },
@@ -71,7 +71,7 @@
         "code": "ARXIC-RULES-FRAMEWORK-REJECTED",
         "severity": "blocked",
         "subject": "framework:nextjs",
-        "message": "framework 'nextjs' 16.2.6 (lockfile evidence) is outside pack nextjs-campaign@1.0.0 range >=15 <16; record a waiver in arxic.waivers.json to override deliberately"
+        "message": "framework 'nextjs' 16.2.11 (lockfile evidence) is outside pack nextjs-campaign@1.0.0 range >=15 <16; record a waiver in arxic.waivers.json to override deliberately"
       }
     ],
     "evidenceRefs": [
@@ -79,15 +79,15 @@
         "path": "package.json",
         "startLine": 5,
         "endLine": 5,
-        "ruleId": "framework-evidence:nextjs@16.2.6",
-        "blobSha256": "d70ab04f262f…"
+        "ruleId": "framework-evidence:nextjs@16.2.11",
+        "blobSha256": "ca407e6cb5cd…"
       },
       {
         "path": "pnpm-lock.yaml",
-        "startLine": 12,
-        "endLine": 12,
-        "ruleId": "framework-evidence:nextjs@16.2.6",
-        "blobSha256": "8d0775bdcb30…"
+        "startLine": 16,
+        "endLine": 16,
+        "ruleId": "framework-evidence:nextjs@16.2.11",
+        "blobSha256": "094212ea1123…"
       }
     ]
   },
@@ -113,7 +113,7 @@
         "code": "ARXIC-RULES-FRAMEWORK-WAIVED",
         "severity": "observed",
         "subject": "framework:nextjs",
-        "message": "operator anthonykewl20 waived 'nextjs' 16.2.6 against pack nextjs-campaign@1.0.0 range >=15 <16: operator reviewed the rules against this build (DG-10 evidence run) (recorded 2026-08-17T00:00:00.000Z)"
+        "message": "operator anthonykewl20 waived 'nextjs' 16.2.11 against pack nextjs-campaign@1.0.0 range >=15 <16: operator reviewed the rules against this build (DG-10 evidence run) (recorded 2026-08-17T00:00:00.000Z)"
       }
     ],
     "waiverEvidence": [
@@ -121,8 +121,8 @@
         "path": "arxic.waivers.json",
         "startLine": 5,
         "endLine": 5,
-        "ruleId": "framework-waiver:nextjs@16.2.6",
-        "blobSha256": "1275e86b5490…"
+        "ruleId": "framework-waiver:nextjs@16.2.11",
+        "blobSha256": "1439ac659b1e…"
       }
     ]
   },
@@ -135,7 +135,7 @@
         "code": "ARXIC-RULES-FRAMEWORK-REJECTED",
         "severity": "blocked",
         "subject": "framework:nextjs",
-        "message": "framework 'nextjs' 16.2.6 (lockfile evidence) is outside pack nextjs-campaign@1.0.0 range >=15 <16; record a waiver in arxic.waivers.json to override deliberately"
+        "message": "framework 'nextjs' 16.2.11 (lockfile evidence) is outside pack nextjs-campaign@1.0.0 range >=15 <16; record a waiver in arxic.waivers.json to override deliberately"
       }
     ]
   }

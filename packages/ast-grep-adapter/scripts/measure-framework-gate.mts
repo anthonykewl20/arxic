@@ -109,10 +109,40 @@ const campaignFiles = async (
 // Issue #278 (C-2/AC-4): expected versions derive from the fixture manifest
 // read at run time — the cell-4 waiver must match the fixture's next pin for
 // the waive to apply, and a future fixture bump must not touch this script.
+// PR #279 review P3: the gate detects from the LOCKFILE tier, so a manifest
+// pin alone must never drive expectations — mirror expectedCampaignNextVersion
+// (framework-gate.test.ts, AC-3) and abort BEFORE building the matrix when the
+// two fixture files disagree, instead of silently measuring a drifted fixture.
 const campaignManifest = JSON.parse(await readEvidence('campaign-next-16.2.6/package.json')) as {
   dependencies: { next: string };
 };
-const campaignNextVersion = campaignManifest.dependencies.next;
+const campaignLockfile = await readEvidence('campaign-next-16.2.6/pnpm-lock.yaml');
+
+// Same parser shape as the production reader (`pnpmLockCandidates` in
+// framework-gate.ts) and its test twin `lockfileNextResolution`: the importers
+// `next:` entry followed by its resolved `version:` line, with the
+// peer-dependency suffix (e.g. `16.2.11(react@19.2.3)`) cut at the first `(`.
+const lockfileNextResolution = (lockfile: string): string => {
+  const lines = lockfile.split('\n');
+  for (let index = 0; index < lines.length; index += 1) {
+    if (!/^\s{2,10}next:\s*$/u.test(lines[index]!)) continue;
+    const window = lines.slice(index + 1, index + 5).join('\n');
+    const resolved = window.match(/^\s+version:\s*(v?[0-9A-Za-z.-]+)/mu);
+    if (resolved) return resolved[1]!;
+  }
+  throw new Error('no importers next resolution found in campaign-next-16.2.6/pnpm-lock.yaml');
+};
+
+const manifestPin = campaignManifest.dependencies.next;
+const lockfileResolution = lockfileNextResolution(campaignLockfile);
+if (manifestPin !== lockfileResolution) {
+  throw new Error(
+    `fixture coherence violation (AC-3): campaign-next-16.2.6/package.json pins next@${manifestPin} ` +
+      `but pnpm-lock.yaml resolves next@${lockfileResolution} — regenerate the lockfile from the ` +
+      `manifest (see the fixture README, issue #278) before measuring DG-10 evidence`,
+  );
+}
+const campaignNextVersion = manifestPin;
 
 const waiverFor = (framework: string, version: string, range: string) =>
   JSON.stringify(
