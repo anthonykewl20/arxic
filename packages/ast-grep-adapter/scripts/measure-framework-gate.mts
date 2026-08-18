@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // DG-10 measurement harness: exercises the framework gate end-to-end with the
 // real sg CLI, the real rulepacks, and the real committed evidence fixtures
-// (campaign next@16.2.6 lockfile; koel composer.json/composer.lock at the
-// DG-05-pinned commit), then writes sanitized artifacts to docs/evidence/DG-10.
+// (campaign next lockfile — security-refreshed 2026-08-18, see the fixture
+// README; koel composer.json/composer.lock at the DG-05-pinned commit), then
+// writes sanitized artifacts to docs/evidence/DG-10.
 //
 // Usage: npx tsx packages/ast-grep-adapter/scripts/measure-framework-gate.mts <out-dir>
 //
@@ -105,6 +106,14 @@ const campaignFiles = async (
   ...extra,
 });
 
+// Issue #278 (C-2/AC-4): expected versions derive from the fixture manifest
+// read at run time — the cell-4 waiver must match the fixture's next pin for
+// the waive to apply, and a future fixture bump must not touch this script.
+const campaignManifest = JSON.parse(await readEvidence('campaign-next-16.2.6/package.json')) as {
+  dependencies: { next: string };
+};
+const campaignNextVersion = campaignManifest.dependencies.next;
+
 const waiverFor = (framework: string, version: string, range: string) =>
   JSON.stringify(
     {
@@ -188,7 +197,7 @@ await recordScenario('cell-1-accept', async () => {
   };
 });
 
-// Cell 2 — the campaign rejection (next 16.2.6 vs the historical >=15 <16).
+// Cell 2 — the campaign rejection (fixture next pin vs the historical >=15 <16).
 await recordScenario('cell-2-reject-campaign', async () => {
   const repo = await committedRepo(await campaignFiles());
   roots.push(repo.root);
@@ -224,7 +233,9 @@ await recordScenario('cell-3-unknown', async () => {
 // Cell 4 — recorded waiver unblocks the campaign rejection.
 await recordScenario('cell-4-waived', async () => {
   const repo = await committedRepo(
-    await campaignFiles({ 'arxic.waivers.json': waiverFor('nextjs', '16.2.6', '>=15 <16') }),
+    await campaignFiles({
+      'arxic.waivers.json': waiverFor('nextjs', campaignNextVersion, '>=15 <16'),
+    }),
   );
   roots.push(repo.root);
   const result = await new AstGrepAdapter({ packs: [campaignPackDir] }).scan({

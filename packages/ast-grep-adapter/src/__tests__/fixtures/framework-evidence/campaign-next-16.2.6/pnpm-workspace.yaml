@@ -1,0 +1,7 @@
+# Security floors for the campaign-next fixture (issue #278).
+# pnpm 11 reads settings from pnpm-workspace.yaml, not from package.json's
+# `pnpm` field — the mirrored `pnpm.overrides` in package.json covers pnpm <=10.
+# Floors = max first-patched per Dependabot: postcss 8.5.23 (#203/#214/#215/#216), sharp 0.35.0 (#204).
+overrides:
+  postcss: ^8.5.23
+  sharp: ^0.35.0
