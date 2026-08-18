@@ -2,19 +2,14 @@ import { execFileSync } from 'node:child_process';
 import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { sha256, type Diagnostic, type StagedBundle } from '@arxic/contracts';
-import { authCandidates, type AuthSurface } from '@arxic/auth-domain-pack';
+import { AUTH_DOMAIN, authDomainSeeder } from '@arxic/auth-domain-pack';
 import { ModelAdapter } from '@arxic/model-adapter';
 import {
   FileStageCheckpointer,
   LangGraphOrchestrator,
   ORCHESTRATOR_VERSION,
-  runPlannedExploration,
-  stage4Infer,
   WorkerRestartError,
-  type Candidate,
-  type ExplorationResult,
-  type InferenceInput,
-  type InferenceResult,
+  type FixtureLeaseState,
   type OrchestratorInput,
   type OrchestratorOptions,
   type RunState,
@@ -55,7 +50,7 @@ async function main(): Promise<void> {
     const input = orchestratorInput(spec, appBuildDigest);
     const orchestrator = new LangGraphOrchestrator({
       checkpointer: new FileStageCheckpointer(join(RESULT_ROOT, 'checkpoints')),
-      ...pipelineOptions(spec, input, now),
+      ...pipelineOptions(spec, now),
       now,
     });
     let state: RunState;
@@ -147,12 +142,10 @@ function orchestratorInput(spec: RunSpec, appBuildDigest?: string): Orchestrator
 
 function pipelineOptions(
   spec: RunSpec,
-  input: OrchestratorInput,
   now: () => string,
 ): Omit<OrchestratorOptions, 'checkpointer' | 'now'> {
   const model = configuredModel(spec, now);
   const persona = configuredPersona();
-  const inferredSourceEvidence: Array<InferenceInput['evidenceRefs'][number]> = [];
   const options: Omit<OrchestratorOptions, 'checkpointer' | 'now'> = {
     promote: async (bundle) => ({
       manifest: bundle.manifest,
@@ -179,60 +172,81 @@ function pipelineOptions(
       };
     },
   };
-  if (!model) return options;
-  const inferWithModel = stage4Infer(model.adapter, model.name);
+  if (!model) {
+    // DG-08 (ADR-008 Decision 4): with no model configured the worker stays
+    // honestly empty — no fabricated candidates; the stage-13 inventory
+    // dispositions remain the run's honest denominator.
+    return options;
+  }
+  // DG-08 remediation (P1, #252): the worker mirrors the CLI local executor —
+  // the canned authentication.login substitution gate is GONE. Model output
+  // drives compilation directly through the IntentProposer over the stage-13
+  // Domain Inventory; the auth domain pack participates only as an optional
+  // SEEDER whose proposals flow through the same binding/dedupe/evidence
+  // gates as model output (ADR-008 Decision 3; the domain literal lives in
+  // the pack, never here). Exploration is the orchestrator's inventory-derived
+  // form drive (persona lease + transient input values), never a hardcoded
+  // domain route.
+  const seeders = spec.config.scope.domains.includes(AUTH_DOMAIN) ? [authDomainSeeder] : undefined;
   return {
     ...options,
     modelAdapter: model.adapter,
     model: model.name,
-    inferCandidates: async (inferenceInput) => {
-      inferredSourceEvidence.splice(
-        0,
-        inferredSourceEvidence.length,
-        ...inferenceInput.evidenceRefs,
-      );
-      return authDomainCandidates(
-        await inferWithModel(inferenceInput),
-        inferenceInput,
-        input,
-        spec,
-      );
-    },
+    ...(seeders ? { domainSeeders: seeders } : {}),
+    ...(modelBudgetUsd() !== undefined ? { modelBudgetUsd: modelBudgetUsd() } : {}),
+    ...(persona ? { explorationInputValues: personaInputValues(persona) } : {}),
+    ...(persona ? { explorationInputKind: 'persona' } : {}),
     prepareFixtures: async ({ candidates }) => {
-      const requirements = candidates.flatMap(
-        (candidate) =>
-          candidate.workflow?.preconditions.map(({ fixture: kind }) => ({ kind })) ?? [],
-      );
-      if (requirements.length === 0) {
+      // Proposal candidates (no workflow skeleton) drive their form under a
+      // PERSONA lease at stage 8 (leased-fixtures-only mutation policy).
+      // Without a configured persona nothing is provisioned: the mutation
+      // step is then policy-skipped and the compile stage honestly blocks
+      // OBSERVATION-MISSING — no fabricated assertions, no silent mutation.
+      const drivesForm = candidates.some((candidate) => !candidate.workflow);
+      if (!drivesForm || !persona) {
         return { provisioned: true, requirements: [], leases: [], diagnostics: [] };
       }
-      if (!persona) return { provisioned: false, requirements, leases: [], diagnostics: [] };
       await resetAndSeedFixtures(spec.config.target.origin, persona);
-      return { provisioned: true, requirements, leases: [], diagnostics: [] };
-    },
-    explore: async (explorationInput) => {
-      const surface = authSurfaceFromEvidence(inferredSourceEvidence, input.framework);
-      const explored = await runPlannedExploration({
-        ...explorationInput,
-        plan: {
-          steps: [
-            {
-              kind: 'navigate',
-              intent: 'observe authentication entry surface',
-              action: 'navigation',
-              actionClass: 'read-only',
-              url: new URL(
-                surface.login.entryState === 'home' ? '/' : '/login',
-                spec.config.target.origin,
-              ).href,
-              required: true,
-            },
-          ],
-        },
-      });
-      return withSourceEvidence(explored, inferredSourceEvidence);
+      return {
+        provisioned: true,
+        requirements: [{ kind: 'persona' }],
+        leases: [personaLeaseFor(spec, now)],
+        diagnostics: [],
+      };
     },
   };
+}
+
+/** A persona lease authorizing the stage-8 form submit (leased fixtures only). */
+function personaLeaseFor(spec: RunSpec, now: () => string): FixtureLeaseState {
+  return {
+    id: `persona-${spec.runId}`,
+    requirement: { kind: 'persona' },
+    owner: spec.runId,
+    expiresAt: new Date(Date.parse(now()) + 30 * 60 * 1000).toISOString(),
+    inUse: false,
+  };
+}
+
+/**
+ * Transient exploration input values (inputRef -> value) for the default
+ * form-drive plan, mirroring the CLI: the verifier's own persona env naming,
+ * so the compiled spec replays from the same env. Values exist only in
+ * memory — never in artifacts, checkpoints, or diagnostics.
+ */
+function personaInputValues(persona: VerificationPersona): Readonly<Record<string, string>> {
+  const values: Record<string, string> = { 'persona.email': persona.email };
+  if (persona.password !== undefined) values['persona.password'] = persona.password;
+  if (persona.newPassword !== undefined) values['persona.newpassword'] = persona.newPassword;
+  return values;
+}
+
+/** ADR-008 Decision 4 budget cap: owner-overridable via env, default $0.0253. */
+function modelBudgetUsd(): number | undefined {
+  const raw = process.env.ARXIC_MODEL_BUDGET_USD?.trim();
+  if (!raw) return undefined;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 }
 
 function configuredModel(
@@ -266,71 +280,6 @@ function configuredPersona(): VerificationPersona | undefined {
   if (!email || !password) return undefined;
   const newPassword = process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD;
   return { email, password, ...(newPassword ? { newPassword } : {}) };
-}
-
-function authDomainCandidates(
-  inferred: unknown,
-  inferenceInput: InferenceInput,
-  input: OrchestratorInput,
-  spec: RunSpec,
-): unknown {
-  if (!isInferenceResult(inferred) || inferred.candidates.length === 0) return inferred;
-  if (!spec.config.scope.domains.includes('authentication')) return inferred;
-  const packed = authCandidates(
-    authSurfaceFromEvidence(inferenceInput.evidenceRefs, input.framework),
-    input.revision.commit,
-  ).map(toCandidate);
-  const packedIds = new Set(packed.map(({ id }) => id));
-  return {
-    requestId: inferred.requestId,
-    candidates: [...packed, ...inferred.candidates.filter(({ id }) => !packedIds.has(id))],
-  } satisfies InferenceResult;
-}
-
-function authSurfaceFromEvidence(
-  evidenceRefs: InferenceInput['evidenceRefs'],
-  framework?: string,
-): AuthSurface {
-  const hasLoginRoute = evidenceRefs.some(
-    (evidence) => evidence.kind === 'source' && /(?:^|\/)login(?:\/|\.|$)/iu.test(evidence.path),
-  );
-  const loginPage = hasLoginRoute || framework === 'nextjs';
-  return {
-    login: {
-      entryState: loginPage ? 'login-page' : 'home',
-      successState: 'home',
-      assertion: 'url:/',
-    },
-    logout: { assertion: 'text:Logged out' },
-    passwordChange: { supported: false, reason: 'not established by stage-4 source evidence' },
-    totp: { supported: false, reason: 'not established by stage-4 source evidence' },
-  };
-}
-
-function toCandidate(candidate: ReturnType<typeof authCandidates>[number]): Candidate {
-  return {
-    id: candidate.workflow.id,
-    title: candidate.workflow.title,
-    evidenceRefs: candidate.workflow.evidenceRefs,
-    workflow: candidate.workflow,
-  };
-}
-
-function withSourceEvidence(
-  explored: ExplorationResult,
-  sourceEvidence: InferenceInput['evidenceRefs'],
-): ExplorationResult {
-  return {
-    ...explored,
-    evidenceRefs: [
-      ...sourceEvidence.filter((evidence) => evidence.kind === 'source'),
-      ...explored.evidenceRefs,
-    ],
-  };
-}
-
-function isInferenceResult(value: unknown): value is InferenceResult {
-  return isRecord(value) && typeof value.requestId === 'string' && Array.isArray(value.candidates);
 }
 
 function uncompiledVerification() {

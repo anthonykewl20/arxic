@@ -87,6 +87,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@arxic/environment':
+        specifier: workspace:*
+        version: link:../../packages/environment
       '@arxic/model-adapter':
         specifier: workspace:*
         version: link:../../packages/model-adapter
@@ -196,6 +199,9 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/domain-inventory':
+        specifier: workspace:*
+        version: link:../domain-inventory-spike
       '@arxic/playwright-compiler':
         specifier: workspace:*
         version: link:../playwright-compiler

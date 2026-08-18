@@ -1,5 +1,4 @@
 import type { Diagnostic, EvidenceRef } from '@arxic/contracts';
-import { validateWorkflow } from '@arxic/contracts';
 import type { ModelAdapter } from '@arxic/model-adapter';
 import Ajv2020 from 'ajv/dist/2020';
 import { describe, expect, it, vi } from 'vitest';
@@ -170,7 +169,6 @@ describe('stage-4 inference service sad paths', () => {
     );
     const ids = candidates[0]?.evidenceRefs ?? [];
     expect(new Set(ids).size).toBe(ids.length);
-    expect(candidates[0]?.workflow?.evidenceRefs).toEqual(ids);
   });
 
   it('short-circuits empty source evidence without contacting the model (observed)', async () => {
@@ -304,10 +302,13 @@ describe('stage-4 inference service happy path', () => {
       title: 'submit the login form',
       evidenceRefs: [evidenceId(neighbourhood[0])],
     });
-    expect(candidate?.workflow?.status).toBe('hypothesized');
-    expect(candidate?.workflow && validateWorkflow(candidate.workflow).ok).toBe(true);
-    expect(candidate?.workflow?.transitions[0]?.assertions.length).toBeGreaterThanOrEqual(1);
-    expect(candidate?.workflow?.evidenceRefs.every((ref) => evidencePattern.test(ref))).toBe(true);
+    // DG-08 (ADR-008 Decisions 3+7): the mapper fabricates NO workflow — a
+    // canned assertion is the #257 defect class, and an assertion-free
+    // skeleton violates the frozen Workflow contract. Identity + evidence
+    // only; the DG-09 compile path builds the workflow from inventory and
+    // OBSERVATION.
+    expect(candidate?.workflow).toBeUndefined();
+    expect(candidate?.evidenceRefs.every((ref) => evidencePattern.test(ref))).toBe(true);
   });
 
   it('returns the real provider request id and exactly one adapter-boundary result', async () => {

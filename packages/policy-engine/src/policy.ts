@@ -51,6 +51,13 @@ export type PolicyDecision = {
 
 export const ACTION_REGISTRY: Readonly<Record<string, ActionClass>> = Object.freeze({
   navigation: 'read-only',
+  /**
+   * DG-08: a DOM-local form-field fill (stage-8 form-drive plan). It mutates
+   * page-local state only — the application mutation is the separately
+   * leased `form-submit` — so it registers as read-only. Additive: unknown
+   * actions remain denied.
+   */
+  fill: 'read-only',
   'form-submit': 'reversible-mutation',
   'fixture-change': 'reversible-mutation',
   'file-write': 'external-side-effect',

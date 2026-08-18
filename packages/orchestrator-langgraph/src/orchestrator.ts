@@ -21,6 +21,7 @@ import {
   resolveProviderIncludes,
   serializeInventory,
   validateInventory,
+  toProposalConsumerInventory,
 } from '@arxic/domain-inventory';
 import {
   createContentAddressedArtifacts,
@@ -74,12 +75,27 @@ import {
 } from '@arxic/source-ua-adapter';
 import { artifactHash, canonicalJson, type StageCheckpointer } from './checkpointer';
 import { FixtureCoordinator } from './fixture-coordinator';
-import { defaultExploration, type ExplorationPlan } from './exploration';
+import { runPlannedExploration, type ExplorationPlan } from './exploration';
 import { createRunInputFingerprint } from './input-fingerprint';
 import { isStage4InferenceFailure, selectNeighbourhood, stage4Infer } from './inference';
 import {
+  DEFAULT_MODEL_BUDGET_USD,
+  DEFAULT_MODEL_PRICES,
+  proposeCandidates,
+  type DomainSeeder,
+  type ModelPrices,
+  type ProposalConsumerRow,
+  type ProposalStageResult,
+} from './intent-proposer';
+import {
+  compileProposalCandidate,
+  formSurfaceForRoute,
+  postActionObservationFrom,
+} from './proposal-compile';
+import {
   ARXIC_ORCH_EMPTY_COVERAGE,
   ARXIC_ORCH_HASH_MISMATCH,
+  ARXIC_ORCH_INFERENCE_ERROR,
   ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH,
   ARXIC_ORCH_INPUT_FINGERPRINT_MISSING,
   ARXIC_ORCH_INPUT_FINGERPRINT_INVALID,
@@ -195,6 +211,31 @@ export type OrchestratorOptions = Readonly<{
   maxModelAttempts?: number;
   modelAdapter?: ModelAdapter;
   model?: string;
+  /**
+   * DG-08 (#252): optional domain-pack seeders/advisors (ADR-008 Decision 3).
+   * Seeder output merges through the SAME binding + dedupe gates as model
+   * proposals — seeds may advise, never override.
+   */
+  domainSeeders?: readonly DomainSeeder[];
+  /**
+   * DG-08 budget cap (ADR-008 Decision 4): the pre-call estimate must stay
+   * under this USD cap or the stage blocks with zero provider calls.
+   * Owner-overridable; default is the ADR's provisional $0.025.
+   */
+  modelBudgetUsd?: number;
+  modelPrices?: ModelPrices;
+  /**
+   * Input values (inputRef -> value) the default exploration may use to drive
+   * a proposal's form (e.g. persona env). Values are transient: they exist
+   * only in in-memory step objects, never in artifacts or checkpoints.
+   */
+  explorationInputValues?: Readonly<Record<string, string>>;
+  /**
+   * The FIXTURE KIND that authorizes the form submit under the leased-
+   * fixtures-only mutation policy (fixture vocabulary, e.g. 'persona' — not a
+   * domain literal). The stage-7 lease of this kind authorizes the submit.
+   */
+  explorationInputKind?: string;
   inferCandidates?: (input: InferenceInput) => Promise<unknown>;
   reconcile?: (input: {
     candidates: readonly Candidate[];
@@ -743,8 +784,26 @@ export class LangGraphOrchestrator {
       'ref' in event && event.ref ? [event.ref] : [],
     );
     const neighbourhood = selectNeighbourhood(evidenceRefs);
+    // DG-08 (#252): with a model configured AND a stage-13 Domain Inventory,
+    // stage 4 is the IntentProposer over inventory rows (per-domain batching,
+    // content-as-data, bounded retry-then-block, budget-gated). The legacy
+    // evidence-metadata inference remains only as the no-inventory fallback.
+    const inventoryEnvelopeKnown = inventoryEnvelope !== undefined;
+    const proposerInfer =
+      this.#options.inferCandidates === undefined &&
+      this.#options.modelAdapter &&
+      this.#options.model &&
+      inventoryEnvelopeKnown
+        ? intentProposerInfer(this.#options.modelAdapter, this.#options.model, {
+            inventory: toProposalConsumerInventory(inventoryEnvelope.inventory),
+            seeders: this.#options.domainSeeders,
+            budgetUsd: this.#options.modelBudgetUsd ?? DEFAULT_MODEL_BUDGET_USD,
+            prices: this.#options.modelPrices ?? DEFAULT_MODEL_PRICES,
+          })
+        : undefined;
     const infer =
       this.#options.inferCandidates ??
+      proposerInfer ??
       (this.#options.modelAdapter && this.#options.model
         ? stage4Infer(this.#options.modelAdapter, this.#options.model)
         : defaultInference);
@@ -805,6 +864,103 @@ export class LangGraphOrchestrator {
       promotionEligible: false,
       gates: [{ gate: 'model-structured-output', passed: false }],
     };
+  }
+
+  /**
+   * DG-08: enrich the default exploration input with the proposal form-drive
+   * plan when the stage-4 artifact is a proposal run AND the crawl surface
+   * has a form for the first candidate's cited route. Requires caller-supplied
+   * transient input values for every field (e.g. persona env): without all
+   * values the plan stays navigate-only and the compile stage honestly
+   * blocks OBSERVATION-MISSING rather than fabricating assertions.
+   */
+  async #withProposalPlan(
+    input: import('./exploration').ExplorationInput,
+    state: RunState,
+    pipelineInput: OrchestratorInput,
+  ): Promise<
+    import('./exploration').ExplorationInput &
+      Readonly<{ plan?: import('./exploration').ExplorationPlan }>
+  > {
+    let inference:
+      (InferenceResult & { proposalRun?: ProposalStageResult['proposalRun'] }) | undefined;
+    let surface: SurfaceMap | undefined;
+    try {
+      inference = await this.#artifact<
+        InferenceResult & { proposalRun?: ProposalStageResult['proposalRun'] }
+      >(state, pipelineInput, 4);
+      surface = await this.#artifact<SurfaceMap>(state, pipelineInput, 5);
+    } catch {
+      return input;
+    }
+    if (!inference?.proposalRun) return input;
+    const candidate = inference.candidates[0];
+    if (!candidate) return input;
+    const proposal = inference.proposalRun.proposals.find((item) => item.id === candidate.id);
+    if (!proposal) return input;
+    const row = proposal.inventoryRowIds
+      .map((id) => inference.proposalRun!.rows.find((candidateRow) => candidateRow.id === id))
+      .find((candidateRow): candidateRow is ProposalConsumerRow => candidateRow !== undefined);
+    if (!row || !surface) return input;
+    const form = formSurfaceForRoute(surface, row.path);
+    if (!form) return input;
+    const values = this.#options.explorationInputValues ?? {};
+    const steps: import('./exploration').PlanStep[] = [
+      {
+        // Navigate to the form's ENTRY route (the crawl page the form lives
+        // ON — e.g. a page hosting forms that POST to separately inventoried
+        // routes), not the cited route itself.
+        intent: `observe route ${form.route}`,
+        action: 'navigation',
+        actionClass: 'read-only',
+        url: new URL(form.route, input.origin).href,
+        required: true,
+        kind: 'navigate',
+      },
+    ];
+    const fills = form.fields.filter((field) => values[field.inputRef] !== undefined);
+    if (fills.length === form.fields.length && fills.length > 0) {
+      // DG-08: scope every control to the unique inventoried FORM (pages may
+      // host several forms with identically labelled fields).
+      const formScope = {
+        fieldLabel: form.fields[0]!.label,
+        submitName: form.submitControlName,
+      };
+      for (const field of fills) {
+        steps.push({
+          intent: `fill ${field.label}`,
+          action: 'fill',
+          actionClass: 'read-only',
+          required: true,
+          kind: 'fill',
+          locator: {
+            semantic: { kind: 'label', text: field.label },
+            execution: { kind: 'label', text: field.label },
+          },
+          formScope,
+          // Transient in-memory value (never journaled; redaction policy holds).
+          value: values[field.inputRef]!,
+        });
+      }
+      steps.push({
+        intent: `submit ${proposal.intent} via ${form.submitControlName}`,
+        action: 'form-submit',
+        actionClass: 'reversible-mutation',
+        required: true,
+        kind: 'click',
+        locator: {
+          semantic: { kind: 'role', role: 'button', name: form.submitControlName },
+          execution: { kind: 'role', role: 'button', name: form.submitControlName },
+        },
+        formScope,
+        ...(proposal.fixtureKinds && proposal.fixtureKinds.length === 1
+          ? { fixtureKind: proposal.fixtureKinds[0] }
+          : this.#options.explorationInputKind
+            ? { fixtureKind: this.#options.explorationInputKind }
+            : {}),
+      });
+    }
+    return { ...input, plan: { steps } };
   }
 
   async #discover(input: OrchestratorInput): Promise<StageExecution> {
@@ -926,7 +1082,20 @@ export class LangGraphOrchestrator {
       ...(this.#options.explorationPlan ? { plan: this.#options.explorationPlan } : {}),
       budget: 8,
     };
-    const result = await (this.#options.explore ?? defaultExploration)(explorationInput);
+    // DG-08: for proposal runs the default plan DRIVES the first candidate's
+    // form (navigate -> fill labelled fields from caller-supplied transient
+    // input values -> submit), under this stage's policy engine and lease
+    // gates. The final click anchors the post-action observation the compile
+    // stage binds assertions from (ADR-008 Decision 7). runPlannedExploration
+    // is the default service so an injected plan is honored.
+    const effectiveInput = this.#options.explore
+      ? explorationInput
+      : await this.#withProposalPlan(explorationInput, state, input);
+    const result = await (
+      this.#options.explore ??
+      (async (planInput: import('./exploration').ExplorationInput) =>
+        runPlannedExploration(planInput))
+    )(effectiveInput);
     return {
       artifact: result,
       adapter: '@arxic/targeted-exploration:seam',
@@ -1041,7 +1210,16 @@ export class LangGraphOrchestrator {
         gates: [{ gate: 'compile', passed: false }],
       };
     }
-    const compileResult = await (this.#options.compile ?? defaultCompile)({
+    // DG-08: proposal runs compile through the DG-09 path — the workflow is
+    // BORN here from the cited inventory row's form geometry + the stage-8
+    // post-action observation (observation-bound assertions only).
+    const proposalCompile = this.#options.compile
+      ? undefined
+      : await this.#proposalCompileInput(inference, exploration, state, input);
+    const compileResult = await (
+      this.#options.compile ??
+      (proposalCompile ? () => compileProposalCandidate(proposalCompile) : defaultCompile)
+    )({
       candidates: inference.candidates,
       observations: exploration.evidenceRefs,
       outputDirectory: `${input.artifactsDir}/${input.runId}`,
@@ -1085,6 +1263,57 @@ export class LangGraphOrchestrator {
           : {}),
       decisions: result.compiled ? ['Workflow compiled'] : ['Plan retained as uncompiled'],
       gates: [{ gate: 'compile', passed: result.compiled }],
+    };
+  }
+
+  /**
+   * DG-08: assemble the DG-09 compile input for a proposal run's first
+   * candidate, or undefined when the run is not proposal-shaped (legacy
+   * candidates keep defaultCompile). The evidence index is re-derived
+   * deterministically from the persisted stage-13 inventory envelope (the
+   * canonical projection is a pure function of it); the observation comes
+   * from the stage-8 post-action record — without it compileProposalCandidate
+   * blocks honestly (OBSERVATION-MISSING), never fabricating an assertion.
+   */
+  async #proposalCompileInput(
+    inference: InferenceResult & { proposalRun?: ProposalStageResult['proposalRun'] },
+    exploration: ExplorationResult,
+    state: RunState,
+    input: OrchestratorInput,
+  ): Promise<Parameters<typeof compileProposalCandidate>[0] | undefined> {
+    if (!inference.proposalRun) return undefined;
+    const candidate = inference.candidates[0];
+    if (!candidate) return undefined;
+    const proposal = inference.proposalRun.proposals.find((item) => item.id === candidate.id);
+    if (!proposal) return undefined;
+    const rows = inference.proposalRun.rows;
+    const row = proposal.inventoryRowIds
+      .map((id) => rows.find((candidateRow) => candidateRow.id === id))
+      .find((candidateRow): candidateRow is ProposalConsumerRow => candidateRow !== undefined);
+    if (!row) return undefined;
+    const surface = await this.#artifact<SurfaceMap>(state, input, 5);
+    const envelope = await this.#optionalArtifact<DomainInventoryStageArtifact>(state, input, 13);
+    const evidenceIndex = envelope
+      ? toProposalConsumerInventory(envelope.inventory).evidenceIndex
+      : {};
+    // Honesty gate: assertions may bind ONLY from a CLEAN form drive (the
+    // stage-8 run approved every required step). A failed drive's final page
+    // is NOT the proposal's outcome — compile then blocks
+    // OBSERVATION-MISSING instead of fabricating assertions from it.
+    const observation = exploration.approved ? postActionObservationFrom(exploration) : undefined;
+    return {
+      proposal,
+      row,
+      evidenceIndex,
+      surface,
+      observation,
+      scope: {
+        commit: input.revision.commit ?? '0'.repeat(40),
+        environment: 'local-test',
+        browser: 'chromium',
+      },
+      origin: input.origin,
+      outputDirectory: `${input.artifactsDir}/${input.runId}`,
     };
   }
 
@@ -1507,6 +1736,62 @@ function repositoryFileReader(repository: string): (path: string) => Promise<str
   };
 }
 
+/**
+ * DG-08 stage-4 default: adapt `proposeCandidates` to the inferCandidates seam
+ * so the orchestrator's existing retry/empty-coverage accounting consumes the
+ * proposer's result unchanged. Returns the stage-4 failure sentinel on a
+ * blocked run (bounded retries exhausted / budget exceeded) with carried
+ * cause diagnostics.
+ */
+function intentProposerInfer(
+  adapter: NonNullable<OrchestratorOptions['modelAdapter']>,
+  model: string,
+  options: {
+    inventory: ReturnType<typeof toProposalConsumerInventory>;
+    seeders?: readonly DomainSeeder[];
+    budgetUsd: number;
+    prices: ModelPrices;
+  },
+): (input: InferenceInput) => Promise<unknown> {
+  return async (input) => {
+    try {
+      const outcome = await proposeCandidates({
+        adapter,
+        model,
+        inventory: options.inventory,
+        runId: input.runId,
+        ...(options.seeders ? { seeders: options.seeders } : {}),
+        budgetUsd: options.budgetUsd,
+        prices: options.prices,
+      });
+      if (!outcome.ok) {
+        return {
+          stage4InferenceFailed: 'stage4-inference-failed' as const,
+          diagnostics: outcome.diagnostics,
+        };
+      }
+      return outcome.result;
+    } catch {
+      // Do not preserve the thrown message: it may contain prompt or
+      // credential bytes (same redaction contract as the legacy stage4Infer).
+      return {
+        stage4InferenceFailed: 'stage4-inference-failed' as const,
+        diagnostics: [
+          orchDiagnostic(
+            ARXIC_ORCH_INFERENCE_ERROR,
+            'blocked',
+            input.runId,
+            'Stage-4 intent proposal threw an unexpected error; cause redacted',
+          ),
+        ],
+      };
+    }
+  };
+}
+
+/**
+ * DG-08 enrichment happens as a private method (needs #artifact access).
+ */
 async function defaultInference(input: InferenceInput): Promise<InferenceResult> {
   return {
     requestId: `stage4-no-model-${input.runId}-${input.attempt}`,
@@ -1518,9 +1803,16 @@ function parseInferenceResult(value: unknown): InferenceResult | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const record = value as Record<string, unknown>;
   if (
-    !hasOnlyKeys(record, ['requestId', 'candidates']) ||
+    !hasOnlyKeys(record, ['requestId', 'candidates', 'diagnostics', 'proposalRun']) ||
     typeof record.requestId !== 'string' ||
     !Array.isArray(record.candidates)
+  ) {
+    return undefined;
+  }
+  if (
+    record.diagnostics !== undefined &&
+    (!Array.isArray(record.diagnostics) ||
+      !record.diagnostics.every((diagnostic) => validateDiagnosticShape(diagnostic)))
   ) {
     return undefined;
   }
@@ -1550,7 +1842,29 @@ function parseInferenceResult(value: unknown): InferenceResult | undefined {
       ...(workflow ? { workflow } : {}),
     });
   }
-  return { requestId: record.requestId, candidates };
+  // DG-08: pass the proposal-run metadata (and honest-ledger diagnostics)
+  // through when present and well-formed; otherwise collapse to the plain
+  // InferenceResult (the artifact store stays backward compatible).
+  const diagnostics =
+    Array.isArray(record.diagnostics) && record.diagnostics.length > 0
+      ? { diagnostics: record.diagnostics as Diagnostic[] }
+      : {};
+  const proposalRun = isPlainRecord(record.proposalRun)
+    ? { proposalRun: record.proposalRun as unknown as ProposalStageResult['proposalRun'] }
+    : {};
+  return { requestId: record.requestId, candidates, ...diagnostics, ...proposalRun };
+}
+
+function validateDiagnosticShape(value: unknown): boolean {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as Diagnostic).code === 'string' &&
+    typeof (value as Diagnostic).severity === 'string' &&
+    Object.keys(value as Diagnostic).every((key) =>
+      ['code', 'severity', 'subject', 'message', 'evidenceRefs'].includes(key),
+    )
+  );
 }
 
 function hasOnlyKeys(record: Record<string, unknown>, allowed: readonly string[]): boolean {

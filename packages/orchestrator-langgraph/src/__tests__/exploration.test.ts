@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto';
 import type { Workflow } from '@arxic/contracts';
 import type {
+  AccessibilityNode,
   ExplorationDriver,
   ExplorationDriverResult,
   LocatorPair,
   PlannedExplorationStep,
+  StepObservation,
 } from '@arxic/playwright-agent-adapter';
 import { describe, expect, it } from 'vitest';
 import {
@@ -24,6 +26,312 @@ import {
   type ExplorationPlan,
 } from '../exploration';
 import type { Candidate } from '../types';
+
+describe('DG-08 post-action observation binding invariants (final review P2 pins)', () => {
+  const submitStep = (required = true) => ({
+    intent: 'submit newsletter form via "Subscribe"',
+    action: 'form-submit',
+    actionClass: 'reversible-mutation' as const,
+    kind: 'click' as const,
+    locator: {
+      semantic: { kind: 'role' as const, role: 'button', name: 'Subscribe' },
+      execution: { kind: 'role' as const, role: 'button', name: 'Subscribe' },
+    },
+    fixtureKind: 'persona',
+    required,
+  });
+
+  const personaLease = (runId: string) => ({
+    id: `${runId}-lease`,
+    owner: runId,
+    expiresAt: '2099-01-01T00:00:00.000Z',
+    inUse: false,
+    requirement: { kind: 'persona' },
+  });
+
+  const snapshotObservation = (
+    url: string,
+    snapshot: AccessibilityNode,
+    ok = true,
+    originDrifted = false,
+  ): StepObservation => ({
+    intent: 'snapshot',
+    url,
+    ok,
+    originDrifted,
+    accessibilitySnapshot: snapshot,
+    accessibilitySnapshotSha256: 'f'.repeat(64),
+    browserVersion: '1.62.1',
+  });
+
+  it('an UNAPPROVED form drive exposes NO post-action observation (nothing to bind)', async () => {
+    // The submit is denied: no persona lease authorizes the reversible
+    // mutation, so the step is policy-skipped, the driver executes nothing,
+    // and the result carries NO postAction — compile then honestly blocks
+    // OBSERVATION-MISSING instead of binding an unapproved post-state.
+    const driver = new FakeDriver([
+      snapshotObservation(`${origin}/subscribed`, { role: 'WebArea', name: 'Subscribed' }),
+    ]);
+    const result = await runPlannedExploration({
+      runId: 'p2-unapproved-drive',
+      origin,
+      candidates: [],
+      budget: 4,
+      driver,
+      plan: { steps: [submitStep()] },
+    });
+    expect(result.approved).toBe(true); // read-only-only runs stay approved
+    expect(driver.executed).toEqual([]); // the mutation never ran
+    expect(result.postAction).toBeUndefined();
+    expect(result.decisions).toContainEqual(expect.stringContaining('requires fixtures'));
+  });
+
+  const failedObservation = (intent: string): StepObservation => ({
+    intent,
+    url: `${origin}/newsletter`,
+    ok: false,
+    originDrifted: false,
+    locatorResolution: {
+      resolved: false,
+      reason: 'semantic-ambiguous',
+      semantic: { kind: 'label', text: 'Email' },
+      execution: { kind: 'label', text: 'Email' },
+    },
+    browserVersion: '1.62.1',
+  });
+
+  it('a drive whose FINAL step fails binds NO post-action observation even though earlier steps passed', async () => {
+    // Navigate + fill succeed; the submit click FAILS (locator resolution).
+    // The final page is a failed-drive state, not the proposal outcome — no
+    // partial post-action binding is permitted.
+    const driver = new FakeDriver([
+      snapshotObservation(`${origin}/newsletter`, {
+        role: 'WebArea',
+        name: 'Newsletter',
+        children: [{ role: 'textbox', name: 'Email' }],
+      }),
+      failedObservation('fill Email'),
+      {
+        // The failed submit STILL leaves a page state behind (the error
+        // page). Without the all-steps-ok invariant this snapshot would be
+        // bound as the proposal's post-action observation.
+        ...failedObservation('submit newsletter form via "Subscribe"'),
+        accessibilitySnapshot: {
+          role: 'WebArea',
+          name: 'Error page',
+          children: [{ role: 'heading', name: 'Something went wrong' }],
+        },
+        accessibilitySnapshotSha256: 'a'.repeat(64),
+      },
+    ]);
+    const result = await runPlannedExploration({
+      runId: 'p2-failed-final-step',
+      origin,
+      candidates: [],
+      budget: 8,
+      driver,
+      leases: [personaLease('p2-failed-final-step')],
+      plan: {
+        steps: [
+          { ...navigation('observe route /newsletter', '/newsletter'), kind: 'navigate' as const },
+          {
+            intent: 'fill Email',
+            action: 'fill',
+            actionClass: 'read-only' as const,
+            kind: 'fill' as const,
+            required: true,
+            locator: {
+              semantic: { kind: 'label' as const, text: 'Email' },
+              execution: { kind: 'label' as const, text: 'Email' },
+            },
+            value: 'persona@example.test',
+          },
+          submitStep(),
+        ],
+      },
+    });
+    expect(result.approved).toBe(false);
+    expect(result.postAction).toBeUndefined();
+    // The decisions record carries the blocked locator diagnostics.
+    expect(result.decisions).toContainEqual(
+      expect.stringContaining(ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS),
+    );
+  });
+
+  it('a drive where an EARLIER step fails but the final click SUCCEEDS binds NO post-action observation', async () => {
+    // Navigate succeeds; the FILL fails (ambiguous locator); the submit click
+    // then lands on a clean Dashboard page. A weakened guard inspecting only
+    // the FINAL observation would bind that page — the every-step invariant
+    // must refuse: a mid-plan failure means the drive is not the outcome.
+    const driver = new FakeDriver([
+      snapshotObservation(`${origin}/newsletter`, {
+        role: 'WebArea',
+        name: 'Newsletter',
+        children: [{ role: 'textbox', name: 'Email' }],
+      }),
+      failedObservation('fill Email'),
+      snapshotObservation(`${origin}/dashboard`, {
+        role: 'WebArea',
+        name: 'Dashboard page',
+        children: [{ role: 'heading', name: 'Dashboard' }],
+      }),
+    ]);
+    const result = await runPlannedExploration({
+      runId: 'p2-failed-earlier-step',
+      origin,
+      candidates: [],
+      budget: 8,
+      driver,
+      leases: [personaLease('p2-failed-earlier-step')],
+      plan: {
+        steps: [
+          { ...navigation('observe route /newsletter', '/newsletter'), kind: 'navigate' as const },
+          {
+            intent: 'fill Email',
+            action: 'fill',
+            actionClass: 'read-only' as const,
+            kind: 'fill' as const,
+            required: true,
+            locator: {
+              semantic: { kind: 'label' as const, text: 'Email' },
+              execution: { kind: 'label' as const, text: 'Email' },
+            },
+            value: 'persona@example.test',
+          },
+          submitStep(),
+        ],
+      },
+    });
+    expect(result.approved).toBe(false);
+    expect(result.postAction).toBeUndefined();
+    expect(result.decisions).toContainEqual(
+      expect.stringContaining(ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS),
+    );
+  });
+
+  it('an origin-drifted observation binds NOTHING even when it is the only click result', async () => {
+    const driver = new FakeDriver([
+      {
+        intent: 'submit newsletter form via "Subscribe"',
+        url: 'http://evil.example.test/subscribed',
+        ok: true,
+        originDrifted: true,
+        accessibilitySnapshot: { role: 'WebArea', name: 'Attacker' },
+        accessibilitySnapshotSha256: 'e'.repeat(64),
+        browserVersion: '1.62.1',
+      },
+    ]);
+    const result = await runPlannedExploration({
+      runId: 'p2-drifted-click',
+      origin,
+      candidates: [],
+      budget: 4,
+      driver,
+      leases: [personaLease('p2-drifted-click')],
+      plan: { steps: [submitStep()] },
+    });
+    expect(result.postAction).toBeUndefined();
+    expect(result.decisions).toContainEqual(
+      expect.stringContaining(ARXIC_EXPLORATION_ORIGIN_DRIFT),
+    );
+  });
+
+  it('a drive where an EARLY observation drifted origin but the final click SUCCEEDS binds NO post-action observation', async () => {
+    // The navigate observation drifted off-origin (a page rendered, but
+    // elsewhere); the submit click itself succeeds on a clean page. Mid-plan
+    // drift poisons the drive exactly like a failed step — nothing may bind.
+    const driver = new FakeDriver([
+      snapshotObservation(
+        'http://evil.example.test/newsletter',
+        { role: 'WebArea', name: 'Attacker' },
+        true,
+        true,
+      ),
+      snapshotObservation(`${origin}/subscribed`, {
+        role: 'WebArea',
+        name: 'Subscribed page',
+        children: [{ role: 'heading', name: 'Subscribed' }],
+      }),
+    ]);
+    const result = await runPlannedExploration({
+      runId: 'p2-early-drift-final-ok',
+      origin,
+      candidates: [],
+      budget: 4,
+      driver,
+      leases: [personaLease('p2-early-drift-final-ok')],
+      plan: {
+        steps: [
+          { ...navigation('observe route /newsletter', '/newsletter'), kind: 'navigate' as const },
+          submitStep(),
+        ],
+      },
+    });
+    expect(result.approved).toBe(false);
+    expect(result.postAction).toBeUndefined();
+    expect(result.decisions).toContainEqual(
+      expect.stringContaining(ARXIC_EXPLORATION_ORIGIN_DRIFT),
+    );
+  });
+
+  it('ambiguous post-action headings are DROPPED but the omission is RECORDED and the url assertion still binds', async () => {
+    // The page has TWO accessible nodes named "Login" (an h2 heading and the
+    // button) plus a UNIQUE h1 "Dashboard": the ambiguous heading is pruned
+    // (fail-visible decision), the unique one binds, and the observation
+    // (whose url becomes the url-floor assertion) still exists.
+    const driver = new FakeDriver([
+      snapshotObservation(`${origin}/dashboard`, {
+        role: 'WebArea',
+        name: 'Dashboard page',
+        children: [
+          { role: 'heading', name: 'Dashboard' },
+          { role: 'heading', name: 'Login' },
+          { role: 'button', name: 'Login' },
+        ],
+      }),
+    ]);
+    const result = await runPlannedExploration({
+      runId: 'p2-ambiguous-headings',
+      origin,
+      candidates: [],
+      budget: 4,
+      driver,
+      leases: [personaLease('p2-ambiguous-headings')],
+      plan: { steps: [submitStep()] },
+    });
+    expect(result.approved).toBe(true);
+    expect(result.postAction).toBeDefined();
+    expect(result.postAction?.url).toBe(`${origin}/dashboard`);
+    expect(result.postAction?.headings).toEqual(['Dashboard']);
+    // Fail-visible: the pruned ambiguous heading is RECORDED as a decision.
+    expect(result.decisions).toContainEqual(
+      expect.stringContaining('Omitted 1 ambiguous post-action heading'),
+    );
+  });
+
+  it('an unambiguous page records NO pruning decision', async () => {
+    const driver = new FakeDriver([
+      snapshotObservation(`${origin}/thanks`, {
+        role: 'WebArea',
+        name: 'Thanks page',
+        children: [{ role: 'heading', name: 'Subscribed' }],
+      }),
+    ]);
+    const result = await runPlannedExploration({
+      runId: 'p2-clean-headings',
+      origin,
+      candidates: [],
+      budget: 4,
+      driver,
+      leases: [personaLease('p2-clean-headings')],
+      plan: { steps: [submitStep()] },
+    });
+    expect(result.postAction?.headings).toEqual(['Subscribed']);
+    expect(
+      result.decisions.some((decision) => decision.includes('ambiguous post-action heading')),
+    ).toBe(false);
+  });
+});
 
 describe('stage-8 intent exploration', () => {
   it('loop-closes every exploration diagnostic through the frozen contract', () => {

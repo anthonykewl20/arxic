@@ -1,0 +1,288 @@
+import type { EvidenceRef } from '@arxic/contracts';
+import type { SurfaceMap } from '@arxic/crawlee-adapter';
+import { validateWorkflow } from '@arxic/contracts';
+import { readFile, rm } from 'node:fs/promises';
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { describe, expect, it } from 'vitest';
+import { buildFormFlowWorkflow } from '@arxic/playwright-compiler';
+import {
+  compileProposalCandidate,
+  formSurfaceForRoute,
+  type ProposalObservation,
+} from '../proposal-compile';
+import type { BoundProposal } from '../intent-proposer';
+
+/**
+ * DG-08 wiring: proposals -> DG-09 compiler path. A proposal candidate whose
+ * domain is NOT authentication compiles through the generic form-flow builder
+ * with observation-bound assertions — no canned literal assertions anywhere.
+ */
+
+const origin = 'http://127.0.0.1:39191';
+
+function surfaceMap(): SurfaceMap {
+  return {
+    schemaVersion: 1 as const,
+    truthState: 'observed' as const,
+    origin,
+    routes: [
+      {
+        truthState: 'observed' as const,
+        url: `${origin}/newsletter`,
+        path: '/newsletter',
+        depth: 0,
+        title: 'Newsletter',
+        forms: [
+          {
+            action: '/newsletter',
+            method: 'post',
+            destructive: false,
+            controls: [
+              { tag: 'input', type: 'email', label: 'Email', required: true },
+              { tag: 'button', type: 'submit', label: 'Subscribe', required: false },
+            ],
+          },
+        ],
+        controls: [],
+        links: [],
+      },
+    ],
+    navigationEdges: [],
+    diagnostics: [],
+  };
+}
+
+function proposal(): BoundProposal {
+  return {
+    id: 'prop:0123456789abcdef',
+    domain: 'marketing',
+    intent: 'subscribe to the newsletter',
+    action: 'perform POST /newsletter at /newsletter',
+    fromState: 'before',
+    toState: 'after',
+    persona: 'visitor',
+    inventoryRowIds: ['inv:page:GET:111111111111'],
+    evidenceRefIds: ['src:app-newsletter-page-tsx:1-12'],
+    rationale: 'grounded in app/newsletter/page.tsx',
+    fixtureKinds: ['persona'],
+    truthState: 'hypothesized',
+  };
+}
+
+function row() {
+  return {
+    id: 'inv:page:GET:111111111111',
+    surface: 'page' as const,
+    method: 'GET',
+    path: '/newsletter',
+    sourcePath: 'app/newsletter/page.tsx',
+    domainHint: 'newsletter',
+    evidenceIds: ['src:app-newsletter-page-tsx:1-12'],
+  };
+}
+
+const evidenceIndex: Record<string, EvidenceRef> = {
+  'src:app-newsletter-page-tsx:1-12': {
+    kind: 'source',
+    repo: 'file:///fixture',
+    commit: 'a'.repeat(40),
+    path: 'app/newsletter/page.tsx',
+    startLine: 1,
+    endLine: 12,
+    blobSha256: '1'.repeat(64),
+    extractor: 'source-ua-adapter/nextjs-file-conventions@0.0.0',
+  },
+};
+
+const observation: ProposalObservation = {
+  url: `${origin}/newsletter/thanks`,
+  headings: ['Subscribed'],
+  runtimeEvidenceRef: 'run:observation-abc123def456',
+  runtime: {
+    kind: 'runtime',
+    runId: 'dg08-compile-test',
+    appBuildDigest: 'b'.repeat(64),
+    browser: 'chromium',
+    browserVersion: '1.62.1',
+    url: `${origin}/newsletter/thanks`,
+    timestamp: '2026-08-17T00:00:00.000Z',
+    accessibilitySnapshotSha256: 'abc123def456' + '0'.repeat(52),
+  },
+};
+
+describe('form-surface projection from the crawl map', () => {
+  it('derives labelled fields with persona input refs and the submit control name', () => {
+    const form = formSurfaceForRoute(surfaceMap(), '/newsletter');
+    expect(form).toBeDefined();
+    expect(form?.fields).toEqual([{ label: 'Email', inputRef: 'persona.email' }]);
+    expect(form?.submitControlName).toBe('Subscribe');
+    expect(form?.route).toBe('/newsletter');
+  });
+
+  it('returns undefined (honest) for a route with no non-destructive form', () => {
+    const empty = { ...surfaceMap(), routes: [{ ...surfaceMap().routes[0]!, forms: [] }] };
+    expect(formSurfaceForRoute(empty, '/newsletter')).toBeUndefined();
+  });
+});
+
+describe('proposal -> DG-09 form-flow compile (no canned assertions)', () => {
+  it('compiles a NON-auth proposal through the real compiler with observation-bound assertions', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'dg08-compile-'));
+    try {
+      const result = await compileProposalCandidate({
+        proposal: proposal(),
+        row: row(),
+        evidenceIndex,
+        surface: surfaceMap(),
+        observation,
+        scope: { commit: 'a'.repeat(40), environment: 'local-test', browser: 'chromium' },
+        origin,
+        outputDirectory,
+      });
+      expect(result.compiled).toBe(true);
+      if (!result.compiled || !result.stagedBundle) return;
+      const workflow = result.stagedBundle.workflow;
+      // The compiled workflow IS the DG-09 form-flow workflow: domain and
+      // persona come from the PROPOSAL (model data), assertions from the
+      // OBSERVATION — never canned literals.
+      expect(workflow.domain).toBe('marketing');
+      expect(workflow.persona).toBe('visitor');
+      expect(workflow.status).not.toBe('verified');
+      expect(validateWorkflow(workflow).ok).toBe(true);
+      const transition = workflow.transitions[0]!;
+      expect(transition.assertions.map(({ intent }) => intent)).toEqual([
+        'url:/newsletter/thanks',
+        'text:Subscribed',
+      ]);
+      expect(transition.evidenceRefs).toContain('run:observation-abc123def456');
+      expect(transition.evidenceRefs).toContain('src:app-newsletter-page-tsx:1-12');
+      // The generated spec fills from env-var input references, never literals.
+      const specPath = result.stagedBundle.artifacts.find(
+        ({ kind }) => kind === 'playwright-spec',
+      )?.path;
+      expect(specPath).toBeDefined();
+      const spec = await readFile(resolve(outputDirectory, specPath!), 'utf8');
+      expect(spec).toContain('getByLabel("Email")');
+      expect(spec).toContain('ARXIC_INPUT_PERSONA_EMAIL');
+      expect(spec).toContain(`getByRole('button', { name: "Subscribe", exact: true })`);
+      expect(spec).not.toMatch(/authenticat/iu);
+      expect(spec).not.toContain('Hunter2');
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true });
+    }
+  });
+
+  it('blocks honestly (no compile, no fabricated assertions) when no form surface exists', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'dg08-compile-noform-'));
+    try {
+      const empty: SurfaceMap = {
+        ...surfaceMap(),
+        routes: [{ ...surfaceMap().routes[0]!, forms: [] }],
+      };
+      const result = await compileProposalCandidate({
+        proposal: proposal(),
+        row: row(),
+        evidenceIndex,
+        surface: empty,
+        observation,
+        scope: { commit: 'a'.repeat(40), environment: 'local-test', browser: 'chromium' },
+        origin,
+        outputDirectory,
+      });
+      expect(result.compiled).toBe(false);
+      expect(
+        result.diagnostics?.some(({ code }) => code === 'ARXIC-ORCH-PROPOSAL-SURFACE-MISSING'),
+      ).toBe(true);
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true });
+    }
+  });
+
+  it('blocks honestly when the post-action observation is missing', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'dg08-compile-noobs-'));
+    try {
+      const result = await compileProposalCandidate({
+        proposal: proposal(),
+        row: row(),
+        evidenceIndex,
+        surface: surfaceMap(),
+        observation: undefined,
+        scope: { commit: 'a'.repeat(40), environment: 'local-test', browser: 'chromium' },
+        origin,
+        outputDirectory,
+      });
+      expect(result.compiled).toBe(false);
+      expect(
+        result.diagnostics?.some(({ code }) => code === 'ARXIC-ORCH-PROPOSAL-OBSERVATION-MISSING'),
+      ).toBe(true);
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true });
+    }
+  });
+
+  it('never emits a canned url:/ assertion: a redirecting observation binds its own url', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'dg08-compile-redirect-'));
+    try {
+      const result = await compileProposalCandidate({
+        proposal: proposal(),
+        row: row(),
+        evidenceIndex,
+        surface: surfaceMap(),
+        observation: {
+          // The #257 scenario: the app redirects to a dashboard-ish route —
+          // the assertion must bind THE OBSERVED url, never a canned '/'.
+          url: `${origin}/dashboard`,
+          headings: ['Dashboard'],
+          runtimeEvidenceRef: 'run:observation-redirect01',
+          runtime: {
+            ...observation.runtime!,
+            url: `${origin}/dashboard`,
+          },
+        },
+        scope: { commit: 'a'.repeat(40), environment: 'local-test', browser: 'chromium' },
+        origin,
+        outputDirectory,
+      });
+      expect(result.compiled).toBe(true);
+      if (!result.compiled || !result.stagedBundle) return;
+      const assertions = result.stagedBundle.workflow.transitions[0]!.assertions.map(
+        ({ intent }) => intent,
+      );
+      expect(assertions).toEqual(['url:/dashboard', 'text:Dashboard']);
+      expect(assertions).not.toContain('url:/');
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('DG-09 builder parity (wiring does not weaken the builder contract)', () => {
+  it('the compile path uses buildFormFlowWorkflow output unchanged', async () => {
+    const direct = buildFormFlowWorkflow({
+      identity: {
+        id: proposal().id,
+        title: proposal().intent,
+        domain: proposal().domain,
+        persona: proposal().persona,
+      },
+      route: '/newsletter',
+      fields: [{ label: 'Email', inputRef: 'persona.email' }],
+      submitControlName: 'Subscribe',
+      observation: {
+        url: observation.url,
+        headings: observation.headings,
+        runtimeEvidenceRef: observation.runtimeEvidenceRef,
+      },
+      scope: { commit: 'a'.repeat(40), environment: 'local-test', browser: 'chromium' },
+      sourceEvidence: {
+        ref: 'src:app-newsletter-page-tsx:1-12',
+        path: 'app/newsletter/page.tsx',
+        range: [1, 12],
+      },
+      personaFacts: [{ fixture: 'persona' }],
+    });
+    expect(direct.ok).toBe(true);
+  });
+});
