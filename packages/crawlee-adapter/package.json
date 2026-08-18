@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@arxic/contracts": "workspace:*",
-    "crawlee": "3.18.0",
+    "crawlee": "3.18.1",
     "playwright": "1.62.1"
   }
 }
