@@ -19,16 +19,58 @@ import { makeRepository, packDirs, writePack, workspaceRoot } from './test-repo'
 
 const fixtureRoot = join(workspaceRoot, 'packages/ast-grep-adapter/src/__tests__/fixtures');
 const evidenceRoot = join(fixtureRoot, 'framework-evidence');
+const campaignFixtureDir = join(evidenceRoot, 'campaign-next-16.2.6');
+
+// Issue #278 (C-2/AC-4): expected versions DERIVE from the fixture manifest and
+// lockfile read at test time — zero hardcoded 16.2.x literals in the
+// fixture-coupled assertions, so a future fixture bump changes no test code.
+// The derivation also carries the AC-3 coherence invariant: the manifest pin
+// and the lockfile resolution must agree on `next` (red on exactly the
+// manifest-bumped-without-lockfile-regen drift that held 14 Dependabot alerts
+// open against this fixture).
+
+async function campaignManifest(): Promise<{ dependencies: { next: string } }> {
+  const manifest = JSON.parse(await readFile(join(campaignFixtureDir, 'package.json'), 'utf8'));
+  expect(typeof manifest.dependencies?.next).toBe('string');
+  return manifest;
+}
+
+// Mirrors the production parser (`pnpmLockCandidates` in framework-gate.ts):
+// the importers block for `next:` followed by its resolved `version:` line,
+// with the peer-dependency suffix (e.g. `16.2.11(react@19.2.3)`) cut at the
+// first `(`.
+function lockfileNextResolution(lockfile: string): string {
+  const lines = lockfile.split('\n');
+  for (let index = 0; index < lines.length; index += 1) {
+    if (!/^\s{2,10}next:\s*$/u.test(lines[index]!)) continue;
+    const window = lines.slice(index + 1, index + 5).join('\n');
+    const resolved = window.match(/^\s+version:\s*(v?[0-9A-Za-z.-]+)/mu);
+    if (resolved) return resolved[1]!;
+  }
+  throw new Error(`no importers next resolution found in ${campaignFixtureDir}/pnpm-lock.yaml`);
+}
+
+// Reads BOTH fixture files at test time, asserts they agree (AC-3), and hands
+// the agreed version to the fixture-coupled assertions below.
+async function expectedCampaignNextVersion(): Promise<string> {
+  const [manifest, lockfile] = await Promise.all([
+    campaignManifest(),
+    readFile(join(campaignFixtureDir, 'pnpm-lock.yaml'), 'utf8'),
+  ]);
+  const manifestPin = manifest.dependencies.next;
+  const lockfileResolution = lockfileNextResolution(lockfile);
+  expect(lockfileResolution).toBe(manifestPin);
+  return manifestPin;
+}
 
 async function campaignFiles(extra: Record<string, string> = {}): Promise<Record<string, string>> {
   return {
-    // Real pnpm 11 lockfile resolving next@16.2.6 from the npm registry plus the
-    // matching manifest pin — the ADR-008 campaign shape, reproduced honestly.
-    'package.json': await readFile(join(evidenceRoot, 'campaign-next-16.2.6/package.json'), 'utf8'),
-    'pnpm-lock.yaml': await readFile(
-      join(evidenceRoot, 'campaign-next-16.2.6/pnpm-lock.yaml'),
-      'utf8',
-    ),
+    // Real pnpm 11 lockfile resolving the fixture's next pin from the npm
+    // registry plus the matching manifest — the ADR-008 campaign shape,
+    // reproduced honestly (see expectedCampaignNextVersion for the coherence
+    // contract between the two files).
+    'package.json': await readFile(join(campaignFixtureDir, 'package.json'), 'utf8'),
+    'pnpm-lock.yaml': await readFile(join(campaignFixtureDir, 'pnpm-lock.yaml'), 'utf8'),
     'app/login/page.tsx':
       'export default async function LoginPage() {\n  return <main>login</main>;\n}\n',
     ...extra,
@@ -86,7 +128,8 @@ function next17WaiverFiles(packVersionRange: string): Record<string, string> {
 }
 
 describe('Decision 9 four-cell matrix: framework+version detection enforces pack ranges', () => {
-  it('cell 1 — declared-range acceptance: next 16.2.6 inside the shipped nextjs range is accepted with lockfile-grade evidence', async () => {
+  it('cell 1 — declared-range acceptance: the fixture next pin inside the shipped nextjs range is accepted with lockfile-grade evidence', async () => {
+    const expectedNextVersion = await expectedCampaignNextVersion();
     const repo = await makeRepository(undefined, await campaignFiles());
     const result = await new AstGrepAdapter({
       packs: [join(workspaceRoot, 'rulepacks/nextjs')],
@@ -98,7 +141,7 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
         code: ARXIC_RULES_FRAMEWORK_ACCEPTED,
         severity: 'observed',
         subject: 'framework:nextjs',
-        message: expect.stringContaining('16.2.6'),
+        message: expect.stringContaining(expectedNextVersion),
       }),
     );
     expect(
@@ -122,7 +165,8 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
     ).toBe(true);
   });
 
-  it('cell 2 — declared-range rejection: the campaign scenario (next 16.2.6 vs pack >=15 <16) blocks with explicit diagnostics and no rule matches', async () => {
+  it('cell 2 — declared-range rejection: the campaign scenario (fixture next pin vs pack >=15 <16) blocks with explicit diagnostics and no rule matches', async () => {
+    const expectedNextVersion = await expectedCampaignNextVersion();
     const parent = await mkdtemp(join(tmpdir(), 'arxic-fw-campaign-'));
     const pack = await campaignPack(parent);
     const repo = await makeRepository(undefined, await campaignFiles());
@@ -138,7 +182,7 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
       severity: 'blocked',
       subject: 'framework:nextjs',
     });
-    expect(rejected?.message).toContain('16.2.6');
+    expect(rejected?.message).toContain(expectedNextVersion);
     expect(rejected?.message).toContain('>=15 <16');
     expect(rejected?.message).toContain('nextjs-campaign');
     expect(JSON.stringify(diagnostics)).not.toContain(repo.root);
@@ -215,6 +259,7 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
   });
 
   it('cell 4 — recorded waiver: a committed arxic.waivers.json unblocks the campaign rejection with operator provenance', async () => {
+    const expectedNextVersion = await expectedCampaignNextVersion();
     const parent = await mkdtemp(join(tmpdir(), 'arxic-fw-waiver-'));
     const pack = await campaignPack(parent);
     const waiver = {
@@ -222,9 +267,9 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
       frameworkWaivers: [
         {
           framework: 'nextjs',
-          version: '16.2.6',
+          version: expectedNextVersion,
           packVersionRange: '>=15 <16',
-          reason: 'operator reviewed nextjs-auth rules against Next 16.2.6 on 2026-08-16',
+          reason: `operator reviewed nextjs-auth rules against Next ${expectedNextVersion} on 2026-08-16`,
           approvedBy: 'anthonykewl20',
           recordedAt: '2026-08-17T00:00:00.000Z',
         },
@@ -244,7 +289,7 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
     );
     expect(waived).toMatchObject({ severity: 'observed', subject: 'framework:nextjs' });
     expect(waived?.message).toContain('anthonykewl20');
-    expect(waived?.message).toContain('16.2.6');
+    expect(waived?.message).toContain(expectedNextVersion);
     expect(diagnostics.some((diagnostic) => diagnostic.severity === 'blocked')).toBe(false);
     expect(result.matches.length).toBeGreaterThan(0);
     // the waiver is evidence, not prose: the committed file is cited with line anchors
@@ -289,6 +334,7 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
   });
 
   it('waiver abuse: a waiver recorded against a different pack range does not apply after the pack changes', async () => {
+    const expectedNextVersion = await expectedCampaignNextVersion();
     const parent = await mkdtemp(join(tmpdir(), 'arxic-fw-abuse2-'));
     const pack = await campaignPack(parent);
     const waiver = {
@@ -296,7 +342,7 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
       frameworkWaivers: [
         {
           framework: 'nextjs',
-          version: '16.2.6',
+          version: expectedNextVersion,
           packVersionRange: '>=16 <17',
           reason: 'stale waiver recorded against an older range',
           approvedBy: 'anthonykewl20',
@@ -402,6 +448,7 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
   });
 
   it('lockfile outranks a contradicting manifest: an in-range package.json cannot mask an out-of-range lockfile', async () => {
+    const expectedNextVersion = await expectedCampaignNextVersion();
     const parent = await mkdtemp(join(tmpdir(), 'arxic-fw-precedence-'));
     const pack = await campaignPack(parent);
     const files = await campaignFiles();
@@ -415,12 +462,31 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
       revision: repo.revision,
       framework: 'nextjs',
     });
-    expect(
-      diagnosticsOf(result.events).some(
-        (diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_REJECTED,
-      ),
-    ).toBe(true);
+    const rejected = diagnosticsOf(result.events).find(
+      (diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_REJECTED,
+    );
+    // The rejection is DRIVEN BY the lockfile resolution: the diagnostic names
+    // the fixture's real (derived) next version with lockfile-tier attribution,
+    // and the in-range lying manifest's 15.4.1 never appears in it.
+    expect(rejected).toMatchObject({ severity: 'blocked', subject: 'framework:nextjs' });
+    expect(rejected?.message).toContain(expectedNextVersion);
+    expect(rejected?.message).toContain('(lockfile evidence)');
+    expect(rejected?.message).not.toContain('15.4.1');
     expect(result.matches).toEqual([]);
+  });
+
+  it('fixture coherence: the campaign manifest pin and the lockfile resolution agree on next (AC-3, red on manifest-without-lockfile drift)', async () => {
+    // Issue #278's defect shape: a manifest bump that outruns the lockfile
+    // (what PR #274 would have left behind alone) is exactly the disagreement
+    // asserted here — Dependabot keyed 14 alerts to that stale lockfile.
+    // expectedCampaignNextVersion() runs the same two-file read + equality
+    // expect inside every fixture-coupled test; this test makes the invariant
+    // independently visible and nameable.
+    const [manifest, lockfile] = await Promise.all([
+      campaignManifest(),
+      readFile(join(campaignFixtureDir, 'pnpm-lock.yaml'), 'utf8'),
+    ]);
+    expect(lockfileNextResolution(lockfile)).toBe(manifest.dependencies.next);
   });
 
   it('no version evidence: an explicit observed non-enforcement diagnostic, and the scan still runs (frozen-contract compatibility)', async () => {

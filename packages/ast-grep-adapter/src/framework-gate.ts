@@ -687,7 +687,7 @@ function pnpmLockCandidates(file: EvidenceFile): Candidate[] {
       // would be a `packages:` entry), followed by specifier/version lines.
       if (!new RegExp(`^\\s{2,10}${pkg}:\\s*$`, 'u').test(lines[index]!)) continue;
       const window = lines.slice(index + 1, index + 5).join('\n');
-      // version may carry a peer-dependency suffix: `16.2.6(react@19.2.3)`.
+      // version may carry a peer-dependency suffix: `16.2.11(react@19.2.3)`.
       const resolved = window.match(/^\s+version:\s*(v?[0-9A-Za-z.-]+)/mu);
       if (!resolved) continue;
       const version = parseVersion(resolved[1]!);
