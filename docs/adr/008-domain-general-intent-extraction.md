@@ -160,10 +160,12 @@ One-shot output was schema-valid but summarized the inventory into 10 umbrella
 proposals: grounding collapses ~22×. One-shot remains permissible only as a
 cheap domain-summarization pre-pass, never as the proposal path.
 
-Budget: the owner MUST set the per-app model budget before DG-08 (#252) lands.
-Until then the provisional default is the measured **~$0.025 per ~340-row
+Budget: the owner MUST set the per-app model budget (owner-gated under DG-11,
+#255). Until then the provisional default is the measured **~$0.025 per ~340-row
 application** per full run (provisional, owner-overridable; linear in rows, and
-a frontier-priced model at ~30× gpt-4o-mini stays under $1 per run).
+a frontier-priced model at ~30× gpt-4o-mini stays under $1 per run); since
+DG-08 (#252) landed it is enforced pre-call via `ARXIC_MODEL_BUDGET_USD`
+(default `0.0253`, `docs/configuration.md`).
 
 ### 5. Language breadth uses a Language Pack SPI behind SourceIndexer
 
