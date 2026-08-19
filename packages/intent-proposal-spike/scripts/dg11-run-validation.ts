@@ -80,10 +80,18 @@ export const DG11_DEFAULT_PRICES: Dg11Prices = {
  */
 export const ESTIMATED_PROMPT_TOKENS_PER_ROW = 156;
 export const ESTIMATED_COMPLETION_TOKENS_PER_ROW = 85;
-/** Measured route-row counts per ratified target (DG-04 / DG-05 evidence). */
+/**
+ * Per-target estimated row counts for preflight. koel is the DG-06 FUSED
+ * count (306 totalRows — docs/evidence/DG-06/fusion-summary.json; the 239 in
+ * DG-05 was the pre-fusion interchange route count). directus 272 is the
+ * DG-04 pre-fusion interchange count (docs/evidence/DG-04/scale-matrix.json)
+ * — no DG-06-style fusion was measured for directus, so its fusion-time
+ * count is unknown until the first real G-3 run reports coverage.rows;
+ * override with ARXIC_DG11_ESTIMATED_ROWS then.
+ */
 export const DG11_TARGET_ROW_ESTIMATES: Readonly<Record<string, number>> = {
   directus: 272,
-  koel: 239,
+  koel: 306,
 };
 /** Ratified pins (owner decision 3, OBSERVED in the #255 contract). */
 export const DG11_TARGET_PINS: Readonly<Record<string, string>> = {
@@ -337,10 +345,18 @@ export function remainingHeadroomUsd(ledger: SpendLedger): number {
  * TRUE (may exceed the ceiling by at most one call — the proxy checks the
  * ceiling BEFORE forwarding, not after); remainingUsd clamps to 0 instead of
  * going negative; the overrun is reported so the record stays self-valid.
+ *
+ * Gap-awareness (delta re-review P3): when accountingGapCalls > 0 the run
+ * ALSO carries an `accounting-gap` event, and the validator freezes
+ * `after.remainingUsd` to 0 while such an event is present (recorded
+ * cumulative understates real spend). The freeze mirrors
+ * remainingHeadroomUsd(): after.remainingUsd is clamped to 0 while the TRUE
+ * cumulative is preserved.
  */
 export function finalizeLedgerArithmetic(
   before: Readonly<{ cumulativeUsd: number; ceilingUsd: number }>,
   measuredCostUsd: number,
+  accountingGapCalls = 0,
 ): {
   before: Readonly<{ cumulativeUsd: number; ceilingUsd: number; remainingUsd: number }>;
   after: Readonly<{ cumulativeUsd: number; ceilingUsd: number; remainingUsd: number }>;
@@ -359,7 +375,8 @@ export function finalizeLedgerArithmetic(
     after: {
       cumulativeUsd: afterCumulative,
       ceilingUsd,
-      remainingUsd: Math.max(0, roundTo9(ceilingUsd - afterCumulative)),
+      remainingUsd:
+        accountingGapCalls > 0 ? 0 : Math.max(0, roundTo9(ceilingUsd - afterCumulative)),
     },
     overshootUsd,
   };
@@ -1143,6 +1160,21 @@ async function runRealValidation(context: {
   }
 
   const { runCli } = await import('../../../apps/cli/src/index');
+  const outDir = join(context.targetDir, 'runs');
+  const configTemplatePath = join(context.targetDir, 'arxic.yaml');
+  const configDirectory = await mkdtemp(join(tmpdir(), 'arxic-dg11-config-'));
+  const configPath = join(configDirectory, 'arxic.yaml');
+  const previousEnv = {
+    ARXIC_MODEL_BASE_URL: process.env.ARXIC_MODEL_BASE_URL,
+    ARXIC_MODEL_API_KEY: process.env.ARXIC_MODEL_API_KEY,
+    ARXIC_MODEL_BUDGET_USD: process.env.ARXIC_MODEL_BUDGET_USD,
+  };
+  let exitCode: number;
+  // Delta re-review P3 (pre-try window): the proxy starts as the LAST
+  // statement before the guarded region — every statement after a successful
+  // proxy.start() is covered by a finally that stops it, so a throw from
+  // cloneBuildDigest or AttestationFront.start can no longer strand the
+  // unref'd listener and hang the process instead of exiting 1.
   const proxy = await RecordingModelProxy.start({
     upstreamBaseUrl: upstream,
     upstreamApiKey: realKey,
@@ -1154,16 +1186,6 @@ async function runRealValidation(context: {
     prices: context.prices,
     runId: context.runId,
   });
-  const outDir = join(context.targetDir, 'runs');
-  const configTemplatePath = join(context.targetDir, 'arxic.yaml');
-  const configDirectory = await mkdtemp(join(tmpdir(), 'arxic-dg11-config-'));
-  const configPath = join(configDirectory, 'arxic.yaml');
-  const previousEnv = {
-    ARXIC_MODEL_BASE_URL: process.env.ARXIC_MODEL_BASE_URL,
-    ARXIC_MODEL_API_KEY: process.env.ARXIC_MODEL_API_KEY,
-    ARXIC_MODEL_BUDGET_USD: process.env.ARXIC_MODEL_BUDGET_USD,
-  };
-  let exitCode: number;
   try {
     const buildDigest = await cloneBuildDigest(clonePath);
     const front = await AttestationFront.start({ appOrigin, buildDigest });
@@ -1202,6 +1224,11 @@ async function runRealValidation(context: {
       await front.stop();
     }
   } finally {
+    // Delta re-review P3 (pre-try window): stop() is idempotent (same
+    // #stopPromise), so this is a no-op when the inner finally already
+    // stopped the proxy — but it covers throws from cloneBuildDigest /
+    // AttestationFront.start that fire before the inner try opens.
+    await proxy.stop();
     await rm(configDirectory, { recursive: true, force: true });
   }
 
@@ -1237,10 +1264,14 @@ async function runRealValidation(context: {
   const beforeCumulativeUsd = load.status === 'loaded' ? load.ledger.cumulativeUsd : spendBeforeUsd;
   // Finding 4: honest arithmetic — cumulative stays true (may exceed the
   // ceiling by at most one call), remaining clamps to 0, the overshoot event
-  // keeps the record self-valid instead of self-invalidating.
+  // keeps the record self-valid instead of self-invalidating. Gap-aware
+  // (delta re-review P3): a non-zero accountingGapCalls freezes
+  // after.remainingUsd to 0 so the emitted record passes the validator's
+  // accounting-gap freeze rule (recorded cumulative still stays TRUE).
   const finalize = finalizeLedgerArithmetic(
     { cumulativeUsd: beforeCumulativeUsd, ceilingUsd },
     measuredCostUsd,
+    accountingGapCalls,
   );
   const events = buildRunEvents({
     refusals: proxy.refusals,

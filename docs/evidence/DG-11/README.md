@@ -55,7 +55,7 @@ ARXIC_DG11_CONFIRM_REAL_SPEND=1                     # explicit spend acknowledgm
 ARXIC_DG11_CEILING_USD=1.0                          # default 1.00 (decision 1); must MATCH the
                                                     # ledger ceiling once the ledger exists
 ARXIC_DG11_PRICE_PROMPT=0.15 ARXIC_DG11_PRICE_COMPLETION=0.60   # both strictly > 0
-ARXIC_DG11_ESTIMATED_ROWS=<override>                # defaults: directus 272, koel 239
+ARXIC_DG11_ESTIMATED_ROWS=<override>                # defaults: directus 272, koel 306
 ARXIC_DG11_RUN_ID=<id>                              # default dg11-<target>-<utc>; must match
                                                     # ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$
 ARXIC_DG11_EVIDENCE_DIR=docs/evidence/DG-11         # default
@@ -123,8 +123,13 @@ and zero spend):
 4. **Estimate:** rows × (156 prompt + 85 completion tokens/row) × prices —
    the same DG-04/DG-08 per-row profile the pipeline's own pre-call gate uses
    (`packages/orchestrator-langgraph/src/intent-proposer.ts:73-74,240-250`).
-   Row defaults are the measured counts (directus 272 — `docs/evidence/DG-04/scale-matrix.json`;
-   koel 239 — DG-05); override with `ARXIC_DG11_ESTIMATED_ROWS`.
+   Row defaults: koel 306 — DG-06 fused count
+   (`docs/evidence/DG-06/fusion-summary.json` `totalRows`; the DG-05 figure
+   239 was the pre-fusion interchange route count); directus 272 — DG-04
+   pre-fusion interchange count (`docs/evidence/DG-04/scale-matrix.json`),
+   fusion-time count unknown until the first G-3 run reports
+   `coverage.rows` — override with `ARXIC_DG11_ESTIMATED_ROWS` and use the
+   observed count for later runs.
 5. **Budget:** ledger cumulative spend vs the ceiling. Remaining headroom
    below the estimate → REFUSAL recorded under `refusals/`, exit 1, ZERO
    model calls (this is exactly how G-4 is proven).
@@ -244,6 +249,16 @@ the owner-executed, single-machine procedure — not a tooling guarantee. The
 validator's `cumulativeUsd == Σ entries` coherence check catches a botched
 interleave after the fact, but prevention is procedural.
 
+## Other accepted residuals (delta re-review)
+
+- The record validator rejects a BOTH-zero-price record with calls, but a
+  hand-crafted single-zero-price record with calls passes its arithmetic —
+  unreachable from the runner, whose preflight refuses ANY zero price.
+- `RecordingModelProxy.stop()` snapshots `#pending` once, so a request
+  arriving mid-stop on a keep-alive connection could escape the drain —
+  unreachable here because `stop()` runs after child exit under the
+  single-runner discipline above.
+
 ## Manual ledger repair & ceiling adoption
 
 Fail-closed states (corrupt ledger, accounting gap, ceiling change) never
@@ -264,10 +279,24 @@ validator until it passes:
   record's `measured.measuredCostUsd`), then re-validate.
 - **Accounting gap (`accounting-gap` event, headroom frozen to $0):** the run
   forwarded calls whose telemetry never landed. Reconcile against the
-  provider's usage dashboard; edit the run's ledger entry to the reconciled
-  `measuredCostUsd`, correct `cumulativeUsd` to the new Σ, and REMOVE the
-  entry's `"accountingGap": true` to unfreeze headroom. If reconciliation is
-  impossible, leave the freeze in place — the target's budget is spent.
+  provider's usage dashboard — the RUN RECORD and its LEDGER ENTRY must be
+  repaired together (the validator cross-checks both directions):
+  1. reconstruct the gap calls as telemetry rows in the run record
+     (`requestId` from the dashboard, dashboard token counts, `latencyMs`
+     from the dashboard or 0, `costUsd` = tokens × the record's declared
+     prices), set `model` to the real model id if it was `unobserved`
+     (the sentinel is only valid with zero telemetry), and update
+     `measured.calls/promptTokens/completionTokens/latencyMsTotal/
+measuredCostUsd` to the new telemetry sums;
+  2. recompute the record's `ledger.after` (`cumulativeUsd` = before + the
+     reconciled `measuredCostUsd`; `remainingUsd` stays frozen to 0 while
+     the `accounting-gap` event remains in `events[]` — keep the event, it
+     is history);
+  3. edit the ledger entry to the same reconciled `measuredCostUsd` (and
+     `calls`), correct the ledger's `cumulativeUsd` to the new Σ, and REMOVE
+     the entry's `"accountingGap": true` to unfreeze headroom.
+     Then re-run the validator. If reconciliation is impossible, leave the
+     freeze in place — the target's budget is spent.
 - **Ceiling adoption (`ceiling-mismatch`):** to raise/lower a target's
   ceiling, edit the ledger's `ceilingUsd` field by hand (a single-field
   edit; entries and cumulative are unaffected), note the decision on #255,
@@ -296,20 +325,20 @@ ADR-001 §2 truth states):
 Every run record carries EXACTLY these top-level keys (the validator rejects
 unknown keys):
 
-| Key                      | Content                                                                                                                                                                       |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `kind` / `schemaVersion` | `dg11-validation-run-v1` / `1`                                                                                                                                                |
-| `target`                 | `{name, repository, commit}` — repository from the explicit per-target table, commit = the ratified pin, ASSERTED against the clone's real HEAD before spend                  |
-| `run`                    | `{runId, startedAt, completedAt, executor}` — timestamps are strict ISO-8601 UTC                                                                                              |
-| `model`                  | model id observed on the first upstream response; the literal `unobserved` when telemetry is empty (the validator rejects the sentinel on any run with calls)                 |
-| `pricing`                | `{pricePerMillionPrompt, pricePerMillionCompletion, reverifyNote}` — both prices strictly positive (a zero-price run refuses)                                                 |
-| `telemetry[]`            | per call: `{requestId, model, promptTokens, completionTokens, latencyMs, costUsd}`                                                                                            |
-| `measured`               | `{calls, promptTokens, completionTokens, latencyMsTotal, estimatedCostUsd, measuredCostUsd}`                                                                                  |
-| `ledger`                 | `{before:{cumulativeUsd,ceilingUsd,remainingUsd}, after:{...}}` — `after.remainingUsd` clamps to 0 (never negative); cumulative above the ceiling requires an overshoot event |
-| `coverage`               | `{rows, coveredRows, proposals}` — harvested from the run dir's `artifacts/13.json` (stage-13 inventory) + `artifacts/04.json` (stage-4 proposalRun)                          |
-| `outcome`                | `{exitCode, status, outcome, finalStage}` — honest whatever it is                                                                                                             |
-| `events[]`               | `{type, at, detail}` rows: `refusal`, `accounting-gap` (forwarded calls missing telemetry — run invalid, headroom frozen to 0), `ceiling-overshoot` (+`overrunUsd`)           |
-| `groundednessSpotCheck`  | `pending` until the owner completes it (above)                                                                                                                                |
+| Key                      | Content                                                                                                                                                                                                                                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kind` / `schemaVersion` | `dg11-validation-run-v1` / `1`                                                                                                                                                                                                         |
+| `target`                 | `{name, repository, commit}` — repository from the explicit per-target table, commit = the ratified pin, ASSERTED against the clone's real HEAD before spend                                                                           |
+| `run`                    | `{runId, startedAt, completedAt, executor}` — timestamps are strict ISO-8601 UTC                                                                                                                                                       |
+| `model`                  | model id observed on the first upstream response; the literal `unobserved` when telemetry is empty (the validator rejects the sentinel on any run with calls)                                                                          |
+| `pricing`                | `{pricePerMillionPrompt, pricePerMillionCompletion, reverifyNote}` — both prices strictly positive (a zero-price run refuses)                                                                                                          |
+| `telemetry[]`            | per call: `{requestId, model, promptTokens, completionTokens, latencyMs, costUsd}`                                                                                                                                                     |
+| `measured`               | `{calls, promptTokens, completionTokens, latencyMsTotal, estimatedCostUsd, measuredCostUsd}`                                                                                                                                           |
+| `ledger`                 | `{before:{cumulativeUsd,ceilingUsd,remainingUsd}, after:{...}}` — `after.remainingUsd` clamps to 0 (never negative), freezes to 0 while an `accounting-gap` event is present; cumulative above the ceiling requires an overshoot event |
+| `coverage`               | `{rows, coveredRows, proposals}` — harvested from the run dir's `artifacts/13.json` (stage-13 inventory) + `artifacts/04.json` (stage-4 proposalRun)                                                                                   |
+| `outcome`                | `{exitCode, status, outcome, finalStage}` — honest whatever it is                                                                                                                                                                      |
+| `events[]`               | `{type, at, detail}` rows: `refusal`, `accounting-gap` (forwarded calls missing telemetry — run invalid, headroom frozen to 0), `ceiling-overshoot` (+`overrunUsd`)                                                                    |
+| `groundednessSpotCheck`  | `pending` until the owner completes it (above)                                                                                                                                                                                         |
 
 Refusal records (`dg11-validation-refusal-v1`) carry
 `{kind, schemaVersion, target, runId, at, reason

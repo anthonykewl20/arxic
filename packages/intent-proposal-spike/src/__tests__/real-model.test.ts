@@ -1219,8 +1219,10 @@ describe('DG-11 remediation P1-3: unrecorded-forward accounting gap (dual-review
       appendSpendLedgerEntry,
       buildRunEvents,
       emptySpendLedger,
+      finalizeLedgerArithmetic,
       remainingHeadroomUsd,
     } = await import('../../scripts/dg11-run-validation');
+    const { validateRecordArithmetic } = await import('../../scripts/validate-records');
     const stub = await startModelStub({
       responseBody: 'HTTP/1.1 200 OK but definitely not json{{{',
     });
@@ -1263,6 +1265,44 @@ describe('DG-11 remediation P1-3: unrecorded-forward accounting gap (dual-review
         accountingGap: true,
       });
       expect(remainingHeadroomUsd(ledger)).toBe(0);
+      // Delta re-review P3 (accounting-gap self-consistency): the record the
+      // runner emits for this forced-gap run carries the accounting-gap
+      // event, so gap-aware finalizeLedgerArithmetic must freeze
+      // after.remainingUsd to 0 (TRUE cumulative preserved) for the record to
+      // pass the validator's gap freeze rule — the runner can never emit a
+      // record its own validator rejects.
+      const finalize = finalizeLedgerArithmetic({ cumulativeUsd: 0, ceilingUsd: 1.0 }, 0, gapCalls);
+      expect(finalize.after.cumulativeUsd).toBe(0);
+      expect(finalize.after.remainingUsd).toBe(0);
+      const gapRecord = validRunRecord();
+      gapRecord.model = 'unobserved';
+      gapRecord.telemetry = [];
+      gapRecord.measured = {
+        calls: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        latencyMsTotal: 0,
+        estimatedCostUsd: 0.0202368,
+        measuredCostUsd: 0,
+      };
+      gapRecord.ledger = { before: finalize.before, after: finalize.after };
+      gapRecord.events = events;
+      const verdict = validateRecordArithmetic(gapRecord);
+      expect(verdict.ok, JSON.stringify(verdict.ok ? null : verdict.problems)).toBe(true);
+      // Negative control: the pre-fix non-gap-aware arithmetic (remaining =
+      // ceiling − cumulative > 0 alongside a gap event) is exactly what the
+      // validator rejects — the freeze rule stays load-bearing.
+      const nonGapAware = finalizeLedgerArithmetic({ cumulativeUsd: 0, ceilingUsd: 1.0 }, 0);
+      expect(nonGapAware.after.remainingUsd).toBe(1);
+      const rejectedRecord = {
+        ...gapRecord,
+        ledger: { before: nonGapAware.before, after: nonGapAware.after },
+      };
+      const rejection = validateRecordArithmetic(rejectedRecord);
+      expect(rejection.ok).toBe(false);
+      expect(rejection.ok ? [] : rejection.problems).toContain(
+        'ledger.after.remainingUsd must be frozen to 0 while an accounting-gap event is present',
+      );
     } finally {
       await proxy.stop();
       await stub.stop();
