@@ -30,11 +30,16 @@
  *   ARXIC_DG11_CONFIRM_REAL_SPEND=1  explicit spend acknowledgment (defense in depth)
  * Optional env:
  *   ARXIC_DG11_EVIDENCE_DIR   default docs/evidence/DG-11
- *   ARXIC_DG11_CEILING_USD    per-target cumulative ceiling, default 1.00 (owner decision 1)
+ *   ARXIC_DG11_CEILING_USD    per-target cumulative ceiling, default 1.00 (owner decision 1).
+ *                             Once a ledger exists this MUST equal the ledger's ceiling or
+ *                             preflight refuses (ceiling-mismatch) — adoption is manual
+ *                             (docs/evidence/DG-11/README.md).
  *   ARXIC_DG11_PRICE_PROMPT / ARXIC_DG11_PRICE_COMPLETION  USD per million tokens,
- *                             defaults 0.15 / 0.60 (owner decision 2; re-verify at run time)
+ *                             defaults 0.15 / 0.60 (owner decision 2; re-verify at run time).
+ *                             Both must be STRICTLY positive — zero prices refuse (zero-price).
  *   ARXIC_DG11_ESTIMATED_ROWS override the per-target measured row estimate
- *   ARXIC_DG11_RUN_ID         record/run id (default dg11-<target>-<utc stamp>)
+ *   ARXIC_DG11_RUN_ID         record/run id (default dg11-<target>-<utc stamp>); must match
+ *                             ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ — it becomes a path component
  *
  * The per-row token estimate cites the DG-04/DG-08 pipeline constants
  * (packages/orchestrator-langgraph/src/intent-proposer.ts:73-74: 156 prompt +
@@ -55,6 +60,7 @@ import {
   DG11_RECORD_KIND_REFUSAL,
   DG11_RECORD_KIND_RUN,
   DG11_SPEND_LEDGER_SCHEMA,
+  validateLedgerDocument,
 } from './validate-records';
 
 export type Dg11Prices = Readonly<{ promptPerMillion: number; completionPerMillion: number }>;
@@ -84,6 +90,34 @@ export const DG11_TARGET_PINS: Readonly<Record<string, string>> = {
   directus: 'cb846b6a1ddc4811359bc52b74bb31a42eab33db',
   koel: 'dfec91ff290509c622ff7cf392fb5e506841ee2b',
 };
+/**
+ * Explicit upstream repository URLs per ratified target — never derived from
+ * the target name (dual-review finding 15: the coincidence fallback is gone).
+ */
+export const DG11_TARGET_REPOSITORIES: Readonly<Record<string, string>> = {
+  directus: 'https://github.com/directus/directus',
+  koel: 'https://github.com/koel/koel',
+};
+/**
+ * Run ids become path components (`runs/<runId>.json`,
+ * `refusals/<runId>-<reason>.json`) — reject anything outside this safe
+ * charset before path use (dual-review finding 11).
+ */
+export const DG11_RUN_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u;
+
+export function isValidRunId(runId: string): boolean {
+  return DG11_RUN_ID_PATTERN.test(runId);
+}
+
+/**
+ * Model id sentinel for runs whose telemetry recorded zero calls (finding 12);
+ * the validator accepts it ONLY with zero telemetry.
+ */
+export const DG11_MODEL_SENTINEL = 'unobserved';
+
+/** Static 401 body for unauthenticated proxy callers (finding 6) — never varies. */
+export const DG11_PROXY_UNAUTHORIZED_BODY =
+  '{"error":{"code":"ARXIC-DG11-PROXY-AUTH","message":"DG-11 recording proxy: wrong or missing inbound bearer"}}';
 
 export type SpendLedgerEntry = Readonly<{
   runId: string;
@@ -91,6 +125,12 @@ export type SpendLedgerEntry = Readonly<{
   measuredCostUsd: number;
   calls: number;
   valid: boolean;
+  /**
+   * True when this run left forwarded calls without telemetry rows. Such an
+   * entry freezes the ledger's remaining headroom to $0 until manual repair
+   * (fail-closed — recorded cumulative is known to understate real spend).
+   */
+  readonly accountingGap?: boolean;
 }>;
 
 export type SpendLedger = Readonly<{
@@ -113,7 +153,14 @@ export type TelemetryCall = Readonly<{
 }>;
 
 export type RefusalReason =
-  'budget-ceiling' | 'credentials-missing' | 'proxy-ceiling' | 'redaction-finding';
+  | 'budget-ceiling'
+  | 'credentials-missing'
+  | 'proxy-ceiling'
+  | 'redaction-finding'
+  | 'zero-price'
+  | 'ledger-unreadable'
+  | 'ceiling-mismatch'
+  | 'commit-mismatch';
 
 export type RefusalRecord = Readonly<{
   kind: typeof DG11_RECORD_KIND_REFUSAL;
@@ -131,11 +178,18 @@ export type RefusalRecord = Readonly<{
 }>;
 
 export type PreflightOutcome = Readonly<{
-  disposition: 'ok' | 'refused-budget' | 'refused-credentials';
+  disposition:
+    | 'ok'
+    | 'refused-budget'
+    | 'refused-credentials'
+    | 'refused-pricing'
+    | 'refused-ledger'
+    | 'refused-ceiling';
   estimateUsd: number;
-  cumulativeUsd: number;
-  ceilingUsd: number;
-  remainingUsd: number;
+  /** Ledger-derived budget state — undefined only for refused-ledger. */
+  cumulativeUsd?: number;
+  ceilingUsd?: number;
+  remainingUsd?: number;
   refusal?: RefusalRecord;
 }>;
 
@@ -169,6 +223,10 @@ function roundTo9(value: number): number {
   return Math.round(value * 1e9) / 1e9;
 }
 
+function usdNear(left: number, right: number): boolean {
+  return Math.abs(left - right) <= 1e-9;
+}
+
 export function appendSpendLedgerEntry(ledger: SpendLedger, entry: SpendLedgerEntry): SpendLedger {
   const cumulativeUsd = roundTo9(
     ledger.entries.reduce((sum, item) => sum + item.measuredCostUsd, 0) + entry.measuredCostUsd,
@@ -176,12 +234,83 @@ export function appendSpendLedgerEntry(ledger: SpendLedger, entry: SpendLedgerEn
   return { ...ledger, cumulativeUsd, entries: [...ledger.entries, entry] };
 }
 
-export async function readSpendLedger(path: string): Promise<SpendLedger> {
-  const parsed = JSON.parse(await readFile(path, 'utf8')) as SpendLedger;
-  if (parsed.schemaVersion !== DG11_SPEND_LEDGER_SCHEMA) {
-    throw new Error(`spend ledger at ${path} is not ${DG11_SPEND_LEDGER_SCHEMA}`);
+/**
+ * A ledger that exists but cannot be parsed/validated (dual-review finding 2).
+ * Carries the path and the concrete failure so refusals can name both.
+ */
+export class SpendLedgerReadError extends Error {
+  readonly failure: string;
+
+  constructor(path: string, failure: string) {
+    super(`spend ledger at ${path}: ${failure}`);
+    this.name = 'SpendLedgerReadError';
+    this.failure = failure;
   }
-  return parsed;
+}
+
+/**
+ * Strict ledger reader: parses AND coherence-validates (schemaVersion,
+ * cumulative == Σ entries). ENOENT propagates as a raw fs error with code
+ * ENOENT (the single legitimate "start fresh" signal); every other failure is
+ * a SpendLedgerReadError the callers must refuse on.
+ */
+export async function readSpendLedger(path: string): Promise<SpendLedger> {
+  const raw = await readFile(path, 'utf8');
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (cause) {
+    throw new SpendLedgerReadError(path, `not valid JSON (${(cause as Error).message})`);
+  }
+  if (
+    typeof parsed !== 'object' ||
+    parsed === null ||
+    (parsed as { schemaVersion?: unknown }).schemaVersion !== DG11_SPEND_LEDGER_SCHEMA
+  ) {
+    throw new SpendLedgerReadError(path, `not ${DG11_SPEND_LEDGER_SCHEMA}`);
+  }
+  const check = validateLedgerDocument(parsed);
+  if (!check.ok) {
+    throw new SpendLedgerReadError(path, check.problems.join('; '));
+  }
+  return parsed as SpendLedger;
+}
+
+/** Result of classifying a ledger path: fresh/loaded, or unreadable (refuse). */
+export type LedgerLoad =
+  | Readonly<{ status: 'loaded'; ledger: SpendLedger; existed: boolean }>
+  | Readonly<{ status: 'unreadable'; path: string; failure: string }>;
+
+/**
+ * Classify a ledger path for use: ENOENT → a legitimate fresh (empty) ledger;
+ * parse/validation failure → `unreadable` (the caller must REFUSE and never
+ * rewrite the file); anything readable → as-is (finding 2).
+ */
+export async function loadSpendLedger(input: {
+  path: string;
+  target: string;
+  ceilingUsd: number;
+  repository?: string;
+  commit?: string;
+}): Promise<LedgerLoad> {
+  try {
+    return { status: 'loaded', ledger: await readSpendLedger(input.path), existed: true };
+  } catch (error) {
+    if (error instanceof SpendLedgerReadError) {
+      return { status: 'unreadable', path: input.path, failure: error.failure };
+    }
+    if ((error as NodeJS.ErrnoException)?.code === 'ENOENT') {
+      return {
+        status: 'loaded',
+        ledger: emptySpendLedger(input.target, input.ceilingUsd, {
+          ...(input.repository ? { repository: input.repository } : {}),
+          ...(input.commit ? { commit: input.commit } : {}),
+        }),
+        existed: false,
+      };
+    }
+    return { status: 'unreadable', path: input.path, failure: (error as Error).message };
+  }
 }
 
 /** Atomic, byte-deterministic write (canonical JSON + newline, mode 0o640). */
@@ -197,13 +326,89 @@ export async function writeArtifactAtomic(path: string, text: string): Promise<v
 }
 
 export function remainingHeadroomUsd(ledger: SpendLedger): number {
+  // Fail-closed freeze (finding 3): an accounting-gap entry means recorded
+  // cumulative is known to understate real spend — no headroom until repaired.
+  if (ledger.entries.some((entry) => entry.accountingGap === true)) return 0;
   return roundTo9(ledger.ceilingUsd - ledger.cumulativeUsd);
 }
 
 /**
- * Budget-first preflight (G-4/SP-1/SP-2). The budget check runs BEFORE the
- * credential check so the budget boundary is provable with zero credentials
- * and zero spend. No side effects: the caller writes the refusal record.
+ * Honest ledger arithmetic for a run record (finding 4): cumulative stays
+ * TRUE (may exceed the ceiling by at most one call — the proxy checks the
+ * ceiling BEFORE forwarding, not after); remainingUsd clamps to 0 instead of
+ * going negative; the overrun is reported so the record stays self-valid.
+ */
+export function finalizeLedgerArithmetic(
+  before: Readonly<{ cumulativeUsd: number; ceilingUsd: number }>,
+  measuredCostUsd: number,
+): {
+  before: Readonly<{ cumulativeUsd: number; ceilingUsd: number; remainingUsd: number }>;
+  after: Readonly<{ cumulativeUsd: number; ceilingUsd: number; remainingUsd: number }>;
+  overshootUsd: number;
+} {
+  const ceilingUsd = before.ceilingUsd;
+  const afterCumulative = roundTo9(before.cumulativeUsd + measuredCostUsd);
+  const overshootUsd =
+    afterCumulative > ceilingUsd + 1e-9 ? roundTo9(afterCumulative - ceilingUsd) : 0;
+  return {
+    before: {
+      cumulativeUsd: before.cumulativeUsd,
+      ceilingUsd,
+      remainingUsd: Math.max(0, roundTo9(ceilingUsd - before.cumulativeUsd)),
+    },
+    after: {
+      cumulativeUsd: afterCumulative,
+      ceilingUsd,
+      remainingUsd: Math.max(0, roundTo9(ceilingUsd - afterCumulative)),
+    },
+    overshootUsd,
+  };
+}
+
+/** Event row emitted into a run record's events[] (open type/at/detail shape). */
+export type RunEvent = Readonly<{ type: string; at: string; detail: string; overrunUsd?: number }>;
+
+/**
+ * Build the events[] block: proxy refusals, accounting gaps (finding 3), and
+ * ceiling overshoot (finding 4). A non-empty accountingGapCalls freezes the
+ * run to invalid; a positive overshootUsd adds the mandatory overshoot event.
+ */
+export function buildRunEvents(input: {
+  refusals: readonly RefusalRecord[];
+  accountingGapCalls: number;
+  overshootUsd: number;
+  at: string;
+}): RunEvent[] {
+  const events: RunEvent[] = input.refusals.map((refusal) => ({
+    type: 'refusal',
+    at: refusal.at,
+    detail: refusal.detail,
+  }));
+  if (input.accountingGapCalls > 0) {
+    events.push({
+      type: 'accounting-gap',
+      at: input.at,
+      detail: `${input.accountingGapCalls} forwarded upstream call(s) produced no telemetry row (unparseable response, upstream error, or forward still in flight after drain); the run is INVALID and remaining headroom is frozen to 0 until manual ledger repair (docs/evidence/DG-11/README.md)`,
+    });
+  }
+  if (input.overshootUsd > 0) {
+    events.push({
+      type: 'ceiling-overshoot',
+      at: input.at,
+      overrunUsd: input.overshootUsd,
+      detail: `measured cumulative spend exceeded the ceiling by $${input.overshootUsd.toFixed(9)} (the final allowed call may overshoot by at most one call); remaining headroom clamped to 0`,
+    });
+  }
+  return events;
+}
+
+/**
+ * Budget-first preflight (G-4/SP-1/SP-2). Order (each stage fail-closed with
+ * zero spend): ledger integrity (finding 2) → ceiling agreement (finding 7) →
+ * strictly-positive prices (finding 1) → budget headroom → credentials. The
+ * budget boundary still runs before the credential check so it is provable
+ * with zero credentials and zero spend. No side effects: the caller writes
+ * the refusal record.
  */
 export async function runPreflightChecks(input: {
   target: string;
@@ -211,25 +416,88 @@ export async function runPreflightChecks(input: {
   ledgerPath: string;
   prices: Dg11Prices;
   env: { ARXIC_MODEL_BASE_URL: string; ARXIC_MODEL_API_KEY: string };
+  /** Ceiling from ARXIC_DG11_CEILING_USD — undefined = "ledger is authoritative". */
   ceilingUsd?: number;
   now?: () => string;
 }): Promise<PreflightOutcome> {
   const now = input.now ?? (() => new Date().toISOString());
-  let ledger: SpendLedger;
-  try {
-    ledger = await readSpendLedger(input.ledgerPath);
-  } catch {
-    ledger = emptySpendLedger(input.target, input.ceilingUsd ?? DG11_DEFAULT_CEILING_USD, {});
-  }
+  const load = await loadSpendLedger({
+    path: input.ledgerPath,
+    target: input.target,
+    ceilingUsd: input.ceilingUsd ?? DG11_DEFAULT_CEILING_USD,
+    repository: DG11_TARGET_REPOSITORIES[input.target],
+    commit: DG11_TARGET_PINS[input.target],
+  });
   const estimateUsd = roundTo9(estimateRunCostUsd(input.estimatedRows, input.prices));
-  const remainingUsd = remainingHeadroomUsd(ledger);
+  if (load.status === 'unreadable') {
+    return {
+      disposition: 'refused-ledger',
+      estimateUsd,
+      refusal: {
+        kind: DG11_RECORD_KIND_REFUSAL,
+        schemaVersion: 1,
+        target: { name: input.target },
+        runId: 'preflight',
+        at: now(),
+        reason: 'ledger-unreadable',
+        detail: `spend ledger at ${load.path} could not be read (${load.failure}); refusing fail-closed — cumulative spend must never silently reset; repair the ledger manually per docs/evidence/DG-11/README.md; no ledger write was performed`,
+        estimateUsd,
+        upstreamCallsPlaced: 0,
+      },
+    };
+  }
+  const ledger = load.ledger;
   const base = {
     estimateUsd,
     cumulativeUsd: ledger.cumulativeUsd,
     ceilingUsd: ledger.ceilingUsd,
-    remainingUsd,
+    remainingUsd: remainingHeadroomUsd(ledger),
   };
-  if (remainingUsd + 1e-9 < estimateUsd) {
+  if (
+    load.existed &&
+    input.ceilingUsd !== undefined &&
+    !usdNear(input.ceilingUsd, ledger.ceilingUsd)
+  ) {
+    return {
+      ...base,
+      disposition: 'refused-ceiling',
+      refusal: {
+        kind: DG11_RECORD_KIND_REFUSAL,
+        schemaVersion: 1,
+        target: { name: input.target },
+        runId: 'preflight',
+        at: now(),
+        reason: 'ceiling-mismatch',
+        detail: `ARXIC_DG11_CEILING_USD=${input.ceilingUsd} does not match the existing ledger ceiling=${ledger.ceilingUsd} for target ${input.target}; refusing — to adopt a new ceiling follow the manual adoption procedure in docs/evidence/DG-11/README.md`,
+        estimateUsd,
+        cumulativeUsd: ledger.cumulativeUsd,
+        ceilingUsd: ledger.ceilingUsd,
+        remainingUsd: Math.max(0, base.remainingUsd),
+        upstreamCallsPlaced: 0,
+      },
+    };
+  }
+  if (!(input.prices.promptPerMillion > 0) || !(input.prices.completionPerMillion > 0)) {
+    return {
+      ...base,
+      disposition: 'refused-pricing',
+      refusal: {
+        kind: DG11_RECORD_KIND_REFUSAL,
+        schemaVersion: 1,
+        target: { name: input.target },
+        runId: 'preflight',
+        at: now(),
+        reason: 'zero-price',
+        detail: `prices must be strictly positive (got prompt ${input.prices.promptPerMillion} / completion ${input.prices.completionPerMillion} USD per million tokens); zero prices would zero every estimate and recorded cost, leaving the ceiling unable to trip`,
+        estimateUsd,
+        cumulativeUsd: ledger.cumulativeUsd,
+        ceilingUsd: ledger.ceilingUsd,
+        remainingUsd: Math.max(0, base.remainingUsd),
+        upstreamCallsPlaced: 0,
+      },
+    };
+  }
+  if (base.remainingUsd + 1e-9 < estimateUsd) {
     return {
       ...base,
       disposition: 'refused-budget',
@@ -240,11 +508,11 @@ export async function runPreflightChecks(input: {
         runId: 'preflight',
         at: now(),
         reason: 'budget-ceiling',
-        detail: `remaining headroom $${remainingUsd.toFixed(6)} is below the estimated run cost $${estimateUsd.toFixed(6)}; zero model calls placed`,
+        detail: `remaining headroom $${base.remainingUsd.toFixed(6)} is below the estimated run cost $${estimateUsd.toFixed(6)}; zero model calls placed`,
         estimateUsd,
         cumulativeUsd: ledger.cumulativeUsd,
         ceilingUsd: ledger.ceilingUsd,
-        remainingUsd,
+        remainingUsd: Math.max(0, base.remainingUsd),
         upstreamCallsPlaced: 0,
       },
     };
@@ -264,7 +532,7 @@ export async function runPreflightChecks(input: {
           'ARXIC_MODEL_BASE_URL / ARXIC_MODEL_API_KEY absent or blank at run start; the run refuses fail-closed with zero fabricated candidates',
         cumulativeUsd: ledger.cumulativeUsd,
         ceilingUsd: ledger.ceilingUsd,
-        remainingUsd,
+        remainingUsd: Math.max(0, base.remainingUsd),
         upstreamCallsPlaced: 0,
       },
     };
@@ -295,6 +563,17 @@ async function listenLoopback(server: Server): Promise<number> {
  * real Authorization only on the upstream hop; records per-call telemetry;
  * hard-refuses (HTTP 402, ARXIC-DG11-SPEND-CEILING) to forward once measured
  * cumulative spend (spendBefore + recorded) reaches the ceiling.
+ *
+ * Security (dual-review finding 6): inbound callers must present the run's
+ * dummy canary bearer — anything else gets a static 401 and is NEVER
+ * forwarded, so a random local process that discovers the port cannot spend
+ * the real key.
+ *
+ * Accounting (dual-review finding 3): every in-flight handler is tracked;
+ * stop() DRAINS them (each bounded by the upstream timeout) before closing,
+ * so a response landing after the child aborted still reaches telemetry —
+ * and whatever remains unreconciled is surfaced as an accounting gap by the
+ * runner.
  */
 export class RecordingModelProxy {
   readonly baseUrl: string;
@@ -303,17 +582,20 @@ export class RecordingModelProxy {
   readonly #server: Server;
   readonly #upstream: string;
   readonly #upstreamKey: string;
+  readonly #inboundBearer: string;
   readonly #ceilingUsd: number;
   readonly #spendBeforeUsd: number;
   readonly #prices: Dg11Prices;
   readonly #runId: string;
+  readonly #pending = new Set<Promise<void>>();
   #forwards = 0;
-  #stopped = false;
+  #stopPromise: Promise<void> | undefined;
 
   private constructor(
     server: Server,
     upstream: string,
     upstreamKey: string,
+    inboundBearer: string,
     ceilingUsd: number,
     spendBeforeUsd: number,
     prices: Dg11Prices,
@@ -324,6 +606,7 @@ export class RecordingModelProxy {
     this.baseUrl = `http://127.0.0.1:${port}`;
     this.#upstream = upstream;
     this.#upstreamKey = upstreamKey;
+    this.#inboundBearer = inboundBearer;
     this.#ceilingUsd = ceilingUsd;
     this.#spendBeforeUsd = spendBeforeUsd;
     this.#prices = prices;
@@ -333,6 +616,8 @@ export class RecordingModelProxy {
   static async start(options: {
     upstreamBaseUrl: string;
     upstreamApiKey: string;
+    /** The dummy canary the child presents inbound (finding 6). */
+    inboundBearer: string;
     ceilingUsd: number;
     spendBeforeUsd: number;
     prices: Dg11Prices;
@@ -344,6 +629,7 @@ export class RecordingModelProxy {
       server,
       options.upstreamBaseUrl,
       options.upstreamApiKey,
+      options.inboundBearer,
       options.ceilingUsd,
       options.spendBeforeUsd,
       options.prices,
@@ -351,9 +637,24 @@ export class RecordingModelProxy {
       port,
     );
     server.on('request', (request, response) => {
-      void proxy.#handle(request, response);
+      // Aborted client sockets must never surface as unhandled errors while
+      // the upstream forward continues (finding 3 drain path).
+      response.on('error', () => {});
+      proxy.#track(proxy.#handle(request, response));
     });
     return proxy;
+  }
+
+  #track(promise: Promise<void>): void {
+    this.#pending.add(promise);
+    void promise.then(
+      () => {
+        this.#pending.delete(promise);
+      },
+      () => {
+        this.#pending.delete(promise);
+      },
+    );
   }
 
   measuredSpendUsd(): number {
@@ -368,9 +669,15 @@ export class RecordingModelProxy {
   }
 
   stop(): Promise<void> {
-    if (this.#stopped) return Promise.resolve();
-    this.#stopped = true;
-    return new Promise<void>((resolveClose) => this.#server.close(() => resolveClose()));
+    if (this.#stopPromise) return this.#stopPromise;
+    this.#stopPromise = (async () => {
+      this.#server.closeIdleConnections();
+      // Drain in-flight handlers first: each is bounded by the upstream
+      // AbortSignal timeout, so stop() cannot hang past one upstream window.
+      await Promise.allSettled([...this.#pending]);
+      await new Promise<void>((resolveClose) => this.#server.close(() => resolveClose()));
+    })();
+    return this.#stopPromise;
   }
 
   async #handle(
@@ -381,6 +688,11 @@ export class RecordingModelProxy {
     if (request.method !== 'POST' || url.split('?')[0] !== '/chat/completions') {
       response.writeHead(404, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ error: { code: 'ARXIC-DG11-PROXY-PATH' } }));
+      return;
+    }
+    if (request.headers.authorization !== `Bearer ${this.#inboundBearer}`) {
+      response.writeHead(401, { 'content-type': 'application/json' });
+      response.end(DG11_PROXY_UNAUTHORIZED_BODY);
       return;
     }
     if (this.measuredSpendUsd() + 1e-9 >= this.#ceilingUsd) {
@@ -493,24 +805,44 @@ function forwardableHeaders(
 }
 
 /**
+ * Response-direction framing headers never forwarded (finding 10): fetch has
+ * already decompressed the body, so the upstream content-encoding/content-
+ * length describe bytes that no longer exist.
+ */
+const RESPONSE_FRAMING_HEADERS = new Set(['content-encoding', 'content-length']);
+
+function forwardableResponseHeaders(
+  headers: Record<string, string | string[] | undefined>,
+): Record<string, string> {
+  const forwarded = forwardableHeaders(headers);
+  for (const name of RESPONSE_FRAMING_HEADERS) delete forwarded[name];
+  return forwarded;
+}
+
+/**
  * Attestation front: serves the well-known test-target JSON (environmentClass
  * local-test, the EXACT proxy origin, a fresh nonce, and the clone-derived
  * build digest) and forwards every other request to the booted app origin.
- * Request AND response headers round-trip (minus hop-by-hop) so cookies and
- * content negotiation survive the crawl. The clone stays pristine — nothing
- * is written into it.
+ * Request AND response headers round-trip (minus hop-by-hop, and minus
+ * response framing headers) so cookies and content negotiation survive the
+ * crawl. The clone stays pristine — nothing is written into it.
+ *
+ * Security (dual-review finding 5): the resolved request target's origin MUST
+ * equal the app origin. Absolute-form request targets, protocol-relative
+ * `//host`, and `/\host` forms all resolve to foreign origins under WHATWG
+ * URL semantics — they get a static 404, never a forward.
  */
 export class AttestationFront {
   readonly origin: string;
   readonly #server: Server;
   readonly #appOrigin: string;
   readonly #buildDigest: string;
-  #stopped = false;
+  #stopPromise: Promise<void> | undefined;
 
   private constructor(server: Server, port: number, appOrigin: string, buildDigest: string) {
     this.#server = server;
     this.origin = `http://127.0.0.1:${port}`;
-    this.#appOrigin = appOrigin;
+    this.#appOrigin = new URL(appOrigin).origin;
     this.#buildDigest = buildDigest;
   }
 
@@ -522,15 +854,19 @@ export class AttestationFront {
     const port = await listenLoopback(server);
     const front = new AttestationFront(server, port, options.appOrigin, options.buildDigest);
     server.on('request', (request, response) => {
+      response.on('error', () => {});
       void front.#handle(request, response);
     });
     return front;
   }
 
   stop(): Promise<void> {
-    if (this.#stopped) return Promise.resolve();
-    this.#stopped = true;
-    return new Promise<void>((resolveClose) => this.#server.close(() => resolveClose()));
+    if (this.#stopPromise) return this.#stopPromise;
+    this.#stopPromise = new Promise<void>((resolveClose) => {
+      this.#server.closeIdleConnections();
+      this.#server.close(() => resolveClose());
+    });
+    return this.#stopPromise;
   }
 
   async #handle(
@@ -551,11 +887,24 @@ export class AttestationFront {
       );
       return;
     }
+    let upstreamUrl: URL;
+    try {
+      upstreamUrl = new URL(url, this.#appOrigin);
+    } catch {
+      response.writeHead(404, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ error: { code: 'ARXIC-DG11-FRONT-ORIGIN' } }));
+      return;
+    }
+    if (upstreamUrl.origin !== this.#appOrigin) {
+      response.writeHead(404, { 'content-type': 'application/json' });
+      response.end(JSON.stringify({ error: { code: 'ARXIC-DG11-FRONT-ORIGIN' } }));
+      return;
+    }
     const chunks: Buffer[] = [];
     for await (const chunk of request) chunks.push(chunk as Buffer);
     const body = Buffer.concat(chunks);
     try {
-      const upstream = await fetch(new URL(url, this.#appOrigin), {
+      const upstream = await fetch(upstreamUrl, {
         method: request.method,
         headers: forwardableHeaders(request.headers),
         ...(body.length > 0 ? { body } : {}),
@@ -563,7 +912,9 @@ export class AttestationFront {
         signal: AbortSignal.timeout(60_000),
       });
       const text = await upstream.text();
-      const responseHeaders = forwardableHeaders(Object.fromEntries(upstream.headers.entries()));
+      const responseHeaders = forwardableResponseHeaders(
+        Object.fromEntries(upstream.headers.entries()),
+      );
       response.writeHead(upstream.status, {
         'content-type': upstream.headers.get('content-type') ?? 'application/octet-stream',
         ...responseHeaders,
@@ -608,6 +959,24 @@ export async function cloneBuildDigest(clonePath: string): Promise<string> {
   return sha256(tree);
 }
 
+/** The clone's CURRENT HEAD commit — what actually executes, not what is declared. */
+export async function cloneHeadCommit(clonePath: string): Promise<string> {
+  return execute('git', ['rev-parse', 'HEAD'], clonePath);
+}
+
+/**
+ * Assert the clone is really at the ratified pin (dual-review finding 8):
+ * the record's commit must be OBSERVED at run time, never assumed. Callers
+ * refuse (zero spend) unless ok.
+ */
+export async function assertCloneAtPin(
+  clonePath: string,
+  expectedPin: string,
+): Promise<{ ok: true; head: string } | { ok: false; head: string; expectedPin: string }> {
+  const head = await cloneHeadCommit(clonePath);
+  return head === expectedPin ? { ok: true, head } : { ok: false, head, expectedPin };
+}
+
 function numberFromEnv(name: string): number | undefined {
   const raw = process.env[name];
   if (raw === undefined || raw.trim() === '') return undefined;
@@ -647,13 +1016,21 @@ async function main(): Promise<void> {
   const runId =
     process.env.ARXIC_DG11_RUN_ID ??
     `dg11-${target}-${new Date().toISOString().replace(/[:.]/gu, '')}`;
+  // Finding 11: run ids become path components — validate BEFORE any path use.
+  if (!isValidRunId(runId)) {
+    console.error(
+      `ARXIC_DG11_RUN_ID "${runId}" is invalid: must match ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ (it is used as a path component)`,
+    );
+    process.exitCode = 2;
+    return;
+  }
 
   const preflight = await runPreflightChecks({
     target,
     estimatedRows,
     ledgerPath,
     prices,
-    ceilingUsd: numberFromEnv('ARXIC_DG11_CEILING_USD') ?? DG11_DEFAULT_CEILING_USD,
+    ceilingUsd: numberFromEnv('ARXIC_DG11_CEILING_USD'),
     env: {
       ARXIC_MODEL_BASE_URL: process.env.ARXIC_MODEL_BASE_URL ?? '',
       ARXIC_MODEL_API_KEY: process.env.ARXIC_MODEL_API_KEY ?? '',
@@ -734,59 +1111,97 @@ async function runRealValidation(context: {
   const appOrigin = process.env.ARXIC_DG11_TARGET_APP_ORIGIN!;
   const startedAt = new Date().toISOString();
   const dummyCanary = `dg11-canary-${randomUUID()}`;
-  const { runCli } = await import('../../../apps/cli/src/index');
+  const pin = DG11_TARGET_PINS[context.target]!;
+  const repository = DG11_TARGET_REPOSITORIES[context.target]!;
+  const ledgerPath = join(context.targetDir, 'spend-ledger.json');
+  const ceilingUsd = context.preflight.ceilingUsd!;
+  const spendBeforeUsd = context.preflight.cumulativeUsd!;
 
+  // Finding 8: the ratified pin is ASSERTED against the clone's real HEAD
+  // before anything that can spend starts. Zero upstream calls on refusal.
+  const pinCheck = await assertCloneAtPin(clonePath, pin);
+  if (!pinCheck.ok) {
+    const refusal: RefusalRecord = {
+      kind: DG11_RECORD_KIND_REFUSAL,
+      schemaVersion: 1,
+      target: { name: context.target },
+      runId: context.runId,
+      at: new Date().toISOString(),
+      reason: 'commit-mismatch',
+      detail: `clone at ${clonePath} has HEAD ${pinCheck.head}, not the ratified pin ${pinCheck.expectedPin}; checkout the pin and retry — zero model calls placed`,
+      upstreamCallsPlaced: 0,
+    };
+    await writeArtifactAtomic(
+      join(context.targetDir, 'refusals', `${context.runId}-commit-mismatch.json`),
+      `${canonicalJson(refusal)}\n`,
+    );
+    console.error(
+      JSON.stringify({ ok: false, refused: 'commit-mismatch', detail: refusal.detail }, null, 1),
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  const { runCli } = await import('../../../apps/cli/src/index');
   const proxy = await RecordingModelProxy.start({
     upstreamBaseUrl: upstream,
     upstreamApiKey: realKey,
-    ceilingUsd: context.preflight.ceilingUsd,
-    spendBeforeUsd: context.preflight.cumulativeUsd,
+    // Finding 6: only the child presenting this run's dummy canary may use
+    // the proxy — every other local caller gets a static 401.
+    inboundBearer: dummyCanary,
+    ceilingUsd,
+    spendBeforeUsd,
     prices: context.prices,
     runId: context.runId,
   });
-  const buildDigest = await cloneBuildDigest(clonePath);
-  const front = await AttestationFront.start({ appOrigin, buildDigest });
   const outDir = join(context.targetDir, 'runs');
   const configTemplatePath = join(context.targetDir, 'arxic.yaml');
   const configDirectory = await mkdtemp(join(tmpdir(), 'arxic-dg11-config-'));
   const configPath = join(configDirectory, 'arxic.yaml');
-  const template = await readFile(configTemplatePath, 'utf8');
-  const commit = DG11_TARGET_PINS[context.target]!;
-  await writeFile(
-    configPath,
-    template
-      .replaceAll('http://127.0.0.1:DG11-PROXY-PORT', front.origin)
-      .replaceAll('DG11-CLONE-PATH', clonePath)
-      .replaceAll('DG11-CLONE-COMMIT', commit),
-    'utf8',
-  );
-
   const previousEnv = {
     ARXIC_MODEL_BASE_URL: process.env.ARXIC_MODEL_BASE_URL,
     ARXIC_MODEL_API_KEY: process.env.ARXIC_MODEL_API_KEY,
     ARXIC_MODEL_BUDGET_USD: process.env.ARXIC_MODEL_BUDGET_USD,
   };
-  process.env.ARXIC_MODEL_BASE_URL = proxy.baseUrl;
-  process.env.ARXIC_MODEL_API_KEY = dummyCanary;
-  // The pipeline's own pre-call gate must not refuse a legitimately-budgeted
-  // run: give it the ledger-derived headroom (the ledger is authoritative).
-  process.env.ARXIC_MODEL_BUDGET_USD = String(context.preflight.remainingUsd);
   let exitCode: number;
   try {
-    const result = await runCli(
-      ['run', '--config', configPath, '--out', outDir, '--run-id', context.runId],
-      {
-        cwd: context.repoRoot,
-        rulepacksDir: resolve(context.repoRoot, 'rulepacks'),
-      },
-    );
-    exitCode = result.exitCode;
-  } finally {
-    for (const [name, value] of Object.entries(previousEnv)) {
-      if (value === undefined) delete process.env[name];
-      else process.env[name] = value;
+    const buildDigest = await cloneBuildDigest(clonePath);
+    const front = await AttestationFront.start({ appOrigin, buildDigest });
+    try {
+      const template = await readFile(configTemplatePath, 'utf8');
+      await writeFile(
+        configPath,
+        template
+          .replaceAll('http://127.0.0.1:DG11-PROXY-PORT', front.origin)
+          .replaceAll('DG11-CLONE-PATH', clonePath)
+          .replaceAll('DG11-CLONE-COMMIT', pin),
+        'utf8',
+      );
+      process.env.ARXIC_MODEL_BASE_URL = proxy.baseUrl;
+      process.env.ARXIC_MODEL_API_KEY = dummyCanary;
+      // The pipeline's own pre-call gate must not refuse a legitimately-budgeted
+      // run: give it the ledger-derived headroom (the ledger is authoritative).
+      process.env.ARXIC_MODEL_BUDGET_USD = String(context.preflight.remainingUsd!);
+      const result = await runCli(
+        ['run', '--config', configPath, '--out', outDir, '--run-id', context.runId],
+        {
+          cwd: context.repoRoot,
+          rulepacksDir: resolve(context.repoRoot, 'rulepacks'),
+        },
+      );
+      exitCode = result.exitCode;
+    } finally {
+      for (const [name, value] of Object.entries(previousEnv)) {
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      }
+      // Finding 14: BOTH proxies stop on every failure path after start.
+      // Finding 3: proxy.stop() drains in-flight upstream forwards first, so
+      // a response landing after the child aborted still reaches telemetry.
+      await proxy.stop();
+      await front.stop();
     }
-    await Promise.all([proxy.stop(), front.stop()]);
+  } finally {
     await rm(configDirectory, { recursive: true, force: true });
   }
 
@@ -795,43 +1210,60 @@ async function runRealValidation(context: {
   const runRoot = join(outDir, context.runId);
   const coverage = await harvestCoverage(runRoot);
   const outcome = await harvestOutcome(runRoot, exitCode);
-  const measuredCostUsd = roundTo9(proxy.measuredSpendUsd() - context.preflight.cumulativeUsd);
   const telemetry = proxy.telemetry.map((call) => ({ ...call }));
-  const events = proxy.refusals.map((refusal) => ({
-    type: 'refusal' as const,
-    at: refusal.at,
-    detail: refusal.detail,
-  }));
+  // Finding 3: reconcile forwarded calls vs telemetry AFTER the drain. Any
+  // gap means real spend the telemetry cannot account for — the run is
+  // invalid and headroom freezes to 0 (fail-closed) until manual repair.
+  const accountingGapCalls = Math.max(0, proxy.upstreamHits() - telemetry.length);
+  const measuredCostUsd = roundTo9(proxy.measuredSpendUsd() - spendBeforeUsd);
+  const at = new Date().toISOString();
 
-  let ledger: SpendLedger;
-  try {
-    ledger = await readSpendLedger(join(context.targetDir, 'spend-ledger.json'));
-  } catch {
-    ledger = emptySpendLedger(context.target, context.preflight.ceilingUsd, {
-      repository: `https://github.com/${context.target}/${context.target}`,
-      commit: DG11_TARGET_PINS[context.target]!,
-    });
-  }
-  const ledgerBefore = {
-    cumulativeUsd: ledger.cumulativeUsd,
-    ceilingUsd: ledger.ceilingUsd,
-    remainingUsd: remainingHeadroomUsd(ledger),
-  };
+  // Finding 2 (post-run half): an unreadable ledger is never silently
+  // replaced — the run is reported (spend was incurred), the file preserved
+  // byte-for-byte, nothing appended, and the run marked invalid.
+  const load = await loadSpendLedger({
+    path: ledgerPath,
+    target: context.target,
+    ceilingUsd,
+    repository,
+    commit: pin,
+  });
+  const ledgerReadable = load.status === 'loaded';
+  const loadFailure = load.status === 'unreadable' ? load.failure : 'unknown';
+  const baseline =
+    load.status === 'loaded'
+      ? load.ledger
+      : emptySpendLedger(context.target, ceilingUsd, { repository, commit: pin });
+  const beforeCumulativeUsd = load.status === 'loaded' ? load.ledger.cumulativeUsd : spendBeforeUsd;
+  // Finding 4: honest arithmetic — cumulative stays true (may exceed the
+  // ceiling by at most one call), remaining clamps to 0, the overshoot event
+  // keeps the record self-valid instead of self-invalidating.
+  const finalize = finalizeLedgerArithmetic(
+    { cumulativeUsd: beforeCumulativeUsd, ceilingUsd },
+    measuredCostUsd,
+  );
+  const events = buildRunEvents({
+    refusals: proxy.refusals,
+    accountingGapCalls,
+    overshootUsd: finalize.overshootUsd,
+    at,
+  });
+
   const record: Record<string, unknown> = {
     kind: DG11_RECORD_KIND_RUN,
     schemaVersion: 1,
     target: {
       name: context.target,
-      repository: ledger.repository ?? `https://github.com/${context.target}/${context.target}`,
-      commit: DG11_TARGET_PINS[context.target]!,
+      repository,
+      commit: pin,
     },
     run: {
       runId: context.runId,
       startedAt,
-      completedAt: new Date().toISOString(),
+      completedAt: at,
       executor: 'local',
     },
-    model: telemetry[0]?.model ?? 'openai/gpt-4o-mini',
+    model: telemetry[0]?.model ?? DG11_MODEL_SENTINEL,
     pricing: {
       pricePerMillionPrompt: context.prices.promptPerMillion,
       pricePerMillionCompletion: context.prices.completionPerMillion,
@@ -847,14 +1279,7 @@ async function runRealValidation(context: {
       estimatedCostUsd: context.preflight.estimateUsd,
       measuredCostUsd: measuredCostUsd,
     },
-    ledger: {
-      before: ledgerBefore,
-      after: {
-        cumulativeUsd: roundTo9(ledgerBefore.cumulativeUsd + measuredCostUsd),
-        ceilingUsd: ledger.ceilingUsd,
-        remainingUsd: roundTo9(ledger.ceilingUsd - ledgerBefore.cumulativeUsd - measuredCostUsd),
-      },
-    },
+    ledger: { before: finalize.before, after: finalize.after },
     coverage,
     outcome,
     events,
@@ -867,6 +1292,18 @@ async function runRealValidation(context: {
     realKey,
     dummyCanary,
   ]);
+  // The ledger entry is valid ONLY when the ledger was appendable, the
+  // accounting reconciled, AND the redaction scan came back clean — a
+  // quarantined run keeps its spend but is recorded valid:false (SP-3/SP-4).
+  const ledgerAfter = appendSpendLedgerEntry(baseline, {
+    runId: context.runId,
+    recordedAt: at,
+    measuredCostUsd,
+    calls: telemetry.length,
+    valid: ledgerReadable && accountingGapCalls === 0 && candidate.findings.length === 0,
+    ...(accountingGapCalls > 0 ? { accountingGap: true } : {}),
+  });
+  const remainingUsd = Math.max(0, remainingHeadroomUsd(ledgerAfter));
   if (candidate.findings.length > 0) {
     // C-3/SP-3/SP-4: quarantine — nothing unsanitized is written; the run is
     // invalid; spend is still recorded (it was incurred).
@@ -875,26 +1312,21 @@ async function runRealValidation(context: {
       schemaVersion: 1,
       target: { name: context.target },
       runId: context.runId,
-      at: new Date().toISOString(),
+      at,
       reason: 'redaction-finding',
       detail: `post-run scan matched ${candidate.findings
         .map((finding) => finding.pattern)
         .join(
           ', ',
         )}; the run record was quarantined (never written); rotate any exposed credential and rerun`,
-      cumulativeUsd: roundTo9(ledgerBefore.cumulativeUsd + measuredCostUsd),
-      ceilingUsd: ledger.ceilingUsd,
-      remainingUsd: roundTo9(ledger.ceilingUsd - ledgerBefore.cumulativeUsd - measuredCostUsd),
+      cumulativeUsd: finalize.after.cumulativeUsd,
+      ceilingUsd,
+      remainingUsd,
       upstreamCallsPlaced: proxy.upstreamHits(),
     };
-    ledger = appendSpendLedgerEntry(ledger, {
-      runId: context.runId,
-      recordedAt: new Date().toISOString(),
-      measuredCostUsd: measuredCostUsd,
-      calls: telemetry.length,
-      valid: false,
-    });
-    await writeSpendLedgerAtomic(join(context.targetDir, 'spend-ledger.json'), ledger);
+    if (ledgerReadable) {
+      await writeSpendLedgerAtomic(ledgerPath, ledgerAfter);
+    }
     await writeArtifactAtomic(
       join(context.targetDir, 'refusals', `${context.runId}-redaction-finding.json`),
       `${canonicalJson(quarantine)}\n`,
@@ -913,14 +1345,48 @@ async function runRealValidation(context: {
     return;
   }
   await writeArtifactAtomic(join(outDir, `${context.runId}.json`), candidate.clean);
-  ledger = appendSpendLedgerEntry(ledger, {
-    runId: context.runId,
-    recordedAt: new Date().toISOString(),
-    measuredCostUsd: measuredCostUsd,
-    calls: telemetry.length,
-    valid: true,
-  });
-  await writeSpendLedgerAtomic(join(context.targetDir, 'spend-ledger.json'), ledger);
+
+  if (!ledgerReadable) {
+    const refusal: RefusalRecord = {
+      kind: DG11_RECORD_KIND_REFUSAL,
+      schemaVersion: 1,
+      target: { name: context.target },
+      runId: context.runId,
+      at,
+      reason: 'ledger-unreadable',
+      detail: `post-run spend-ledger re-read failed (${loadFailure}); path ${ledgerPath}; refused to append — the ledger file is preserved untouched and the run is INVALID until manual repair (docs/evidence/DG-11/README.md); measured spend $${measuredCostUsd.toFixed(9)} over ${telemetry.length} recorded call(s) is NOT in the ledger`,
+      cumulativeUsd: finalize.after.cumulativeUsd,
+      ceilingUsd,
+      remainingUsd: 0,
+      upstreamCallsPlaced: proxy.upstreamHits(),
+    };
+    await writeArtifactAtomic(
+      join(context.targetDir, 'refusals', `${context.runId}-ledger-unreadable.json`),
+      `${canonicalJson(refusal)}\n`,
+    );
+    console.error(
+      JSON.stringify({ ok: false, refused: 'ledger-unreadable', detail: refusal.detail }, null, 1),
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  await writeSpendLedgerAtomic(ledgerPath, ledgerAfter);
+  if (accountingGapCalls > 0) {
+    console.error(
+      JSON.stringify(
+        {
+          ok: false,
+          accountingGapCalls,
+          detail: `${accountingGapCalls} forwarded call(s) produced no telemetry row — run INVALID; remaining headroom frozen to 0 until manual ledger repair (docs/evidence/DG-11/README.md)`,
+        },
+        null,
+        1,
+      ),
+    );
+    process.exitCode = 1;
+    return;
+  }
   console.log(
     JSON.stringify(
       {
@@ -929,8 +1395,8 @@ async function runRealValidation(context: {
         exitCode,
         calls: telemetry.length,
         measuredCostUsd,
-        cumulativeUsd: ledger.cumulativeUsd,
-        remainingUsd: remainingHeadroomUsd(ledger),
+        cumulativeUsd: ledgerAfter.cumulativeUsd,
+        remainingUsd,
         coverage,
       },
       null,

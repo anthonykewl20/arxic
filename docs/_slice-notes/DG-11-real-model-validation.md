@@ -43,3 +43,52 @@ no — validation tooling + docs only; no published package surface changed (spi
 | SP-4: post-run live-key scan hit                | quarantine path in runner (record never written, run invalid, ledger still charged) + `--live-key-env` scan mode | "live-key scan mode flags a directory containing the env value without printing it"                                                                                               |
 | SP-5: pipeline defect mid-validation            | FINDING + follow-up issue, no in-slice product fix                                                               | OBSERVED: FINDING comment 5342958277 on #255 + follow-up #283 (koel laravel rulepack)                                                                                             |
 | Ledger drift / schema drift                     | validator rejects                                                                                                | "rejects ledger arithmetic incoherence", "rejects an unknown top-level key", "validates spend-ledger.json coherence"                                                              |
+
+## 7. Remediation round 1 — dual review of PR #284 (all 15 findings + docs-only)
+
+Second commit on the same branch, same frozen surface. TDD: red tests first
+for the four P1 findings (verified 11 red → implemented → green), P2/P3
+implemented in the same pass with their own tests (48 total DG-11-adjacent
+tests in `real-model.test.ts` now).
+
+| #   | Finding (severity)                          | Disposition | Proof (test in `src/__tests__/real-model.test.ts`)                                                                                                                                                                                                                                       |
+| --- | ------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Zero-price bypass (P1)                      | FIXED       | "preflight refuses fail-closed when either price is zero", "also refuses when only the completion price is zero", "validator rejects a run record with calls > 0 and both prices 0"                                                                                                      |
+| 2   | Corrupt-ledger fail-open (P1)               | FIXED       | "readSpendLedger rejects corrupt JSON and incoherent ledgers", "preflight REFUSES on an unreadable ledger … file is preserved byte-for-byte", "loadSpendLedger: ENOENT is a legitimate fresh ledger", "validator: a run record whose runId has no entry in its target ledger is invalid" |
+| 3   | Unrecorded-forward accounting gap (P1)      | FIXED       | "stop() drains in-flight forwards: a delayed upstream response still lands in telemetry after the client aborted", "forced-unparseable 200: forwarded=1 telemetry=0 → accounting-gap event + ledger entry freezes headroom to 0"                                                         |
+| 4   | Overshoot self-invalidation (P1)            | FIXED       | "a forwarded call over the ceiling yields an honest record … arithmetic VALID (reviewer repro: 0.0312 vs 0.02)", "validator rejects cumulative > ceiling WITHOUT a ceiling-overshoot event", "validator rejects negative remainingUsd outright"                                          |
+| 5   | Attestation front open-forward (P2)         | FIXED       | "rejects absolute-form, protocol-relative, and backslash request targets with 404 and zero forwards" (raw-socket probes; the bypass was OBSERVED reproducible pre-fix)                                                                                                                   |
+| 6   | Proxy authenticates any local caller (P2)   | FIXED       | "401 with the static body and zero forwards on missing or wrong bearer; the canary bearer forwards"                                                                                                                                                                                      |
+| 7   | Ceiling env ignored once ledger exists (P2) | FIXED       | "refuses when ARXIC_DG11_CEILING_USD differs from the existing ledger ceiling — raise AND lower; matching/unset pass"                                                                                                                                                                    |
+| 8   | Commit pin asserted-not-observed (P2)       | FIXED       | "assertCloneAtPin accepts a clone at the pin and refuses a drifted HEAD naming both commits" (temp git repo fixture)                                                                                                                                                                     |
+| 9   | --live-key-env silent skip (P2)             | FIXED       | "a missing live-key variable is a failure unless explicitly allowed; present values scan and detect" (`runLiveKeyScan`/`liveKeyMissingExitCode`)                                                                                                                                         |
+| 10  | Stale framing headers (P2)                  | FIXED       | "strips content-encoding/content-length from a gzip-labeled upstream response"                                                                                                                                                                                                           |
+| 11  | Run-id guard (P3)                           | FIXED       | "isValidRunId enforces the charset/length guard before any path use"                                                                                                                                                                                                                     |
+| 12  | Model sentinel (P3)                         | FIXED       | 'model sentinel "unobserved" is valid with zero telemetry and INVALID with calls'                                                                                                                                                                                                        |
+| 13  | ISO-8601 timestamps (P3)                    | FIXED       | "rejects non-ISO-8601 timestamps in run records, refusal records, and ledger entries"                                                                                                                                                                                                    |
+| 14  | proxy.stop() on all failure paths (P3)      | FIXED       | structural: runRealValidation wraps everything post-start in try/finally (inner: env restore + proxy.stop + front.stop; outer: temp-dir cleanup); covered by the drain test's stop-path behavior                                                                                         |
+| 15  | Coincidence repository fallback (P3)        | FIXED       | `DG11_TARGET_REPOSITORIES` explicit table replaces `github.com/<target>/<target>`; ledger/record repository fields now always come from it                                                                                                                                               |
+| —   | Docs-only: single-runner discipline         | DONE        | README § "Single-runner discipline (accepted residual)" — no cross-process ledger lock, one runner per target, validator catches interleave after the fact                                                                                                                               |
+
+Behavior notes for the integrator:
+
+- **Schema-strengthening side effect:** every run record now REQUIRES a
+  matching spend-ledger entry (validator rule from finding 2) — the two
+  pre-existing accept-matrix test fixtures gained a ledger fixture. This is a
+  tightening (the two prior "accept" fixtures would now be correctly
+  rejected as unaccounted), not a loosening.
+- **Ledger entry shape:** optional `accountingGap: true` field freezes the
+  ledger's remaining headroom to $0 until manual repair (README documents
+  the repair/adoption procedures).
+- **Refusal reasons** extended: `zero-price`, `ledger-unreadable`,
+  `ceiling-mismatch`, `commit-mismatch` (validator whitelist updated).
+- **Post-run ledger-unreadable path** (finding 2, runner half): the run
+  record is still written (spend was incurred) but nothing is appended, the
+  corrupt file is preserved, and the validator's unaccounted-record rule
+  keeps the directory red until manual repair — end-to-end runner-path test
+  not feasible without booting a target; the underlying classification
+  (`loadSpendLedger`) and the refusal plumbing are tested.
+- README updates: preflight order (ledger integrity → ceiling agreement →
+  prices → estimate → budget → credentials), pin assertion, drain/gap/
+  overshoot semantics, `--allow-missing-live-key`, single-runner
+  discipline, manual ledger repair & ceiling adoption, record-format table.

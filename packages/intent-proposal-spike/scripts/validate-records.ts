@@ -10,12 +10,18 @@
  *
  * Usage (from the repository root):
  *   pnpm exec tsx packages/intent-proposal-spike/scripts/validate-records.ts \
- *     docs/evidence/DG-11 [--live-key-env ARXIC_MODEL_API_KEY]
+ *     docs/evidence/DG-11 [--live-key-env ARXIC_MODEL_API_KEY] \
+ *     [--allow-missing-live-key]
  *
- * Optional env:
- *   --live-key-env VAR  additionally assert that the CURRENT value of env
- *                       variable VAR appears in NO file under the directory.
- *                       The value is never printed; only file paths are.
+ * Optional flags:
+ *   --live-key-env VAR         additionally assert that the CURRENT value of
+ *                              env variable VAR appears in NO file under the
+ *                              directory. The value is never printed; only
+ *                              file paths are. A missing/empty/unnamed
+ *                              variable FAILS the run (exit 1) — a silent
+ *                              skip must never read as a clean scan.
+ *   --allow-missing-live-key   explicitly permit the skip when the named
+ *                              variable is unset (exit 0, skip logged).
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { join, relative } from 'node:path';
@@ -113,7 +119,18 @@ const REFUSAL_REASONS = [
   'credentials-missing',
   'proxy-ceiling',
   'redaction-finding',
+  'zero-price',
+  'ledger-unreadable',
+  'ceiling-mismatch',
+  'commit-mismatch',
 ] as const;
+
+/** Strict ISO-8601 UTC timestamps (finding 13): YYYY-MM-DDTHH:mm:ss[.fff]Z. */
+const ISO_8601_UTC = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/u;
+
+function isIso8601Utc(value: unknown): value is string {
+  return typeof value === 'string' && ISO_8601_UTC.test(value) && !Number.isNaN(Date.parse(value));
+}
 
 function validateRunRecordShape(
   value: Record<string, unknown>,
@@ -147,8 +164,21 @@ function validateRunRecordShape(
   ) {
     problems.push('run must carry runId, startedAt, completedAt, executor "local"');
   }
+  if (isPlainRecord(run) && !isIso8601Utc(run.startedAt)) {
+    problems.push('run.startedAt must be an ISO-8601 UTC timestamp');
+  }
+  if (isPlainRecord(run) && !isIso8601Utc(run.completedAt)) {
+    problems.push('run.completedAt must be an ISO-8601 UTC timestamp');
+  }
   if (typeof value.model !== 'string' || value.model.length === 0) {
     problems.push('model must be a non-empty string');
+  } else if (
+    // Finding 12: the "unobserved" sentinel is valid ONLY with zero calls.
+    value.model === 'unobserved' &&
+    Array.isArray(value.telemetry) &&
+    value.telemetry.length > 0
+  ) {
+    problems.push('model "unobserved" is only valid with zero telemetry calls');
   }
   const pricing = value.pricing;
   if (
@@ -245,6 +275,8 @@ function validateRunRecordShape(
         typeof event.detail !== 'string'
       ) {
         problems.push(`events[${index}] must carry type, at, detail`);
+      } else if (!isIso8601Utc(event.at)) {
+        problems.push(`events[${index}].at must be an ISO-8601 UTC timestamp`);
       }
     });
   }
@@ -265,7 +297,7 @@ function validateRunRecordShape(
     if (
       closedKeys(spotCheck, ['status', 'sampledAt', 'numerator', 'denominator', 'verdicts'])
         .length > 0 ||
-      typeof spotCheck.sampledAt !== 'string' ||
+      !isIso8601Utc(spotCheck.sampledAt) ||
       !isFiniteNumber(numerator) ||
       !isFiniteNumber(denominator) ||
       !Number.isInteger(numerator) ||
@@ -315,7 +347,7 @@ function validateRefusalRecordShape(
   if (typeof value.runId !== 'string' || value.runId.length === 0) {
     problems.push('runId must be a non-empty string');
   }
-  if (typeof value.at !== 'string') problems.push('at must be an ISO timestamp string');
+  if (!isIso8601Utc(value.at)) problems.push('at must be an ISO-8601 UTC timestamp string');
   if (!REFUSAL_REASONS.includes(value.reason as (typeof REFUSAL_REASONS)[number])) {
     problems.push(`reason must be one of ${REFUSAL_REASONS.join(', ')}`);
   }
@@ -398,6 +430,13 @@ export function validateRecordArithmetic(
   const completionPrice = isFiniteNumber(pricing.pricePerMillionCompletion)
     ? pricing.pricePerMillionCompletion
     : 0;
+  // Finding 1: zero prices with recorded calls are the ceiling bypass — the
+  // arithmetic is perfectly coherent at $0, so only this rule catches it.
+  if (telemetry.length > 0 && promptPrice <= 0 && completionPrice <= 0) {
+    problems.push(
+      'pricing must carry at least one strictly-positive price when calls were recorded — zero prices with calls bypass the ceiling',
+    );
+  }
   telemetry.forEach((call, index) => {
     if (!isPlainRecord(call)) return;
     const promptTokens = call.promptTokens;
@@ -420,20 +459,51 @@ export function validateRecordArithmetic(
   ) {
     problems.push('ledger arithmetic incoherent: after.cumulativeUsd != before + measuredCostUsd');
   }
+  // Findings 3 + 4: the ledger blocks are validated against the events the
+  // record declares. Cumulative above the ceiling REQUIRES a ceiling-overshoot
+  // event and remaining 0 (clamped, never negative); an accounting-gap event
+  // freezes after.remainingUsd to 0 (recorded cumulative understates spend).
+  const events = Array.isArray(value.events) ? value.events : [];
+  const hasOvershootEvent = events.some(
+    (event) => isPlainRecord(event) && event.type === 'ceiling-overshoot',
+  );
+  const hasAccountingGap = events.some(
+    (event) => isPlainRecord(event) && event.type === 'accounting-gap',
+  );
   for (const [state, block] of [
     ['before', before],
     ['after', after],
   ] as const) {
     if (
-      isFiniteNumber(block.ceilingUsd) &&
-      isFiniteNumber(block.cumulativeUsd) &&
-      isFiniteNumber(block.remainingUsd) &&
-      !near(block.ceilingUsd - block.cumulativeUsd, block.remainingUsd)
+      !isFiniteNumber(block.ceilingUsd) ||
+      !isFiniteNumber(block.cumulativeUsd) ||
+      !isFiniteNumber(block.remainingUsd)
     ) {
-      problems.push(`ledger.${state}.remainingUsd != ceilingUsd - cumulativeUsd`);
+      continue;
     }
-    if (isFiniteNumber(block.remainingUsd) && block.remainingUsd < -TOLERANCE) {
+    if (block.remainingUsd < -TOLERANCE) {
       problems.push(`ledger.${state}.remainingUsd is negative — spend passed the ceiling`);
+      continue;
+    }
+    if (block.cumulativeUsd > block.ceilingUsd + TOLERANCE) {
+      if (!hasOvershootEvent) {
+        problems.push(
+          `ledger.${state}.cumulativeUsd exceeds ceilingUsd without a ceiling-overshoot event`,
+        );
+      }
+      if (!near(block.remainingUsd, 0)) {
+        problems.push(
+          `ledger.${state}.remainingUsd must be 0 when cumulativeUsd exceeds the ceiling`,
+        );
+      }
+    } else if (state === 'after' && hasAccountingGap) {
+      if (!near(block.remainingUsd, 0)) {
+        problems.push(
+          'ledger.after.remainingUsd must be frozen to 0 while an accounting-gap event is present',
+        );
+      }
+    } else if (!near(block.ceilingUsd - block.cumulativeUsd, block.remainingUsd)) {
+      problems.push(`ledger.${state}.remainingUsd != ceilingUsd - cumulativeUsd`);
     }
   }
   return problems.length > 0 ? { ok: false, problems } : { ok: true };
@@ -474,10 +544,11 @@ export function validateLedgerDocument(
     if (
       !isPlainRecord(entry) ||
       typeof entry.runId !== 'string' ||
-      typeof entry.recordedAt !== 'string' ||
+      !isIso8601Utc(entry.recordedAt) ||
       !isFiniteNonNegativeNumber(entry.measuredCostUsd) ||
       !Number.isInteger(entry.calls) ||
-      typeof entry.valid !== 'boolean'
+      typeof entry.valid !== 'boolean' ||
+      (entry.accountingGap !== undefined && typeof entry.accountingGap !== 'boolean')
     ) {
       problems.push(`spend-ledger.entries[${index}] shape is invalid`);
     }
@@ -538,6 +609,11 @@ export async function validateRecordsDirectory(
   let ledgers = 0;
   const runsByRunId = new Map<string, { measuredCostUsd: number; target: string }>();
   const ledgerEntries: Array<{ ledgerTarget: string; runId: string; measuredCostUsd: number }> = [];
+  // Finding 2: every run record MUST be accounted by an entry in its target's
+  // spend ledger — a record with no ledger entry is invalid (unaccounted spend).
+  const runAccounts: Array<{ target: string; runId: string }> = [];
+  const ledgerEntryKeys = new Set<string>();
+  const ledgerTargets = new Set<string>();
 
   const files = await filesUnder(directory);
   for (const path of files) {
@@ -558,6 +634,7 @@ export async function validateRecordsDirectory(
             ...ledgerCheck.problems.map((problem) => `${rel}: spend-ledger ${problem}`),
           );
         }
+        if (typeof parsed.target === 'string') ledgerTargets.add(parsed.target);
         if (Array.isArray(parsed.entries)) {
           for (const entry of parsed.entries) {
             if (isPlainRecord(entry) && typeof entry.runId === 'string') {
@@ -567,6 +644,9 @@ export async function validateRecordsDirectory(
                 runId: entry.runId,
                 measuredCostUsd: isFiniteNumber(entry.measuredCostUsd) ? entry.measuredCostUsd : 0,
               });
+              if (typeof parsed.target === 'string') {
+                ledgerEntryKeys.add(`${parsed.target}\u0000${entry.runId}`);
+              }
             }
           }
         }
@@ -605,6 +685,13 @@ export async function validateRecordsDirectory(
                 ? parsed.target.name
                 : '',
           });
+          if (
+            isPlainRecord(parsed.target) &&
+            typeof parsed.target.name === 'string' &&
+            parsed.target.name.length > 0
+          ) {
+            runAccounts.push({ target: parsed.target.name, runId: parsed.run.runId });
+          }
         }
       }
       // Other JSON files (configs, unrelated artifacts) stay scan-only.
@@ -622,6 +709,19 @@ export async function validateRecordsDirectory(
       );
     }
   }
+  // Finding 2: every run record must be accounted by a ledger entry for its
+  // own target — no entry, no valid record.
+  for (const account of runAccounts) {
+    if (!ledgerTargets.has(account.target)) {
+      problems.push(
+        `no spend-ledger.json for target ${account.target}: run record ${account.runId} is unaccounted`,
+      );
+    } else if (!ledgerEntryKeys.has(`${account.target}\u0000${account.runId}`)) {
+      problems.push(
+        `spend-ledger for ${account.target} has no entry for run ${account.runId}: run record ${account.runId} is unaccounted`,
+      );
+    }
+  }
   return {
     ok: problems.length === 0 && findings.length === 0,
     records,
@@ -634,17 +734,56 @@ export async function validateRecordsDirectory(
   };
 }
 
+/**
+ * Live-key scan outcome (finding 9): `missing` (unset/empty/unnamed variable
+ * or flag-without-value) is a FAILURE for the CLI unless the operator passed
+ * --allow-missing-live-key explicitly — a silent skip must never read as a
+ * clean scan.
+ */
+export type LiveKeyScanOutcome = Readonly<
+  | { status: 'scanned'; variable: string; hits: readonly string[] }
+  | { status: 'missing'; variable: string }
+>;
+
+export async function runLiveKeyScan(
+  directory: string,
+  input: Readonly<{ variable: string; value: string | undefined; allowMissing: boolean }>,
+): Promise<LiveKeyScanOutcome> {
+  const value = input.variable === '' ? '' : (input.value ?? '');
+  if (value === '') {
+    return { status: 'missing', variable: input.variable };
+  }
+  return {
+    status: 'scanned',
+    variable: input.variable,
+    hits: await scanDirectoryForValue(directory, value),
+  };
+}
+
+/** Exit code contribution of a missing live-key variable (finding 9). */
+export function liveKeyMissingExitCode(allowMissing: boolean): 0 | 1 {
+  return allowMissing ? 0 : 1;
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const liveKeyEnvIndex = args.indexOf('--live-key-env');
-  const positional =
-    liveKeyEnvIndex >= 0
-      ? args.filter((_, index) => index !== liveKeyEnvIndex && index !== liveKeyEnvIndex + 1)
-      : args;
-  const liveKeyEnv = liveKeyEnvIndex >= 0 ? (args[liveKeyEnvIndex + 1] ?? '') : undefined;
+  const allowMissingLiveKey = args.includes('--allow-missing-live-key');
+  const liveKeyEnvFlagValue = liveKeyEnvIndex >= 0 ? (args[liveKeyEnvIndex + 1] ?? '') : undefined;
+  const liveKeyEnv =
+    liveKeyEnvFlagValue !== undefined && !liveKeyEnvFlagValue.startsWith('--')
+      ? liveKeyEnvFlagValue
+      : '';
+  // A positional is any non-flag argument that is not the value slot after
+  // --live-key-env (a value starting with '--' means the flag had no value).
+  const positional = args.filter(
+    (argument, index) => !argument.startsWith('--') && index !== liveKeyEnvIndex + 1,
+  );
   const directory = positional[0];
   if (!directory) {
-    console.error('usage: validate-records.ts <evidence-directory> [--live-key-env VAR]');
+    console.error(
+      'usage: validate-records.ts <evidence-directory> [--live-key-env VAR] [--allow-missing-live-key]',
+    );
     process.exitCode = 2;
     return;
   }
@@ -671,18 +810,29 @@ async function main(): Promise<void> {
     }
   }
   for (const problem of result.problems) console.error(`PROBLEM ${problem}`);
-  if (liveKeyEnv !== undefined) {
-    const value = process.env[liveKeyEnv] ?? '';
-    if (value === '') {
-      // Honest skip: an unset/empty variable scans nothing — say so plainly.
-      console.log(`live-key scan (${liveKeyEnv}): variable not set — scan SKIPPED`);
+  if (liveKeyEnvIndex >= 0) {
+    const scan = await runLiveKeyScan(directory, {
+      variable: liveKeyEnv,
+      value: liveKeyEnv === '' ? undefined : process.env[liveKeyEnv],
+      allowMissing: allowMissingLiveKey,
+    });
+    if (scan.status === 'missing') {
+      const label = scan.variable === '' ? '(flag present, no variable named)' : scan.variable;
+      if (allowMissingLiveKey) {
+        console.log(`live-key scan ${label}: variable not set — skip explicitly allowed`);
+      } else {
+        console.error(
+          `live-key scan ${label}: variable not set — FAILING (a missing live key must never read as a clean scan; pass --allow-missing-live-key to permit the skip)`,
+        );
+        process.exitCode = liveKeyMissingExitCode(false);
+      }
     } else {
-      const hits = await scanDirectoryForValue(directory, value);
       console.log(
-        `live-key scan (${liveKeyEnv}): ${hits.length === 0 ? 'clean' : `${hits.length} file(s) contain the value`}`,
+        `live-key scan (${scan.variable}): ${scan.hits.length === 0 ? 'clean' : `${scan.hits.length} file(s) contain the value`}`,
       );
-      for (const hit of hits) console.error(`SECRET FINDING ${hit}: contains ${liveKeyEnv} value`);
-      if (hits.length > 0) process.exitCode = 1;
+      for (const hit of scan.hits)
+        console.error(`SECRET FINDING ${hit}: contains ${scan.variable} value`);
+      if (scan.hits.length > 0) process.exitCode = 1;
     }
   }
   if (!result.ok) process.exitCode = 1;
