@@ -1,7 +1,13 @@
-import { validateDiagnostic, type Diagnostic, type StagedBundle } from '@arxic/contracts';
+import {
+  validateDiagnostic,
+  type ArtifactRef,
+  type Diagnostic,
+  type StagedBundle,
+} from '@arxic/contracts';
 import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
-import { dirname, isAbsolute, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { promoteWorkerCandidate, type RunState } from '@arxic/orchestrator-langgraph';
+import { scanTextForSecrets } from '@arxic/bundle-promoter';
 import {
   WORKER_SOURCE_PATH,
   hashSourceTree,
@@ -9,6 +15,11 @@ import {
   type RunHandle,
   type WorkerClient,
 } from '@arxic/worker';
+import {
+  stageIntentLedger,
+  type IntentLedger,
+  type StageIntentLedgerOutcome,
+} from '../../../packages/intent/src/ledger';
 import {
   ARXIC_EXEC_WORKER_APPROVAL_REQUIRED,
   ARXIC_EXEC_WORKER_INTERRUPTED,
@@ -193,14 +204,46 @@ export class WorkerRunExecutor implements RunExecutor {
       ...normalized.state,
       diagnostics: [...diagnostics, ...normalized.state.diagnostics],
     };
+    // DG-07 (#251, C-1 + C-2 + C-6a): build the deterministic ledger from the
+    // IMPORTED artifacts (worker lane: nested `artifacts/checkpoints/RUNID/`
+    // layout), redaction-scan its bytes, and write it at the run root. For a
+    // verified candidate the ledger content then rides INSIDE the frozen
+    // single-file bundle (this lane has no assembled directory) — a staging
+    // failure blocks promotion fail-closed.
+    //
+    // Remediation (#251 review P1): NO skipIfPresent here — the run root is
+    // caller-controlled (`--out`/`--run-id`), so a pre-existing schema-valid
+    // intents.json is untrusted caller input. The ledger is ALWAYS rebuilt
+    // from the imported stage artifacts and redaction-scanned; a planted
+    // ledger (fabricated `verified` states, secret strings) is overwritten,
+    // never kept (mirrors the local verify callback).
+    const runRoot = resolve(request.runDirectory, request.runId);
+    const ledger = await stageIntentLedger({
+      runDirectory: runRoot,
+      generatedAt: (request.now ?? (() => new Date().toISOString()))(),
+      scan: scanTextForSecrets,
+    });
+    if (!ledger.ok) {
+      for (const diagnostic of ledger.diagnostics) record(diagnostic);
+      if (state.outcome === 'verified') return failedResult(request, diagnostics);
+    }
     if (state.outcome === 'verified') {
       if (!normalized.stagedBundle) {
         record(protocolFailure(request.runId));
         return failedResult(request, diagnostics);
       }
+      if (!ledger.ok) {
+        // Verified candidates never promote without the ledger (C-2); the
+        // ledger diagnostics were already recorded above.
+        return failedResult(request, diagnostics);
+      }
       try {
         const receipt = await promoteWorkerCandidate({
-          bundle: promotableBundle(normalized.stagedBundle, request.runDirectory, request.runId),
+          bundle: withEmbeddedLedger(
+            promotableBundle(normalized.stagedBundle, request.runDirectory, request.runId),
+            ledger,
+            runRoot,
+          ),
           gates: normalized.gateResults,
           publicPath: resolve(request.runDirectory, 'promoted', `${request.runId}.bundle.json`),
           ...(request.now ? { now: request.now } : {}),
@@ -260,6 +303,35 @@ function promotableBundle(bundle: StagedBundle, runDirectory: string, runId: str
         path: rewrite(hash.path),
       })),
     },
+  };
+}
+
+/**
+ * The frozen worker bundle carries the ledger CONTENT inside its bytes (D-2:
+ * this lane has NO assembled directory) — as the staged `intent-ledger`
+ * artifact ref (absolute run-root path, riding `manifest.fileHashes`) PLUS the
+ * full ledger document under `intentsLedger`, hash-covered by the freeze
+ * (receipt `checksumSha256` = sha256 over the frozen bytes). No manifest
+ * schema change (D-1): `intentsLedger` is a bundle-level field.
+ */
+function withEmbeddedLedger(
+  bundle: StagedBundle,
+  ledger: Extract<StageIntentLedgerOutcome, { ok: true }>,
+  runRoot: string,
+): StagedBundle & { intentsLedger: IntentLedger } {
+  const artifact: ArtifactRef = {
+    kind: 'intent-ledger',
+    path: join(runRoot, 'intents.json'),
+    sha256: ledger.sha256,
+  };
+  return {
+    ...bundle,
+    artifacts: [...bundle.artifacts, artifact],
+    manifest: {
+      ...bundle.manifest,
+      fileHashes: [...bundle.manifest.fileHashes, { path: artifact.path, sha256: artifact.sha256 }],
+    },
+    intentsLedger: ledger.ledger,
   };
 }
 

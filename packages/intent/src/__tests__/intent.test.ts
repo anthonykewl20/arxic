@@ -501,7 +501,10 @@ describe('intent service sad paths', () => {
     const codes = (Object.values(intent) as unknown[]).filter(
       (value): value is string => typeof value === 'string' && value.startsWith('ARXIC-INTENT-'),
     );
-    expect(codes).toHaveLength(7);
+    // 7 core codes + 6 DG-07 intent-LEDGER codes (#251). The pin is a
+    // tripwire against accidental exports: uniqueness and validator
+    // loop-closure below are the load-bearing properties.
+    expect(codes).toHaveLength(13);
     expect(new Set(codes).size).toBe(codes.length);
 
     for (const code of codes) {

@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arxic.dev/schemas/intent-ledger/intent-ledger.v1.json",
+  "title": "IntentLedger",
+  "description": "The ADR-008 Decision 1 product artifact: one row per Domain Inventory row (100% join, never silent drops), carrying disposition, oracle provenance, line-anchored evidence, truth state, and replay status. Truth state 'verified' may only ever be derived from deterministic verifier output artifacts (ADR-001 §2).",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "source", "inventory", "rows"],
+  "properties": {
+    "schemaVersion": { "const": "arxic-intent-ledger-v1" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "required": ["repository", "commit"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "commit": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "inventory": {
+      "type": "object",
+      "required": ["totalRows", "byDisposition"],
+      "properties": {
+        "totalRows": { "type": "integer", "minimum": 0 },
+        "byDisposition": {
+          "type": "object",
+          "required": ["extracted", "unsupported", "unsafe", "unextracted-with-reason"],
+          "properties": {
+            "extracted": { "type": "integer", "minimum": 0 },
+            "unsupported": { "type": "integer", "minimum": 0 },
+            "unsafe": { "type": "integer", "minimum": 0 },
+            "unextracted-with-reason": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "candidate": {
+      "type": "object",
+      "required": ["workflowId"],
+      "properties": {
+        "workflowId": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "required": ["outcome", "runs", "passedRuns"],
+      "properties": {
+        "outcome": {
+          "enum": ["hypothesized", "observed", "verified", "contradicted", "blocked"]
+        },
+        "runs": { "type": "integer", "minimum": 0 },
+        "passedRuns": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ledgerRow" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "oracleKind": {
+      "enum": ["domain-rule", "repository-specification", "human-approved", "observed-only"]
+    },
+    "truthState": {
+      "enum": ["hypothesized", "observed", "verified", "contradicted", "blocked"]
+    },
+    "replayStatus": {
+      "enum": ["not-attempted", "attempted:passed", "attempted:failed", "attempted:blocked"]
+    },
+    "observedForm": {
+      "type": "object",
+      "required": ["action", "method", "destructive"],
+      "properties": {
+        "action": { "type": "string" },
+        "method": { "type": "string" },
+        "destructive": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "intentRow": {
+      "type": "object",
+      "required": [
+        "proposalId",
+        "domain",
+        "intent",
+        "action",
+        "persona",
+        "fromState",
+        "toState",
+        "evidenceRefIds",
+        "oracleKinds",
+        "truthState",
+        "replayStatus",
+        "isCandidate"
+      ],
+      "properties": {
+        "proposalId": { "type": "string", "pattern": "^prop:[0-9a-f]{16}$" },
+        "domain": { "type": "string", "minLength": 1 },
+        "intent": { "type": "string", "minLength": 1 },
+        "action": { "type": "string", "minLength": 1 },
+        "persona": { "type": "string", "minLength": 1 },
+        "fromState": { "type": "string" },
+        "toState": { "type": "string" },
+        "evidenceRefIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^src:[A-Za-z0-9._#-]+:[0-9]+-[0-9]+$" }
+        },
+        "oracleKinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/oracleKind" }
+        },
+        "truthState": { "$ref": "#/$defs/truthState" },
+        "replayStatus": { "$ref": "#/$defs/replayStatus" },
+        "isCandidate": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "ledgerRow": {
+      "type": "object",
+      "required": [
+        "inventoryKey",
+        "domain",
+        "surface",
+        "disposition",
+        "reason",
+        "verbs",
+        "evidence",
+        "oracleKinds",
+        "truthState",
+        "replayStatus",
+        "intents"
+      ],
+      "properties": {
+        "inventoryKey": { "type": "string", "minLength": 1 },
+        "inventoryRowId": {
+          "type": "string",
+          "pattern": "^inv:(page|route):[A-Za-z]+:[0-9a-f]{12}$"
+        },
+        "domain": { "type": "string" },
+        "surface": {
+          "type": "object",
+          "required": ["kind", "method", "path"],
+          "properties": {
+            "kind": { "enum": ["page", "endpoint", "unknown"] },
+            "method": { "type": "string", "minLength": 1 },
+            "path": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "disposition": {
+          "enum": ["extracted", "unsupported", "unsafe", "unextracted-with-reason"]
+        },
+        "reason": { "type": "string" },
+        "verbs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "evidence": {
+          "type": "object",
+          "required": ["sourceRefs", "runtimeUrls", "runtimeForms", "runtimeObservationCount"],
+          "properties": {
+            "sourceRefs": {
+              "type": "array",
+              "items": { "$ref": "https://arxic.dev/schemas/evidence/evidence-ref.v1.json" }
+            },
+            "runtimeUrls": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "runtimeForms": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/observedForm" }
+            },
+            "runtimeObservationCount": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "oracleKinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/oracleKind" }
+        },
+        "truthState": { "$ref": "#/$defs/truthState" },
+        "replayStatus": { "$ref": "#/$defs/replayStatus" },
+        "intents": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/intentRow" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
