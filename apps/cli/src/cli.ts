@@ -33,8 +33,12 @@ export async function runCli(
       return { exitCode: 0 };
     }
     if (parsed.command.kind === 'help') {
-      print(stdout, parsed.command.command === 'run' ? RUN_HELP : HELP);
+      print(stdout, helpText(parsed.command.command));
       return { exitCode: 0 };
+    }
+    if (parsed.command.kind === 'intents') {
+      const { intentsAction } = await import('./intents');
+      return intentsAction(parsed.command, { stdout, stderr });
     }
     const { runAction } = await import('./run');
     const outcome = await runAction({
@@ -94,8 +98,15 @@ async function defaultExecutor(
   return new WorkerRunExecutor(workerClient ?? createLocalWorkerClient());
 }
 
-const HELP = `Usage: arxic <command> [options]\n\nCommands:\n  run --config <path>  Start a run (local by default)\n\nOptions:\n  -h, --help            Show help\n  -v, --version         Show version`;
+const HELP = `Usage: arxic <command> [options]\n\nCommands:\n  run --config <path>  Start a run (local by default)\n  intents <path>       Read the intent ledger of a run or bundle directory\n\nOptions:\n  -h, --help            Show help\n  -v, --version         Show version`;
 const RUN_HELP = `Usage: arxic run --config <path> [--executor <local|worker>] [--out <dir>] [--run-id <id>]`;
+const INTENTS_HELP = `Usage: arxic intents <path> [--json]\n\nRenders the intent ledger (read-only). <path> is a run directory (either lane\nlayout) or an assembled bundle directory. --json prints machine JSON.`;
+
+function helpText(command: 'run' | 'intents' | undefined): string {
+  if (command === 'run') return RUN_HELP;
+  if (command === 'intents') return INTENTS_HELP;
+  return HELP;
+}
 
 function formatDiagnostic(diagnostic: { code: string; subject: string; message: string }): string {
   return `${diagnostic.code} [${diagnostic.subject}] ${diagnostic.message}`;

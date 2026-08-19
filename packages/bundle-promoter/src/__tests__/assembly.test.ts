@@ -79,20 +79,99 @@ describe('bundle assembly and redaction gate', () => {
     expect(await scanBundleForSensitiveData(assembly.directory)).toMatchObject({ passed: true });
   });
 
-  it('leaves non-email secrets visible to the unchanged redaction gate', async () => {
+  it('leaves non-email secrets visible to the redaction gate — and C-6b now blocks assembly on them', async () => {
     const plantedSecret = 'password=Secret123!';
-    const assembly = await assemblyFixture(
-      JSON.stringify({
-        bomFormat: 'CycloneDX',
-        specVersion: '1.7',
-        components: [{ name: 'hostile', description: plantedSecret }],
-      }),
-    );
-
-    expect(await scanBundleForSensitiveData(assembly.directory)).toMatchObject({
-      passed: false,
-      findings: [expect.objectContaining({ file: 'sbom.cdx.json', pattern: 'password-literal' })],
+    // DG-07 (#251, C-6b): the sweep is WIRED INTO assembly — a planted secret
+    // in assembled text no longer merely surfaces to a later caller; the
+    // assembly itself fails closed (ARXIC-PROMOTION-REDACTION-FAILED) and the
+    // partially written bundle directory is removed.
+    const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
+    const bundle = await stagedAssemblyBundle(stagedDirectory);
+    const sbom = JSON.stringify({
+      bomFormat: 'CycloneDX',
+      specVersion: '1.7',
+      components: [{ name: 'hostile', description: plantedSecret }],
     });
+
+    await expect(
+      assembleBundle({
+        bundle,
+        stagedDirectory,
+        outputDirectory,
+        sbom,
+        provenance: provenanceFor(bundle),
+      }),
+    ).rejects.toThrow('ARXIC-PROMOTION-REDACTION-FAILED');
+    await expect(readFile(join(outputDirectory, 'sbom.cdx.json'), 'utf8')).rejects.toThrow();
+  });
+
+  it('stages the intent ledger as a bundle-root file covered by checksums (DG-07 C-2)', async () => {
+    const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
+    const bundle = await stagedAssemblyBundle(stagedDirectory);
+    const ledgerBytes =
+      '{"schemaVersion":"arxic-intent-ledger-v1","generatedAt":"2026-08-18T00:00:00.000Z","source":{"repository":"file:///fixture","commit":"0123456789abcdef0123456789abcdef01234567"},"inventory":{"totalRows":0,"byDisposition":{"extracted":0,"unsupported":0,"unsafe":0,"unextracted-with-reason":0}},"rows":[]}\n';
+    await writeFile(join(stagedDirectory, 'intents.json'), ledgerBytes, 'utf8');
+    const ledgerArtifact: ArtifactRef = {
+      kind: 'intent-ledger',
+      path: 'intents.json',
+      sha256: hash(ledgerBytes),
+    };
+    const withLedger: StagedBundle = {
+      ...bundle,
+      artifacts: [...bundle.artifacts, ledgerArtifact],
+      manifest: {
+        ...bundle.manifest,
+        fileHashes: [
+          ...bundle.manifest.fileHashes,
+          { path: 'intents.json', sha256: hash(ledgerBytes) },
+        ],
+      },
+    };
+
+    const assembly = await assembleBundle({
+      bundle: withLedger,
+      stagedDirectory,
+      outputDirectory,
+      provenance: provenanceFor(withLedger),
+    });
+
+    const assembled = await readFile(join(assembly.directory, 'intents.json'), 'utf8');
+    expect(assembled).toBe(ledgerBytes);
+    expect(assembly.checksumsSha256).toContain(`  intents.json\n`);
+    const manifest = JSON.parse(
+      await readFile(join(assembly.directory, 'manifest.json'), 'utf8'),
+    ) as {
+      fileHashes: Array<{ path: string; sha256: string }>;
+    };
+    expect(manifest.fileHashes).toContainEqual({ path: 'intents.json', sha256: hash(ledgerBytes) });
+    expect(await scanBundleForSensitiveData(assembly.directory)).toMatchObject({ passed: true });
+  });
+
+  it('blocks assembly when the sweep finds a planted secret inside the staged intent ledger (C-6b)', async () => {
+    const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-staged-'));
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-assembly-output-'));
+    const bundle = await stagedAssemblyBundle(stagedDirectory);
+    const ledgerBytes = `{"planted":"bearer abcdefghijklmnopqrstuvwxyz1234"}\n`;
+    await writeFile(join(stagedDirectory, 'intents.json'), ledgerBytes, 'utf8');
+    const withLedger: StagedBundle = {
+      ...bundle,
+      artifacts: [
+        ...bundle.artifacts,
+        { kind: 'intent-ledger', path: 'intents.json', sha256: hash(ledgerBytes) },
+      ],
+    };
+
+    await expect(
+      assembleBundle({
+        bundle: withLedger,
+        stagedDirectory,
+        outputDirectory,
+        provenance: provenanceFor(withLedger),
+      }),
+    ).rejects.toThrow('ARXIC-PROMOTION-REDACTION-FAILED');
+    await expect(readFile(join(outputDirectory, 'intents.json'), 'utf8')).rejects.toThrow();
   });
 
   it('rejects malformed SBOM input before changing prior bundle output', async () => {

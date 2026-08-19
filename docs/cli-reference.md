@@ -12,10 +12,12 @@ use the [quickstart](./quickstart.md); for configuration values, use the
 arxic --help
 arxic --version
 arxic run --config <path> [--executor <local|worker>] [--out <dir>] [--run-id <id>]
+arxic intents <path> [--json]
 ```
 
 With no arguments, `arxic` prints the top-level help. `--version` prints the
-CLI version and `--help` prints the top-level help. The only command is `run`.
+CLI version and `--help` prints the top-level help. The commands are `run` and
+`intents`.
 
 ### `arxic run`
 
@@ -31,6 +33,42 @@ Start a run from an `arxic.yaml` configuration file.
 
 Unknown options, positional arguments, missing `--config`, an invalid executor,
 or an invalid run ID are usage errors.
+
+### `arxic intents`
+
+Render the intent ledger of a run — the complete, evidence-grounded list of
+business intents (ADR-008 Decision 1). The command is strictly read-only: it
+never writes files.
+
+`<path>` is one of:
+
+- a run directory (either lane layout — local executor runs, or worker-executor
+  runs imported with their nested `artifacts/checkpoints/<run-id>/` layout), or
+- an assembled bundle directory (`promoted/<run-id>.bundle/`).
+
+| Option         | Required | Meaning                                                                |
+| -------------- | -------- | ---------------------------------------------------------------------- |
+| `--json`       | No       | Print the ledger as canonical machine JSON instead of the human table. |
+| `-h`, `--help` | No       | Print the `intents` usage line.                                        |
+
+Every run that produced a Domain Inventory (stage 13) carries `intents.json`
+at its run root next to `run.json`; promoted runs additionally ship it
+hash-covered in the bundle (local lane: bundle-root `intents.json` under
+`manifest.fileHashes` + `checksums.sha256`; worker lane: inside the frozen
+`promoted/<run-id>.bundle.json`). The table shows one line per intent —
+surface, domain, truth state, replay status, proposal id, and the
+`inv:` inventory-row linkage — and keeps inventory rows without a proposal
+visible with their disposition. Truth state `verified` appears only when the
+deterministic verifier produced it; model output can never set it.
+
+Refusals exit non-zero with a stable `ARXIC-INTENT-LEDGER-*` diagnostic and no
+partial output: an unrecognized or pre-inventory directory reports
+`ARXIC-INTENT-LEDGER-INVENTORY-MISSING`, a missing or unreadable ledger reports
+`ARXIC-INTENT-LEDGER-MISSING`/`ARXIC-INTENT-LEDGER-INPUT-INVALID`, and a
+schema-invalid ledger or unknown `schemaVersion` reports
+`ARXIC-INTENT-LEDGER-SCHEMA-INVALID`/`ARXIC-INTENT-LEDGER-VERSION-UNKNOWN`. A
+garbage `PATH` (nonexistent, a plain file, empty) is a usage error
+(`ARXIC-CLI-USAGE`, exit 2).
 
 ## Environment variables
 
@@ -65,17 +103,18 @@ redaction result, optional receipt, and diagnostics. `diagnostics.jsonl` is one
 canonical diagnostic JSON object per line; `config.json` is the redacted
 configuration used for the run.
 
-| Exit | Meaning                                                                                                                                                                    |
-| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `0`  | A run directory was written and the outcome is `verified`.                                                                                                                 |
-| `1`  | A non-`verified` run directory was written, an executor stopped unexpectedly, the run directory could not be written, or the CLI encountered an unexpected internal error. |
-| `2`  | Argument usage or configuration was rejected before a run directory existed.                                                                                               |
+| Exit | Meaning                                                                                                                                                                                                       |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`  | A run directory was written and the outcome is `verified`, or `arxic intents` rendered the ledger.                                                                                                            |
+| `1`  | A non-`verified` run directory was written, an executor stopped unexpectedly, the run directory could not be written, the CLI encountered an unexpected internal error, or `arxic intents` refused to render. |
+| `2`  | Argument usage or configuration was rejected before a run directory existed (includes `arxic intents` with a garbage `PATH`).                                                                                 |
 
 Diagnostics are written to standard error as
 `<CODE> [<subject>] <message>`. Configuration failures use
 `ARXIC-CONFIG-MISSING`, `ARXIC-CONFIG-PARSE`, `ARXIC-CONFIG-INVALID`,
 `ARXIC-CONFIG-VERSION`, or `ARXIC-CONFIG-MODEL-MISSING`; invalid command-line
-use uses `ARXIC-CLI-USAGE`.
+use uses `ARXIC-CLI-USAGE`; intent-ledger refusals use the
+`ARXIC-INTENT-LEDGER-*` family.
 
 ## Examples
 
@@ -91,4 +130,10 @@ arxic run --config arxic.yaml --out .arxic-runs --run-id local-auth-01
 
 # Use the isolated worker after deploying a matching worker image.
 arxic run --config arxic.yaml --executor worker
+
+# Read the intent ledger of a finished run as a human table.
+arxic intents .arxic-runs/local-auth-01
+
+# Read the ledger shipped inside a promoted bundle as machine JSON.
+arxic intents .arxic-runs/promoted/local-auth-01.bundle --json
 ```
