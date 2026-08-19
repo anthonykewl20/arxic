@@ -1,0 +1,43 @@
+# DG-11 validation-run config template — directus (TS/JS).
+#
+# The runner (packages/intent-proposal-spike/scripts/dg11-run-validation.ts)
+# rewrites these placeholders into a TEMP copy before every run:
+#   http://127.0.0.1:DG11-PROXY-PORT  -> the live attestation-front proxy origin
+#   DG11-CLONE-PATH                   -> ARXIC_DG11_TARGET_REPO (pristine clone)
+#   DG11-CLONE-COMMIT                 -> the ratified pin (decision 3)
+# This file is never consumed as-is.
+version: 1
+source:
+  repository: DG11-CLONE-PATH
+  revision: DG11-CLONE-COMMIT
+  languages: [typescript, javascript]
+scope:
+  # Non-empty is REQUIRED by config validation (apps/cli/src/config/validate.ts:53).
+  # express is truthful for directus (express-based API) and its installed
+  # rulepack range (>=4 <6, rulepacks/express/pack.json) covers the pin.
+  domains: [authentication]
+  frameworks: [express]
+  browsers: [chromium]
+  personas: [anonymous, registered-user]
+target:
+  origin: http://127.0.0.1:DG11-PROXY-PORT
+  environmentClass: local-test
+  attestationPath: /.well-known/arxic-test-target.json
+  allowedOrigins:
+    - http://127.0.0.1:DG11-PROXY-PORT
+policy:
+  maxUrls: 8
+  maxDepth: 1
+  maxRuntimeMinutes: 30
+  mutation: leased-fixtures-only
+  externalNetwork: deny
+  requiredVerificationRuns: 2
+  screenshots: transition-checkpoints
+  trace: retain
+  humanApproval: [destructive, external-side-effect]
+fixtures: {}
+models:
+  # models.provider doubles as the MODEL ID the pipeline sends upstream
+  # (apps/cli/src/local-executor.ts:336-345, name: provider).
+  provider: openai/gpt-4o-mini
+  sourceRetention: disabled

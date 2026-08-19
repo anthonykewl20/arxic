@@ -1,0 +1,49 @@
+# DG-11 validation-run config template — koel (PHP/Laravel 13.24).
+#
+# The runner (packages/intent-proposal-spike/scripts/dg11-run-validation.ts)
+# rewrites these placeholders into a TEMP copy before every run:
+#   http://127.0.0.1:DG11-PROXY-PORT  -> the live attestation-front proxy origin
+#   DG11-CLONE-PATH                   -> ARXIC_DG11_TARGET_REPO (pristine clone)
+#   DG11-CLONE-COMMIT                 -> the ratified pin (decision 3)
+# This file is never consumed as-is.
+#
+# ⚠ FINDING (posted on #255 per contract C-5): `scope.frameworks` is REQUIRED
+# non-empty by config validation, NO laravel rulepack exists (only express /
+# nextjs / react under rulepacks/), and a declared framework without an
+# installed pack hard-blocks the run (ARXIC-RULES-FRAMEWORK-UNKNOWN, default
+# severity 'blocked'). A truthful `frameworks: [laravel]` therefore CANNOT
+# pass today. `express` below is the documented workaround: the pack exists,
+# the gate verdict for it on a PHP repo is UNDETECTED (non-blocking; version
+# enforcement simply does not apply), and express rules are inert on PHP
+# sources. Replace with [laravel] once the laravel pack lands (FINDING
+# follow-up issue).
+version: 1
+source:
+  repository: DG11-CLONE-PATH
+  revision: DG11-CLONE-COMMIT
+  languages: [php]
+scope:
+  domains: [authentication]
+  frameworks: [express]
+  browsers: [chromium]
+  personas: [anonymous, registered-user]
+target:
+  origin: http://127.0.0.1:DG11-PROXY-PORT
+  environmentClass: local-test
+  attestationPath: /.well-known/arxic-test-target.json
+  allowedOrigins:
+    - http://127.0.0.1:DG11-PROXY-PORT
+policy:
+  maxUrls: 8
+  maxDepth: 1
+  maxRuntimeMinutes: 30
+  mutation: leased-fixtures-only
+  externalNetwork: deny
+  requiredVerificationRuns: 2
+  screenshots: transition-checkpoints
+  trace: retain
+  humanApproval: [destructive, external-side-effect]
+fixtures: {}
+models:
+  provider: openai/gpt-4o-mini
+  sourceRetention: disabled
