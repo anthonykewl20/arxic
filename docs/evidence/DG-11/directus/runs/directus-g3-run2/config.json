@@ -1,0 +1,33 @@
+{
+  "fixtures": {},
+  "models": { "provider": "glm-5.3", "sourceRetention": "disabled" },
+  "policy": {
+    "externalNetwork": "deny",
+    "humanApproval": ["destructive", "external-side-effect"],
+    "maxDepth": 1,
+    "maxRuntimeMinutes": 30,
+    "maxUrls": 8,
+    "mutation": "leased-fixtures-only",
+    "requiredVerificationRuns": 2,
+    "screenshots": "transition-checkpoints",
+    "trace": "retain"
+  },
+  "scope": {
+    "browsers": ["chromium"],
+    "domains": ["authentication"],
+    "frameworks": ["express"],
+    "personas": ["anonymous", "registered-user"]
+  },
+  "source": {
+    "languages": ["typescript", "javascript"],
+    "repository": "/home/soultransit/devtony/thirdparty-dg/directus",
+    "revision": "cb846b6a1ddc4811359bc52b74bb31a42eab33db"
+  },
+  "target": {
+    "allowedOrigins": ["http://127.0.0.1:42669"],
+    "attestationPath": "/.well-known/arxic-test-target.json",
+    "environmentClass": "local-test",
+    "origin": "http://127.0.0.1:42669"
+  },
+  "version": 1
+}

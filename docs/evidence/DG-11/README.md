@@ -16,6 +16,10 @@ owner on a local machine with credentials supplied via environment only.
 2. **Endpoint:** OpenRouter (`https://openrouter.ai/api/v1`), model
    `openai/gpt-4o-mini`, prices 0.15 / 0.60 USD per million tokens
    (prompt/completion) as list-priced at DG-04 measurement.
+   Runs 1-2 predate amendment 2: they used glm-5.3 at declared prices
+   0.60/2.20 on the zai coding-plan surface (protocol-incompatible —
+   FINDINGS); runs 3+ use openai/gpt-4o-mini at 0.15/0.60 via the
+   connected OpenRouter account.
 3. **Targets:** directus @ `cb846b6a1ddc4811359bc52b74bb31a42eab33db` (TS/JS)
    and koel @ `dfec91ff290509c622ff7cf392fb5e506841ee2b` (PHP/Laravel).
 4. **Run count:** 1 recorded validation run per target in DG-11.
@@ -129,7 +133,9 @@ and zero spend):
    pre-fusion interchange count (`docs/evidence/DG-04/scale-matrix.json`),
    fusion-time count unknown until the first G-3 run reports
    `coverage.rows` — override with `ARXIC_DG11_ESTIMATED_ROWS` and use the
-   observed count for later runs.
+   observed count for later runs. Observed coverage.rows (105 directus,
+   315 koel) supersede the estimated-rows defaults for any later run's
+   preflight override (run 3 conservatively used the 272 default).
 5. **Budget:** ledger cumulative spend vs the ceiling. Remaining headroom
    below the estimate → REFUSAL recorded under `refusals/`, exit 1, ZERO
    model calls (this is exactly how G-4 is proven).
@@ -228,10 +234,10 @@ composer install --no-dev
 cp .env.example .env                     # then set DB_CONNECTION=sqlite + APP_KEY
 php artisan key:generate --force
 php artisan migrate --force
-php artisan serve --host=127.0.0.1 --port=8000 &
+php artisan serve --host=127.0.0.1 --port=8123 &
 ```
 
-Set `ARXIC_DG11_TARGET_APP_ORIGIN=http://127.0.0.1:8000`. `.env` and the
+Set `ARXIC_DG11_TARGET_APP_ORIGIN=http://127.0.0.1:8123`. `.env` and the
 sqlite file are gitignored. The koel template declares the truthful
 `frameworks: [laravel]`: the `laravel-auth` rulepack shipped (follow-up #283),
 and the DG-10 gate accepts koel's composer.lock-resolved Laravel 13.24.0

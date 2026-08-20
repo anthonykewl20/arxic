@@ -39,5 +39,6 @@ fixtures: {}
 models:
   # models.provider doubles as the MODEL ID the pipeline sends upstream
   # (apps/cli/src/local-executor.ts:336-345, name: provider).
+  # 2026-08-20 decision-2 amendment 2 (#255): openai/gpt-4o-mini via the opencode-connected OpenRouter account (zai coding-plan surface proven protocol-incompatible — see #255 FINDINGS).
   provider: openai/gpt-4o-mini
   sourceRetention: disabled
