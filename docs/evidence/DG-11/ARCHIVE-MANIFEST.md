@@ -110,3 +110,42 @@ Disposition:
   minimizing where that fixture text lives, not weakening the scan.
 - The live-key scan (`--live-key-env ARXIC_MODEL_API_KEY`) remains the
   closure-time binding check and is unaffected by this archive.
+
+## Path-reference disclosure
+
+Independent review of PR #286 (P2) flagged that gate-relevant in-repo
+artifacts embed ABSOLUTE LOCAL PATHS from the operator machine:
+
+- each run's `config.json` (and the `repository` field of each run dir's
+  `run.json`) — the `ARXIC_DG11_TARGET_REPO` value recorded verbatim as
+  `/home/soultransit/devtony/thirdparty-dg/<target>`;
+- the stage-13 inventories (`artifacts/13.json`) of the AC-counting runs —
+  directus-g3-run3 (272 path references) and koel-g3-run1 (608) — whose
+  per-row sources are `file:///home/soultransit/devtony/thirdparty-dg/…`
+  URLs of the target clones under the operator's home;
+- koel-g3-run1 `artifacts/03.json` — besides clone `file://` URLs, it cites
+  the arxic worktree path including the branch name
+  (`/home/soultransit/devtony/arxic/.worktrees/DG-11-G3/rulepacks/…`);
+- the pre-amendment directus runs 1–2 (protocol-incompatible FINDINGS runs
+  that count toward no AC) carry the same path shape in their in-repo
+  `config.json` / `run.json` / `intents.json` / `artifacts/13.json`.
+
+These are machine-written verbatim records — hand-redaction is prohibited
+by the evidence discipline (and rewriting would break the sha256-digest
+provenance binding above). They contain NO credentials: the live-key scan
+reports 0 secret findings across all runs, and the only secret-class
+findings ever raised (3 `password-literal` upstream fixture citations)
+were archived out with upstream-public proof (Disposition above). The
+exposure class is operator-environment metadata only (username, directory
+layout).
+
+Acceptance basis: the repo's recorded 2026-08-12 go-public decision
+accepted this class of exposure — no credentials present, and
+digest-rewriting the bound records was judged disproportionate;
+reinforced by the owner's 2026-08-20 "Address ALL" review-disposition
+instruction; recorded as DECISION on #255.
+
+Future-run mitigation (note for DG-12 campaign design): point
+`ARXIC_DG11_TARGET_REPO` at a neutral path root (e.g. a
+`/tmp/dg11-<target>` bind mount or clone) so subsequent evidence batches
+embed no home-directory paths.

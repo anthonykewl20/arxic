@@ -22,6 +22,10 @@ range for full context.
 - **directus / directus-g3-run3:** 76 proposals across 50 distinct model-chosen domains (>12 → capped at 15). Sampled **15 rows = 1 proposal per domain, top 15 domains by proposal count (ties broken alphabetically); within a domain, the first proposal in `artifacts/04.json` order.**
 - **koel / koel-g3-run1:** 136 proposals across 44 distinct model-chosen domains (>12 → capped at 15). Sampled **15 rows = 1 proposal per domain, top 15 domains by proposal count (ties broken alphabetically); within a domain, the first proposal in `artifacts/04.json` order.**
 
+The domain tail beyond the top-15 cap (35 directus / 29 koel domains) is
+deliberately unsampled this round; the cap and tie-break are disclosed
+above.
+
 ## directus — directus-g3-run3 (15 sampled rows)
 
 | #   | Proposal ID             | Domain         | Intent (verbatim)                                         | Action / states (verbatim)                                                                                                               | Inventory row IDs               | Cited evidence (resolved to clone @ pin; sha-verified)                                                                                                                                                                                               | Verdict | Note |
