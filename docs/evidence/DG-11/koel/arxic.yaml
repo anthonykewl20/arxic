@@ -43,5 +43,5 @@ policy:
   humanApproval: [destructive, external-side-effect]
 fixtures: {}
 models:
-  provider: openai/gpt-4o-mini
+  provider: glm-5.3
   sourceRetention: disabled
