@@ -1,0 +1,8 @@
+{
+  "id": "laravel-auth",
+  "version": "0.1.0",
+  "framework": { "name": "laravel", "versions": ">=13 <14" },
+  "license": "MIT",
+  "provenance": "original-arxic",
+  "ruleDir": "rules"
+}

@@ -1,0 +1,20 @@
+id: laravel-route
+language: PHP
+message: Laravel route registration
+severity: info
+rule:
+  pattern: Route::$METHOD($PATH, $$$ARGS)
+constraints:
+  METHOD:
+    regex: ^(get|post|put|patch|delete|options)$
+  PATH:
+    regex: ^['"]
+metadata:
+  arxic:
+    category: route
+    semver: 1.0.0
+    frameworkVersions: '>=13 <14'
+    precision: Direct Route facade HTTP verb with a literal path and the complete handler arguments
+    fallback: Route groups, fluent middleware chains, resources, and controller attribute routes are labeled fallback only
+    license: MIT
+    provenance: original-arxic
