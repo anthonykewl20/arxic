@@ -1,0 +1,21 @@
+{
+  "diagnostics": [
+    {
+      "code": "ARXIC-SURFACE-005",
+      "message": "Navigation failed after 3 bounded attempts: page.evaluate: ReferenceError: __name is not defined\n    at eval (eval at evaluate (:311:30), <anonymous>:1:20)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "severity": "observed",
+      "subject": "http://127.0.0.1:38843/"
+    },
+    {
+      "code": "ARXIC-SURFACE-008",
+      "message": "POST request to http://127.0.0.1:38843/auth/refresh was aborted (default-deny mutation policy; only safe methods GET/HEAD/OPTIONS are permitted during breadth discovery)",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:38843/auth/refresh"
+    }
+  ],
+  "navigationEdges": [],
+  "origin": "http://127.0.0.1:38843",
+  "routes": [],
+  "schemaVersion": 1,
+  "truthState": "observed"
+}

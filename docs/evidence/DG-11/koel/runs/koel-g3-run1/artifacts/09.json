@@ -1,0 +1,13 @@
+{
+  "compiled": false,
+  "diagnostics": [
+    {
+      "code": "ARXIC-ORCH-PROPOSAL-SURFACE-MISSING",
+      "message": "The crawl surface has no labelled form with a submit control for the proposed route",
+      "severity": "blocked",
+      "subject": "route:/api/podcasts/:param/subscriptions"
+    }
+  ],
+  "oracleOutcome": "observed",
+  "plan": "No inventoried form surface for the proposed route; no spec generated"
+}

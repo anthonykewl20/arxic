@@ -1,0 +1,129 @@
+{
+  "diagnostics": [
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/app-9W07_lU3.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/app-D99kQ0ym.css"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/commonStore-NMZ-jITQ.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/core-Hz09uTp7.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/formatters-D_Dw_E6S.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/free-regular-svg-icons-BFCKergd.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/free-solid-svg-icons-BoduuT2D.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/preferenceStore-BcGQhKsB.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/preload-helper-CsTKTRql.css"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/preload-helper-sQxK8P73.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/socketService-uH9H5YZR.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/useAuthorization-B6pqcTx2.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/useBranding-Ch_xeMp0.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/useKoelPlus-CHpZS2RH.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/useMessageToaster-CYhjpz8F.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/useOverlay-CCIOomrJ.css"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/build/assets/useOverlay-CF4z5mc4.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "http://127.0.0.1:8123/css/layer-order.css"
+    },
+    {
+      "code": "ARXIC-SURFACE-001",
+      "message": "Browser request outside http://127.0.0.1:33227 was aborted.",
+      "severity": "blocked",
+      "subject": "https://app.lemonsqueezy.com/js/lemon.js"
+    },
+    {
+      "code": "ARXIC-SURFACE-005",
+      "message": "Navigation failed after 3 bounded attempts: page.evaluate: ReferenceError: __name is not defined\n    at eval (eval at evaluate (:311:30), <anonymous>:1:20)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "severity": "observed",
+      "subject": "http://127.0.0.1:33227/"
+    }
+  ],
+  "navigationEdges": [],
+  "origin": "http://127.0.0.1:33227",
+  "routes": [],
+  "schemaVersion": 1,
+  "truthState": "observed"
+}

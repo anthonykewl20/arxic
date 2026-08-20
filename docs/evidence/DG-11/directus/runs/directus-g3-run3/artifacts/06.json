@@ -1,0 +1,479 @@
+{
+  "denominator": 105,
+  "inventory": {
+    "byDisposition": {
+      "extracted": 82,
+      "unextracted-with-reason": 23,
+      "unsafe": 0,
+      "unsupported": 0
+    },
+    "byOrigin": { "both": 0, "runtime": 0, "source": 105 },
+    "dedupe": {
+      "interchangeRoutes": 0,
+      "mergedRows": 1531,
+      "runtimeForms": 0,
+      "runtimeSurfaces": 0,
+      "sourceRouteEvents": 272
+    },
+    "source": "domain-inventory",
+    "totalRows": 105
+  },
+  "rows": [
+    {
+      "candidateId": "prop:cee9ecb62c50255c",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:06388270eb151723",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:86d1c8a89cd6ef0c",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:4fa5a47441ef7f6f",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:19acb8ff8f130ff1",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 2
+    },
+    {
+      "candidateId": "prop:e9a789ab33a818a5",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 2
+    },
+    {
+      "candidateId": "prop:ac3f30f45f5c8d1d",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:cb12d2e984d2fdd8",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:681baada304a2bff",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:fc378207cc988079",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:4806e27403870a4b",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:38c9246c6e5d4676",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:4f41702e568fa8c3",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:eb904351e6f5d0e8",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:2b740eaf5efd17e4",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:12a09cf6a26d1d83",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:7d4fb1ef2a33c2e1",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:5efa5e841025234b",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:3320b0fc6e75f77a",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:4b3708c535374e86",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:24a2bf605e6e9b8f",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:fa0bc36cadad125a",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:83aac7e4e0113247",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:cfd5e837e1da2ae1",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:6c35842fdbdf78ef",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:2a22e2fcabfb1bf6",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:ac8629a38ffb905d",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:5ed041f7d1c70db3",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:1eb176ca66b9b067",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:ccc6144c0d9a01d0",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:fe6d8844eb7f1922",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:97573c6f2b6ced9c",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:e7d17dcd45114a6c",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:7bf9b15e62270516",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:489427ca2b9e5ee9",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:57afdb7250681368",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:cfb5cd9dda552a98",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:4cfcd74091f217ef",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:cc63b426420fda53",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:f1e31f373866229f",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:dc3b566836a3bdcf",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:ae6ccbee573a660c",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:aeb00fde37f136c5",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:10da97c4eaae4114",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:6e49f85f0710ea5e",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:ece821eec0bd56c9",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:f0f2504c0d68a8f6",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:cb321df50663534e",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:74feb7f798750d68",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:109b44b779843c12",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:761a75ccacfc56e1",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:149b9e9c54dfd9d1",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:bb87c7dadaa37efa",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:984ece8eb55ed62b",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:3a327ed5bb537971",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:4d62e2da1bb91818",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 2
+    },
+    {
+      "candidateId": "prop:90807a2702073a50",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:1238014cb64df09b",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:eb1ae8d7770b75b0",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:c0251040af82760a",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:3fd1b3de752a1275",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:58cc60419e2be5a6",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:f8ff1e9be34b2bf4",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:f655182a7539923a",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:18f24971e84cbfff",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:b67d409d54468345",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:04d1101ecc5be187",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:1bff833a5777891a",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:d20d0448de59b151",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:c9ad0e47d36a2652",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 2
+    },
+    {
+      "candidateId": "prop:0c1f53029f0ea7b5",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:2f9e24dbae15794d",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:0451af9076e20823",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:148e98a71422e2f4",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    },
+    {
+      "candidateId": "prop:91800acd9ad94ad1",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 2
+    },
+    {
+      "candidateId": "prop:61fdbf65802999e0",
+      "outcome": "hypothesized",
+      "runtimeEvidence": 0,
+      "staticEvidence": 1
+    }
+  ]
+}

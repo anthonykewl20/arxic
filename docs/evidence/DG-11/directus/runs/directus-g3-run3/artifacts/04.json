@@ -1,0 +1,2377 @@
+{
+  "candidates": [
+    {
+      "evidenceRefs": ["src:api-src-controllers-license.ts:193-204"],
+      "id": "prop:cee9ecb62c50255c",
+      "title": "manageAddons"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-access.ts:163-184"],
+      "id": "prop:06388270eb151723",
+      "title": "streamline file deletion process"
+    },
+    {
+      "evidenceRefs": ["src:api-src-auth-drivers-oauth2.ts:410-523"],
+      "id": "prop:86d1c8a89cd6ef0c",
+      "title": "Enhance OAuth2 Callback Handling"
+    },
+    {
+      "evidenceRefs": ["src:api-src-auth-drivers-saml.ts:124-130"],
+      "id": "prop:4fa5a47441ef7f6f",
+      "title": "Enhance Security Authentication"
+    },
+    {
+      "evidenceRefs": [
+        "src:api-src-controllers-extensions.test.ts:44-52",
+        "src:api-src-controllers-extensions.ts:319-348"
+      ],
+      "id": "prop:19acb8ff8f130ff1",
+      "title": "Enhance API usability"
+    },
+    {
+      "evidenceRefs": [
+        "src:api-src-controllers-extensions.test.ts:44-52",
+        "src:api-src-controllers-extensions.ts:319-348"
+      ],
+      "id": "prop:e9a789ab33a818a5",
+      "title": "Increase API performance"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:262-292"],
+      "id": "prop:ac3f30f45f5c8d1d",
+      "title": "Ensure Consistency"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:262-292"],
+      "id": "prop:cb12d2e984d2fdd8",
+      "title": "Enhance User Experience"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-users.ts:482-497"],
+      "id": "prop:681baada304a2bff",
+      "title": "User Email Verification"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-extensions.ts:48-120"],
+      "id": "prop:fc378207cc988079",
+      "title": "Streamline registry querying"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-server.ts:63-76"],
+      "id": "prop:4806e27403870a4b",
+      "title": "Fetch information from the server"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-server.ts:79-97"],
+      "id": "prop:38c9246c6e5d4676",
+      "title": "Monitor system health status"
+    },
+    {
+      "evidenceRefs": ["src:tests-mock-license-server-src-app.ts:47-51"],
+      "id": "prop:4f41702e568fa8c3",
+      "title": "Improve API documentation and usage metrics"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-versions.ts:202-228"],
+      "id": "prop:eb904351e6f5d0e8",
+      "title": "Enable version comparison through API"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-schema.ts:34-47"],
+      "id": "prop:2b740eaf5efd17e4",
+      "title": "Improve API response efficiency"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:400-444"],
+      "id": "prop:12a09cf6a26d1d83",
+      "title": "Retrieve project runs"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-utils.ts:34-45"],
+      "id": "prop:7d4fb1ef2a33c2e1",
+      "title": "Retrieve a random string"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:448-487"],
+      "id": "prop:5efa5e841025234b",
+      "title": "Retrieve project runs statistics"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-permissions.ts:91-106"],
+      "id": "prop:3320b0fc6e75f77a",
+      "title": "User Permission Management"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:155-196"],
+      "id": "prop:4b3708c535374e86",
+      "title": "Retrieve project details"
+    },
+    {
+      "evidenceRefs": ["src:api-src-app.ts:319-319"],
+      "id": "prop:24a2bf605e6e9b8f",
+      "title": "Ensure server health monitoring is functioning properly"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:495-524"],
+      "id": "prop:fa0bc36cadad125a",
+      "title": "Retrieve Run Information"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-server.ts:20-32"],
+      "id": "prop:83aac7e4e0113247",
+      "title": "Enhance API documentation delivery"
+    },
+    {
+      "evidenceRefs": ["src:api-src-app.ts:274-278"],
+      "id": "prop:cfd5e837e1da2ae1",
+      "title": "Enhance SEO policies"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:122-152"],
+      "id": "prop:6c35842fdbdf78ef",
+      "title": "List all projects"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-license.ts:150-160"],
+      "id": "prop:2a22e2fcabfb1bf6",
+      "title": "Improve user experience"
+    },
+    {
+      "evidenceRefs": ["src:tests-mock-license-server-src-routes-addons.ts:35-46"],
+      "id": "prop:ac8629a38ffb905d",
+      "title": "Retrieve available options for addons"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-server.ts:36-60"],
+      "id": "prop:5ed041f7d1c70db3",
+      "title": "Expand GraphQL endpoint capabilities"
+    },
+    {
+      "evidenceRefs": ["src:api-src-app.ts:305-305"],
+      "id": "prop:1eb176ca66b9b067",
+      "title": "Increase security for admin routes"
+    },
+    {
+      "evidenceRefs": ["src:api-src-app.ts:305-305"],
+      "id": "prop:ccc6144c0d9a01d0",
+      "title": "Monitor administrative access"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-license.ts:162-174"],
+      "id": "prop:fe6d8844eb7f1922",
+      "title": "retrieveAddons"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-users.ts:166-183"],
+      "id": "prop:97573c6f2b6ced9c",
+      "title": "Track User Activity"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-users.ts:145-164"],
+      "id": "prop:e7d17dcd45114a6c",
+      "title": "User Profile Update"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-access.ts:137-161"],
+      "id": "prop:7bf9b15e62270516",
+      "title": "refine access control management"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-license.ts:176-191"],
+      "id": "prop:489427ca2b9e5ee9",
+      "title": "updateAddon"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:211-253"],
+      "id": "prop:57afdb7250681368",
+      "title": "Update project details"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-fields.ts:187-231"],
+      "id": "prop:cfb5cd9dda552a98",
+      "title": "improve field updates visibility"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-utils.ts:145-172"],
+      "id": "prop:4cfcd74091f217ef",
+      "title": "Enable data export functionality via API"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment-webhooks.ts:15-120"],
+      "id": "prop:cc63b426420fda53",
+      "title": "enhance deployment webhook functionalities"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-auth.ts:105-154"],
+      "id": "prop:f1e31f373866229f",
+      "title": "Enhance Session Management"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-shares.ts:74-93"],
+      "id": "prop:dc3b566836a3bdcf",
+      "title": "Send invitations to users"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-users.ts:407-433"],
+      "id": "prop:ae6ccbee573a660c",
+      "title": "Disable Two Factor Authentication (TFA)"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-users.ts:465-478"],
+      "id": "prop:aeb00fde37f136c5",
+      "title": "User Registration"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-utils.ts:72-84"],
+      "id": "prop:10da97c4eaae4114",
+      "title": "Implement a comprehensive undo functionality"
+    },
+    {
+      "evidenceRefs": ["src:api-src-auth-drivers-oauth2.ts:401-408"],
+      "id": "prop:6e49f85f0710ea5e",
+      "title": "Audit Callback Security"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-extensions.ts:208-230"],
+      "id": "prop:ece821eec0bd56c9",
+      "title": "Enhance user experience in registry management"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-schema.ts:81-92"],
+      "id": "prop:f0f2504c0d68a8f6",
+      "title": "Enable users to apply for services through the API."
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-license.ts:118-148"],
+      "id": "prop:cb321df50663534e",
+      "title": "Enable pre-licensing document review"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:300-331"],
+      "id": "prop:74feb7f798750d68",
+      "title": "Deploy a project"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-deployment.ts:527-549"],
+      "id": "prop:109b44b779843c12",
+      "title": "Cancel a Run"
+    },
+    {
+      "evidenceRefs": ["src:api-src-auth-drivers-saml.ts:174-240"],
+      "id": "prop:761a75ccacfc56e1",
+      "title": "enhance SAML authentication mechanism"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-auth.ts:196-226"],
+      "id": "prop:149b9e9c54dfd9d1",
+      "title": "Enhance user experience during password request process"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-extensions.ts:184-206"],
+      "id": "prop:bb87c7dadaa37efa",
+      "title": "Improve registry maintenance"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-utils.ts:213-234"],
+      "id": "prop:984ece8eb55ed62b",
+      "title": "Improve user experience by optimizing redirect resolutions."
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-utils.ts:86-106"],
+      "id": "prop:3a327ed5bb537971",
+      "title": "Create a streamlined data import process"
+    },
+    {
+      "evidenceRefs": [
+        "src:api-src-controllers-files.ts:184-214",
+        "src:api-src-controllers-utils.ts:117-143"
+      ],
+      "id": "prop:4d62e2da1bb91818",
+      "title": "Optimize file import handling"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-server.ts:118-164"],
+      "id": "prop:90807a2702073a50",
+      "title": "Enable user setup completion"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-users.ts:380-405"],
+      "id": "prop:1238014cb64df09b",
+      "title": "Two Factor Authentication (TFA) Management"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-assets.ts:89-156"],
+      "id": "prop:eb1ae8d7770b75b0",
+      "title": "Enable file upload functionality"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-users.ts:435-455"],
+      "id": "prop:c0251040af82760a",
+      "title": "Disable two-factor authentication for a user"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-versions.ts:259-277"],
+      "id": "prop:3fd1b3de752a1275",
+      "title": "Enhance promotional capabilities"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-users.ts:322-337"],
+      "id": "prop:58cc60419e2be5a6",
+      "title": "Accept invitations from users"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-versions.ts:230-257"],
+      "id": "prop:f8ff1e9be34b2bf4",
+      "title": "Create a new version record"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-license.ts:223-240"],
+      "id": "prop:f655182a7539923a",
+      "title": "Improve License Resolution"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-settings.ts:27-40"],
+      "id": "prop:18f24971e84cbfff",
+      "title": "Create owner resource"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-schema.ts:54-79"],
+      "id": "prop:b67d409d54468345",
+      "title": "provide a feature to compare differences between data sets"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-assets.ts:34-87"],
+      "id": "prop:04d1101ecc5be187",
+      "title": "Enable dynamic folder management via API"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-utils.ts:197-211"],
+      "id": "prop:1bff833a5777891a",
+      "title": "Improve cache management"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-utils.ts:174-195"],
+      "id": "prop:d20d0448de59b151",
+      "title": "Enhance translation efficiency"
+    },
+    {
+      "evidenceRefs": [
+        "src:api-src-auth-drivers-saml.ts:156-172",
+        "src:api-src-controllers-auth.ts:156-194"
+      ],
+      "id": "prop:c9ad0e47d36a2652",
+      "title": "Improve user logout process"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-shares.ts:26-67"],
+      "id": "prop:0c1f53029f0ea7b5",
+      "title": "User Authentication"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-utils.ts:54-70"],
+      "id": "prop:2f9e24dbae15794d",
+      "title": "Implement sorting functionality for user inputs"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-license.ts:206-221"],
+      "id": "prop:0451af9076e20823",
+      "title": "Improve API efficiency"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-auth.ts:228-252"],
+      "id": "prop:148e98a71422e2f4",
+      "title": "Streamline password reset process"
+    },
+    {
+      "evidenceRefs": [
+        "src:api-src-auth-drivers-saml.ts:156-172",
+        "src:api-src-controllers-auth.ts:156-194"
+      ],
+      "id": "prop:91800acd9ad94ad1",
+      "title": "log out of the current session"
+    },
+    {
+      "evidenceRefs": ["src:api-src-controllers-auth.ts:228-252"],
+      "id": "prop:61fdbf65802999e0",
+      "title": "complete a password reset with a token"
+    }
+  ],
+  "proposalRun": {
+    "dedupe": { "crossBatchDropped": 0, "inBatchDropped": 0 },
+    "estimatedCostUsd": 0.0061008,
+    "proposals": [
+      {
+        "action": "removeAddon",
+        "domain": "addon",
+        "evidenceRefIds": ["src:api-src-controllers-license.ts:193-204"],
+        "fromState": "active",
+        "id": "prop:cee9ecb62c50255c",
+        "intent": "manageAddons",
+        "inventoryRowIds": ["inv:route:DELETE:bf328029d199"],
+        "persona": "admin",
+        "rationale": "The DELETE route indicates that the application allows for the removal of addons, which suggests a need for functionality to manage the lifecycle of addons.",
+        "toState": "removed",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "optimize DELETE routes for resource cleanup",
+        "domain": "resource-management",
+        "evidenceRefIds": ["src:api-src-controllers-access.ts:163-184"],
+        "fromState": "manual deletion of resources",
+        "id": "prop:06388270eb151723",
+        "intent": "streamline file deletion process",
+        "inventoryRowIds": ["inv:route:DELETE:d81d1ce60235"],
+        "persona": "Backend Developer",
+        "rationale": "Automating the resource deletion process can significantly reduce system overhead and improve resource management efficiency.",
+        "toState": "automated cleanup based on dependencies",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Review and optimize callback endpoint for performance",
+        "domain": "callback",
+        "evidenceRefIds": ["src:api-src-auth-drivers-oauth2.ts:410-523"],
+        "fromState": "Current callback implementation",
+        "id": "prop:86d1c8a89cd6ef0c",
+        "intent": "Enhance OAuth2 Callback Handling",
+        "inventoryRowIds": ["inv:route:GET:19e1e5514be9"],
+        "persona": "API Developer",
+        "rationale": "The current GET callback implementation could benefit from performance optimizations as indicated by evidence in the related source.",
+        "toState": "Improved callback implementation",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Improve the SAML authentication process",
+        "domain": "metadata",
+        "evidenceRefIds": ["src:api-src-auth-drivers-saml.ts:124-130"],
+        "fromState": "Basic Authentication",
+        "id": "prop:4fa5a47441ef7f6f",
+        "intent": "Enhance Security Authentication",
+        "inventoryRowIds": ["inv:route:GET:38b0d1242485"],
+        "persona": "Security Officer",
+        "rationale": "Improving the SAML authentication process may reduce vulnerabilities identified in the current implementation.",
+        "toState": "Enhanced Security Authentication",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Refactor route handling",
+        "domain": "source",
+        "evidenceRefIds": [
+          "src:api-src-controllers-extensions.test.ts:44-52",
+          "src:api-src-controllers-extensions.ts:319-348"
+        ],
+        "fromState": "Current state with direct parameter passing",
+        "id": "prop:19acb8ff8f130ff1",
+        "intent": "Enhance API usability",
+        "inventoryRowIds": ["inv:route:GET:3e11538964c3"],
+        "persona": "API Developer",
+        "rationale": "Refactoring the route to include robust input validation may improve developer experience and reduce errors.",
+        "toState": "Improved state with enhanced input validation",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Optimize data retrieval logic",
+        "domain": "source",
+        "evidenceRefIds": [
+          "src:api-src-controllers-extensions.test.ts:44-52",
+          "src:api-src-controllers-extensions.ts:319-348"
+        ],
+        "fromState": "Existing GET route processing",
+        "id": "prop:e9a789ab33a818a5",
+        "intent": "Increase API performance",
+        "inventoryRowIds": ["inv:route:GET:3e11538964c3"],
+        "persona": "Backend Engineer",
+        "rationale": "Optimizing the data retrieval logic can help decrease response times and enhance overall performance of the API.",
+        "toState": "Refined GET route with improved efficiency",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Standardize Dashboard API Responses",
+        "domain": "dashboard",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:262-292"],
+        "fromState": "Inconsistent API Responses",
+        "id": "prop:ac3f30f45f5c8d1d",
+        "intent": "Ensure Consistency",
+        "inventoryRowIds": ["inv:route:GET:495dc497c6b1"],
+        "persona": "API Consumer",
+        "rationale": "Standardizing responses will help API consumers integrate more effectively and reduce confusion.",
+        "toState": "Consistent API Responses",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Optimize Dashboard Loading Speed",
+        "domain": "dashboard",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:262-292"],
+        "fromState": "Current Loading Performance",
+        "id": "prop:cb12d2e984d2fdd8",
+        "intent": "Enhance User Experience",
+        "inventoryRowIds": ["inv:route:GET:495dc497c6b1"],
+        "persona": "Dashboard User",
+        "rationale": "Optimizing the loading speed of the dashboard can lead to increased user satisfaction and retention.",
+        "toState": "Improved Loading Performance",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Verify Email",
+        "domain": "register",
+        "evidenceRefIds": ["src:api-src-controllers-users.ts:482-497"],
+        "fromState": "Email Unverified",
+        "id": "prop:681baada304a2bff",
+        "intent": "User Email Verification",
+        "inventoryRowIds": ["inv:route:GET:4d9bb5f26797"],
+        "persona": "New User",
+        "rationale": "The GET route for verifying email addresses may indicate that users need a process to validate their email during registration.",
+        "toState": "Email Verified",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Optimize the GET route for retrieving registry data",
+        "domain": "registry",
+        "evidenceRefIds": ["src:api-src-controllers-extensions.ts:48-120"],
+        "fromState": "current route implementation",
+        "id": "prop:fc378207cc988079",
+        "intent": "Streamline registry querying",
+        "inventoryRowIds": ["inv:route:GET:63bc4199147f"],
+        "persona": "software developer",
+        "rationale": "Optimizing the GET route will improve response times and overall efficiency when querying registry data.",
+        "toState": "optimized route with improved performance",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "GET",
+        "domain": "info",
+        "evidenceRefIds": ["src:api-src-controllers-server.ts:63-76"],
+        "fromState": "inactive",
+        "id": "prop:4806e27403870a4b",
+        "intent": "Fetch information from the server",
+        "inventoryRowIds": ["inv:route:GET:738181b06d10"],
+        "persona": "developer",
+        "rationale": "A route defined in the API suggests that there is a capability to retrieve information, which indicates a potential functionality that the developer persona might want to utilize.",
+        "toState": "active",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Query health endpoint",
+        "domain": "health",
+        "evidenceRefIds": ["src:api-src-controllers-server.ts:79-97"],
+        "fromState": "System operational",
+        "id": "prop:38c9246c6e5d4676",
+        "intent": "Monitor system health status",
+        "inventoryRowIds": ["inv:route:GET:74fac65f350e"],
+        "persona": "System Administrator",
+        "rationale": "Regular health checks provide assurance that the system is operational and can help identify issues proactively.",
+        "toState": "Health status retrieved",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Track usage statistics",
+        "domain": "well-known",
+        "evidenceRefIds": ["src:tests-mock-license-server-src-app.ts:47-51"],
+        "fromState": "Inactive",
+        "id": "prop:4f41702e568fa8c3",
+        "intent": "Improve API documentation and usage metrics",
+        "inventoryRowIds": ["inv:route:GET:83432a91297a"],
+        "persona": "API Developer",
+        "rationale": "By monitoring the usage of the JWKS endpoint, we can gather insights into its adoption and identify areas for performance enhancements.",
+        "toState": "Active",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Implement a new endpoint for retrieving version comparisons",
+        "domain": "compare",
+        "evidenceRefIds": ["src:api-src-controllers-versions.ts:202-228"],
+        "fromState": "Version comparison not available",
+        "id": "prop:eb904351e6f5d0e8",
+        "intent": "Enable version comparison through API",
+        "inventoryRowIds": ["inv:route:GET:8a139704ab2d"],
+        "persona": "API consumer",
+        "rationale": "This hypothesis proposes that creating a dedicated GET route for comparing different versions of an entity will provide more functionality to users who consume this API, thus enhancing user experience and increasing API utility.",
+        "toState": "Version comparison enabled",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Optimize routing",
+        "domain": "snapshot",
+        "evidenceRefIds": ["src:api-src-controllers-schema.ts:34-47"],
+        "fromState": "Current implementation",
+        "id": "prop:2b740eaf5efd17e4",
+        "intent": "Improve API response efficiency",
+        "inventoryRowIds": ["inv:route:GET:99072b90f1a6"],
+        "persona": "API Developer",
+        "rationale": "The existing route for the snapshot could benefit from optimizations in its handling of GET requests to improve response times and resource usage.",
+        "toState": "Refactored for performance",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "GET",
+        "domain": "project",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:400-444"],
+        "fromState": "Initialized",
+        "id": "prop:12a09cf6a26d1d83",
+        "intent": "Retrieve project runs",
+        "inventoryRowIds": ["inv:route:GET:9b780167f3e7"],
+        "persona": "Developer",
+        "rationale": "To allow developers to fetch a list of runs associated with a specific project.",
+        "toState": "Loaded",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Fetch random data",
+        "domain": "random",
+        "evidenceRefIds": ["src:api-src-controllers-utils.ts:34-45"],
+        "fromState": "No random data available",
+        "id": "prop:7d4fb1ef2a33c2e1",
+        "intent": "Retrieve a random string",
+        "inventoryRowIds": ["inv:route:GET:a19b39e33fde"],
+        "persona": "Developer",
+        "rationale": "The API route '/random/string' is designed to provide random strings, which can be utilized in various applications, thereby enhancing the functionality of the system.",
+        "toState": "Random data retrieved successfully",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "GET",
+        "domain": "project",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:448-487"],
+        "fromState": "Initialized",
+        "id": "prop:5efa5e841025234b",
+        "intent": "Retrieve project runs statistics",
+        "inventoryRowIds": ["inv:route:GET:aff67a406271"],
+        "persona": "Data Analyst",
+        "rationale": "To provide data analysts with insights into the statistics of project runs, enabling better decision making.",
+        "toState": "Loaded",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Fetch User Permissions",
+        "domain": "me",
+        "evidenceRefIds": ["src:api-src-controllers-permissions.ts:91-106"],
+        "fromState": "Permissions Not Loaded",
+        "id": "prop:3320b0fc6e75f77a",
+        "intent": "User Permission Management",
+        "inventoryRowIds": ["inv:route:GET:b472797cf365"],
+        "persona": "Admin User",
+        "rationale": "Admin users need quick access to user permissions to effectively manage roles, thus improving overall system administration efficiency.",
+        "toState": "Permissions Loaded",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "GET",
+        "domain": "project",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:155-196"],
+        "fromState": "Initialized",
+        "id": "prop:4b3708c535374e86",
+        "intent": "Retrieve project details",
+        "inventoryRowIds": ["inv:route:GET:c4944469dde9"],
+        "persona": "Project Manager",
+        "rationale": "To allow project managers to view detailed information about specific projects.",
+        "toState": "Loaded",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "test server endpoint",
+        "domain": "server",
+        "evidenceRefIds": ["src:api-src-app.ts:319-319"],
+        "fromState": "unverified",
+        "id": "prop:24a2bf605e6e9b8f",
+        "intent": "Ensure server health monitoring is functioning properly",
+        "inventoryRowIds": ["inv:route:GET:c9e8f208f57a"],
+        "persona": "Developer",
+        "rationale": "The route /server/ping is likely intended for health checks, and verifying its response will help ensure the server is operational.",
+        "toState": "verified",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "GET run details",
+        "domain": "run",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:495-524"],
+        "fromState": "awaiting data",
+        "id": "prop:fa0bc36cadad125a",
+        "intent": "Retrieve Run Information",
+        "inventoryRowIds": ["inv:route:GET:cd1f28d14183"],
+        "persona": "developer",
+        "rationale": "The GET route allows developers to access execution details of runs, facilitating better monitoring and debugging.",
+        "toState": "displaying run data",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Improve response formatting for API specs",
+        "domain": "spec",
+        "evidenceRefIds": ["src:api-src-controllers-server.ts:20-32"],
+        "fromState": "current API specs",
+        "id": "prop:83aac7e4e0113247",
+        "intent": "Enhance API documentation delivery",
+        "inventoryRowIds": ["inv:route:GET:d6110158074a"],
+        "persona": "API consumer",
+        "rationale": "Improving response formatting can lead to better readability and usability for API consumers.",
+        "toState": "enhanced API specs with better formatting",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Review and update the content of robots.txt",
+        "domain": "robots.txt",
+        "evidenceRefIds": ["src:api-src-app.ts:274-278"],
+        "fromState": "outdated policies",
+        "id": "prop:cfd5e837e1da2ae1",
+        "intent": "Enhance SEO policies",
+        "inventoryRowIds": ["inv:route:GET:deae90bdcf4d"],
+        "persona": "SEO Manager",
+        "rationale": "The robots.txt file is crucial for guiding search engines on how to crawl the website, thus impacting visibility in search results.",
+        "toState": "optimized indexing",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "GET",
+        "domain": "project",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:122-152"],
+        "fromState": "Initialized",
+        "id": "prop:6c35842fdbdf78ef",
+        "intent": "List all projects",
+        "inventoryRowIds": ["inv:route:GET:e5a0bbe96ab3"],
+        "persona": "User",
+        "rationale": "To enable users to see all available projects and select one to work on.",
+        "toState": "Loaded",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Enhance performance of the GET /portal route",
+        "domain": "portal",
+        "evidenceRefIds": ["src:api-src-controllers-license.ts:150-160"],
+        "fromState": "initial load",
+        "id": "prop:2a22e2fcabfb1bf6",
+        "intent": "Improve user experience",
+        "inventoryRowIds": ["inv:route:GET:ec6fee4221b8"],
+        "persona": "end user",
+        "rationale": "Optimizing the response time of the GET /portal route may lead to a better user experience and retention.",
+        "toState": "optimized response time",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "GET",
+        "domain": "option",
+        "evidenceRefIds": ["src:tests-mock-license-server-src-routes-addons.ts:35-46"],
+        "fromState": "initial",
+        "id": "prop:ac8629a38ffb905d",
+        "intent": "Retrieve available options for addons",
+        "inventoryRowIds": ["inv:route:GET:f08639492e73"],
+        "persona": "developer",
+        "rationale": "There is a defined GET route for retrieving options associated with addons, which indicates a potential need for clients to dynamically fetch available configurations.",
+        "toState": "options retrieved",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Add support for additional parameters in GraphQL endpoint",
+        "domain": "spec",
+        "evidenceRefIds": ["src:api-src-controllers-server.ts:36-60"],
+        "fromState": "basic parameter support",
+        "id": "prop:5ed041f7d1c70db3",
+        "intent": "Expand GraphQL endpoint capabilities",
+        "inventoryRowIds": ["inv:route:GET:f45264f3b683"],
+        "persona": "GraphQL user",
+        "rationale": "Expanding the GraphQL endpoint capabilities can enhance flexibility and enable more complex queries for users.",
+        "toState": "advanced parameter handling",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Implement authentication checks",
+        "domain": "admin",
+        "evidenceRefIds": ["src:api-src-app.ts:305-305"],
+        "fromState": "open to all",
+        "id": "prop:1eb176ca66b9b067",
+        "intent": "Increase security for admin routes",
+        "inventoryRowIds": ["inv:route:GET:f64704875d46"],
+        "persona": "system administrator",
+        "rationale": "Adding authentication checks on the /admin route will limit access to authorized users only, thereby reducing potential security risks.",
+        "toState": "restricted access",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Log access attempts",
+        "domain": "admin",
+        "evidenceRefIds": ["src:api-src-app.ts:305-305"],
+        "fromState": "unauthorized",
+        "id": "prop:ccc6144c0d9a01d0",
+        "intent": "Monitor administrative access",
+        "inventoryRowIds": ["inv:route:GET:f64704875d46"],
+        "persona": "system administrator",
+        "rationale": "Implementing logging for administrative route access will ensure that all attempts to access the admin interface are recorded, thus improving the security auditing process.",
+        "toState": "authorized",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "fetchAddonList",
+        "domain": "addon",
+        "evidenceRefIds": ["src:api-src-controllers-license.ts:162-174"],
+        "fromState": "none",
+        "id": "prop:fe6d8844eb7f1922",
+        "intent": "retrieveAddons",
+        "inventoryRowIds": ["inv:route:GET:f6cbce3bae1c"],
+        "persona": "user",
+        "rationale": "The GET route implies that users will require a method to retrieve a list of all available addons.",
+        "toState": "listFetched",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Record Page Views",
+        "domain": "me",
+        "evidenceRefIds": ["src:api-src-controllers-users.ts:166-183"],
+        "fromState": "Tracking Inactive",
+        "id": "prop:97573c6f2b6ced9c",
+        "intent": "Track User Activity",
+        "inventoryRowIds": ["inv:route:PATCH:7f72e003b0e7"],
+        "persona": "User",
+        "rationale": "By tracking user pages, the application can gather insights into user behavior, which can inform future enhancements and features.",
+        "toState": "Tracking Active",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "PATCH User Profile",
+        "domain": "me",
+        "evidenceRefIds": ["src:api-src-controllers-users.ts:145-164"],
+        "fromState": "Profile Not Updated",
+        "id": "prop:e7d17dcd45114a6c",
+        "intent": "User Profile Update",
+        "inventoryRowIds": ["inv:route:PATCH:84e82844fb94"],
+        "persona": "User",
+        "rationale": "Users will benefit from a streamlined process to update their profile, which can improve user engagement and satisfaction.",
+        "toState": "Profile Updated",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "implement a permission validation framework",
+        "domain": "access",
+        "evidenceRefIds": ["src:api-src-controllers-access.ts:137-161"],
+        "fromState": "basic role-based access",
+        "id": "prop:7bf9b15e62270516",
+        "intent": "refine access control management",
+        "inventoryRowIds": ["inv:route:PATCH:9088762c4504"],
+        "persona": "Security Engineer",
+        "rationale": "To enhance security, it is critical to have a dynamic and flexible permission validation system that adjusts based on user attributes and roles.",
+        "toState": "dynamic permission checking based on attributes",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "modifyAddonDetails",
+        "domain": "addon",
+        "evidenceRefIds": ["src:api-src-controllers-license.ts:176-191"],
+        "fromState": "existing",
+        "id": "prop:489427ca2b9e5ee9",
+        "intent": "updateAddon",
+        "inventoryRowIds": ["inv:route:PATCH:b644bb7b6db9"],
+        "persona": "admin",
+        "rationale": "The PATCH route suggests an intention to provide functionality for updating the details of existing addons.",
+        "toState": "updated",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "PATCH",
+        "domain": "project",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:211-253"],
+        "fromState": "Draft",
+        "id": "prop:57afdb7250681368",
+        "intent": "Update project details",
+        "inventoryRowIds": ["inv:route:PATCH:bb79e5898428"],
+        "persona": "Project Owner",
+        "rationale": "To allow project owners to modify project details as necessary.",
+        "toState": "Updated",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "create an audit trail for PATCH requests",
+        "domain": "field-management",
+        "evidenceRefIds": ["src:api-src-controllers-fields.ts:187-231"],
+        "fromState": "no tracking of changes",
+        "id": "prop:cfb5cd9dda552a98",
+        "intent": "improve field updates visibility",
+        "inventoryRowIds": ["inv:route:PATCH:ed5415769a70"],
+        "persona": "Product Manager",
+        "rationale": "Understanding changes made to fields is essential for debugging and maintaining data integrity.",
+        "toState": "comprehensive change log tracking",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Implement API endpoint for exporting data",
+        "domain": "export",
+        "evidenceRefIds": ["src:api-src-controllers-utils.ts:145-172"],
+        "fromState": "not implemented",
+        "id": "prop:4cfcd74091f217ef",
+        "intent": "Enable data export functionality via API",
+        "inventoryRowIds": ["inv:route:POST:031bd47d1f3e"],
+        "persona": "API Developer",
+        "rationale": "The proposed endpoint at '/export/:param' indicates a capability for exporting data, which might be beneficial for users needing to extract data from the system.",
+        "toState": "implemented",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "allow for more parameters in POST requests",
+        "domain": "deployment-integrations",
+        "evidenceRefIds": ["src:api-src-controllers-deployment-webhooks.ts:15-120"],
+        "fromState": "limited webhook parameters available",
+        "id": "prop:cc63b426420fda53",
+        "intent": "enhance deployment webhook functionalities",
+        "inventoryRowIds": ["inv:route:POST:0a00fef7e903"],
+        "persona": "DevOps Engineer",
+        "rationale": "Expanding webhook functionality will lead to better integrations with CI/CD pipelines.",
+        "toState": "extensive parameter support with error handling",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Improve user session refresh mechanics to provide seamless experience.",
+        "domain": "refresh",
+        "evidenceRefIds": ["src:api-src-controllers-auth.ts:105-154"],
+        "fromState": "User inactive or session nearing expiration",
+        "id": "prop:f1e31f373866229f",
+        "intent": "Enhance Session Management",
+        "inventoryRowIds": ["inv:route:POST:15539d5ff2be"],
+        "persona": "System Administrator",
+        "rationale": "Implementing an enhanced session management strategy can improve user satisfaction and system security by reducing session timeouts and ensuring secure connection.",
+        "toState": "User sessions remain active and secure without interruptions",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "POST",
+        "domain": "invite",
+        "evidenceRefIds": ["src:api-src-controllers-shares.ts:74-93"],
+        "fromState": "draft",
+        "id": "prop:dc3b566836a3bdcf",
+        "intent": "Send invitations to users",
+        "inventoryRowIds": ["inv:route:POST:172574abefde"],
+        "persona": "event organizer",
+        "rationale": "Sending invitations is a critical step for event management and engagement.",
+        "toState": "sent",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Disable TFA",
+        "domain": "me",
+        "evidenceRefIds": ["src:api-src-controllers-users.ts:407-433"],
+        "fromState": "TFA Enabled",
+        "id": "prop:ae6ccbee573a660c",
+        "intent": "Disable Two Factor Authentication (TFA)",
+        "inventoryRowIds": ["inv:route:POST:28c2ae692658"],
+        "persona": "User",
+        "rationale": "Providing users the option to disable TFA can enhance user experience by offering flexibility, especially for those who prefer less security friction.",
+        "toState": "TFA Disabled",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Register User",
+        "domain": "register",
+        "evidenceRefIds": ["src:api-src-controllers-users.ts:465-478"],
+        "fromState": "Unregistered",
+        "id": "prop:aeb00fde37f136c5",
+        "intent": "User Registration",
+        "inventoryRowIds": ["inv:route:POST:3364d6b06ae9"],
+        "persona": "New User",
+        "rationale": "The POST route for user registration suggests that a functionality exists for new users to create accounts in the system.",
+        "toState": "Registered",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Enhance the existing revert route to support additional parameters",
+        "domain": "revert",
+        "evidenceRefIds": ["src:api-src-controllers-utils.ts:72-84"],
+        "fromState": "Current functionality allows a single parameter for reverting",
+        "id": "prop:10da97c4eaae4114",
+        "intent": "Implement a comprehensive undo functionality",
+        "inventoryRowIds": ["inv:route:POST:353ffcebfe21"],
+        "persona": "User looking for advanced control over actions",
+        "rationale": "The current implementation only supports a basic revert functionality, limiting user flexibility. Expanding this can create a more robust user experience.",
+        "toState": "Proposed functionality allows multiple parameters for reverting",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Conduct a security audit on the callback functionality",
+        "domain": "callback",
+        "evidenceRefIds": ["src:api-src-auth-drivers-oauth2.ts:401-408"],
+        "fromState": "Existing security measures in place",
+        "id": "prop:6e49f85f0710ea5e",
+        "intent": "Audit Callback Security",
+        "inventoryRowIds": ["inv:route:POST:382d5abd1583"],
+        "persona": "Security Analyst",
+        "rationale": "The POST callback implementation should be assessed for potential security vulnerabilities as outlined in the related evidence.",
+        "toState": "Enhanced security measures",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Implement a reinstall feature for registry extensions",
+        "domain": "registry",
+        "evidenceRefIds": ["src:api-src-controllers-extensions.ts:208-230"],
+        "fromState": "manual reinstallation of extensions",
+        "id": "prop:ece821eec0bd56c9",
+        "intent": "Enhance user experience in registry management",
+        "inventoryRowIds": ["inv:route:POST:412420aeb987"],
+        "persona": "end user",
+        "rationale": "Providing a direct reinstall feature will streamline user operations and enhance satisfaction.",
+        "toState": "reinstallation feature available for user",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Submit application data via POST request.",
+        "domain": "apply",
+        "evidenceRefIds": ["src:api-src-controllers-schema.ts:81-92"],
+        "fromState": "User not submitted application",
+        "id": "prop:f0f2504c0d68a8f6",
+        "intent": "Enable users to apply for services through the API.",
+        "inventoryRowIds": ["inv:route:POST:44ac146b622b"],
+        "persona": "Applicant",
+        "rationale": "The route allows for POST requests to an apply endpoint, indicating functionality for submitting applications.",
+        "toState": "User application submitted",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Integrate a preview endpoint for licensing",
+        "domain": "preview",
+        "evidenceRefIds": ["src:api-src-controllers-license.ts:118-148"],
+        "fromState": "Licensing Unavailable",
+        "id": "prop:cb321df50663534e",
+        "intent": "Enable pre-licensing document review",
+        "inventoryRowIds": ["inv:route:POST:62f4af49717a"],
+        "persona": "Product Manager",
+        "rationale": "The POST /preview route can facilitate the review of licensing documents prior to final approval, enhancing user experience and decision-making in licensing.",
+        "toState": "Licensing Available",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "POST",
+        "domain": "project",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:300-331"],
+        "fromState": "Ready",
+        "id": "prop:74feb7f798750d68",
+        "intent": "Deploy a project",
+        "inventoryRowIds": ["inv:route:POST:64f6f0e1f6f9"],
+        "persona": "DevOps Engineer",
+        "rationale": "To enable DevOps engineers to deploy projects to the specified environment.",
+        "toState": "Deployed",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "POST cancel request",
+        "domain": "run",
+        "evidenceRefIds": ["src:api-src-controllers-deployment.ts:527-549"],
+        "fromState": "active run",
+        "id": "prop:109b44b779843c12",
+        "intent": "Cancel a Run",
+        "inventoryRowIds": ["inv:route:POST:657a6fd29f68"],
+        "persona": "developer",
+        "rationale": "The POST route enables developers to cancel ongoing runs, aligning with the need for managing runs efficiently.",
+        "toState": "run canceled",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "integrate additional security features",
+        "domain": "authentication",
+        "evidenceRefIds": ["src:api-src-auth-drivers-saml.ts:174-240"],
+        "fromState": "current SAML implementation",
+        "id": "prop:761a75ccacfc56e1",
+        "intent": "enhance SAML authentication mechanism",
+        "inventoryRowIds": ["inv:route:POST:6689bdb0cdc6"],
+        "persona": "product manager",
+        "rationale": "To strengthen the security of user authentication while leveraging the existing SAML integration.",
+        "toState": "enhanced SAML authentication",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Improve the user interface and add instructional text for the password request endpoint",
+        "domain": "password",
+        "evidenceRefIds": ["src:api-src-controllers-auth.ts:196-226"],
+        "fromState": "basic functionality",
+        "id": "prop:149b9e9c54dfd9d1",
+        "intent": "Enhance user experience during password request process",
+        "inventoryRowIds": ["inv:route:POST:6ec920eefd20"],
+        "persona": "app user",
+        "rationale": "The current password request process may lack clarity and guidance for users, leading to potential frustration and higher support requests.",
+        "toState": "user-friendly interface",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Introduce an automated installation process for registry extensions",
+        "domain": "registry",
+        "evidenceRefIds": ["src:api-src-controllers-extensions.ts:184-206"],
+        "fromState": "manual installation of registry extensions",
+        "id": "prop:bb87c7dadaa37efa",
+        "intent": "Improve registry maintenance",
+        "inventoryRowIds": ["inv:route:POST:7009f1b9a6bc"],
+        "persona": "system administrator",
+        "rationale": "Automating the installation process will reduce time and errors associated with manual installations.",
+        "toState": "automated installation process in place",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Analyze and modify the existing redirect logic.",
+        "domain": "resolve-redirect",
+        "evidenceRefIds": ["src:api-src-controllers-utils.ts:213-234"],
+        "fromState": "current redirect logic is suboptimal",
+        "id": "prop:984ece8eb55ed62b",
+        "intent": "Improve user experience by optimizing redirect resolutions.",
+        "inventoryRowIds": ["inv:route:POST:7457f02d41d5"],
+        "persona": "product manager",
+        "rationale": "The surface for resolving redirects indicates a specific functionality that may be improved for better user experience.",
+        "toState": "enhanced redirect logic improves user navigation",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Enhance API route handling for imports",
+        "domain": "import",
+        "evidenceRefIds": ["src:api-src-controllers-utils.ts:86-106"],
+        "fromState": "Current import process is unclear and fragmented",
+        "id": "prop:3a327ed5bb537971",
+        "intent": "Create a streamlined data import process",
+        "inventoryRowIds": ["inv:route:POST:78ce6b4733a2"],
+        "persona": "API Developer",
+        "rationale": "The current route for importing data (`/import/:param`) lacks clear documentation, leading to potential confusion among users. By enhancing the handling for this route, we can create a more intuitive experience.",
+        "toState": "Clear and unified import API for users",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Refactor the file import endpoint",
+        "domain": "import",
+        "evidenceRefIds": [
+          "src:api-src-controllers-files.ts:184-214",
+          "src:api-src-controllers-utils.ts:117-143"
+        ],
+        "fromState": "Inefficient and error-prone file import endpoint",
+        "id": "prop:4d62e2da1bb91818",
+        "intent": "Optimize file import handling",
+        "inventoryRowIds": ["inv:route:POST:795f809762cd"],
+        "persona": "Software Engineer",
+        "rationale": "The existing POST route for importing files (`/import`) can be improved by refactoring, allowing for better performance and reliability, thus enhancing user satisfaction.",
+        "toState": "Robust and user-friendly file import functionality",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Submit setup data",
+        "domain": "setup",
+        "evidenceRefIds": ["src:api-src-controllers-server.ts:118-164"],
+        "fromState": "incomplete setup",
+        "id": "prop:90807a2702073a50",
+        "intent": "Enable user setup completion",
+        "inventoryRowIds": ["inv:route:POST:8786186b8d08"],
+        "persona": "new user",
+        "rationale": "The POST route at /setup is designed to handle setup completion for users, indicating an essential function for user onboarding.",
+        "toState": "complete setup",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Enable TFA",
+        "domain": "me",
+        "evidenceRefIds": ["src:api-src-controllers-users.ts:380-405"],
+        "fromState": "TFA Disabled",
+        "id": "prop:1238014cb64df09b",
+        "intent": "Two Factor Authentication (TFA) Management",
+        "inventoryRowIds": ["inv:route:POST:8fac2ea32833"],
+        "persona": "User",
+        "rationale": "Enabling TFA can enhance the security of user accounts, providing users with more control over their account security.",
+        "toState": "TFA Enabled",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Implement",
+        "domain": "file",
+        "evidenceRefIds": ["src:api-src-controllers-assets.ts:89-156"],
+        "fromState": "Not accepting files",
+        "id": "prop:eb1ae8d7770b75b0",
+        "intent": "Enable file upload functionality",
+        "inventoryRowIds": ["inv:route:POST:95037ffa1712"],
+        "persona": "developer",
+        "rationale": "To allow users to upload files, the system needs to implement the POST /files endpoint.",
+        "toState": "Accepting files",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Request to disable TFA",
+        "domain": "tfa",
+        "evidenceRefIds": ["src:api-src-controllers-users.ts:435-455"],
+        "fromState": "TFAEnabled",
+        "id": "prop:c0251040af82760a",
+        "intent": "Disable two-factor authentication for a user",
+        "inventoryRowIds": ["inv:route:POST:976a1627753a"],
+        "persona": "User",
+        "rationale": "The existence of a route to disable two-factor authentication suggests a process for users needing to turn off this feature.",
+        "toState": "TFADisabled",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Optimize promotion handling",
+        "domain": "promote",
+        "evidenceRefIds": ["src:api-src-controllers-versions.ts:259-277"],
+        "fromState": "Inactive",
+        "id": "prop:3fd1b3de752a1275",
+        "intent": "Enhance promotional capabilities",
+        "inventoryRowIds": ["inv:route:POST:98e5d747d239"],
+        "persona": "Marketing Manager",
+        "rationale": "The route for promoting items is currently defined, and enhancing the system to utilize this route efficiently could lead to better promotional opportunities.",
+        "toState": "Active",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "POST",
+        "domain": "invite",
+        "evidenceRefIds": ["src:api-src-controllers-users.ts:322-337"],
+        "fromState": "pending",
+        "id": "prop:58cc60419e2be5a6",
+        "intent": "Accept invitations from users",
+        "inventoryRowIds": ["inv:route:POST:9ba2cd92e47d"],
+        "persona": "user",
+        "rationale": "Tracking user acceptance of invitations is essential for event planning and resource allocation.",
+        "toState": "accepted",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "POST",
+        "domain": "save",
+        "evidenceRefIds": ["src:api-src-controllers-versions.ts:230-257"],
+        "fromState": "draft",
+        "id": "prop:f8ff1e9be34b2bf4",
+        "intent": "Create a new version record",
+        "inventoryRowIds": ["inv:route:POST:a20e777fc7f4"],
+        "persona": "developer",
+        "rationale": "Observations indicate a need for user-initiated saving of version records through a dedicated API route.",
+        "toState": "published",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Enhance API endpoint functionality",
+        "domain": "resolve",
+        "evidenceRefIds": ["src:api-src-controllers-license.ts:223-240"],
+        "fromState": "current implementation",
+        "id": "prop:f655182a7539923a",
+        "intent": "Improve License Resolution",
+        "inventoryRowIds": ["inv:route:POST:a943181395f7"],
+        "persona": "API Developer",
+        "rationale": "Enhancing the POST /resolve endpoint to provide faster response times and improved handling of requests could lead to better user experiences and increased efficiency in license management operations.",
+        "toState": "optimized performance",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "POST owner data",
+        "domain": "owner",
+        "evidenceRefIds": ["src:api-src-controllers-settings.ts:27-40"],
+        "fromState": "unauthenticated",
+        "id": "prop:18f24971e84cbfff",
+        "intent": "Create owner resource",
+        "inventoryRowIds": ["inv:route:POST:ae0c000a090a"],
+        "persona": "application user",
+        "rationale": "To enable users to create new owner resources, the application needs to implement a POST method for the '/owner' route that handles user input and stores the related data.",
+        "toState": "authenticated",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "create",
+        "domain": "diff",
+        "evidenceRefIds": ["src:api-src-controllers-schema.ts:54-79"],
+        "fromState": "conceptual",
+        "id": "prop:b67d409d54468345",
+        "intent": "provide a feature to compare differences between data sets",
+        "inventoryRowIds": ["inv:route:POST:bd5ed012abaa"],
+        "persona": "developer",
+        "rationale": "The proposed POST route /diff could serve as an API for developers to request comparisons between different data inputs, leveraging the existing structure.",
+        "toState": "implemented",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Create new folder using POST request",
+        "domain": "folder",
+        "evidenceRefIds": ["src:api-src-controllers-assets.ts:34-87"],
+        "fromState": "Folder management is static without API hooks",
+        "id": "prop:04d1101ecc5be187",
+        "intent": "Enable dynamic folder management via API",
+        "inventoryRowIds": ["inv:route:POST:c319b9aaea76"],
+        "persona": "API Developer",
+        "rationale": "Adding an API endpoint for dynamic folder creation may streamline asset organization.",
+        "toState": "Folder management is dynamic through API",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Enhance functionality",
+        "domain": "cache",
+        "evidenceRefIds": ["src:api-src-controllers-utils.ts:197-211"],
+        "fromState": "Unoptimized cache clearing",
+        "id": "prop:1bff833a5777891a",
+        "intent": "Improve cache management",
+        "inventoryRowIds": ["inv:route:POST:e1a49fb9e4a0"],
+        "persona": "Backend Developer",
+        "rationale": "By examining the cache clearing route located in the utils controller, we can propose enhancements that lead to improved cache management and performance.",
+        "toState": "Optimized cache clearing",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Develop additional features",
+        "domain": "translation",
+        "evidenceRefIds": ["src:api-src-controllers-utils.ts:174-195"],
+        "fromState": "basic translation generation",
+        "id": "prop:d20d0448de59b151",
+        "intent": "Enhance translation efficiency",
+        "inventoryRowIds": ["inv:route:POST:f36bc09a6dd4"],
+        "persona": "Product Manager",
+        "rationale": "The current surface for generating translations via the API indicates potential for automation and optimization, which could enhance overall translation efficiency and user satisfaction.",
+        "toState": "automated and optimized translation generation",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Refactor the logout functionality",
+        "domain": "authentication",
+        "evidenceRefIds": [
+          "src:api-src-auth-drivers-saml.ts:156-172",
+          "src:api-src-controllers-auth.ts:156-194"
+        ],
+        "fromState": "current implementation",
+        "id": "prop:c9ad0e47d36a2652",
+        "intent": "Improve user logout process",
+        "inventoryRowIds": ["inv:route:POST:f3d241b8db5d"],
+        "persona": "system architect",
+        "rationale": "Refactoring the logout functionality may lead to improved reliability and user experience, as indicated by the issues noted in the existing SAML driver.",
+        "toState": "enhanced logout process",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Improve authentication system",
+        "domain": "auth",
+        "evidenceRefIds": ["src:api-src-controllers-shares.ts:26-67"],
+        "fromState": "Inefficient login process",
+        "id": "prop:0c1f53029f0ea7b5",
+        "intent": "User Authentication",
+        "inventoryRowIds": ["inv:route:POST:f44ec56e2693"],
+        "persona": "System Administrator",
+        "rationale": "The current auth route allows for user login via a POST method, indicating a potential area for enhancing the user experience and security.",
+        "toState": "Streamlined login experience",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Enhance API route",
+        "domain": "sort",
+        "evidenceRefIds": ["src:api-src-controllers-utils.ts:54-70"],
+        "fromState": "Pending implementation",
+        "id": "prop:2f9e24dbae15794d",
+        "intent": "Implement sorting functionality for user inputs",
+        "inventoryRowIds": ["inv:route:POST:f54b0838fec6"],
+        "persona": "API Developer",
+        "rationale": "The existing POST route /sort/:param is available but requires further development to fully support user sorting functionalities.",
+        "toState": "Live",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Optimize performance of the POST request",
+        "domain": "pending-resolution",
+        "evidenceRefIds": ["src:api-src-controllers-license.ts:206-221"],
+        "fromState": "Base endpoint performance",
+        "id": "prop:0451af9076e20823",
+        "intent": "Improve API efficiency",
+        "inventoryRowIds": ["inv:route:POST:f62aae69764a"],
+        "persona": "Backend Developer",
+        "rationale": "Optimizing the POST /pending-resolution endpoint could improve overall throughput and reduce latency for the application.",
+        "toState": "Enhanced endpoint performance",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "Implement feedback mechanisms for users following the password reset process",
+        "domain": "password",
+        "evidenceRefIds": ["src:api-src-controllers-auth.ts:228-252"],
+        "fromState": "no feedback provided",
+        "id": "prop:148e98a71422e2f4",
+        "intent": "Streamline password reset process",
+        "inventoryRowIds": ["inv:route:POST:fa983b6d370b"],
+        "persona": "app user",
+        "rationale": "Providing users with timely feedback on their password reset requests can improve trust and reduce anxiety, thereby enhancing overall user satisfaction.",
+        "toState": "user-informed feedback",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "perform POST /logout",
+        "domain": "authentication",
+        "evidenceRefIds": [
+          "src:api-src-auth-drivers-saml.ts:156-172",
+          "src:api-src-controllers-auth.ts:156-194"
+        ],
+        "fixtureKinds": ["persona"],
+        "fromState": "signed-in",
+        "id": "prop:91800acd9ad94ad1",
+        "intent": "log out of the current session",
+        "inventoryRowIds": ["inv:route:POST:f3d241b8db5d"],
+        "persona": "registered-user",
+        "rationale": "seeded by the optional domain pack: route /logout matches the logout capability shape",
+        "toState": "signed-out",
+        "truthState": "hypothesized"
+      },
+      {
+        "action": "perform POST /password/reset",
+        "domain": "authentication",
+        "evidenceRefIds": ["src:api-src-controllers-auth.ts:228-252"],
+        "fixtureKinds": ["persona", "inbox"],
+        "fromState": "reset-requested",
+        "id": "prop:61fdbf65802999e0",
+        "intent": "complete a password reset with a token",
+        "inventoryRowIds": ["inv:route:POST:fa983b6d370b"],
+        "persona": "registered-user",
+        "rationale": "seeded by the optional domain pack: route /password/reset matches the reset-complete capability shape",
+        "toState": "signed-out",
+        "truthState": "hypothesized"
+      }
+    ],
+    "rows": [
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-controllers-access.ts:186-199",
+          "src:api-src-controllers-collections.ts:140-153",
+          "src:api-src-controllers-comments.ts:184-197",
+          "src:api-src-controllers-dashboards.ts:176-189",
+          "src:api-src-controllers-deployment.ts:378-397",
+          "src:api-src-controllers-files.ts:347-360",
+          "src:api-src-controllers-flows.ts:208-221",
+          "src:api-src-controllers-folders.ts:186-199",
+          "src:api-src-controllers-items.ts:202-226",
+          "src:api-src-controllers-mcp-oauth-clients.ts:86-98",
+          "src:api-src-controllers-notifications.ts:186-199",
+          "src:api-src-controllers-operations.ts:176-189",
+          "src:api-src-controllers-panels.ts:176-189",
+          "src:api-src-controllers-permissions.ts:211-224",
+          "src:api-src-controllers-policies.ts:214-227",
+          "src:api-src-controllers-presets.ts:186-199",
+          "src:api-src-controllers-roles.ts:207-220",
+          "src:api-src-controllers-translations.ts:186-199",
+          "src:api-src-controllers-tus.ts:95-95",
+          "src:api-src-controllers-users.ts:270-283",
+          "src:api-src-controllers-versions.ts:187-200",
+          "src:tests-mock-license-server-src-routes-admin.ts:40-48"
+        ],
+        "id": "inv:route:DELETE:247131ba8376",
+        "method": "DELETE",
+        "path": "/:param",
+        "sourcePath": "api/src/controllers/access.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "addon",
+        "evidenceIds": ["src:api-src-controllers-license.ts:193-204"],
+        "id": "inv:route:DELETE:bf328029d199",
+        "method": "DELETE",
+        "path": "/addons/:param",
+        "sourcePath": "api/src/controllers/license.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-controllers-access.ts:163-184",
+          "src:api-src-controllers-comments.ts:161-182",
+          "src:api-src-controllers-dashboards.ts:154-174",
+          "src:api-src-controllers-files.ts:324-345",
+          "src:api-src-controllers-flows.ts:186-206",
+          "src:api-src-controllers-folders.ts:163-184",
+          "src:api-src-controllers-license.ts:105-116",
+          "src:api-src-controllers-mcp-oauth-clients.ts:62-83",
+          "src:api-src-controllers-notifications.ts:163-184",
+          "src:api-src-controllers-operations.ts:154-174",
+          "src:api-src-controllers-panels.ts:154-174",
+          "src:api-src-controllers-permissions.ts:188-209",
+          "src:api-src-controllers-policies.ts:191-212",
+          "src:api-src-controllers-presets.ts:163-184",
+          "src:api-src-controllers-roles.ts:184-205",
+          "src:api-src-controllers-shares.ts:276-296",
+          "src:api-src-controllers-translations.ts:163-184",
+          "src:api-src-controllers-users.ts:247-268",
+          "src:api-src-controllers-versions.ts:164-185",
+          "src:tests-mock-license-server-src-routes-addons.ts:84-108"
+        ],
+        "id": "inv:route:DELETE:d81d1ce60235",
+        "method": "DELETE",
+        "path": "/",
+        "sourcePath": "api/src/controllers/access.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-controllers-fields.ts:233-250",
+          "src:api-src-controllers-items.ts:228-243",
+          "src:api-src-controllers-relations.ts:153-166"
+        ],
+        "id": "inv:route:DELETE:f58cec8782cd",
+        "method": "DELETE",
+        "path": "/:param/:param",
+        "sourcePath": "api/src/controllers/fields.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "callback",
+        "evidenceIds": [
+          "src:api-src-auth-drivers-oauth2.ts:410-523",
+          "src:api-src-auth-drivers-openid.ts:503-619"
+        ],
+        "id": "inv:route:GET:19e1e5514be9",
+        "method": "GET",
+        "path": "/callback",
+        "sourcePath": "api/src/auth/drivers/oauth2.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "metadata",
+        "evidenceIds": ["src:api-src-auth-drivers-saml.ts:124-130"],
+        "id": "inv:route:GET:38b0d1242485",
+        "method": "GET",
+        "path": "/metadata",
+        "sourcePath": "api/src/auth/drivers/saml.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "source",
+        "evidenceIds": [
+          "src:api-src-controllers-extensions.test.ts:44-52",
+          "src:api-src-controllers-extensions.ts:319-348"
+        ],
+        "id": "inv:route:GET:3e11538964c3",
+        "method": "GET",
+        "path": "/sources/:param",
+        "sourcePath": "api/src/controllers/extensions.test.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "dashboard",
+        "evidenceIds": ["src:api-src-controllers-deployment.ts:262-292"],
+        "id": "inv:route:GET:495dc497c6b1",
+        "method": "GET",
+        "path": "/:param/dashboard",
+        "sourcePath": "api/src/controllers/deployment.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "register",
+        "evidenceIds": ["src:api-src-controllers-users.ts:482-497"],
+        "id": "inv:route:GET:4d9bb5f26797",
+        "method": "GET",
+        "path": "/register/verify-email",
+        "sourcePath": "api/src/controllers/users.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "registry",
+        "evidenceIds": ["src:api-src-controllers-extensions.ts:48-120"],
+        "id": "inv:route:GET:63bc4199147f",
+        "method": "GET",
+        "path": "/registry",
+        "sourcePath": "api/src/controllers/extensions.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "info",
+        "evidenceIds": ["src:api-src-controllers-server.ts:63-76"],
+        "id": "inv:route:GET:738181b06d10",
+        "method": "GET",
+        "path": "/info",
+        "sourcePath": "api/src/controllers/server.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "health",
+        "evidenceIds": ["src:api-src-controllers-server.ts:79-97"],
+        "id": "inv:route:GET:74fac65f350e",
+        "method": "GET",
+        "path": "/health",
+        "sourcePath": "api/src/controllers/server.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "me",
+        "evidenceIds": ["src:api-src-controllers-permissions.ts:226-243"],
+        "id": "inv:route:GET:77cab4ab7d1a",
+        "method": "GET",
+        "path": "/me/:param/:param?",
+        "sourcePath": "api/src/controllers/permissions.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": ".well-known",
+        "evidenceIds": ["src:tests-mock-license-server-src-app.ts:47-51"],
+        "id": "inv:route:GET:83432a91297a",
+        "method": "GET",
+        "path": "/.well-known/jwks.json",
+        "sourcePath": "tests/mock-license-server/src/app.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "compare",
+        "evidenceIds": ["src:api-src-controllers-versions.ts:202-228"],
+        "id": "inv:route:GET:8a139704ab2d",
+        "method": "GET",
+        "path": "/:param/compare",
+        "sourcePath": "api/src/controllers/versions.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "snapshot",
+        "evidenceIds": ["src:api-src-controllers-schema.ts:34-47"],
+        "id": "inv:route:GET:99072b90f1a6",
+        "method": "GET",
+        "path": "/snapshot",
+        "sourcePath": "api/src/controllers/schema.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "project",
+        "evidenceIds": ["src:api-src-controllers-deployment.ts:400-444"],
+        "id": "inv:route:GET:9b780167f3e7",
+        "method": "GET",
+        "path": "/:param/projects/:param/runs",
+        "sourcePath": "api/src/controllers/deployment.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "random",
+        "evidenceIds": ["src:api-src-controllers-utils.ts:34-45"],
+        "id": "inv:route:GET:a19b39e33fde",
+        "method": "GET",
+        "path": "/random/string",
+        "sourcePath": "api/src/controllers/utils.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "me",
+        "evidenceIds": ["src:api-src-controllers-policies.ts:85-109"],
+        "id": "inv:route:GET:a4611133f594",
+        "method": "GET",
+        "path": "/me/globals",
+        "sourcePath": "api/src/controllers/policies.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-controllers-fields.ts:52-67",
+          "src:api-src-controllers-items.ts:100-120",
+          "src:api-src-controllers-relations.ts:47-62"
+        ],
+        "id": "inv:route:GET:ab966c808808",
+        "method": "GET",
+        "path": "/:param/:param",
+        "sourcePath": "api/src/controllers/fields.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "project",
+        "evidenceIds": ["src:api-src-controllers-deployment.ts:448-487"],
+        "id": "inv:route:GET:aff67a406271",
+        "method": "GET",
+        "path": "/:param/projects/:param/runs/stats",
+        "sourcePath": "api/src/controllers/deployment.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "me",
+        "evidenceIds": [
+          "src:api-src-controllers-permissions.ts:91-106",
+          "src:api-src-controllers-roles.ts:76-104",
+          "src:api-src-controllers-users.ts:88-125"
+        ],
+        "id": "inv:route:GET:b472797cf365",
+        "method": "GET",
+        "path": "/me",
+        "sourcePath": "api/src/controllers/permissions.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "project",
+        "evidenceIds": ["src:api-src-controllers-deployment.ts:155-196"],
+        "id": "inv:route:GET:c4944469dde9",
+        "method": "GET",
+        "path": "/:param/projects/:param",
+        "sourcePath": "api/src/controllers/deployment.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-controllers-access.ts:83-99",
+          "src:api-src-controllers-activity.ts:49-66",
+          "src:api-src-controllers-assets.test.ts:52-62",
+          "src:api-src-controllers-collections.ts:72-86",
+          "src:api-src-controllers-comments.ts:83-97",
+          "src:api-src-controllers-dashboards.ts:76-90",
+          "src:api-src-controllers-deployment.ts:100-119",
+          "src:api-src-controllers-fields.ts:35-50",
+          "src:api-src-controllers-files.ts:246-259",
+          "src:api-src-controllers-flows.ts:108-122",
+          "src:api-src-controllers-folders.ts:85-99",
+          "src:api-src-controllers-items.ts:98-98",
+          "src:api-src-controllers-mcp-oauth-clients.ts:46-59",
+          "src:api-src-controllers-notifications.ts:85-99",
+          "src:api-src-controllers-operations.ts:76-90",
+          "src:api-src-controllers-panels.ts:76-90",
+          "src:api-src-controllers-permissions.ts:108-124",
+          "src:api-src-controllers-policies.ts:111-127",
+          "src:api-src-controllers-presets.ts:85-99",
+          "src:api-src-controllers-relations.ts:30-45",
+          "src:api-src-controllers-revisions.ts:37-51",
+          "src:api-src-controllers-roles.ts:106-120",
+          "src:api-src-controllers-translations.ts:85-99",
+          "src:api-src-controllers-users.ts:127-143",
+          "src:api-src-controllers-versions.ts:86-100",
+          "src:tests-mock-license-server-src-routes-admin.ts:17-26"
+        ],
+        "id": "inv:route:GET:c4cc56a4c8f7",
+        "method": "GET",
+        "path": "/:param",
+        "sourcePath": "api/src/controllers/access.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-app.ts:266-272",
+          "src:api-src-auth-drivers-oauth2.ts:357-399",
+          "src:api-src-auth-drivers-openid.ts:441-492",
+          "src:api-src-auth-drivers-saml.ts:132-154",
+          "src:api-src-controllers-access.ts:80-80",
+          "src:api-src-controllers-activity.ts:47-47",
+          "src:api-src-controllers-auth.ts:254-277",
+          "src:api-src-controllers-collections.ts:69-69",
+          "src:api-src-controllers-comments.ts:80-80",
+          "src:api-src-controllers-dashboards.ts:73-73",
+          "src:api-src-controllers-deployment.ts:96-96",
+          "src:api-src-controllers-extensions.ts:33-46",
+          "src:api-src-controllers-fields.ts:19-33",
+          "src:api-src-controllers-files.ts:243-243",
+          "src:api-src-controllers-flows.ts:105-105",
+          "src:api-src-controllers-folders.ts:82-82",
+          "src:api-src-controllers-license.ts:16-69",
+          "src:api-src-controllers-mcp-index.ts:60-60",
+          "src:api-src-controllers-mcp-oauth-clients.ts:42-42",
+          "src:api-src-controllers-metrics.ts:11-45",
+          "src:api-src-controllers-notifications.ts:82-82",
+          "src:api-src-controllers-operations.ts:73-73",
+          "src:api-src-controllers-panels.ts:73-73",
+          "src:api-src-controllers-permissions.ts:88-88",
+          "src:api-src-controllers-policies.ts:82-82",
+          "src:api-src-controllers-presets.ts:82-82",
+          "src:api-src-controllers-relations.ts:15-28",
+          "src:api-src-controllers-revisions.ts:34-34",
+          "src:api-src-controllers-roles.ts:73-73",
+          "src:api-src-controllers-settings.ts:12-25",
+          "src:api-src-controllers-shares.ts:146-146",
+          "src:api-src-controllers-translations.ts:82-82",
+          "src:api-src-controllers-users.ts:85-85",
+          "src:api-src-controllers-versions.ts:83-83",
+          "src:api-src-middleware-error-handler.test.ts:60-63",
+          "src:packages-extensions-sdk-templates-endpoint-javascript-source-index.js:2-2",
+          "src:packages-extensions-sdk-templates-endpoint-typescript-source-index.ts:4-4",
+          "src:tests-mock-license-server-src-routes-admin.ts:13-15"
+        ],
+        "id": "inv:route:GET:c767025d0edc",
+        "method": "GET",
+        "path": "/",
+        "sourcePath": "api/src/app.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "server",
+        "evidenceIds": ["src:api-src-app.ts:319-319"],
+        "id": "inv:route:GET:c9e8f208f57a",
+        "method": "GET",
+        "path": "/server/ping",
+        "sourcePath": "api/src/app.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "run",
+        "evidenceIds": ["src:api-src-controllers-deployment.ts:495-524"],
+        "id": "inv:route:GET:cd1f28d14183",
+        "method": "GET",
+        "path": "/:param/runs/:param",
+        "sourcePath": "api/src/controllers/deployment.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "spec",
+        "evidenceIds": ["src:api-src-controllers-server.ts:20-32"],
+        "id": "inv:route:GET:d6110158074a",
+        "method": "GET",
+        "path": "/specs/oas",
+        "sourcePath": "api/src/controllers/server.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "robots.txt",
+        "evidenceIds": ["src:api-src-app.ts:274-278"],
+        "id": "inv:route:GET:deae90bdcf4d",
+        "method": "GET",
+        "path": "/robots.txt",
+        "sourcePath": "api/src/app.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "project",
+        "evidenceIds": ["src:api-src-controllers-deployment.ts:122-152"],
+        "id": "inv:route:GET:e5a0bbe96ab3",
+        "method": "GET",
+        "path": "/:param/projects",
+        "sourcePath": "api/src/controllers/deployment.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "portal",
+        "evidenceIds": ["src:api-src-controllers-license.ts:150-160"],
+        "id": "inv:route:GET:ec6fee4221b8",
+        "method": "GET",
+        "path": "/portal",
+        "sourcePath": "api/src/controllers/license.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "option",
+        "evidenceIds": ["src:tests-mock-license-server-src-routes-addons.ts:35-46"],
+        "id": "inv:route:GET:f08639492e73",
+        "method": "GET",
+        "path": "/options",
+        "sourcePath": "tests/mock-license-server/src/routes/addons.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "spec",
+        "evidenceIds": ["src:api-src-controllers-server.ts:36-60"],
+        "id": "inv:route:GET:f45264f3b683",
+        "method": "GET",
+        "path": "/specs/graphql/:param?",
+        "sourcePath": "api/src/controllers/server.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "admin",
+        "evidenceIds": ["src:api-src-app.ts:305-305"],
+        "id": "inv:route:GET:f64704875d46",
+        "method": "GET",
+        "path": "/admin",
+        "sourcePath": "api/src/app.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "addon",
+        "evidenceIds": ["src:api-src-controllers-license.ts:162-174"],
+        "id": "inv:route:GET:f6cbce3bae1c",
+        "method": "GET",
+        "path": "/addons",
+        "sourcePath": "api/src/controllers/license.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": ["src:api-src-controllers-assets.ts:158-470"],
+        "id": "inv:route:GET:fd91224b70ce",
+        "method": "GET",
+        "path": "/:param/:param?",
+        "sourcePath": "api/src/controllers/assets.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "me",
+        "evidenceIds": ["src:api-src-controllers-users.ts:166-183"],
+        "id": "inv:route:PATCH:7f72e003b0e7",
+        "method": "PATCH",
+        "path": "/me/track/page",
+        "sourcePath": "api/src/controllers/users.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "me",
+        "evidenceIds": ["src:api-src-controllers-users.ts:145-164"],
+        "id": "inv:route:PATCH:84e82844fb94",
+        "method": "PATCH",
+        "path": "/me",
+        "sourcePath": "api/src/controllers/users.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-controllers-access.ts:137-161",
+          "src:api-src-controllers-collections.ts:114-138",
+          "src:api-src-controllers-comments.ts:135-159",
+          "src:api-src-controllers-dashboards.ts:128-152",
+          "src:api-src-controllers-deployment.ts:334-375",
+          "src:api-src-controllers-fields.ts:124-171",
+          "src:api-src-controllers-files.ts:297-322",
+          "src:api-src-controllers-flows.ts:160-184",
+          "src:api-src-controllers-folders.ts:137-161",
+          "src:api-src-controllers-items.ts:122-167",
+          "src:api-src-controllers-notifications.ts:137-161",
+          "src:api-src-controllers-operations.ts:128-152",
+          "src:api-src-controllers-panels.ts:128-152",
+          "src:api-src-controllers-permissions.ts:162-186",
+          "src:api-src-controllers-policies.ts:165-189",
+          "src:api-src-controllers-presets.ts:137-161",
+          "src:api-src-controllers-roles.ts:158-182",
+          "src:api-src-controllers-translations.ts:137-161",
+          "src:api-src-controllers-tus.ts:94-94",
+          "src:api-src-controllers-users.ts:221-245",
+          "src:api-src-controllers-versions.ts:138-162",
+          "src:tests-mock-license-server-src-routes-admin.ts:28-38"
+        ],
+        "id": "inv:route:PATCH:9088762c4504",
+        "method": "PATCH",
+        "path": "/:param",
+        "sourcePath": "api/src/controllers/access.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "addon",
+        "evidenceIds": ["src:api-src-controllers-license.ts:176-191"],
+        "id": "inv:route:PATCH:b644bb7b6db9",
+        "method": "PATCH",
+        "path": "/addons/:param",
+        "sourcePath": "api/src/controllers/license.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "project",
+        "evidenceIds": ["src:api-src-controllers-deployment.ts:211-253"],
+        "id": "inv:route:PATCH:bb79e5898428",
+        "method": "PATCH",
+        "path": "/:param/projects",
+        "sourcePath": "api/src/controllers/deployment.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-controllers-access.ts:101-135",
+          "src:api-src-controllers-collections.ts:88-112",
+          "src:api-src-controllers-comments.ts:99-133",
+          "src:api-src-controllers-dashboards.ts:92-126",
+          "src:api-src-controllers-files.ts:261-295",
+          "src:api-src-controllers-flows.ts:124-158",
+          "src:api-src-controllers-folders.ts:101-135",
+          "src:api-src-controllers-license.ts:88-103",
+          "src:api-src-controllers-notifications.ts:101-135",
+          "src:api-src-controllers-operations.ts:92-126",
+          "src:api-src-controllers-panels.ts:92-126",
+          "src:api-src-controllers-permissions.ts:126-160",
+          "src:api-src-controllers-policies.ts:129-163",
+          "src:api-src-controllers-presets.ts:101-135",
+          "src:api-src-controllers-roles.ts:122-156",
+          "src:api-src-controllers-settings.ts:42-66",
+          "src:api-src-controllers-shares.ts:214-248",
+          "src:api-src-controllers-translations.ts:101-135",
+          "src:api-src-controllers-users.ts:185-219",
+          "src:api-src-controllers-versions.ts:102-136",
+          "src:tests-mock-license-server-src-routes-addons.ts:48-82"
+        ],
+        "id": "inv:route:PATCH:e11ce362b3a8",
+        "method": "PATCH",
+        "path": "/",
+        "sourcePath": "api/src/controllers/access.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-controllers-fields.ts:187-231",
+          "src:api-src-controllers-items.ts:169-200",
+          "src:api-src-controllers-relations.ts:120-151"
+        ],
+        "id": "inv:route:PATCH:ed5415769a70",
+        "method": "PATCH",
+        "path": "/:param/:param",
+        "sourcePath": "api/src/controllers/fields.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "export",
+        "evidenceIds": ["src:api-src-controllers-utils.ts:145-172"],
+        "id": "inv:route:POST:031bd47d1f3e",
+        "method": "POST",
+        "path": "/export/:param",
+        "sourcePath": "api/src/controllers/utils.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-controllers-deployment-webhooks.ts:15-120",
+          "src:api-src-controllers-fields.ts:86-122",
+          "src:api-src-controllers-items.ts:18-62"
+        ],
+        "id": "inv:route:POST:0a00fef7e903",
+        "method": "POST",
+        "path": "/:param",
+        "sourcePath": "api/src/controllers/deployment-webhooks.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "refresh",
+        "evidenceIds": ["src:api-src-controllers-auth.ts:105-154"],
+        "id": "inv:route:POST:15539d5ff2be",
+        "method": "POST",
+        "path": "/refresh",
+        "sourcePath": "api/src/controllers/auth.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "invite",
+        "evidenceIds": [
+          "src:api-src-controllers-shares.ts:74-93",
+          "src:api-src-controllers-users.ts:291-315"
+        ],
+        "id": "inv:route:POST:172574abefde",
+        "method": "POST",
+        "path": "/invite",
+        "sourcePath": "api/src/controllers/shares.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "me",
+        "evidenceIds": ["src:api-src-controllers-users.ts:407-433"],
+        "id": "inv:route:POST:28c2ae692658",
+        "method": "POST",
+        "path": "/me/tfa/disable",
+        "sourcePath": "api/src/controllers/users.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "register",
+        "evidenceIds": ["src:api-src-controllers-users.ts:465-478"],
+        "id": "inv:route:POST:3364d6b06ae9",
+        "method": "POST",
+        "path": "/register",
+        "sourcePath": "api/src/controllers/users.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "revert",
+        "evidenceIds": ["src:api-src-controllers-utils.ts:72-84"],
+        "id": "inv:route:POST:353ffcebfe21",
+        "method": "POST",
+        "path": "/revert/:param",
+        "sourcePath": "api/src/controllers/utils.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "callback",
+        "evidenceIds": [
+          "src:api-src-auth-drivers-oauth2.ts:401-408",
+          "src:api-src-auth-drivers-openid.ts:494-501"
+        ],
+        "id": "inv:route:POST:382d5abd1583",
+        "method": "POST",
+        "path": "/callback",
+        "sourcePath": "api/src/auth/drivers/oauth2.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "registry",
+        "evidenceIds": ["src:api-src-controllers-extensions.ts:208-230"],
+        "id": "inv:route:POST:412420aeb987",
+        "method": "POST",
+        "path": "/registry/reinstall",
+        "sourcePath": "api/src/controllers/extensions.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "apply",
+        "evidenceIds": ["src:api-src-controllers-schema.ts:81-92"],
+        "id": "inv:route:POST:44ac146b622b",
+        "method": "POST",
+        "path": "/apply",
+        "sourcePath": "api/src/controllers/schema.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "preview",
+        "evidenceIds": ["src:api-src-controllers-license.ts:118-148"],
+        "id": "inv:route:POST:62f4af49717a",
+        "method": "POST",
+        "path": "/preview",
+        "sourcePath": "api/src/controllers/license.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "project",
+        "evidenceIds": ["src:api-src-controllers-deployment.ts:300-331"],
+        "id": "inv:route:POST:64f6f0e1f6f9",
+        "method": "POST",
+        "path": "/:param/projects/:param/deploy",
+        "sourcePath": "api/src/controllers/deployment.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "run",
+        "evidenceIds": ["src:api-src-controllers-deployment.ts:527-549"],
+        "id": "inv:route:POST:657a6fd29f68",
+        "method": "POST",
+        "path": "/:param/runs/:param/cancel",
+        "sourcePath": "api/src/controllers/deployment.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "ac",
+        "evidenceIds": ["src:api-src-auth-drivers-saml.ts:174-240"],
+        "id": "inv:route:POST:6689bdb0cdc6",
+        "method": "POST",
+        "path": "/acs",
+        "sourcePath": "api/src/auth/drivers/saml.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "password",
+        "evidenceIds": ["src:api-src-controllers-auth.ts:196-226"],
+        "id": "inv:route:POST:6ec920eefd20",
+        "method": "POST",
+        "path": "/password/request",
+        "sourcePath": "api/src/controllers/auth.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "registry",
+        "evidenceIds": ["src:api-src-controllers-extensions.ts:184-206"],
+        "id": "inv:route:POST:7009f1b9a6bc",
+        "method": "POST",
+        "path": "/registry/install",
+        "sourcePath": "api/src/controllers/extensions.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "resolve-redirect",
+        "evidenceIds": ["src:api-src-controllers-utils.ts:213-234"],
+        "id": "inv:route:POST:7457f02d41d5",
+        "method": "POST",
+        "path": "/resolve-redirect",
+        "sourcePath": "api/src/controllers/utils.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "root",
+        "evidenceIds": [
+          "src:api-src-auth-drivers-ldap.ts:439-495",
+          "src:api-src-auth-drivers-local.ts:63-119",
+          "src:api-src-controllers-access.ts:16-53",
+          "src:api-src-controllers-collections.ts:12-42",
+          "src:api-src-controllers-comments.ts:16-53",
+          "src:api-src-controllers-dashboards.ts:16-53",
+          "src:api-src-controllers-deployment.ts:42-74",
+          "src:api-src-controllers-files.ts:133-176",
+          "src:api-src-controllers-flows.ts:48-85",
+          "src:api-src-controllers-folders.ts:16-53",
+          "src:api-src-controllers-license.ts:71-86",
+          "src:api-src-controllers-mcp-index.ts:62-62",
+          "src:api-src-controllers-notifications.ts:16-53",
+          "src:api-src-controllers-operations.ts:16-53",
+          "src:api-src-controllers-panels.ts:16-53",
+          "src:api-src-controllers-permissions.ts:18-55",
+          "src:api-src-controllers-policies.ts:18-55",
+          "src:api-src-controllers-presets.ts:16-53",
+          "src:api-src-controllers-relations.ts:76-106",
+          "src:api-src-controllers-roles.ts:16-53",
+          "src:api-src-controllers-shares.ts:95-132",
+          "src:api-src-controllers-translations.ts:16-53",
+          "src:api-src-controllers-tus.ts:93-93",
+          "src:api-src-controllers-users.ts:28-65",
+          "src:api-src-controllers-versions.ts:17-54",
+          "src:tests-mock-license-server-src-routes-activate.ts:18-70",
+          "src:tests-mock-license-server-src-routes-admin.ts:7-11",
+          "src:tests-mock-license-server-src-routes-deactivate.ts:6-22",
+          "src:tests-mock-license-server-src-routes-portal.ts:7-23",
+          "src:tests-mock-license-server-src-routes-preview.ts:16-37",
+          "src:tests-mock-license-server-src-routes-refresh.ts:28-42",
+          "src:tests-mock-license-server-src-routes-update.ts:19-50"
+        ],
+        "id": "inv:route:POST:7571cce85568",
+        "method": "POST",
+        "path": "/",
+        "sourcePath": "api/src/auth/drivers/ldap.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "import",
+        "evidenceIds": ["src:api-src-controllers-utils.ts:86-106"],
+        "id": "inv:route:POST:78ce6b4733a2",
+        "method": "POST",
+        "path": "/import/:param",
+        "sourcePath": "api/src/controllers/utils.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "import",
+        "evidenceIds": [
+          "src:api-src-controllers-files.ts:184-214",
+          "src:api-src-controllers-utils.ts:117-143"
+        ],
+        "id": "inv:route:POST:795f809762cd",
+        "method": "POST",
+        "path": "/import",
+        "sourcePath": "api/src/controllers/files.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "setup",
+        "evidenceIds": ["src:api-src-controllers-server.ts:118-164"],
+        "id": "inv:route:POST:8786186b8d08",
+        "method": "POST",
+        "path": "/setup",
+        "sourcePath": "api/src/controllers/server.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "me",
+        "evidenceIds": ["src:api-src-controllers-users.ts:380-405"],
+        "id": "inv:route:POST:8fac2ea32833",
+        "method": "POST",
+        "path": "/me/tfa/enable",
+        "sourcePath": "api/src/controllers/users.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "file",
+        "evidenceIds": ["src:api-src-controllers-assets.ts:89-156"],
+        "id": "inv:route:POST:95037ffa1712",
+        "method": "POST",
+        "path": "/files",
+        "sourcePath": "api/src/controllers/assets.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "tfa",
+        "evidenceIds": ["src:api-src-controllers-users.ts:435-455"],
+        "id": "inv:route:POST:976a1627753a",
+        "method": "POST",
+        "path": "/:param/tfa/disable",
+        "sourcePath": "api/src/controllers/users.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "promote",
+        "evidenceIds": ["src:api-src-controllers-versions.ts:259-277"],
+        "id": "inv:route:POST:98e5d747d239",
+        "method": "POST",
+        "path": "/:param/promote",
+        "sourcePath": "api/src/controllers/versions.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "invite",
+        "evidenceIds": ["src:api-src-controllers-users.ts:322-337"],
+        "id": "inv:route:POST:9ba2cd92e47d",
+        "method": "POST",
+        "path": "/invite/accept",
+        "sourcePath": "api/src/controllers/users.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "save",
+        "evidenceIds": ["src:api-src-controllers-versions.ts:230-257"],
+        "id": "inv:route:POST:a20e777fc7f4",
+        "method": "POST",
+        "path": "/:param/save",
+        "sourcePath": "api/src/controllers/versions.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "resolve",
+        "evidenceIds": ["src:api-src-controllers-license.ts:223-240"],
+        "id": "inv:route:POST:a943181395f7",
+        "method": "POST",
+        "path": "/resolve",
+        "sourcePath": "api/src/controllers/license.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "owner",
+        "evidenceIds": ["src:api-src-controllers-settings.ts:27-40"],
+        "id": "inv:route:POST:ae0c000a090a",
+        "method": "POST",
+        "path": "/owner",
+        "sourcePath": "api/src/controllers/settings.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "diff",
+        "evidenceIds": ["src:api-src-controllers-schema.ts:54-79"],
+        "id": "inv:route:POST:bd5ed012abaa",
+        "method": "POST",
+        "path": "/diff",
+        "sourcePath": "api/src/controllers/schema.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "folder",
+        "evidenceIds": ["src:api-src-controllers-assets.ts:34-87"],
+        "id": "inv:route:POST:c319b9aaea76",
+        "method": "POST",
+        "path": "/folder/:param",
+        "sourcePath": "api/src/controllers/assets.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "me",
+        "evidenceIds": ["src:api-src-controllers-users.ts:339-378"],
+        "id": "inv:route:POST:d732a983264f",
+        "method": "POST",
+        "path": "/me/tfa/generate",
+        "sourcePath": "api/src/controllers/users.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "cache",
+        "evidenceIds": ["src:api-src-controllers-utils.ts:197-211"],
+        "id": "inv:route:POST:e1a49fb9e4a0",
+        "method": "POST",
+        "path": "/cache/clear",
+        "sourcePath": "api/src/controllers/utils.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "translation",
+        "evidenceIds": ["src:api-src-controllers-utils.ts:174-195"],
+        "id": "inv:route:POST:f36bc09a6dd4",
+        "method": "POST",
+        "path": "/translations/generate",
+        "sourcePath": "api/src/controllers/utils.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "logout",
+        "evidenceIds": [
+          "src:api-src-auth-drivers-saml.ts:156-172",
+          "src:api-src-controllers-auth.ts:156-194"
+        ],
+        "id": "inv:route:POST:f3d241b8db5d",
+        "method": "POST",
+        "path": "/logout",
+        "sourcePath": "api/src/auth/drivers/saml.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "auth",
+        "evidenceIds": ["src:api-src-controllers-shares.ts:26-67"],
+        "id": "inv:route:POST:f44ec56e2693",
+        "method": "POST",
+        "path": "/auth",
+        "sourcePath": "api/src/controllers/shares.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "sort",
+        "evidenceIds": ["src:api-src-controllers-utils.ts:54-70"],
+        "id": "inv:route:POST:f54b0838fec6",
+        "method": "POST",
+        "path": "/sort/:param",
+        "sourcePath": "api/src/controllers/utils.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "pending-resolution",
+        "evidenceIds": ["src:api-src-controllers-license.ts:206-221"],
+        "id": "inv:route:POST:f62aae69764a",
+        "method": "POST",
+        "path": "/pending-resolution",
+        "sourcePath": "api/src/controllers/license.ts",
+        "surface": "route"
+      },
+      {
+        "domainHint": "password",
+        "evidenceIds": ["src:api-src-controllers-auth.ts:228-252"],
+        "id": "inv:route:POST:fa983b6d370b",
+        "method": "POST",
+        "path": "/password/reset",
+        "sourcePath": "api/src/controllers/auth.ts",
+        "surface": "route"
+      }
+    ]
+  },
+  "requestId": "intent-proposer-directus-g3-run3"
+}
