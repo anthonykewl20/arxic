@@ -1,0 +1,14 @@
+{
+  "at": "2026-08-19T13:39:27.352Z",
+  "ceilingUsd": 0.0001,
+  "cumulativeUsd": 0,
+  "detail": "remaining headroom $0.000100 is below the estimated run cost $0.020237; zero model calls placed",
+  "estimateUsd": 0.0202368,
+  "kind": "dg11-validation-refusal-v1",
+  "reason": "budget-ceiling",
+  "remainingUsd": 0.0001,
+  "runId": "dg11-g4-proof-directus",
+  "schemaVersion": 1,
+  "target": { "name": "directus" },
+  "upstreamCallsPlaced": 0
+}
