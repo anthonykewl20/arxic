@@ -437,7 +437,86 @@
   },
   "events": [],
   "groundednessSpotCheck": {
-    "status": "pending",
-    "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+    "status": "completed",
+    "sampledAt": "2026-08-20T16:46:28Z",
+    "numerator": 15,
+    "denominator": 15,
+    "verdicts": [
+      {
+        "proposalId": "prop:12a09cf6a26d1d83",
+        "verdict": "grounded",
+        "note": "grader quote \"const runs = await runsService.readByQuery(query);\" @ api/src/controllers/deployment.ts:431 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:3320b0fc6e75f77a",
+        "verdict": "grounded",
+        "note": "grader quote \"const result = await fetchAccountabilityCollectionAccess(req.accountability, {\" @ api/src/controllers/permissions.ts:97 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:761a75ccacfc56e1",
+        "verdict": "grounded",
+        "note": "grader quote \"await authService.login(providerName, extract.attributes, {\" @ api/src/auth/drivers/saml.ts:199 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:cee9ecb62c50255c",
+        "verdict": "grounded",
+        "note": "grader quote \"await licenseManager.removeAddon(req.params['id']!);\" @ api/src/controllers/license.ts:199 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:fc378207cc988079",
+        "verdict": "grounded",
+        "note": "grader quote \"payload = await list(query, options);\" @ api/src/controllers/extensions.ts:111 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:1eb176ca66b9b067",
+        "verdict": "grounded",
+        "note": "grader quote \"app.get('/admin', sendHtml);\" @ api/src/app.ts:305 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:86d1c8a89cd6ef0c",
+        "verdict": "grounded",
+        "note": "grader quote \"router.get( '/callback',\" @ api/src/auth/drivers/oauth2.ts:410 (mechanically verified: router.get( @410, '/callback', @411)"
+      },
+      {
+        "proposalId": "prop:ac3f30f45f5c8d1d",
+        "verdict": "grounded",
+        "note": "grader quote \"const data = await service.getDashboard(provider, sinceDate);\" @ api/src/controllers/deployment.ts:284 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:3a327ed5bb537971",
+        "verdict": "grounded",
+        "note": "grader quote \"await service.import(req.params['collection']!, mimetype, stream, {\" @ api/src/controllers/utils.ts:100 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:dc3b566836a3bdcf",
+        "verdict": "grounded",
+        "note": "grader quote \"await service.invite(req.body);\" @ api/src/controllers/shares.ts:88 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:149b9e9c54dfd9d1",
+        "verdict": "grounded",
+        "note": "grader quote \"await service.requestPasswordReset(req.body.email, req.body.reset_url || null);\" @ api/src/controllers/auth.ts:214 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:681baada304a2bff",
+        "verdict": "grounded",
+        "note": "grader quote \"const id = await service.verifyRegistration(value);\" @ api/src/controllers/users.ts:492 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:fa0bc36cadad125a",
+        "verdict": "grounded",
+        "note": "grader quote \"const data = await service.getRunWithLogs(provider, runId, value.since);\" @ api/src/controllers/deployment.ts:516 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:19acb8ff8f130ff1",
+        "verdict": "grounded",
+        "note": "grader quote \"const chunk = req.params['chunk'] as string;\" @ api/src/controllers/extensions.ts:322 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:83aac7e4e0113247",
+        "verdict": "grounded",
+        "note": "grader quote \"res.locals['payload'] = await service.oas.generate(req.headers.host);\" @ api/src/controllers/server.ts:28 (mechanically verified at exact line)"
+      }
+    ]
   }
 }

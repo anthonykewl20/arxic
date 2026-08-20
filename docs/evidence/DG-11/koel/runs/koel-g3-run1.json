@@ -413,7 +413,86 @@
   },
   "events": [],
   "groundednessSpotCheck": {
-    "status": "pending",
-    "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+    "status": "completed",
+    "sampledAt": "2026-08-20T16:46:28Z",
+    "numerator": 13,
+    "denominator": 15,
+    "verdicts": [
+      {
+        "proposalId": "prop:bd1b2881ccb7ec17",
+        "verdict": "ungrounded",
+        "note": "grader: cited routes/subsonic.php:116 is the generic Route::match loop over Subsonic endpoints — nothing song-discovery-specific grounds the claimed intent (quote verified at exact line)"
+      },
+      {
+        "proposalId": "prop:ae9957122f24943f",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::delete('songs', [SongController::class, 'destroy']);\" @ routes/api.base.php:172 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:f33a181cc2a00a74",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::get('artist/{artist}', DownloadArtistController::class);\" @ routes/web.base.php:59 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:e2ed96c4486a3a78",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::delete('playlists/{playlist}/songs', [PlaylistSongController::class, 'destroy']);\" @ routes/api.base.php:223 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:6be4a456b3479e43",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::apiResource('playlist-folders', PlaylistFolderController::class);\" @ routes/api.base.php:211 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:f767b5ecbe204d62",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::apiResource('albums.songs', AlbumSongController::class);\" @ routes/api.base.php:158 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:67d68672332ae23b",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::apiResource('artists.songs', ArtistSongController::class);\" @ routes/api.base.php:163 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:c86ac90585bb1048",
+        "verdict": "ungrounded",
+        "note": "grader: routes/api.base.php:112 routes DELETE 'me' to LogoutController (logout), which does not delete the user account (quote verified at exact line)"
+      },
+      {
+        "proposalId": "prop:f44d5e22ec6a84c3",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::delete('podcasts/{podcast}/subscriptions', UnsubscribeFromPodcastController::class);\" @ routes/api.base.php:292 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:e83c42418a2caf69",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::apiResource('stations', RadioStationController::class);\" @ routes/api.base.php:300 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:1fb74e6f29fd3ef2",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::apiResource('users', UserController::class)->except('show');\" @ routes/api.base.php:232 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:2d6b9443885d33c7",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::delete('favorites', [FavoriteController::class, 'destroy']);\" @ routes/api.base.php:200 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:007c58a1d26840d2",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::get('genres/{genre?}/songs', PaginateSongsByGenreController::class);\" @ routes/api.base.php:227 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:12e88063be31de01",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::post('interaction/batch/unlike', UnlikeMultipleSongsController::class);\" @ routes/api.base.php:195 (mechanically verified at exact line)"
+      },
+      {
+        "proposalId": "prop:b121daa68faeb1b0",
+        "verdict": "grounded",
+        "note": "grader quote \"Route::delete('invitations', [UserInvitationController::class, 'revoke']);\" @ routes/api.base.php:275 (mechanically verified at exact line)"
+      }
+    ]
   }
 }
