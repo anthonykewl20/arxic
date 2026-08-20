@@ -11,6 +11,7 @@ export const workspaceRoot = resolve(import.meta.dirname, '../../../..');
 export const packDirs = [
   join(workspaceRoot, 'rulepacks/nextjs'),
   join(workspaceRoot, 'rulepacks/express'),
+  join(workspaceRoot, 'rulepacks/laravel'),
 ];
 const env = {
   ...process.env,

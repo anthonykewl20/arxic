@@ -7,16 +7,14 @@
 #   DG11-CLONE-COMMIT                 -> the ratified pin (decision 3)
 # This file is never consumed as-is.
 #
-# ⚠ FINDING (posted on #255 per contract C-5): `scope.frameworks` is REQUIRED
-# non-empty by config validation, NO laravel rulepack exists (only express /
-# nextjs / react under rulepacks/), and a declared framework without an
-# installed pack hard-blocks the run (ARXIC-RULES-FRAMEWORK-UNKNOWN, default
-# severity 'blocked'). A truthful `frameworks: [laravel]` therefore CANNOT
-# pass today. `express` below is the documented workaround: the pack exists,
-# the gate verdict for it on a PHP repo is UNDETECTED (non-blocking; version
-# enforcement simply does not apply), and express rules are inert on PHP
-# sources. Replace with [laravel] once the laravel pack lands (FINDING
-# follow-up issue).
+# ✅ RESOLVED (follow-up #283): the `laravel-auth` rulepack now ships
+# (rulepacks/laravel, pack range >=13 <14), so this template declares the
+# truthful `frameworks: [laravel]`. The DG-10 gate detects koel's Laravel
+# version from composer.lock evidence (13.24.0 at the ratified pin — lockfile
+# tier) and accepts it inside the pack range
+# (ARXIC-RULES-FRAMEWORK-ACCEPTED, observed). The pre-#283 `express`
+# workaround documented in this file's history is retired; range enforcement,
+# severities, and waiver semantics are unchanged from the DG-10 contract.
 version: 1
 source:
   repository: DG11-CLONE-PATH
@@ -24,7 +22,7 @@ source:
   languages: [php]
 scope:
   domains: [authentication]
-  frameworks: [express]
+  frameworks: [laravel]
   browsers: [chromium]
   personas: [anonymous, registered-user]
 target:

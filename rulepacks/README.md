@@ -8,6 +8,7 @@ ADR-008 Decision 9):
 | -------------- | --------- | ------------------------ |
 | `nextjs-auth`  | `nextjs`  | `>=15 <17`               |
 | `express-auth` | `express` | `>=4 <6`                 |
+| `laravel-auth` | `laravel` | `>=13 <14`               |
 | `react`        | —         | placeholder, no pack yet |
 
 A directory without a readable `pack.json` is not an installed pack; naming its

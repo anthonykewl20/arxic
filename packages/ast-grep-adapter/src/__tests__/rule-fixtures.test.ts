@@ -28,6 +28,7 @@ const expectedFields: Record<string, string> = {
   'express-mail-transport': 'MESSAGE',
   'express-session-cookie': 'NAME',
   'express-totp-verify': 'TOKEN',
+  'laravel-route': 'PATH',
 };
 
 const realCases: Record<string, { positive: string; negative: string }> = {

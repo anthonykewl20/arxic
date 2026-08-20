@@ -232,10 +232,11 @@ php artisan serve --host=127.0.0.1 --port=8000 &
 ```
 
 Set `ARXIC_DG11_TARGET_APP_ORIGIN=http://127.0.0.1:8000`. `.env` and the
-sqlite file are gitignored. **Read the koel template's FINDING notice first**
-(`koel/arxic.yaml`): the truthful `laravel` framework declaration is blocked
-today by the missing rulepack — the template documents the `express`
-workaround and the follow-up.
+sqlite file are gitignored. The koel template declares the truthful
+`frameworks: [laravel]`: the `laravel-auth` rulepack shipped (follow-up #283),
+and the DG-10 gate accepts koel's composer.lock-resolved Laravel 13.24.0
+inside the pack range `>=13 <14` (the pre-#283 `express` workaround is
+retired; see the resolved notice in `koel/arxic.yaml`).
 
 ## Single-runner discipline (accepted residual)
 

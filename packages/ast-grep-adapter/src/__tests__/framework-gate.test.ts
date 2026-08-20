@@ -218,22 +218,24 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
     expect(result.matches).toEqual([]);
   });
 
-  it('cell 3 — unknown framework: laravel has no rulepack, so selection fails fast with a path-free diagnostic', async () => {
+  it('cell 3 — unknown framework: symfony has no rulepack, so selection fails fast with a path-free diagnostic (C-6; laravel was this cell before #283 shipped the pack)', async () => {
     const repo = await makeRepository(undefined, {
       'app/login/page.tsx':
         'export default async function LoginPage() {\n  return <main>login</main>;\n}\n',
     });
     const result = await new AstGrepAdapter({ packs: packDirs }).scan({
       revision: repo.revision,
-      framework: 'laravel',
+      framework: 'symfony',
     });
     const diagnostics = diagnosticsOf(result.events);
     const unknown = diagnostics.find(
       (diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_UNKNOWN,
     );
-    expect(unknown).toMatchObject({ severity: 'blocked', subject: 'framework:laravel' });
+    expect(unknown).toMatchObject({ severity: 'blocked', subject: 'framework:symfony' });
+    // the available list now names all three shipped packs, laravel included
     expect(unknown?.message).toContain('nextjs');
     expect(unknown?.message).toContain('express');
+    expect(unknown?.message).toContain('laravel');
     expect(JSON.stringify(diagnostics)).not.toContain(workspaceRoot);
     expect(result.matches).toEqual([]);
   });
@@ -244,14 +246,14 @@ describe('Decision 9 four-cell matrix: framework+version detection enforces pack
         'export default async function LoginPage() {\n  return <main>login</main>;\n}\n',
     });
     const result = await new AstGrepAdapter({
-      packs: [join(workspaceRoot, 'rulepacks/laravel')],
-    }).scan({ revision: repo.revision, framework: 'laravel' });
+      packs: [join(workspaceRoot, 'rulepacks/symfony')],
+    }).scan({ revision: repo.revision, framework: 'symfony' });
     const diagnostics = diagnosticsOf(result.events);
     expect(
       diagnostics.some(
         (diagnostic) =>
           diagnostic.code === ARXIC_RULES_FRAMEWORK_UNKNOWN &&
-          diagnostic.subject === 'framework:laravel',
+          diagnostic.subject === 'framework:symfony',
       ),
     ).toBe(true);
     expect(JSON.stringify(diagnostics)).not.toContain(join(workspaceRoot, 'rulepacks'));
@@ -587,33 +589,119 @@ describe('real third-party evidence: koel (Laravel 13) at the DG-05-pinned commi
     expect(laravel?.evidence[0]?.path).toBe('composer.lock');
   });
 
-  it('a laravel pack declaring >=13 <14 accepts koel; the shipped packs list has no laravel pack (issue scenario)', async () => {
-    const parent = await mkdtemp(join(tmpdir(), 'arxic-fw-koel-'));
-    const pack = await writePack(parent, 'laravel-auth', 'laravel-route', false, {
-      name: 'laravel',
-      versions: '>=13 <14',
-    });
+  it('the shipped laravel-auth pack accepts koel: 13.24.0 lockfile evidence inside >=13 <14 (issue #283 flip of the issue scenario)', async () => {
     const repo = await makeRepository(undefined, await koelFiles());
-    const accepted = await new AstGrepAdapter({ packs: [pack] }).scan({
+    const result = await new AstGrepAdapter({ packs: packDirs }).scan({
       revision: repo.revision,
       framework: 'laravel',
     });
+    const diagnostics = diagnosticsOf(result.events);
+    const accepted = diagnostics.find(
+      (diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_ACCEPTED,
+    );
+    expect(accepted).toMatchObject({ severity: 'observed', subject: 'framework:laravel' });
+    expect(accepted?.message).toContain('13.24.0');
+    expect(accepted?.message).toContain('lockfile');
+    expect(accepted?.message).toContain('laravel-auth@0.1.0');
+    expect(accepted?.message).toContain('>=13 <14');
+    expect(diagnostics.some((diagnostic) => diagnostic.severity === 'blocked')).toBe(false);
+    expect(result.events).toContainEqual(
+      expect.objectContaining({ ref: expect.objectContaining({ path: 'composer.lock' }) }),
+    );
+  });
+
+  it('SP-2 — frameworks: laravel with no laravel version evidence stays UNDETECTED and non-blocking', async () => {
+    const repo = await makeRepository(undefined, { 'src/index.ts': 'export const ok = true;\n' });
+    const result = await new AstGrepAdapter({ packs: packDirs }).scan({
+      revision: repo.revision,
+      framework: 'laravel',
+    });
+    const diagnostics = diagnosticsOf(result.events);
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_RULES_FRAMEWORK_UNDETECTED,
+        severity: 'observed',
+        subject: 'framework:laravel',
+      }),
+    );
+    expect(diagnostics.some((diagnostic) => diagnostic.severity === 'blocked')).toBe(false);
+  });
+
+  it('SP-3 — laravel v14.0.0 locked against the shipped >=13 <14 pack is rejected blocked', async () => {
+    const repo = await makeRepository(undefined, {
+      'composer.lock': JSON.stringify(
+        { packages: [{ name: 'laravel/framework', version: 'v14.0.0' }] },
+        undefined,
+        2,
+      ),
+    });
+    const result = await new AstGrepAdapter({ packs: packDirs }).scan({
+      revision: repo.revision,
+      framework: 'laravel',
+    });
+    const rejected = diagnosticsOf(result.events).find(
+      (diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_REJECTED,
+    );
+    expect(rejected).toMatchObject({ severity: 'blocked', subject: 'framework:laravel' });
+    expect(rejected?.message).toContain('14.0.0');
+    expect(rejected?.message).toContain('laravel-auth@0.1.0');
+    expect(rejected?.message).toContain('>=13 <14');
+    expect(result.matches).toEqual([]);
+  });
+
+  it('SP-4 — an exact framework+version+current-range waiver waives the laravel v14 rejection; a malformed waiver file fails closed', async () => {
+    const waiver = {
+      version: 1,
+      frameworkWaivers: [
+        {
+          framework: 'laravel',
+          version: '14.0.0',
+          packVersionRange: '>=13 <14',
+          reason: 'operator reviewed laravel-auth rules against Laravel 14',
+          approvedBy: 'anthonykewl20',
+          recordedAt: '2026-08-20T00:00:00.000Z',
+        },
+      ],
+    };
+    const files = {
+      'composer.lock': JSON.stringify(
+        { packages: [{ name: 'laravel/framework', version: 'v14.0.0' }] },
+        undefined,
+        2,
+      ),
+    };
+    const waivedRepo = await makeRepository(undefined, {
+      ...files,
+      'arxic.waivers.json': JSON.stringify(waiver, undefined, 2),
+    });
+    const waived = await new AstGrepAdapter({ packs: packDirs }).scan({
+      revision: waivedRepo.revision,
+      framework: 'laravel',
+    });
+    const waivedDiagnostic = diagnosticsOf(waived.events).find(
+      (diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_WAIVED,
+    );
+    expect(waivedDiagnostic).toMatchObject({ severity: 'observed', subject: 'framework:laravel' });
+    expect(waivedDiagnostic?.message).toContain('anthonykewl20');
+    expect(waivedDiagnostic?.message).toContain('14.0.0');
     expect(
-      diagnosticsOf(accepted.events).some(
+      diagnosticsOf(waived.events).some((diagnostic) => diagnostic.severity === 'blocked'),
+    ).toBe(false);
+
+    const malformedRepo = await makeRepository(undefined, {
+      ...files,
+      'arxic.waivers.json': '{ not json',
+    });
+    const malformed = await new AstGrepAdapter({ packs: packDirs }).scan({
+      revision: malformedRepo.revision,
+      framework: 'laravel',
+    });
+    expect(
+      diagnosticsOf(malformed.events).some(
         (diagnostic) =>
-          diagnostic.code === ARXIC_RULES_FRAMEWORK_ACCEPTED &&
-          diagnostic.message.includes('13.24.0'),
+          diagnostic.code === ARXIC_RULES_WAIVER_INVALID && diagnostic.severity === 'blocked',
       ),
     ).toBe(true);
-    const unknown = await new AstGrepAdapter({ packs: packDirs }).scan({
-      revision: repo.revision,
-      framework: 'laravel',
-    });
-    expect(
-      diagnosticsOf(unknown.events).some(
-        (diagnostic) => diagnostic.code === ARXIC_RULES_FRAMEWORK_UNKNOWN,
-      ),
-    ).toBe(true);
-    expect(unknown.matches).toEqual([]);
+    expect(malformed.matches).toEqual([]);
   });
 });
