@@ -174,6 +174,13 @@ export type OrchestratorInput = Readonly<{
   personas?: readonly string[];
   maxUrls?: number;
   maxDepth?: number;
+  /**
+   * DG-289 C-4 (#289, DECISION issuecomment-5360240026): config-declared
+   * `target.allowedOrigins` — flows to the crawl origin gate (stage 5) and
+   * the exploration PolicyEngine origin list (stage 6). Fail-closed default
+   * when unset/empty: target origin only.
+   */
+  allowedOrigins?: readonly string[];
   appBuildDigest?: string;
   expectedNonce?: string;
   requireExplorationApproval?: boolean;
@@ -973,6 +980,12 @@ export class LangGraphOrchestrator {
       ...(input.maxDepth === undefined ? {} : { maxDepth: input.maxDepth }),
       ...(input.personas ? { personas: [...input.personas] } : {}),
       ...(input.appBuildDigest ? { appBuildDigest: input.appBuildDigest } : {}),
+      // DG-289 C-4 (#289): declared allowedOrigins flow into the crawl
+      // origin gate; unset/empty omits the field and the gate stays
+      // fail-closed to the target origin (byte-identical baseline).
+      ...(input.allowedOrigins && input.allowedOrigins.length > 0
+        ? { allowedOrigins: [...input.allowedOrigins] }
+        : {}),
     });
     const blocked = result.diagnostics.some((diagnostic) => diagnosticBlocksStage(5, diagnostic));
     return {
@@ -1076,6 +1089,9 @@ export class LangGraphOrchestrator {
       origin: input.origin,
       ...(input.appBuildDigest ? { appBuildDigest: input.appBuildDigest } : {}),
       candidates: inference.candidates,
+      ...(input.allowedOrigins && input.allowedOrigins.length > 0
+        ? { allowedOrigins: [...input.allowedOrigins] }
+        : {}),
       ...(leases.length > 0 ? { leases, now: this.#now } : { now: this.#now }),
       ...(approval ? { approval } : {}),
       ...(this.#options.explorationDriver ? { driver: this.#options.explorationDriver } : {}),

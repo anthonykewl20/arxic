@@ -21,6 +21,7 @@ import {
   installedChromiumVersion,
   runFallback,
 } from '..';
+import { elementIdentityProbe } from '../exploration-driver';
 import { loginWorkflow } from './workflow-fixture';
 
 const execute = promisify(execFile);
@@ -170,6 +171,29 @@ describe('real Playwright agent and Chromium proof', () => {
     expect(result.output).toContain('ARXIC_BROWSER_VERSION:fake');
     expect(await installedChromiumVersion()).not.toBe('fake');
   }, 120_000);
+
+  // DG-289 (#289, C-1): the trusted referential-identity probe serialized
+  // into the page by the exploration driver must stay serialization-safe
+  // (no named inner functions, no closure captures) and must evaluate in a
+  // real page — at baseline product code the tsx lane injected `__name`
+  // into serialized callbacks and killed every such evaluation.
+  it('evaluates the serialization-safe element-identity probe in real Chromium', async () => {
+    expect(String(elementIdentityProbe)).not.toContain('__name');
+    const { chromium } = await import('@playwright/test');
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const page = await browser.newPage();
+      await page.goto(origin);
+      const heading = await page.locator('h1').first().elementHandle();
+      const alias = await page.locator('h1').nth(0).elementHandle();
+      const other = await page.locator('body').first().elementHandle();
+      if (!heading || !alias || !other) throw new Error('reference app handles missing');
+      expect(await page.evaluate(elementIdentityProbe, [heading, alias])).toBe(true);
+      expect(await page.evaluate(elementIdentityProbe, [heading, other])).toBe(false);
+    } finally {
+      await browser.close();
+    }
+  }, 60_000);
 });
 
 async function freePort(): Promise<number> {

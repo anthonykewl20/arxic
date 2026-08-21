@@ -106,6 +106,15 @@ export function toOrchestratorInput(request: RunRequest): OrchestratorInput {
     personas: request.config.scope.personas,
     maxUrls: request.config.policy.maxUrls,
     maxDepth: request.config.policy.maxDepth,
+    // DG-289 C-4 (#289, DECISION issuecomment-5360240026): config-declared
+    // target.allowedOrigins flows into the runtime origin gates (crawl
+    // origin gate + exploration PolicyEngine). Validation requires the field
+    // for CLI configs, but programmatic RunRequest callers may omit it — the
+    // conditional spread keeps that path fail-closed downstream (gates
+    // default to the target origin only) instead of crashing here.
+    ...(request.config.target.allowedOrigins?.length
+      ? { allowedOrigins: [...request.config.target.allowedOrigins] }
+      : {}),
   };
 }
 

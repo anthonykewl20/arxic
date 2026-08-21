@@ -91,6 +91,13 @@ export type ExplorationPlan = Readonly<{ steps: readonly PlanStep[] }>;
 export type ExplorationInput = Readonly<{
   runId: string;
   origin: string;
+  /**
+   * DG-289 C-4 (#289, DECISION issuecomment-5360240026): config-declared
+   * `target.allowedOrigins` — admitted into the exploration PolicyEngine
+   * origin list alongside the target origin. Fail-closed default when
+   * unset/empty: target origin only.
+   */
+  allowedOrigins?: readonly string[];
   appBuildDigest?: string;
   candidates: readonly Candidate[];
   approval?: ApprovalInput;
@@ -103,6 +110,20 @@ export type ExplorationInput = Readonly<{
   browser?: string;
   now?: () => string;
 }>;
+
+/**
+ * DG-289 C-4 (#289, DECISION issuecomment-5360240026): the origin list the
+ * exploration PolicyEngine is constructed with — the target origin plus
+ * config-declared `allowedOrigins`. Fail-closed default when unset/empty:
+ * the target origin only (byte-identical to the pre-wiring baseline).
+ */
+export function explorationAllowedOrigins(
+  input: Readonly<Pick<ExplorationInput, 'origin' | 'allowedOrigins'>>,
+): string[] {
+  return input.allowedOrigins && input.allowedOrigins.length > 0
+    ? [...new Set([input.origin, ...input.allowedOrigins])]
+    : [input.origin];
+}
 
 export function planExploration(candidates: readonly Candidate[], origin: string): ExplorationPlan {
   const steps: PlanStep[] = [];
@@ -167,7 +188,7 @@ export async function runPlannedExploration(
   }
 
   const engine = new PolicyEngine({
-    allowedOrigins: [input.origin],
+    allowedOrigins: explorationAllowedOrigins(input),
     sandboxAdapterPresent: input.sandboxAdapterPresent ?? false,
     now: () => Date.parse((input.now ?? (() => new Date().toISOString()))()),
   });
