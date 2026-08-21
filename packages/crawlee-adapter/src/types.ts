@@ -53,6 +53,13 @@ export type SurfaceMap = {
 export type SurfaceDiscoveryRequest = DiscoveryRequest & {
   /** Explicit attested build digest. Otherwise the adapter reads the target attestation. */
   appBuildDigest?: string;
+  /**
+   * DG-289 C-4 (#289): additional origins whose ASSETS the crawl origin gate
+   * admits alongside the target origin (config `target.allowedOrigins`).
+   * Fail-closed default when unset/empty: target origin only. Crawl
+   * following and link classification remain same-origin.
+   */
+  allowedOrigins?: readonly string[];
 };
 
 export type SurfaceDiscovererOptions = {

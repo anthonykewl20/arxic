@@ -6,7 +6,11 @@ import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ARXIC_SURFACE_FORM_SUBMIT_BLOCKED, CrawleeSurfaceDiscoverer } from '..';
+import {
+  ARXIC_SURFACE_FORM_SUBMIT_BLOCKED,
+  ARXIC_SURFACE_NAVIGATION_FAILED,
+  CrawleeSurfaceDiscoverer,
+} from '..';
 
 const execute = promisify(execFile);
 const root = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -88,6 +92,16 @@ describe('real Crawlee breadth discovery proof', () => {
     expect(result.diagnostics).toContainEqual(
       expect.objectContaining({ code: ARXIC_SURFACE_FORM_SUBMIT_BLOCKED, severity: 'blocked' }),
     );
+    // DG-289 (#289, AC-2): zero crawl-root SURFACE-005 over the reference
+    // app — the serialized page.evaluate callback must never fail navigation
+    // (at baseline product code this was the __name ReferenceError).
+    expect(
+      result.diagnostics.filter(
+        (diagnostic) =>
+          diagnostic.code === ARXIC_SURFACE_NAVIGATION_FAILED &&
+          diagnostic.subject === `${origin}/`,
+      ),
+    ).toEqual([]);
     expect(result.routes.some((route) => route.evidence?.kind === 'runtime')).toBe(true);
     expect(
       result.diagnostics.some((diagnostic) => diagnostic.severity === ('verified' as never)),
