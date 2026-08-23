@@ -469,7 +469,11 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     try {
       // This trusted-Service evaluation is bounded to referential identity; it is neither
       // arbitrary generated evaluation nor locator healing (ADR-001 §13.1/§16).
-      const same = await page.evaluate(([a, b]) => a === b, [semanticHandle, executionHandle]);
+      // DG-289 (#289, SURFACE-005): serialized into the page — must stay
+      // serialization-safe under esbuild-family `__name` injection (see
+      // pageInventoryProbe in @arxic/crawlee-adapter); the module-level
+      // binding keeps any keepNames wrap outside the serialized body.
+      const same = await page.evaluate(elementIdentityProbe, [semanticHandle, executionHandle]);
       if (!same) {
         await executionHandle.dispose();
         return { resolved: false, reason: 'mismatch', ...pair };
@@ -493,6 +497,16 @@ type ControlResolution =
       executionHandle: ElementHandle;
     }>
   | Extract<LocatorResolution, { resolved: false }>;
+
+/**
+ * DG-289 (#289, SURFACE-005): the trusted referential-identity probe
+ * serialized into the page by `page.evaluate`. Kept as a module-level
+ * anonymous arrow with no named inner functions and no closure captures so
+ * esbuild-family keepNames transforms (tsx) cannot embed an `__name` helper
+ * reference inside the serialized source. Exported for the SP-1 regression
+ * test, which asserts under the tsx lane that this source stays clean.
+ */
+export const elementIdentityProbe = (pair: readonly unknown[]): boolean => pair[0] === pair[1];
 
 type CdpValue = Readonly<{ value?: unknown }>;
 type CdpAccessibilityNode = Readonly<{

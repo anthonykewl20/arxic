@@ -48,6 +48,80 @@ type PageInventory = {
   links: Array<{ href: string; text: string }>;
 };
 
+/**
+ * DG-289 (#289, SURFACE-005): this callback is serialized into the page by
+ * `page.evaluate` (Playwright ships `Function.toString()` and evaluates it in
+ * the page context). It MUST stay serialization-safe under esbuild-family
+ * transforms that inject the `__name` helper for named inner functions — tsx
+ * does, and at baseline this body declared `labelOf`/`control` as named
+ * inner arrows, so the transform embedded `__name(...)` calls inside the
+ * serialized source and every tsx-lane crawl died at the root with
+ * `ReferenceError: __name is not defined`. Rules for this body:
+ *   - no named function bindings and no object shorthand methods;
+ *   - no closure captures — only anonymous inline arrows, plain local
+ *     non-function constants, and page globals (`document`,
+ *     `HTMLInputElement`). The module-level binding below is safe: any
+ *     keepNames wrap lands OUTSIDE the arrow body, so the serialized source
+ *     stays clean.
+ * Exported so the SP-1 regression test can assert under the tsx lane that
+ * the serialized source contains no `__name`. The control-mapping literal is
+ * deliberately duplicated for page controls and form controls — sharing it
+ * would require exactly the named-helper shape that broke serialization.
+ */
+export const pageInventoryProbe = (): PageInventory => {
+  const controls = [
+    ...document.querySelectorAll('input,select,textarea,button,[role="button"]'),
+  ].map((element) => {
+    const label =
+      element.getAttribute('aria-label')?.trim() ||
+      (element instanceof HTMLInputElement && element.labels?.[0]?.textContent
+        ? element.labels[0].textContent!.trim()
+        : element.textContent?.trim()) ||
+      undefined;
+    return {
+      tag: element.tagName.toLowerCase(),
+      type:
+        element.getAttribute('type')?.toLowerCase() ||
+        element.getAttribute('role')?.toLowerCase() ||
+        element.tagName.toLowerCase(),
+      ...(element.getAttribute('name') ? { name: element.getAttribute('name')! } : {}),
+      ...(label ? { label } : {}),
+      required: element.hasAttribute('required'),
+    };
+  });
+  return {
+    title: document.title,
+    controls,
+    forms: [...document.forms].map((form) => ({
+      action: form.action,
+      method: form.method.toUpperCase(),
+      destructive: form.method.toUpperCase() !== 'GET',
+      controls: [...form.querySelectorAll('input,select,textarea,button')].map((element) => {
+        const label =
+          element.getAttribute('aria-label')?.trim() ||
+          (element instanceof HTMLInputElement && element.labels?.[0]?.textContent
+            ? element.labels[0].textContent!.trim()
+            : element.textContent?.trim()) ||
+          undefined;
+        return {
+          tag: element.tagName.toLowerCase(),
+          type:
+            element.getAttribute('type')?.toLowerCase() ||
+            element.getAttribute('role')?.toLowerCase() ||
+            element.tagName.toLowerCase(),
+          ...(element.getAttribute('name') ? { name: element.getAttribute('name')! } : {}),
+          ...(label ? { label } : {}),
+          required: element.hasAttribute('required'),
+        };
+      }),
+    })),
+    links: [...document.querySelectorAll<HTMLAnchorElement>('a[href]')].map((link) => ({
+      href: link.href,
+      text: link.textContent?.trim() ?? '',
+    })),
+  };
+};
+
 export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
   readonly #options: Required<Omit<SurfaceDiscovererOptions, 'browserExecutablePath'>> &
     Pick<SurfaceDiscovererOptions, 'browserExecutablePath'>;
@@ -100,6 +174,13 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
   ): Promise<SurfaceMap> {
     const maxUrls = positiveInteger(input.maxUrls, DEFAULT_MAX_URLS);
     const maxDepth = nonnegativeInteger(input.maxDepth, DEFAULT_MAX_DEPTH);
+    // DG-289 C-4 (#289): the browser request origin gate below admits exactly
+    // these origins — the target origin plus config-declared
+    // `allowedOrigins` (fail-closed default: target origin only, byte-
+    // identical to the pre-wiring baseline when the declaration is
+    // unset/empty). Crawl FOLLOWING stays same-origin by design; declared
+    // origins license ASSETS during discovery.
+    const admittedOrigins = allowedCrawlOrigins(input);
     const runId = this.#options.runId();
     const diagnostics: Diagnostic[] = [];
     const diagnosticKeys = new Set<string>();
@@ -146,42 +227,7 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
         );
         return;
       }
-      const inventory = await page.evaluate<PageInventory>(() => {
-        const labelOf = (element: Element): string | undefined => {
-          const aria = element.getAttribute('aria-label')?.trim();
-          if (aria) return aria;
-          if (element instanceof HTMLInputElement && element.labels?.[0]?.textContent)
-            return element.labels[0].textContent.trim();
-          return element.textContent?.trim() || undefined;
-        };
-        const control = (element: Element): SurfaceControl => ({
-          tag: element.tagName.toLowerCase(),
-          type:
-            element.getAttribute('type')?.toLowerCase() ||
-            element.getAttribute('role')?.toLowerCase() ||
-            element.tagName.toLowerCase(),
-          ...(element.getAttribute('name') ? { name: element.getAttribute('name')! } : {}),
-          ...(labelOf(element) ? { label: labelOf(element) } : {}),
-          required: element.hasAttribute('required'),
-        });
-        const controls = [
-          ...document.querySelectorAll('input,select,textarea,button,[role="button"]'),
-        ].map(control);
-        return {
-          title: document.title,
-          controls,
-          forms: [...document.forms].map((form) => ({
-            action: form.action,
-            method: form.method.toUpperCase(),
-            destructive: form.method.toUpperCase() !== 'GET',
-            controls: [...form.querySelectorAll('input,select,textarea,button')].map(control),
-          })),
-          links: [...document.querySelectorAll<HTMLAnchorElement>('a[href]')].map((link) => ({
-            href: link.href,
-            text: link.textContent?.trim() ?? '',
-          })),
-        };
-      });
+      const inventory = await page.evaluate<PageInventory>(pageInventoryProbe);
       const links: SurfaceLink[] = inventory.links
         .map((link) => ({
           ...link,
@@ -319,7 +365,10 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
           async ({ page }) => {
             await page.route('**/*', async (route) => {
               const url = route.request().url();
-              if (/^https?:/u.test(url) && !sameOrigin(url, input.origin)) {
+              if (
+                /^https?:/u.test(url) &&
+                !admittedOrigins.some((allowed) => sameOrigin(url, allowed))
+              ) {
                 addDiagnostic(
                   surfaceDiagnostic(
                     ARXIC_SURFACE_EXTERNAL_ORIGIN,
@@ -499,6 +548,22 @@ function canonicalUrl(value: string): string {
   const url = new URL(value);
   url.hash = '';
   return url.href.endsWith('/') && url.pathname !== '/' ? url.href.slice(0, -1) : url.href;
+}
+
+/**
+ * DG-289 C-4 (#289, DECISION issuecomment-5360240026): the crawl origin gate
+ * admits exactly the target origin plus config-declared `allowedOrigins`.
+ * Fail-closed default — unset or empty declaration yields the target origin
+ * ONLY (byte-identical to baseline). Declared entries must be bare origins
+ * to ever match: `sameOrigin` compares URL origins, so an entry carrying a
+ * path or credentials is inert (it admits nothing). Config validation
+ * (apps/cli/src/config/validate.ts) rejects non-absolute-URL and empty
+ * declarations at load with a stable diagnostic; an origin-not-listed check
+ * additionally requires the target origin to be declared.
+ */
+export function allowedCrawlOrigins(input: SurfaceDiscoveryRequest): string[] {
+  if (!input.allowedOrigins || input.allowedOrigins.length === 0) return [input.origin];
+  return [...new Set([input.origin, ...input.allowedOrigins])];
 }
 
 function sameOrigin(value: string, origin: string): boolean {
