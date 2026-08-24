@@ -1,0 +1,1 @@
+{"compiled":false,"diagnostics":[{"code":"ARXIC-ORCH-PROPOSAL-OBSERVATION-MISSING","message":"The exploration did not capture a stabilized post-action observation for the proposal; refusing to fabricate assertions","severity":"blocked","subject":"proposal:prop:842ed099bbb1ac5e"}],"oracleOutcome":"observed","plan":"No post-action observation was captured; no spec generated"}
