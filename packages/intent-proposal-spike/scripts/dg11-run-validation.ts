@@ -928,13 +928,30 @@ export class AttestationFront {
         redirect: 'manual',
         signal: AbortSignal.timeout(60_000),
       });
-      const text = await upstream.text();
+      const contentType = upstream.headers.get('content-type') ?? 'application/octet-stream';
+      let text = await upstream.text();
+      // #302 (F-E3B): baked-origin SPAs embed ABSOLUTE app-origin URLs in
+      // their built HTML (koel: http://<app-origin>/build/...). Through this
+      // origin-differing front those loads are cross-origin and CORS-blocked,
+      // so the SPA never boots (campaign round 3: crawl shell 0/0/0).
+      // Rewrite app-origin absolute URLs to the front origin in HTML bodies
+      // (the nginx sub_filter role); other content types pass through.
+      if (contentType.includes('text/html')) {
+        text = text.split(`${this.#appOrigin}/`).join(`${this.origin}/`);
+      }
       const responseHeaders = forwardableResponseHeaders(
-        Object.fromEntries(upstream.headers.entries()),
+        Object.fromEntries(
+          [...upstream.headers.entries()].filter(([name]) => name.toLowerCase() !== 'set-cookie'),
+        ),
       );
+      // #302 (F-E3B): every set-cookie forwards as its OWN header —
+      // Object.fromEntries(headers.entries()) keeps only the last one, which
+      // silently dropped Laravel's XSRF-TOKEN ahead of the session cookie.
+      const setCookies = upstream.headers.getSetCookie();
       response.writeHead(upstream.status, {
-        'content-type': upstream.headers.get('content-type') ?? 'application/octet-stream',
+        'content-type': contentType,
         ...responseHeaders,
+        ...(setCookies.length > 0 ? { 'set-cookie': setCookies } : {}),
       });
       response.end(text);
     } catch {

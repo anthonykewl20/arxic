@@ -14,5 +14,8 @@
     "@arxic/source-ua-adapter": "workspace:*",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
   }
 }
