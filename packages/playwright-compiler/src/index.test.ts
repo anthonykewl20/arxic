@@ -21,6 +21,7 @@ import {
 } from './index';
 import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
 import { ARXIC_COMPILE_ORIGIN_DENIED, resolveOriginPolicy } from './index';
+import { transitionReceiptRuntimeSource } from './transition-receipt-runtime';
 
 const directories: string[] = [];
 
@@ -280,6 +281,32 @@ describe('Playwright compiler contracts', () => {
     expect(receipts).toContain("page.on('console'");
     expect(receipts).toContain("page.on('pageerror'");
     expect(receipts).toContain("context.on('requestfailed'");
+  });
+
+  // #307 (F-E6): the receipt runtime must ATTRIBUTE events to the workflow,
+  // not the context lifetime — SPAs fire their own boot probes (directus
+  // /auth/refresh -> 400 + console error on every unauthenticated load)
+  // BEFORE the first workflow navigation; those app-autonomous failures are
+  // not workflow-caused and must not fail verification policy.
+  test('#307 receipt events arm at the first workflow navigation', () => {
+    const generated = generateSpec(
+      loginWorkflow(),
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3000/',
+    );
+    // the spec arms attribution right before its FIRST goto...
+    expect(generated.spec).toContain('armReceiptCapture(page);');
+    const firstArm = generated.spec.indexOf('armReceiptCapture(page);');
+    const firstGoto = generated.spec.indexOf('page.goto(');
+    expect(firstArm).toBeGreaterThan(-1);
+    expect(firstArm).toBeLessThan(firstGoto);
+    // ...exactly once (subsequent transitions stay armed)
+    expect(generated.spec.match(/armReceiptCapture\(page\);/gu)).toHaveLength(1);
+    const runtime = transitionReceiptRuntimeSource();
+    // the runtime drops events captured before arming...
+    expect(runtime).toContain('if (!state.armed) return;');
+    // ...and exposes the arming seam
+    expect(runtime).toContain('export function armReceiptCapture(page)');
   });
 
   test('compiler errors expose one frozen blocked diagnostic', () => {

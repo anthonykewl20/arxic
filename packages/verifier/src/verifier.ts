@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { mkdir, rm, symlink } from 'node:fs/promises';
+import { copyFile, mkdir, rm, symlink } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import type {
@@ -71,7 +71,16 @@ export type PlaywrightVerifierOptions = {
    * (first-party apps keep that protocol unchanged, C-4).
    */
   replayPersona?: ReplayPersonaDeclaration;
-  runSuite?: (run: number, transitionReceipts: TransitionReceiptExpectation) => Promise<RunPass>;
+  /**
+   * #308: the injected runner receives the ISOLATED suite directory (the
+   * staging copy the verifier owns) — capture outputs must land there, not
+   * in the caller's output directory.
+   */
+  runSuite?: (
+    run: number,
+    transitionReceipts: TransitionReceiptExpectation,
+    suiteDirectory: string,
+  ) => Promise<RunPass>;
   ensurePlaywrightModule?: boolean;
   now?: () => string;
   screenshotPrivacyPolicy?: ScreenshotPrivacyPolicy;
@@ -86,7 +95,11 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #resetAndSeed: ((run: number) => Promise<void>) | undefined;
   readonly #replayPersona: ReplayPersonaDeclaration | undefined;
   readonly #runSuite:
-    | ((run: number, transitionReceipts: TransitionReceiptExpectation) => Promise<RunPass>)
+    | ((
+        run: number,
+        transitionReceipts: TransitionReceiptExpectation,
+        suiteDirectory: string,
+      ) => Promise<RunPass>)
     | undefined;
   readonly #ensureModule: boolean;
   readonly #now: () => string;
@@ -94,6 +107,8 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #captureCorrelation: (run: number) => string;
   /** Set at verify() entry: the workflow id every #reset diagnostic names. */
   #subject: string | undefined;
+  /** #308: set at verify() entry — the isolated suite staging directory. */
+  #suiteDirectory: string | undefined;
 
   constructor(options: PlaywrightVerifierOptions) {
     this.#outputDirectory = options.outputDirectory;
@@ -115,6 +130,33 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     const artifacts: ArtifactRef[] = [];
     const subject = bundle.workflow.id;
     this.#subject = subject;
+    // #308 (F-E7): the suite MUST NOT run in the caller's output directory.
+    // The screenshot-privacy retention treats its source roots as an
+    // EXCLUSIVE capture workspace (inventories and purges everything under
+    // 'artifacts'/'test-results' relative to the suite directory) — when the
+    // CLI wired the suite to the run root, that purged the orchestrator's
+    // committed stage artifacts (directus-dg12-run5: artifacts/{00..09,13}
+    // destroyed during stage-10; stage-11 failed INVENTORY-MISSING
+    // downstream). The suite now runs in a verifier-owned staging copy; the
+    // caller's directory is never written or purged.
+    let suiteDirectory: string;
+    try {
+      suiteDirectory = await stageIsolatedSuite(this.#outputDirectory, bundle);
+      this.#suiteDirectory = suiteDirectory;
+    } catch (error) {
+      return blocked(
+        runs,
+        artifacts,
+        verifyDiagnostic(
+          ARXIC_VERIFY_SUITE_UNAVAILABLE,
+          'blocked',
+          subject,
+          `The verification suite could not be staged in isolation: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ),
+      );
+    }
     if (!Number.isInteger(policy.requiredRuns) || policy.requiredRuns < 1) {
       return blocked(
         runs,
@@ -144,7 +186,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       );
     }
     try {
-      resolveArtifactPath(this.#outputDirectory, spec.path);
+      resolveArtifactPath(suiteDirectory, spec.path);
     } catch (error) {
       return blocked(
         runs,
@@ -157,7 +199,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         ),
       );
     }
-    const stagedFailures = await verifyArtifactHashes(bundle.artifacts, this.#outputDirectory);
+    const stagedFailures = await verifyArtifactHashes(bundle.artifacts, suiteDirectory);
     if (stagedFailures.length > 0) {
       const specMissing = stagedFailures.some(
         ({ artifact, reason }) => artifact.path === spec.path && reason === 'missing',
@@ -181,7 +223,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     }
     if (this.#ensureModule) {
       try {
-        await ensurePlaywrightModule(this.#outputDirectory);
+        await ensurePlaywrightModule(suiteDirectory);
       } catch (error) {
         return blocked(
           runs,
@@ -210,7 +252,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       const expectedConfig = generateConfig(bundle.workflow);
       const expectedRuntime = screenshotPrivacyRuntimeSource();
       screenshotBinding = await establishTrustedScreenshotCaptureBinding({
-        testDirectory: this.#outputDirectory,
+        testDirectory: suiteDirectory,
         specPath: spec.path,
         runtimePath: 'fixtures/screenshot-privacy.ts',
         expectedSpec,
@@ -269,10 +311,10 @@ export class PlaywrightVerifier implements WorkflowVerifier {
           // artifacts whenever the caller's output directory was also the
           // run directory (the CLI layout) — a pre-existing data-loss that
           // purged failure evidence before stage 10 could report it.
-          rm(join(this.#outputDirectory, 'artifacts', 'arxic-transition-receipts.json'), {
+          rm(join(suiteDirectory, 'artifacts', 'arxic-transition-receipts.json'), {
             force: true,
           }),
-          rm(join(this.#outputDirectory, 'test-results'), { recursive: true, force: true }),
+          rm(join(suiteDirectory, 'test-results'), { recursive: true, force: true }),
         ]);
       } catch (error) {
         executionDiagnostics.push(
@@ -315,7 +357,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
             capturedAt,
           },
           {
-            path: join(this.#outputDirectory, 'artifacts', 'arxic-transition-receipts.json'),
+            path: join(suiteDirectory, 'artifacts', 'arxic-transition-receipts.json'),
             nonce: randomBytes(32).toString('hex'),
             testTitle: bundle.workflow.id,
             transitions: requiredTransitionReceipts,
@@ -371,7 +413,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       if (result.passed && (result.receiptError || result.receiptRedactionFailure)) continue;
       let captured: ArtifactRef[];
       try {
-        captured = await captureRunArtifacts(this.#outputDirectory, this.#artifactsDirectory, run, {
+        captured = await captureRunArtifacts(suiteDirectory, this.#artifactsDirectory, run, {
           forbiddenSubstrings: personaForbiddenSubstrings(this.#persona),
           screenshotCheckpoints: result.passed ? policy.screenshotCheckpoints : [],
           screenshotPrivacy: {
@@ -470,7 +512,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     };
     if (!this.#runSuite) {
       return runPlaywrightSuite({
-        testDirectory: this.#outputDirectory,
+        testDirectory: this.#suiteDirectory!,
         env,
         trace: policy.trace,
         transitionReceipts,
@@ -479,7 +521,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     const previous = new Map(Object.keys(env).map((name) => [name, process.env[name]] as const));
     Object.assign(process.env, env);
     try {
-      return await this.#runSuite(run, transitionReceipts);
+      return await this.#runSuite(run, transitionReceipts, this.#suiteDirectory!);
     } finally {
       for (const [name, value] of previous) restoreEnvironment(name, value);
     }
@@ -527,4 +569,37 @@ function personaForbiddenSubstrings(persona: VerificationPersona | undefined): s
   return Object.values(persona ?? {}).filter(
     (value): value is string => typeof value === 'string' && value.length > 0,
   );
+}
+
+/**
+ * #308 (F-E7): stage the bundle's suite files into a verifier-owned
+ * directory (a hidden sibling of the caller's output directory) and return
+ * it. The verification run (and the screenshot-privacy retention's EXCLUSIVE
+ * workspace purge) executes against this copy; the caller's directory —
+ * which the CLI wires to the orchestrator's run root — is never written or
+ * purged. Only the staged suite's own artifact paths are copied; runtime
+ * dependencies (node_modules) are re-provisioned in the copy by
+ * ensurePlaywrightModule.
+ */
+async function stageIsolatedSuite(outputDirectory: string, bundle: StagedBundle): Promise<string> {
+  const suiteDirectory = join(outputDirectory, '.arxic-verification-suite');
+  await rm(suiteDirectory, { recursive: true, force: true });
+  const written = new Set<string>();
+  for (const artifact of bundle.artifacts) {
+    const relative = artifact.path
+      .replace(/^\/+/u, '')
+      .split('/')
+      .filter((segment) => segment !== '.' && segment !== '..')
+      .join('/');
+    if (relative === '' || written.has(relative)) continue;
+    // Only suite SOURCE files are staged (spec/fixtures/config/plan). Other
+    // artifact kinds (screenshots, traces, reports) are capture outputs that
+    // belong to the retention flow, not the suite.
+    const source = resolveArtifactPath(outputDirectory, artifact.path);
+    const destination = join(suiteDirectory, relative);
+    await mkdir(dirname(destination), { recursive: true });
+    await copyFile(source, destination);
+    written.add(relative);
+  }
+  return suiteDirectory;
 }
