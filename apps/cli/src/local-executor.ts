@@ -15,6 +15,7 @@ import {
   replayPersonaNotDeclaredRefusal,
   resetAndSeedFixtures,
   type VerificationPersona,
+  REPLAY_PERSONA_MODES,
 } from '@arxic/verifier';
 import {
   FileStageCheckpointer,
@@ -252,7 +253,7 @@ function localPipelineOptions(
       // arxic-endpoint protocol is never attempted against the endpoint-less
       // third-party target, here or later.
       const declaration = request.config.fixtures.replayPersona;
-      if (declaration?.mode === 'per-pass-login') {
+      if (declaration?.mode === REPLAY_PERSONA_MODES[0]) {
         return {
           provisioned: true,
           requirements: [{ kind: 'persona' }],
@@ -280,7 +281,7 @@ function localPipelineOptions(
                     ARXIC_EXEC_CRASH,
                     'blocked',
                     `run:${request.runId}`,
-                    `Fixture reset/seed failed: ${
+                    `Fixture reset failed: ${
                       error instanceof Error ? error.message : String(error)
                     }`,
                   ),

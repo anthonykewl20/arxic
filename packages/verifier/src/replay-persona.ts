@@ -68,6 +68,11 @@ export function personaInputEnvName(inputRef: PersonaInputRef): string {
 
 export const REPLAY_PERSONA_MODES = ['per-pass-login'] as const;
 
+/** Frozen declaration key vocabulary (#288) — exported so pipeline code (CLI)
+ *  references the frozen names without embedding domain literals in its own
+ *  source (ADR-008 Decision 3 CLI gate). */
+export const REPLAY_PERSONA_DECLARATION_KEYS = ['mode', 'login'] as const;
+
 /**
  * Config-time validation of the declaration shape (C-5 / SP-4): emits
  * `ARXIC-VERIFY-FIXTURE-DECLARATION-INVALID` diagnostics at

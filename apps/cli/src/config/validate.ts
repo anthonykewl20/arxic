@@ -4,6 +4,7 @@ import {
   validateReplayPersonaDeclaration,
   replayPersonaProductionRefusal,
   type ReplayPersonaDeclaration,
+  REPLAY_PERSONA_DECLARATION_KEYS,
 } from '@arxic/verifier';
 import {
   ARXIC_CONFIG_INVALID,
@@ -174,7 +175,7 @@ export function validateConfig(input: unknown): ValidationResult {
     const validated = validateReplayPersonaDeclaration(fixtures.replayPersona);
     if (validated.ok) {
       replayPersona = validated.value;
-      const known = new Set(['mode', 'login']);
+      const known = new Set<string>(REPLAY_PERSONA_DECLARATION_KEYS);
       for (const key of Object.keys(fixtures.replayPersona as Record<string, unknown>)) {
         if (!known.has(key)) {
           diagnostics.push(
