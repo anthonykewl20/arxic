@@ -1,0 +1,72 @@
+# DG-12 exit-campaign config template — koel (PHP/Laravel 13.24).
+#
+# The runner (packages/intent-proposal-spike/scripts/dg11-run-validation.ts)
+# rewrites these placeholders into a TEMP copy before every run:
+#   http://127.0.0.1:DG11-PROXY-PORT  -> the live attestation-front proxy origin
+#   DG11-CLONE-PATH                   -> ARXIC_DG11_TARGET_REPO (pristine clone)
+#   DG11-CLONE-COMMIT                 -> the ratified pin (decision 3)
+# This file is never consumed as-is. The runner rewrites ONLY those three
+# placeholders (dg11-run-validation.ts:1196-1200) — no credential ever passes
+# through this template; the persona credential is env-only
+# (ARXIC_INPUT_PERSONA_EMAIL / ARXIC_INPUT_PERSONA_PASSWORD, set by the
+# launcher at run time; apps/cli/src/local-executor.ts:353-359).
+#
+# Diffs vs the DG-11 template (docs/evidence/DG-11/koel/arxic.yaml), per
+# docs/evidence/DG-12/DESIGN.md:
+#   - target.allowedOrigins gains the koel app origin http://127.0.0.1:8123
+#     (same-host loopback asset origin). DISCLOSURE (DESIGN.md F-C): this
+#     mitigates the SURFACE-001 SPA asset aborts recorded in FINDING 5358390733
+#     only once the product consumes config.target.allowedOrigins — at the
+#     current product the crawl adapter checks sameOrigin(url, input.origin)
+#     only (packages/crawlee-adapter/src/adapter.ts:318-325) and the
+#     exploration PolicyEngine hardcodes [input.origin]
+#     (packages/orchestrator-langgraph/src/exploration.ts:170), so the value is
+#     inert today and staged forward-compatibly. It is a config value, NOT a
+#     policy weakening: policy.mutation stays leased-fixtures-only and
+#     policy.externalNetwork stays deny.
+#   - fixtures.personaProvisioner names the campaign's fixture strategy
+#     (boot-seeded registered-user admin, seeded via php artisan koel:init).
+#     Provider-name string only — the validator accepts optional strings
+#     (apps/cli/src/config/validate.ts:138-145) and NEITHER executor lane reads
+#     it for provisioning; it documents intent.
+#
+# ✅ RESOLVED (follow-up #283): the `laravel-auth` rulepack now ships
+# (rulepacks/laravel, pack range >=13 <14), so this template declares the
+# truthful `frameworks: [laravel]`. The DG-10 gate detects koel's Laravel
+# version from composer.lock evidence (13.24.0 at the ratified pin — lockfile
+# tier) and accepts it inside the pack range
+# (ARXIC-RULES-FRAMEWORK-ACCEPTED, observed). The pre-#283 `express`
+# workaround documented in this file's history is retired; range enforcement,
+# severities, and waiver semantics are unchanged from the DG-10 contract.
+version: 1
+source:
+  repository: DG11-CLONE-PATH
+  revision: DG11-CLONE-COMMIT
+  languages: [php]
+scope:
+  domains: [authentication]
+  frameworks: [laravel]
+  browsers: [chromium]
+  personas: [anonymous, registered-user]
+target:
+  origin: http://127.0.0.1:DG11-PROXY-PORT
+  environmentClass: local-test
+  attestationPath: /.well-known/arxic-test-target.json
+  allowedOrigins:
+    - http://127.0.0.1:DG11-PROXY-PORT
+    - http://127.0.0.1:8123
+policy:
+  maxUrls: 8
+  maxDepth: 1
+  maxRuntimeMinutes: 30
+  mutation: leased-fixtures-only
+  externalNetwork: deny
+  requiredVerificationRuns: 2
+  screenshots: transition-checkpoints
+  trace: retain
+  humanApproval: [destructive, external-side-effect]
+fixtures:
+  personaProvisioner: boot-seeded-admin
+models:
+  provider: openai/gpt-4o-mini
+  sourceRetention: disabled
