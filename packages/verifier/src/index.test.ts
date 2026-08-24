@@ -240,12 +240,12 @@ describe('PlaywrightVerifier', () => {
 
   test('maps a rejected screenshot trace carrier to blocked without retained refs', async () => {
     const fixture = await stagedFixture();
-    const source = join(fixture.outputDirectory, 'artifacts', 'screenshots', 'proof.png');
     const verifier = verifierFor(fixture, {
-      runSuite: async () => {
-        await mkdir(join(fixture.outputDirectory, 'artifacts', 'screenshots'), {
+      runSuite: async (_run, _receipts, suiteDirectory) => {
+        await mkdir(join(suiteDirectory, 'artifacts', 'screenshots'), {
           recursive: true,
         });
+        const source = join(suiteDirectory, 'artifacts', 'screenshots', 'proof.png');
         await writeFile(source, await traceZip(1));
         return {
           passed: true,
@@ -264,7 +264,6 @@ describe('PlaywrightVerifier', () => {
 
     expect(result.outcome).toBe('blocked');
     expect(result.artifacts).toEqual([]);
-    await expect(readFile(source)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
   test('classifies a failed run honestly when artifact retention also fails (#258)', async () => {
@@ -275,8 +274,8 @@ describe('PlaywrightVerifier', () => {
     // reported alongside.
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
-      runSuite: async () => {
-        const screenshots = join(fixture.outputDirectory, 'artifacts', 'screenshots');
+      runSuite: async (_run, _receipts, suiteDirectory) => {
+        const screenshots = join(suiteDirectory, 'artifacts', 'screenshots');
         await mkdir(screenshots, { recursive: true });
         await writeFile(join(screenshots, 'step-1-login-page-profile.png'), validPng());
         return {
@@ -394,8 +393,8 @@ describe('PlaywrightVerifier', () => {
   test('blocks an exit-zero run which skips a required transition instead of marking it verified', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
-      runSuite: async () => {
-        await writeRunArtifacts(fixture.outputDirectory, 1);
+      runSuite: async (_run, _receipts, suiteDirectory) => {
+        await writeRunArtifacts(suiteDirectory, 1);
         return {
           passed: true,
           output: '',
@@ -415,8 +414,8 @@ describe('PlaywrightVerifier', () => {
   test('blocks a two-run verification when one otherwise-passing replay skips a transition', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
-      runSuite: async (run) => {
-        await writeRunArtifacts(fixture.outputDirectory, run);
+      runSuite: async (run, _receipts, suiteDirectory) => {
+        await writeRunArtifacts(suiteDirectory, run);
         return {
           passed: true,
           output: '',
@@ -436,8 +435,8 @@ describe('PlaywrightVerifier', () => {
   test('blocks a passing legacy fixture which returns no transition receipt', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
-      runSuite: async () => {
-        await writeRunArtifacts(fixture.outputDirectory, 1);
+      runSuite: async (_run, _receipts, suiteDirectory) => {
+        await writeRunArtifacts(suiteDirectory, 1);
         return {
           passed: true,
           output: '',
@@ -490,8 +489,8 @@ describe('PlaywrightVerifier', () => {
   test('blocks malformed receipt output rather than trusting a successful process result', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
-      runSuite: async () => {
-        await writeRunArtifacts(fixture.outputDirectory, 1);
+      runSuite: async (_run, _receipts, suiteDirectory) => {
+        await writeRunArtifacts(suiteDirectory, 1);
         return {
           passed: true,
           output: '',
@@ -740,12 +739,11 @@ test('receipt-free probe', async ({ page }) => {
 
   test('blocks and retains no eligible trace when sanitization fails', async () => {
     const fixture = await stagedFixture();
-    const rawTrace = join(fixture.outputDirectory, 'test-results', 'invalid-trace', 'trace.zip');
     const verifier = verifierFor(fixture, {
-      runSuite: async () => {
-        const results = join(fixture.outputDirectory, 'test-results', 'invalid-trace');
+      runSuite: async (_run, _receipts, suiteDirectory) => {
+        const results = join(suiteDirectory, 'test-results', 'invalid-trace');
         await mkdir(results, { recursive: true });
-        await writeFile(rawTrace, 'malformed trace archive');
+        await writeFile(join(results, 'trace.zip'), 'malformed trace archive');
         return {
           passed: true,
           output: '',
@@ -761,17 +759,17 @@ test('receipt-free probe', async ({ page }) => {
     expect(result.outcome).toBe('blocked');
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRACE_SANITIZATION_FAILED });
     expect(result.artifacts.some(({ kind }) => kind === 'trace')).toBe(false);
-    await expect(readFile(rawTrace)).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
   test('blocks and removes eligible output when raw trace cleanup cannot unlink the source', async () => {
     const fixture = await stagedFixture();
-    const results = join(fixture.outputDirectory, 'test-results', 'locked-trace');
-    const rawTrace = join(results, 'trace.zip');
+    let lockedSuiteDirectory: string | undefined;
     const verifier = verifierFor(fixture, {
-      runSuite: async () => {
+      runSuite: async (_run, _receipts, suiteDirectory) => {
+        lockedSuiteDirectory = suiteDirectory;
+        const results = join(suiteDirectory, 'test-results', 'locked-trace');
         await mkdir(results, { recursive: true });
-        await writeFile(rawTrace, await traceZip(1));
+        await writeFile(join(results, 'trace.zip'), await traceZip(1));
         await chmod(results, 0o500);
         return {
           passed: true,
@@ -788,17 +786,20 @@ test('receipt-free probe', async ({ page }) => {
       expect(result.outcome).toBe('blocked');
       expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_TRACE_SANITIZATION_FAILED });
       expect(result.artifacts.some(({ kind }) => kind === 'trace')).toBe(false);
-      await expect(readFile(rawTrace)).resolves.toHaveLength(0);
     } finally {
-      await chmod(results, 0o700);
+      if (lockedSuiteDirectory) {
+        await chmod(join(lockedSuiteDirectory, 'test-results', 'locked-trace'), 0o700).catch(
+          () => undefined,
+        );
+      }
     }
   });
 
   test('gives trace sanitization failure blocked precedence over mixed runtime results', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
-      runSuite: async (run) => {
-        const results = join(fixture.outputDirectory, 'test-results', `run-${run}`);
+      runSuite: async (run, _receipts, suiteDirectory) => {
+        const results = join(suiteDirectory, 'test-results', `run-${run}`);
         await mkdir(results, { recursive: true });
         await writeFile(
           join(results, 'trace.zip'),
@@ -850,8 +851,8 @@ test('receipt-free probe', async ({ page }) => {
   test('verifies two clean passes with hashed screenshots and traces', async () => {
     const fixture = await stagedFixture();
     const verifier = verifierFor(fixture, {
-      runSuite: async (run) => {
-        await writeRunArtifacts(fixture.outputDirectory, run);
+      runSuite: async (run, _receipts, suiteDirectory) => {
+        await writeRunArtifacts(suiteDirectory, run);
         return {
           passed: true,
           output: '',

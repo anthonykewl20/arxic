@@ -1,6 +1,6 @@
 # FIX-308-verifier-artifact-wipe — staged doc updates (charter §10.2)
 
-Issue: #308 · Status: **root cause found, repro pinned RED, fix design identified — NOT implemented** · Disposition: observed
+Issue: #308 · Status: **fixed (isolated suite staging), RED→GREEN, all consumers green** · Disposition: observed
 
 ## 1. `docs/SYNC.md` — tracker row (append; only when fixed)
 
