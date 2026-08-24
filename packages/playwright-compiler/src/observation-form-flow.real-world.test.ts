@@ -6,9 +6,11 @@
 // from inventory data → the UNCHANGED PlaywrightCompiler + compile-policy
 // gates. A second, NON-AUTH form flow (newsletter subscribe) proves the
 // executor is domain-general.
+import { execFile } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 import { freePort } from '@arxic/real-world-testkit';
 import { PlaywrightCompiler } from './compiler';
@@ -21,6 +23,7 @@ import {
   stopRedirectLoginApp,
   type RedirectLoginAppOptions,
 } from './test-support/redirect-login-app';
+import { promisify } from 'node:util';
 import type { EvidenceRef } from '@arxic/contracts';
 
 const COMMIT = '0123456789abcdef0123456789abcdef01234567';
@@ -216,7 +219,7 @@ describe.sequential('DG-09 compiler observation-bound form flows (real Chromium)
 
       const spec = await readFile(join(directory, 'tests/workflow.spec.ts'), 'utf8');
       expect(spec).toContain(`page.goto(${JSON.stringify(`${origin}/newsletter`)})`);
-      expect(spec).toContain('getByLabel("Email")');
+      expect(spec).toContain('labelOrPlaceholderControl(form, "Email")');
       expect(spec).toContain('\\/newsletter\\/thanks(?:[?#].*)?$/);');
       expect(spec).toContain('await expect(page.getByText("Subscribed")).toBeVisible();');
       // No auth semantics anywhere: the flow never touches session state.
@@ -225,4 +228,102 @@ describe.sequential('DG-09 compiler observation-bound form flows (real Chromium)
       await rm(directory, { recursive: true, force: true });
     }
   }, 120_000);
+});
+
+// #312 (F-E9): the compiler must bind placeholder-addressed controls the
+// same way the exploration lane does (#303). This replay boots the redirect
+// app with its login form rendered placeholder-addressed (zero <label>
+// elements — the real directus shape), compiles the SAME observation-bound
+// login workflow, and EXECUTES the compiled suite with real Chromium: the
+// scoped form must resolve to exactly one, the fills must land, the submit
+// must reach /dashboard. Pre-fix this is exactly the directus-dg12-run7
+// stage-10 failure (toHaveCount expected 1, received 0).
+describe.sequential('#312 placeholder-addressed controls replay (real Chromium)', () => {
+  let origin = '';
+  let server: Awaited<ReturnType<typeof startRedirectLoginApp>>['server'] | undefined;
+
+  beforeAll(async () => {
+    const port = await freePort();
+    origin = `http://127.0.0.1:${port}`;
+    const dbDirectory = await mkdtemp(join(tmpdir(), 'dg09-placeholder-db-'));
+    ({ server } = await startRedirectLoginApp({
+      port,
+      dbPath: join(dbDirectory, 'app.db'),
+      origin,
+      placeholderAddressed: true,
+    }));
+    await redirectAppReady(origin);
+    await resetAndSeedRedirectApp(origin, PERSONA);
+  }, 120_000);
+
+  afterAll(async () => {
+    if (server) await stopRedirectLoginApp(server);
+  });
+
+  test('compiles and replays green against a placeholder-only login form', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'dg09-placeholder-out-'));
+    try {
+      const built = buildFormFlowWorkflow({
+        identity: {
+          id: 'authentication.login.placeholder-addressed',
+          title: 'Log in',
+          domain: 'authentication',
+          persona: 'registered-user',
+        },
+        route: '/login',
+        fields: [
+          { label: 'Email', inputRef: 'persona.email' },
+          { label: 'Password', inputRef: 'persona.password' },
+        ],
+        submitControlName: 'Log in',
+        observation: {
+          url: `${origin}/dashboard`,
+          headings: ['Dashboard'],
+          runtimeEvidenceRef: 'run:placeholder-replay-observation',
+        },
+        scope: { commit: COMMIT, environment: 'local-test', browser: 'chromium' },
+        sourceEvidence: {
+          ref: 'src:dg09-login-handler',
+          path: 'packages/playwright-compiler/src/test-support/redirect-login-app.ts',
+          range: [180, 220],
+        },
+        personaFacts: [{ fixture: 'user.exists' }],
+      });
+      expect(built.ok).toBe(true);
+      if (!built.ok) return;
+
+      await new PlaywrightCompiler({ outputDirectory, origin, captureScreenshots: false }).compile(
+        built.workflow,
+        [
+          sourceEvidence(
+            'packages/playwright-compiler/src/test-support/redirect-login-app.ts',
+            [180, 220],
+          ),
+          entryRuntimeObservation(origin, '/login'),
+        ],
+      );
+
+      const spec = await readFile(join(outputDirectory, 'tests/workflow.spec.ts'), 'utf8');
+      // the emitted locator is the label-first placeholder-fallback helper
+      expect(spec).toContain('labelOrPlaceholderControl(page, "Email")');
+      expect(spec).not.toContain('.filter({ has: page.getByLabel(');
+
+      // EXECUTE the compiled suite with real Chromium against the real app.
+      const require = createRequire(import.meta.url);
+      const cli = join(dirname(require.resolve('@playwright/test/package.json')), 'cli.js');
+      const run = promisify(execFile);
+      const result = await run(process.execPath, [cli, 'test'], {
+        cwd: outputDirectory,
+        env: {
+          ...process.env,
+          ARXIC_INPUT_PERSONA_EMAIL: PERSONA.email,
+          ARXIC_INPUT_PERSONA_PASSWORD: PERSONA.password,
+        },
+        maxBuffer: 16 * 1024 * 1024,
+      });
+      expect(result.stdout, result.stdout).toContain('1 passed');
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true });
+    }
+  }, 240_000);
 });

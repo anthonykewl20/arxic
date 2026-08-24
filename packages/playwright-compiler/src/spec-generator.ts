@@ -34,6 +34,15 @@ export function generateSpec(
       ? ["import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';"]
       : []),
     '',
+    '// #312 (F-E9): label-first with placeholder fallback — the #303',
+    '// exploration-lane semantics. A control the page addresses only by',
+    '// placeholder (the real directus login shape: zero <label> elements)',
+    '// binds through the fallback; the unique-form fail-closed gate is',
+    '// unchanged.',
+    'function labelOrPlaceholderControl(root, text) {',
+    '  return root.getByLabel(text).or(root.getByPlaceholder(text));',
+    '}',
+    '',
     `configureApprovedOrigins(${JSON.stringify(approvedOrigins)});`,
     '',
     `test(${JSON.stringify(workflow.id)}, async ({ page, context }) => {`,
@@ -71,7 +80,7 @@ export function generateSpec(
     ...(usedFormScope
       ? {
           nonSemanticLocatorRationale:
-            "Submit-action inputs are scoped to their containing form via page.locator('form').filter so identically-labelled fields on a single multi-form page resolve unambiguously; semantic getByLabel/getByRole locators are retained within the form scope.",
+            "Submit-action inputs are scoped to their containing form via page.locator('form').filter so identically-labelled fields on a single multi-form page resolve unambiguously; controls bind label-first with a placeholder fallback (#312, the #303 exploration-lane semantics) and the submit binds by role within the form scope.",
         }
       : {}),
   };
@@ -131,7 +140,7 @@ function renderAction(transition: WorkflowTransition): {
     const controlName = JSON.stringify(viaControl[1]);
     const labels = inputRefs.map(([name]) => label(name));
     const formFilter = labels
-      .map((value) => `.filter({ has: page.getByLabel(${JSON.stringify(value)}) })`)
+      .map((value) => `.filter({ has: labelOrPlaceholderControl(page, ${JSON.stringify(value)}) })`)
       .join('');
     const submitButtonFilter = `.filter({ has: page.getByRole('button', { name: ${controlName}, exact: true }) })`;
     return {
@@ -140,7 +149,7 @@ function renderAction(transition: WorkflowTransition): {
         '    await expect(form).toHaveCount(1);',
         ...inputRefs.map(
           ([name, reference]) =>
-            `    await form.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
+            `    await labelOrPlaceholderControl(form, ${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
         ),
         `    await enforceNetworkContainment(page, () => form.getByRole('button', { name: ${controlName}, exact: true }).click());`,
       ],
@@ -150,7 +159,7 @@ function renderAction(transition: WorkflowTransition): {
   if (/^(submit|log in|login|sign in)/iu.test(intent) && inputRefs.length > 0) {
     const labels = inputRefs.map(([name]) => label(name));
     const formFilter = labels
-      .map((value) => `.filter({ has: page.getByLabel(${JSON.stringify(value)}) })`)
+      .map((value) => `.filter({ has: labelOrPlaceholderControl(page, ${JSON.stringify(value)}) })`)
       .join('');
     const submitButtonFilter = `.filter({ has: page.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }) })`;
     return {
@@ -159,7 +168,7 @@ function renderAction(transition: WorkflowTransition): {
         '    await expect(form).toHaveCount(1);',
         ...inputRefs.map(
           ([name, reference]) =>
-            `    await form.getByLabel(${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
+            `    await labelOrPlaceholderControl(form, ${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
         ),
         `    await enforceNetworkContainment(page, () => form.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }).click());`,
       ],

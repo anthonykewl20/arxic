@@ -239,7 +239,7 @@ describe('Playwright compiler contracts', () => {
     expect(bundle.artifacts).toHaveLength(6);
     expect(bundle.plan).toContain('login-page → home');
     const spec = await readFile(join(directory, 'tests/workflow.spec.ts'), 'utf8');
-    expect(spec).toMatch(/getByLabel\(['"]Email['"]\)/u);
+    expect(spec).toContain('labelOrPlaceholderControl(form, "Email")');
     expect(spec).toContain("getByRole('button'");
     expect(spec).toContain('artifacts/screenshots/step-1-login-page-home.png');
     expect(spec).toContain('capturePolicyScreenshot(page,');
@@ -293,6 +293,29 @@ describe('Playwright compiler contracts', () => {
   // request SENT during the awaited operation plus console/page errors; boot
   // probes are never marked and never gate; zero-window armed suites fail
   // closed at receipt write.
+  // #312 (F-E9): the compiler's control binding must match the exploration
+  // lane's (#303 label→placeholder fallback). The real directus login form
+  // has ZERO <label> elements — controls are placeholder-addressed — so a
+  // spec that emits getByLabel only can never scope its form (count 0) and
+  // every verification run fails (directus-dg12-run7 stage-10 evidence).
+  test('#312 label-kind controls compile to label-first placeholder-fallback locators', () => {
+    const generated = generateSpec(
+      loginWorkflow(),
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3000/',
+    );
+    // the emitted spec defines the fallback helper ONCE...
+    expect(generated.spec.match(/function labelOrPlaceholderControl/gu)).toHaveLength(1);
+    // ...the formScope filter addresses controls through it (not raw getByLabel)...
+    expect(generated.spec).toContain('.filter({ has: labelOrPlaceholderControl(page, "Email") })');
+    expect(generated.spec).not.toContain('.filter({ has: page.getByLabel(');
+    // ...and the field fills address through it scoped to the form
+    expect(generated.spec).toContain('labelOrPlaceholderControl(form, "Email").fill(');
+    expect(generated.spec).not.toContain('form.getByLabel(');
+    // the helper's semantics: label FIRST, placeholder fallback (the #303 rule)
+    expect(generated.spec).toContain('getByLabel(text).or(root.getByPlaceholder(text))');
+  });
+
   test('#307/F-E8 receipt attribution is per request through explicit windows', () => {
     const generated = generateSpec(
       loginWorkflow(),
@@ -457,8 +480,8 @@ describe('Playwright compiler contracts', () => {
     }).compile(workflow, observations());
 
     const spec = await readFile(join(directory, 'tests/workflow.spec.ts'), 'utf8');
-    expect(spec).toContain('getByLabel("Current password")');
-    expect(spec).toContain('getByLabel("New password")');
+    expect(spec).toContain('labelOrPlaceholderControl(form, "Current password")');
+    expect(spec).toContain('labelOrPlaceholderControl(form, "New password")');
     expect(spec).toContain(
       ".filter({ has: page.getByRole('button', { name: /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i }) })",
     );

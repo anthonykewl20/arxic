@@ -536,11 +536,12 @@ describe.sequential('playwright verifier real-world security proof', () => {
       const specArtifact = bundle.artifacts.find(({ kind }) => kind === 'playwright-spec');
       if (!specArtifact) throw new Error('Compiled real-world bundle has no spec');
       const specPath = join(outputDirectory, specArtifact.path);
+      // #312: fields bind through the label-first placeholder-fallback helper
       const driftedSpec = (await readFile(specPath, 'utf8')).replace(
-        'getByLabel("Email")',
-        "getByLabel('Nonexistent')",
+        'labelOrPlaceholderControl(form, "Email")',
+        "labelOrPlaceholderControl(form, 'Nonexistent')",
       );
-      expect(driftedSpec).toContain("getByLabel('Nonexistent')");
+      expect(driftedSpec).toContain("labelOrPlaceholderControl(form, 'Nonexistent')");
       await writeFile(specPath, driftedSpec);
       const driftedBundle: StagedBundle = {
         ...bundle,
