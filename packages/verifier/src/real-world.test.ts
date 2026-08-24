@@ -241,7 +241,12 @@ describe.sequential('playwright verifier real-world security proof', () => {
       await Promise.all([
         writeFile(
           join(outputDirectory, 'fixtures/workflow.fixture.ts'),
-          generateFixture(loginWorkflow(app, {})),
+          generateFixture(
+            loginWorkflow(app, {
+              id: `boot-probe-gate.${app.name}`,
+              title: `Boot probe gate ${app.name}`,
+            }),
+          ),
         ),
         writeFile(
           join(outputDirectory, 'fixtures/transition-receipts.ts'),
@@ -257,9 +262,9 @@ describe.sequential('playwright verifier real-world security proof', () => {
           "test('boot probe attribution', async ({ page }) => {",
           // autonomous probe FIRST (unarmed): a 404 fetch + console error
           `  await page.goto(${JSON.stringify(running.origin)});`,
-          "  await page.evaluate(() => {",
+          '  await page.evaluate(() => {',
           `    return fetch(${JSON.stringify(`${running.origin}/__arxic-boot-probe__`)}).then(() => undefined, () => undefined);`,
-          "  });",
+          '  });',
           "  await page.evaluate(() => console.error('arxic boot probe console proof'));",
           // NOW the workflow arms and runs clean
           '  armReceiptCapture(page);',
