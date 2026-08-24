@@ -34,12 +34,12 @@ no — generated-suite emission change only; no shipped contract or schema chang
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
-| Trigger | Expected disposition | Test |
-| ------- | -------------------- | ---- |
-| placeholder-only controls (zero `<label>`) | form scopes to exactly 1; fills land; submit reaches the observed state (observed, real Chromium) | `#312 placeholder-addressed controls replay` |
-| labelled controls (regression) | bind by label first — same helper, label branch wins (observed: DG-09 labelled compile+capture tests unchanged) | existing DG-09 describe |
-| spec drift on a field locator | blocked by the artifact-hash gate BEFORE execution (observed) | `blocks a staged spec drift before execution` |
-| ambiguous formScope (two scoped forms) | fails closed at `toHaveCount(1)` — emission unchanged by this slice | emitted gate (unchanged); covered by the formScope contract |
+| Trigger                                    | Expected disposition                                                                                            | Test                                                        |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| placeholder-only controls (zero `<label>`) | form scopes to exactly 1; fills land; submit reaches the observed state (observed, real Chromium)               | `#312 placeholder-addressed controls replay`                |
+| labelled controls (regression)             | bind by label first — same helper, label branch wins (observed: DG-09 labelled compile+capture tests unchanged) | existing DG-09 describe                                     |
+| spec drift on a field locator              | blocked by the artifact-hash gate BEFORE execution (observed)                                                   | `blocks a staged spec drift before execution`               |
+| ambiguous formScope (two scoped forms)     | fails closed at `toHaveCount(1)` — emission unchanged by this slice                                             | emitted gate (unchanged); covered by the formScope contract |
 
 ## 7. Not done / known-weak spots
 
