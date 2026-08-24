@@ -16,6 +16,7 @@ import {
   ARXIC_VERIFY_FIXTURE_PROD_REFUSED,
   PlaywrightVerifier,
   loginReplayPersona,
+  replayPersonaStorageState,
   validateReplayPersonaDeclaration,
   type ReplayPersonaDeclaration,
 } from './index';
@@ -212,6 +213,35 @@ describe('replay-persona placeholder-addressable fields (#295, real Chromium)', 
   }, 60_000);
 });
 
+describe('replayPersonaStorageState (#297 E2, real Chromium)', () => {
+  test('captures the authenticated storage state through the same login core', async () => {
+    const { origin } = await formServer();
+    const state = await replayPersonaStorageState({
+      origin,
+      declaration: DECLARATION,
+      persona: PERSONA,
+      subject: 'replay.unit',
+    });
+    expect(state.cookies.length).toBeGreaterThan(0);
+    expect(state.cookies.some((cookie) => cookie.name === 'arxic-session')).toBe(true);
+  }, 60_000);
+
+  test('redacts the persona from a failed capture exactly like the login path', async () => {
+    const { origin } = await formServer();
+    const error = await replayPersonaStorageState({
+      origin,
+      declaration: DECLARATION,
+      persona: { ...PERSONA, password: 'WrongPassword1!' },
+      subject: 'replay.unit',
+    }).catch((caught: unknown) => caught);
+    expect((error as { diagnostic: { code: string } }).diagnostic.code).toBe(
+      ARXIC_VERIFY_FIXTURE_LOGIN_BLOCKED,
+    );
+    expect(JSON.stringify(error)).not.toContain('WrongPassword1!');
+    expect(JSON.stringify(error)).not.toContain(PERSONA.email);
+  }, 60_000);
+});
+
 describe('replay-persona per-pass login (#288, real Chromium against a real form)', () => {
   test('logs the persona in through the declared form and lands past the login route', async () => {
     const { origin, attempts } = await formServer();
@@ -362,8 +392,14 @@ async function formServer(
         const accepted =
           fields.get('email') === PERSONA.email && fields.get('password') === PERSONA.password;
         if (accepted) {
+          // #297 E2: a REAL session cookie, so storage-state capture has
+          // something honest to carry (this is what the crawl tier replays).
           response.statusCode = 303;
           response.setHeader('location', '/welcome');
+          response.setHeader(
+            'set-cookie',
+            'arxic-session=replay-persona-session; Path=/; HttpOnly',
+          );
           response.end();
         } else {
           attempts.decoyUsed = true;

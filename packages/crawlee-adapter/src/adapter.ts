@@ -19,11 +19,13 @@ import {
   ARXIC_SURFACE_FORM_SUBMIT_BLOCKED,
   ARXIC_SURFACE_FRONTIER_STOP,
   ARXIC_SURFACE_MUTATION_BLOCKED,
+  ARXIC_SURFACE_REPLAY_LOGIN_BLOCKED,
   ARXIC_SURFACE_NAVIGATION_FAILED,
   ARXIC_SURFACE_ORIGIN_INVALID,
   ARXIC_SURFACE_PERSONA_SERIALIZED,
   surfaceDiagnostic,
 } from './diagnostics';
+import { replayPersonaStorageState } from '@arxic/verifier';
 import { codepointCompare } from './serialize';
 import type {
   NavigationEdge,
@@ -72,11 +74,25 @@ export const pageInventoryProbe = (): PageInventory => {
   const controls = [
     ...document.querySelectorAll('input,select,textarea,button,[role="button"]'),
   ].map((element) => {
+    // DG-297 E1 (#297): label-first with a placeholder fallback — the same
+    // semantics the verifier adopted in #295. Vanilla SPA targets ship
+    // placeholder-only inputs, and an aria-label of the LITERAL string
+    // "undefined"/"null" is an upstream binding artifact (observed on the
+    // koel pin), not an honest label — treat it as absent so the placeholder
+    // can carry the field. Serialization rules: plain consts + anonymous
+    // arrows only (see the block comment above).
+    const ariaLabel = element.getAttribute('aria-label')?.trim();
+    const aria =
+      ariaLabel && ariaLabel !== 'undefined' && ariaLabel !== 'null' ? ariaLabel : undefined;
     const label =
-      element.getAttribute('aria-label')?.trim() ||
+      aria ||
       (element instanceof HTMLInputElement && element.labels?.[0]?.textContent
         ? element.labels[0].textContent!.trim()
-        : element.textContent?.trim()) ||
+        : undefined) ||
+      (element instanceof HTMLInputElement && element.placeholder?.trim()
+        ? element.placeholder.trim()
+        : undefined) ||
+      element.textContent?.trim() ||
       undefined;
     return {
       tag: element.tagName.toLowerCase(),
@@ -97,11 +113,23 @@ export const pageInventoryProbe = (): PageInventory => {
       method: form.method.toUpperCase(),
       destructive: form.method.toUpperCase() !== 'GET',
       controls: [...form.querySelectorAll('input,select,textarea,button')].map((element) => {
+        // DG-297 E1 (#297): identical label-first/placeholder-fallback chain
+        // as the page controls above — duplicated literal by design (sharing
+        // it would need the named-helper shape that broke serialization).
+        const formAriaLabel = element.getAttribute('aria-label')?.trim();
+        const formAria =
+          formAriaLabel && formAriaLabel !== 'undefined' && formAriaLabel !== 'null'
+            ? formAriaLabel
+            : undefined;
         const label =
-          element.getAttribute('aria-label')?.trim() ||
+          formAria ||
           (element instanceof HTMLInputElement && element.labels?.[0]?.textContent
             ? element.labels[0].textContent!.trim()
-            : element.textContent?.trim()) ||
+            : undefined) ||
+          (element instanceof HTMLInputElement && element.placeholder?.trim()
+            ? element.placeholder.trim()
+            : undefined) ||
+          element.textContent?.trim() ||
           undefined;
         return {
           tag: element.tagName.toLowerCase(),
@@ -131,6 +159,8 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
       maxConcurrency: Math.max(1, Math.floor(options.maxConcurrency ?? 2)),
       maxRequestRetries: Math.max(0, Math.floor(options.maxRequestRetries ?? 2)),
       navigationTimeoutSecs: Math.max(1, options.navigationTimeoutSecs ?? 30),
+      // DG-297 E1: bounded per-URL wait for hydration to commit a form.
+      hydrationSettleMs: Math.max(0, options.hydrationSettleMs ?? 2_500),
       now: options.now ?? (() => new Date().toISOString()),
       runId: options.runId ?? randomUUID,
       browserExecutablePath: options.browserExecutablePath,
@@ -227,7 +257,27 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
         );
         return;
       }
-      const inventory = await page.evaluate<PageInventory>(pageInventoryProbe);
+      // DG-297 E1 (#297): SPA targets render their forms only AFTER
+      // hydration, which commits after the load event (observed on both
+      // ratified DG-12 targets — the probe-at-load saw zero forms). Probe
+      // FIRST; only when the page looks like an UNHYDRATED SHELL (zero
+      // forms, zero fillable controls, zero links) wait bounded for a form
+      // to attach and re-probe. Server-rendered pages and static content
+      // pay nothing; a target that never renders keeps the honest empty
+      // probe instead of failing navigation.
+      let inventory = await page.evaluate<PageInventory>(pageInventoryProbe);
+      const unhydratedShell =
+        inventory.forms.length === 0 &&
+        inventory.controls.every(
+          (control) => !['input', 'select', 'textarea'].includes(control.tag),
+        ) &&
+        inventory.links.length === 0;
+      if (unhydratedShell) {
+        await page
+          .waitForSelector('form', { state: 'attached', timeout: this.#options.hydrationSettleMs })
+          .catch(() => undefined);
+        inventory = await page.evaluate<PageInventory>(pageInventoryProbe);
+      }
       const links: SurfaceLink[] = inventory.links
         .map((link) => ({
           ...link,
@@ -337,6 +387,43 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
         }
       }
     });
+    // DG-297 E2 (#297): authenticate through the target's OWN login form
+    // before breadth discovery when a replay persona is declared. The
+    // captured storage state seeds the crawl's shared browser context
+    // (useIncognitoPages: false keeps ONE context, so the session cookie
+    // carries across every crawled URL). A refused login is recorded as a
+    // blocked diagnostic and the crawl proceeds ANONYMOUSLY — the honest
+    // outcome, never a fabricated authenticated surface. Credentials stay
+    // in-memory: they never reach artifacts, diagnostics, or logs (the
+    // redaction is the verifier login's own).
+    let replayStorageState: import('@arxic/verifier').ReplayPersonaStorageState | undefined;
+    let replayStateSeeded = false;
+    if (input.replayPersona) {
+      try {
+        replayStorageState = await replayPersonaStorageState({
+          origin: input.origin,
+          declaration: input.replayPersona.declaration,
+          persona: {
+            email: input.replayPersona.persona.email,
+            password: input.replayPersona.persona.password,
+          },
+          subject: `surface-crawl-${runId}`,
+          // Crawl-tier budget: a refused login must not pay the verifier's
+          // 20s default before the honest ARXIC-SURFACE-009 refusal —
+          // successful logins navigate long before this cap.
+          timeoutMs: 10_000,
+        });
+      } catch {
+        addDiagnostic(
+          surfaceDiagnostic(
+            ARXIC_SURFACE_REPLAY_LOGIN_BLOCKED,
+            'blocked',
+            new URL(input.replayPersona.declaration.login.route, input.origin).href,
+            'The declared replay-persona login failed before breadth discovery; the crawl proceeded anonymously (no authenticated surfaces were inventoried)',
+          ),
+        );
+      }
+    }
     const crawler = new PlaywrightCrawler(
       {
         requestQueue: queue,
@@ -363,6 +450,36 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
         },
         preNavigationHooks: [
           async ({ page }) => {
+            // DG-297 E2 (#297): seed the captured authenticated storage state
+            // into the SHARED crawl context (useIncognitoPages: false above).
+            // Cookies go in directly; localStorage origins ride an init
+            // script that runs before every document. Once-per-crawl guard:
+            // the hook fires per navigation, the seed must not repeat.
+            if (replayStorageState && !replayStateSeeded) {
+              replayStateSeeded = true;
+              if (replayStorageState.cookies.length > 0) {
+                await page
+                  .context()
+                  .addCookies(replayStorageState.cookies.map((cookie) => ({ ...cookie })));
+              }
+              if (replayStorageState.origins.some((o) => o.localStorage.length > 0)) {
+                const payload = JSON.stringify(replayStorageState.origins);
+                await page.context().addInitScript((serialized) => {
+                  const origins = JSON.parse(serialized as string) as Array<{
+                    origin: string;
+                    localStorage: Array<{ name: string; value: string }>;
+                  }>;
+                  for (const origin of origins)
+                    for (const entry of origin.localStorage)
+                      try {
+                        window.localStorage.setItem(entry.name, entry.value);
+                      } catch {
+                        // Storage may be unavailable (e.g. about:blank) — the
+                        // cookie session still carries the crawl.
+                      }
+                }, payload);
+              }
+            }
             await page.route('**/*', async (route) => {
               const url = route.request().url();
               if (

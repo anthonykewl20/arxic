@@ -41,6 +41,7 @@ import {
   ARXIC_SURFACE_FORM_SUBMIT_BLOCKED,
   CrawleeSurfaceDiscoverer,
   PACKAGE_NAME as CRAWLEE_PACKAGE,
+  type SurfaceDiscoveryRequest,
   type SurfaceMap,
 } from '@arxic/crawlee-adapter';
 import {
@@ -89,6 +90,7 @@ import {
 } from './intent-proposer';
 import {
   compileProposalCandidate,
+  selectCompilableCandidate,
   formSurfaceForRoute,
   postActionObservationFrom,
 } from './proposal-compile';
@@ -190,6 +192,13 @@ export type OrchestratorInput = Readonly<{
    * evidence digest and is never used as the gate expectation.
    */
   expectedBuildDigest?: string;
+  /**
+   * DG-297 E2 (#297): the config's `fixtures.replayPersona` declaration plus
+   * the env-resolved persona values — authenticates the stage-5 crawl through
+   * the target's OWN login form before breadth discovery. Unset → anonymous
+   * crawl (byte-identical baseline). Credentials ride in-memory only.
+   */
+  replayPersona?: NonNullable<SurfaceDiscoveryRequest['replayPersona']>;
   requireExplorationApproval?: boolean;
   modelPrompt?: string;
   credentialBytes?: readonly string[];
@@ -991,6 +1000,17 @@ export class LangGraphOrchestrator {
       ...(input.maxDepth === undefined ? {} : { maxDepth: input.maxDepth }),
       ...(input.personas ? { personas: [...input.personas] } : {}),
       ...(input.appBuildDigest ? { appBuildDigest: input.appBuildDigest } : {}),
+      // DG-297 E2 (#297): authenticated breadth discovery — the declaration
+      // + env-resolved persona seed the crawl with the captured storage
+      // state; unset omits the field (anonymous crawl, baseline behavior).
+      ...(input.replayPersona
+        ? {
+            replayPersona: {
+              declaration: input.replayPersona.declaration,
+              persona: { ...input.replayPersona.persona },
+            },
+          }
+        : {}),
       // DG-289 C-4 (#289): declared allowedOrigins flow into the crawl
       // origin gate; unset/empty omits the field and the gate stays
       // fail-closed to the target origin (byte-identical baseline).
@@ -1309,16 +1329,23 @@ export class LangGraphOrchestrator {
     input: OrchestratorInput,
   ): Promise<Parameters<typeof compileProposalCandidate>[0] | undefined> {
     if (!inference.proposalRun) return undefined;
-    const candidate = inference.candidates[0];
-    if (!candidate) return undefined;
-    const proposal = inference.proposalRun.proposals.find((item) => item.id === candidate.id);
-    if (!proposal) return undefined;
     const rows = inference.proposalRun.rows;
-    const row = proposal.inventoryRowIds
-      .map((id) => rows.find((candidateRow) => candidateRow.id === id))
-      .find((candidateRow): candidateRow is ProposalConsumerRow => candidateRow !== undefined);
-    if (!row) return undefined;
     const surface = await this.#artifact<SurfaceMap>(state, input, 5);
+    // DG-297 E3 (#297): surface-aware selection — the first candidate whose
+    // cited row's route HAS a crawl form surface; when none resolves, the
+    // first resolvable (proposal, row) pair flows onward so the compile
+    // reports SURFACE-MISSING honestly for candidates[0] (never a silent
+    // skip). Replaces the blind candidates[0] take that blocked whole runs
+    // on auth-gated SPAs whose every crawled route beyond the login view had
+    // no form (F-E: directus blocked on /addons/:param, koel on an API path).
+    const selection = selectCompilableCandidate(
+      inference.candidates,
+      inference.proposalRun.proposals,
+      rows,
+      surface,
+    );
+    if (!selection) return undefined;
+    const { proposal, row } = selection;
     const envelope = await this.#optionalArtifact<DomainInventoryStageArtifact>(state, input, 13);
     const evidenceIndex = envelope
       ? toProposalConsumerInventory(envelope.inventory).evidenceIndex

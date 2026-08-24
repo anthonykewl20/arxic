@@ -41,7 +41,11 @@ jobs:
 
   ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 30m (was 20m): the Test step alone measured 17m48s on 2026-08-24
+    # (#297 run 32741358533) — the suite outgrew the 20m cap that the
+    # pre-#297 baseline (19m29s) was already brushing. Same ceiling the
+    # worker-image job below uses. No test was removed or skipped.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 

@@ -7,6 +7,7 @@ import {
 } from '@arxic/playwright-compiler';
 import type { CompilationResult } from './types';
 import type { BoundProposal } from './intent-proposer';
+import type { ProposalConsumerRow } from '@arxic/domain-inventory';
 import {
   ARXIC_ORCH_PROPOSAL_OBSERVATION_MISSING,
   ARXIC_ORCH_PROPOSAL_SURFACE_MISSING,
@@ -163,6 +164,45 @@ export type ProposalCompileInput = Readonly<{
  * no form surface on the crawl map -> blocked SURFACE-MISSING; no post-action
  * observation -> blocked OBSERVATION-MISSING. Never fabricates an assertion.
  */
+/**
+ * DG-297 E3 (#297): surface-aware candidate selection. The compile lane used
+ * to take `candidates[0]` blindly; when that candidate's cited row has no
+ * crawl form surface (the auth-gated-SPA shape — every route the crawler saw
+ * beyond the login view), `compileProposalCandidate` blocked the WHOLE run
+ * with SURFACE-MISSING while later candidates' surfaces would have resolved.
+ * Selection order: the first candidate whose proposal AND cited row resolve
+ * AND whose row's route has a form surface in the crawl map. When NO
+ * candidate resolves, the FIRST resolvable (proposal, row) pair is returned
+ * so compileProposalCandidate reports SURFACE-MISSING for candidates[0]'s
+ * route honestly — never a silent skip, never an invented pair.
+ */
+export function selectCompilableCandidate(
+  candidates: ReadonlyArray<
+    Readonly<{ id: string; title?: string; evidenceRefs?: readonly string[] }>
+  >,
+  proposals: readonly BoundProposal[],
+  rows: readonly ProposalConsumerRow[],
+  surface: SurfaceMap,
+): { candidate: { id: string }; proposal: BoundProposal; row: ProposalConsumerRow } | undefined {
+  const resolve = (candidate: { id: string }) => {
+    const proposal = proposals.find((item) => item.id === candidate.id);
+    if (!proposal) return undefined;
+    const row = proposal.inventoryRowIds
+      .map((id) => rows.find((candidateRow) => candidateRow.id === id))
+      .find((candidateRow): candidateRow is ProposalConsumerRow => candidateRow !== undefined);
+    if (!row) return undefined;
+    return { candidate, proposal, row };
+  };
+  const resolvable = candidates
+    .map((candidate) => resolve(candidate))
+    .filter((entry): entry is NonNullable<typeof entry> => entry !== undefined);
+  if (resolvable.length === 0) return undefined;
+  return (
+    resolvable.find((entry) => formSurfaceForRoute(surface, entry.row.path) !== undefined) ??
+    resolvable[0]!
+  );
+}
+
 export async function compileProposalCandidate(
   input: ProposalCompileInput,
 ): Promise<CompilationResult> {
