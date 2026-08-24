@@ -1,6 +1,8 @@
 # FIX-307-verifier-network-attribution — staged doc updates (charter §10.2)
 
-Issue: #307 · Status: complete on main (code landed via PR #310's later commits; this slice formalizes the record + real-world proof) · Disposition: observed
+Issue: #307 · Status: **contradicted by round-6 field evidence — per-request attribution fix in flight (F-E8)** · Disposition: observed
+
+> **Round-6 amendment (2026-08-24, `directus-dg12-run6`):** the time-window rule recorded below was CONTRADICTED by the real target — directus's boot probe (`/auth/refresh` → 400 + console error) fires AFTER the first goto, inside the armed window, so stage-10 still blocked. The code that landed via #310 helps only the pre-navigation case. AC-4 failed; the corrected rule (per REQUEST: a goto attributes only its document request; a click/submit attributes requests sent during the awaited action window; boot probes never gate; zero-window armed suites block fail-closed) is tracked as F-E8 on #307 and lands as a follow-up slice.
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
