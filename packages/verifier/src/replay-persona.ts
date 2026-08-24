@@ -205,6 +205,10 @@ export class ReplayPersonaLoginError extends Error {
  * `ARXIC-VERIFY-FIXTURE-LOGIN-BLOCKED` diagnostic — the pass classifies
  * `blocked`, never a partial or fabricated run.
  */
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
 export async function loginReplayPersona(options: {
   origin: string;
   declaration: ReplayPersonaDeclaration;
@@ -236,12 +240,65 @@ export async function loginReplayPersona(options: {
         waitUntil: 'load',
         timeout: timeoutMs,
       });
+      // #295: SPA targets (directus) render their login form only AFTER
+      // hydration, which commits after the load event. Wait for the declared
+      // submit control to attach (label-first, then text) before scoping the
+      // form — bounded by the same timeout, so a target that never renders
+      // still classifies LOGIN-BLOCKED rather than racing.
+      {
+        const roleSubmit = page.getByRole('button', {
+          name: declaration.login.submit.label,
+          exact: true,
+        });
+        const textSubmit = page.locator('button', {
+          hasText: new RegExp(`^${escapeRegExp(declaration.login.submit.label)}$`, 'u'),
+        });
+        try {
+          await roleSubmit.first().waitFor({ state: 'attached', timeout: timeoutMs });
+        } catch {
+          await textSubmit.first().waitFor({ state: 'attached', timeout: timeoutMs });
+        }
+      }
+      // #295: field addressing is LABEL-FIRST with a placeholder fallback —
+      // vanilla SPA targets (directus, koel) ship placeholder-only inputs
+      // with no <label>/aria-label, so label semantics alone resolve nothing
+      // there. The declared string is matched against the label first; only
+      // when label matching resolves zero elements does the placeholder
+      // resolver run (same string, same diagnostics, same redaction).
+      const resolveFieldLocator = (label: string) => {
+        const byLabel = page.getByLabel(label, { exact: true });
+        return {
+          locator: byLabel,
+          alternative: () => page.getByPlaceholder(label, { exact: true }),
+        };
+      };
+      const first = resolveFieldLocator(declaration.login.fields[0]!.label);
+      const firstCount = await first.locator.count();
+      const firstField =
+        firstCount > 0
+          ? first.locator
+          : (await first.alternative().count()) > 0
+            ? first.alternative()
+            : first.locator;
+      // #295 (koel shape): a submit button wrapped in <label> loses its
+      // accessible name in Chromium (label→button association is invalid),
+      // so role-name matching alone cannot address it. Resolve the submit by
+      // role-name first, then fall back to a button whose TEXT is the
+      // declared label — same string, same click, same semantics.
+      const submitByRole = page.getByRole('button', {
+        name: declaration.login.submit.label,
+        exact: true,
+      });
+      const submitLocator =
+        (await submitByRole.count()) > 0
+          ? submitByRole
+          : page.locator('button', {
+              hasText: new RegExp(`^${escapeRegExp(declaration.login.submit.label)}$`, 'u'),
+            });
       const form = page
         .locator('form')
-        .filter({ has: page.getByLabel(declaration.login.fields[0]!.label, { exact: true }) })
-        .filter({
-          has: page.getByRole('button', { name: declaration.login.submit.label, exact: true }),
-        });
+        .filter({ has: firstField.first() })
+        .filter({ has: submitLocator.first() });
       if ((await form.count()) !== 1) {
         throw replayLoginError(
           subject,
@@ -249,24 +306,67 @@ export async function loginReplayPersona(options: {
         );
       }
       for (const field of declaration.login.fields) {
-        await form.getByLabel(field.label, { exact: true }).fill(valueFor(field.inputRef)!, {
+        const resolver = resolveFieldLocator(field.label);
+        const byLabel = resolver.locator;
+        const target =
+          (await byLabel.count()) > 0
+            ? byLabel
+            : (await resolver.alternative().count()) > 0
+              ? resolver.alternative()
+              : byLabel;
+        await target.first().fill(valueFor(field.inputRef)!, {
           timeout: timeoutMs,
         });
       }
-      await form.getByRole('button', { name: declaration.login.submit.label, exact: true }).click({
+      const submitByText = form.locator('button', {
+        hasText: new RegExp(`^${escapeRegExp(declaration.login.submit.label)}$`, 'u'),
+      });
+      const submitClickable =
+        (await submitByText
+          .first()
+          .isVisible()
+          .catch(() => false)) && (await submitByText.count()) > 0
+          ? submitByText.first()
+          : form.getByRole('button', { name: declaration.login.submit.label, exact: true }).first();
+      await submitClickable.click({
         timeout: timeoutMs,
       });
-      // Deterministically wait for the submit navigation to commit AWAY from
-      // the login route (waitForLoadState alone can resolve on the pre-submit
-      // document while the POST is still in flight).
-      const loginPathname = new URL(declaration.login.route, options.origin).pathname;
+      // Deterministically wait for the submit to commit AWAY from the login
+      // route (waitForLoadState alone can resolve on the pre-submit document
+      // while the POST is still in flight). #295: hash-router SPAs (koel)
+      // keep the SAME pathname and move only the fragment (#/home), and
+      // fetch-based submits change no URL at all — so success is: the
+      // pathname left the login route, OR the fragment changed away from the
+      // login fragment, OR the login form detached from the DOM (the app
+      // replaced it with the authenticated shell).
+      const loginUrl = new URL(declaration.login.route, options.origin);
+      const loginPathname = loginUrl.pathname;
+      const loginHash = page.url().split('#')[1] ?? '';
+      const leftTheLoginRoute = (url: URL) =>
+        url.pathname !== loginPathname || (url.hash.length > 0 && url.hash.slice(1) !== loginHash);
+      let navigatedAway = false;
+      let loginFormGone = false;
       try {
-        await page.waitForURL((url) => new URL(url).pathname !== loginPathname, {
+        await page.waitForURL((url) => leftTheLoginRoute(new URL(url)), {
           timeout: timeoutMs,
         });
+        navigatedAway = true;
       } catch {
-        // Arriving back ON the login route means the credentials were refused
-        // (or the submit never left the page) — classify blocked, honestly.
+        // No URL movement — a fetch-based SPA submit may still have
+        // succeeded. The decisive signal is the DECLARED login form's first
+        // field no longer resolving: the authenticated shell replaced the
+        // login view (koel keeps one unrelated form in its shell, so "any
+        // form detached" would false-negative).
+        const firstFieldLabel = declaration.login.fields[0]!.label;
+        const byLabel = page.getByLabel(firstFieldLabel, { exact: true });
+        const byPlaceholder = page.getByPlaceholder(firstFieldLabel, { exact: true });
+        const resolves = (await byLabel.count()) > 0 || (await byPlaceholder.count()) > 0;
+        loginFormGone = !resolves;
+      }
+      if (!navigatedAway && !loginFormGone) {
+        // Arriving back ON the login route with the form still present means
+        // the credentials were refused (or the submit never left the page) —
+        // classify blocked, honestly.
         throw replayLoginError(
           subject,
           'The declared login did not leave the login route; the persona credentials were refused or the form did not submit',

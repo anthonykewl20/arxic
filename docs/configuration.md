@@ -132,6 +132,16 @@ fixtures:
 - `login.fields` is an ordered list of `{ label, inputRef }`; `inputRef` must
   be one of `persona.email`, `persona.password`, `persona.newpassword`.
 - `login.submit` names the form's submit control by label.
+- Resolution is **label-first with a fallback** (#295): each declared string
+  is matched against the control's accessible label first; when no label
+  matches, it is matched against the input placeholder (vanilla SPA targets
+  like directus and koel ship placeholder-only login forms). The same
+  fallback applies to the submit control (a submit wrapped in `<label>` loses
+  its accessible name in Chromium, so its text is matched). SPA targets are
+  also given time to hydrate the login form after page load, and hash-router
+  or fetch-based logins (no URL change) are detected by the login form's
+  declared field leaving the DOM. Failures still classify `blocked` with
+  `ARXIC-VERIFY-FIXTURE-LOGIN-BLOCKED`.
 - The declaration carries **locator metadata only** — persona values never
   appear in YAML; they are supplied exclusively via the
   `ARXIC_INPUT_PERSONA_*` environment channel.
