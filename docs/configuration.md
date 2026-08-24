@@ -107,6 +107,46 @@ All fixture fields are optional strings. If present, `inbox`, `otp`, and
 `personaProvisioner` must be strings; an empty string is accepted by the
 configuration validator.
 
+### `replayPersona` — per-pass login for endpoint-less targets (#288)
+
+`fixtures.replayPersona` declares how the verifier provisions the registered
+persona against a target that does **not** implement arxic's fixture endpoints
+(`POST /__arxic/reset` + `POST /__arxic/seed`) — a vanilla third-party app.
+The shape is frozen:
+
+```yaml
+fixtures:
+  personaProvisioner: boot-seeded-admin
+  replayPersona:
+    mode: per-pass-login
+    login:
+      route: /login
+      fields:
+        - { label: Email, inputRef: persona.email }
+        - { label: Password, inputRef: persona.password }
+      submit: { label: Login }
+```
+
+- `mode` is a closed enum: `per-pass-login` is the only value at freeze.
+- `login.route` is an absolute path on the target origin.
+- `login.fields` is an ordered list of `{ label, inputRef }`; `inputRef` must
+  be one of `persona.email`, `persona.password`, `persona.newpassword`.
+- `login.submit` names the form's submit control by label.
+- The declaration carries **locator metadata only** — persona values never
+  appear in YAML; they are supplied exclusively via the
+  `ARXIC_INPUT_PERSONA_*` environment channel.
+
+When declared (with a persona configured), the verifier logs the persona in
+through the target's own login form **before every verification pass**, in a
+fresh browser context per pass — that login is the leased mutation, and no
+reset/seed endpoints are called at all. Without the declaration, a
+persona-driven run against an endpoint-less target refuses fail-closed at
+stage 7 with `ARXIC-VERIFY-FIXTURE-NOT-DECLARED` (the refused reset attempt is
+recorded as evidence). A declaration on a `production`-shaped target is
+refused with `ARXIC-VERIFY-FIXTURE-PROD-REFUSED` at configuration time, before
+any provisioning or login attempt. Failures of the per-pass login itself
+classify `blocked` with `ARXIC-VERIFY-FIXTURE-LOGIN-BLOCKED`.
+
 ## `models`
 
 | Field             | Required | Type and validation                                                                        |

@@ -92,6 +92,28 @@ verification, also supply `ARXIC_INPUT_PERSONA_EMAIL` and
 `ARXIC_INPUT_PERSONA_PASSWORD`. A fully eligible candidate still requires two
 deterministic verification passes before Arxic exits 0.
 
+If your target is a third-party app that does not implement arxic's fixture
+endpoints, also declare `fixtures.replayPersona` so the verifier can provision
+the persona through the target's own login form before every pass:
+
+```yaml
+fixtures:
+  personaProvisioner: boot-seeded-admin
+  replayPersona:
+    mode: per-pass-login
+    login:
+      route: /login
+      fields:
+        - { label: Email, inputRef: persona.email }
+        - { label: Password, inputRef: persona.password }
+      submit: { label: Login }
+```
+
+Without that declaration, a persona-driven run against such a target blocks at
+stage 7 with `ARXIC-VERIFY-FIXTURE-NOT-DECLARED` and never fabricates a
+verification pass. See [configuration](./configuration.md#fixtures) for the
+full frozen shape.
+
 For the exact packed-install, local-app, local-model human-flow release gate, run
 `node scripts/human-flow-e2e.mjs` from an Arxic source checkout.
 

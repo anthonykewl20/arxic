@@ -189,6 +189,241 @@ describe('CLI configuration happy path', () => {
   });
 });
 
+describe('CLI configuration: fixtures.replayPersona (#288 frozen contract)', () => {
+  const DECLARED_CONFIG = {
+    ...VALID_CONFIG,
+    fixtures: {
+      ...VALID_CONFIG.fixtures,
+      replayPersona: {
+        mode: 'per-pass-login',
+        login: {
+          route: '/login',
+          fields: [
+            { label: 'Email', inputRef: 'persona.email' },
+            { label: 'Password', inputRef: 'persona.password' },
+          ],
+          submit: { label: 'Login' },
+        },
+      },
+    },
+  };
+
+  it('accepts the frozen per-pass-login declaration and echoes it on the value', () => {
+    const result = validateConfig(DECLARED_CONFIG);
+    expect(result).toMatchObject({ ok: true });
+    if (result.ok) {
+      expect(result.value.fixtures.replayPersona).toEqual({
+        mode: 'per-pass-login',
+        login: {
+          route: '/login',
+          fields: [
+            { label: 'Email', inputRef: 'persona.email' },
+            { label: 'Password', inputRef: 'persona.password' },
+          ],
+          submit: { label: 'Login' },
+        },
+      });
+    }
+  });
+
+  it('loads the declaration from a real YAML file (env-only credentials, locator metadata only)', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-config-replay-'));
+    const path = join(directory, 'arxic.yaml');
+    await writeFile(
+      path,
+      VALID_YAML.replace(
+        '  personaProvisioner: app-seed-api\n',
+        `  personaProvisioner: app-seed-api
+  replayPersona:
+    mode: per-pass-login
+    login:
+      route: /login
+      fields:
+        - { label: Email, inputRef: persona.email }
+        - { label: Password, inputRef: persona.password }
+      submit: { label: Login }
+`,
+      ),
+    );
+    const result = await loadConfig(path);
+    expect(result).toMatchObject({ ok: true });
+    if (result.ok) {
+      expect(result.value.fixtures.replayPersona).toEqual({
+        mode: 'per-pass-login',
+        login: {
+          route: '/login',
+          fields: [
+            { label: 'Email', inputRef: 'persona.email' },
+            { label: 'Password', inputRef: 'persona.password' },
+          ],
+          submit: { label: 'Login' },
+        },
+      });
+    }
+  });
+
+  it.each([
+    ['unknown mode', { mode: 'per-pass-reset' }],
+    ['missing mode', 'missing'],
+  ])('rejects a declaration with %s (closed enum)', (_name, modeOverride) => {
+    const declared = DECLARED_CONFIG.fixtures.replayPersona as Record<string, unknown>;
+    const replayPersona =
+      modeOverride === 'missing'
+        ? Object.fromEntries(Object.entries(declared).filter(([key]) => key !== 'mode'))
+        : { ...declared, mode: modeOverride };
+    const result = validateConfig({
+      ...DECLARED_CONFIG,
+      fixtures: { ...DECLARED_CONFIG.fixtures, replayPersona },
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: 'ARXIC-VERIFY-FIXTURE-DECLARATION-INVALID',
+          severity: 'blocked',
+          subject: 'config.fixtures.replayPersona.mode',
+        }),
+      ],
+    });
+  });
+
+  it('rejects a malformed login route', () => {
+    for (const route of ['', 'login', 'http://evil.example/login']) {
+      const result = validateConfig({
+        ...DECLARED_CONFIG,
+        fixtures: {
+          ...DECLARED_CONFIG.fixtures,
+          replayPersona: {
+            mode: 'per-pass-login',
+            login: { ...DECLARED_CONFIG.fixtures.replayPersona.login, route },
+          },
+        },
+      });
+      expect(result).toMatchObject({
+        ok: false,
+        diagnostics: [
+          expect.objectContaining({
+            code: 'ARXIC-VERIFY-FIXTURE-DECLARATION-INVALID',
+            subject: 'config.fixtures.replayPersona.login.route',
+          }),
+        ],
+      });
+    }
+  });
+
+  it.each([
+    ['an unknown inputRef', [{ label: 'Email', inputRef: 'env.ADMIN_PASSWORD' }]],
+    ['a field missing its label', [{ label: '', inputRef: 'persona.email' }]],
+    ['a field missing its inputRef', [{ label: 'Email' }]],
+  ])('rejects login fields with %s', (_name, fields) => {
+    const result = validateConfig({
+      ...DECLARED_CONFIG,
+      fixtures: {
+        ...DECLARED_CONFIG.fixtures,
+        replayPersona: {
+          mode: 'per-pass-login',
+          login: { ...DECLARED_CONFIG.fixtures.replayPersona.login, fields },
+        },
+      },
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: 'ARXIC-VERIFY-FIXTURE-DECLARATION-INVALID',
+          subject: 'config.fixtures.replayPersona.login.fields',
+        }),
+      ],
+    });
+  });
+
+  it('rejects an empty login fields list', () => {
+    const result = validateConfig({
+      ...DECLARED_CONFIG,
+      fixtures: {
+        ...DECLARED_CONFIG.fixtures,
+        replayPersona: {
+          mode: 'per-pass-login',
+          login: { ...DECLARED_CONFIG.fixtures.replayPersona.login, fields: [] },
+        },
+      },
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: 'ARXIC-VERIFY-FIXTURE-DECLARATION-INVALID',
+          subject: 'config.fixtures.replayPersona.login.fields',
+        }),
+      ],
+    });
+  });
+
+  it.each([
+    ['a missing submit block', undefined],
+    ['an empty submit label', { label: '' }],
+  ])('rejects a login block with %s', (_name, submit) => {
+    const login = { ...DECLARED_CONFIG.fixtures.replayPersona.login } as Record<string, unknown>;
+    delete login.submit;
+    if (submit !== undefined) login.submit = submit;
+    const result = validateConfig({
+      ...DECLARED_CONFIG,
+      fixtures: {
+        ...DECLARED_CONFIG.fixtures,
+        replayPersona: { mode: 'per-pass-login', login },
+      },
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: 'ARXIC-VERIFY-FIXTURE-DECLARATION-INVALID',
+          subject: 'config.fixtures.replayPersona.login.submit',
+        }),
+      ],
+    });
+  });
+
+  it('rejects a missing login block outright', () => {
+    const result = validateConfig({
+      ...DECLARED_CONFIG,
+      fixtures: { ...DECLARED_CONFIG.fixtures, replayPersona: { mode: 'per-pass-login' } },
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      diagnostics: [
+        expect.objectContaining({
+          code: 'ARXIC-VERIFY-FIXTURE-DECLARATION-INVALID',
+          subject: 'config.fixtures.replayPersona.login',
+        }),
+      ],
+    });
+  });
+
+  it('refuses a production-shaped target carrying the declaration with PROD-REFUSED', () => {
+    const result = validateConfig({
+      ...DECLARED_CONFIG,
+      target: { ...DECLARED_CONFIG.target, environmentClass: 'production' },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'ARXIC-VERIFY-FIXTURE-PROD-REFUSED',
+          severity: 'blocked',
+        }),
+      );
+      // The default production refusal stays in force alongside the specific code.
+      expect(result.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'ARXIC-CONFIG-INVALID',
+          subject: 'config.target.environmentClass',
+        }),
+      );
+    }
+  });
+});
+
 function codes(result: ReturnType<typeof validateConfig>): string[] {
   return result.ok ? [] : result.diagnostics.map((diagnostic) => diagnostic.code);
 }

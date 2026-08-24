@@ -46,6 +46,12 @@ import {
   verifyDiagnostic,
 } from './diagnostics';
 import { resetAndSeedFixtures, type VerificationPersona } from './reset';
+import {
+  loginReplayPersona,
+  ReplayPersonaLoginError,
+  replayPersonaNotDeclaredRefusal,
+  type ReplayPersonaDeclaration,
+} from './replay-persona';
 import { runPlaywrightSuite, type RunPass, type TransitionReceiptExpectation } from './runner';
 import { extractRunFailureEvidence } from './failure-evidence';
 
@@ -57,6 +63,14 @@ export type PlaywrightVerifierOptions = {
   artifactsDir: string;
   persona?: VerificationPersona;
   resetAndSeed?: (run: number) => Promise<void>;
+  /**
+   * #288: declared `fixtures.replayPersona` (mode `per-pass-login`). When
+   * present — with a persona — the verifier provisions + logs in the persona
+   * through the target's own login form before EVERY pass, in a fresh
+   * context, instead of calling the target's arxic fixture endpoints
+   * (first-party apps keep that protocol unchanged, C-4).
+   */
+  replayPersona?: ReplayPersonaDeclaration;
   runSuite?: (run: number, transitionReceipts: TransitionReceiptExpectation) => Promise<RunPass>;
   ensurePlaywrightModule?: boolean;
   now?: () => string;
@@ -70,6 +84,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #artifactsDirectory: string;
   readonly #persona: VerificationPersona | undefined;
   readonly #resetAndSeed: ((run: number) => Promise<void>) | undefined;
+  readonly #replayPersona: ReplayPersonaDeclaration | undefined;
   readonly #runSuite:
     | ((run: number, transitionReceipts: TransitionReceiptExpectation) => Promise<RunPass>)
     | undefined;
@@ -77,6 +92,8 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #now: () => string;
   readonly #screenshotPrivacyPolicy: ScreenshotPrivacyPolicy | undefined;
   readonly #captureCorrelation: (run: number) => string;
+  /** Set at verify() entry: the workflow id every #reset diagnostic names. */
+  #subject: string | undefined;
 
   constructor(options: PlaywrightVerifierOptions) {
     this.#outputDirectory = options.outputDirectory;
@@ -84,6 +101,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     this.#artifactsDirectory = options.artifactsDir;
     this.#persona = options.persona;
     this.#resetAndSeed = options.resetAndSeed;
+    this.#replayPersona = options.replayPersona;
     this.#runSuite = options.runSuite;
     this.#ensureModule = options.ensurePlaywrightModule ?? true;
     this.#now = options.now ?? (() => new Date().toISOString());
@@ -96,6 +114,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     const runs: Array<{ passed: boolean }> = [];
     const artifacts: ArtifactRef[] = [];
     const subject = bundle.workflow.id;
+    this.#subject = subject;
     if (!Number.isInteger(policy.requiredRuns) || policy.requiredRuns < 1) {
       return blocked(
         runs,
@@ -270,12 +289,18 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         await this.#reset(run);
       } catch (error) {
         executionDiagnostics.push(
-          verifyDiagnostic(
-            ARXIC_VERIFY_BLOCKED_FIXTURE,
-            'blocked',
-            subject,
-            `Clean fixture reset/seed failed before run ${run}: ${error instanceof Error ? error.message : String(error)}`,
-          ),
+          error instanceof ReplayPersonaLoginError
+            ? // #288: the per-pass login failure carries its own frozen
+              // ARXIC-VERIFY-FIXTURE-* diagnostic (LOGIN-BLOCKED / refusal).
+              error.diagnostic
+            : verifyDiagnostic(
+                ARXIC_VERIFY_BLOCKED_FIXTURE,
+                'blocked',
+                subject,
+                `Clean fixture reset/seed failed before run ${run}: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              ),
         );
         break;
       }
@@ -405,6 +430,23 @@ export class PlaywrightVerifier implements WorkflowVerifier {
 
   async #reset(run: number): Promise<void> {
     if (this.#resetAndSeed) return this.#resetAndSeed(run);
+    // #288 (C-1): a declared replay persona provisions through the target's
+    // OWN login form per pass (the leased mutation); the endpoint protocol is
+    // never attempted against an endpoint-less third-party target.
+    if (this.#replayPersona && this.#persona) {
+      return loginReplayPersona({
+        origin: this.#origin,
+        declaration: this.#replayPersona,
+        persona: this.#persona,
+        subject: this.#subject ?? 'verification.replay-persona',
+      });
+    }
+    if (this.#replayPersona && !this.#persona) {
+      throw new ReplayPersonaLoginError(
+        'No verification persona was configured for the declared fixtures.replayPersona',
+        replayPersonaNotDeclaredRefusal(this.#subject ?? 'verification.replay-persona'),
+      );
+    }
     if (!this.#persona) throw new Error('No verification persona was configured');
     return resetAndSeedFixtures(this.#origin, this.#persona);
   }
