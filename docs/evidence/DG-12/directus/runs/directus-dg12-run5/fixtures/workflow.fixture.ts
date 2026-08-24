@@ -1,0 +1,117 @@
+import { test as base, expect } from '@playwright/test';
+import { installTransitionReceiptListeners, writeTransitionReceipts } from './transition-receipts';
+
+const approvedOrigins = new Set();
+const ORIGIN_DENIED = 'ARXIC-COMPILE-ORIGIN-DENIED';
+const violations = new WeakMap();
+const cdpSessions = new WeakMap();
+
+export const test = base.extend({
+});
+
+export function configureApprovedOrigins(origins) {
+  approvedOrigins.clear();
+  for (const origin of origins) {
+    approvedOrigins.add(origin);
+    const alias = new URL(origin);
+    if (alias.hostname === '127.0.0.1') alias.hostname = 'localhost';
+    else if (alias.hostname === 'localhost') alias.hostname = '127.0.0.1';
+    else continue;
+    approvedOrigins.add(alias.origin);
+  }
+}
+
+export function assertNetworkContained(context) {
+  const denied = violations.get(context)?.denied ?? [];
+  if (denied.length > 0) {
+    throw new Error(`${ORIGIN_DENIED}: blocked request to unapproved origin ${denied[0]}`);
+  }
+}
+
+export async function enforceNetworkContainment(page, operation) {
+  const context = page.context();
+  const state = violations.get(context);
+  if (!state) throw new Error(`${ORIGIN_DENIED}: network policy was not installed`);
+  return Promise.race([operation(), state.violation]);
+}
+
+export function assertPageOrigin(page) {
+  const pageOrigin = new URL(page.url()).origin;
+  if (!approvedOrigins.has(pageOrigin)) {
+    throw new Error(`${ORIGIN_DENIED}: blocked navigation to unapproved origin ${pageOrigin}`);
+  }
+}
+
+test.beforeEach(async ({ browserName, context, page }, testInfo) => {
+  if (browserName !== 'chromium') {
+    throw new Error(`${ORIGIN_DENIED}: redirect containment requires Chromium CDP`);
+  }
+  await context.clearCookies();
+  const denied = [];
+  let rejectViolation;
+  const violation = new Promise((_, reject) => { rejectViolation = reject; });
+  violations.set(context, { denied, violation, rejectViolation });
+  await context.route('**/*', async (route) => {
+    const requestUrl = new URL(route.request().url());
+    if ((requestUrl.protocol === 'http:' || requestUrl.protocol === 'https:') && !approvedOrigins.has(requestUrl.origin)) {
+      denied.push(requestUrl.origin);
+      rejectViolation(new Error(`${ORIGIN_DENIED}: blocked request to unapproved origin ${requestUrl.origin}`));
+      await route.abort('blockedbyclient');
+      return;
+    }
+    await route.continue();
+  });
+  await context.routeWebSocket('**/*', async (webSocket) => {
+    const webSocketUrl = new URL(webSocket.url());
+    webSocketUrl.protocol = webSocketUrl.protocol === 'ws:' ? 'http:' : 'https:';
+    const webSocketOrigin = webSocketUrl.origin;
+    if (!approvedOrigins.has(webSocketOrigin)) {
+      denied.push(webSocketOrigin);
+      rejectViolation(new Error(`${ORIGIN_DENIED}: blocked WebSocket to unapproved origin ${webSocketOrigin}`));
+      await webSocket.close({ code: 1008, reason: 'origin denied' });
+      return;
+    }
+    webSocket.connectToServer();
+  });
+  const session = await context.newCDPSession(page);
+  cdpSessions.set(context, session);
+  session.on('Fetch.requestPaused', async (event) => {
+    try {
+      const status = event.responseStatusCode;
+      const location = event.responseHeaders?.find((header) => header.name.toLowerCase() === 'location')?.value;
+      if (status !== undefined && status >= 300 && status < 400 && location) {
+        const redirectOrigin = new URL(location, event.request.url).origin;
+        if (!approvedOrigins.has(redirectOrigin)) {
+          denied.push(redirectOrigin);
+          rejectViolation(new Error(`${ORIGIN_DENIED}: blocked redirect to unapproved origin ${redirectOrigin}`));
+          await session.send('Fetch.failRequest', { requestId: event.requestId, errorReason: 'BlockedByClient' });
+          return;
+        }
+      }
+      await session.send('Fetch.continueResponse', { requestId: event.requestId });
+    } catch (error) {
+      rejectViolation(error);
+      try {
+        await session.send('Fetch.failRequest', { requestId: event.requestId, errorReason: 'BlockedByClient' });
+      } catch {}
+    }
+  });
+  await session.send('Fetch.enable', { patterns: [{ requestStage: 'Response' }] });
+  installTransitionReceiptListeners(context, page, testInfo);
+});
+
+test.afterEach(async ({ context }) => {
+  await writeTransitionReceipts(context);
+  const session = cdpSessions.get(context);
+  if (session) {
+    await session.send('Fetch.disable').catch(() => undefined);
+    await session.detach().catch(() => undefined);
+    cdpSessions.delete(context);
+  }
+  await context.unrouteAll({ behavior: 'ignoreErrors' });
+  await context.clearCookies();
+  assertNetworkContained(context);
+});
+
+test.describe.configure({ mode: 'serial' });
+export { expect };
