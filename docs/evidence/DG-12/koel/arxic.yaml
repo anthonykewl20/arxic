@@ -67,6 +67,21 @@ policy:
   humanApproval: [destructive, external-side-effect]
 fixtures:
   personaProvisioner: boot-seeded-admin
+  # DG-12 amendment after #295: per-pass login against the target's OWN login
+  # form. Labels/submit PROVEN LIVE at the pin (PR #296): koel / renders
+  # placeholder-only inputs under #/home and a <label>-wrapped submit whose
+  # accessible name is empty; the #295 placeholder + text fallbacks resolve
+  # both. Login succeeds via POST /api/me (fetch) with the form leaving the
+  # DOM — the #295 DOM-detachment success signal covers it. Credentials stay
+  # env-only (the koel first-admin constants, read at launch time per §4.2).
+  replayPersona:
+    mode: per-pass-login
+    login:
+      route: /
+      fields:
+        - { label: Your email address, inputRef: persona.email }
+        - { label: Your password, inputRef: persona.password }
+      submit: { label: Log In }
 models:
   provider: openai/gpt-4o-mini
   sourceRetention: disabled
