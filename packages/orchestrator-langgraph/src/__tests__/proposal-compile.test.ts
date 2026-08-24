@@ -308,7 +308,7 @@ describe('proposal -> DG-09 form-flow compile (no canned assertions)', () => {
       )?.path;
       expect(specPath).toBeDefined();
       const spec = await readFile(resolve(outputDirectory, specPath!), 'utf8');
-      expect(spec).toContain('getByLabel("Email")');
+      expect(spec).toContain('labelOrPlaceholderControl(form, "Email")');
       expect(spec).toContain('ARXIC_INPUT_PERSONA_EMAIL');
       expect(spec).toContain(`getByRole('button', { name: "Subscribe", exact: true })`);
       expect(spec).not.toMatch(/authenticat/iu);
