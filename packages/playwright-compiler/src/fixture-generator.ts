@@ -5,7 +5,11 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
   void approvedOrigins;
   return [
     "import { test as base, expect } from '@playwright/test';",
-    "import { installTransitionReceiptListeners, writeTransitionReceipts } from './transition-receipts';",
+    'import {',
+    '  installTransitionReceiptListeners,',
+    '  withReceiptAttribution,',
+    '  writeTransitionReceipts,',
+    "} from './transition-receipts';",
     '',
     'const approvedOrigins = new Set();',
     "const ORIGIN_DENIED = 'ARXIC-COMPILE-ORIGIN-DENIED';",
@@ -38,7 +42,11 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
     '  const context = page.context();',
     '  const state = violations.get(context);',
     '  if (!state) throw new Error(`${ORIGIN_DENIED}: network policy was not installed`);',
-    '  return Promise.race([operation(), state.violation]);',
+    // #307/F-E8: every contained action is also an attribution window —
+    // requests SENT while the awaited operation races are workflow-attributed.
+    "  return withReceiptAttribution(page, 'action', () =>",
+    '    Promise.race([operation(), state.violation]),',
+    '  );',
     '}',
     '',
     'export function assertPageOrigin(page) {',

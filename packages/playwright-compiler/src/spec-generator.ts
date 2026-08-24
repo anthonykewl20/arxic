@@ -25,7 +25,11 @@ export function generateSpec(
   const requiredTransitions = workflow.transitions.filter((item) => item.required !== false);
   const lines = [
     "import { test, expect, assertNetworkContained, assertPageOrigin, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';",
-    "import { armReceiptCapture, recordTransitionReceipt } from '../fixtures/transition-receipts';",
+    'import {',
+    '  armReceiptCapture,',
+    '  recordTransitionReceipt,',
+    '  withReceiptAttribution,',
+    "} from '../fixtures/transition-receipts';",
     ...(captureScreenshots
       ? ["import { capturePolicyScreenshot } from '../fixtures/screenshot-privacy';"]
       : []),
@@ -40,12 +44,13 @@ export function generateSpec(
     if (action.formScoped) usedFormScope = true;
     lines.push(
       `  await test.step(${JSON.stringify(`${transition.from} → ${transition.to}`)}, async () => {`,
-      // #307 (F-E6): arm event attribution at the first workflow-initiated
-      // navigation — everything the app does BEFORE this (its own boot
-      // probes, e.g. directus /auth/refresh -> 400 + console error on every
-      // unauthenticated load) is app-autonomous, not workflow-caused.
+      // #307/F-E8: arm ONCE, then attribute per request — each step's goto
+      // opens a NAVIGATE window (only its DOCUMENT request gates); actions
+      // ride enforceNetworkContainment's ACTION window in the fixture. The
+      // app's own boot probes (directus /auth/refresh -> 400 + console error
+      // on load, fired after the goto begins) are never attributed.
       ...(index === 0 ? ['    armReceiptCapture(page);'] : []),
-      `    await page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)});`,
+      `    await withReceiptAttribution(page, 'navigate', () => page.goto(${JSON.stringify(index === 0 && runtimeUrl ? new URL(runtimeUrl, origin).href : new URL(statePath(transition.from), origin).href)}));`,
       '    assertPageOrigin(page);',
       '    assertNetworkContained(context);',
       ...action.lines,

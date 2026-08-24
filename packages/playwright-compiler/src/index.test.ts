@@ -16,6 +16,7 @@ import {
   PlaywrightCompiler,
   compileDiagnostic,
   enforceCompilePolicy,
+  generateFixture,
   generateSpec,
   probeDiagnostic,
 } from './index';
@@ -283,30 +284,48 @@ describe('Playwright compiler contracts', () => {
     expect(receipts).toContain("context.on('requestfailed'");
   });
 
-  // #307 (F-E6): the receipt runtime must ATTRIBUTE events to the workflow,
-  // not the context lifetime — SPAs fire their own boot probes (directus
-  // /auth/refresh -> 400 + console error on every unauthenticated load)
-  // BEFORE the first workflow navigation; those app-autonomous failures are
-  // not workflow-caused and must not fail verification policy.
-  test('#307 receipt events arm at the first workflow navigation', () => {
+  // #307 (F-E6) + F-E8 (round-6 field evidence): attribution is PER REQUEST,
+  // not by time window — the directus boot probe (/auth/refresh -> 400 +
+  // console error) fires AFTER the first goto, inside any armed window,
+  // because the app boots with the very page the workflow navigates to.
+  // Corrected rule: navigate windows attribute only the goto's DOCUMENT
+  // request; action windows (enforceNetworkContainment) attribute every
+  // request SENT during the awaited operation plus console/page errors; boot
+  // probes are never marked and never gate; zero-window armed suites fail
+  // closed at receipt write.
+  test('#307/F-E8 receipt attribution is per request through explicit windows', () => {
     const generated = generateSpec(
       loginWorkflow(),
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3000/',
     );
-    // the spec arms attribution right before its FIRST goto...
-    expect(generated.spec).toContain('armReceiptCapture(page);');
+    // the spec arms once, then wraps EVERY goto in a navigate window
+    expect(generated.spec.match(/armReceiptCapture\(page\);/gu)).toHaveLength(1);
     const firstArm = generated.spec.indexOf('armReceiptCapture(page);');
+    const firstWindow = generated.spec.indexOf("withReceiptAttribution(page, 'navigate'");
     const firstGoto = generated.spec.indexOf('page.goto(');
     expect(firstArm).toBeGreaterThan(-1);
-    expect(firstArm).toBeLessThan(firstGoto);
-    // ...exactly once (subsequent transitions stay armed)
-    expect(generated.spec.match(/armReceiptCapture\(page\);/gu)).toHaveLength(1);
+    expect(firstArm).toBeLessThan(firstWindow);
+    expect(firstWindow).toBeLessThan(firstGoto);
+    // every step goto is windowed
+    expect(generated.spec.match(/withReceiptAttribution\(page, 'navigate'/gu)).toHaveLength(
+      generated.spec.match(/page\.goto\(/gu)?.length ?? 0,
+    );
     const runtime = transitionReceiptRuntimeSource();
-    // the runtime drops events captured before arming...
-    expect(runtime).toContain('if (!state.armed) return;');
-    // ...and exposes the arming seam
-    expect(runtime).toContain('export function armReceiptCapture(page)');
+    // requests are MARKED at send time inside a window...
+    expect(runtime).toContain('state.attributed.add(request);');
+    // ...navigate windows attribute ONLY document requests...
+    expect(runtime).toContain("request.resourceType() !== 'document'");
+    // ...responses/failures gate ONLY for marked requests...
+    expect(runtime).toContain('state.attributed.has(response.request())');
+    expect(runtime).toContain('state.attributed.has(request)');
+    // ...console/page errors record only inside ACTION windows...
+    expect(runtime).toContain("state.windowKind !== 'action'");
+    // ...and an armed suite with ZERO windows fails closed at write time
+    expect(runtime).toContain('no attribution window was ever opened');
+    // the fixture routes every contained action through an action window
+    const fixture = generateFixture(loginWorkflow());
+    expect(fixture).toContain("withReceiptAttribution(page, 'action', () =>");
   });
 
   test('compiler errors expose one frozen blocked diagnostic', () => {

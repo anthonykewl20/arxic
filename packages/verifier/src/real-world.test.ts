@@ -187,13 +187,20 @@ describe.sequential('playwright verifier real-world security proof', () => {
           join(outputDirectory, 'tests/workflow.spec.ts'),
           [
             "import { test, expect, configureApprovedOrigins } from '../fixtures/workflow.fixture';",
-            "import { armReceiptCapture, recordTransitionReceipt } from '../fixtures/transition-receipts';",
+            'import {',
+            '  armReceiptCapture,',
+            '  recordTransitionReceipt,',
+            '  withReceiptAttribution,',
+            "} from '../fixtures/transition-receipts';",
             `configureApprovedOrigins([${JSON.stringify(new URL(running.origin).origin)}]);`,
             "test('receipt event gate', async ({ page }) => {",
             '  armReceiptCapture(page);',
-            `  const response = await page.goto(${JSON.stringify(`${running.origin}/__arxic-receipt-missing__`)});`,
+            // workflow-caused document 404: the goto's OWN document request gates
+            `  const response = await withReceiptAttribution(page, 'navigate', () => page.goto(${JSON.stringify(`${running.origin}/__arxic-receipt-missing__`)}));`,
             '  await expect(response).not.toBeNull();',
-            "  await page.evaluate(() => console.error('arxic receipt console proof'));",
+            // workflow-caused console error: raised INSIDE an action window gates
+            "  await withReceiptAttribution(page, 'action', () =>",
+            "    page.evaluate(() => console.error('arxic receipt console proof')));",
             "  recordTransitionReceipt(page, 'login-page->home', 'login-page → home');",
             '});',
             '',
@@ -227,10 +234,11 @@ describe.sequential('playwright verifier real-world security proof', () => {
       ).toBe('blocked');
     }, 120_000);
 
-    // #307 (F-E6) complement: an app-autonomous boot probe (4xx + console
-    // error BEFORE the workflow's first navigation) is NOT workflow-caused
-    // and must not produce network errors — the receipt stays clean.
-    test('#307 app-autonomous boot errors before the first navigation do not gate', async () => {
+    // #307 (F-E6/F-E8) complement: an app-autonomous boot probe (4xx fired
+    // DURING the armed page load — the directus /auth/refresh shape measured
+    // in round 6) is NOT workflow-caused and must not produce network errors
+    // — the receipt stays clean even though it occurs after arming.
+    test('#307/F-E8 app-autonomous boot probes during the armed page load do not gate', async () => {
       if (!running) throw new Error(`Fixture app ${app.name} did not start`);
       const nonce = `boot-probe-${app.name}`;
       const receiptPath = join(outputDirectory, 'artifacts', 'arxic-transition-receipts.json');
@@ -257,7 +265,11 @@ describe.sequential('playwright verifier real-world security proof', () => {
         join(outputDirectory, 'tests/workflow.spec.ts'),
         [
           "import { test, expect, configureApprovedOrigins } from '../fixtures/workflow.fixture';",
-          "import { armReceiptCapture, recordTransitionReceipt } from '../fixtures/transition-receipts';",
+          'import {',
+          '  armReceiptCapture,',
+          '  recordTransitionReceipt,',
+          '  withReceiptAttribution,',
+          "} from '../fixtures/transition-receipts';",
           `configureApprovedOrigins([${JSON.stringify(new URL(running.origin).origin)}]);`,
           "test('boot probe attribution', async ({ page }) => {",
           // autonomous probe FIRST (unarmed): a 404 fetch + console error
@@ -270,9 +282,19 @@ describe.sequential('playwright verifier real-world security proof', () => {
           '  await page.waitForTimeout(250);',
           "  await page.evaluate(() => console.error('arxic boot probe console proof'));",
           // NOW the workflow arms and runs clean
+          // F-E8 shape: the app's boot probe fires DURING the armed page
+          // load (a parser-blocking 404 subresource of the goto's document).
+          // Under the contradicted time-window rule this gated; per-request
+          // attribution must keep the receipt clean.
+          "  await page.route('**/boot', async (route) => {",
+          "    await route.fulfill({ contentType: 'text/html', body: '<html><body><script src=\"/__arxic-boot-probe__\"></script>boot</body></html>' });",
+          '  });',
           '  armReceiptCapture(page);',
-          `  const response = await page.goto(${JSON.stringify(running.origin)});`,
+          `  const response = await withReceiptAttribution(page, 'navigate', () => page.goto(${JSON.stringify(`${running.origin}/boot`)}));`,
           '  await expect(response).not.toBeNull();',
+          '  await page.waitForTimeout(250);',
+          // a clean workflow action AFTER the boot probe — still no gating
+          "  await withReceiptAttribution(page, 'action', () => page.evaluate(() => 42));",
           "  recordTransitionReceipt(page, 'login-page->home', 'login-page → home');",
           '});',
           '',
