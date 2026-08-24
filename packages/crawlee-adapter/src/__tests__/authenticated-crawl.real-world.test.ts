@@ -178,12 +178,18 @@ describe('DG-297 E2: authenticated breadth discovery via replayPersona', () => {
 
     expect(result.routes.map((route) => route.path)).toContain('/login');
     expect(result.routes.map((route) => route.path)).not.toContain('/newsletter');
-    expect(result.diagnostics).toContainEqual(
+    const blocked = result.diagnostics.find(
+      (diagnostic) => diagnostic.code === 'ARXIC-SURFACE-009',
+    );
+    expect(blocked).toEqual(
       expect.objectContaining({
         code: 'ARXIC-SURFACE-009',
         severity: 'blocked',
       }),
     );
+    // #301 (AC-4): the diagnostic carries the login core's underlying
+    // failure (bounded) so a refusal is diagnosable from evidence alone.
+    expect(String(blocked?.message)).toMatch(/login core: .+/u);
     // The persona secret never leaks into the diagnostic surface.
     expect(JSON.stringify(result.diagnostics)).not.toContain('PersonaPass9!');
   }, 180_000);

@@ -378,9 +378,19 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     // page whose forms cannot be uniquely scoped fails closed as ambiguous.
     let root: Page | Locator = page;
     if (scope) {
+      // #301 (F-E3A): label-first with placeholder fallback — the #295
+      // semantics in the exploration lane. The real directus login page has
+      // zero <label> elements (its controls are placeholder-addressed), so a
+      // label-only scope filter matched ZERO forms and every step failed
+      // closed as ambiguous. The fallback addresses controls the same way
+      // the crawl (E1) labels them; the unique-form (count === 1) gate is
+      // unchanged.
+      const fieldAddressed = page
+        .getByLabel(scope.fieldLabel)
+        .or(page.getByPlaceholder(scope.fieldLabel));
       const form = page
         .locator('form')
-        .filter({ has: page.getByLabel(scope.fieldLabel) })
+        .filter({ has: fieldAddressed })
         .filter({ has: page.getByRole('button', { name: scope.submitName, exact: true }) });
       const formCount = await form.count();
       if (formCount !== 1) {
@@ -567,9 +577,7 @@ function playwrightLocator(
         ...(specification.exact === undefined ? {} : { exact: specification.exact }),
       });
     case 'label':
-      return root.getByLabel(specification.text, {
-        ...(specification.exact === undefined ? {} : { exact: specification.exact }),
-      });
+      return labelOrPlaceholderLocator(root, specification);
     case 'text':
       return root.getByText(specification.text, {
         ...(specification.exact === undefined ? {} : { exact: specification.exact }),
@@ -577,6 +585,26 @@ function playwrightLocator(
     case 'test-id':
       return root.getByTestId(specification.id);
   }
+}
+
+/**
+ * #301 (F-E3A): label-first with placeholder fallback (#295 semantics).
+ * A 'label'-kind locator may address a control the page addresses ONLY by
+ * placeholder (the real directus login shape: zero <label> elements). The
+ * fallback is decided INSIDE the attach-wait flow (#resolveControl wraps
+ * this locator with waitFor(attached)) — an unhydrated page's empty counts
+ * settle before the wait gate, never before it.
+ */
+function labelOrPlaceholderLocator(
+  root: Page | Locator,
+  specification: { text: string; exact?: boolean },
+): Locator {
+  const options = {
+    ...(specification.exact === undefined ? {} : { exact: specification.exact }),
+  };
+  const byLabel = root.getByLabel(specification.text, options);
+  const byPlaceholder = root.getByPlaceholder(specification.text, options);
+  return byLabel.or(byPlaceholder);
 }
 
 async function attachedToDom(handle: ElementHandle): Promise<boolean> {
