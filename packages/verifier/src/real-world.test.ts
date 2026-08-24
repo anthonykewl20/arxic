@@ -187,9 +187,10 @@ describe.sequential('playwright verifier real-world security proof', () => {
           join(outputDirectory, 'tests/workflow.spec.ts'),
           [
             "import { test, expect, configureApprovedOrigins } from '../fixtures/workflow.fixture';",
-            "import { recordTransitionReceipt } from '../fixtures/transition-receipts';",
+            "import { armReceiptCapture, recordTransitionReceipt } from '../fixtures/transition-receipts';",
             `configureApprovedOrigins([${JSON.stringify(new URL(running.origin).origin)}]);`,
             "test('receipt event gate', async ({ page }) => {",
+            '  armReceiptCapture(page);',
             `  const response = await page.goto(${JSON.stringify(`${running.origin}/__arxic-receipt-missing__`)});`,
             '  await expect(response).not.toBeNull();',
             "  await page.evaluate(() => console.error('arxic receipt console proof'));",
@@ -224,6 +225,63 @@ describe.sequential('playwright verifier real-world security proof', () => {
           networkErrors: pass.networkErrors,
         }).outcome,
       ).toBe('blocked');
+    }, 120_000);
+
+    // #307 (F-E6) complement: an app-autonomous boot probe (4xx + console
+    // error BEFORE the workflow's first navigation) is NOT workflow-caused
+    // and must not produce network errors — the receipt stays clean.
+    test('#307 app-autonomous boot errors before the first navigation do not gate', async () => {
+      if (!running) throw new Error(`Fixture app ${app.name} did not start`);
+      const nonce = `boot-probe-${app.name}`;
+      const receiptPath = join(outputDirectory, 'artifacts', 'arxic-transition-receipts.json');
+      await Promise.all([
+        mkdir(join(outputDirectory, 'tests'), { recursive: true }),
+        mkdir(join(outputDirectory, 'fixtures'), { recursive: true }),
+      ]);
+      await Promise.all([
+        writeFile(
+          join(outputDirectory, 'fixtures/workflow.fixture.ts'),
+          generateFixture(loginWorkflow(app, {})),
+        ),
+        writeFile(
+          join(outputDirectory, 'fixtures/transition-receipts.ts'),
+          transitionReceiptRuntimeSource(),
+        ),
+      ]);
+      await writeFile(
+        join(outputDirectory, 'tests/workflow.spec.ts'),
+        [
+          "import { test, expect, configureApprovedOrigins } from '../fixtures/workflow.fixture';",
+          "import { armReceiptCapture, recordTransitionReceipt } from '../fixtures/transition-receipts';",
+          `configureApprovedOrigins([${JSON.stringify(new URL(running.origin).origin)}]);`,
+          "test('boot probe attribution', async ({ page }) => {",
+          // autonomous probe FIRST (unarmed): a 404 fetch + console error
+          `  await page.goto(${JSON.stringify(running.origin)});`,
+          "  await page.evaluate(() => {",
+          `    return fetch(${JSON.stringify(`${running.origin}/__arxic-boot-probe__`)}).then(() => undefined, () => undefined);`,
+          "  });",
+          "  await page.evaluate(() => console.error('arxic boot probe console proof'));",
+          // NOW the workflow arms and runs clean
+          '  armReceiptCapture(page);',
+          `  const response = await page.goto(${JSON.stringify(running.origin)});`,
+          '  await expect(response).not.toBeNull();',
+          "  recordTransitionReceipt(page, 'login-page->home', 'login-page → home');",
+          '});',
+          '',
+        ].join('\n'),
+        'utf8',
+      );
+      const pass = await runPlaywrightSuite({
+        testDirectory: outputDirectory,
+        transitionReceipts: {
+          path: receiptPath,
+          nonce,
+          testTitle: 'boot probe attribution',
+          transitions: [{ id: 'login-page->home', stepName: 'login-page → home' }],
+        },
+      });
+      expect(pass.passed, pass.output).toBe(true);
+      expect(pass.networkErrors).toEqual([]);
     }, 120_000);
   });
 
