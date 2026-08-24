@@ -60,6 +60,19 @@ export type SurfaceDiscoveryRequest = DiscoveryRequest & {
    * following and link classification remain same-origin.
    */
   allowedOrigins?: readonly string[];
+  /**
+   * DG-297 E2 (#297): authenticate through the target's OWN login form (the
+   * #288 declaration, #295 label-first/placeholder resolution) before breadth
+   * discovery, seeding the crawl browser context with the captured storage
+   * state. Unset → the crawl is anonymous (byte-identical to prior behavior).
+   * A refused login emits ARXIC-SURFACE-009 (blocked) and the crawl proceeds
+   * anonymously — never a fabricated authenticated surface. Credentials ride
+   * in-memory only; they never appear in artifacts, diagnostics, or logs.
+   */
+  replayPersona?: {
+    declaration: import('@arxic/verifier').ReplayPersonaDeclaration;
+    persona: { email: string; password: string };
+  };
 };
 
 export type SurfaceDiscovererOptions = {

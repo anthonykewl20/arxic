@@ -209,6 +209,36 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
 
+/** #297 E2: the authenticated browser storage state (cookies + origins) captured after a replay-persona login. */
+export type ReplayPersonaStorageState = Readonly<{
+  cookies: ReadonlyArray<Readonly<{ name: string; value: string; domain: string; path: string }>>;
+  origins: ReadonlyArray<
+    Readonly<{ origin: string; localStorage: ReadonlyArray<{ name: string; value: string }> }>
+  >;
+}>;
+
+/**
+ * #297 E2: perform the SAME per-pass replay-persona login, but return the
+ * authenticated storage state instead of discarding it — the crawl tier's
+ * authenticated-discovery bridge. Same diagnostics, same redaction, same
+ * LOGIN-BLOCKED classification on failure.
+ */
+export async function replayPersonaStorageState(options: {
+  origin: string;
+  declaration: ReplayPersonaDeclaration;
+  persona: VerificationPersona;
+  subject: string;
+  timeoutMs?: number;
+}): Promise<ReplayPersonaStorageState> {
+  const state = await runReplayLogin(options, true);
+  if (state === undefined)
+    throw replayLoginError(
+      options.subject,
+      'The replay-persona login capture failed to produce a storage state',
+    );
+  return state;
+}
+
 export async function loginReplayPersona(options: {
   origin: string;
   declaration: ReplayPersonaDeclaration;
@@ -216,6 +246,19 @@ export async function loginReplayPersona(options: {
   subject: string;
   timeoutMs?: number;
 }): Promise<void> {
+  await runReplayLogin(options, false);
+}
+
+async function runReplayLogin(
+  options: {
+    origin: string;
+    declaration: ReplayPersonaDeclaration;
+    persona: VerificationPersona;
+    subject: string;
+    timeoutMs?: number;
+  },
+  captureStorageState: boolean,
+): Promise<ReplayPersonaStorageState | undefined> {
   const timeoutMs = options.timeoutMs ?? 20_000;
   const { declaration, persona, subject } = options;
   const valueFor = personaValueLookup(persona);
@@ -231,6 +274,7 @@ export async function loginReplayPersona(options: {
     );
   }
   let browser;
+  let captured: ReplayPersonaStorageState | undefined;
   try {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext();
@@ -372,6 +416,10 @@ export async function loginReplayPersona(options: {
           'The declared login did not leave the login route; the persona credentials were refused or the form did not submit',
         );
       }
+      // #297 E2: capture the authenticated state BEFORE the context closes.
+      if (captureStorageState) {
+        captured = (await context.storageState()) as ReplayPersonaStorageState;
+      }
     } finally {
       await context.close();
     }
@@ -390,6 +438,7 @@ export async function loginReplayPersona(options: {
       // Teardown must not mask the login result.
     }
   }
+  return captured;
 }
 
 function replayLoginError(subject: string, message: string): ReplayPersonaLoginError {

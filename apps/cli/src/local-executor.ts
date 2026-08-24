@@ -101,6 +101,19 @@ export class LocalRunExecutor implements RunExecutor {
 export function toOrchestratorInput(request: RunRequest): OrchestratorInput {
   const repository = resolve(request.config.source.repository);
   const commit = resolveCommit(repository, request.config.source.revision);
+  // DG-297 E2 (#297): a declared replayPersona authenticates the stage-5
+  // crawl through the target's own login form — but ONLY with a resolved
+  // env persona (credentials stay env-only; no declaration-embedded
+  // secrets). Missing env persona → anonymous crawl (the verifier's own
+  // NOT-DECLARED refusal still guards the replay lane separately).
+  const crawlPersona = configuredPersona();
+  const replayCrawlPersona =
+    request.config.fixtures.replayPersona && crawlPersona
+      ? {
+          declaration: request.config.fixtures.replayPersona,
+          persona: { email: crawlPersona.email, password: crawlPersona.password },
+        }
+      : undefined;
   return {
     runId: request.runId,
     origin: request.config.target.origin,
@@ -126,6 +139,8 @@ export function toOrchestratorInput(request: RunRequest): OrchestratorInput {
     ...(request.config.target.allowedOrigins?.length
       ? { allowedOrigins: [...request.config.target.allowedOrigins] }
       : {}),
+    // DG-297 E2 (#297): authenticated breadth discovery input.
+    ...(replayCrawlPersona ? { replayPersona: replayCrawlPersona } : {}),
     // #259: the operator-pinned expected build digest — the INDEPENDENT
     // expectation source for the stage-0 attestation gate. Stage 0 compares
     // the SERVED attestation digest against THIS value (never against a

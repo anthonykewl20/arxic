@@ -1,6 +1,6 @@
 # DG-297-surface-tier — staged doc updates (charter §10.2)
 
-Issue: #297 (E1 + E3 slices) · PR: #TBD · Disposition: observed
+Issue: #297 (E1 + E2 + E3, complete) · PR: #298 · Disposition: observed
 
 ## 1. `docs/SYNC.md` — tracker row (replace the row for #297 verbatim)
 
@@ -45,7 +45,19 @@ no — internal adapter option + orchestrator-internal selection; no config sche
 
 ## 7. What was NOT done (reporting discipline)
 
-- **E2 (authenticated crawl via `fixtures.replayPersona`) is NOT in this slice** — it needs a storageState bridge from the verifier's login machinery into the crawler's browser contexts and a credentials-flow decision; claimed as slice 2 on #297. Until E2 lands, auth-gated SPAs still expose only their login view to the crawl, so the surface map gains the login form (E1) but not the authenticated interior.
+- ~~E2 not in this slice~~ **E2 landed in the same PR** (see below); the remaining deferral is only the DG-12 campaign re-run under #256.
 - The DG-12 campaign re-run is deliberately NOT attempted with E1+E3 alone (acceptance criterion 5 requires it after ALL of E1-E3); spend stays frozen.
 - `hydrationSettleMs` defaults to 2500ms without per-target tuning; form-less pages pay the settle once per URL (bounded by maxUrls). No measurement of crawl latency impact was recorded beyond the test suite runtimes.
 - G-3 grounded-ratio semantics (scan-diagnostic rows, wildcard routes in the denominator) remain owner-triage on #256 F-E — untouched here.
+
+---
+
+## 8. E2 addendum (same PR #298, second commit)
+
+- `replayPersonaStorageState` (verifier): the SAME per-pass login core, returning the authenticated storage state (cookies + origins) instead of discarding it — one login core, two entry points (`loginReplayPersona` unchanged in behavior; 25 verifier tests green, incl. redaction on failed capture).
+- Adapter `SurfaceDiscoveryRequest.replayPersona {declaration, persona}`: login runs ONCE before breadth discovery (10s crawl-tier cap so a refused login cannot pay the verifier's 20s default); the captured state seeds the SHARED crawl context (cookies via `addCookies`, localStorage via one `addInitScript`) in the first `preNavigationHook`. Refused login → `ARXIC-SURFACE-009` (blocked) and the crawl proceeds ANONYMOUSLY — never a fabricated authenticated surface. Credentials ride in-memory only.
+- Orchestrator input `replayPersona` + CLI wiring: `fixtures.replayPersona` from the config plus the env-resolved persona (credentials stay env-only; no declaration-embedded secrets). Missing env persona → anonymous crawl, byte-identical.
+- Red-first E2 tests: verifier storage-state capture (2) + adapter authenticated-crawl real-world (2: authenticated interior inventoried incl. placeholder-labelled forms composed with E1; refused login → 009 + anonymous tier + secret never in diagnostics) + CLI input wiring (1).
+- **Disclosed fixture change:** `reference-auth-app` login per-email rate bucket raised 5→10/min (`app/login/actions.ts`, commented). The #288 two-run E2E legitimately produces 6 logins/minute with the crawl tier active (2 crawls + 4 verifier passes); the pre-E2 shape sat at 4/5 — one login from flaking. The limit itself stays (brute-force realism); no test pins the numeric value.
+- **CI-budget fix (disclosed):** the first E1 push timed out at CI's 20m job cap (baseline 19m29s) because the settle ran on EVERY formless URL. Now the settle is conditional on the unhydrated-shell signature (zero forms, zero fillable controls, zero links → wait + re-probe); crawler suite 67.6s (faster than the pre-optimization E1 baseline 87.5s). The shell-only condition is the new known-weak-spot: an SPA whose hydrated page has no forms/inputs/links still pays the settle once per URL.
+- Regression after E2: crawler 27/27, verifier+CLI green (incl. the #288 E2E 2/2), orchestrator green; format/lint/typecheck clean (format:check last line: `All matched files use Prettier code style!`).

@@ -41,6 +41,7 @@ import {
   ARXIC_SURFACE_FORM_SUBMIT_BLOCKED,
   CrawleeSurfaceDiscoverer,
   PACKAGE_NAME as CRAWLEE_PACKAGE,
+  type SurfaceDiscoveryRequest,
   type SurfaceMap,
 } from '@arxic/crawlee-adapter';
 import {
@@ -191,6 +192,13 @@ export type OrchestratorInput = Readonly<{
    * evidence digest and is never used as the gate expectation.
    */
   expectedBuildDigest?: string;
+  /**
+   * DG-297 E2 (#297): the config's `fixtures.replayPersona` declaration plus
+   * the env-resolved persona values — authenticates the stage-5 crawl through
+   * the target's OWN login form before breadth discovery. Unset → anonymous
+   * crawl (byte-identical baseline). Credentials ride in-memory only.
+   */
+  replayPersona?: NonNullable<SurfaceDiscoveryRequest['replayPersona']>;
   requireExplorationApproval?: boolean;
   modelPrompt?: string;
   credentialBytes?: readonly string[];
@@ -992,6 +1000,17 @@ export class LangGraphOrchestrator {
       ...(input.maxDepth === undefined ? {} : { maxDepth: input.maxDepth }),
       ...(input.personas ? { personas: [...input.personas] } : {}),
       ...(input.appBuildDigest ? { appBuildDigest: input.appBuildDigest } : {}),
+      // DG-297 E2 (#297): authenticated breadth discovery — the declaration
+      // + env-resolved persona seed the crawl with the captured storage
+      // state; unset omits the field (anonymous crawl, baseline behavior).
+      ...(input.replayPersona
+        ? {
+            replayPersona: {
+              declaration: input.replayPersona.declaration,
+              persona: { ...input.replayPersona.persona },
+            },
+          }
+        : {}),
       // DG-289 C-4 (#289): declared allowedOrigins flow into the crawl
       // origin gate; unset/empty omits the field and the gate stays
       // fail-closed to the target origin (byte-identical baseline).
