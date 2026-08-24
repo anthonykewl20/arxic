@@ -392,9 +392,23 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
         .locator('form')
         .filter({ has: fieldAddressed })
         .filter({ has: page.getByRole('button', { name: scope.submitName, exact: true }) });
-      const formCount = await form.count();
+      // #301 follow-up (campaign round 4): an SPA re-renders its form after
+      // hydration — the navigate step's observation can land mid-swap, so a
+      // single immediate count read 0 and every fill/submit failed closed
+      // (measured on directus /admin: t0 scoped form = 0, t+300ms = 1;
+      // reproduced deterministically 4/4). Wait BOUNDED for the scoped form
+      // to reach exactly one — the same settle the control locators get
+      // from their attach-wait — then apply the fail-closed ambiguity gate.
+      let formCount = await form.count();
       if (formCount !== 1) {
-        return { resolved: false, reason: 'semantic-ambiguous', ...pair };
+        const deadline = Date.now() + this.#options.timeoutMs;
+        while (formCount !== 1 && Date.now() < deadline) {
+          await page.waitForTimeout(100);
+          formCount = await form.count();
+        }
+        if (formCount !== 1) {
+          return { resolved: false, reason: 'semantic-ambiguous', ...pair };
+        }
       }
       root = form;
     }
