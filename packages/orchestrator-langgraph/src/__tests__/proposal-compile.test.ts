@@ -9,6 +9,7 @@ import { describe, expect, it } from 'vitest';
 import { buildFormFlowWorkflow } from '@arxic/playwright-compiler';
 import {
   compileProposalCandidate,
+  composeProposalFormDrivePlan,
   formSurfaceForRoute,
   selectCompilableCandidate,
   type ProposalObservation,
@@ -182,6 +183,76 @@ describe('DG-297 E3 (#297): surface-aware candidate selection', () => {
       surface,
     );
     expect(selection?.proposal.id).toBe(proposal().id);
+  });
+});
+
+describe('#299 (F-E2): form-drive plan composes for the surface-resolvable candidate', () => {
+  const surface = surfaceMap();
+
+  it('skips a formless candidate[0] and drives the first form-surfaced candidate (the F-E2 shape)', () => {
+    // directus-dg12-run2 measured: candidates[0] cited /:param (no crawl
+    // form) -> no plan -> 'nothing to observe' -> OBSERVATION-MISSING, while
+    // 2 of 81 candidates cited the surfaced /admin routes. The plan lane
+    // must select exactly like the compile lane.
+    const apiRow = {
+      ...row(),
+      id: 'inv:route:GET:bb0000000000',
+      surface: 'route' as const,
+      path: '/addons/:param',
+      method: 'GET',
+    };
+    const formless = {
+      ...proposal(),
+      id: 'prop:0000000000000001',
+      intent: 'browse the addon catalog',
+      inventoryRowIds: [apiRow.id],
+    };
+    const surfaced = {
+      ...proposal(),
+      id: 'prop:0000000000000002',
+      inventoryRowIds: [row().id],
+    };
+    const plan = composeProposalFormDrivePlan({
+      candidates: [{ id: formless.id }, { id: surfaced.id }],
+      proposals: [formless, surfaced],
+      rows: [apiRow, row()],
+      surface,
+      origin,
+      values: { 'persona.email': 'persona@example.test' },
+    });
+    expect(plan?.steps[0]?.intent).toBe('observe route /newsletter');
+    const fills = plan?.steps.filter((step) => step.kind === 'fill');
+    expect(fills?.map((step) => step.intent)).toEqual(['fill Email']);
+    expect(plan?.steps.at(-1)?.kind).toBe('click');
+  });
+
+  it('composes no plan (undefined) when NO candidate resolves a form surface — never guesses', () => {
+    const empty = { ...surfaceMap(), routes: [{ ...surfaceMap().routes[0]!, forms: [] }] };
+    const only = { ...proposal(), inventoryRowIds: [row().id] };
+    expect(
+      composeProposalFormDrivePlan({
+        candidates: [{ id: only.id }],
+        proposals: [only],
+        rows: [row()],
+        surface: empty,
+        origin,
+        values: { 'persona.email': 'persona@example.test' },
+      }),
+    ).toBeUndefined();
+  });
+
+  it('keeps the no-plan honest shape when the first candidate is unresolvable to a proposal/row', () => {
+    const orphan = { id: 'prop:does-not-match-any-proposal' };
+    expect(
+      composeProposalFormDrivePlan({
+        candidates: [orphan],
+        proposals: [proposal()],
+        rows: [row()],
+        surface,
+        origin,
+        values: {},
+      }),
+    ).toBeUndefined();
   });
 });
 

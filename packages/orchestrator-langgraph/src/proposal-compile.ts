@@ -7,6 +7,7 @@ import {
 } from '@arxic/playwright-compiler';
 import type { CompilationResult } from './types';
 import type { BoundProposal } from './intent-proposer';
+import type { ExplorationPlan, PlanStep } from './exploration';
 import type { ProposalConsumerRow } from '@arxic/domain-inventory';
 import {
   ARXIC_ORCH_PROPOSAL_OBSERVATION_MISSING,
@@ -201,6 +202,105 @@ export function selectCompilableCandidate(
     resolvable.find((entry) => formSurfaceForRoute(surface, entry.row.path) !== undefined) ??
     resolvable[0]!
   );
+}
+
+/**
+ * #299 (F-E2): the form-drive exploration plan for the proposal lane —
+ * extracted from the orchestrator's `#withProposalPlan` so the candidate
+ * SELECTION is testable beside `selectCompilableCandidate` (the same
+ * surface-aware semantics; the plan drives exactly the candidate the
+ * compile lane will compile).
+ *
+ * Honest failure modes (unchanged from the in-orchestrator shape): no
+ * proposal run rows, no resolvable candidate, or no crawl form surface for
+ * the selected candidate -> `undefined` (no plan; exploration stays empty
+ * and compile blocks OBSERVATION-MISSING rather than guessing a form).
+ */
+export function composeProposalFormDrivePlan(input: {
+  candidates: ReadonlyArray<Readonly<{ id: string }>>;
+  proposals: readonly BoundProposal[];
+  rows: readonly ProposalConsumerRow[];
+  surface: SurfaceMap;
+  origin: string;
+  /** Transient in-memory fill values (caller-supplied; default: none — the plan degrades to navigate-only). */
+  values?: Readonly<Record<string, string>>;
+  fallbackFixtureKind?: string;
+}): ExplorationPlan | undefined {
+  // #299 (F-E2): surface-aware selection — the SAME semantics as the
+  // compile lane (selectCompilableCandidate), so the plan drives exactly
+  // the candidate stage 9 will compile. Blindly taking candidates[0] was
+  // the F-E2 defect: a formless candidate 0 composed NO plan ('nothing to
+  // observe') while a form-surfaced candidate existed further down the
+  // list (directus-dg12-run2: 2 of 81 candidates cited the surfaced
+  // /admin routes). When the selection falls back to a formless candidate
+  // (none resolves a form), the honest no-plan shape stands.
+  const selection = selectCompilableCandidate(
+    input.candidates,
+    input.proposals,
+    input.rows,
+    input.surface,
+  );
+  if (!selection) return undefined;
+  const { proposal, row } = selection;
+  const form = formSurfaceForRoute(input.surface, row.path);
+  if (!form) return undefined;
+  const values = input.values ?? {};
+  const steps: PlanStep[] = [
+    {
+      // Navigate to the form's ENTRY route (the crawl page the form lives
+      // ON — e.g. a page hosting forms that POST to separately inventoried
+      // routes), not the cited route itself.
+      intent: `observe route ${form.route}`,
+      action: 'navigation',
+      actionClass: 'read-only',
+      url: new URL(form.route, input.origin).href,
+      required: true,
+      kind: 'navigate',
+    },
+  ];
+  const fills = form.fields.filter((field) => values[field.inputRef] !== undefined);
+  if (fills.length === form.fields.length && fills.length > 0) {
+    // DG-08: scope every control to the unique inventoried FORM (pages may
+    // host several forms with identically labelled fields).
+    const formScope = {
+      fieldLabel: form.fields[0]!.label,
+      submitName: form.submitControlName,
+    };
+    for (const field of fills) {
+      steps.push({
+        intent: `fill ${field.label}`,
+        action: 'fill',
+        actionClass: 'read-only',
+        required: true,
+        kind: 'fill',
+        locator: {
+          semantic: { kind: 'label', text: field.label },
+          execution: { kind: 'label', text: field.label },
+        },
+        formScope,
+        // Transient in-memory value (never journaled; redaction policy holds).
+        value: values[field.inputRef]!,
+      });
+    }
+    steps.push({
+      intent: `submit ${proposal.intent} via ${form.submitControlName}`,
+      action: 'form-submit',
+      actionClass: 'reversible-mutation',
+      required: true,
+      kind: 'click',
+      locator: {
+        semantic: { kind: 'role', role: 'button', name: form.submitControlName },
+        execution: { kind: 'role', role: 'button', name: form.submitControlName },
+      },
+      formScope,
+      ...(proposal.fixtureKinds && proposal.fixtureKinds.length === 1
+        ? { fixtureKind: proposal.fixtureKinds[0] }
+        : input.fallbackFixtureKind
+          ? { fixtureKind: input.fallbackFixtureKind }
+          : {}),
+    });
+  }
+  return { steps };
 }
 
 export async function compileProposalCandidate(

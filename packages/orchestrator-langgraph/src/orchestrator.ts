@@ -85,13 +85,12 @@ import {
   proposeCandidates,
   type DomainSeeder,
   type ModelPrices,
-  type ProposalConsumerRow,
   type ProposalStageResult,
 } from './intent-proposer';
 import {
   compileProposalCandidate,
+  composeProposalFormDrivePlan,
   selectCompilableCandidate,
-  formSurfaceForRoute,
   postActionObservationFrom,
 } from './proposal-compile';
 import {
@@ -920,74 +919,27 @@ export class LangGraphOrchestrator {
     } catch {
       return input;
     }
-    if (!inference?.proposalRun) return input;
-    const candidate = inference.candidates[0];
-    if (!candidate) return input;
-    const proposal = inference.proposalRun.proposals.find((item) => item.id === candidate.id);
-    if (!proposal) return input;
-    const row = proposal.inventoryRowIds
-      .map((id) => inference.proposalRun!.rows.find((candidateRow) => candidateRow.id === id))
-      .find((candidateRow): candidateRow is ProposalConsumerRow => candidateRow !== undefined);
-    if (!row || !surface) return input;
-    const form = formSurfaceForRoute(surface, row.path);
-    if (!form) return input;
-    const values = this.#options.explorationInputValues ?? {};
-    const steps: import('./exploration').PlanStep[] = [
-      {
-        // Navigate to the form's ENTRY route (the crawl page the form lives
-        // ON — e.g. a page hosting forms that POST to separately inventoried
-        // routes), not the cited route itself.
-        intent: `observe route ${form.route}`,
-        action: 'navigation',
-        actionClass: 'read-only',
-        url: new URL(form.route, input.origin).href,
-        required: true,
-        kind: 'navigate',
-      },
-    ];
-    const fills = form.fields.filter((field) => values[field.inputRef] !== undefined);
-    if (fills.length === form.fields.length && fills.length > 0) {
-      // DG-08: scope every control to the unique inventoried FORM (pages may
-      // host several forms with identically labelled fields).
-      const formScope = {
-        fieldLabel: form.fields[0]!.label,
-        submitName: form.submitControlName,
-      };
-      for (const field of fills) {
-        steps.push({
-          intent: `fill ${field.label}`,
-          action: 'fill',
-          actionClass: 'read-only',
-          required: true,
-          kind: 'fill',
-          locator: {
-            semantic: { kind: 'label', text: field.label },
-            execution: { kind: 'label', text: field.label },
-          },
-          formScope,
-          // Transient in-memory value (never journaled; redaction policy holds).
-          value: values[field.inputRef]!,
-        });
-      }
-      steps.push({
-        intent: `submit ${proposal.intent} via ${form.submitControlName}`,
-        action: 'form-submit',
-        actionClass: 'reversible-mutation',
-        required: true,
-        kind: 'click',
-        locator: {
-          semantic: { kind: 'role', role: 'button', name: form.submitControlName },
-          execution: { kind: 'role', role: 'button', name: form.submitControlName },
-        },
-        formScope,
-        ...(proposal.fixtureKinds && proposal.fixtureKinds.length === 1
-          ? { fixtureKind: proposal.fixtureKinds[0] }
-          : this.#options.explorationInputKind
-            ? { fixtureKind: this.#options.explorationInputKind }
-            : {}),
-      });
-    }
-    return { ...input, plan: { steps } };
+    if (!inference?.proposalRun || !surface) return input;
+    // #299 (F-E2): plan composition lives in proposal-compile beside the
+    // selection it shares with the compile lane (selectCompilableCandidate);
+    // this shell only reads the stage artifacts and forwards the caller's
+    // transient input values. Undefined plan -> unchanged input (honest
+    // 'nothing to observe'; compile blocks OBSERVATION-MISSING, never a
+    // guessed form).
+    const plan = composeProposalFormDrivePlan({
+      candidates: inference.candidates,
+      proposals: inference.proposalRun.proposals,
+      rows: inference.proposalRun.rows,
+      surface,
+      origin: input.origin,
+      ...(this.#options.explorationInputValues !== undefined
+        ? { values: this.#options.explorationInputValues }
+        : {}),
+      ...(this.#options.explorationInputKind
+        ? { fallbackFixtureKind: this.#options.explorationInputKind }
+        : {}),
+    });
+    return plan ? { ...input, plan } : input;
   }
 
   async #discover(input: OrchestratorInput): Promise<StageExecution> {
