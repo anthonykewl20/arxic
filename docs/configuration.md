@@ -142,6 +142,13 @@ fixtures:
   or fetch-based logins (no URL change) are detected by the login form's
   declared field leaving the DOM. Failures still classify `blocked` with
   `ARXIC-VERIFY-FIXTURE-LOGIN-BLOCKED`.
+- The runtime **surface crawler** uses the same label-first semantics (#297):
+  a crawled control's label is its accessible label, then its `<label>` text,
+  then its placeholder (an `aria-label` of the literal string `undefined`/`null`
+  is treated as an upstream binding artifact, not a label), and each crawled
+  URL waits bounded (default 2500ms, `hydrationSettleMs` on the adapter) for a
+  form to attach before probing — so hydration-delayed SPA forms are
+  inventoried instead of silently dropped.
 - The declaration carries **locator metadata only** — persona values never
   appear in YAML; they are supplied exclusively via the
   `ARXIC_INPUT_PERSONA_*` environment channel.

@@ -10,6 +10,7 @@ import { buildFormFlowWorkflow } from '@arxic/playwright-compiler';
 import {
   compileProposalCandidate,
   formSurfaceForRoute,
+  selectCompilableCandidate,
   type ProposalObservation,
 } from '../proposal-compile';
 import type { BoundProposal } from '../intent-proposer';
@@ -111,6 +112,78 @@ const observation: ProposalObservation = {
     accessibilitySnapshotSha256: 'abc123def456' + '0'.repeat(52),
   },
 };
+
+describe('DG-297 E3 (#297): surface-aware candidate selection', () => {
+  const surface = surfaceMap();
+
+  it('prefers the first candidate whose cited row has a resolvable crawl form surface', () => {
+    // candidate 1 cites an API route with NO crawl form (the F-E shape:
+    // directus blocked on /addons/:param); candidate 2 cites the newsletter
+    // page whose form IS in the map. Today the lane compiles candidates[0]
+    // and blocks the whole run — selection must skip to the resolvable one.
+    const apiRow = {
+      ...row(),
+      id: 'inv:route:GET:aa0000000000',
+      surface: 'route' as const,
+      path: '/addons/:param',
+      method: 'GET',
+    };
+    const first = {
+      ...proposal(),
+      id: 'prop:0000000000000001',
+      inventoryRowIds: [apiRow.id],
+    };
+    const second = {
+      ...proposal(),
+      id: 'prop:0000000000000002',
+      inventoryRowIds: [row().id],
+    };
+    const selection = selectCompilableCandidate(
+      [
+        { id: first.id, evidenceRefs: [] },
+        { id: second.id, evidenceRefs: [] },
+      ],
+      [first, second],
+      [apiRow, row()],
+      surface,
+    );
+    expect(selection?.proposal.id).toBe('prop:0000000000000002');
+    expect(selection?.row.path).toBe('/newsletter');
+  });
+
+  it('falls back to the first candidate (honest SURFACE-MISSING) when NO candidate resolves', () => {
+    const empty = { ...surfaceMap(), routes: [{ ...surfaceMap().routes[0]!, forms: [] }] };
+    const first = { ...proposal(), id: 'prop:0000000000000001' };
+    const second = { ...proposal(), id: 'prop:0000000000000002' };
+    const selection = selectCompilableCandidate(
+      [
+        { id: first.id, evidenceRefs: [] },
+        { id: second.id, evidenceRefs: [] },
+      ],
+      [first, second],
+      [row()],
+      empty,
+    );
+    // The honest outcome: candidates[0] flows to compileProposalCandidate,
+    // which reports SURFACE-MISSING for its route — never a silent skip.
+    expect(selection?.proposal.id).toBe('prop:0000000000000001');
+  });
+
+  it('returns undefined when there are no candidates at all', () => {
+    expect(selectCompilableCandidate([], [], [], surface)).toBeUndefined();
+  });
+
+  it('skips candidates whose proposal or row is unresolvable, without inventing either', () => {
+    const orphanCandidate = { id: 'prop:0000000000000003', evidenceRefs: [] }; // no proposal
+    const selection = selectCompilableCandidate(
+      [orphanCandidate, { id: proposal().id, evidenceRefs: [] }],
+      [proposal()],
+      [row()],
+      surface,
+    );
+    expect(selection?.proposal.id).toBe(proposal().id);
+  });
+});
 
 describe('form-surface projection from the crawl map', () => {
   it('derives labelled fields with persona input refs and the submit control name', () => {

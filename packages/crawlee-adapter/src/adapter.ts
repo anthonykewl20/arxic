@@ -72,11 +72,25 @@ export const pageInventoryProbe = (): PageInventory => {
   const controls = [
     ...document.querySelectorAll('input,select,textarea,button,[role="button"]'),
   ].map((element) => {
+    // DG-297 E1 (#297): label-first with a placeholder fallback — the same
+    // semantics the verifier adopted in #295. Vanilla SPA targets ship
+    // placeholder-only inputs, and an aria-label of the LITERAL string
+    // "undefined"/"null" is an upstream binding artifact (observed on the
+    // koel pin), not an honest label — treat it as absent so the placeholder
+    // can carry the field. Serialization rules: plain consts + anonymous
+    // arrows only (see the block comment above).
+    const ariaLabel = element.getAttribute('aria-label')?.trim();
+    const aria =
+      ariaLabel && ariaLabel !== 'undefined' && ariaLabel !== 'null' ? ariaLabel : undefined;
     const label =
-      element.getAttribute('aria-label')?.trim() ||
+      aria ||
       (element instanceof HTMLInputElement && element.labels?.[0]?.textContent
         ? element.labels[0].textContent!.trim()
-        : element.textContent?.trim()) ||
+        : undefined) ||
+      (element instanceof HTMLInputElement && element.placeholder?.trim()
+        ? element.placeholder.trim()
+        : undefined) ||
+      element.textContent?.trim() ||
       undefined;
     return {
       tag: element.tagName.toLowerCase(),
@@ -97,11 +111,23 @@ export const pageInventoryProbe = (): PageInventory => {
       method: form.method.toUpperCase(),
       destructive: form.method.toUpperCase() !== 'GET',
       controls: [...form.querySelectorAll('input,select,textarea,button')].map((element) => {
+        // DG-297 E1 (#297): identical label-first/placeholder-fallback chain
+        // as the page controls above — duplicated literal by design (sharing
+        // it would need the named-helper shape that broke serialization).
+        const formAriaLabel = element.getAttribute('aria-label')?.trim();
+        const formAria =
+          formAriaLabel && formAriaLabel !== 'undefined' && formAriaLabel !== 'null'
+            ? formAriaLabel
+            : undefined;
         const label =
-          element.getAttribute('aria-label')?.trim() ||
+          formAria ||
           (element instanceof HTMLInputElement && element.labels?.[0]?.textContent
             ? element.labels[0].textContent!.trim()
-            : element.textContent?.trim()) ||
+            : undefined) ||
+          (element instanceof HTMLInputElement && element.placeholder?.trim()
+            ? element.placeholder.trim()
+            : undefined) ||
+          element.textContent?.trim() ||
           undefined;
         return {
           tag: element.tagName.toLowerCase(),
@@ -131,6 +157,8 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
       maxConcurrency: Math.max(1, Math.floor(options.maxConcurrency ?? 2)),
       maxRequestRetries: Math.max(0, Math.floor(options.maxRequestRetries ?? 2)),
       navigationTimeoutSecs: Math.max(1, options.navigationTimeoutSecs ?? 30),
+      // DG-297 E1: bounded per-URL wait for hydration to commit a form.
+      hydrationSettleMs: Math.max(0, options.hydrationSettleMs ?? 2_500),
       now: options.now ?? (() => new Date().toISOString()),
       runId: options.runId ?? randomUUID,
       browserExecutablePath: options.browserExecutablePath,
@@ -227,6 +255,16 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
         );
         return;
       }
+      // DG-297 E1 (#297): SPA targets render their forms only AFTER
+      // hydration, which commits after the load event (observed on both
+      // ratified DG-12 targets — the probe-at-load saw zero forms). Wait
+      // bounded for A form to attach before probing; pages whose forms are
+      // already present resolve instantly, form-less pages pay the settle
+      // once, and a target that never renders still probes (honestly empty)
+      // instead of failing navigation.
+      await page
+        .waitForSelector('form', { state: 'attached', timeout: this.#options.hydrationSettleMs })
+        .catch(() => undefined);
       const inventory = await page.evaluate<PageInventory>(pageInventoryProbe);
       const links: SurfaceLink[] = inventory.links
         .map((link) => ({

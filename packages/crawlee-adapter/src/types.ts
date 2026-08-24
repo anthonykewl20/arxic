@@ -66,6 +66,8 @@ export type SurfaceDiscovererOptions = {
   maxConcurrency?: number;
   maxRequestRetries?: number;
   navigationTimeoutSecs?: number;
+  /** DG-297 E1 (#297): bounded per-URL wait for a form to attach (hydration settle); default 2500ms, 0 disables. */
+  hydrationSettleMs?: number;
   browserExecutablePath?: string;
   now?: () => string;
   runId?: () => string;
