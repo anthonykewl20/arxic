@@ -154,6 +154,64 @@ describe('replay-persona declaration validation (#288)', () => {
   });
 });
 
+describe('replay-persona placeholder-addressable fields (#295, real Chromium)', () => {
+  test('logs in through a placeholder-only form (no label, no aria-label)', async () => {
+    const { origin, attempts } = await formServer({ placeholderOnly: true });
+    await loginReplayPersona({
+      origin,
+      declaration: DECLARATION,
+      persona: PERSONA,
+      subject: 'replay.unit',
+    });
+    expect(attempts.logins).toBe(1);
+  }, 60_000);
+
+  test('prefers the LABEL when both a label and a placeholder match the declared string', async () => {
+    // The placeholder input is a decoy that REJECTS the persona; only the
+    // labelled input accepts it. If the fallback ran first, login would fail.
+    const { origin, attempts } = await formServer({ decoyPlaceholder: true });
+    await loginReplayPersona({
+      origin,
+      declaration: DECLARATION,
+      persona: PERSONA,
+      subject: 'replay.unit',
+    });
+    expect(attempts.logins).toBe(1);
+    expect(attempts.decoyUsed).toBe(false);
+  }, 60_000);
+
+  test('resolves a mixed form (one labelled field, one placeholder-only field)', async () => {
+    const { origin, attempts } = await formServer({ mixed: true });
+    await loginReplayPersona({
+      origin,
+      declaration: DECLARATION,
+      persona: PERSONA,
+      subject: 'replay.unit',
+    });
+    expect(attempts.logins).toBe(1);
+  }, 60_000);
+
+  test('still classifies LOGIN-BLOCKED when neither a label nor a placeholder resolves', async () => {
+    const { origin } = await formServer({ placeholderOnly: true });
+    const error = await loginReplayPersona({
+      origin,
+      declaration: {
+        ...DECLARATION,
+        login: {
+          route: '/login',
+          fields: [{ label: 'Nonexistent', inputRef: 'persona.email' }],
+          submit: { label: 'Login' },
+        },
+      },
+      persona: PERSONA,
+      subject: 'replay.unit',
+    }).catch((caught: unknown) => caught);
+    expect((error as { diagnostic: { code: string } }).diagnostic.code).toBe(
+      ARXIC_VERIFY_FIXTURE_LOGIN_BLOCKED,
+    );
+  }, 60_000);
+});
+
 describe('replay-persona per-pass login (#288, real Chromium against a real form)', () => {
   test('logs the persona in through the declared form and lands past the login route', async () => {
     const { origin, attempts } = await formServer();
@@ -277,17 +335,19 @@ describe('PlaywrightVerifier with a declared replay persona (#288)', () => {
   }, 120_000);
 });
 
-/** A REAL HTTP app with a labelled login form — the third-party target shape. */
-async function formServer(): Promise<{
+/** A REAL HTTP app with a login form — the third-party target shapes (#288 labelled; #295 placeholder-only/mixed/decoy). */
+async function formServer(
+  variant: { placeholderOnly?: boolean; mixed?: boolean; decoyPlaceholder?: boolean } = {},
+): Promise<{
   origin: string;
-  attempts: { logins: number; fixtureProtocol: number };
+  attempts: { logins: number; fixtureProtocol: number; decoyUsed: boolean };
 }> {
-  const attempts = { logins: 0, fixtureProtocol: 0 };
+  const attempts = { logins: 0, fixtureProtocol: 0, decoyUsed: false };
   const server = createServer((request, response) => {
     const url = new URL(request.url ?? '/', 'http://127.0.0.1');
     if (url.pathname === '/login' && request.method === 'GET') {
       response.setHeader('content-type', 'text/html');
-      response.end(loginHtml());
+      response.end(loginHtml(undefined, variant));
       return;
     }
     if (url.pathname === '/login' && request.method === 'POST') {
@@ -306,6 +366,7 @@ async function formServer(): Promise<{
           response.setHeader('location', '/welcome');
           response.end();
         } else {
+          attempts.decoyUsed = true;
           response.statusCode = 200;
           response.setHeader('content-type', 'text/html');
           response.end(loginHtml('Invalid credentials'));
@@ -337,15 +398,49 @@ async function formServer(): Promise<{
   return { origin: `http://127.0.0.1:${address.port}`, attempts };
 }
 
-function loginHtml(error?: string): string {
-  return `<!doctype html><html><body><main>
-  <h1>Login</h1>
-  ${error ? `<p class="error">${error}</p>` : ''}
-  <form method="post" action="/login">
+function loginHtml(
+  error?: string,
+  variant: { placeholderOnly?: boolean; mixed?: boolean; decoyPlaceholder?: boolean } = {},
+): string {
+  const labelledForm = `<form method="post" action="/login">
     <label>Email<input name="email" type="email" required /></label>
     <label>Password<input name="password" type="password" required /></label>
     <button type="submit">Login</button>
-  </form>
+  </form>`;
+  // koel-shaped: placeholder-only inputs AND the submit wrapped in <label>
+  // (a label-wrapped button loses its accessible name in Chromium — proven
+  // by the #295 live-target investigation), so the submit must be
+  // resolvable by role-name OR by its text.
+  const placeholderForm = `<form method="post" action="/login">
+    <input name="email" type="email" placeholder="Email" required />
+    <input name="password" type="password" placeholder="Password" required />
+    <label><button type="submit">Login</button></label>
+  </form>`;
+  const mixedForm = `<form method="post" action="/login">
+    <label>Email<input name="email" type="email" required /></label>
+    <input name="password" type="password" placeholder="Password" required />
+    <label><button type="submit">Login</button></label>
+  </form>`;
+  // decoy: a placeholder-only form with the SAME strings appears FIRST in
+  // DOM order but is hidden; the labelled form is the real one. If the
+  // implementation ever prefers placeholder resolution, the hidden decoy
+  // is what it finds and the fill/click fails loudly.
+  const decoyForms = `<form method="post" action="/login" hidden aria-hidden="true">
+    <input name="email" type="email" placeholder="Email" required />
+    <input name="password" type="password" placeholder="Password" required />
+    <button type="submit" tabindex="-1">Login</button>
+  </form>`;
+  const form = variant.placeholderOnly
+    ? placeholderForm
+    : variant.mixed
+      ? mixedForm
+      : variant.decoyPlaceholder
+        ? `${decoyForms}${labelledForm}`
+        : labelledForm;
+  return `<!doctype html><html><body><main>
+  <h1>Login</h1>
+  ${error ? `<p class="error">${error}</p>` : ''}
+  ${form}
 </main></body></html>`;
 }
 
