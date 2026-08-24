@@ -941,6 +941,12 @@ test('receipt-free probe', async ({ page }) => {
     await writeFile(join(fixture.outputDirectory, 'tests/workflow.spec.ts'), 'corrupted');
 
     const result = await verifierFor(fixture).verify(fixture.bundle, policy(1));
+    console.error(
+      'VERIFY_OUTCOME:',
+      result.outcome,
+      '| diagnostics[0]:',
+      result.diagnostics[0]?.code,
+    );
 
     expect(result.outcome).toBe('blocked');
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_ARTIFACT_HASH_MISMATCH });
@@ -965,6 +971,39 @@ test('receipt-free probe', async ({ page }) => {
     expect(result.outcome).toBe('blocked');
     expect(result.diagnostics[0]).toMatchObject({ code: ARXIC_VERIFY_SUITE_UNAVAILABLE });
   });
+});
+
+// #308 (F-E7): the campaign's first fully-verifying run (directus-dg12-run5)
+// ended with artifacts/{00..09,13}.json MISSING from the run root while
+// artifacts/{10,11,12}.json (committed after verification) survived — the
+// stage-10 verification window destroyed the immutable stage artifacts.
+// Root cause (traced to the exact function): the screenshot-privacy
+// retention in playwright-screenshot-privacy/attestation.ts inventories and
+// then REMOVES everything under its source roots ('artifacts',
+// 'test-results' relative to the suite directory) — and the CLI wires the
+// suite directory to the RUN ROOT, so the orchestrator's stage artifacts are
+// inventoried as capture data and purged (purgeValidatedSourceRoot does
+// rm(root, recursive)). This pins the invariant at the verifier seam.
+test('#308 stage artifacts under outputDirectory/artifacts survive verification', async () => {
+  const fixture = await stagedFixture();
+  const artifactsDirectory = join(fixture.outputDirectory, 'artifacts');
+  await mkdir(artifactsDirectory, { recursive: true });
+  await Promise.all([
+    writeFile(join(artifactsDirectory, '00.json'), '{"stage":0}\n'),
+    writeFile(join(artifactsDirectory, '13.json'), '{"stage":13}\n'),
+  ]);
+  const result = await verifierFor(fixture).verify(fixture.bundle, policy(1));
+  expect(['blocked', 'failed', 'verified']).toContain(result.outcome);
+  const survived = await Promise.all(
+    ['00.json', '13.json'].map(async (name) => {
+      try {
+        return await readFile(join(artifactsDirectory, name), 'utf8');
+      } catch {
+        return undefined;
+      }
+    }),
+  );
+  expect(survived).toEqual(['{"stage":0}\n', '{"stage":13}\n']);
 });
 
 function verifierFor(
