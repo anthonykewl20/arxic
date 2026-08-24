@@ -31,6 +31,9 @@ export type RedirectLoginAppOptions = Readonly<{
   port: number;
   dbPath: string;
   origin: string;
+  // #312 (F-E9): render the login form placeholder-addressed (zero <label>
+  // elements) — the real directus shape. The handler logic is unchanged.
+  placeholderAddressed?: boolean;
 }>;
 
 const MAX_BODY_BYTES = 1_000_000;
@@ -75,13 +78,19 @@ function page(title: string, main: string): string {
 </html>`;
 }
 
-function loginPage(): string {
+function loginPage(placeholderAddressed: boolean): string {
+  // #312 (F-E9): the directus login shape — controls addressed ONLY by
+  // placeholder; getByLabel matches nothing on this page.
+  const fields = placeholderAddressed
+    ? `<input name="email" placeholder="Email" type="email" autocomplete="username" required>
+    <input name="password" placeholder="Password" type="password" autocomplete="current-password" required>`
+    : `<label>Email<input name="email" type="email" autocomplete="username" required></label>
+    <label>Password<input name="password" type="password" autocomplete="current-password" required></label>`;
   return page(
     'Log in',
     `<h1>Log in</h1>
   <form method="post" action="/login">
-    <label>Email<input name="email" type="email" autocomplete="username" required></label>
-    <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+    ${fields}
     <button type="submit">Log in</button>
   </form>`,
   );
@@ -209,7 +218,7 @@ export function createRedirectLoginApp(options: RedirectLoginAppOptions): {
 
     if (request.method === 'GET' && url.pathname === '/login') {
       response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
-      response.end(loginPage());
+      response.end(loginPage(options.placeholderAddressed === true));
       return;
     }
 
