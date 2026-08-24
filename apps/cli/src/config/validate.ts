@@ -1,6 +1,12 @@
 import type { Diagnostic } from '@arxic/contracts';
 import type { ArxicConfig } from '@arxic/worker';
 import {
+  validateReplayPersonaDeclaration,
+  replayPersonaProductionRefusal,
+  type ReplayPersonaDeclaration,
+  REPLAY_PERSONA_DECLARATION_KEYS,
+} from '@arxic/verifier';
+import {
   ARXIC_CONFIG_INVALID,
   ARXIC_CONFIG_MODEL_MISSING,
   ARXIC_CONFIG_VERSION,
@@ -76,6 +82,16 @@ export function validateConfig(input: unknown): ValidationResult {
       'must be one of local-test, preview, or staging; production is refused by default',
     );
   }
+  // #288 (C-3 / SP-2): a declared replay persona on a production-shaped
+  // target is refused with its own frozen code BEFORE any provisioning could
+  // run — zero login attempts, regardless of anything else in the config.
+  const declaresReplayPersona =
+    typeof input.fixtures === 'object' &&
+    input.fixtures !== null &&
+    'replayPersona' in input.fixtures;
+  if (environmentClass === 'production' && declaresReplayPersona) {
+    diagnostics.push(replayPersonaProductionRefusal('config.fixtures.replayPersona'));
+  }
   const attestationPath = nonEmptyString(
     target?.attestationPath,
     'config.target.attestationPath',
@@ -150,6 +166,32 @@ export function validateConfig(input: unknown): ValidationResult {
     'config.fixtures.personaProvisioner',
     diagnostics,
   );
+  // #288: the frozen `fixtures.replayPersona` declaration — validated with
+  // its own frozen ARXIC-VERIFY-FIXTURE-* family (C-5 / SP-4), no silent
+  // defaults. Unknown sibling keys inside the declaration are rejected so a
+  // typo'd field cannot silently no-op the per-pass login.
+  let replayPersona: ReplayPersonaDeclaration | undefined;
+  if (fixtures !== undefined && 'replayPersona' in fixtures) {
+    const validated = validateReplayPersonaDeclaration(fixtures.replayPersona);
+    if (validated.ok) {
+      replayPersona = validated.value;
+      const known = new Set<string>(REPLAY_PERSONA_DECLARATION_KEYS);
+      for (const key of Object.keys(fixtures.replayPersona as Record<string, unknown>)) {
+        if (!known.has(key)) {
+          diagnostics.push(
+            cliDiagnostic(
+              ARXIC_CONFIG_INVALID,
+              'blocked',
+              `config.fixtures.replayPersona.${key}`,
+              `config.fixtures.replayPersona.${key} is not a recognized key`,
+            ),
+          );
+        }
+      }
+    } else {
+      diagnostics.push(...validated.diagnostics);
+    }
+  }
 
   const models = isPlainObject(input.models) ? input.models : undefined;
   if (!models) {
@@ -215,6 +257,7 @@ export function validateConfig(input: unknown): ValidationResult {
         ...(inbox === undefined ? {} : { inbox }),
         ...(otp === undefined ? {} : { otp }),
         ...(personaProvisioner === undefined ? {} : { personaProvisioner }),
+        ...(replayPersona === undefined ? {} : { replayPersona }),
       },
       models: {
         provider: provider!,

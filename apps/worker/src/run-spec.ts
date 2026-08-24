@@ -24,6 +24,10 @@ import type {
 // assertion below, mirroring the DG-05 interchange-mirror guard pattern
 // (packages/source-ua-adapter/src/__tests__/interchange-lockstep.test.ts).
 import type { StageId as OrchestratorStageId } from '@arxic/orchestrator-langgraph';
+// Type-only (erased at runtime — @arxic/verifier is already a runtime dep).
+// #288: the frozen `fixtures.replayPersona` declaration shape lives with its
+// semantics owner (per-pass login execution + validation), not duplicated here.
+import type { ReplayPersonaDeclaration } from '@arxic/verifier';
 export type { ArtifactTransportManifest, ImportedArtifact, ImportedArtifacts };
 
 /** The in-container mount path of the read-only source bind; CLI and worker hashing must agree. */
@@ -114,6 +118,13 @@ export type ArxicConfig = Readonly<{
     inbox?: string;
     otp?: string;
     personaProvisioner?: string;
+    /**
+     * #288: declared per-pass-login replay persona for endpoint-less
+     * (third-party) targets. Locator metadata only — persona VALUES stay
+     * env-only (ARXIC_INPUT_PERSONA_*). The shape is frozen in
+     * `@arxic/verifier` (`ReplayPersonaDeclaration`), the semantics owner.
+     */
+    replayPersona?: ReplayPersonaDeclaration;
   }>;
   models: Readonly<{
     provider: string;

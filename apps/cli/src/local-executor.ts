@@ -10,9 +10,12 @@ import {
   type ScreenshotPrivacyPolicy,
 } from '@arxic/playwright-screenshot-privacy';
 import {
+  FixtureResetError,
   PlaywrightVerifier,
+  replayPersonaNotDeclaredRefusal,
   resetAndSeedFixtures,
   type VerificationPersona,
+  REPLAY_PERSONA_MODES,
 } from '@arxic/verifier';
 import {
   FileStageCheckpointer,
@@ -28,7 +31,7 @@ import {
   stageIntentLedger,
   type StageIntentLedgerOutcome,
 } from '../../../packages/intent/src/ledger';
-import { ARXIC_EXEC_RESUMED, cliDiagnostic } from './diagnostics';
+import { ARXIC_EXEC_CRASH, ARXIC_EXEC_RESUMED, cliDiagnostic } from './diagnostics';
 import {
   runResultFromState,
   type DiagnosticSink,
@@ -149,6 +152,12 @@ function localPipelineOptions(
         origin: request.config.target.origin,
         artifactsDir: verificationArtifacts,
         ...(persona ? { persona } : {}),
+        // #288: the declared per-pass-login replay persona flows to the
+        // verifier, which provisions + logs in through the target's own
+        // login form before every pass (fresh context per pass).
+        ...(request.config.fixtures.replayPersona
+          ? { replayPersona: request.config.fixtures.replayPersona }
+          : {}),
         screenshotPrivacyPolicy: cliScreenshotPolicy(
           request.runId,
           request.now?.() ?? new Date().toISOString(),
@@ -239,7 +248,47 @@ function localPipelineOptions(
       if (!drivesForm || !persona) {
         return { provisioned: true, requirements: [], leases: [], diagnostics: [] };
       }
-      await resetAndSeedFixtures(request.config.target.origin, persona);
+      // #288 (C-1): a declared replay persona provisions per-pass through the
+      // target's OWN login form at stage 10 (the leased mutation) — the
+      // arxic-endpoint protocol is never attempted against the endpoint-less
+      // third-party target, here or later.
+      const declaration = request.config.fixtures.replayPersona;
+      if (declaration?.mode === REPLAY_PERSONA_MODES[0]) {
+        return {
+          provisioned: true,
+          requirements: [{ kind: 'persona' }],
+          leases: [personaLeaseFor(request)],
+          diagnostics: [],
+        };
+      }
+      // #288 (C-2 / SP-1): undeclared persona against an endpoint-less target
+      // — the refused reset attempt is the evidence; classify the refusal
+      // fail-closed with the frozen code instead of crashing the stage, so
+      // the run records WHY (no declaration) and never fabricates a pass.
+      try {
+        await resetAndSeedFixtures(request.config.target.origin, persona);
+      } catch (error) {
+        return {
+          provisioned: false,
+          requirements: [],
+          leases: [],
+          diagnostics: [
+            replayPersonaNotDeclaredRefusal(`run:${request.runId}`),
+            ...(error instanceof FixtureResetError
+              ? [error.diagnostic]
+              : [
+                  cliDiagnostic(
+                    ARXIC_EXEC_CRASH,
+                    'blocked',
+                    `run:${request.runId}`,
+                    `Fixture reset failed: ${
+                      error instanceof Error ? error.message : String(error)
+                    }`,
+                  ),
+                ]),
+          ],
+        };
+      }
       return {
         provisioned: true,
         requirements: [{ kind: 'persona' }],

@@ -88,6 +88,20 @@ The CLI reads these variables in its production source. Keep credentials out of
 operator settings, including `ARXIC_WORKER_IMAGE`, are documented separately in
 [worker deployment](./operator/worker-deploy.md).
 
+### Verifying a third-party target (#288)
+
+arxic's own fixture apps implement `POST /__arxic/reset` + `POST /__arxic/seed`;
+vanilla third-party apps do not, so a persona-driven verification run against
+one must declare `fixtures.replayPersona` (see
+[configuration](./configuration.md#fixtures)). With the declaration, the
+verifier logs the persona in through the target's own login form before every
+verification pass and never calls the fixture endpoints. Without it, the run
+refuses fail-closed at stage 7 with `ARXIC-VERIFY-FIXTURE-NOT-DECLARED` and
+zero verification passes. Persona values still enter only via
+`ARXIC_INPUT_PERSONA_EMAIL` / `ARXIC_INPUT_PERSONA_PASSWORD` — the declaration
+carries locator metadata only, and the values never surface in artifacts,
+diagnostics, or logs.
+
 ## Output and exit codes
 
 After a run directory is written, standard output has this form:
