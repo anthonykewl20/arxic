@@ -34,6 +34,28 @@ the CLI-side `ARXIC_ATTESTATION_RECEIPT_KEY`. Configure
 [worker deployment and source-hash lockstep](operator/worker-deploy.md) for
 the operator settings and code provenance.
 
+## Binding the digest you expect (#259)
+
+The served `buildDigest` is only evidence until you pin what you EXPECT. Add
+`target.expectedBuildDigest` (64 hex chars) to `arxic.yaml`:
+
+```yaml
+target:
+  origin: http://127.0.0.1:3000
+  environmentClass: local-test
+  attestationPath: /.well-known/arxic-test-target.json
+  expectedBuildDigest: 0123abcdef0123abcdef0123abcdef0123abcdef0123abcdef0123abcdef
+```
+
+With the pin, stage 0 compares the served digest against YOUR value and a
+mismatch refuses the run immediately with
+`ARXIC-ATTESTATION-BUILD-DIGEST-MISMATCH` — nothing later executes. Without
+the pin, a `local-test` target is trust-on-first-use: the run records the
+served digest as evidence (it flows into later-stage inputs) but never treats
+it as verified. Pin the digest for any target whose build process you control
+end-to-end; it is the difference between observing what the target says about
+itself and checking it against what you know you deployed.
+
 ## Minimal route handler
 
 This Next.js-style handler follows the same contract as Arxic's reference app:

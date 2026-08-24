@@ -183,6 +183,13 @@ export type OrchestratorInput = Readonly<{
   allowedOrigins?: readonly string[];
   appBuildDigest?: string;
   expectedNonce?: string;
+  /**
+   * #259: operator-pinned expected build digest — the INDEPENDENT expectation
+   * source for the stage-0 attestation gate (`expectedBuildDigest` in the
+   * policy). Distinct from `appBuildDigest`, which records the run's
+   * evidence digest and is never used as the gate expectation.
+   */
+  expectedBuildDigest?: string;
   requireExplorationApproval?: boolean;
   modelPrompt?: string;
   credentialBytes?: readonly string[];
@@ -703,11 +710,15 @@ export class LangGraphOrchestrator {
   }
 
   async #attest(input: OrchestratorInput): Promise<StageExecution> {
+    // #259: the gate's expected digest comes ONLY from the operator-pinned
+    // `expectedBuildDigest` — never from `appBuildDigest`, which on the local
+    // lane was fetched from the target's own attestation endpoint (making the
+    // gate compare the attestation against itself; a tampered digest passed).
     const result = await new EnvironmentHandshake().attest(
       { origin: input.origin },
       buildAttestationPolicy({
         origin: input.origin,
-        ...(input.appBuildDigest ? { expectedBuildDigest: input.appBuildDigest } : {}),
+        ...(input.expectedBuildDigest ? { expectedBuildDigest: input.expectedBuildDigest } : {}),
         ...(input.expectedNonce ? { expectedNonce: input.expectedNonce } : {}),
         ...operatorAttestationSettings(process.env),
         now: this.#now,

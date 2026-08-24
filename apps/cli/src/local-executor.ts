@@ -40,13 +40,21 @@ import {
 export class LocalRunExecutor implements RunExecutor {
   async execute(request: RunRequest, sink: DiagnosticSink): Promise<RunResult> {
     const baseInput = toOrchestratorInput(request);
-    const buildDigest = await targetBuildDigest(
-      request.config.target.origin,
-      request.config.target.attestationPath,
-    );
+    // #259: `expectedBuildDigest` (config) is the gate's expectation source.
+    // The target-served digest is still RECORDED as the run's
+    // `appBuildDigest` input (evidence fingerprint for later stages), but it
+    // is no longer used as the EXPECTED value the attestation is compared
+    // against — that comparison is operator-pinned or absent, never
+    // self-referential.
+    const servedBuildDigest = request.config.target.expectedBuildDigest
+      ? undefined
+      : await targetBuildDigest(
+          request.config.target.origin,
+          request.config.target.attestationPath,
+        );
     const input: OrchestratorInput = {
       ...baseInput,
-      ...(buildDigest ? { appBuildDigest: buildDigest } : {}),
+      ...(servedBuildDigest ? { appBuildDigest: servedBuildDigest } : {}),
     };
     const orchestrator = new LangGraphOrchestrator({
       checkpointer: new FileStageCheckpointer(request.runDirectory),
@@ -114,6 +122,14 @@ export function toOrchestratorInput(request: RunRequest): OrchestratorInput {
     // default to the target origin only) instead of crashing here.
     ...(request.config.target.allowedOrigins?.length
       ? { allowedOrigins: [...request.config.target.allowedOrigins] }
+      : {}),
+    // #259: the operator-pinned expected build digest — the INDEPENDENT
+    // expectation source for the stage-0 attestation gate. Stage 0 compares
+    // the SERVED attestation digest against THIS value (never against a
+    // digest fetched from the target's own endpoint, which made the gate
+    // self-referential on the local lane: a tampered digest passed clean).
+    ...(request.config.target.expectedBuildDigest
+      ? { expectedBuildDigest: request.config.target.expectedBuildDigest }
       : {}),
   };
 }

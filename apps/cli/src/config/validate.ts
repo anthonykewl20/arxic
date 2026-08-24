@@ -89,6 +89,13 @@ export function validateConfig(input: unknown): ValidationResult {
     'config.target.allowedOrigins',
     diagnostics,
   );
+  // #259: the operator-side expected build digest — the independent
+  // expectation source for the stage-0 attestation gate. 64 hex chars.
+  const expectedBuildDigest = optionalHex64(
+    target?.expectedBuildDigest,
+    'config.target.expectedBuildDigest',
+    diagnostics,
+  );
   if (origin !== undefined && allowedOrigins !== undefined && !allowedOrigins.includes(origin)) {
     invalid(diagnostics, 'config.target.origin', 'must be listed in config.target.allowedOrigins');
   }
@@ -188,6 +195,7 @@ export function validateConfig(input: unknown): ValidationResult {
         environmentClass: environmentClass!,
         attestationPath: attestationPath!,
         allowedOrigins: allowedOrigins!,
+        ...(expectedBuildDigest === undefined ? {} : { expectedBuildDigest }),
       },
       policy: {
         maxUrls: maxUrls!,
@@ -338,6 +346,20 @@ function httpUrl(value: unknown, subject: string, diagnostics: Diagnostic[]): st
     return undefined;
   }
   return string;
+}
+
+function optionalHex64(
+  value: unknown,
+  subject: string,
+  diagnostics: Diagnostic[],
+): string | undefined {
+  if (value === undefined) return undefined;
+  const string = nonEmptyString(value, subject, diagnostics);
+  if (string !== undefined && !/^[0-9a-f]{64}$/iu.test(string)) {
+    invalid(diagnostics, subject, 'must be 64 hexadecimal characters (SHA-256)');
+    return undefined;
+  }
+  return string?.toLowerCase();
 }
 
 function urlArray(

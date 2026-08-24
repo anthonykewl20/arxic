@@ -79,12 +79,13 @@ Unknown top-level fields are rejected.
 
 ## `target`
 
-| Field              | Required | Type and validation                                                                                     |
-| ------------------ | -------- | ------------------------------------------------------------------------------------------------------- |
-| `origin`           | Yes      | Non-empty absolute `http:` or `https:` URL without user info. It must be in `allowedOrigins`.           |
-| `environmentClass` | Yes      | One of `local-test`, `preview`, or `staging`. Production is refused by the CLI configuration validator. |
-| `attestationPath`  | Yes      | Non-empty string beginning with `/`.                                                                    |
-| `allowedOrigins`   | Yes      | Non-empty array of absolute `http:` or `https:` URLs without user info; it must include `origin`.       |
+| Field                 | Required | Type and validation                                                                                                                                                                                                                                                                                                           |
+| --------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `origin`              | Yes      | Non-empty absolute `http:` or `https:` URL without user info. It must be in `allowedOrigins`.                                                                                                                                                                                                                                 |
+| `environmentClass`    | Yes      | One of `local-test`, `preview`, or `staging`. Production is refused by the CLI configuration validator.                                                                                                                                                                                                                       |
+| `attestationPath`     | Yes      | Non-empty string beginning with `/`.                                                                                                                                                                                                                                                                                          |
+| `allowedOrigins`      | Yes      | Non-empty array of absolute `http:` or `https:` URLs without user info; it must include `origin`.                                                                                                                                                                                                                             |
+| `expectedBuildDigest` | No       | Exactly 64 hexadecimal characters. When set, stage 0 refuses a served attestation whose `buildDigest` differs (`ARXIC-ATTESTATION-BUILD-DIGEST-MISMATCH`) — the operator-side binding from [#259](https://github.com/anthonykewl20/arxic/issues/259). Without it, `local-test` targets are trust-on-first-use for the digest. |
 
 ## `policy`
 

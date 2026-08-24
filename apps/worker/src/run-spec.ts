@@ -90,6 +90,14 @@ export type ArxicConfig = Readonly<{
     environmentClass: string;
     attestationPath: string;
     allowedOrigins: readonly string[];
+    /**
+     * #259: operator-side expected build digest — the INDEPENDENT expectation
+     * source for the stage-0 attestation gate. When pinned, a served
+     * attestation whose `buildDigest` differs refuses with
+     * `BUILD_DIGEST_MISMATCH` (tampered digests can no longer pass clean by
+     * being compared against themselves). Optional: 64 lowercase hex chars.
+     */
+    expectedBuildDigest?: string;
   }>;
   policy: Readonly<{
     maxUrls: number;
