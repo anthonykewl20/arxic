@@ -263,8 +263,11 @@ describe.sequential('playwright verifier real-world security proof', () => {
           // autonomous probe FIRST (unarmed): a 404 fetch + console error
           `  await page.goto(${JSON.stringify(running.origin)});`,
           '  await page.evaluate(() => {',
-          `    return fetch(${JSON.stringify(`${running.origin}/__arxic-boot-probe__`)}).then(() => undefined, () => undefined);`,
+          `    const probe = document.createElement('script');`,
+          `    probe.src = '/__arxic-boot-probe__';`,
+          '    document.head.appendChild(probe);',
           '  });',
+          '  await page.waitForTimeout(250);',
           "  await page.evaluate(() => console.error('arxic boot probe console proof'));",
           // NOW the workflow arms and runs clean
           '  armReceiptCapture(page);',
