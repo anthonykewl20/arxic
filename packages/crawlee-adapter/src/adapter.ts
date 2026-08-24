@@ -413,13 +413,22 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
           // successful logins navigate long before this cap.
           timeoutMs: 10_000,
         });
-      } catch {
+      } catch (error) {
+        // #301 (AC-4): carry the login core's underlying failure in the
+        // diagnostic detail so a refused login is diagnosable from the
+        // evidence alone (run-3's 009 was unexplainable: warm replica
+        // logins measured 4.4-5.8s against the 10s cap, but the message
+        // carried no cause). The message text stays frozen; the cause rides
+        // in parentheses, sanitized by the same bounded summarizer the
+        // verifier uses for its own login failures.
+        const cause = error instanceof Error ? error.message : String(error);
+        const boundedCause = cause.slice(0, 200);
         addDiagnostic(
           surfaceDiagnostic(
             ARXIC_SURFACE_REPLAY_LOGIN_BLOCKED,
             'blocked',
             new URL(input.replayPersona.declaration.login.route, input.origin).href,
-            'The declared replay-persona login failed before breadth discovery; the crawl proceeded anonymously (no authenticated surfaces were inventoried)',
+            `The declared replay-persona login failed before breadth discovery; the crawl proceeded anonymously (no authenticated surfaces were inventoried) (login core: ${boundedCause})`,
           ),
         );
       }
