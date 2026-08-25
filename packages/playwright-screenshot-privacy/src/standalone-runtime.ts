@@ -156,7 +156,9 @@ export async function capturePolicyScreenshot(page: Page, screenshotPath: string
       }
       captureInvalid('unexpected pre-existing screenshot artifact was removed');
     }
-    const declaredMasks = serialized.policy.capture.masks.map((item) => semanticLocator(page, item));
+    const declaredMasks = serialized.policy.capture.masks.map((item) =>
+      semanticLocator(page, item),
+    );
     const declaredCounts = await Promise.all(declaredMasks.map((mask) => mask.count()));
     let masks = declaredMasks;
     let maskAdaptation: readonly string[] | undefined;

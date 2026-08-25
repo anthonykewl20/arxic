@@ -42,27 +42,26 @@ describe('real Chromium policy-owned screenshot capture', () => {
     await browser?.close();
   });
 
-function configureMaskedRolePolicy(role: string) {
-  const serialized = serializeScreenshotPrivacyPolicy({
-    schemaVersion: 1,
-    id: 'fixture-role-mask',
-    authority: {
-      kind: 'declared-human-approval',
-      reference: 'docs/evidence/M1-SCREENSHOT-PRIVACY/README.md',
-      recordedAt: '2026-08-09T12:00:00.000Z',
-    },
-    capture: {
-      mode: 'masked-page',
-      fullPage: true,
-      masks: [{ kind: 'role', role, exact: true }],
-    },
-  });
-  process.env[SCREENSHOT_PRIVACY_POLICY_ENV] = serialized.json;
-  process.env[SCREENSHOT_PRIVACY_POLICY_SHA256_ENV] = serialized.sha256;
-  process.env[SCREENSHOT_CAPTURE_CORRELATION_ENV] = 'correlation-value-0001';
-  process.env[SCREENSHOT_CAPTURED_AT_ENV] = '2026-08-09T12:01:00.000Z';
-}
-
+  function configureMaskedRolePolicy(role: string) {
+    const serialized = serializeScreenshotPrivacyPolicy({
+      schemaVersion: 1,
+      id: 'fixture-role-mask',
+      authority: {
+        kind: 'declared-human-approval',
+        reference: 'docs/evidence/M1-SCREENSHOT-PRIVACY/README.md',
+        recordedAt: '2026-08-09T12:00:00.000Z',
+      },
+      capture: {
+        mode: 'masked-page',
+        fullPage: true,
+        masks: [{ kind: 'role', role, exact: true }],
+      },
+    });
+    process.env[SCREENSHOT_PRIVACY_POLICY_ENV] = serialized.json;
+    process.env[SCREENSHOT_PRIVACY_POLICY_SHA256_ENV] = serialized.sha256;
+    process.env[SCREENSHOT_CAPTURE_CORRELATION_ENV] = 'correlation-value-0001';
+    process.env[SCREENSHOT_CAPTURED_AT_ENV] = '2026-08-09T12:01:00.000Z';
+  }
 
   test('fails closed without action-supplied policy and retains no PNG or receipt', async () => {
     const page = await pageWith('<h1>Safe heading</h1>');
@@ -131,9 +130,7 @@ function configureMaskedRolePolicy(role: string) {
 
     await capturePolicyScreenshot(page, path);
     await expect(exists(path)).resolves.toBe(true);
-    const receipt = await readUntrustedScreenshotCaptureReceipt(
-      screenshotCaptureReceiptPath(path),
-    );
+    const receipt = await readUntrustedScreenshotCaptureReceipt(screenshotCaptureReceiptPath(path));
     expect(receipt.maskAdaptation).toEqual(['form']);
     await page.close();
   });
@@ -146,9 +143,7 @@ function configureMaskedRolePolicy(role: string) {
     configureMaskedRolePolicy('main');
 
     await capturePolicyScreenshot(page, path);
-    const receipt = await readUntrustedScreenshotCaptureReceipt(
-      screenshotCaptureReceiptPath(path),
-    );
+    const receipt = await readUntrustedScreenshotCaptureReceipt(screenshotCaptureReceiptPath(path));
     expect(receipt.maskAdaptation).toBeUndefined();
     await page.close();
   });
