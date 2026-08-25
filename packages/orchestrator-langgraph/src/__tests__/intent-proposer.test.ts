@@ -46,7 +46,8 @@ type StubMode =
   | 'dangling-inventory-ref'
   | 'dangling-evidence-ref'
   | 'duplicated-proposals'
-  | 'empty-proposals' | 'partial-first-pass';
+  | 'empty-proposals'
+  | 'partial-first-pass';
 
 export type CapturedRequest = {
   headers: Record<string, string | string[] | undefined>;
@@ -117,12 +118,10 @@ function completionFor(currentMode: StubMode, rows: StubRow[], attempt: number):
   const seen = seenRowIds;
   const isRePass = rows.some((row) => seen.has(row.id));
   for (const row of rows) seen.add(row.id);
-  const effective =
-    currentMode === 'partial-first-pass' && !isRePass ? rows.slice(0, 1) : rows;
+  const effective = currentMode === 'partial-first-pass' && !isRePass ? rows.slice(0, 1) : rows;
   const payload = {
     schemaVersion: INTENT_PROPOSAL_SCHEMA_VERSION,
-    proposals:
-      currentMode === 'empty-proposals' ? [] : proposalsFor(effective, currentMode),
+    proposals: currentMode === 'empty-proposals' ? [] : proposalsFor(effective, currentMode),
   };
   const usage = {
     prompt_tokens: 64,
