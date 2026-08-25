@@ -1,3 +1,4 @@
+import { ARXIC_SOURCE_UNSAFE_FILE } from './safe-source';
 import type { Diagnostic } from '@arxic/contracts';
 
 export const ARXIC_SOURCE_UNSUPPORTED_LANGUAGE = 'ARXIC-SOURCE-UNSUPPORTED-LANGUAGE' as const;
@@ -20,6 +21,10 @@ export const ARXIC_SOURCE_ROUTE_FILE_INCLUDE = 'ARXIC-SOURCE-ROUTE-FILE-INCLUDE'
 export const SOURCE_DIAGNOSTIC_CODES = [
   ARXIC_SOURCE_UNSUPPORTED_LANGUAGE,
   ARXIC_SOURCE_BINARY_FILE,
+  // #320: the safe-source symlink hold is part of the source diagnostic
+  // family (re-exported from ./safe-source so the frozen list, the
+  // contract gate, and the orchestrator exemption share one spelling).
+  ARXIC_SOURCE_UNSAFE_FILE,
   ARXIC_SOURCE_FILE_OVERSIZE,
   ARXIC_SOURCE_PARSE_ERROR,
   ARXIC_SOURCE_DIRTY_TREE,
