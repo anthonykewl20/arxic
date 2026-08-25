@@ -141,7 +141,8 @@ export class PlaywrightCompiler implements WorkflowCompiler {
     const config = generateConfig(validatedWorkflow.value);
     const policy = enforceCompilePolicy({
       spec,
-      fixture: `${fixture}\n${transitionReceiptRuntime}\n${screenshotPrivacyRuntime}`,
+      fixture,
+      fixedRuntimeSources: [transitionReceiptRuntime, screenshotPrivacyRuntime],
       workflow: validatedWorkflow.value,
       ...(nonSemanticLocatorRationale
         ? {

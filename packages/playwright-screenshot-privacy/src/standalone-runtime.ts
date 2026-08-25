@@ -55,6 +55,11 @@ export type UntrustedScreenshotCaptureReceipt = Readonly<{
   policySha256: string;
   correlationSha256: string;
   captureMode: 'approved-region' | 'masked-page';
+  // #314 (F-E10): present ONLY when masked-page capture adapted its masks to
+  // the page's real landmarks because a declared anchor was absent — lists
+  // the landmark roles actually masked (always a superset of the declared
+  // intent's resolved anchors; masking more can never expose more).
+  maskAdaptation?: readonly string[];
   playwrightVersion: '1.62.1';
   browserVersion: string;
   capturedAt: string;
@@ -151,13 +156,34 @@ export async function capturePolicyScreenshot(page: Page, screenshotPath: string
       }
       captureInvalid('unexpected pre-existing screenshot artifact was removed');
     }
-    const masks = serialized.policy.capture.masks.map((item) => semanticLocator(page, item));
-    const maskCounts = await Promise.all(masks.map((mask) => mask.count()));
+    const declaredMasks = serialized.policy.capture.masks.map((item) =>
+      semanticLocator(page, item),
+    );
+    const declaredCounts = await Promise.all(declaredMasks.map((mask) => mask.count()));
+    let masks = declaredMasks;
+    let maskAdaptation: readonly string[] | undefined;
     if (
-      maskCounts.some((count) => count < 1 || count > 64) ||
-      maskCounts.reduce((total, count) => total + count, 0) > 256
+      declaredCounts.some((count) => count < 1 || count > 64) ||
+      declaredCounts.reduce((total, count) => total + count, 0) > 256
     ) {
-      captureInvalid('declared mask locator inventory is missing or exceeds its bound');
+      // #314 (F-E10): a declared anchor absent from THIS page (e.g. the
+      // directus admin shell renders no <main>) adapts by masking the
+      // page's real landmark set instead of failing. Masking is a hiding
+      // operation — the adapted set can only hide MORE than the declared
+      // anchors would have, never less. A page with nothing maskable
+      // (no landmark resolves in bounds) still fails closed below.
+      const adapted = await adaptiveLandmarkMasks(page);
+      if (adapted.roles.length === 0) {
+        captureInvalid('declared mask locator inventory is missing or exceeds its bound');
+      }
+      masks = adapted.locators;
+      maskAdaptation = adapted.roles;
+      if (
+        adapted.counts.some((count) => count < 1 || count > 64) ||
+        adapted.counts.reduce((total, count) => total + count, 0) > 256
+      ) {
+        captureInvalid('declared mask locator inventory is missing or exceeds its bound');
+      }
     }
     let bytes: Buffer;
     if (serialized.policy.capture.mode === 'approved-region') {
@@ -197,6 +223,7 @@ export async function capturePolicyScreenshot(page: Page, screenshotPath: string
       policySha256: serialized.sha256,
       correlationSha256,
       captureMode: serialized.policy.capture.mode,
+      ...(maskAdaptation ? { maskAdaptation } : {}),
       playwrightVersion: '1.62.1',
       browserVersion,
       capturedAt,
@@ -259,8 +286,11 @@ export function parseUntrustedScreenshotCaptureReceipt(
     receiptInvalid('capture receipt is not JSON');
   }
   const value = record(input, 'capture receipt');
+  // #314: maskAdaptation is OPTIONAL (present only when masked-page capture
+  // adapted its masks) — lift it out before the strict key-set check.
+  const { maskAdaptation, ...requiredFields } = value;
   exactKeys(
-    value,
+    requiredFields as Record<string, unknown>,
     [
       'schemaVersion',
       'kind',
@@ -294,6 +324,16 @@ export function parseUntrustedScreenshotCaptureReceipt(
   if (value.captureMode !== 'approved-region' && value.captureMode !== 'masked-page') {
     receiptInvalid('captureMode is invalid');
   }
+  if (value.maskAdaptation !== undefined) {
+    if (!Array.isArray(value.maskAdaptation) || value.maskAdaptation.length < 1) {
+      receiptInvalid('maskAdaptation is invalid');
+    }
+    for (const role of value.maskAdaptation) {
+      if (typeof role !== 'string' || !/^[a-z]{2,20}$/u.test(role)) {
+        receiptInvalid('maskAdaptation is invalid');
+      }
+    }
+  }
   if (value.playwrightVersion !== '1.62.1') receiptInvalid('playwrightVersion is invalid');
   const browserVersion = boundedString(value.browserVersion, 'browserVersion', 1, 120);
   const receiptCapturedAt = boundedString(value.capturedAt, 'capturedAt', 20, 40);
@@ -310,6 +350,7 @@ export function parseUntrustedScreenshotCaptureReceipt(
     policySha256: value.policySha256,
     correlationSha256: value.correlationSha256,
     captureMode: value.captureMode,
+    ...(maskAdaptation === undefined ? {} : { maskAdaptation }),
     playwrightVersion: '1.62.1',
     browserVersion,
     capturedAt: receiptCapturedAt,
@@ -627,6 +668,46 @@ async function assertRealCaptureDirectory(path: string): Promise<void> {
     if (error instanceof ScreenshotPrivacyError) throw error;
     captureInvalid('capture output directory could not be verified');
   }
+}
+
+/**
+ * #314 (F-E10): landmark ELEMENTS probed for adaptive masking, in
+ * preference order — main first (the standard declared anchor), then the
+ * other landmark tags. Element selectors (not getByRole) because ARIA maps
+ * <form> to role form ONLY when it has an accessible name: the directus
+ * login form (probed live) matches locator('form') === 1 while
+ * getByRole('form') === 0, and every landmark on its shell is nameless.
+ */
+// Literal landmark-tag selectors (kept literal — never content-addressed —
+// so the compile-time non-semantic locator gate can review the exact set).
+const ADAPTIVE_MASK_PROBES = [
+  ['main', (page: Page) => page.locator('main')],
+  ['article', (page: Page) => page.locator('article')],
+  ['form', (page: Page) => page.locator('form')],
+  ['aside', (page: Page) => page.locator('aside')],
+  ['nav', (page: Page) => page.locator('nav')],
+  ['header', (page: Page) => page.locator('header')],
+  ['footer', (page: Page) => page.locator('footer')],
+] as const;
+
+async function adaptiveLandmarkMasks(
+  page: Page,
+): Promise<{ locators: Locator[]; roles: string[]; counts: number[] }> {
+  const locators: Locator[] = [];
+  const roles: string[] = [];
+  const counts: number[] = [];
+  let total = 0;
+  for (const [role, locate] of ADAPTIVE_MASK_PROBES) {
+    if (total >= 256 || locators.length >= 64) break;
+    const locator = locate(page);
+    const count = await locator.count();
+    if (count < 1 || count > 64) continue;
+    locators.push(locator);
+    roles.push(role);
+    counts.push(count);
+    total += count;
+  }
+  return { locators, roles, counts };
 }
 
 function semanticLocator(page: Page, locator: ScreenshotSemanticLocator): Locator {
