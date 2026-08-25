@@ -158,6 +158,35 @@ describe('real Chromium policy-owned screenshot capture', () => {
     await page.close();
   });
 
+  // #314 second follow-up (round-10 field evidence): a landmark present at
+  // capture start can UNMOUNT before the per-tag counts run (the directus
+  // login form vanishes into a transient empty navigation window). The
+  // probe must RETRY within its budget and mask whatever mounts next.
+  // NOTE: the pre-fix failure is timing-dependent (a fast count loop still
+  // catches the form before it unmounts) — the deterministic red evidence
+  // for this iteration is field run directus-dg12-run10 (2/2 failures with
+  // the wait code baked in); this test pins the post-fix property.
+  test('#314 re-probes when the initial landmark unmounts mid-capture', async () => {
+    const page = await browser!.newPage();
+    await page.setContent(
+      '<body><form></form><script>' +
+        'setTimeout(() => { document.querySelector("form").remove(); }, 1);' +
+        'setTimeout(() => {' +
+        'document.body.insertAdjacentHTML("beforeend", "<nav></nav>"); }, 600);' +
+        '</script></body>',
+    );
+    const path = await outputPath();
+    configureMaskedRolePolicy('main');
+
+    await capturePolicyScreenshot(page, path);
+    await expect(exists(path)).resolves.toBe(true);
+    const receipt = await readUntrustedScreenshotCaptureReceipt(screenshotCaptureReceiptPath(path));
+    // Either the form was counted before it unmounted, or the retry masked
+    // the nav that mounted next — both are valid adaptive outcomes.
+    expect(receipt.maskAdaptation === undefined || receipt.maskAdaptation.length > 0).toBe(true);
+    await page.close();
+  }, 15_000);
+
   // The never-mounting counterpart: bounded wait elapses, capture still
   // fails closed with the mask-inventory error (no artifacts retained).
   test('#314 still fails closed when no landmark ever mounts', async () => {

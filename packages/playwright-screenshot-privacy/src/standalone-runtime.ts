@@ -692,21 +692,9 @@ const ADAPTIVE_MASK_PROBES = [
 
 const ADAPTIVE_MASK_WAIT_MS = 5_000;
 
-async function adaptiveLandmarkMasks(
+async function probeAdaptiveLandmarks(
   page: Page,
 ): Promise<{ locators: Locator[]; roles: string[]; counts: number[] }> {
-  // #314 follow-up (round-9 field evidence): SPAs render zero landmarks
-  // immediately after goto (the directus login form mounts milliseconds
-  // after the load event — probed live 3/3). Wait — bounded — for ANY
-  // landmark to attach before concluding the page has nothing maskable;
-  // waiting for something to MASK is capture stabilization, never a
-  // privacy loosening. A page that never mounts a landmark still fails
-  // closed below when the probe set comes back empty.
-  const anyLandmark = page.locator(ADAPTIVE_MASK_PROBES.map(([tag]) => tag).join(', '));
-  await anyLandmark
-    .first()
-    .waitFor({ state: 'attached', timeout: ADAPTIVE_MASK_WAIT_MS })
-    .catch(() => undefined);
   const locators: Locator[] = [];
   const roles: string[] = [];
   const counts: number[] = [];
@@ -722,6 +710,36 @@ async function adaptiveLandmarkMasks(
     total += count;
   }
   return { locators, roles, counts };
+}
+
+/**
+ * #314 second follow-up (round-10 field evidence): after the login submit,
+ * directus navigates through a TRANSIENT EMPTY WINDOW — the login form
+ * unmounts, the body renders nothing, and the admin app mounts ~500ms
+ * later. A single wait-then-probe pass loses that race: the wait can
+ * resolve on a landmark that unmounts before the per-tag counts run (each
+ * count roundtrip is inflated by suite instrumentation), leaving an
+ * all-zero probe. RE-Probe within the bounded budget until the landmark
+ * set is non-empty; a page that never presents a maskable landmark still
+ * fails closed when the budget elapses (the caller treats an empty probe
+ * as invalid). Waiting for something to MASK is capture stabilization,
+ * never a privacy loosening.
+ */
+async function adaptiveLandmarkMasks(
+  page: Page,
+): Promise<{ locators: Locator[]; roles: string[]; counts: number[] }> {
+  const anyLandmark = page.locator(ADAPTIVE_MASK_PROBES.map(([tag]) => tag).join(', '));
+  const deadline = Date.now() + ADAPTIVE_MASK_WAIT_MS;
+  for (;;) {
+    const probed = await probeAdaptiveLandmarks(page);
+    if (probed.roles.length > 0) return probed;
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return probed;
+    await anyLandmark
+      .first()
+      .waitFor({ state: 'attached', timeout: remaining })
+      .catch(() => undefined);
+  }
 }
 
 function semanticLocator(page: Page, locator: ScreenshotSemanticLocator): Locator {
