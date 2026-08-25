@@ -182,6 +182,42 @@ describe('provider-include prefix resolution — sad paths first', () => {
     expect(result.unresolved[0]?.reason).toContain('no literal included file');
   });
 
+  // #322 (F-E13, campaign round 15): both provider-include outcomes are
+  // per-item disposition RECORDS, never run blocks — an unprovable gap
+  // dispositions its rows (ADR-008 Decision 2), and a successful
+  // resolution is a success record. Emitted severity must be observed;
+  // blocked severity here poisoned the whole koel run at stage 13.
+  it('records include resolutions and gaps as observed dispositions, never blocks (#322)', async () => {
+    const resolved = await resolveProviderIncludes({
+      interchanges: [interchange()],
+      readUtf8: reader({ 'app/App/Providers/RouteServiceProvider.php': BOOKSTACK_API_PROVIDER }),
+    });
+    expect(resolved.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'ARXIC-INVENTORY-PROVIDER-INCLUDE-RESOLVED',
+        severity: 'observed',
+      }),
+    );
+
+    const dynamicGap: InterchangeGap = {
+      kind: 'unresolved-file',
+      sourcePath: 'app/Providers/RouteServiceProvider.php',
+      startLine: 16,
+      endLine: 16,
+      reason: 'includes a route file whose path is computed at runtime',
+    };
+    const unresolved = await resolveProviderIncludes({
+      interchanges: [interchange({ gaps: [dynamicGap] })],
+      readUtf8: async () => "Route::group([], base_path(sprintf('routes/%s.base.php', $type)));",
+    });
+    expect(unresolved.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'ARXIC-INVENTORY-PROVIDER-INCLUDE-UNRESOLVED',
+        severity: 'observed',
+      }),
+    );
+  });
+
   it('treats an include with NO provable enclosing group as UNRESOLVED (koel channels.php shape) — an unproven context is never defaulted to empty', async () => {
     const channelsGap: InterchangeGap = {
       kind: 'unresolved-file',

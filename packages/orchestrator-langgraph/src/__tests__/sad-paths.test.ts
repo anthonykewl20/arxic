@@ -503,6 +503,62 @@ describe('orchestrator sad paths', () => {
     await new Promise<void>((resolveClose) => boundaryServer.close(() => resolveClose()));
   }, 60_000);
 
+  // #322 (F-E13, campaign round 15): the koel shape — a proposal citing an
+  // API row with no crawl form surface — must be a per-item DISPOSITION
+  // (observed record, ADR-008 Decision 2), not a whole-run block: the
+  // ledger accounts the row; the run proceeds honestly with nothing
+  // compilable.
+  it('dispositions a formless proposal instead of blocking the run (#322)', async () => {
+    const apiRow = {
+      id: 'inv:route:POST:3220000000000001',
+      method: 'POST',
+      path: '/api/thing',
+      sourcePath: 'api/thing.ts',
+      surface: 'route' as const,
+      domainHint: 'thing',
+      evidenceIds: ['src:api/thing.ts:1-1'],
+    };
+    const proposal = {
+      id: 'prop:3220000000000001',
+      domain: 'thing',
+      intent: 'Manage Things',
+      action: 'Create Thing',
+      fromState: 'Idle',
+      toState: 'Thing Created',
+      persona: 'Thing User',
+      rationale: 'cited inventory row',
+      inventoryRowIds: [apiRow.id],
+      evidenceRefIds: ['src:api/thing.ts:1-1'],
+    };
+    const result = await new LangGraphOrchestrator({
+      checkpointer: new InMemoryStageCheckpointer(),
+      inferCandidates: async () => ({
+        requestId: 'request-322',
+        candidates: [
+          { id: proposal.id, title: proposal.intent, evidenceRefs: proposal.evidenceRefIds },
+        ],
+        proposalRun: {
+          proposals: [proposal],
+          rows: [apiRow],
+          estimatedCostUsd: 0,
+          dedupe: { inBatchDropped: 0, crossBatchDropped: 0 },
+        },
+      }),
+    }).run(input('surface-missing-322'));
+
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'ARXIC-ORCH-PROPOSAL-SURFACE-MISSING',
+        severity: 'observed',
+        subject: 'route:/api/thing',
+      }),
+    );
+    expect(result.diagnostics).not.toContainEqual(
+      expect.objectContaining({ code: 'ARXIC-ORCH-STAGE-BLOCKED', subject: 'stage-9' }),
+    );
+    expect(result.outcome).toBe('observed');
+  }, 60_000);
+
   // The non-exempt counterpart, pinned at the exact policy boundary
   // (SURFACE-006/007 cannot reach stage 5 end-to-end: a malformed origin or
   // unattested build blocks at stage 0 first): boundary-hold codes are

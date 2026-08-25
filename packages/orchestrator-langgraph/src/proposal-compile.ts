@@ -312,9 +312,15 @@ export async function compileProposalCandidate(
       compiled: false,
       plan: 'No inventoried form surface for the proposed route; no spec generated',
       diagnostics: [
+        // #322 (F-E13, campaign round 15): a proposal whose cited row has no
+        // crawl form surface is a per-item DISPOSITION (ADR-008 Decision 2:
+        // inventory completeness is separate from replayability; the row
+        // stays accounted, never silently dropped). Observed severity —
+        // the exclusion is a recorded fact, not a policy violation, and
+        // must not poison the sticky outcome for every other row.
         orchDiagnostic(
           ARXIC_ORCH_PROPOSAL_SURFACE_MISSING,
-          'blocked',
+          'observed',
           `route:${input.row.path}`,
           'The crawl surface has no labelled form with a submit control for the proposed route',
         ),
