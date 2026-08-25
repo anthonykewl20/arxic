@@ -46,6 +46,7 @@ const root = resolve(import.meta.dirname, '../../../..');
 const temporaryDirectories: string[] = [];
 let server: Server;
 let origin = '';
+let boundaryOrigin = '';
 let repository = '';
 let commit = '';
 let artifactsDirectory = '';
@@ -418,6 +419,113 @@ describe('orchestrator sad paths', () => {
     expect(result.receipt).toBeDefined();
     expect(promoted).toBe(true);
   }, 60_000);
+
+  // #318 (F-E11): stage-5 boundary observations — external-origin
+  // containment (SURFACE-001), depth-bound frontier stops (SURFACE-003),
+  // default-deny mutation aborts (SURFACE-008) — record the containment
+  // policy HOLDING, exactly like the exempted SURFACE-002. The fixture app
+  // (vulnerable-app) happens to emit only exempt codes; the real directus
+  // target emits 001/003/008 (campaign round 11: stage-10 verified 2/2 yet
+  // promotion skipped). Pre-fix this run is sticky-blocked and never
+  // promotes.
+  it('promotes when stage-5 boundary observations are policy-expected holds (#318)', async () => {
+    const boundaryServer = createServer((request, response) => {
+      response.setHeader(
+        'content-type',
+        request.url?.includes('.json') ? 'application/json' : 'text/html',
+      );
+      if (request.url === '/.well-known/arxic-test-target.json') {
+        response.end(
+          JSON.stringify({
+            environmentClass: 'local-test',
+            origin: boundaryOrigin,
+            allowedOrigins: [boundaryOrigin],
+            buildDigest: 'a'.repeat(64),
+            nonce: 'orchestrator-test',
+          }),
+        );
+        return;
+      }
+      response.end(
+        request.url === '/'
+          ? '<!doctype html><title>Home</title>' +
+              '<a href="https://boundary-external.example/docs">Docs</a>' +
+              '<a href="/level1">Level 1</a>' +
+              '<script>fetch("/api/ping", { method: "POST" });</script>'
+          : '<!doctype html><title>Level 1</title><a href="/level2">Level 2</a>',
+      );
+    });
+    await new Promise<void>((resolveListen) =>
+      boundaryServer.listen(0, '127.0.0.1', resolveListen),
+    );
+    const boundaryAddress = boundaryServer.address();
+    if (!boundaryAddress || typeof boundaryAddress === 'string') {
+      throw new Error('Boundary server did not bind');
+    }
+    boundaryOrigin = `http://127.0.0.1:${boundaryAddress.port}`;
+
+    const stagedBundle = coherentObservedBundle();
+    let promoted = false;
+    const result = await new LangGraphOrchestrator({
+      checkpointer: new InMemoryStageCheckpointer(),
+      inferCandidates: async () => validInference('boundary-hold-request'),
+      compile: async () => ({ compiled: true, plan: 'compiled', stagedBundle }),
+      verify: async () => ({
+        outcome: 'verified',
+        stagedBundle,
+        diagnostics: [],
+        artifacts: [],
+        runs: [{ passed: true }, { passed: true }],
+        gates: [{ gate: 'verify', passed: true }],
+      }),
+      promote: async (bundle) => {
+        promoted = true;
+        return {
+          manifest: bundle.manifest,
+          promotedAt: '2026-08-05T12:00:00.000Z',
+          location: 'test://boundary-promoted',
+          checksumSha256: 'a'.repeat(64),
+        };
+      },
+    }).run({ ...input('boundary-hold'), origin: boundaryOrigin });
+
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'ARXIC-SURFACE-001', severity: 'blocked' }),
+        expect.objectContaining({ code: 'ARXIC-SURFACE-003', severity: 'blocked' }),
+        expect.objectContaining({ code: 'ARXIC-SURFACE-008', severity: 'blocked' }),
+      ]),
+    );
+    expect(result.outcome).toBe('verified');
+    expect(result.status).toBe('completed');
+    expect(promoted).toBe(true);
+    await new Promise<void>((resolveClose) => boundaryServer.close(() => resolveClose()));
+  }, 60_000);
+
+  // The non-exempt counterpart, pinned at the exact policy boundary
+  // (SURFACE-006/007 cannot reach stage 5 end-to-end: a malformed origin or
+  // unattested build blocks at stage 0 first): boundary-hold codes are
+  // exempt, genuinely dangerous and unknown stage-5 codes still block, and
+  // non-blocked severities never do.
+  it('keeps stage-5 blocking for non-exempt codes while exempting policy holds (#318)', async () => {
+    const { diagnosticBlocksStage } = await import('..');
+    const blockedCode = (code: string) => ({
+      code,
+      severity: 'blocked' as const,
+      subject: 'x',
+      message: 'x',
+    });
+    expect(diagnosticBlocksStage(5, blockedCode('ARXIC-SURFACE-001'))).toBe(false);
+    expect(diagnosticBlocksStage(5, blockedCode('ARXIC-SURFACE-003'))).toBe(false);
+    expect(diagnosticBlocksStage(5, blockedCode('ARXIC-SURFACE-008'))).toBe(false);
+    expect(diagnosticBlocksStage(5, blockedCode('ARXIC-SURFACE-002'))).toBe(false);
+    expect(diagnosticBlocksStage(5, blockedCode('ARXIC-SURFACE-006'))).toBe(true);
+    expect(diagnosticBlocksStage(5, blockedCode('ARXIC-SURFACE-007'))).toBe(true);
+    expect(diagnosticBlocksStage(5, blockedCode('ARXIC-SURFACE-999'))).toBe(true);
+    expect(
+      diagnosticBlocksStage(5, { ...blockedCode('ARXIC-SURFACE-001'), severity: 'observed' }),
+    ).toBe(false);
+  });
 
   it('retains promotion eligibility when every sensitivity mutation is killed', async () => {
     const stagedBundle = coherentObservedBundle();
