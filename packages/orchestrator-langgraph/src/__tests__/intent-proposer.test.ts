@@ -46,7 +46,7 @@ type StubMode =
   | 'dangling-inventory-ref'
   | 'dangling-evidence-ref'
   | 'duplicated-proposals'
-  | 'empty-proposals';
+  | 'empty-proposals' | 'partial-first-pass';
 
 export type CapturedRequest = {
   headers: Record<string, string | string[] | undefined>;
@@ -110,9 +110,19 @@ function proposalsFor(rows: StubRow[], currentMode: StubMode): Record<string, un
 }
 
 function completionFor(currentMode: StubMode, rows: StubRow[], attempt: number): OpenAICompletion {
+  // #324: partial model coverage — a batch of never-before-seen rows gets
+  // proposals for only its FIRST row (the measured koel/directus shape);
+  // any batch containing a previously-seen row is a coverage re-pass and
+  // gets proposals for every row it was given.
+  const seen = seenRowIds;
+  const isRePass = rows.some((row) => seen.has(row.id));
+  for (const row of rows) seen.add(row.id);
+  const effective =
+    currentMode === 'partial-first-pass' && !isRePass ? rows.slice(0, 1) : rows;
   const payload = {
     schemaVersion: INTENT_PROPOSAL_SCHEMA_VERSION,
-    proposals: currentMode === 'empty-proposals' ? [] : proposalsFor(rows, currentMode),
+    proposals:
+      currentMode === 'empty-proposals' ? [] : proposalsFor(effective, currentMode),
   };
   const usage = {
     prompt_tokens: 64,
@@ -195,12 +205,60 @@ function fixtureInventory(): ProposalConsumerInventory {
   };
 }
 
+const seenRowIds = new Set<string>();
+
+function catalogInventory(): ProposalConsumerInventory {
+  const rows: StubRow[] = ['albums', 'artists', 'songs'].map((name, index) => ({
+    id: `inv:route:GET:${String(index + 1).repeat(12)}`,
+    surface: 'route',
+    method: 'GET',
+    path: `/api/catalog/${name}`,
+    sourcePath: `api/catalog/${name}.ts`,
+    domainHint: 'catalog',
+    evidenceRefIds: [`src:api-catalog-${name}-ts:1-9`],
+  }));
+  const evidenceIndex: Record<string, EvidenceRef> = {};
+  for (const [index, row] of rows.entries()) {
+    evidenceIndex[row.evidenceRefIds[0]!] = {
+      kind: 'source',
+      repo: 'file:///fixture',
+      commit: COMMIT,
+      path: row.sourcePath,
+      startLine: 1 + index,
+      endLine: 9 + index,
+      blobSha256: String(index + 1).repeat(64),
+      extractor: 'tree-sitter-typescript@0.25.0',
+    };
+  }
+  return {
+    kind: 'arxic-domain-inventory-v1',
+    standIn: false,
+    rows: rows.map((row) => ({
+      id: row.id,
+      surface: row.surface as 'page' | 'route',
+      method: row.method,
+      path: row.path,
+      sourcePath: row.sourcePath,
+      domainHint: row.domainHint,
+      evidenceIds: row.evidenceRefIds,
+    })),
+    source: { tool: '@arxic/domain-inventory', commit: COMMIT, repository: 'file:///fixture' },
+    evidenceIndex,
+    omitted: {
+      total: 0,
+      byDisposition: { extracted: 0, unsupported: 0, unsafe: 0, 'unextracted-with-reason': 0 },
+    },
+    diagnostics: [],
+  };
+}
+
 async function proposeWith(
   currentMode: StubMode,
   options: Partial<Parameters<typeof proposeCandidates>[0]> = {},
 ) {
   mode = currentMode;
   requests.length = 0;
+  seenRowIds.clear();
   return proposeCandidates({
     adapter: new ModelAdapter({
       credentials: STUB_BEARER,
@@ -285,6 +343,53 @@ describe('stage-4 IntentProposer (DG-08) — grounding, dedupe, batching, budget
     }
   });
 
+  // #324 (F-E14): partial first-pass model coverage (the measured shape:
+  // 156/315 on koel, 75/105 on directus) triggers a bounded re-proposal
+  // pass over ONLY the unproposed rows — same gates, same dedupe — until
+  // coverage or maxCoveragePasses. No row may silently lack a proposal.
+  it('re-proposes unproposed rows in a bounded coverage pass (#324)', async () => {
+    const outcome = await proposeWith('partial-first-pass', {
+      inventory: catalogInventory(),
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const proposed = new Set(
+      outcome.result.proposalRun.proposals.flatMap((proposal) => proposal.inventoryRowIds),
+    );
+    for (const row of outcome.result.proposalRun.rows) {
+      expect(proposed.has(row.id)).toBe(true);
+    }
+    // pass 1 = 1 batch (3 rows, 1 domain) proposing only the first row;
+    // the coverage pass re-batches the 2 unproposed rows.
+    expect(requests.length).toBe(2);
+  });
+
+  it('records an explicit observed diagnostic for every row left unproposed (#324)', async () => {
+    const outcome = await proposeWith('partial-first-pass', {
+      inventory: catalogInventory(),
+      maxCoveragePasses: 0,
+    });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const proposed = new Set(
+      outcome.result.proposalRun.proposals.flatMap((proposal) => proposal.inventoryRowIds),
+    );
+    const unproposedIds = outcome.result.proposalRun.rows
+      .filter((row) => !proposed.has(row.id))
+      .map((row) => `row:${row.id}`);
+    expect(unproposedIds.length).toBe(2);
+    const subjects = outcome.result.diagnostics
+      .filter((diagnostic) => diagnostic.code === 'ARXIC-ORCH-PROPOSAL-ROW-UNPROPOSED')
+      .map((diagnostic) => diagnostic.subject)
+      .sort();
+    expect(subjects).toEqual(unproposedIds.sort());
+    for (const diagnostic of outcome.result.diagnostics) {
+      if (diagnostic.code === 'ARXIC-ORCH-PROPOSAL-ROW-UNPROPOSED') {
+        expect(diagnostic.severity).toBe('observed');
+      }
+    }
+  });
+
   it('blocks after bounded retries when output stays malformed (fail-closed, zero candidates)', async () => {
     const outcome = await proposeWith('always-malformed');
     expect(outcome.ok).toBe(false);
@@ -340,11 +445,21 @@ describe('stage-4 IntentProposer (DG-08) — grounding, dedupe, batching, budget
   });
 
   it('returns an honest zero for an empty proposal list without retrying', async () => {
+    // #324: an all-empty model response still gets bounded coverage passes
+    // (the re-asks are NEW intended behavior, not retry-attempts); the
+    // honest zero stands and every row is recorded unproposed.
     const outcome = await proposeWith('empty-proposals');
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     expect(outcome.result.candidates).toHaveLength(0);
-    expect(requests).toHaveLength(2);
+    // 2 batches x (1 pass + 2 coverage passes), no per-response retries.
+    expect(requests).toHaveLength(6);
+    expect(outcome.result.proposalRun.coveragePasses).toBe(3);
+    expect(
+      outcome.result.diagnostics.filter(
+        (diagnostic) => diagnostic.code === 'ARXIC-ORCH-PROPOSAL-ROW-UNPROPOSED',
+      ),
+    ).toHaveLength(2);
   });
 
   it('dedupes duplicated model proposals deterministically; survivors are hypothesized only', async () => {

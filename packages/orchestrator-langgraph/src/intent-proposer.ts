@@ -13,6 +13,7 @@ import {
   ARXIC_ORCH_MODEL_RETRIES,
   ARXIC_ORCH_PROPOSAL_EVIDENCE_REF_DANGLING,
   ARXIC_ORCH_PROPOSAL_INVENTORY_REF_DANGLING,
+  ARXIC_ORCH_PROPOSAL_ROW_UNPROPOSED,
   ARXIC_ORCH_STAGE_BLOCKED,
   orchDiagnostic,
 } from './diagnostics';
@@ -426,6 +427,8 @@ export type ProposalStageResult = InferenceResult & {
     readonly rows: readonly ProposalConsumerRow[];
     readonly estimatedCostUsd: number;
     readonly dedupe: { inBatchDropped: number; crossBatchDropped: number };
+    /** #324: proposal passes actually executed (1 + coverage re-passes). */
+    readonly coveragePasses: number;
   };
 };
 
@@ -433,6 +436,9 @@ export type ProposalRunOutcome =
   { ok: true; result: ProposalStageResult } | { ok: false; diagnostics: readonly Diagnostic[] };
 
 export const MAX_ROWS_PER_CALL = 40;
+
+/** #324: bounded re-proposal passes over unproposed rows. */
+export const DEFAULT_MAX_COVERAGE_PASSES = 2;
 export const DEFAULT_MAX_RETRIES = 1;
 
 /**
@@ -450,11 +456,25 @@ export async function proposeCandidates(input: {
   readonly prices?: ModelPrices;
   readonly maxRetries?: number;
   readonly maxRowsPerCall?: number;
+  /**
+   * #324 (F-E14): bounded re-proposal passes over rows the model left
+   * unproposed (partial first-pass coverage measured at 156/315 on koel,
+   * 75/105 on directus). Each pass re-batches ONLY the unproposed rows
+   * through the same binding + dedupe gates. Default 2. 0 disables (the
+   * pre-#324 single-pass behavior); every row still unproposed after the
+   * final pass gets an explicit observed-severity diagnostic — no row may
+   * silently lack a proposal (ADR-008 Decision 2).
+   */
+  readonly maxCoveragePasses?: number;
 }): Promise<ProposalRunOutcome> {
   const rows = input.inventory.rows;
   const prices = input.prices ?? DEFAULT_MODEL_PRICES;
   const budgetUsd = input.budgetUsd ?? DEFAULT_MODEL_BUDGET_USD;
-  const estimatedCostUsd = estimateProposalCostUsd(rows, prices);
+  const maxCoveragePasses = input.maxCoveragePasses ?? DEFAULT_MAX_COVERAGE_PASSES;
+  // Worst case: every pass re-sends every row (in practice passes shrink —
+  // only unproposed rows re-batch — but the budget gate stays conservative).
+  const estimatedCostUsd =
+    estimateProposalCostUsd(rows, prices) * (1 + Math.max(0, maxCoveragePasses));
   if (estimatedCostUsd > budgetUsd) {
     return {
       ok: false,
@@ -490,9 +510,15 @@ export async function proposeCandidates(input: {
     }
   };
 
-  if (batches.length > 0) {
-    const totalAttempts = 1 + maxRetries;
-    for (const [batchIndex, batch] of batches.entries()) {
+  const totalAttempts = 1 + maxRetries;
+  // #324: pass 1 runs every batch; each later pass re-partitions ONLY the
+  // rows still unproposed (same gates, same dedupe), bounded by
+  // maxCoveragePasses. A batch that hard-fails still blocks the run
+  // (fail-closed semantics unchanged).
+  let lastFailure: readonly Diagnostic[] | undefined;
+  const runBatches = async (passBatches: readonly ProposalBatch[]): Promise<boolean> => {
+    if (passBatches.length === 0) return true;
+    for (const batch of passBatches) {
       let bound: Extract<BindingResult, { ok: true }> | undefined;
       let failure: readonly Diagnostic[] | undefined;
       for (let attempt = 1; attempt <= totalAttempts; attempt += 1) {
@@ -523,20 +549,57 @@ export async function proposeCandidates(input: {
       }
       if (failure !== undefined || bound === undefined) {
         // Fail-closed per run: no partial acceptance (stage-4 semantics).
-        return {
-          ok: false,
-          diagnostics: [
-            orchDiagnostic(
-              ARXIC_ORCH_MODEL_RETRIES,
-              'blocked',
-              `run:${input.runId}`,
-              `Intent proposal run blocked after bounded retries at batch ${batchIndex} (${batch.tag}); no proposals accepted`,
-            ),
-            ...(failure ?? []),
-          ],
-        };
+        lastFailure = failure;
+        return false as const;
       }
       mergeBound(bound);
+    }
+    return true;
+  };
+
+  const firstPassOk = await runBatches(batches);
+  if (firstPassOk === false) {
+    return {
+      ok: false,
+      diagnostics: [
+        orchDiagnostic(
+          ARXIC_ORCH_MODEL_RETRIES,
+          'blocked',
+          `run:${input.runId}`,
+          'Intent proposal run blocked after bounded retries; no proposals accepted',
+        ),
+        ...(lastFailure ?? []),
+      ],
+    };
+  }
+
+  // #324: coverage passes — re-propose ONLY the unproposed rows, bounded.
+  const unproposedAfter = (): readonly ProposalConsumerRow[] => {
+    const proposedIds = new Set<string>();
+    for (const proposal of accepted.values()) {
+      for (const rowId of proposal.inventoryRowIds) proposedIds.add(rowId);
+    }
+    return rows.filter((row) => !proposedIds.has(row.id));
+  };
+  let coveragePasses = 1;
+  for (let pass = 1; pass <= maxCoveragePasses; pass += 1) {
+    const remaining = unproposedAfter();
+    if (remaining.length === 0) break;
+    coveragePasses += 1;
+    const passOk = await runBatches(partitionRowsByDomain(remaining, maxRowsPerCall));
+    if (passOk === false) {
+      return {
+        ok: false,
+        diagnostics: [
+          orchDiagnostic(
+            ARXIC_ORCH_MODEL_RETRIES,
+            'blocked',
+            `run:${input.runId}`,
+            `Intent proposal run blocked after bounded retries in coverage pass ${pass}; no proposals accepted`,
+          ),
+          ...(lastFailure ?? []),
+        ],
+      };
     }
   }
 
@@ -577,6 +640,19 @@ export async function proposeCandidates(input: {
     if (rowDelta !== 0) return rowDelta;
     return left.id.localeCompare(right.id);
   });
+  // #324: no row may silently lack a proposal — every row the model never
+  // proposed (after all coverage passes) gets an explicit observed-severity
+  // record: honest non-coverage, never a block (ADR-008 Decision 2).
+  for (const row of unproposedAfter()) {
+    diagnostics.push(
+      orchDiagnostic(
+        ARXIC_ORCH_PROPOSAL_ROW_UNPROPOSED,
+        'observed',
+        `row:${row.id}`,
+        `Model returned no proposal for ${row.surface} ${row.method ?? ''} ${row.path} across ${coveragePasses} coverage pass(es); the row stays accounted and ungrounded`,
+      ),
+    );
+  }
   return {
     ok: true,
     result: {
@@ -588,6 +664,7 @@ export async function proposeCandidates(input: {
         rows,
         estimatedCostUsd,
         dedupe: { inBatchDropped, crossBatchDropped },
+        coveragePasses,
       },
     },
   };
