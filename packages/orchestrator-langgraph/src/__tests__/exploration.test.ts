@@ -25,7 +25,7 @@ import {
   runPlannedExploration,
   type ExplorationPlan,
 } from '../exploration';
-import type { Candidate } from '../types';
+import type { Candidate, FixtureLeaseState } from '../types';
 
 describe('DG-08 post-action observation binding invariants (final review P2 pins)', () => {
   const submitStep = (required = true) => ({
@@ -718,6 +718,87 @@ describe('stage-8 intent exploration', () => {
     );
   });
 
+  // #306 (F-E5): binding is derived at OBSERVATION TIME, not re-derived by
+  // URL string equality — the exact directus-dg12-run5/run14 field shape:
+  // every step observed, every step also falsely TRANSITIONS-UNOBSERVED.
+  it('counts an observed url-less fill/submit step as observed (#306)', async () => {
+    const result = await run(
+      new FakeDriver([
+        observation(`${origin}/login`),
+        observation(`${origin}/login`),
+        observation(`${origin}/login`),
+      ]),
+      {
+        steps: [
+          navigation('login', '/login'),
+          {
+            intent: 'fill Email',
+            action: 'fill',
+            actionClass: 'read-only',
+            required: true,
+            kind: 'fill',
+            locator: {
+              semantic: { kind: 'label', text: 'Email' },
+              execution: { kind: 'label', text: 'Email' },
+            },
+            value: 'persona@example.test',
+          },
+          {
+            intent: 'submit via Sign In',
+            action: 'form-submit',
+            actionClass: 'reversible-mutation',
+            required: true,
+            kind: 'click',
+            fixtureKind: 'persona',
+            locator: {
+              semantic: { kind: 'role', role: 'button', name: 'Sign In' },
+              execution: { kind: 'role', role: 'button', name: 'Sign In' },
+            },
+          },
+        ],
+      },
+      3,
+      undefined,
+      [
+        {
+          id: 'fill-submit-lease',
+          owner: 'unit-exploration',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          inUse: false,
+          requirement: { kind: 'persona' },
+        },
+      ],
+    );
+    expect(result.approved).toBe(true);
+    expect(result.decisions.join('\n')).not.toContain(ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED);
+  }, 15_000);
+
+  it('matches a navigate step modulo a trailing slash, but not a different path (#306)', async () => {
+    const slashMatch = await run(
+      new FakeDriver([observation(`${origin}/admin/`)]),
+      { steps: [navigation('observe route /admin', '/admin')] },
+      1,
+    );
+    expect(slashMatch.decisions.join('\n')).not.toContain(ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED);
+
+    const differentPath = await run(
+      new FakeDriver([observation(`${origin}/admin/login`)]),
+      { steps: [navigation('observe route /admin', '/admin')] },
+      1,
+    );
+    expect(differentPath.decisions.join('\n')).toContain(ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED);
+  }, 15_000);
+
+  it('still reports a required step whose observation failed as unobserved (#306 AC-5)', async () => {
+    const result = await run(
+      new FakeDriver([{ ...observation(`${origin}/login`), ok: false, error: 'boom' }]),
+      { steps: [{ ...navigation('login', '/login') }] },
+      1,
+    );
+    expect(result.approved).toBe(false);
+    expect(result.decisions.join('\n')).toContain(ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED);
+  }, 15_000);
+
   it('reports required unobserved transitions only as observed and never verified', async () => {
     const result = await run(
       new FakeDriver([]),
@@ -1115,6 +1196,7 @@ async function run(
   explorationPlan: ExplorationPlan,
   budget = 8,
   approval?: { approver: string; approvedAt: string; reason: string },
+  leases?: readonly FixtureLeaseState[],
 ) {
   return runPlannedExploration({
     runId: 'unit-exploration',
@@ -1124,6 +1206,7 @@ async function run(
     driver,
     plan: explorationPlan,
     ...(approval ? { approval } : {}),
+    ...(leases ? { leases } : {}),
     now: () => '2026-08-07T00:00:00.000Z',
   });
 }
