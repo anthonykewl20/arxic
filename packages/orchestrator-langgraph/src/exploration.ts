@@ -194,6 +194,8 @@ export async function runPlannedExploration(
   });
   const approvals = approvalsFor(plan, input.approval, input.origin);
   const diagnostics: Diagnostic[] = [];
+  // #306: steps with a successful runtime observation, bound at observation time.
+  const observedSteps = new Set<PlanStep>();
   const decisions: string[] = [];
   const evidenceRefs: EvidenceRef[] = [];
   const locatorProvenance: LocatorProvenanceRecord[] = [];
@@ -289,6 +291,13 @@ export async function runPlannedExploration(
           !observation.originDrifted &&
           observation.accessibilitySnapshotSha256
         ) {
+          // #306 (F-E5): bind observed-ness AT OBSERVATION TIME — the drive
+          // loop knows exactly which step produced this successful,
+          // non-drifted, a11y-snapshotted observation. Re-deriving the
+          // binding later by URL string equality structurally misjudged
+          // url-less fill/submit steps (never observable) and
+          // browser-normalized trailing slashes (/admin vs /admin/).
+          observedSteps.add(step);
           evidenceRefs.push({
             kind: 'runtime',
             runId: input.runId,
@@ -331,7 +340,7 @@ export async function runPlannedExploration(
   }
 
   for (const step of plan.steps.filter((candidateStep) => candidateStep.required)) {
-    if (!successfullyObserved(step, evidenceRefs)) {
+    if (!successfullyObserved(step, evidenceRefs, observedSteps)) {
       diagnostics.push(
         explorationDiagnostic(
           ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED,
@@ -613,9 +622,34 @@ function locatorDiagnosticCode(
   }
 }
 
-function successfullyObserved(step: PlanStep, evidenceRefs: readonly EvidenceRef[]): boolean {
-  if (!step.url) return false;
-  return evidenceRefs.some((evidence) => evidence.kind === 'runtime' && evidence.url === step.url);
+function successfullyObserved(
+  step: PlanStep,
+  evidenceRefs: readonly EvidenceRef[],
+  observedSteps: ReadonlySet<PlanStep>,
+): boolean {
+  // #306 (F-E5): url-less steps (fill/submit) bind by identity — the drive
+  // loop records exactly which steps produced a successful, non-drifted,
+  // a11y-snapshotted observation. Steps WITH a planned url keep URL
+  // semantics (a navigate that lands on a DIFFERENT path did not make the
+  // planned transition, however successful the drive): trailing-slash
+  // normalization only.
+  if (!step.url) return observedSteps.has(step);
+  return evidenceRefs.some(
+    (evidence) => evidence.kind === 'runtime' && sameResourceUrl(evidence.url, step.url!),
+  );
+}
+
+/**
+ * #306: trailing-slash-normalized same-resource comparison for navigation
+ * steps — `…/admin` and `…/admin/` are the same resource after browser
+ * normalization. This is the ONLY loosening: a different path, query, or
+ * origin still does not match (disclosed in the PR).
+ */
+function sameResourceUrl(observed: string, planned: string): boolean {
+  if (observed === planned) return true;
+  const trimTrailingSlash = (url: string) =>
+    url.length > 1 && url.endsWith('/') ? url.slice(0, -1) : url;
+  return trimTrailingSlash(observed) === trimTrailingSlash(planned);
 }
 
 function formatDiagnostic(diagnostic: Diagnostic): string {
