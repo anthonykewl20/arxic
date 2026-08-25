@@ -690,9 +690,22 @@ const ADAPTIVE_MASK_PROBES = [
   ['footer', (page: Page) => page.locator('footer')],
 ] as const;
 
+const ADAPTIVE_MASK_WAIT_MS = 5_000;
+
 async function adaptiveLandmarkMasks(
   page: Page,
 ): Promise<{ locators: Locator[]; roles: string[]; counts: number[] }> {
+  // #314 follow-up (round-9 field evidence): SPAs render zero landmarks
+  // immediately after goto (the directus login form mounts milliseconds
+  // after the load event — probed live 3/3). Wait — bounded — for ANY
+  // landmark to attach before concluding the page has nothing maskable;
+  // waiting for something to MASK is capture stabilization, never a
+  // privacy loosening. A page that never mounts a landmark still fails
+  // closed below when the probe set comes back empty.
+  const anyLandmark = page.locator(ADAPTIVE_MASK_PROBES.map(([tag]) => tag).join(', '));
+  await anyLandmark.first().waitFor({ state: 'attached', timeout: ADAPTIVE_MASK_WAIT_MS }).catch(
+    () => undefined,
+  );
   const locators: Locator[] = [];
   const roles: string[] = [];
   const counts: number[] = [];
