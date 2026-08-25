@@ -38,7 +38,10 @@ import {
   projectVerifiedBundle,
 } from '@arxic/bundle-promoter';
 import {
+  ARXIC_SURFACE_EXTERNAL_ORIGIN,
   ARXIC_SURFACE_FORM_SUBMIT_BLOCKED,
+  ARXIC_SURFACE_FRONTIER_STOP,
+  ARXIC_SURFACE_MUTATION_BLOCKED,
   CrawleeSurfaceDiscoverer,
   PACKAGE_NAME as CRAWLEE_PACKAGE,
   type SurfaceDiscoveryRequest,
@@ -1698,12 +1701,31 @@ function diagnosticsFromEvents(events: EvidenceEvent[]): Diagnostic[] {
  * configured parser set and mutation forms deliberately left untouched by breadth discovery
  * remain audit-visible, but neither disproves nor prevents deterministic verification.
  */
-function diagnosticBlocksStage(stage: StageId, diagnostic: Diagnostic): boolean {
+export function diagnosticBlocksStage(stage: StageId, diagnostic: Diagnostic): boolean {
   if (diagnostic.severity !== 'blocked') return false;
   if ((stage === 1 || stage === 2) && diagnostic.code === ARXIC_SOURCE_UNSUPPORTED_LANGUAGE) {
     return false;
   }
-  if (stage === 5 && diagnostic.code === ARXIC_SURFACE_FORM_SUBMIT_BLOCKED) return false;
+  // #318 (F-E11, campaign round 11): breadth-discovery boundary
+  // observations record the containment policy HOLDING — external-origin
+  // containment (001), depth-bound frontier stops (003), default-deny
+  // mutation aborts (008) — exactly like the already-exempted form-submit
+  // hold (002). They stay in the run record as blocked-severity
+  // diagnostics (never dropped) but must not poison the sticky outcome:
+  // the fixture app happens to emit only exempt codes, while ANY real
+  // target with external links, deeper paths, or protected POSTs emits
+  // 001/003/008 and could then never promote. Genuinely dangerous codes
+  // (006 invalid origin, 007 unattested build) and unknown codes keep
+  // blocking.
+  if (
+    stage === 5 &&
+    (diagnostic.code === ARXIC_SURFACE_FORM_SUBMIT_BLOCKED ||
+      diagnostic.code === ARXIC_SURFACE_EXTERNAL_ORIGIN ||
+      diagnostic.code === ARXIC_SURFACE_FRONTIER_STOP ||
+      diagnostic.code === ARXIC_SURFACE_MUTATION_BLOCKED)
+  ) {
+    return false;
+  }
   return true;
 }
 
