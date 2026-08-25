@@ -11,12 +11,23 @@ export type CompilePolicyInput = {
   fixture: string;
   workflow: Workflow;
   nonSemanticLocatorDiagnostics?: Diagnostic[];
+  /**
+   * #314 (F-E10): fixed package-owned runtime sources embedded verbatim in
+   * every bundle (transition receipts, screenshot privacy). Forbidden-API
+   * and secret scans still cover them byte-for-byte, but the per-workflow
+   * non-semantic LOCATOR review does not: those bytes are identical for
+   * every workflow, are hash-bound by the verifier, and are reviewed as
+   * package source — a per-workflow scan adds no signal while forcing
+   * every workflow to carry a locator rationale for code it never chose.
+   */
+  fixedRuntimeSources?: readonly string[];
 };
 
 export type CompilePolicyResult = { passed: true } | { passed: false; diagnostics: Diagnostic[] };
 
 export function enforceCompilePolicy(input: CompilePolicyInput): CompilePolicyResult {
-  const source = `${input.spec}\n${input.fixture}`;
+  const source = `${input.spec}\n${input.fixture}\n${(input.fixedRuntimeSources ?? []).join('\n')}`;
+  const generatedSource = `${input.spec}\n${input.fixture}`;
   const diagnostics: Diagnostic[] = [];
   for (const forbidden of ['waitForTimeout', 'waitForLoadState', 'page.evaluate']) {
     if (source.includes(forbidden)) {
@@ -35,7 +46,10 @@ export function enforceCompilePolicy(input: CompilePolicyInput): CompilePolicyRe
       diagnostic.severity === 'blocked' &&
       diagnostic.message.trim().length > 0,
   );
-  const unapprovedLocators = findUnapprovedNonSemanticLocators(source, Boolean(hasRationale));
+  const unapprovedLocators = findUnapprovedNonSemanticLocators(
+    generatedSource,
+    Boolean(hasRationale),
+  );
   if (unapprovedLocators.length > 0) {
     diagnostics.push(
       compileDiagnostic(

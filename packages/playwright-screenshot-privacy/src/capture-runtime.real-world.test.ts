@@ -42,6 +42,28 @@ describe('real Chromium policy-owned screenshot capture', () => {
     await browser?.close();
   });
 
+function configureMaskedRolePolicy(role: string) {
+  const serialized = serializeScreenshotPrivacyPolicy({
+    schemaVersion: 1,
+    id: 'fixture-role-mask',
+    authority: {
+      kind: 'declared-human-approval',
+      reference: 'docs/evidence/M1-SCREENSHOT-PRIVACY/README.md',
+      recordedAt: '2026-08-09T12:00:00.000Z',
+    },
+    capture: {
+      mode: 'masked-page',
+      fullPage: true,
+      masks: [{ kind: 'role', role, exact: true }],
+    },
+  });
+  process.env[SCREENSHOT_PRIVACY_POLICY_ENV] = serialized.json;
+  process.env[SCREENSHOT_PRIVACY_POLICY_SHA256_ENV] = serialized.sha256;
+  process.env[SCREENSHOT_CAPTURE_CORRELATION_ENV] = 'correlation-value-0001';
+  process.env[SCREENSHOT_CAPTURED_AT_ENV] = '2026-08-09T12:01:00.000Z';
+}
+
+
   test('fails closed without action-supplied policy and retains no PNG or receipt', async () => {
     const page = await pageWith('<h1>Safe heading</h1>');
     const path = await outputPath();
@@ -78,14 +100,56 @@ describe('real Chromium policy-owned screenshot capture', () => {
     await page.close();
   });
 
+  // #314: the fail-closed condition is now 'NOTHING maskable on the page'
+  // (a declared miss alone adapts by masking the page's landmarks — which
+  // can only hide MORE). This page is landmark-free, so the capture still
+  // blocks with the mask-inventory error.
   test('blocks a masked-page capture when a declared semantic mask resolves to nothing', async () => {
-    const page = await pageWith('<h1>Safe heading</h1><p>private rendered value</p>');
+    const page = await browser!.newPage();
+    await page.setContent('<h1>Safe heading</h1><p>private rendered value</p>');
     const path = await outputPath();
     configureMaskedPolicy('Missing private field');
 
     await expect(capturePolicyScreenshot(page, path)).rejects.toThrow(/mask locator/u);
     await expect(exists(path)).resolves.toBe(false);
     await expect(exists(screenshotCaptureReceiptPath(path))).resolves.toBe(false);
+    await page.close();
+  });
+
+  // #314 (F-E10): a page whose declared mask anchor is ABSENT (the directus
+  // admin shell has no <main>) adapts by masking the page's real landmark
+  // set — masking strictly MORE content than declared can never expose
+  // anything the declaration intended to hide. Pre-fix this is the
+  // campaign's exact stage-10 failure.
+  test('#314 adapts masked-page masks to present landmarks when the declared anchor is absent', async () => {
+    const page = await browser!.newPage();
+    await page.setContent(
+      '<form><input placeholder="Email"><input placeholder="Password" type="password"></form>',
+    );
+    const path = await outputPath();
+    configureMaskedRolePolicy('main');
+
+    await capturePolicyScreenshot(page, path);
+    await expect(exists(path)).resolves.toBe(true);
+    const receipt = await readUntrustedScreenshotCaptureReceipt(
+      screenshotCaptureReceiptPath(path),
+    );
+    expect(receipt.maskAdaptation).toEqual(['form']);
+    await page.close();
+  });
+
+  // Regression pin: when the declared mask resolves, the capture is UNCHANGED
+  // and the receipt records no adaptation.
+  test('#314 uses declared masks unchanged when they resolve (no adaptation recorded)', async () => {
+    const page = await pageWith('<h1>Safe heading</h1>');
+    const path = await outputPath();
+    configureMaskedRolePolicy('main');
+
+    await capturePolicyScreenshot(page, path);
+    const receipt = await readUntrustedScreenshotCaptureReceipt(
+      screenshotCaptureReceiptPath(path),
+    );
+    expect(receipt.maskAdaptation).toBeUndefined();
     await page.close();
   });
 
