@@ -47,7 +47,8 @@ type StubMode =
   | 'dangling-evidence-ref'
   | 'duplicated-proposals'
   | 'empty-proposals'
-  | 'partial-first-pass';
+  | 'partial-first-pass'
+  | 'declines-family';
 
 export type CapturedRequest = {
   headers: Record<string, string | string[] | undefined>;
@@ -110,7 +111,12 @@ function proposalsFor(rows: StubRow[], currentMode: StubMode): Record<string, un
   return proposals;
 }
 
-function completionFor(currentMode: StubMode, rows: StubRow[], attempt: number): OpenAICompletion {
+function completionFor(
+  currentMode: StubMode,
+  rows: StubRow[],
+  attempt: number,
+  userContent = '',
+): OpenAICompletion {
   // #324: partial model coverage — a batch of never-before-seen rows gets
   // proposals for only its FIRST row (the measured koel/directus shape);
   // any batch containing a previously-seen row is a coverage re-pass and
@@ -119,9 +125,18 @@ function completionFor(currentMode: StubMode, rows: StubRow[], attempt: number):
   const isRePass = rows.some((row) => seen.has(row.id));
   for (const row of rows) seen.add(row.id);
   const effective = currentMode === 'partial-first-pass' && !isRePass ? rows.slice(0, 1) : rows;
+  // #324b: the model declines a near-duplicate route family (koel round 21:
+  // 51 of 54 unproposed rows were /rest/* Subsonic clones) — UNLESS the
+  // re-pass message carries the explicit per-row accounting instruction.
+  const instructed =
+    userContent.includes('RE-PROPOSAL PASS') || userContent.includes('received no proposal');
+  const effectiveRows =
+    currentMode === 'declines-family' && !instructed
+      ? rows.filter((row) => !row.path.startsWith('/api/rest/'))
+      : effective;
   const payload = {
     schemaVersion: INTENT_PROPOSAL_SCHEMA_VERSION,
-    proposals: currentMode === 'empty-proposals' ? [] : proposalsFor(effective, currentMode),
+    proposals: currentMode === 'empty-proposals' ? [] : proposalsFor(effectiveRows, currentMode),
   };
   const usage = {
     prompt_tokens: 64,
@@ -286,7 +301,7 @@ beforeAll(async () => {
       .reverse()
       .find((message) => message.role === 'user')?.content;
     const rows = userContent ? parseInventoryData(userContent) : [];
-    const completion = completionFor(mode, rows, requests.length);
+    const completion = completionFor(mode, rows, requests.length, userContent);
     response.statusCode = 200;
     response.setHeader('content-type', 'application/json');
     response.end(JSON.stringify(completion));
@@ -361,6 +376,65 @@ describe('stage-4 IntentProposer (DG-08) — grounding, dedupe, batching, budget
     // pass 1 = 1 batch (3 rows, 1 domain) proposing only the first row;
     // the coverage pass re-batches the 2 unproposed rows.
     expect(requests.length).toBe(2);
+  });
+
+  // #324b (koel round 21): 51 of 54 unproposed rows were /rest/* Subsonic
+  // near-clones the model declined as a family. The re-proposal pass
+  // message must say these rows received no proposal and each is a
+  // distinct accounting row — with that signal the model covers them.
+  it('coverage re-pass requests name unproposed rows so declined families still ground (#324)', async () => {
+    const rows: StubRow[] = Array.from({ length: 6 }, (_, index) => ({
+      id: `inv:route:GET:${String(index + 1).padStart(12, '0')}`,
+      surface: 'route' as const,
+      method: 'GET',
+      path: index < 3 ? `/api/rest/clone${index}` : `/api/real${index}`,
+      sourcePath: `api/x${index}.ts`,
+      domainHint: 'catalog',
+      evidenceRefIds: [`src:api-x${index}-ts:1-9`],
+    }));
+    const evidenceIndex: Record<string, EvidenceRef> = {};
+    for (const [index, row] of rows.entries()) {
+      evidenceIndex[row.evidenceRefIds[0]!] = {
+        kind: 'source',
+        repo: 'file:///fixture',
+        commit: COMMIT,
+        path: row.sourcePath,
+        startLine: 1 + index,
+        endLine: 9 + index,
+        blobSha256: String(index + 1).repeat(64),
+        extractor: 'tree-sitter-typescript@0.25.0',
+      };
+    }
+    const familyInventory: ProposalConsumerInventory = {
+      kind: 'arxic-domain-inventory-v1',
+      standIn: false,
+      rows: rows.map((row) => ({
+        id: row.id,
+        surface: row.surface as 'page' | 'route',
+        method: row.method,
+        path: row.path,
+        sourcePath: row.sourcePath,
+        domainHint: row.domainHint,
+        evidenceIds: row.evidenceRefIds,
+      })),
+      source: { tool: '@arxic/domain-inventory', commit: COMMIT, repository: 'file:///fixture' },
+      evidenceIndex,
+      omitted: {
+        total: 0,
+        byDisposition: { extracted: 0, unsupported: 0, unsafe: 0, 'unextracted-with-reason': 0 },
+      },
+      diagnostics: [],
+    };
+
+    const outcome = await proposeWith('declines-family', { inventory: familyInventory });
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    const proposed = new Set(
+      outcome.result.proposalRun.proposals.flatMap((proposal) => proposal.inventoryRowIds),
+    );
+    for (const row of outcome.result.proposalRun.rows) {
+      expect(proposed.has(row.id)).toBe(true);
+    }
   });
 
   it('records an explicit observed diagnostic for every row left unproposed (#324)', async () => {
