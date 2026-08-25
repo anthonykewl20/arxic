@@ -113,7 +113,7 @@ describe('real Chromium policy-owned screenshot capture', () => {
     await expect(exists(path)).resolves.toBe(false);
     await expect(exists(screenshotCaptureReceiptPath(path))).resolves.toBe(false);
     await page.close();
-  });
+  }, 15_000);
 
   // #314 (F-E10): a page whose declared mask anchor is ABSENT (the directus
   // admin shell has no <main>) adapts by masking the page's real landmark
@@ -134,6 +134,42 @@ describe('real Chromium policy-owned screenshot capture', () => {
     expect(receipt.maskAdaptation).toEqual(['form']);
     await page.close();
   });
+
+  // #314 follow-up (round-9 field evidence): SPAs render zero landmarks
+  // immediately after goto (the directus login form mounts milliseconds
+  // after the load event — probed live 3/3). The adaptive probe must wait
+  // (bounded) for ANY landmark to attach before concluding nothing is
+  // maskable; a page that never mounts one still fails closed. Pre-fix
+  // this test reproduces the run-2 stage-10 failure exactly.
+  test('#314 waits for a late-mounting landmark before adapting masks', async () => {
+    const page = await browser!.newPage();
+    await page.setContent(
+      '<body><script>setTimeout(() => {' +
+        'document.body.insertAdjacentHTML("beforeend", "<form></form>");' +
+        '}, 400);</script></body>',
+    );
+    const path = await outputPath();
+    configureMaskedRolePolicy('main');
+
+    await capturePolicyScreenshot(page, path);
+    await expect(exists(path)).resolves.toBe(true);
+    const receipt = await readUntrustedScreenshotCaptureReceipt(screenshotCaptureReceiptPath(path));
+    expect(receipt.maskAdaptation).toEqual(['form']);
+    await page.close();
+  });
+
+  // The never-mounting counterpart: bounded wait elapses, capture still
+  // fails closed with the mask-inventory error (no artifacts retained).
+  test('#314 still fails closed when no landmark ever mounts', async () => {
+    const page = await browser!.newPage();
+    await page.setContent('<body><h1>Safe heading</h1><p>private value</p></body>');
+    const path = await outputPath();
+    configureMaskedRolePolicy('main');
+
+    await expect(capturePolicyScreenshot(page, path)).rejects.toThrow(/mask locator/u);
+    await expect(exists(path)).resolves.toBe(false);
+    await page.close();
+  }, 15_000);
 
   // Regression pin: when the declared mask resolves, the capture is UNCHANGED
   // and the receipt records no adaptation.
