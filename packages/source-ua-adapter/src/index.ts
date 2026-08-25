@@ -10,6 +10,7 @@ import { canonicalJson, type NormalizedSourceIndex } from './normalize';
 import type { RouteInventoryInterchange } from './language-packs/interchange';
 
 export * from './diagnostics';
+export { ARXIC_SOURCE_UNSAFE_FILE } from './safe-source';
 export * from './normalize';
 export * from './policy';
 export * from './language-packs';
