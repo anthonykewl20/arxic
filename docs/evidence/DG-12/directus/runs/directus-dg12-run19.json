@@ -1,0 +1,443 @@
+{
+ "kind": "dg11-validation-run-v1",
+ "schemaVersion": 1,
+ "target": {
+  "name": "directus",
+  "repository": "https://github.com/directus/directus",
+  "commit": "cb846b6a1ddc4811359bc52b74bb31a42eab33db"
+ },
+ "run": {
+  "runId": "directus-dg12-run19",
+  "startedAt": "2026-08-25T06:46:58.981Z",
+  "completedAt": "2026-08-25T06:51:00.504Z",
+  "executor": "local"
+ },
+ "model": "openai/gpt-4o-mini",
+ "pricing": {
+  "pricePerMillionPrompt": 0.15,
+  "pricePerMillionCompletion": 0.6,
+  "reverifyNote": "list prices declared by the operator for this run; the owner re-verifies prices at read time (owner decision 2)"
+ },
+ "telemetry": [
+  {
+   "requestId": "gen-1787640449-Zgxy7tx7fATCmVEpElWl",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 374,
+   "completionTokens": 139,
+   "latencyMs": 1727,
+   "costUsd": 0.0001395
+  },
+  {
+   "requestId": "gen-1787640452-J1iTenbPg26xk31zD7Zu",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 368,
+   "completionTokens": 113,
+   "latencyMs": 1628,
+   "costUsd": 0.000123
+  },
+  {
+   "requestId": "gen-1787640456-T0UHtFaMGcayBgDYVVPC",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 489,
+   "completionTokens": 332,
+   "latencyMs": 1322,
+   "costUsd": 0.00027255
+  },
+  {
+   "requestId": "gen-1787640461-nwmhPNrnGlyM4KGL9y4T",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 358,
+   "completionTokens": 113,
+   "latencyMs": 979,
+   "costUsd": 0.0001215
+  },
+  {
+   "requestId": "gen-1787640463-wOMJR5h1iItpWNIKuoEN",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 362,
+   "completionTokens": 126,
+   "latencyMs": 1648,
+   "costUsd": 0.0001299
+  },
+  {
+   "requestId": "gen-1787640468-dWkDjFAxTsIfL0Ht2n25",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 364,
+   "completionTokens": 124,
+   "latencyMs": 2143,
+   "costUsd": 0.000129
+  },
+  {
+   "requestId": "gen-1787640472-9niaV3HyhweeVOhWHeFO",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 367,
+   "completionTokens": 126,
+   "latencyMs": 964,
+   "costUsd": 0.00013065
+  },
+  {
+   "requestId": "gen-1787640474-Sn8ybXXpKpA1VNksUQOE",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 467,
+   "completionTokens": 248,
+   "latencyMs": 916,
+   "costUsd": 0.00021885
+  },
+  {
+   "requestId": "gen-1787640477-wpXcXi7VSrM88iCGdg24",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 368,
+   "completionTokens": 125,
+   "latencyMs": 964,
+   "costUsd": 0.0001302
+  },
+  {
+   "requestId": "gen-1787640479-5O3Wjy6UbU5ZhapNjsIK",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 367,
+   "completionTokens": 129,
+   "latencyMs": 1504,
+   "costUsd": 0.00013245
+  },
+  {
+   "requestId": "gen-1787640483-mVMNlhzE5pO36JQNQ4hY",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 361,
+   "completionTokens": 126,
+   "latencyMs": 989,
+   "costUsd": 0.00012975
+  },
+  {
+   "requestId": "gen-1787640485-amxeMEUgi0Xm7RAmthVM",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 366,
+   "completionTokens": 114,
+   "latencyMs": 7024,
+   "costUsd": 0.0001233
+  },
+  {
+   "requestId": "gen-1787640493-XAAe7pS0BbjhaBjxJKhr",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 361,
+   "completionTokens": 115,
+   "latencyMs": 966,
+   "costUsd": 0.00012315
+  },
+  {
+   "requestId": "gen-1787640495-lhrasa63Mp5xhbH2umzc",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 364,
+   "completionTokens": 216,
+   "latencyMs": 1324,
+   "costUsd": 0.0001842
+  },
+  {
+   "requestId": "gen-1787640500-bKTcRVvN4F3J5IBG4XZx",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 362,
+   "completionTokens": 114,
+   "latencyMs": 1747,
+   "costUsd": 0.0001227
+  },
+  {
+   "requestId": "gen-1787640503-SYjrdf0dEc7dZUnVJIct",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 439,
+   "completionTokens": 231,
+   "latencyMs": 1432,
+   "costUsd": 0.00020445
+  },
+  {
+   "requestId": "gen-1787640508-vkHFu0Iwgz4t371dYHkH",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 362,
+   "completionTokens": 118,
+   "latencyMs": 932,
+   "costUsd": 0.0001251
+  },
+  {
+   "requestId": "gen-1787640510-BIyVkVijLzFBIXAoy3rZ",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 441,
+   "completionTokens": 205,
+   "latencyMs": 1207,
+   "costUsd": 0.00018915
+  },
+  {
+   "requestId": "gen-1787640514-bJYhaE9a131IMPW0pLYh",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 382,
+   "completionTokens": 131,
+   "latencyMs": 1669,
+   "costUsd": 0.0001359
+  },
+  {
+   "requestId": "gen-1787640517-BvtNBK1k0S6idtPJk6xZ",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 845,
+   "completionTokens": 308,
+   "latencyMs": 1045,
+   "costUsd": 0.00031155
+  },
+  {
+   "requestId": "gen-1787640521-pmFOgUfsbsW5afyUdeZr",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 368,
+   "completionTokens": 116,
+   "latencyMs": 1223,
+   "costUsd": 0.0001248
+  },
+  {
+   "requestId": "gen-1787640524-Nb8niPqzg4WPiMF50eYt",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 370,
+   "completionTokens": 120,
+   "latencyMs": 993,
+   "costUsd": 0.0001275
+  },
+  {
+   "requestId": "gen-1787640526-AlCnLtJqYYr9dYCXAJoA",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 363,
+   "completionTokens": 123,
+   "latencyMs": 928,
+   "costUsd": 0.00012825
+  },
+  {
+   "requestId": "gen-1787640529-8NohyTxPKecoKyjHksT8",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 426,
+   "completionTokens": 235,
+   "latencyMs": 1036,
+   "costUsd": 0.0002049
+  },
+  {
+   "requestId": "gen-1787640532-8apQf4JCzLrhrnw320Ed",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 363,
+   "completionTokens": 126,
+   "latencyMs": 901,
+   "costUsd": 0.00013005
+  },
+  {
+   "requestId": "gen-1787640534-jr3SxeN9lrZMPkm8oLxH",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 363,
+   "completionTokens": 125,
+   "latencyMs": 908,
+   "costUsd": 0.00012945
+  },
+  {
+   "requestId": "gen-1787640536-qdBPSFrHkAmZfPakh8Lr",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 363,
+   "completionTokens": 116,
+   "latencyMs": 924,
+   "costUsd": 0.00012405
+  },
+  {
+   "requestId": "gen-1787640539-JcpQr2BgPqbjc7RTDAsq",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 713,
+   "completionTokens": 595,
+   "latencyMs": 987,
+   "costUsd": 0.00046395
+  },
+  {
+   "requestId": "gen-1787640547-Bk3DIx5Mn78xFLo6Ehio",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 369,
+   "completionTokens": 128,
+   "latencyMs": 1299,
+   "costUsd": 0.00013215
+  },
+  {
+   "requestId": "gen-1787640551-oXbhQDFpgCHXG89DeLe0",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 363,
+   "completionTokens": 124,
+   "latencyMs": 906,
+   "costUsd": 0.00012885
+  },
+  {
+   "requestId": "gen-1787640553-V0Mzi2uvaQ7KUCP7d5Ws",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 363,
+   "completionTokens": 120,
+   "latencyMs": 981,
+   "costUsd": 0.00012645
+  },
+  {
+   "requestId": "gen-1787640556-2QpfqcgrAh1dY7qDzq0s",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 430,
+   "completionTokens": 221,
+   "latencyMs": 1522,
+   "costUsd": 0.0001971
+  },
+  {
+   "requestId": "gen-1787640560-EYlQX3mgQGxyGV0FLVTn",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 492,
+   "completionTokens": 327,
+   "latencyMs": 997,
+   "costUsd": 0.00027
+  },
+  {
+   "requestId": "gen-1787640564-mwehctJW3DOfpElgTMD1",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 361,
+   "completionTokens": 303,
+   "latencyMs": 1762,
+   "costUsd": 0.00023595
+  },
+  {
+   "requestId": "gen-1787640572-pSAY3xqHBR9eX7TKmMm9",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 368,
+   "completionTokens": 232,
+   "latencyMs": 1585,
+   "costUsd": 0.0001944
+  },
+  {
+   "requestId": "gen-1787640577-4zWCPnQolKMibYop0flg",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 365,
+   "completionTokens": 133,
+   "latencyMs": 1358,
+   "costUsd": 0.00013455
+  },
+  {
+   "requestId": "gen-1787640580-sJTHSdzEXHWF8tmy3Lt1",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 362,
+   "completionTokens": 120,
+   "latencyMs": 1283,
+   "costUsd": 0.0001263
+  },
+  {
+   "requestId": "gen-1787640583-0Gk1iPivaHKRKhj8zs49",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 3653,
+   "completionTokens": 527,
+   "latencyMs": 1520,
+   "costUsd": 0.00086415
+  },
+  {
+   "requestId": "gen-1787640592-RLWhD9oR2hNTX8V5hhwk",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 441,
+   "completionTokens": 206,
+   "latencyMs": 1284,
+   "costUsd": 0.00018975
+  },
+  {
+   "requestId": "gen-1787640596-zCuyjtnpCZh1ewXkXYEk",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 367,
+   "completionTokens": 115,
+   "latencyMs": 1609,
+   "costUsd": 0.00012405
+  },
+  {
+   "requestId": "gen-1787640601-h1rMmzsqZPf1d3lqYVpb",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 363,
+   "completionTokens": 114,
+   "latencyMs": 951,
+   "costUsd": 0.00012285
+  },
+  {
+   "requestId": "gen-1787640603-mwY9OmwrOS3ipdhnt9sk",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 363,
+   "completionTokens": 115,
+   "latencyMs": 1543,
+   "costUsd": 0.00012345
+  },
+  {
+   "requestId": "gen-1787640606-vjyOqezWM5ZUlLXY9wNG",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 364,
+   "completionTokens": 118,
+   "latencyMs": 1551,
+   "costUsd": 0.0001254
+  },
+  {
+   "requestId": "gen-1787640611-Fje72xgLo2PNL9Dgvk9C",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 364,
+   "completionTokens": 131,
+   "latencyMs": 987,
+   "costUsd": 0.0001332
+  },
+  {
+   "requestId": "gen-1787640613-64JUnOXAm0LgP94rMsJg",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 382,
+   "completionTokens": 213,
+   "latencyMs": 1530,
+   "costUsd": 0.0001851
+  },
+  {
+   "requestId": "gen-1787640618-Vk6jc42j8NytQYaqSoAk",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 430,
+   "completionTokens": 244,
+   "latencyMs": 922,
+   "costUsd": 0.0002109
+  },
+  {
+   "requestId": "gen-1787640621-UKtt1wGYPnIO0YI4nRW9",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 368,
+   "completionTokens": 130,
+   "latencyMs": 1115,
+   "costUsd": 0.0001332
+  },
+  {
+   "requestId": "gen-1787640623-77GLmn2yNztwXC4UUEJV",
+   "model": "openai/gpt-4o-mini",
+   "promptTokens": 365,
+   "completionTokens": 120,
+   "latencyMs": 961,
+   "costUsd": 0.00012675
+  }
+ ],
+ "measured": {
+  "calls": 48,
+  "promptTokens": 22429,
+  "completionTokens": 8550,
+  "latencyMsTotal": 65696,
+  "estimatedCostUsd": 0.0202368,
+  "measuredCostUsd": 0.00849435
+ },
+ "ledger": {
+  "before": {
+   "cumulativeUsd": 0.16153315,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.83846685
+  },
+  "after": {
+   "cumulativeUsd": 0.1700275,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.8299725
+  }
+ },
+ "coverage": {
+  "rows": 105,
+  "coveredRows": 70,
+  "proposals": 77
+ },
+ "outcome": {
+  "exitCode": 0,
+  "status": "completed",
+  "outcome": "verified",
+  "finalStage": "stage-12"
+ },
+ "events": [],
+ "groundednessSpotCheck": {
+  "status": "pending",
+  "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+ }
+}
