@@ -18,6 +18,7 @@ import type {
   PlannedExplorationStep,
 } from '@arxic/playwright-agent-adapter';
 import { ARXIC_COMPILE_EVIDENCE_MISSING } from '@arxic/playwright-compiler';
+import { symlink } from 'node:fs/promises';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   ARXIC_ORCH_EMPTY_COVERAGE,
@@ -525,6 +526,33 @@ describe('orchestrator sad paths', () => {
     expect(
       diagnosticBlocksStage(5, { ...blockedCode('ARXIC-SURFACE-001'), severity: 'observed' }),
     ).toBe(false);
+  });
+
+  // #320 policy-boundary pin: the source coverage-boundary family is
+  // exempt on stages 1/2; dangerous and unknown codes keep blocking there,
+  // and none of the family blocks on other stages.
+  it('exempts the source coverage-boundary family on stages 1/2 only (#320)', async () => {
+    const { diagnosticBlocksStage } = await import('..');
+    const blockedCode = (code: string) => ({
+      code,
+      severity: 'blocked' as const,
+      subject: 'x',
+      message: 'x',
+    });
+    for (const code of [
+      'ARXIC-SOURCE-UNSUPPORTED-LANGUAGE',
+      'ARXIC-SOURCE-BINARY-FILE',
+      'ARXIC-SOURCE-PARSE-ERROR',
+      'ARXIC-SOURCE-UNSAFE-FILE',
+    ]) {
+      expect(diagnosticBlocksStage(1, blockedCode(code))).toBe(false);
+      expect(diagnosticBlocksStage(2, blockedCode(code))).toBe(false);
+      // NOT a stage-5 exemption: the same code on another stage blocks.
+      expect(diagnosticBlocksStage(5, blockedCode(code))).toBe(true);
+    }
+    expect(diagnosticBlocksStage(1, blockedCode('ARXIC-ORCH-REDACTION-FAILED'))).toBe(true);
+    expect(diagnosticBlocksStage(2, blockedCode('ARXIC-ORCH-HASH-MISMATCH'))).toBe(true);
+    expect(diagnosticBlocksStage(1, blockedCode('ARXIC-SOURCE-UNKNOWN-CODE'))).toBe(true);
   });
 
   it('retains promotion eligibility when every sensitivity mutation is killed', async () => {
@@ -1461,6 +1489,12 @@ async function committedSource(): Promise<string> {
     'export default function Page() { return <form action="/login"><input name="email" /></form>; }\n',
   );
   await writeFile(join(directory, 'styles.css'), 'body {}\n');
+  // #320 (F-E12): real repositories carry unscannable assets — a binary
+  // file (and symlinks / partial parses) are coverage-boundary
+  // observations, not defects. Git stores the symlink verbatim.
+  await writeFile(join(directory, 'favicon.ico'), Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]));
+  await symlink('readme.md', join(directory, 'docs-link.md'));
+  await writeFile(join(directory, 'readme.md'), '# fixture\n');
   const environment = {
     ...process.env,
     GIT_AUTHOR_NAME: 'Arxic Test',

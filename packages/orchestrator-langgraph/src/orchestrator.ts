@@ -73,6 +73,9 @@ import {
 } from '@arxic/playwright-compiler';
 import {
   PACKAGE_NAME as SOURCE_PACKAGE,
+  ARXIC_SOURCE_BINARY_FILE,
+  ARXIC_SOURCE_PARSE_ERROR,
+  ARXIC_SOURCE_UNSAFE_FILE,
   ARXIC_SOURCE_UNSUPPORTED_LANGUAGE,
   SourceUaAdapter,
   type NormalizedSourceIndex,
@@ -1703,7 +1706,25 @@ function diagnosticsFromEvents(events: EvidenceEvent[]): Diagnostic[] {
  */
 export function diagnosticBlocksStage(stage: StageId, diagnostic: Diagnostic): boolean {
   if (diagnostic.severity !== 'blocked') return false;
-  if ((stage === 1 || stage === 2) && diagnostic.code === ARXIC_SOURCE_UNSUPPORTED_LANGUAGE) {
+  // #320 (F-E12, campaign round 12): the source coverage-boundary family —
+  // binary assets (BINARY-FILE), tree-sitter partial parses (PARSE-ERROR),
+  // and symlinks (UNSAFE-FILE) — records the deterministic scanner's
+  // honest coverage boundary, exactly like UNSUPPORTED-LANGUAGE (exempt
+  // since DG-06). They stay in the run record as blocked-severity
+  // diagnostics with their counts, and the domain inventory still accounts
+  // their rows as unextracted (honest-zero machinery, #250); they must not
+  // poison the sticky outcome — the fixture app happens to emit only
+  // UNSUPPORTED-LANGUAGE, while ANY real repository carries binary assets,
+  // partial parses, or symlinks and could then never promote. Genuinely
+  // dangerous stage-1/2 conditions (redaction failure, hash mismatch,
+  // fatal scan errors) keep blocking.
+  if (
+    (stage === 1 || stage === 2) &&
+    (diagnostic.code === ARXIC_SOURCE_UNSUPPORTED_LANGUAGE ||
+      diagnostic.code === ARXIC_SOURCE_BINARY_FILE ||
+      diagnostic.code === ARXIC_SOURCE_PARSE_ERROR ||
+      diagnostic.code === ARXIC_SOURCE_UNSAFE_FILE)
+  ) {
     return false;
   }
   // #318 (F-E11, campaign round 11): breadth-discovery boundary
