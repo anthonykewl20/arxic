@@ -1492,7 +1492,10 @@ async function committedSource(): Promise<string> {
   // #320 (F-E12): real repositories carry unscannable assets — a binary
   // file (and symlinks / partial parses) are coverage-boundary
   // observations, not defects. Git stores the symlink verbatim.
-  await writeFile(join(directory, 'favicon.ico'), Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]));
+  await writeFile(
+    join(directory, 'favicon.ico'),
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]),
+  );
   await symlink('readme.md', join(directory, 'docs-link.md'));
   await writeFile(join(directory, 'readme.md'), '# fixture\n');
   const environment = {
