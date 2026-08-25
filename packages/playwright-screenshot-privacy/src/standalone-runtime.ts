@@ -703,9 +703,10 @@ async function adaptiveLandmarkMasks(
   // privacy loosening. A page that never mounts a landmark still fails
   // closed below when the probe set comes back empty.
   const anyLandmark = page.locator(ADAPTIVE_MASK_PROBES.map(([tag]) => tag).join(', '));
-  await anyLandmark.first().waitFor({ state: 'attached', timeout: ADAPTIVE_MASK_WAIT_MS }).catch(
-    () => undefined,
-  );
+  await anyLandmark
+    .first()
+    .waitFor({ state: 'attached', timeout: ADAPTIVE_MASK_WAIT_MS })
+    .catch(() => undefined);
   const locators: Locator[] = [];
   const roles: string[] = [];
   const counts: number[] = [];

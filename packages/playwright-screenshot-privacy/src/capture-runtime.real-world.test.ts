@@ -153,9 +153,7 @@ describe('real Chromium policy-owned screenshot capture', () => {
 
     await capturePolicyScreenshot(page, path);
     await expect(exists(path)).resolves.toBe(true);
-    const receipt = await readUntrustedScreenshotCaptureReceipt(
-      screenshotCaptureReceiptPath(path),
-    );
+    const receipt = await readUntrustedScreenshotCaptureReceipt(screenshotCaptureReceiptPath(path));
     expect(receipt.maskAdaptation).toEqual(['form']);
     await page.close();
   });
