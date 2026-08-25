@@ -97,6 +97,8 @@ export async function resolveProviderIncludes(input: {
         ARXIC_INVENTORY_PROVIDER_INCLUDE_RESOLVED,
         `${resolution.providerPath}:${resolution.includeLine}`,
         `applied prefix [${resolution.prefixSegments.join('/')}] to ${resolution.appliedRoutes} route(s) of ${resolution.includedFile} (include context composed by the fusion layer)`,
+        // #322: a successful composition is a success record — observed.
+        'observed',
       ),
     );
   }
@@ -106,6 +108,12 @@ export async function resolveProviderIncludes(input: {
         ARXIC_INVENTORY_PROVIDER_INCLUDE_UNRESOLVED,
         `${miss.gap.sourcePath}:${miss.gap.startLine ?? 0}`,
         `include gap remains visible: ${miss.reason}`,
+        // #322 (F-E13, campaign round 15): an unprovable include (path
+        // computed at runtime, no provable enclosing group) is a per-item
+        // disposition record — the gap stays visible and its rows stay in
+        // the denominator; blocking here poisoned the whole koel run at
+        // stage 13 (ADR-008 Decision 2).
+        'observed',
       ),
     );
   }

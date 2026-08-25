@@ -344,6 +344,38 @@ describe('proposal -> DG-09 form-flow compile (no canned assertions)', () => {
     }
   });
 
+  // #322 (F-E13): SURFACE-MISSING is a per-item disposition record
+  // (observed severity) — the proposal is excluded from compilation while
+  // the run proceeds; it must not poison the sticky outcome.
+  it('emits SURFACE-MISSING as an observed disposition, not a block (#322)', async () => {
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'dg08-compile-surface-obs-'));
+    try {
+      const empty = {
+        ...surfaceMap(),
+        routes: [{ ...surfaceMap().routes[0]!, forms: [] }],
+      };
+      const result = await compileProposalCandidate({
+        proposal: proposal(),
+        row: row(),
+        evidenceIndex,
+        surface: empty,
+        observation,
+        scope: { commit: 'a'.repeat(40), environment: 'local-test', browser: 'chromium' },
+        origin,
+        outputDirectory,
+      });
+      expect(result.compiled).toBe(false);
+      expect(result.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: 'ARXIC-ORCH-PROPOSAL-SURFACE-MISSING',
+          severity: 'observed',
+        }),
+      );
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true });
+    }
+  });
+
   it('blocks honestly when the post-action observation is missing', async () => {
     const outputDirectory = await mkdtemp(join(tmpdir(), 'dg08-compile-noobs-'));
     try {
