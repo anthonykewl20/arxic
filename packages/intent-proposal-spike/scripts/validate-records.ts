@@ -23,7 +23,7 @@
  *   --allow-missing-live-key   explicitly permit the skip when the named
  *                              variable is unset (exit 0, skip logged).
  */
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, realpath, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { scanTextForSecrets } from '../../bundle-promoter/src/redaction-gate';
@@ -556,15 +556,46 @@ export function validateLedgerDocument(
   return problems.length > 0 ? { ok: false, problems } : { ok: true };
 }
 
-async function filesUnder(directory: string): Promise<string[]> {
+async function filesUnder(
+  directory: string,
+  visited = new Set<string>(),
+  ancestors = new Set<string>(),
+): Promise<string[]> {
+  let canonicalDirectory: string;
+  try {
+    canonicalDirectory = await realpath(directory);
+  } catch (error) {
+    if (isNodeError(error) && error.code === 'ELOOP') {
+      throw new Error(`validator symlink loop detected at ${directory}`);
+    }
+    throw error;
+  }
+  if (ancestors.has(canonicalDirectory))
+    throw new Error(`validator symlink loop detected at ${directory}`);
+  if (visited.has(canonicalDirectory)) return [];
+  visited.add(canonicalDirectory);
+  const nextAncestors = new Set(ancestors).add(canonicalDirectory);
   const entries = await readdir(directory, { withFileTypes: true });
-  const nested = await Promise.all(
-    entries.map((entry) => {
-      const path = join(directory, entry.name);
-      return entry.isDirectory() ? filesUnder(path) : Promise.resolve([path]);
-    }),
-  );
+  const nested: string[][] = [];
+  for (const entry of entries) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      nested.push(await filesUnder(path, visited, nextAncestors));
+    } else if (entry.isSymbolicLink() && (await stat(path)).isDirectory()) {
+      // Run artifacts contain package-manager symlinks (for example
+      // .arxic-verification-suite/node_modules/@playwright/test). Dirent marks
+      // these as non-directories, but they resolve to directories and must not
+      // be passed to readFile as files.
+      nested.push(await filesUnder(path, visited, nextAncestors));
+    } else {
+      nested.push([path]);
+    }
+  }
   return nested.flat().sort();
+}
+
+function isNodeError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error;
 }
 
 /** Scans every file under the directory with the production secret scanner. */

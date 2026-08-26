@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { createServer as createHttpServer, type Server as HttpServer } from 'node:http';
 import { connect } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -916,6 +916,42 @@ describe('DG-11 evidence directory baseline', () => {
     expect(result.ok, JSON.stringify(result.problems)).toBe(true);
     const names = await readdir(evidenceDir);
     expect(names).toContain('README.md');
+  });
+});
+
+describe('DG-12 validator filesystem traversal', () => {
+  it('recurses through directory symlinks instead of reading them as files', async () => {
+    const { scanDirectoryForSecrets } = await import('../../scripts/validate-records');
+    const root = await mkdtemp(join(tmpdir(), 'arxic-validator-root-'));
+    const outside = await mkdtemp(join(tmpdir(), 'arxic-validator-outside-'));
+    await writeFile(join(outside, 'record.json'), 'password = "Hunter2!" leaked\n');
+    await symlink(outside, join(root, 'link-to-outside'), 'dir');
+    try {
+      const findings = await scanDirectoryForSecrets(root);
+      expect(findings.length).toBeGreaterThan(0);
+      expect(findings.some((finding) => finding.file.endsWith('record.json'))).toBe(true);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('validator symlink loop terminates with a diagnostic', async () => {
+    const { scanDirectoryForSecrets } = await import('../../scripts/validate-records');
+    const root = await mkdtemp(join(tmpdir(), 'arxic-validator-loop-'));
+    const a = join(root, 'a');
+    const b = join(root, 'b');
+    await mkdir(a);
+    await mkdir(b);
+    await symlink('../b', join(a, 'to-b'), 'dir');
+    await symlink('../a', join(b, 'to-a'), 'dir');
+    try {
+      await expect(scanDirectoryForSecrets(root)).rejects.toThrow(
+        /validator symlink loop detected.*to-(?:a|b)/,
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });
 
