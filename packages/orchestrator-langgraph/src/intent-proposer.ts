@@ -59,6 +59,10 @@ export const DEFAULT_MODEL_BUDGET_USD = 0.0253;
  * DG-04-measured price defaults (gpt-4o-mini list price at measurement time,
  * docs/spikes/dg-04-model-proposal.md §5.1). Estimates only — real cost comes
  * from provider-reported tokens on the run record.
+ *
+ * Kept as the historical DG-04 reference point AND as the gpt-4o-mini row of
+ * `MODEL_PRICE_TABLE` below. Callers should prefer `resolveModelPrices` over
+ * importing this constant directly — see #337.
  */
 export const DEFAULT_MODEL_PRICES = {
   promptPerMillion: 0.15,
@@ -74,7 +78,49 @@ export const DEFAULT_MODEL_PRICES = {
 const ESTIMATED_PROMPT_TOKENS_PER_ROW = 156;
 const ESTIMATED_COMPLETION_TOKENS_PER_ROW = 85;
 
-export type ModelPrices = Readonly<typeof DEFAULT_MODEL_PRICES>;
+export type ModelPrices = Readonly<{ promptPerMillion: number; completionPerMillion: number }>;
+
+/**
+ * #337: model-keyed price table for the pre-call budget-gate ESTIMATE.
+ *
+ * Root cause of #337: prices previously defaulted to a single global
+ * constant (`DEFAULT_MODEL_PRICES`, gpt-4o-mini rates) regardless of which
+ * `model` string was actually configured, so a model swap silently carried
+ * the PREVIOUS model's prices forward with no error. This table plus
+ * `resolveModelPrices` replaces that blind default: an unrecognized model id
+ * now fails closed (throws) instead of silently mispricing.
+ *
+ * Sources (list price, USD per 1,000,000 tokens):
+ * - gpt-4o-mini: DG-04 measurement, docs/spikes/dg-04-model-proposal.md §5.1.
+ * - glm-5.3: z.ai list price, https://docs.z.ai/guides/overview/pricing
+ *   (verified live 2026-08-27: input $1.40 / output $4.40 per 1M tokens).
+ *   Note (#337): the DG-12 campaign ran on a z.ai *coding plan*, which may
+ *   be subscription-priced with zero marginal per-token cost; that owner
+ *   decision is out of scope here — this table records the list price so
+ *   an explicit per-token estimate is at least NOT another model's price.
+ */
+export const MODEL_PRICE_TABLE: Readonly<Record<string, ModelPrices>> = {
+  'gpt-4o-mini': DEFAULT_MODEL_PRICES,
+  'glm-5.3': { promptPerMillion: 1.4, completionPerMillion: 4.4 },
+};
+
+/**
+ * #337: resolve the price table entry for `model`, failing closed (throwing)
+ * on an unrecognized model id rather than silently falling back to some
+ * other model's rates. Callers that already have an explicit `prices`
+ * override (owner-supplied) should use that instead of calling this.
+ */
+export function resolveModelPrices(model: string): ModelPrices {
+  const prices = MODEL_PRICE_TABLE[model];
+  if (prices === undefined) {
+    throw new Error(
+      `#337: no price-table entry for model "${model}" — refusing to silently price it at ` +
+        "another model's rates. Add an entry to MODEL_PRICE_TABLE in intent-proposer.ts (with a " +
+        'cited source) or pass an explicit `prices` override.',
+    );
+  }
+  return prices;
+}
 
 /** DG-04 schema vNext: a single model proposal (wire shape, pre-binding). */
 export type IntentProposalVNext = {
@@ -477,7 +523,13 @@ export async function proposeCandidates(input: {
   readonly maxCoveragePasses?: number;
 }): Promise<ProposalRunOutcome> {
   const rows = input.inventory.rows;
-  const prices = input.prices ?? DEFAULT_MODEL_PRICES;
+  // #337: an explicit caller override wins; otherwise resolve STRICTLY by
+  // the CONFIGURED model (MODEL_PRICE_TABLE) — an unrecognized model id
+  // fails closed (throws) instead of silently inheriting another model's
+  // rates. This is the root-cause fix: a model swap with no price-table
+  // entry and no explicit `prices` override must be a loud error, not a
+  // silently wrong budget estimate.
+  const prices = input.prices ?? resolveModelPrices(input.model);
   const budgetUsd = input.budgetUsd ?? DEFAULT_MODEL_BUDGET_USD;
   const maxCoveragePasses = input.maxCoveragePasses ?? DEFAULT_MAX_COVERAGE_PASSES;
   // Worst case: every pass re-sends every row (in practice passes shrink —

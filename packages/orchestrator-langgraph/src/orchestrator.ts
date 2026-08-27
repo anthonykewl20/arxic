@@ -87,8 +87,8 @@ import { createRunInputFingerprint } from './input-fingerprint';
 import { isStage4InferenceFailure, selectNeighbourhood, stage4Infer } from './inference';
 import {
   DEFAULT_MODEL_BUDGET_USD,
-  DEFAULT_MODEL_PRICES,
   proposeCandidates,
+  resolveModelPrices,
   type DomainSeeder,
   type ModelPrices,
   type ProposalStageResult,
@@ -830,7 +830,9 @@ export class LangGraphOrchestrator {
             inventory: toProposalConsumerInventory(inventoryEnvelope.inventory),
             seeders: this.#options.domainSeeders,
             budgetUsd: this.#options.modelBudgetUsd ?? DEFAULT_MODEL_BUDGET_USD,
-            prices: this.#options.modelPrices ?? DEFAULT_MODEL_PRICES,
+            // #337: resolve by the CONFIGURED model rather than defaulting to
+            // gpt-4o-mini's rates — an unrecognized model id fails closed.
+            prices: this.#options.modelPrices ?? resolveModelPrices(this.#options.model),
           })
         : undefined;
     const infer =
