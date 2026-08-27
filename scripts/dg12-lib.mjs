@@ -210,6 +210,19 @@ export function fabricationAuditForRun(inventoryRows, ledgerRows) {
  * cites evidence (`evidenceRefIds` non-empty) — the builder's fail-closed
  * resolvability gate (criterion 4) guarantees those refs resolve to source
  * evidence, so the script never re-adjudicates grounding by eyeball.
+ *
+ * A row whose disposition is not `extracted` can NEVER carry an intent (the
+ * DG-07 builder only joins intents onto extracted rows) — so the maximum
+ * ATTAINABLE ratio for a given denominator is structurally capped below
+ * 100% whenever any row is unsupported/unsafe/unextracted-with-reason. This
+ * reports that structural ceiling (`extracted rows / denominator`) alongside
+ * the measured ratio so a reader never mistakes "not 100%" for a defect when
+ * the denominator itself makes 100% unreachable. It is a LOOSE upper bound —
+ * some extracted rows may be ungroundable for their own reasons (e.g. a
+ * wildcard route or a source-scan-diagnostic row citing no addressable
+ * evidence); this script does not attempt to classify those, so the true
+ * attainable ceiling for a given app/run can be lower than the number
+ * reported here — never higher.
  */
 export function groundedRatioForRun(ledgerRows) {
   const grounded = ledgerRows.filter(
@@ -217,13 +230,17 @@ export function groundedRatioForRun(ledgerRows) {
       Array.isArray(row.intents) &&
       row.intents.some((intent) => (intent.evidenceRefIds ?? []).length > 0),
   );
+  const extractedCount = ledgerRows.filter((row) => row.disposition === 'extracted').length;
+  const denominator = ledgerRows.length;
   return {
-    denominator: ledgerRows.length,
+    denominator,
     grounded: grounded.length,
+    extractedCount,
+    structuralCeilingRatio: denominator === 0 ? 0 : extractedCount / denominator,
     ungroundedKeys: ledgerRows
       .filter((row) => !grounded.includes(row))
       .map((row) => row.inventoryKey),
-    ratio: ledgerRows.length === 0 ? 0 : grounded.length / ledgerRows.length,
+    ratio: denominator === 0 ? 0 : grounded.length / denominator,
   };
 }
 

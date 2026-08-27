@@ -210,6 +210,31 @@ describe('dg12-grounded-ratio (G-3 / criterion 2)', () => {
     const result = await runScript('dg12-grounded-ratio.mjs', [root]);
     expect(result.code, result.stderr).toBe(0);
     expect(result.stdout).toContain('4/5 rows grounded = 80.00%');
+    expect(result.stdout).toContain(
+      "5/5 rows are 'extracted' = 100.00% is the MAXIMUM ATTAINABLE ratio",
+    );
+  });
+
+  it('reports a structural ceiling below 100% when non-extracted rows are present', async () => {
+    // Mirrors the real koel finding (#324): non-extracted rows (here,
+    // 'unsupported') can never carry a grounded intent, so even a perfect
+    // extraction lane cannot reach 100% grounded when the denominator
+    // includes them -- the ceiling line must say so, not just the raw ratio.
+    const root = await temporaryRoot();
+    await stageRun(root, 'run-1', {
+      rows: [inventoryRow('a'), inventoryRow('b'), inventoryRow('c', 'unsupported')],
+      ledger: [
+        ledgerRow('a', { intents: [groundedIntent('p1')] }),
+        ledgerRow('b', { intents: [groundedIntent('p2')] }),
+        ledgerRow('c', { disposition: 'unsupported' }),
+      ],
+    });
+    const result = await runScript('dg12-grounded-ratio.mjs', [root, '--threshold', '60']);
+    expect(result.code, result.stderr).toBe(0);
+    expect(result.stdout).toContain('2/3 rows grounded = 66.67%');
+    expect(result.stdout).toContain(
+      "2/3 rows are 'extracted' = 66.67% is the MAXIMUM ATTAINABLE ratio",
+    );
   });
 
   it('fails below the threshold and names the ungrounded rows', async () => {
