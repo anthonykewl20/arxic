@@ -9,6 +9,6 @@
   },
   "dependencies": {
     "@arxic/contracts": "workspace:*",
-    "otplib": "^13.5.0"
+    "otplib": "^12.0.1"
   }
 }

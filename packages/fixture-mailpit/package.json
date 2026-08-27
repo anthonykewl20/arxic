@@ -14,6 +14,6 @@
     "@arxic/environment": "workspace:*",
     "@arxic/fixture-otplib": "workspace:*",
     "@arxic/orchestrator-langgraph": "workspace:*",
-    "otplib": "^13.5.0"
+    "otplib": "^12.0.1"
   }
 }

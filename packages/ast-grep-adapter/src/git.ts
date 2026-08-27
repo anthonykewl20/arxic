@@ -11,7 +11,7 @@ async function git(root: string, args: string[]): Promise<string> {
 export async function committedRevision(
   root: string,
 ): Promise<{ commit: string | null; dirty: boolean }> {
-  let commit: string | null = null;
+  let commit: string | null;
   try {
     commit = (await git(root, ['rev-parse', '--verify', 'HEAD^{commit}'])).trim() || null;
   } catch {

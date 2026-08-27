@@ -87,6 +87,7 @@ export async function runRules(input: {
         } catch (error) {
           throw new Error(
             `invalid JSON stream line: ${error instanceof Error ? error.message : String(error)}`,
+            { cause: error },
           );
         }
         if (rule.id === 'nextjs-server-action') {

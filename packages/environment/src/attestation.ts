@@ -84,7 +84,7 @@ export function classifyTarget(target: {
   if (/production|prod/i.test(target.environmentClass)) {
     reasons.push('production-environment-class');
   }
-  let hostname = '';
+  let hostname: string;
   try {
     hostname = new URL(target.origin).hostname.toLowerCase().replace(/^\[|\]$/g, '');
   } catch {

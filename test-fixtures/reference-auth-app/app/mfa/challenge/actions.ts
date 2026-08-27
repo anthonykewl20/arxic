@@ -1,5 +1,8 @@
 'use server';
 
+// NOTE(otplib pin): otplib is pinned to ^12.0.1 -- otplib 13.x removed the
+// 'authenticator' export in a full functional/class-based rewrite, breaking this
+// import. Do not bump past 12.x without migrating to the new async OTP API.
 import { authenticator } from 'otplib';
 import { redirect } from 'next/navigation';
 import { findUserByEmail } from '../../../lib/db';

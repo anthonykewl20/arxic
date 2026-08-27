@@ -353,7 +353,7 @@ class RouteFileScanner {
     const prefixCall = chain.find((call) => call.name === 'prefix');
     const groupCall = chain.find((call) => call.name === 'group');
     if (!groupCall) return statementEnd;
-    let prefix: string | null = null;
+    let prefix: string | null;
     if (prefixCall) {
       prefix = firstStringInSpan(text, prefixCall.argsStart, prefixCall.argsEnd);
     } else {

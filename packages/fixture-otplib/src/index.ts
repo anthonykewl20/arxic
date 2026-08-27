@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { FixtureLease, FixtureProvider, FixtureRequirement } from '@arxic/contracts';
+// NOTE(otplib pin): otplib is pinned to ^12.0.1 -- otplib 13.x removed the
+// 'authenticator' export in a full functional/class-based rewrite, breaking this
+// import. Do not bump past 12.x without migrating to the new async OTP API.
 import { authenticator } from 'otplib';
 
 export const PACKAGE_NAME = '@arxic/fixture-otplib' as const;

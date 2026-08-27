@@ -678,7 +678,7 @@ export async function execInSandbox(
   // The container-state OOMKilled flag is the authority for memory-quota
   // breach; a bare exit 137 is only a fallback signal when the container
   // disappeared before it could be inspected.
-  let oomKilled = false;
+  let oomKilled: boolean;
   try {
     oomKilled = (await inspectSandbox(sandbox)).oomKilled;
   } catch {

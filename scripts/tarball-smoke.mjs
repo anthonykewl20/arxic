@@ -125,7 +125,9 @@ async function assertPackedConfigFailure(execute, configPath) {
   } catch (error) {
     const result = asProcessFailure(error);
     if (!result || result.exitCode === 0) {
-      throw new Error('packed arxic malformed-config run did not report a non-zero process exit');
+      throw new Error('packed arxic malformed-config run did not report a non-zero process exit', {
+        cause: error,
+      });
     }
     const output = `${result.stdout}\n${result.stderr}`;
     if (
@@ -133,11 +135,14 @@ async function assertPackedConfigFailure(execute, configPath) {
         output,
       )
     ) {
-      throw new Error(`packed arxic malformed-config run crashed: ${output.trim()}`);
+      throw new Error(`packed arxic malformed-config run crashed: ${output.trim()}`, {
+        cause: error,
+      });
     }
     if (!/(?:ARXIC-CONFIG-[A-Z-]+|status=blocked)/u.test(output)) {
       throw new Error(
         `packed arxic malformed-config run lacked a structured diagnostic: ${output.trim()}`,
+        { cause: error },
       );
     }
     return;

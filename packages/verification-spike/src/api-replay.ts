@@ -422,7 +422,7 @@ async function executeStep(
 
   const started = Date.now();
   let response: Response;
-  let finalUrl = url;
+  let finalUrl: string;
   try {
     const result = await followSameOrigin(
       input.origin,
