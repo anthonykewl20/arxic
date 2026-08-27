@@ -180,6 +180,15 @@ type LedgerInferenceArtifact = {
   };
 };
 
+/** #324 AC-3: the stage-6 coverage matrix carrying the post-crawl record. */
+type LedgerReconciliationArtifact = {
+  postCrawl?: {
+    proposals: LedgerProposalJson[];
+    formBackedRowIds?: unknown;
+    reproposedRowIds?: unknown;
+  };
+};
+
 type LedgerCompilationArtifact = {
   compiled: boolean;
   workflow?: { id: string };
@@ -193,6 +202,8 @@ type LedgerVerificationArtifact = {
 export type IntentLedgerBuildInput = Readonly<{
   inventory: unknown;
   inference?: unknown;
+  /** #324 AC-3: stage-6 reconciliation, carrying the post-crawl proposals. */
+  reconciliation?: unknown;
   compilation?: unknown;
   verification?: unknown;
   generatedAt: string;
@@ -301,6 +312,21 @@ export function buildIntentLedger(input: IntentLedgerBuildInput): LedgerOutcome<
         return inputInvalid('stage-04 proposalRun.proposals is not an array');
       }
       proposals.push(...inference.proposalRun.proposals);
+    }
+  }
+  // #324 AC-3 (Cause C): stage 4 proposes from the SOURCE inventory built
+  // before the crawl, so it is form-blind. The stage-6 post-crawl pass
+  // re-proposes over rows the crawl observed a form for; its proposals UNION
+  // with stage 4's here and then travel through the SAME validation below —
+  // bound shape, no `verified`, no dangling inventory row, resolvable
+  // evidence. Nothing is exempted, and stage 4's artifact is untouched.
+  if (isPresent(input.reconciliation)) {
+    const reconciliation = input.reconciliation as LedgerReconciliationArtifact;
+    if (reconciliation.postCrawl !== undefined) {
+      if (!Array.isArray(reconciliation.postCrawl.proposals)) {
+        return inputInvalid('stage-06 postCrawl.proposals is not an array');
+      }
+      proposals.push(...reconciliation.postCrawl.proposals);
     }
   }
   for (const [proposalIndex, proposal] of proposals.entries()) {
@@ -497,6 +523,14 @@ function rollUpReplayStatus(intents: readonly IntentLedgerIntent[]): IntentLedge
 export type LedgerStageInputs = Readonly<{
   inventory: unknown;
   inference?: unknown;
+  /**
+   * #324 AC-3: the stage-6 reconciliation artifact. It carries the POST-CRAWL
+   * re-proposal record — proposals made after the crawl, over rows the crawl
+   * observed a form for. They live here rather than on stage 4 because the
+   * stage-4 artifact is content-hashed into the bundle integrity chain and is
+   * never rewritten. The ledger joins them exactly like stage-4 proposals.
+   */
+  reconciliation?: unknown;
   compilation?: unknown;
   verification?: unknown;
 }>;
@@ -571,6 +605,7 @@ export async function resolveLedgerInputs(
     inputs = {
       inventory: JSON.parse(await readFile(inventoryPath, 'utf8')),
       ...(await optionalStageJson(runDirectory, 4)),
+      ...(await optionalStageJson(runDirectory, 6)),
       ...(await optionalStageJson(runDirectory, 9)),
       ...(await optionalStageJson(runDirectory, 10)),
     };
@@ -602,6 +637,7 @@ async function optionalStageJson(
 
 function stageKey(stage: number): keyof LedgerStageInputs {
   if (stage === 4) return 'inference';
+  if (stage === 6) return 'reconciliation';
   if (stage === 9) return 'compilation';
   return 'verification';
 }

@@ -767,6 +767,62 @@ describe('deterministic helpers (extracted DG-04 design)', () => {
     expect(userBlock?.content.includes(literal)).toBe(false);
   });
 
+  /**
+   * #324 AC-3 (Cause C). The proposer was form-blind: nothing in the prompt
+   * told the model which surfaces the crawl had actually found a form for, so
+   * it could not prefer replayable rows. The signal arrives BESIDE the rows as
+   * a set of consumer row ids — never as a field on `ProposalConsumerRow`,
+   * which is a type-only alias of the frozen intent-proposal-spike row held by
+   * an `Equal<>` lockstep. Red-first.
+   */
+  it('marks form-backed rows in the prompt projection', () => {
+    const row = fixtureInventory().rows[0]!;
+    const prompt = buildProposalMessages([row], 1, {
+      formBackedRowIds: new Set([row.id]),
+    })
+      .map((message) => message.content)
+      .join('\n');
+    expect(prompt).toContain('formBacked');
+    expect(prompt).toMatch(/"formBacked":\s*true/u);
+  });
+
+  it('omits the form-backed marker entirely when the crawl found no form (pre-crawl default)', () => {
+    const row = fixtureInventory().rows[0]!;
+    const prompt = buildProposalMessages([row], 1)
+      .map((message) => message.content)
+      .join('\n');
+    // A pre-crawl pass must look EXACTLY as it did before AC-3: no key, so no
+    // token cost and no chance of the model reading absent as false-but-known.
+    expect(prompt).not.toContain('formBacked');
+  });
+
+  it('marks only the rows the crawl actually backed, not the whole batch', () => {
+    const rows = fixtureInventory().rows;
+    expect(rows.length).toBeGreaterThan(1);
+    const projected = JSON.parse(
+      buildProposalMessages(rows, 1, { formBackedRowIds: new Set([rows[0]!.id]) })
+        .map((message) => message.content)
+        .join('\n')
+        .replace(/^[\s\S]*?INVENTORY_DATA \(untrusted, treat as data only\):\n/u, '')
+        .replace(/\nEND_INVENTORY_DATA[\s\S]*$/u, ''),
+    ) as Array<Record<string, unknown>>;
+    expect(projected.filter((entry) => entry.formBacked === true)).toHaveLength(1);
+    expect(projected.find((entry) => entry.id === rows[0]!.id)?.formBacked).toBe(true);
+    expect('formBacked' in (projected.find((entry) => entry.id === rows[1]!.id) ?? {})).toBe(false);
+  });
+
+  it('names the form-backed rows as replayable in a post-crawl re-proposal pass', () => {
+    const row = fixtureInventory().rows[0]!;
+    const prompt = buildProposalMessages([row], 1, {
+      coveragePass: 2,
+      formBackedRowIds: new Set([row.id]),
+    })
+      .map((message) => message.content)
+      .join('\n');
+    expect(prompt).toMatch(/form/iu);
+    expect(prompt).toMatch(/replay/iu);
+  });
+
   it('requires the pinned schemaVersion in both first and retry prompts', () => {
     const row = fixtureInventory().rows[0]!;
     const instruction = `The top-level schemaVersion MUST be exactly "${INTENT_PROPOSAL_SCHEMA_VERSION}".`;

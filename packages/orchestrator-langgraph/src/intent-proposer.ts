@@ -200,8 +200,16 @@ const SYSTEM_PROMPT = [
 export function buildProposalMessages(
   rows: readonly ProposalConsumerRow[],
   attempt: number,
-  options?: Readonly<{ coveragePass?: number }>,
+  options?: Readonly<{ coveragePass?: number; formBackedRowIds?: ReadonlySet<string> }>,
 ): OpenAIMessage[] {
+  // #324 AC-3 (Cause C): the crawl-form availability signal. It travels here,
+  // beside the rows, rather than on `ProposalConsumerRow` — that type is a
+  // type-only alias of the FROZEN intent-proposal-spike row held by an
+  // `Equal<>` lockstep assertion. Absent (the pre-crawl case, where stage 13
+  // runs before the crawl and `observedForms` is necessarily []) the key is
+  // OMITTED entirely, so a pre-crawl prompt is byte-identical to the pre-AC-3
+  // prompt: no token cost, and the model never reads "absent" as a known false.
+  const formBacked = options?.formBackedRowIds;
   const projected = rows.map((row) => ({
     id: row.id,
     surface: row.surface,
@@ -210,7 +218,9 @@ export function buildProposalMessages(
     sourcePath: row.sourcePath,
     domainHint: row.domainHint,
     evidenceRefIds: row.evidenceIds,
+    ...(formBacked?.has(row.id) ? { formBacked: true } : {}),
   }));
+  const anyFormBacked = projected.some((entry) => 'formBacked' in entry);
   const messages: OpenAIMessage[] = [
     { role: 'system', content: SYSTEM_PROMPT },
     // Trusted role only: the schema is our instruction, never untrusted data.
@@ -227,7 +237,12 @@ export function buildProposalMessages(
             `RE-PROPOSAL PASS ${options.coveragePass}: every row above received no proposal in earlier passes. ` +
             'Propose a grounded business-intent hypothesis for each row — do not skip rows because they resemble each other; each is a distinct accounting row. ' +
             'Ground every claim in the row data only.'
-          : 'Propose business-intent hypotheses grounded in these surfaces, grouped into whatever domains the data supports.'),
+          : 'Propose business-intent hypotheses grounded in these surfaces, grouped into whatever domains the data supports.') +
+        // #324 AC-3: only stated when the crawl actually backed something, so
+        // the pre-crawl prompt is unchanged.
+        (anyFormBacked
+          ? '\n\nRows marked "formBacked": true were observed by the crawl to have a submittable form, so a proposal citing them is replayable. Prefer them. Rows without the marker are still distinct accounting rows and must still receive a proposal.'
+          : ''),
     },
   ];
   if (attempt > 1) {
@@ -500,6 +515,14 @@ export async function proposeCandidates(input: {
    * silently lack a proposal (ADR-008 Decision 2).
    */
   readonly maxCoveragePasses?: number;
+  /**
+   * #324 AC-3 (Cause C): consumer row ids the crawl observed a submittable
+   * form for, from `formBackedConsumerRowIds` over a RUNTIME-FUSED inventory.
+   * Empty/absent for the stage-4 pass — stage 13 builds the source inventory
+   * BEFORE the crawl, so nothing is form-backed yet and the prompt is
+   * unchanged. Supplied by the post-crawl re-proposal pass.
+   */
+  readonly formBackedRowIds?: ReadonlySet<string>;
 }): Promise<ProposalRunOutcome> {
   const rows = input.inventory.rows;
   const prices = input.prices ?? DEFAULT_MODEL_PRICES;
@@ -561,7 +584,12 @@ export async function proposeCandidates(input: {
       for (let attempt = 1; attempt <= totalAttempts; attempt += 1) {
         const response = await input.adapter.requestStructuredOutput({
           model: input.model,
-          messages: buildProposalMessages(batch.rows, attempt, { coveragePass }),
+          messages: buildProposalMessages(batch.rows, attempt, {
+            ...(coveragePass !== undefined ? { coveragePass } : {}),
+            ...(input.formBackedRowIds !== undefined
+              ? { formBackedRowIds: input.formBackedRowIds }
+              : {}),
+          }),
           schema: INTENT_PROPOSAL_WIRE_SCHEMA as unknown as object,
           schemaVersion: INTENT_PROPOSAL_SCHEMA_VERSION,
           maxRetries: 0,

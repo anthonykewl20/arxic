@@ -32,6 +32,7 @@ export {
 export {
   buildConsumerEvidenceIndex,
   consumerRowId,
+  formBackedConsumerRowIds,
   sourceEvidenceId,
   toProposalConsumerInventory,
   type ProposalConsumerInventory,
