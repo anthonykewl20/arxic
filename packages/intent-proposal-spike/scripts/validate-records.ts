@@ -796,21 +796,57 @@ export function liveKeyMissingExitCode(allowMissing: boolean): 0 | 1 {
   return allowMissing ? 0 : 1;
 }
 
+/** Parsed CLI arguments for validate-records.ts (finding #333). */
+export type ParsedValidateRecordsArgs = Readonly<{
+  directory: string | undefined;
+  liveKeyEnvPresent: boolean;
+  liveKeyEnv: string;
+  allowMissingLiveKey: boolean;
+}>;
+
+/**
+ * Parses argv for validate-records.ts by consuming tokens left-to-right,
+ * rather than by index arithmetic. This handles flags and the directory
+ * positional in ANY order, and does not special-case whether
+ * --live-key-env is present: each recognized flag consumes its own value
+ * (if any) as it is encountered, and everything else that isn't a `--`
+ * flag is a positional. Unrecognized `--` flags are ignored (matching prior
+ * behavior of never treating them as positionals).
+ */
+export function parseValidateRecordsArgs(args: readonly string[]): ParsedValidateRecordsArgs {
+  const positionals: string[] = [];
+  let liveKeyEnvPresent = false;
+  let liveKeyEnv = '';
+  let allowMissingLiveKey = false;
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === '--live-key-env') {
+      liveKeyEnvPresent = true;
+      const next = args[index + 1];
+      if (next !== undefined && !next.startsWith('--')) {
+        liveKeyEnv = next;
+        index += 1;
+      } else {
+        liveKeyEnv = '';
+      }
+      continue;
+    }
+    if (argument === '--allow-missing-live-key') {
+      allowMissingLiveKey = true;
+      continue;
+    }
+    if (argument.startsWith('--')) {
+      continue;
+    }
+    positionals.push(argument);
+  }
+  return { directory: positionals[0], liveKeyEnvPresent, liveKeyEnv, allowMissingLiveKey };
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  const liveKeyEnvIndex = args.indexOf('--live-key-env');
-  const allowMissingLiveKey = args.includes('--allow-missing-live-key');
-  const liveKeyEnvFlagValue = liveKeyEnvIndex >= 0 ? (args[liveKeyEnvIndex + 1] ?? '') : undefined;
-  const liveKeyEnv =
-    liveKeyEnvFlagValue !== undefined && !liveKeyEnvFlagValue.startsWith('--')
-      ? liveKeyEnvFlagValue
-      : '';
-  // A positional is any non-flag argument that is not the value slot after
-  // --live-key-env (a value starting with '--' means the flag had no value).
-  const positional = args.filter(
-    (argument, index) => !argument.startsWith('--') && index !== liveKeyEnvIndex + 1,
-  );
-  const directory = positional[0];
+  const { directory, liveKeyEnvPresent, liveKeyEnv, allowMissingLiveKey } =
+    parseValidateRecordsArgs(args);
   if (!directory) {
     console.error(
       'usage: validate-records.ts <evidence-directory> [--live-key-env VAR] [--allow-missing-live-key]',
@@ -841,7 +877,7 @@ async function main(): Promise<void> {
     }
   }
   for (const problem of result.problems) console.error(`PROBLEM ${problem}`);
-  if (liveKeyEnvIndex >= 0) {
+  if (liveKeyEnvPresent) {
     const scan = await runLiveKeyScan(directory, {
       variable: liveKeyEnv,
       value: liveKeyEnv === '' ? undefined : process.env[liveKeyEnv],
