@@ -193,6 +193,10 @@ describe('real stage-4 candidate inference proof', () => {
       checkpointer: new FileStageCheckpointer(runsDirectory),
       modelAdapter: modelAdapter(),
       model: 'test-model-v1',
+      // #337: 'test-model-v1' is a synthetic fixture id with no real
+      // price-table entry; resolveModelPrices fails closed on unknown
+      // model ids, so tests on this path must supply an explicit price.
+      modelPrices: { promptPerMillion: 0.15, completionPerMillion: 0.6 },
       maxModelAttempts: 2,
     }).run(orchestratorInput(runId));
     const inference = JSON.parse(
@@ -228,6 +232,10 @@ describe('real stage-4 candidate inference proof', () => {
       checkpointer: new FileStageCheckpointer(runsDirectory),
       modelAdapter: modelAdapter(),
       model: 'test-model-v1',
+      // #337: 'test-model-v1' is a synthetic fixture id with no real
+      // price-table entry; resolveModelPrices fails closed on unknown
+      // model ids, so tests on this path must supply an explicit price.
+      modelPrices: { promptPerMillion: 0.15, completionPerMillion: 0.6 },
       maxModelAttempts: 2,
     }).run(orchestratorInput('m1-14-malformed'));
 
@@ -260,6 +268,10 @@ describe('real stage-4 candidate inference proof', () => {
       checkpointer: new FileStageCheckpointer(runsDirectory),
       modelAdapter,
       model: 'test-model-v1',
+      // #337: 'test-model-v1' is a synthetic fixture id with no real
+      // price-table entry; resolveModelPrices fails closed on unknown
+      // model ids, so tests on this path must supply an explicit price.
+      modelPrices: { promptPerMillion: 0.15, completionPerMillion: 0.6 },
       maxModelAttempts: 2,
     }).run(orchestratorInput(runId));
 

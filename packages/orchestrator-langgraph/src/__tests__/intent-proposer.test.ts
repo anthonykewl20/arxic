@@ -774,20 +774,18 @@ describe('#337 model-keyed pricing (fail-closed, no silent gpt-4o-mini fallback)
     );
   });
 
-  it(
-    'proposeCandidates does NOT fail closed by default for an unrecognized model id ' +
-      '(deliberately scoped down — see resolveModelPrices for the strict form, and the ' +
-      '#337 report for why: real-world test fixtures across this codebase use synthetic, ' +
-      'never-priced model ids on this exact call path, and rewriting them is out of scope here)',
-    async () => {
-      const outcome = await proposeWith('smart', {
+  it('proposeCandidates fails closed BEFORE any provider call when the configured model has no price-table entry and no explicit prices override is given', async () => {
+    requests.length = 0;
+    await expect(
+      proposeWith('smart', {
         model: 'some-future-model-v9',
         prices: undefined,
-      });
-      // Falls back to DEFAULT_MODEL_PRICES (gpt-4o-mini) rather than throwing.
-      expect(outcome.ok).toBe(true);
-    },
-  );
+      }),
+    ).rejects.toThrow(/#337/u);
+    // Fail-closed happens at price resolution, before the budget estimate
+    // can gate a provider call — so zero requests were sent.
+    expect(requests).toHaveLength(0);
+  });
 
   it('proposeCandidates honors an explicit prices override even for an unknown model id (owner escape hatch)', async () => {
     const outcome = await proposeWith('smart', {

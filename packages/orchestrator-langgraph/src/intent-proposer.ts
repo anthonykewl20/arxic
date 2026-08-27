@@ -122,21 +122,6 @@ export function resolveModelPrices(model: string): ModelPrices {
   return prices;
 }
 
-/**
- * #337: the default-resolution path actually wired into `proposeCandidates`
- * and the orchestrator. Looks the model up in `MODEL_PRICE_TABLE` (fixing
- * the real defect: glm-5.3 no longer silently gets gpt-4o-mini's rates);
- * for a model with NO table entry it falls back to `DEFAULT_MODEL_PRICES`
- * rather than throwing, because production orchestrator runs share this
- * code path with real-world test suites that intentionally use synthetic,
- * never-priced model ids (`test-model-v1`, stub fixtures, …) and are out of
- * this issue's scope to rewrite. This is a DELIBERATE, NARROWER fix than
- * full fail-closed — see `resolveModelPrices` for the strict form.
- */
-export function resolveModelPricesOrDefault(model: string): ModelPrices {
-  return MODEL_PRICE_TABLE[model] ?? DEFAULT_MODEL_PRICES;
-}
-
 /** DG-04 schema vNext: a single model proposal (wire shape, pre-binding). */
 export type IntentProposalVNext = {
   readonly domain: string;
@@ -538,16 +523,13 @@ export async function proposeCandidates(input: {
   readonly maxCoveragePasses?: number;
 }): Promise<ProposalRunOutcome> {
   const rows = input.inventory.rows;
-  // #337: an explicit caller override wins; otherwise resolve by the
-  // CONFIGURED model (MODEL_PRICE_TABLE) rather than unconditionally
-  // defaulting to gpt-4o-mini's rates. Scope note (#337): many existing
-  // callers (real-world test fixtures) pass synthetic model ids that were
-  // never meant to be priced at all — hard-failing on those is a bigger,
-  // separate change (it would need a fixture-wide cleanup across suites
-  // this issue does not own) and is EXPLICITLY deferred; see
-  // `resolveModelPrices` for the strict/throwing form available to callers
-  // that want a real fail-closed guarantee today.
-  const prices = input.prices ?? resolveModelPricesOrDefault(input.model);
+  // #337: an explicit caller override wins; otherwise resolve STRICTLY by
+  // the CONFIGURED model (MODEL_PRICE_TABLE) — an unrecognized model id
+  // fails closed (throws) instead of silently inheriting another model's
+  // rates. This is the root-cause fix: a model swap with no price-table
+  // entry and no explicit `prices` override must be a loud error, not a
+  // silently wrong budget estimate.
+  const prices = input.prices ?? resolveModelPrices(input.model);
   const budgetUsd = input.budgetUsd ?? DEFAULT_MODEL_BUDGET_USD;
   const maxCoveragePasses = input.maxCoveragePasses ?? DEFAULT_MAX_COVERAGE_PASSES;
   // Worst case: every pass re-sends every row (in practice passes shrink —

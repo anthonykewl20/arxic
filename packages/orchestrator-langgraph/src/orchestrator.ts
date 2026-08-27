@@ -88,7 +88,7 @@ import { isStage4InferenceFailure, selectNeighbourhood, stage4Infer } from './in
 import {
   DEFAULT_MODEL_BUDGET_USD,
   proposeCandidates,
-  resolveModelPricesOrDefault,
+  resolveModelPrices,
   type DomainSeeder,
   type ModelPrices,
   type ProposalStageResult,
@@ -832,7 +832,7 @@ export class LangGraphOrchestrator {
             budgetUsd: this.#options.modelBudgetUsd ?? DEFAULT_MODEL_BUDGET_USD,
             // #337: resolve by the CONFIGURED model rather than defaulting to
             // gpt-4o-mini's rates — an unrecognized model id fails closed.
-            prices: this.#options.modelPrices ?? resolveModelPricesOrDefault(this.#options.model),
+            prices: this.#options.modelPrices ?? resolveModelPrices(this.#options.model),
           })
         : undefined;
     const infer =

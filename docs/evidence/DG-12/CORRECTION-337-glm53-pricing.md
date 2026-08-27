@@ -80,11 +80,12 @@ of scope for this correction note.
 ## Root-cause fix (code, not evidence)
 
 Refs #337. `packages/orchestrator-langgraph/src/intent-proposer.ts` (`MODEL_PRICE_TABLE`,
-`resolveModelPrices`, `resolveModelPricesOrDefault`) now keys the pre-call budget-estimate price to
-the model actually configured instead of unconditionally defaulting to gpt-4o-mini's rate, and adds
-a fail-closed `resolveModelPrices` for callers that want a hard guarantee against an unrecognized
-model id being silently mispriced. See that PR for the full explanation of what is, and is not,
-wired to fail closed by default, and why.
+`resolveModelPrices`) now keys the pre-call budget-estimate price to the model actually configured
+instead of unconditionally defaulting to gpt-4o-mini's rate. `resolveModelPrices` is wired as the
+DEFAULT at both call sites (`proposeCandidates` and `orchestrator.ts`'s proposer wiring): an
+unrecognized model id with no explicit `prices` override now FAILS CLOSED (throws, zero provider
+calls made) instead of silently inheriting another model's rate. An explicit `prices` override
+remains available as an owner escape hatch. See that PR for the full test coverage.
 
 The actual generator that wrote the wrong `pricing` block into runs 21-23 —
 `packages/intent-proposal-spike/scripts/dg11-run-validation.ts` (confirmed by the #324 2026-08-27
