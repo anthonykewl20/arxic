@@ -719,6 +719,17 @@ describe('deterministic helpers (extracted DG-04 design)', () => {
     // The wire schema has NO truth-state field the model could set.
     expect(JSON.stringify(buildProposalMessages([row], 1))).not.toContain('truthState');
   });
+
+  it('requires the pinned schemaVersion in both first and retry prompts', () => {
+    const row = fixtureInventory().rows[0]!;
+    const instruction = `The top-level schemaVersion MUST be exactly "${INTENT_PROPOSAL_SCHEMA_VERSION}".`;
+    expect(
+      buildProposalMessages([row], 1).some((message) => message.content.includes(instruction)),
+    ).toBe(true);
+    expect(
+      buildProposalMessages([row], 2).some((message) => message.content.includes(instruction)),
+    ).toBe(true);
+  });
 });
 
 /**
