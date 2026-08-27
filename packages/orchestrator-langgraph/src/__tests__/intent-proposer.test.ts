@@ -736,9 +736,7 @@ describe('deterministic helpers (extracted DG-04 design)', () => {
     const literal = JSON.stringify(INTENT_PROPOSAL_WIRE_SCHEMA);
     for (const attempt of [1, 2, 3]) {
       expect(
-        buildProposalMessages([row], attempt).some((message) =>
-          message.content.includes(literal),
-        ),
+        buildProposalMessages([row], attempt).some((message) => message.content.includes(literal)),
       ).toBe(true);
     }
   });
