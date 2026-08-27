@@ -243,7 +243,7 @@ export async function capturePolicyScreenshot(page: Page, screenshotPath: string
     await rename(temporaryReceiptPath, receiptPath);
   } catch (error) {
     const cleanupFailed = await removeOwnedPaths(ownedPaths);
-    let remaining = true;
+    let remaining: boolean;
     try {
       remaining = (await existingOwnedPaths(ownedPaths)).length > 0;
     } catch {

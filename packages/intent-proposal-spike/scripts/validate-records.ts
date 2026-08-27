@@ -566,7 +566,7 @@ async function filesUnder(
     canonicalDirectory = await realpath(directory);
   } catch (error) {
     if (isNodeError(error) && error.code === 'ELOOP') {
-      throw new Error(`validator symlink loop detected at ${directory}`);
+      throw new Error(`validator symlink loop detected at ${directory}`, { cause: error });
     }
     throw error;
   }

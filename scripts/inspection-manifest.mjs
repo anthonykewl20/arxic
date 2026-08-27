@@ -21,7 +21,7 @@ export async function createInspectionManifest(root) {
     rootStats = await stat(resolvedRoot);
   } catch (error) {
     if (error?.code === 'ENOENT') {
-      throw new Error(`Inspection root does not exist: ${resolvedRoot}`);
+      throw new Error(`Inspection root does not exist: ${resolvedRoot}`, { cause: error });
     }
     throw error;
   }
