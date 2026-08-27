@@ -1,0 +1,571 @@
+{
+  "generatedAt": "2026-08-24T13:19:36.280Z",
+  "inventory": {
+    "byDisposition": {
+      "extracted": 9,
+      "unextracted-with-reason": 0,
+      "unsafe": 0,
+      "unsupported": 1
+    },
+    "totalRows": 10
+  },
+  "rows": [
+    {
+      "disposition": "unsupported",
+      "domain": "uncategorized",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": []
+      },
+      "intents": [],
+      "inventoryKey": "* <unsupported-language:cjs>",
+      "oracleKinds": [
+        "observed-only"
+      ],
+      "reason": "language-not-covered:cjs (1 files)",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "unknown",
+        "method": "*",
+        "path": "<unsupported-language:cjs>"
+      },
+      "truthState": "observed",
+      "verbs": []
+    },
+    {
+      "disposition": "extracted",
+      "domain": "album",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": [
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 157,
+            "extractor": "source-ua-adapter/laravel-route-inventory@1",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:DELETE /api/albums/{album}",
+            "startLine": 157
+          },
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 157,
+            "extractor": "arxic-langpack-php@1.0.0",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:DELETE /api/albums/{album}",
+            "startLine": 157
+          }
+        ]
+      },
+      "intents": [],
+      "inventoryKey": "DELETE /api/albums/:param",
+      "inventoryRowId": "inv:route:DELETE:e92da05aafe0",
+      "oracleKinds": [
+        "repository-specification"
+      ],
+      "reason": "",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "endpoint",
+        "method": "DELETE",
+        "path": "/api/albums/:param"
+      },
+      "truthState": "observed",
+      "verbs": [
+        "delete"
+      ]
+    },
+    {
+      "disposition": "extracted",
+      "domain": "album",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": [
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "source-ua-adapter/laravel-route-inventory@1",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:DELETE /api/albums/{album}/songs/{song}",
+            "startLine": 158
+          },
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "arxic-langpack-php@1.0.0",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:DELETE /api/albums/{album}/songs/{song}",
+            "startLine": 158
+          }
+        ]
+      },
+      "intents": [
+        {
+          "action": "DELETE",
+          "domain": "album",
+          "evidenceRefIds": [
+            "src:routes-api.base.php:158-158"
+          ],
+          "fromState": "album loaded",
+          "intent": "Allow users to delete songs from an album",
+          "isCandidate": false,
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "persona": "music manager",
+          "proposalId": "prop:6999ead37b5dccba",
+          "replayStatus": "not-attempted",
+          "toState": "album updated",
+          "truthState": "hypothesized"
+        }
+      ],
+      "inventoryKey": "DELETE /api/albums/:param/songs/:param",
+      "inventoryRowId": "inv:route:DELETE:2409489cd2d9",
+      "oracleKinds": [
+        "repository-specification"
+      ],
+      "reason": "",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "endpoint",
+        "method": "DELETE",
+        "path": "/api/albums/:param/songs/:param"
+      },
+      "truthState": "hypothesized",
+      "verbs": [
+        "delete"
+      ]
+    },
+    {
+      "disposition": "extracted",
+      "domain": "favorite",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": [
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 200,
+            "extractor": "source-ua-adapter/laravel-route-inventory@1",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:DELETE /api/favorites",
+            "startLine": 200
+          },
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 200,
+            "extractor": "arxic-langpack-php@1.0.0",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:DELETE /api/favorites",
+            "startLine": 200
+          }
+        ]
+      },
+      "intents": [
+        {
+          "action": "Enable adding and removing favorites",
+          "domain": "favorite",
+          "evidenceRefIds": [
+            "src:routes-api.base.php:199-199",
+            "src:routes-api.base.php:200-200"
+          ],
+          "fromState": "User viewing list of items",
+          "intent": "Allow users to manage their favorites effectively",
+          "isCandidate": false,
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "persona": "End user",
+          "proposalId": "prop:9c42872f76c286af",
+          "replayStatus": "not-attempted",
+          "toState": "User has updated their favorite items",
+          "truthState": "hypothesized"
+        }
+      ],
+      "inventoryKey": "DELETE /api/favorites",
+      "inventoryRowId": "inv:route:DELETE:7e8f4cb570cf",
+      "oracleKinds": [
+        "repository-specification"
+      ],
+      "reason": "",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "endpoint",
+        "method": "DELETE",
+        "path": "/api/favorites"
+      },
+      "truthState": "hypothesized",
+      "verbs": [
+        "delete"
+      ]
+    },
+    {
+      "disposition": "extracted",
+      "domain": "album",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": [
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "source-ua-adapter/laravel-route-inventory@1",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:GET /api/albums/{album}/songs",
+            "startLine": 158
+          },
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "arxic-langpack-php@1.0.0",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:GET /api/albums/{album}/songs",
+            "startLine": 158
+          }
+        ]
+      },
+      "intents": [],
+      "inventoryKey": "GET /api/albums/:param/songs",
+      "inventoryRowId": "inv:route:GET:ad4f6177832f",
+      "oracleKinds": [
+        "repository-specification"
+      ],
+      "reason": "",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "page",
+        "method": "GET",
+        "path": "/api/albums/:param/songs"
+      },
+      "truthState": "observed",
+      "verbs": [
+        "read-one"
+      ]
+    },
+    {
+      "disposition": "extracted",
+      "domain": "album",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": [
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "source-ua-adapter/laravel-route-inventory@1",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:GET /api/albums/{album}/songs/{song}",
+            "startLine": 158
+          },
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "arxic-langpack-php@1.0.0",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:GET /api/albums/{album}/songs/{song}",
+            "startLine": 158
+          }
+        ]
+      },
+      "intents": [],
+      "inventoryKey": "GET /api/albums/:param/songs/:param",
+      "inventoryRowId": "inv:route:GET:363e139e3641",
+      "oracleKinds": [
+        "repository-specification"
+      ],
+      "reason": "",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "page",
+        "method": "GET",
+        "path": "/api/albums/:param/songs/:param"
+      },
+      "truthState": "observed",
+      "verbs": [
+        "read-one"
+      ]
+    },
+    {
+      "disposition": "extracted",
+      "domain": "album",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": [
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "source-ua-adapter/laravel-route-inventory@1",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:PATCH /api/albums/{album}/songs/{song}",
+            "startLine": 158
+          },
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "arxic-langpack-php@1.0.0",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:PATCH /api/albums/{album}/songs/{song}",
+            "startLine": 158
+          }
+        ]
+      },
+      "intents": [],
+      "inventoryKey": "PATCH /api/albums/:param/songs/:param",
+      "inventoryRowId": "inv:route:PATCH:246e7b797d2e",
+      "oracleKinds": [
+        "repository-specification"
+      ],
+      "reason": "",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "endpoint",
+        "method": "PATCH",
+        "path": "/api/albums/:param/songs/:param"
+      },
+      "truthState": "observed",
+      "verbs": [
+        "update"
+      ]
+    },
+    {
+      "disposition": "extracted",
+      "domain": "album",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": [
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "source-ua-adapter/laravel-route-inventory@1",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:POST /api/albums/{album}/songs",
+            "startLine": 158
+          },
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "arxic-langpack-php@1.0.0",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:POST /api/albums/{album}/songs",
+            "startLine": 158
+          }
+        ]
+      },
+      "intents": [
+        {
+          "action": "POST",
+          "domain": "album",
+          "evidenceRefIds": [
+            "src:routes-api.base.php:158-158"
+          ],
+          "fromState": "album loaded",
+          "intent": "Support adding new songs to albums",
+          "isCandidate": false,
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "persona": "music creator",
+          "proposalId": "prop:30a387384bea5096",
+          "replayStatus": "not-attempted",
+          "toState": "album updated",
+          "truthState": "hypothesized"
+        }
+      ],
+      "inventoryKey": "POST /api/albums/:param/songs",
+      "inventoryRowId": "inv:route:POST:76a18ff82c24",
+      "oracleKinds": [
+        "repository-specification"
+      ],
+      "reason": "",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "endpoint",
+        "method": "POST",
+        "path": "/api/albums/:param/songs"
+      },
+      "truthState": "hypothesized",
+      "verbs": [
+        "create"
+      ]
+    },
+    {
+      "disposition": "extracted",
+      "domain": "favorite",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": [
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 199,
+            "extractor": "source-ua-adapter/laravel-route-inventory@1",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:POST /api/favorites",
+            "startLine": 199
+          },
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 199,
+            "extractor": "arxic-langpack-php@1.0.0",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:POST /api/favorites",
+            "startLine": 199
+          }
+        ]
+      },
+      "intents": [
+        {
+          "action": "Enable adding and removing favorites",
+          "domain": "favorite",
+          "evidenceRefIds": [
+            "src:routes-api.base.php:199-199",
+            "src:routes-api.base.php:200-200"
+          ],
+          "fromState": "User viewing list of items",
+          "intent": "Allow users to manage their favorites effectively",
+          "isCandidate": false,
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "persona": "End user",
+          "proposalId": "prop:9c42872f76c286af",
+          "replayStatus": "not-attempted",
+          "toState": "User has updated their favorite items",
+          "truthState": "hypothesized"
+        }
+      ],
+      "inventoryKey": "POST /api/favorites",
+      "inventoryRowId": "inv:route:POST:c096666c29b2",
+      "oracleKinds": [
+        "repository-specification"
+      ],
+      "reason": "",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "endpoint",
+        "method": "POST",
+        "path": "/api/favorites"
+      },
+      "truthState": "hypothesized",
+      "verbs": [
+        "create"
+      ]
+    },
+    {
+      "disposition": "extracted",
+      "domain": "album",
+      "evidence": {
+        "runtimeForms": [],
+        "runtimeObservationCount": 0,
+        "runtimeUrls": [],
+        "sourceRefs": [
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "source-ua-adapter/laravel-route-inventory@1",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:PUT /api/albums/{album}/songs/{song}",
+            "startLine": 158
+          },
+          {
+            "blobSha256": "49b356b1f51ceb0702ef408024888a9760e29cc3ab517eac998465e551df6f6e",
+            "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+            "endLine": 158,
+            "extractor": "arxic-langpack-php@1.0.0",
+            "kind": "source",
+            "path": "routes/api.base.php",
+            "repo": "file:///home/soultransit/devtony/thirdparty-dg/koel",
+            "ruleId": "route:PUT /api/albums/{album}/songs/{song}",
+            "startLine": 158
+          }
+        ]
+      },
+      "intents": [],
+      "inventoryKey": "PUT /api/albums/:param/songs/:param",
+      "inventoryRowId": "inv:route:PUT:886f5ecb4ff3",
+      "oracleKinds": [
+        "repository-specification"
+      ],
+      "reason": "",
+      "replayStatus": "not-attempted",
+      "surface": {
+        "kind": "endpoint",
+        "method": "PUT",
+        "path": "/api/albums/:param/songs/:param"
+      },
+      "truthState": "observed",
+      "verbs": [
+        "update"
+      ]
+    }
+  ],
+  "schemaVersion": "arxic-intent-ledger-v1",
+  "source": {
+    "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b",
+    "repository": "file:///home/soultransit/devtony/thirdparty-dg/koel"
+  }
+}

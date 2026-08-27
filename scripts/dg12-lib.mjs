@@ -149,6 +149,62 @@ export function coverageForRun(inventoryRows, ledgerRows) {
   };
 }
 
+// LOCKSTEP with `sourceEvidenceId` in packages/intent/src/ledger.ts:210-216 —
+// the evidence-id grammar is part of the ledger schema contract and must not
+// drift. Reimplemented here (not imported) so the fabrication audit runs
+// under plain `node` against already-recorded JSON, no TS/tsx runtime.
+function sourceEvidenceId(ref) {
+  return `src:${sanitizeEvidencePath(ref.path)}:${String(ref.startLine)}-${String(ref.endLine)}`;
+}
+
+function sanitizeEvidencePath(value) {
+  return String(value).replace(/[^A-Za-z0-9._#-]/gu, '-') || 'unknown';
+}
+
+/**
+ * Criterion 4 (C-6): zero fabricated intents. Independently re-derives the
+ * evidence index from the recorded stage-13 inventory rows' `sourceRefs`
+ * (never trusting the recorded ledger's own claim of resolvability, which
+ * the DG-07 builder only enforces at BUILD time) and checks two properties
+ * over the RECORDED ledger:
+ *   (a) every intent's `evidenceRefIds` resolve into that index — a dangling
+ *       ref is a waved-through resolvability-gate failure (fabrication);
+ *   (b) no row whose disposition is not `extracted` carries an intent (an
+ *       intent can only exist against an actually-extracted inventory row).
+ */
+export function fabricationAuditForRun(inventoryRows, ledgerRows) {
+  const evidenceIndex = new Set();
+  for (const row of inventoryRows) {
+    for (const ref of row.sourceRefs ?? []) evidenceIndex.add(sourceEvidenceId(ref));
+  }
+  const extractedKeys = new Set(
+    inventoryRows.filter((row) => row.disposition === 'extracted').map((row) => row.key),
+  );
+  const danglingRefs = [];
+  const fabricatedRowKeys = [];
+  let intentCount = 0;
+  for (const row of ledgerRows) {
+    const intents = row.intents ?? [];
+    if (intents.length > 0 && !extractedKeys.has(row.inventoryKey)) {
+      fabricatedRowKeys.push(row.inventoryKey);
+    }
+    for (const intent of intents) {
+      intentCount += 1;
+      for (const ref of intent.evidenceRefIds ?? []) {
+        if (!evidenceIndex.has(ref)) {
+          danglingRefs.push(`${row.inventoryKey}/${intent.proposalId ?? '?'}: ${ref}`);
+        }
+      }
+    }
+  }
+  return {
+    intentCount,
+    danglingRefs,
+    fabricatedRowKeys,
+    passes: danglingRefs.length === 0 && fabricatedRowKeys.length === 0,
+  };
+}
+
 /**
  * Criterion 2 (C-4): a row carries a grounded intent iff it has ≥1 intent that
  * cites evidence (`evidenceRefIds` non-empty) — the builder's fail-closed
