@@ -419,14 +419,35 @@ function ledgerTimestamp(request: RunRequest): string {
   return request.now?.() ?? new Date().toISOString();
 }
 
-function configuredModel(request: RunRequest): { adapter: ModelAdapter; name: string } | undefined {
+export function configuredModel(
+  request: RunRequest,
+): { adapter: ModelAdapter; name: string } | undefined {
   const baseUrl = process.env.ARXIC_MODEL_BASE_URL?.trim();
   const apiKey = process.env.ARXIC_MODEL_API_KEY?.trim();
   const provider = request.config.models.provider.trim();
   if (!baseUrl || !apiKey || isUnconfiguredProvider(provider)) return undefined;
+  const rawTimeout = process.env.ARXIC_MODEL_TIMEOUT_MS;
+  const configuredTimeout = Number(rawTimeout);
+  if (
+    rawTimeout !== undefined &&
+    (!Number.isInteger(configuredTimeout) ||
+      configuredTimeout <= 0 ||
+      configuredTimeout > 2_147_483_647)
+  ) {
+    throw new Error(
+      'ARXIC_MODEL_TIMEOUT_MS must be a positive integer within the Node timer range',
+    );
+  }
+  const timeoutMs =
+    Number.isInteger(configuredTimeout) &&
+    configuredTimeout > 0 &&
+    configuredTimeout <= 2_147_483_647
+      ? configuredTimeout
+      : 30_000;
   return {
     adapter: new ModelAdapter({
       baseUrl,
+      timeoutMs,
       credentials: () => process.env.ARXIC_MODEL_API_KEY ?? '',
       providerMeta: { sourceSharing: request.config.models.sourceRetention },
       ...(request.now === undefined ? {} : { now: request.now }),

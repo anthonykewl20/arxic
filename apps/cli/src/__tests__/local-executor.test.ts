@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { RunRequest } from '../executor';
-import { toOrchestratorInput } from '../local-executor';
+import { configuredModel, toOrchestratorInput } from '../local-executor';
 import { VALID_CONFIG } from './fixtures';
 
 describe('toOrchestratorInput', () => {
@@ -89,4 +89,58 @@ describe('toOrchestratorInput', () => {
       else process.env.ARXIC_INPUT_PERSONA_PASSWORD = previousPassword;
     }
   });
+});
+
+describe('configuredModel timeout', () => {
+  const request = {
+    runId: 'model-timeout',
+    config: VALID_CONFIG,
+    runDirectory: join(tmpdir(), 'arxic-model-timeout'),
+    rulepacksDir: join(tmpdir(), 'arxic-model-timeout-rulepacks'),
+  } as const;
+
+  function withModelEnv(timeout: string | undefined, callback: () => void): void {
+    const previousBaseUrl = process.env.ARXIC_MODEL_BASE_URL;
+    const previousApiKey = process.env.ARXIC_MODEL_API_KEY;
+    const previousTimeout = process.env.ARXIC_MODEL_TIMEOUT_MS;
+    try {
+      process.env.ARXIC_MODEL_BASE_URL = 'https://model.example.test';
+      process.env.ARXIC_MODEL_API_KEY = 'test-key';
+      if (timeout === undefined) delete process.env.ARXIC_MODEL_TIMEOUT_MS;
+      else process.env.ARXIC_MODEL_TIMEOUT_MS = timeout;
+      callback();
+    } finally {
+      if (previousBaseUrl === undefined) delete process.env.ARXIC_MODEL_BASE_URL;
+      else process.env.ARXIC_MODEL_BASE_URL = previousBaseUrl;
+      if (previousApiKey === undefined) delete process.env.ARXIC_MODEL_API_KEY;
+      else process.env.ARXIC_MODEL_API_KEY = previousApiKey;
+      if (previousTimeout === undefined) delete process.env.ARXIC_MODEL_TIMEOUT_MS;
+      else process.env.ARXIC_MODEL_TIMEOUT_MS = previousTimeout;
+    }
+  }
+
+  function adapterTimeout(): number | undefined {
+    const model = configuredModel(request);
+    expect(model).toBeDefined();
+    return (model!.adapter as unknown as { options: { timeoutMs?: number } }).options.timeoutMs;
+  }
+
+  it('uses 30000ms when ARXIC_MODEL_TIMEOUT_MS is unset', () => {
+    withModelEnv(undefined, () => expect(adapterTimeout()).toBe(30_000));
+  });
+
+  it('passes 60000ms from ARXIC_MODEL_TIMEOUT_MS to ModelAdapter', () => {
+    withModelEnv('60000', () => expect(adapterTimeout()).toBe(60_000));
+  });
+
+  it.each(['', 'not-a-number', '0', '-1', '1.5'])(
+    'refuses invalid timeout %j before adapter construction',
+    (timeout) => {
+      withModelEnv(timeout, () =>
+        expect(() => configuredModel(request)).toThrow(
+          'ARXIC_MODEL_TIMEOUT_MS must be a positive integer within the Node timer range',
+        ),
+      );
+    },
+  );
 });
