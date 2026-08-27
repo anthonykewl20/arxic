@@ -1,6 +1,6 @@
 # FIX-340 — staged doc updates (charter §10.2)
 
-Issue: #340 · PR: #<pending> · Disposition: verified
+Issue: #340 · PR: #342 · Disposition: verified
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
