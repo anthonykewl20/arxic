@@ -176,6 +176,41 @@ credential. Configure `ARXIC_MODEL_BASE_URL` and `ARXIC_MODEL_API_KEY` when
 model inference is needed. Without a configured model, the CLI can still write
 an honest partial run rather than inventing a candidate.
 
+### Host-bound model binding (#host-bound-model)
+
+The model layer is transport-agnostic: instead of an HTTP endpoint, it can be
+bound to a locally installed agent CLI (Claude Code, Codex CLI, opencode, or
+any executable that reads a prompt on stdin and writes a completion on
+stdout). Set `ARXIC_MODEL_PROVIDER=host-cli` and `ARXIC_MODEL_HOST_CLI=<path
+or name of the executable>` — `ARXIC_MODEL_BASE_URL` and
+`ARXIC_MODEL_API_KEY` are then NOT required. Extra argv for the executable is
+optional via `ARXIC_MODEL_HOST_CLI_ARGS` (whitespace-separated, or a JSON
+array of strings for arguments containing spaces).
+
+Because the model does not honour `response_format: json_schema` over this
+transport, the adapter relies entirely on the schema-in-prompt path plus its
+existing retry-on-invalid-JSON loop — AJV validation and the `schemaVersion`
+check are unchanged and still fail closed. The transport strips markdown
+fences / preamble prose looking for the first parseable JSON value in the
+CLI's stdout, and fails closed (a provider-error diagnostic) if none is
+found.
+
+A host-bound CLI does not report token usage. Rather than fabricate a
+plausible-looking count, every host-bound run record carries
+`tokens: { prompt: 0, completion: 0, total: 0 }` **and** an explicit
+`provider: "host-bound"` marker, so a reader can never mistake a genuinely
+free, unmetered run for a metered API call that happened to cost nothing.
+The pre-call budget estimate is likewise pinned to an explicit zero-price
+table entry for this path rather than falling through to
+`resolveModelPrices` (which fails closed on an unrecognized model id, or —
+the #337 bug this guards against — could otherwise silently reuse another
+model's rates).
+
+The subprocess is killed on `ARXIC_MODEL_TIMEOUT_MS` (or the adapter
+default). The prompt is passed on the child's stdin, never on argv, so it
+never appears in a process listing; the transport never logs the raw
+prompt or response outside the existing fail-closed redaction gate.
+
 Since DG-08 (#252), a configured model drives candidate proposals directly
 over the Domain Inventory (the canned authentication candidate replacement is
 removed), and the per-app cost is capped by a pre-call estimate:

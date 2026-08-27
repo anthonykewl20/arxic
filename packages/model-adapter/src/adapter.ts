@@ -4,6 +4,7 @@ import {
   schemaNameFromVersion,
   type OpenAICompletion,
   type OpenAIMessage,
+  type StructuredCompletionTransport,
 } from './client';
 import {
   ARXIC_MODEL_PROVIDER_ERROR,
@@ -33,6 +34,15 @@ export type ModelAdapterOptions = {
   canaries?: string[];
   providerMeta?: ProviderMeta;
   now?: () => string;
+  /**
+   * The model-transport seam (#host-bound-model): defaults to
+   * `postStructuredCompletion` (the HTTP OpenAI-shaped client), so existing
+   * callers that don't set this are byte-identical to before. Pass a
+   * different `StructuredCompletionTransport` — e.g.
+   * `createHostCliTransport(...)` — to bind the adapter to a local agent CLI
+   * instead of an HTTP endpoint.
+   */
+  transport?: StructuredCompletionTransport;
 };
 
 export type StructuredOutputRequest = {
@@ -172,8 +182,9 @@ export class ModelAdapter {
        */
       let lastValidationDetail: string | undefined;
 
+      const transport = this.options.transport ?? postStructuredCompletion;
       for (let attempt = 1; attempt <= totalAttempts; attempt += 1) {
-        const result = await postStructuredCompletion({
+        const result = await transport({
           baseUrl: this.options.baseUrl,
           bearerToken: credential,
           model: request.model,

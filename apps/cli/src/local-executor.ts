@@ -4,7 +4,7 @@ import { isAbsolute, join, relative, resolve } from 'node:path';
 import type { ArtifactRef, StagedBundle } from '@arxic/contracts';
 import { AUTH_DOMAIN, authDomainSeeder } from '@arxic/auth-domain-pack';
 import { assembleBundle, BundlePromoterAdapter, scanTextForSecrets } from '@arxic/bundle-promoter';
-import { ModelAdapter } from '@arxic/model-adapter';
+import { ModelAdapter, createHostCliTransport, hostCliConfigFromEnv } from '@arxic/model-adapter';
 import {
   serializeScreenshotPrivacyPolicy,
   type ScreenshotPrivacyPolicy,
@@ -22,6 +22,7 @@ import {
   LangGraphOrchestrator,
   WorkerRestartError,
   type FixtureLeaseState,
+  type ModelPrices,
   type OrchestratorInput,
   type OrchestratorOptions,
   type RunState,
@@ -249,6 +250,7 @@ function localPipelineOptions(
     ...options,
     modelAdapter: model.adapter,
     model: model.name,
+    ...(model.prices ? { modelPrices: model.prices } : {}),
     ...(seeders ? { domainSeeders: seeders } : {}),
     ...(modelBudgetUsd() !== undefined ? { modelBudgetUsd: modelBudgetUsd() } : {}),
     ...(persona ? { explorationInputValues: personaInputValues(persona) } : {}),
@@ -419,13 +421,47 @@ function ledgerTimestamp(request: RunRequest): string {
   return request.now?.() ?? new Date().toISOString();
 }
 
+/** Zero-price marker for the host-bound CLI transport (#host-bound-model):
+ * a local agent CLI is not metered per-token, so the pre-call budget
+ * estimate must be pinned to zero explicitly rather than falling through to
+ * `resolveModelPrices`, which would either throw (unknown model id) or —
+ * worse — silently reuse another model's rates (the #337 bug). */
+const HOST_CLI_PRICES: ModelPrices = { promptPerMillion: 0, completionPerMillion: 0 };
+
 export function configuredModel(
   request: RunRequest,
-): { adapter: ModelAdapter; name: string } | undefined {
+): { adapter: ModelAdapter; name: string; prices?: ModelPrices } | undefined {
+  const provider = request.config.models.provider.trim();
+  if (isUnconfiguredProvider(provider)) return undefined;
+
+  if ((process.env.ARXIC_MODEL_PROVIDER?.trim().toLowerCase() ?? '') === 'host-cli') {
+    const hostCliConfig = hostCliConfigFromEnv();
+    if (!hostCliConfig) {
+      throw new Error(
+        'ARXIC_MODEL_PROVIDER=host-cli requires ARXIC_MODEL_HOST_CLI to name the agent CLI executable',
+      );
+    }
+    return {
+      adapter: new ModelAdapter({
+        // Unused by the host-cli transport (no HTTP call is made); kept
+        // non-empty only to satisfy ModelAdapterOptions' shape.
+        baseUrl: 'host-cli://local',
+        credentials: () => 'host-bound-local',
+        transport: createHostCliTransport(hostCliConfig),
+        providerMeta: {
+          sourceSharing: request.config.models.sourceRetention,
+          provider: 'host-bound',
+        },
+        ...(request.now === undefined ? {} : { now: request.now }),
+      }),
+      name: provider,
+      prices: HOST_CLI_PRICES,
+    };
+  }
+
   const baseUrl = process.env.ARXIC_MODEL_BASE_URL?.trim();
   const apiKey = process.env.ARXIC_MODEL_API_KEY?.trim();
-  const provider = request.config.models.provider.trim();
-  if (!baseUrl || !apiKey || isUnconfiguredProvider(provider)) return undefined;
+  if (!baseUrl || !apiKey) return undefined;
   const rawTimeout = process.env.ARXIC_MODEL_TIMEOUT_MS;
   const configuredTimeout = Number(rawTimeout);
   if (

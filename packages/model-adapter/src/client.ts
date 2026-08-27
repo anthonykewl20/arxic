@@ -78,7 +78,13 @@ export function schemaNameFromVersion(schemaVersion: string): string {
     .replace(/^_+|_+$/g, '');
 }
 
-export async function postStructuredCompletion(input: {
+/**
+ * Input shape for a structured-completion transport call. Deliberately the
+ * exact parameter shape `postStructuredCompletion` accepts, so any transport
+ * (HTTP, host-bound CLI, or a third-party implementation) is a drop-in
+ * replacement behind `ModelAdapterOptions.transport`.
+ */
+export type StructuredCompletionInput = {
   baseUrl: string;
   bearerToken: string;
   model: string;
@@ -86,7 +92,23 @@ export async function postStructuredCompletion(input: {
   schema: object;
   schemaName: string;
   timeoutMs?: number;
-}): Promise<ClientResult> {
+};
+
+/**
+ * The model-transport seam (#host-bound-model): anything that turns a
+ * structured-output request into an `OpenAICompletion`-shaped `ClientResult`
+ * can bind here. `ModelAdapter` calls whichever transport is configured —
+ * the default HTTP transport (`postStructuredCompletion`) or a host-bound
+ * agent-CLI transport (`createHostCliTransport`) — with byte-identical
+ * behaviour for existing callers that don't set `transport`.
+ */
+export type StructuredCompletionTransport = (
+  input: StructuredCompletionInput,
+) => Promise<ClientResult>;
+
+export async function postStructuredCompletion(
+  input: StructuredCompletionInput,
+): Promise<ClientResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? 30_000);
   try {
