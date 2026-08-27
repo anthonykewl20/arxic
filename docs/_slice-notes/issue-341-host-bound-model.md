@@ -1,6 +1,6 @@
 # issue-341-host-bound-model — slice note
 
-Issue: #341 · PR: #<PR> · Disposition: observed
+Issue: #341 · PR: #344 · Disposition: observed
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
