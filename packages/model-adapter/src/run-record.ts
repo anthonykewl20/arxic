@@ -13,10 +13,26 @@ export type ModelRunRecord = {
   retention?: string;
   region?: string;
   sourceSharing?: string;
+  /**
+   * Evidence-integrity marker (#host-bound-model): set to `'host-bound'`
+   * when the completion came from a locally spawned agent CLI transport
+   * rather than a metered HTTP provider. A host-bound run's `tokens` are
+   * always `{ prompt: 0, completion: 0, total: 0 }` because a CLI does not
+   * report usage — this field is what stops a reader from mistaking that
+   * genuine zero for a metered API call that happened to cost nothing.
+   * Absent (undefined) for the default HTTP transport, preserving byte-
+   * identical run records for existing callers.
+   */
+  provider?: 'host-bound';
   timestamp: string;
 };
 
-export type ProviderMeta = { retention?: string; region?: string; sourceSharing?: string };
+export type ProviderMeta = {
+  retention?: string;
+  region?: string;
+  sourceSharing?: string;
+  provider?: 'host-bound';
+};
 
 export function computeSchemaSha256(schema: object): string {
   return sha256(canonicalJson(schema, { mode: 'legacy' }));
@@ -49,6 +65,7 @@ export function buildRunRecord(input: {
   if (input.provider?.sourceSharing !== undefined) {
     record.sourceSharing = input.provider.sourceSharing;
   }
+  if (input.provider?.provider !== undefined) record.provider = input.provider.provider;
   return record;
 }
 

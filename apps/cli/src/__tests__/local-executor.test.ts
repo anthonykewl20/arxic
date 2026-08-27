@@ -144,3 +144,90 @@ describe('configuredModel timeout', () => {
     },
   );
 });
+
+describe('configuredModel host-bound CLI transport (#host-bound-model)', () => {
+  const request = {
+    runId: 'model-host-cli',
+    config: VALID_CONFIG,
+    runDirectory: join(tmpdir(), 'arxic-model-host-cli'),
+    rulepacksDir: join(tmpdir(), 'arxic-model-host-cli-rulepacks'),
+  } as const;
+
+  async function withHostCliEnv(
+    vars: Record<string, string | undefined>,
+    callback: () => void | Promise<void>,
+  ): Promise<void> {
+    const keys = [
+      'ARXIC_MODEL_PROVIDER',
+      'ARXIC_MODEL_HOST_CLI',
+      'ARXIC_MODEL_HOST_CLI_ARGS',
+      'ARXIC_MODEL_BASE_URL',
+      'ARXIC_MODEL_API_KEY',
+    ] as const;
+    const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+    try {
+      for (const key of keys) {
+        const value = vars[key];
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+      await callback();
+    } finally {
+      for (const key of keys) {
+        if (previous[key] === undefined) delete process.env[key];
+        else process.env[key] = previous[key];
+      }
+    }
+  }
+
+  it('does NOT require ARXIC_MODEL_BASE_URL / ARXIC_MODEL_API_KEY when ARXIC_MODEL_PROVIDER=host-cli', async () => {
+    await withHostCliEnv(
+      { ARXIC_MODEL_PROVIDER: 'host-cli', ARXIC_MODEL_HOST_CLI: process.execPath },
+      () => {
+        const model = configuredModel(request);
+        expect(model).toBeDefined();
+        expect(model?.prices).toEqual({ promptPerMillion: 0, completionPerMillion: 0 });
+      },
+    );
+  });
+
+  it('fails closed when ARXIC_MODEL_PROVIDER=host-cli but ARXIC_MODEL_HOST_CLI is unset', async () => {
+    await withHostCliEnv({ ARXIC_MODEL_PROVIDER: 'host-cli' }, () => {
+      expect(() => configuredModel(request)).toThrow(/ARXIC_MODEL_HOST_CLI/);
+    });
+  });
+
+  it('produces a host-bound run record with zero tokens end-to-end', async () => {
+    await withHostCliEnv(
+      {
+        ARXIC_MODEL_PROVIDER: 'host-cli',
+        ARXIC_MODEL_HOST_CLI: process.execPath,
+        ARXIC_MODEL_HOST_CLI_ARGS: JSON.stringify([
+          '-e',
+          'process.stdout.write(JSON.stringify({schemaVersion:"arxic-stage4-inference-v1",candidates:[]}))',
+        ]),
+      },
+      async () => {
+        const model = configuredModel(request);
+        expect(model).toBeDefined();
+        const result = await model!.adapter.requestStructuredOutput({
+          model: 'host-cli',
+          messages: [{ role: 'user', content: 'produce bounded candidate data' }],
+          schema: {
+            type: 'object',
+            required: ['schemaVersion', 'candidates'],
+            additionalProperties: false,
+            properties: {
+              schemaVersion: { type: 'string' },
+              candidates: { type: 'array' },
+            },
+          },
+          schemaVersion: 'arxic-stage4-inference-v1',
+        });
+        expect(result.ok).toBe(true);
+        expect(result.runRecord.provider).toBe('host-bound');
+        expect(result.runRecord.tokens).toEqual({ prompt: 0, completion: 0, total: 0 });
+      },
+    );
+  });
+});
