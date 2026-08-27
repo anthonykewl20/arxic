@@ -199,6 +199,114 @@ function buildFixtureInput(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/**
+ * #324 AC-3 (Cause C): the post-crawl re-proposal record lives on the STAGE-6
+ * artifact, never written back onto the content-hashed stage-4 artifact. The
+ * ledger must join it exactly like a stage-4 proposal, or the pass cannot move
+ * the grounded ratio it exists to move. Sad paths first.
+ */
+function reconciliationArtifact(overrides: Record<string, unknown> = {}) {
+  const forgotEvidence = 'src:app-forgot-password-actions.ts:5-44';
+  return {
+    denominator: 2,
+    rows: [],
+    postCrawl: {
+      formBackedRowIds: [`inv:page:POST:${digest('POST /forgot-password')}`],
+      reproposedRowIds: [`inv:page:POST:${digest('POST /forgot-password')}`],
+      proposals: [
+        {
+          id: 'prop:fedcba9876543210',
+          domain: 'account-recovery',
+          intent: 'submit the observed password reset form',
+          action: 'perform POST /forgot-password via "Email Password Reset Link"',
+          fromState: 'reset-not-requested',
+          toState: 'reset-requested',
+          persona: 'registered-user@example.test',
+          inventoryRowIds: [`inv:page:POST:${digest('POST /forgot-password')}`],
+          evidenceRefIds: [forgotEvidence],
+          rationale: 'the crawl observed a submittable form on this surface',
+          truthState: 'hypothesized',
+        },
+      ],
+    },
+    ...overrides,
+  };
+}
+
+describe('#324 AC-3 post-crawl proposals join the ledger', () => {
+  it('joins a stage-6 post-crawl proposal onto its inventory row', () => {
+    const ledger = buildOk(
+      buildFixtureInput({ reconciliation: reconciliationArtifact(), inference: undefined }),
+    );
+    const row = ledger.rows.find((entry) => entry.inventoryKey.includes('/forgot-password'));
+    expect(row?.intents.map((intent) => intent.proposalId)).toContain('prop:fedcba9876543210');
+  });
+
+  it('UNIONS post-crawl proposals with the stage-4 proposals rather than replacing them', () => {
+    const ledger = buildOk(buildFixtureInput({ reconciliation: reconciliationArtifact() }));
+    const row = ledger.rows.find((entry) => entry.inventoryKey.includes('/forgot-password'));
+    const ids = row?.intents.map((intent) => intent.proposalId) ?? [];
+    expect(ids).toContain('prop:0123456789abcdef');
+    expect(ids).toContain('prop:fedcba9876543210');
+  });
+
+  it('is a no-op when stage 6 recorded no post-crawl section (every pre-AC-3 run)', () => {
+    const withoutSection = buildOk(
+      buildFixtureInput({ reconciliation: { denominator: 2, rows: [] } }),
+    );
+    const withoutStage6 = buildOk(buildFixtureInput());
+    expect(withoutSection.rows).toEqual(withoutStage6.rows);
+  });
+
+  it('FAILS CLOSED on a post-crawl proposal citing a non-extracted row', () => {
+    const built = buildIntentLedger(
+      buildFixtureInput({
+        reconciliation: reconciliationArtifact({
+          postCrawl: {
+            formBackedRowIds: [],
+            reproposedRowIds: [],
+            proposals: [
+              {
+                ...reconciliationArtifact().postCrawl.proposals[0],
+                inventoryRowIds: ['inv:page:POST:deadbeefcafe'],
+              },
+            ],
+          },
+        }),
+      }) as Parameters<typeof buildIntentLedger>[0],
+    );
+    expect(built.ok).toBe(false);
+  });
+
+  it('FAILS CLOSED on a post-crawl proposal claiming truthState verified (ADR-001 §2)', () => {
+    const built = buildIntentLedger(
+      buildFixtureInput({
+        reconciliation: reconciliationArtifact({
+          postCrawl: {
+            formBackedRowIds: [],
+            reproposedRowIds: [],
+            proposals: [
+              { ...reconciliationArtifact().postCrawl.proposals[0], truthState: 'verified' },
+            ],
+          },
+        }),
+      }) as Parameters<typeof buildIntentLedger>[0],
+    );
+    expect(built.ok).toBe(false);
+  });
+
+  it('FAILS CLOSED when postCrawl.proposals is not an array', () => {
+    const built = buildIntentLedger(
+      buildFixtureInput({
+        reconciliation: reconciliationArtifact({
+          postCrawl: { formBackedRowIds: [], reproposedRowIds: [], proposals: 'nope' },
+        }),
+      }) as Parameters<typeof buildIntentLedger>[0],
+    );
+    expect(built.ok).toBe(false);
+  });
+});
+
 describe('intent ledger schema validation', () => {
   it('validates a real builder-produced ledger and rejects mutated copies with stable codes', () => {
     const built = buildIntentLedger(buildFixtureInput());

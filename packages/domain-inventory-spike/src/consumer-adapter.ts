@@ -170,3 +170,34 @@ export function toProposalConsumerInventory(inventory: DomainInventory): Proposa
     diagnostics: [...(inventory.diagnostics ?? [])],
   };
 }
+
+/**
+ * #324 AC-3 (Cause C): the crawl-form availability signal.
+ *
+ * Stage 4 proposes from the SOURCE inventory built at stage 13, which runs
+ * BEFORE the crawl (`STAGE_EXECUTION_ORDER` = 0,1,2,13,3,4,5,…), so
+ * `observedForms` is necessarily `[]` at proposal time. Runtime forms only
+ * land in `fuseRuntimeInventory`. This returns the consumer row ids that a
+ * FUSED inventory has an observed form for, so a post-crawl re-proposal pass
+ * can tell the model which surfaces are actually replayable.
+ *
+ * The signal travels BESIDE the rows, as ids — deliberately NOT as a new
+ * field on `ProposalConsumerRow`. That type is a type-only alias of the FROZEN
+ * `@arxic/intent-proposal-spike` `InventoryRow` held by an `Equal<>` lockstep
+ * assertion, so a new field would either edit frozen spike evidence or break
+ * the lockstep.
+ *
+ * FAIL CLOSED: only `extracted` rows are named. `packages/intent/src/ledger.ts`
+ * gives a non-extracted row no `inventoryRowId`, so a proposal could never
+ * cite one; offering such a row to the model would manufacture a proposal that
+ * can never bind. A pre-crawl inventory correctly yields an empty set.
+ */
+export function formBackedConsumerRowIds(inventory: DomainInventory): ReadonlySet<string> {
+  const ids = new Set<string>();
+  for (const row of inventory.rows) {
+    if (row.disposition !== 'extracted') continue;
+    if (!Array.isArray(row.observedForms) || row.observedForms.length === 0) continue;
+    ids.add(consumerRowId({ surface: consumerSurface(row), method: row.method, key: row.key }));
+  }
+  return ids;
+}

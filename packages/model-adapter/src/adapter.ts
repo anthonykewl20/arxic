@@ -53,6 +53,17 @@ const RETRY_SYSTEM_NOTE: OpenAIMessage = {
     'Prior structured output was invalid. Return only JSON that strictly conforms to the requested schema and schemaVersion.',
 };
 
+/** Bound the carried validator detail so a large invalid payload cannot
+ *  produce an unbounded diagnostic message. */
+const MAX_VALIDATION_DETAIL_CHARS = 500;
+
+function exhaustedMessage(detail?: string): string {
+  const base = 'Structured output remained invalid; retries exhausted';
+  if (!detail) return base;
+  const trimmed = detail.slice(0, MAX_VALIDATION_DETAIL_CHARS);
+  return `${base}: ${trimmed}${detail.length > MAX_VALIDATION_DETAIL_CHARS ? '…' : ''}`;
+}
+
 const INSTRUCTION_LIKE_OUTPUT =
   /(?:ignore|disregard).*(?:instructions?|policy|rules|origin)|(?:change|set).*action class|exfiltrate/iu;
 
@@ -149,6 +160,17 @@ export class ModelAdapter {
       const totalAttempts = 1 + maxRetries;
       const messages = [...request.messages];
       let lastResponse: OpenAICompletion | undefined;
+      /**
+       * #324: the AJV failure detail is computed by `validateStructuredOutput`
+       * and was previously discarded, leaving `ARXIC-MODEL-RETRIES-EXHAUSTED`
+       * with only "Structured output remained invalid". The DG-12 directus
+       * run23 campaign therefore could not tell WHICH part of the shape the
+       * provider got wrong without retaining raw provider content. Carry the
+       * detail instead: it is schema-derived text plus instance paths, it is
+       * length-bounded, and it passes through the same fail-closed
+       * `redactionGate` as every other diagnostic below.
+       */
+      let lastValidationDetail: string | undefined;
 
       for (let attempt = 1; attempt <= totalAttempts; attempt += 1) {
         const result = await postStructuredCompletion({
@@ -219,6 +241,7 @@ export class ModelAdapter {
 
         const validation = validateStructuredOutput(compiled.validate, parsed);
         if (!validation.ok) {
+          lastValidationDetail = validation.diagnostics[0]?.message;
           if (attempt < totalAttempts) {
             messages.push({ ...RETRY_SYSTEM_NOTE });
             continue;
@@ -227,7 +250,7 @@ export class ModelAdapter {
             blocked(
               ARXIC_MODEL_RETRIES_EXHAUSTED,
               'structured-output',
-              'Structured output remained invalid; retries exhausted',
+              exhaustedMessage(lastValidationDetail),
               lastResponse,
             ),
             parsed,

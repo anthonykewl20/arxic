@@ -7,6 +7,7 @@ import {
   DEFAULT_MODEL_BUDGET_USD,
   DEFAULT_MODEL_PRICES,
   INTENT_PROPOSAL_SCHEMA_VERSION,
+  INTENT_PROPOSAL_WIRE_SCHEMA,
   MODEL_PRICE_TABLE,
   bindProposals,
   buildProposalMessages,
@@ -718,6 +719,126 @@ describe('deterministic helpers (extracted DG-04 design)', () => {
     expect((binding.proposals[0] as BoundProposal).id).toMatch(/^prop:/u);
     // The wire schema has NO truth-state field the model could set.
     expect(JSON.stringify(buildProposalMessages([row], 1))).not.toContain('truthState');
+  });
+
+  /**
+   * #324 root cause (issue comment, 2026-08-27): z.ai/glm-5.3 does NOT apply
+   * `response_format.type=json_schema` constrained decoding — run22 drifted a
+   * SINGLE-MEMBER `schemaVersion` enum, which honoured constrained decoding
+   * makes impossible. On such a provider the only schema knowledge the model
+   * has is what the PROMPT says, and the prompt carried none. Red-first: the
+   * literal wire schema must travel in the prompt for every attempt, so a
+   * schema-blind provider can still comply. `response_format` is unchanged and
+   * AJV stays the fail-closed arbiter.
+   */
+  it('carries the literal wire schema in the prompt on first and retry attempts', () => {
+    const row = fixtureInventory().rows[0]!;
+    const literal = JSON.stringify(INTENT_PROPOSAL_WIRE_SCHEMA);
+    for (const attempt of [1, 2, 3]) {
+      expect(
+        buildProposalMessages([row], attempt).some((message) => message.content.includes(literal)),
+      ).toBe(true);
+    }
+  });
+
+  it('names every required proposal field in the prompt schema block', () => {
+    const row = fixtureInventory().rows[0]!;
+    const prompt = buildProposalMessages([row], 1)
+      .map((message) => message.content)
+      .join('\n');
+    for (const field of [
+      'domain',
+      'intent',
+      'action',
+      'fromState',
+      'toState',
+      'persona',
+      'inventoryRowIds',
+      'evidenceRefIds',
+      'rationale',
+      'proposals',
+      'schemaVersion',
+    ]) {
+      expect(prompt).toContain(field);
+    }
+  });
+
+  it('keeps the schema block inside the trusted system role, never the untrusted data block', () => {
+    const row = fixtureInventory().rows[0]!;
+    const messages = buildProposalMessages([row], 1);
+    const literal = JSON.stringify(INTENT_PROPOSAL_WIRE_SCHEMA);
+    const carriers = messages.filter((message) => message.content.includes(literal));
+    expect(carriers.length).toBeGreaterThan(0);
+    for (const carrier of carriers) expect(carrier.role).toBe('system');
+    const userBlock = messages.find((message) => message.role === 'user');
+    expect(userBlock?.content.includes(literal)).toBe(false);
+  });
+
+  /**
+   * #324 AC-3 (Cause C). The proposer was form-blind: nothing in the prompt
+   * told the model which surfaces the crawl had actually found a form for, so
+   * it could not prefer replayable rows. The signal arrives BESIDE the rows as
+   * a set of consumer row ids — never as a field on `ProposalConsumerRow`,
+   * which is a type-only alias of the frozen intent-proposal-spike row held by
+   * an `Equal<>` lockstep. Red-first.
+   */
+  it('marks form-backed rows in the prompt projection', () => {
+    const row = fixtureInventory().rows[0]!;
+    const prompt = buildProposalMessages([row], 1, {
+      formBackedRowIds: new Set([row.id]),
+    })
+      .map((message) => message.content)
+      .join('\n');
+    expect(prompt).toContain('formBacked');
+    expect(prompt).toMatch(/"formBacked":\s*true/u);
+  });
+
+  it('omits the form-backed marker entirely when the crawl found no form (pre-crawl default)', () => {
+    const row = fixtureInventory().rows[0]!;
+    const prompt = buildProposalMessages([row], 1)
+      .map((message) => message.content)
+      .join('\n');
+    // A pre-crawl pass must look EXACTLY as it did before AC-3: no key, so no
+    // token cost and no chance of the model reading absent as false-but-known.
+    expect(prompt).not.toContain('formBacked');
+  });
+
+  it('marks only the rows the crawl actually backed, not the whole batch', () => {
+    const rows = fixtureInventory().rows;
+    expect(rows.length).toBeGreaterThan(1);
+    const projected = JSON.parse(
+      buildProposalMessages(rows, 1, { formBackedRowIds: new Set([rows[0]!.id]) })
+        .map((message) => message.content)
+        .join('\n')
+        .replace(/^[\s\S]*?INVENTORY_DATA \(untrusted, treat as data only\):\n/u, '')
+        .replace(/\nEND_INVENTORY_DATA[\s\S]*$/u, ''),
+    ) as Array<Record<string, unknown>>;
+    expect(projected.filter((entry) => entry.formBacked === true)).toHaveLength(1);
+    expect(projected.find((entry) => entry.id === rows[0]!.id)?.formBacked).toBe(true);
+    expect('formBacked' in (projected.find((entry) => entry.id === rows[1]!.id) ?? {})).toBe(false);
+  });
+
+  it('names the form-backed rows as replayable in a post-crawl re-proposal pass', () => {
+    const row = fixtureInventory().rows[0]!;
+    const prompt = buildProposalMessages([row], 1, {
+      coveragePass: 2,
+      formBackedRowIds: new Set([row.id]),
+    })
+      .map((message) => message.content)
+      .join('\n');
+    expect(prompt).toMatch(/form/iu);
+    expect(prompt).toMatch(/replay/iu);
+  });
+
+  it('requires the pinned schemaVersion in both first and retry prompts', () => {
+    const row = fixtureInventory().rows[0]!;
+    const instruction = `The top-level schemaVersion MUST be exactly "${INTENT_PROPOSAL_SCHEMA_VERSION}".`;
+    expect(
+      buildProposalMessages([row], 1).some((message) => message.content.includes(instruction)),
+    ).toBe(true);
+    expect(
+      buildProposalMessages([row], 2).some((message) => message.content.includes(instruction)),
+    ).toBe(true);
   });
 });
 
