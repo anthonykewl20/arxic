@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -210,6 +210,31 @@ describe('dg12-grounded-ratio (G-3 / criterion 2)', () => {
     const result = await runScript('dg12-grounded-ratio.mjs', [root]);
     expect(result.code, result.stderr).toBe(0);
     expect(result.stdout).toContain('4/5 rows grounded = 80.00%');
+    expect(result.stdout).toContain(
+      "5/5 rows are 'extracted' = 100.00% is the MAXIMUM ATTAINABLE ratio",
+    );
+  });
+
+  it('reports a structural ceiling below 100% when non-extracted rows are present', async () => {
+    // Mirrors the real koel finding (#324): non-extracted rows (here,
+    // 'unsupported') can never carry a grounded intent, so even a perfect
+    // extraction lane cannot reach 100% grounded when the denominator
+    // includes them -- the ceiling line must say so, not just the raw ratio.
+    const root = await temporaryRoot();
+    await stageRun(root, 'run-1', {
+      rows: [inventoryRow('a'), inventoryRow('b'), inventoryRow('c', 'unsupported')],
+      ledger: [
+        ledgerRow('a', { intents: [groundedIntent('p1')] }),
+        ledgerRow('b', { intents: [groundedIntent('p2')] }),
+        ledgerRow('c', { disposition: 'unsupported' }),
+      ],
+    });
+    const result = await runScript('dg12-grounded-ratio.mjs', [root, '--threshold', '60']);
+    expect(result.code, result.stderr).toBe(0);
+    expect(result.stdout).toContain('2/3 rows grounded = 66.67%');
+    expect(result.stdout).toContain(
+      "2/3 rows are 'extracted' = 66.67% is the MAXIMUM ATTAINABLE ratio",
+    );
   });
 
   it('fails below the threshold and names the ungrounded rows', async () => {
@@ -317,5 +342,151 @@ describe('dg12-determinism (G-7 / criterion 6) — two-run comparison half', () 
     ]);
     expect(result.code, result.stderr).toBe(0);
     expect(result.stdout).toContain('OBSERVED model-sampling attribution');
+  });
+});
+
+describe('dg12-fabrication-audit (G-5 / criterion 4)', () => {
+  const fixtureDirectory = join(scriptDirectory, '..', 'test-fixtures', 'dg12-fabrication-audit');
+
+  it('passes over a REAL recorded koel campaign run (docs/evidence/DG-12 shape, unmodified rows)', async () => {
+    // Real machine artifacts extracted verbatim from an actual `arxic run`
+    // campaign (koel, run 1): artifacts/13.json inventory rows + their
+    // recorded intent-ledger rows, trimmed to a self-consistent subset (every
+    // evidenceRefId an included intent cites resolves within the included
+    // inventory rows' own sourceRefs — no row was dropped that another row's
+    // evidence depends on). Not a mock: these are the builder's real output
+    // bytes, subsetted, never hand-edited field-by-field.
+    const inventory = JSON.parse(
+      await readFile(join(fixtureDirectory, 'koel-run1-artifacts-13.json'), 'utf8'),
+    );
+    const ledger = JSON.parse(
+      await readFile(join(fixtureDirectory, 'koel-run1-intents.json'), 'utf8'),
+    );
+    const root = await temporaryRoot();
+    const runDirectory = join(root, 'runs', 'run-1');
+    await mkdir(join(runDirectory, 'artifacts'), { recursive: true });
+    await writeFile(join(runDirectory, 'artifacts', '13.json'), JSON.stringify(inventory));
+    await writeFile(join(root, 'runs', 'run-1.intents.json'), JSON.stringify(ledger));
+
+    const result = await runScript('dg12-fabrication-audit.mjs', [root]);
+    expect(result.code, result.stderr).toBe(0);
+    expect(result.stdout).toContain('0 dangling evidence ref(s)');
+    expect(result.stdout).toContain('0 non-extracted row(s) carrying intents');
+    expect(result.stdout).toContain('zero fabricated intents');
+  });
+
+  it('fails closed when a real recorded intent is mutated to cite a non-existent evidence ref', async () => {
+    // Same real fixture, but with one intent's evidenceRefIds corrupted to a
+    // ref that resolves nowhere in the (still-real, untouched) inventory —
+    // the exact defect the DG-07 build-time gate exists to catch, reproduced
+    // here to prove the AUDIT (not just the builder) catches it too on an
+    // already-recorded ledger.
+    const inventory = JSON.parse(
+      await readFile(join(fixtureDirectory, 'koel-run1-artifacts-13.json'), 'utf8'),
+    );
+    const ledger = JSON.parse(
+      await readFile(join(fixtureDirectory, 'koel-run1-intents.json'), 'utf8'),
+    );
+    const target = ledger.rows.find(
+      (row) => row.inventoryKey === 'DELETE /api/albums/:param/songs/:param',
+    );
+    target.intents[0].evidenceRefIds = ['src:routes-api.base.php:9999-9999'];
+
+    const root = await temporaryRoot();
+    const runDirectory = join(root, 'runs', 'run-1');
+    await mkdir(join(runDirectory, 'artifacts'), { recursive: true });
+    await writeFile(join(runDirectory, 'artifacts', '13.json'), JSON.stringify(inventory));
+    await writeFile(join(root, 'runs', 'run-1.intents.json'), JSON.stringify(ledger));
+
+    const result = await runScript('dg12-fabrication-audit.mjs', [root]);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain('DANGLING EVIDENCE REFS');
+    expect(result.stderr).toContain('src:routes-api.base.php:9999-9999');
+  });
+
+  it('fails closed when a non-extracted row is hand-edited to carry a fabricated intent', async () => {
+    const root = await temporaryRoot();
+    await stageRun(root, 'run-1', {
+      rows: [inventoryRow('a'), inventoryRow('b', 'unsupported')],
+      ledger: [
+        ledgerRow('a', { intents: [groundedIntent('p1')] }),
+        {
+          ...ledgerRow('b', { disposition: 'unsupported' }),
+          intents: [groundedIntent('p2')],
+        },
+      ],
+    });
+    const result = await runScript('dg12-fabrication-audit.mjs', [root]);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain('FABRICATED-ON-NON-EXTRACTED-ROW');
+    expect(result.stderr).toContain('b');
+  });
+
+  it('fails closed when no campaign runs are recorded', async () => {
+    const root = await temporaryRoot();
+    const result = await runScript('dg12-fabrication-audit.mjs', [root]);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain('records no campaign runs');
+  });
+});
+
+describe('dg12-sweep (G-2/G-3/G-4/G-5/G-7 composed)', () => {
+  // groundedIntent() above hardcodes 'src:routes-a.ts:1-2' regardless of key
+  // (fine for the coverage/grounded/replay/determinism siblings, which never
+  // check evidence resolution) — the fabrication audit correctly flags that
+  // as dangling for every key but 'a', so per-key evidence must line up with
+  // inventoryRow(key)'s own sourceRefs (path `routes/${key}.ts:1-2`).
+  function groundedIntentFor(key, id) {
+    return { ...groundedIntent(id), evidenceRefIds: [`src:routes-${key}.ts:1-2`] };
+  }
+
+  it('reports PASS for every gate over two clean, qualifying runs', async () => {
+    const root = await temporaryRoot();
+    const keys = Array.from({ length: 5 }, (_, index) => `r${index}`);
+    const ledgerFor = () =>
+      keys.map((key) =>
+        ledgerRow(key, {
+          intents: [groundedIntentFor(key, `p-${key}`)],
+          replayStatus: 'attempted:passed',
+        }),
+      );
+    await stageRun(root, 'run-1', {
+      rows: keys.map((key) => inventoryRow(key)),
+      ledger: ledgerFor(),
+    });
+    await stageRun(root, 'run-2', {
+      rows: keys.map((key) => inventoryRow(key)),
+      ledger: ledgerFor(),
+    });
+
+    const result = await runScript('dg12-sweep.mjs', [root, 'run-1', 'run-2']);
+    expect(result.code, result.stderr).toBe(0);
+    expect(result.stdout).toContain('| G-2 | coverage | PASS |');
+    expect(result.stdout).toContain('| G-3 | grounded ratio | PASS |');
+    expect(result.stdout).toContain('| G-4 | replay ratio | PASS |');
+    expect(result.stdout).toContain('| G-5 | fabrication audit | PASS |');
+    expect(result.stdout).toContain('| G-7 | determinism (two-run comparison) | PASS |');
+    expect(result.stdout).toContain('NOT COVERED by this sweep: G-1');
+    expect(result.stdout).toContain('DG12 SWEEP: PASS');
+  });
+
+  it('reports FAIL for the specific gate that regresses and still exits non-zero overall', async () => {
+    const root = await temporaryRoot();
+    // Below the 80% grounded threshold, but coverage/fabrication still hold.
+    await stageRun(root, 'run-1', {
+      rows: [inventoryRow('a'), inventoryRow('b')],
+      ledger: [ledgerRow('a', { intents: [groundedIntent('p1')] }), ledgerRow('b')],
+    });
+    await stageRun(root, 'run-2', {
+      rows: [inventoryRow('a'), inventoryRow('b')],
+      ledger: [ledgerRow('a', { intents: [groundedIntent('p1')] }), ledgerRow('b')],
+    });
+
+    const result = await runScript('dg12-sweep.mjs', [root, 'run-1', 'run-2']);
+    expect(result.code).toBe(1);
+    expect(result.stdout).toContain('| G-2 | coverage | PASS |');
+    expect(result.stdout).toContain('| G-3 | grounded ratio | FAIL |');
+    expect(result.stdout).toContain('| G-5 | fabrication audit | PASS |');
+    expect(result.stdout).toContain('DG12 SWEEP: FAIL');
   });
 });

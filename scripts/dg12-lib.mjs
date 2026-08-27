@@ -149,11 +149,80 @@ export function coverageForRun(inventoryRows, ledgerRows) {
   };
 }
 
+// LOCKSTEP with `sourceEvidenceId` in packages/intent/src/ledger.ts:210-216 —
+// the evidence-id grammar is part of the ledger schema contract and must not
+// drift. Reimplemented here (not imported) so the fabrication audit runs
+// under plain `node` against already-recorded JSON, no TS/tsx runtime.
+function sourceEvidenceId(ref) {
+  return `src:${sanitizeEvidencePath(ref.path)}:${String(ref.startLine)}-${String(ref.endLine)}`;
+}
+
+function sanitizeEvidencePath(value) {
+  return String(value).replace(/[^A-Za-z0-9._#-]/gu, '-') || 'unknown';
+}
+
+/**
+ * Criterion 4 (C-6): zero fabricated intents. Independently re-derives the
+ * evidence index from the recorded stage-13 inventory rows' `sourceRefs`
+ * (never trusting the recorded ledger's own claim of resolvability, which
+ * the DG-07 builder only enforces at BUILD time) and checks two properties
+ * over the RECORDED ledger:
+ *   (a) every intent's `evidenceRefIds` resolve into that index — a dangling
+ *       ref is a waved-through resolvability-gate failure (fabrication);
+ *   (b) no row whose disposition is not `extracted` carries an intent (an
+ *       intent can only exist against an actually-extracted inventory row).
+ */
+export function fabricationAuditForRun(inventoryRows, ledgerRows) {
+  const evidenceIndex = new Set();
+  for (const row of inventoryRows) {
+    for (const ref of row.sourceRefs ?? []) evidenceIndex.add(sourceEvidenceId(ref));
+  }
+  const extractedKeys = new Set(
+    inventoryRows.filter((row) => row.disposition === 'extracted').map((row) => row.key),
+  );
+  const danglingRefs = [];
+  const fabricatedRowKeys = [];
+  let intentCount = 0;
+  for (const row of ledgerRows) {
+    const intents = row.intents ?? [];
+    if (intents.length > 0 && !extractedKeys.has(row.inventoryKey)) {
+      fabricatedRowKeys.push(row.inventoryKey);
+    }
+    for (const intent of intents) {
+      intentCount += 1;
+      for (const ref of intent.evidenceRefIds ?? []) {
+        if (!evidenceIndex.has(ref)) {
+          danglingRefs.push(`${row.inventoryKey}/${intent.proposalId ?? '?'}: ${ref}`);
+        }
+      }
+    }
+  }
+  return {
+    intentCount,
+    danglingRefs,
+    fabricatedRowKeys,
+    passes: danglingRefs.length === 0 && fabricatedRowKeys.length === 0,
+  };
+}
+
 /**
  * Criterion 2 (C-4): a row carries a grounded intent iff it has ≥1 intent that
  * cites evidence (`evidenceRefIds` non-empty) — the builder's fail-closed
  * resolvability gate (criterion 4) guarantees those refs resolve to source
  * evidence, so the script never re-adjudicates grounding by eyeball.
+ *
+ * A row whose disposition is not `extracted` can NEVER carry an intent (the
+ * DG-07 builder only joins intents onto extracted rows) — so the maximum
+ * ATTAINABLE ratio for a given denominator is structurally capped below
+ * 100% whenever any row is unsupported/unsafe/unextracted-with-reason. This
+ * reports that structural ceiling (`extracted rows / denominator`) alongside
+ * the measured ratio so a reader never mistakes "not 100%" for a defect when
+ * the denominator itself makes 100% unreachable. It is a LOOSE upper bound —
+ * some extracted rows may be ungroundable for their own reasons (e.g. a
+ * wildcard route or a source-scan-diagnostic row citing no addressable
+ * evidence); this script does not attempt to classify those, so the true
+ * attainable ceiling for a given app/run can be lower than the number
+ * reported here — never higher.
  */
 export function groundedRatioForRun(ledgerRows) {
   const grounded = ledgerRows.filter(
@@ -161,13 +230,17 @@ export function groundedRatioForRun(ledgerRows) {
       Array.isArray(row.intents) &&
       row.intents.some((intent) => (intent.evidenceRefIds ?? []).length > 0),
   );
+  const extractedCount = ledgerRows.filter((row) => row.disposition === 'extracted').length;
+  const denominator = ledgerRows.length;
   return {
-    denominator: ledgerRows.length,
+    denominator,
     grounded: grounded.length,
+    extractedCount,
+    structuralCeilingRatio: denominator === 0 ? 0 : extractedCount / denominator,
     ungroundedKeys: ledgerRows
       .filter((row) => !grounded.includes(row))
       .map((row) => row.inventoryKey),
-    ratio: ledgerRows.length === 0 ? 0 : grounded.length / ledgerRows.length,
+    ratio: denominator === 0 ? 0 : grounded.length / denominator,
   };
 }
 

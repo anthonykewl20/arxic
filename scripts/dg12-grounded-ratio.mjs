@@ -42,9 +42,18 @@ await runGate(async () => {
     const ratio = groundedRatioForRun(ledger.rows);
     const percent = (ratio.ratio * 100).toFixed(2);
     const pass = ratio.ratio >= threshold;
+    const ceilingPercent = (ratio.structuralCeilingRatio * 100).toFixed(2);
     console.log(
       `grounded ${runId}: ${ratio.grounded}/${ratio.denominator} rows grounded = ${percent}% ` +
         `(threshold ${(threshold * 100).toFixed(0)}%) -> ${pass ? 'pass' : 'FAIL'}`,
+    );
+    console.log(
+      `  structural ceiling ${runId}: ${ratio.extractedCount}/${ratio.denominator} rows are ` +
+        `'extracted' = ${ceilingPercent}% is the MAXIMUM ATTAINABLE ratio by construction ` +
+        `(non-extracted rows can never carry a grounded intent); this is a loose upper bound — ` +
+        `some extracted rows may be ungroundable for their own reasons (e.g. wildcard routes, ` +
+        `source-scan-diagnostic rows), which this script does not classify, so the true ` +
+        `attainable ceiling can be lower than this number, never higher`,
     );
     if (!pass) {
       console.error(`  UNGROUNDED rows: ${ratio.ungroundedKeys.slice(0, 40).join(', ')}`);
