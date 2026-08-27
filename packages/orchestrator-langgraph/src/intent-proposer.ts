@@ -172,6 +172,7 @@ const SYSTEM_PROMPT = [
   'Every proposal MUST cite, verbatim, at least one inventoryRowIds value and at least one',
   'evidenceRefIds value that appear in the data. Proposals are hypotheses only: never claim',
   'verification or any truth state. Emit only JSON conforming to the requested schema.',
+  `The top-level schemaVersion MUST be exactly "${INTENT_PROPOSAL_SCHEMA_VERSION}".`,
 ].join(' ');
 
 export function buildProposalMessages(
