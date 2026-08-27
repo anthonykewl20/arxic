@@ -191,6 +191,52 @@ describe('configuredModel host-bound CLI transport (#host-bound-model)', () => {
     );
   });
 
+  // A real host-bound campaign run (DG-12) hit this: the host-cli branch
+  // previously never read ARXIC_MODEL_TIMEOUT_MS, so ModelAdapterOptions
+  // .timeoutMs stayed undefined and createHostCliTransport silently fell
+  // back to its own 30s default — too short for a real agent CLI answering
+  // a full-size structured-output prompt under load. Both transports must
+  // honor the same env var identically.
+  it('honors ARXIC_MODEL_TIMEOUT_MS for the host-cli transport (not just HTTP)', async () => {
+    const previousTimeout = process.env.ARXIC_MODEL_TIMEOUT_MS;
+    try {
+      process.env.ARXIC_MODEL_TIMEOUT_MS = '180000';
+      await withHostCliEnv(
+        { ARXIC_MODEL_PROVIDER: 'host-cli', ARXIC_MODEL_HOST_CLI: process.execPath },
+        () => {
+          const model = configuredModel(request);
+          expect(model).toBeDefined();
+          expect(
+            (model!.adapter as unknown as { options: { timeoutMs?: number } }).options.timeoutMs,
+          ).toBe(180_000);
+        },
+      );
+    } finally {
+      if (previousTimeout === undefined) delete process.env.ARXIC_MODEL_TIMEOUT_MS;
+      else process.env.ARXIC_MODEL_TIMEOUT_MS = previousTimeout;
+    }
+  });
+
+  it('defaults the host-cli transport to 30000ms when ARXIC_MODEL_TIMEOUT_MS is unset', async () => {
+    const previousTimeout = process.env.ARXIC_MODEL_TIMEOUT_MS;
+    try {
+      delete process.env.ARXIC_MODEL_TIMEOUT_MS;
+      await withHostCliEnv(
+        { ARXIC_MODEL_PROVIDER: 'host-cli', ARXIC_MODEL_HOST_CLI: process.execPath },
+        () => {
+          const model = configuredModel(request);
+          expect(model).toBeDefined();
+          expect(
+            (model!.adapter as unknown as { options: { timeoutMs?: number } }).options.timeoutMs,
+          ).toBe(30_000);
+        },
+      );
+    } finally {
+      if (previousTimeout === undefined) delete process.env.ARXIC_MODEL_TIMEOUT_MS;
+      else process.env.ARXIC_MODEL_TIMEOUT_MS = previousTimeout;
+    }
+  });
+
   it('fails closed when ARXIC_MODEL_PROVIDER=host-cli but ARXIC_MODEL_HOST_CLI is unset', async () => {
     await withHostCliEnv({ ARXIC_MODEL_PROVIDER: 'host-cli' }, () => {
       expect(() => configuredModel(request)).toThrow(/ARXIC_MODEL_HOST_CLI/);
