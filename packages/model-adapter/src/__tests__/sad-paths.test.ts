@@ -39,6 +39,41 @@ describe('ModelAdapter sad paths', () => {
     }
   });
 
+  /**
+   * #324 diagnosability: the DG-12 campaign spent four real provider calls
+   * (directus run23) reaching `ARXIC-MODEL-RETRIES-EXHAUSTED` whose message
+   * said only "Structured output remained invalid" — so the actual shape
+   * mismatch was UNKNOWN and could only be recovered by retaining raw provider
+   * content. The AJV error text is already computed in `validator.ts` and was
+   * then discarded here. Retain it: it names the failing instance path and
+   * constraint, travels through the SAME fail-closed `redactionGate` as every
+   * other diagnostic, and costs no extra call. Red-first.
+   */
+  it('retains the AJV failure detail on the exhausted-retries diagnostic', async () => {
+    // Right schemaVersion, wrong shape below it — exactly the run23 signature.
+    const output = { schemaVersion: EXPECTED_SCHEMA_VERSION, candidates: [{ id: 'a' }] };
+    const stub = await startStub(() => ({ completion: completion(JSON.stringify(output)) }));
+    try {
+      const result = await new ModelAdapter({
+        baseUrl: stub.baseUrl,
+        credentials: () => BEARER_TOKEN,
+      }).requestStructuredOutput(adapterRequest());
+      expect(result.ok).toBe(false);
+      if (result.ok) throw new Error('Expected blocked result');
+      const diagnostic = result.diagnostics.find(
+        (entry) => entry.code === 'ARXIC-MODEL-RETRIES-EXHAUSTED',
+      );
+      expect(diagnostic).toBeDefined();
+      // Must name the missing required property, not just "remained invalid".
+      expect(diagnostic?.message).toMatch(/intent/u);
+      expect(diagnostic?.message).toMatch(/required/iu);
+      expect(stub.requests).toHaveLength(3);
+      expect('output' in result).toBe(false);
+    } finally {
+      await stub.close();
+    }
+  });
+
   it('schema-version drift retries then fails closed', async () => {
     const output = { ...validOutput(), schemaVersion: 'arxic-stage4-inference-v9' };
     const stub = await startStub(() => ({ completion: completion(JSON.stringify(output)) }));

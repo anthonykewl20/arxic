@@ -6,6 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   DEFAULT_MODEL_BUDGET_USD,
   INTENT_PROPOSAL_SCHEMA_VERSION,
+  INTENT_PROPOSAL_WIRE_SCHEMA,
   bindProposals,
   buildProposalMessages,
   dedupeProposals,
@@ -711,6 +712,61 @@ describe('deterministic helpers (extracted DG-04 design)', () => {
     expect((binding.proposals[0] as BoundProposal).id).toMatch(/^prop:/u);
     // The wire schema has NO truth-state field the model could set.
     expect(JSON.stringify(buildProposalMessages([row], 1))).not.toContain('truthState');
+  });
+
+  /**
+   * #324 root cause (issue comment, 2026-08-27): z.ai/glm-5.3 does NOT apply
+   * `response_format.type=json_schema` constrained decoding — run22 drifted a
+   * SINGLE-MEMBER `schemaVersion` enum, which honoured constrained decoding
+   * makes impossible. On such a provider the only schema knowledge the model
+   * has is what the PROMPT says, and the prompt carried none. Red-first: the
+   * literal wire schema must travel in the prompt for every attempt, so a
+   * schema-blind provider can still comply. `response_format` is unchanged and
+   * AJV stays the fail-closed arbiter.
+   */
+  it('carries the literal wire schema in the prompt on first and retry attempts', () => {
+    const row = fixtureInventory().rows[0]!;
+    const literal = JSON.stringify(INTENT_PROPOSAL_WIRE_SCHEMA);
+    for (const attempt of [1, 2, 3]) {
+      expect(
+        buildProposalMessages([row], attempt).some((message) =>
+          message.content.includes(literal),
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it('names every required proposal field in the prompt schema block', () => {
+    const row = fixtureInventory().rows[0]!;
+    const prompt = buildProposalMessages([row], 1)
+      .map((message) => message.content)
+      .join('\n');
+    for (const field of [
+      'domain',
+      'intent',
+      'action',
+      'fromState',
+      'toState',
+      'persona',
+      'inventoryRowIds',
+      'evidenceRefIds',
+      'rationale',
+      'proposals',
+      'schemaVersion',
+    ]) {
+      expect(prompt).toContain(field);
+    }
+  });
+
+  it('keeps the schema block inside the trusted system role, never the untrusted data block', () => {
+    const row = fixtureInventory().rows[0]!;
+    const messages = buildProposalMessages([row], 1);
+    const literal = JSON.stringify(INTENT_PROPOSAL_WIRE_SCHEMA);
+    const carriers = messages.filter((message) => message.content.includes(literal));
+    expect(carriers.length).toBeGreaterThan(0);
+    for (const carrier of carriers) expect(carrier.role).toBe('system');
+    const userBlock = messages.find((message) => message.role === 'user');
+    expect(userBlock?.content.includes(literal)).toBe(false);
   });
 
   it('requires the pinned schemaVersion in both first and retry prompts', () => {
