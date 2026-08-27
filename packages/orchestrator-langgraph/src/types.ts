@@ -15,6 +15,10 @@ import type {
   UnresolvedProviderInclude,
 } from '@arxic/domain-inventory';
 import type { IntentLineage, IntentSpec, OracleSpec, ResolvedAssertion } from '@arxic/intent';
+// Type-only (erased at compile, so the intent-proposer <-> types cycle is not
+// a runtime cycle): the post-crawl re-proposal record on CoverageMatrix below
+// carries exactly the proposals the stage-4 proposer produces.
+import type { BoundProposal } from './intent-proposer';
 import type { LeaseState } from '@arxic/policy-engine';
 import type {
   ExecutionLocator,
@@ -102,6 +106,30 @@ export type CoverageMatrix = Readonly<{
     totalRows: number;
     byDisposition: DomainInventory['stats']['byDisposition'];
     source: 'domain-inventory';
+  }>;
+  /**
+   * #324 AC-3 (Cause C): the POST-CRAWL re-proposal record.
+   *
+   * Stage 4 proposes from the SOURCE inventory built at stage 13, which runs
+   * BEFORE the crawl, so `observedForms` is necessarily `[]` and the model is
+   * form-blind. This stage is the first point at which a runtime-fused
+   * inventory exists, so the re-proposal over form-backed, still-unbound rows
+   * happens here and is recorded on THIS artifact.
+   *
+   * It is deliberately NOT written back onto the stage-4 artifact: that
+   * artifact is content-hashed and its checkpoint is part of the bundle
+   * integrity chain, and silently rewriting a hashed artifact to improve a
+   * coverage ratio would invalidate the exit gate it is measured by.
+   */
+  postCrawl?: Readonly<{
+    /** Consumer row ids the crawl observed a submittable form for. */
+    formBackedRowIds: readonly string[];
+    /** Form-backed rows that stage 4 left with no proposal — the pass input. */
+    reproposedRowIds: readonly string[];
+    /** Proposals accepted by the pass, through the SAME binding + dedupe gates. */
+    proposals: readonly BoundProposal[];
+    /** Why the pass did nothing, when it did nothing. Never silent. */
+    skippedReason?: string;
   }>;
 }>;
 

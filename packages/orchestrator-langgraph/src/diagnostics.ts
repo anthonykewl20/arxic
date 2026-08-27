@@ -27,6 +27,15 @@ export const ARXIC_ORCH_PROPOSAL_ROW_UNPROPOSED = 'ARXIC-ORCH-PROPOSAL-ROW-UNPRO
 export const ARXIC_ORCH_PROPOSAL_OBSERVATION_MISSING =
   'ARXIC-ORCH-PROPOSAL-OBSERVATION-MISSING' as const;
 
+/**
+ * #324 AC-3 (Cause C): accounting for the POST-CRAWL re-proposal pass. Stage 4
+ * proposes from the source inventory built before the crawl, so no row is
+ * form-backed at that point; this records what the post-crawl pass did (or why
+ * it did nothing). Observed severity — the pass is ADDITIVE and must never
+ * block a run that stage 4 already satisfied.
+ */
+export const ARXIC_ORCH_POSTCRAWL_REPROPOSAL = 'ARXIC-ORCH-POSTCRAWL-REPROPOSAL' as const;
+
 export const ORCH_DIAGNOSTIC_CODES = [
   ARXIC_ORCH_RESUME,
   ARXIC_ORCH_EMPTY_COVERAGE,
@@ -47,6 +56,7 @@ export const ORCH_DIAGNOSTIC_CODES = [
   ARXIC_ORCH_PROPOSAL_SURFACE_MISSING,
   ARXIC_ORCH_PROPOSAL_ROW_UNPROPOSED,
   ARXIC_ORCH_PROPOSAL_OBSERVATION_MISSING,
+  ARXIC_ORCH_POSTCRAWL_REPROPOSAL,
 ] as const;
 
 export type OrchDiagnosticCode = (typeof ORCH_DIAGNOSTIC_CODES)[number];

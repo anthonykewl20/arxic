@@ -23,6 +23,8 @@ import {
   validateInventory,
   toProposalConsumerInventory,
 } from '@arxic/domain-inventory';
+import type { DomainInventory } from '@arxic/domain-inventory';
+import { runPostCrawlReproposal, type PostCrawlReproposalOutcome } from './post-crawl-reproposal';
 import {
   createContentAddressedArtifacts,
   buildInventoryEvidenceGraph,
@@ -989,7 +991,9 @@ export class LangGraphOrchestrator {
   }
 
   async #reconcile(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
-    const inference = await this.#artifact<InferenceResult>(state, input, 4);
+    const inference = await this.#artifact<
+      InferenceResult & { proposalRun?: ProposalStageResult['proposalRun'] }
+    >(state, input, 4);
     const surface = await this.#artifact<SurfaceMap>(state, input, 5);
     if (this.#options.reconcile) {
       const matrix = await this.#options.reconcile({
@@ -1008,6 +1012,12 @@ export class LangGraphOrchestrator {
       ? fuseRuntimeInventory(envelope.inventory, surface, this.#now)
       : undefined;
     const runtimeEvidence = surface.routes.filter((route) => route.evidence).length;
+    // #324 AC-3 (Cause C): this is the FIRST point in the pipeline where a
+    // runtime-fused inventory exists, so it is the first point where the
+    // proposer can be told which surfaces the crawl actually found a form for.
+    // The result is recorded on THIS artifact — the stage-4 artifact is
+    // content-hashed into the bundle integrity chain and is never rewritten.
+    const postCrawl = await this.#postCrawlReproposal(fused, inference, input);
     const matrix: CoverageMatrix = {
       denominator: fused ? fused.stats.totalRows : inference.candidates.length,
       rows: inference.candidates.map((candidate) => ({
@@ -1017,16 +1027,57 @@ export class LangGraphOrchestrator {
         outcome: runtimeEvidence > 0 ? 'observed' : 'hypothesized',
       })),
       ...(fused ? { inventory: { ...fused.stats, source: 'domain-inventory' as const } } : {}),
+      ...(postCrawl ? { postCrawl: postCrawl.record } : {}),
     };
     return {
       artifact: matrix,
       adapter: '@arxic/reconciler:seam',
-      decisions: fused
-        ? [
-            `Coverage denominator derived from the runtime-fused domain inventory (${fused.stats.totalRows} rows)`,
-          ]
-        : ['Coverage denominator fell back to the candidate count (no inventory artifact)'],
+      ...(postCrawl && postCrawl.diagnostics.length > 0
+        ? { diagnostics: [...postCrawl.diagnostics] }
+        : {}),
+      decisions: [
+        ...(fused
+          ? [
+              `Coverage denominator derived from the runtime-fused domain inventory (${fused.stats.totalRows} rows)`,
+            ]
+          : ['Coverage denominator fell back to the candidate count (no inventory artifact)']),
+        ...(postCrawl
+          ? [
+              postCrawl.record.skippedReason === undefined
+                ? `Post-crawl re-proposal added ${postCrawl.record.proposals.length} proposal(s) over ${postCrawl.record.reproposedRowIds.length} form-backed row(s)`
+                : `Post-crawl re-proposal skipped: ${postCrawl.record.skippedReason}`,
+            ]
+          : []),
+      ],
     };
+  }
+
+  /**
+   * #324 AC-3: run the post-crawl re-proposal when a fused inventory, a model
+   * and a stage-4 proposal run all exist. Returns undefined when the pass does
+   * not apply at all (no inventory / no model / legacy non-proposer stage 4),
+   * which keeps the artifact byte-identical for those runs.
+   */
+  async #postCrawlReproposal(
+    fused: DomainInventory | undefined,
+    inference: InferenceResult & { proposalRun?: ProposalStageResult['proposalRun'] },
+    input: OrchestratorInput,
+  ): Promise<PostCrawlReproposalOutcome | undefined> {
+    if (!fused || !inference.proposalRun) return undefined;
+    if (!this.#options.modelAdapter || !this.#options.model) return undefined;
+    return runPostCrawlReproposal({
+      adapter: this.#options.modelAdapter,
+      model: this.#options.model,
+      runId: input.runId,
+      fusedInventory: fused,
+      stage4Proposals: inference.proposalRun.proposals,
+      stage4EstimatedCostUsd: inference.proposalRun.estimatedCostUsd,
+      budgetUsd: this.#options.modelBudgetUsd ?? DEFAULT_MODEL_BUDGET_USD,
+      // #337: resolve by the CONFIGURED model rather than defaulting to
+      // gpt-4o-mini's rates — an unrecognized model id fails closed, matching
+      // the stage-4 IntentProposer call above.
+      prices: this.#options.modelPrices ?? resolveModelPrices(this.#options.model),
+    });
   }
 
   async #fixtures(state: RunState, input: OrchestratorInput): Promise<StageExecution> {
