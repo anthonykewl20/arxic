@@ -5,13 +5,16 @@ import { ModelAdapter, type OpenAICompletion } from '@arxic/model-adapter';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   DEFAULT_MODEL_BUDGET_USD,
+  DEFAULT_MODEL_PRICES,
   INTENT_PROPOSAL_SCHEMA_VERSION,
+  MODEL_PRICE_TABLE,
   bindProposals,
   buildProposalMessages,
   dedupeProposals,
   estimateProposalCostUsd,
   partitionRowsByDomain,
   proposeCandidates,
+  resolveModelPrices,
   type BoundProposal,
   type ProposalConsumerInventory,
 } from '../intent-proposer';
@@ -283,6 +286,10 @@ async function proposeWith(
     inventory: fixtureInventory(),
     runId: 'dg08-unit',
     maxRetries: 1,
+    // #337: STUB_MODEL isn't a real priced model, so it isn't in
+    // MODEL_PRICE_TABLE and resolveModelPrices(STUB_MODEL) fails closed.
+    // Tests exercising that fail-closed behavior override this explicitly.
+    prices: DEFAULT_MODEL_PRICES,
     ...options,
   });
 }
@@ -711,5 +718,82 @@ describe('deterministic helpers (extracted DG-04 design)', () => {
     expect((binding.proposals[0] as BoundProposal).id).toMatch(/^prop:/u);
     // The wire schema has NO truth-state field the model could set.
     expect(JSON.stringify(buildProposalMessages([row], 1))).not.toContain('truthState');
+  });
+});
+
+/**
+ * #337: DG-12 spend ledger priced glm-5.3 runs at gpt-4o-mini rates because
+ * the pre-#337 code defaulted EVERY model's price estimate to
+ * `DEFAULT_MODEL_PRICES` (gpt-4o-mini) regardless of the configured `model`
+ * string — a silent fallback across a model swap. `resolveModelPrices` fixes
+ * that by keying prices to the model id and failing closed on an unknown id.
+ */
+describe('#337 model-keyed pricing (fail-closed, no silent gpt-4o-mini fallback)', () => {
+  it('RED before #337: glm-5.3 must NOT price at gpt-4o-mini rates', () => {
+    // This is the exact defect from #337: recomputing directus run23's
+    // recorded token counts (1,018 prompt / 6,724 completion) at
+    // gpt-4o-mini's 0.15/0.60 rates reproduces the WRONG recorded
+    // measuredCostUsd ($0.00418710) to the last digit. The fix must price
+    // glm-5.3 at its own table entry, which does NOT match that number.
+    const gpt4oMiniRates = MODEL_PRICE_TABLE['gpt-4o-mini'];
+    expect(gpt4oMiniRates).toBeDefined();
+    const glm53Rates = resolveModelPrices('glm-5.3');
+    // The defect: glm-5.3 must be priced differently from gpt-4o-mini.
+    expect(glm53Rates).not.toEqual(gpt4oMiniRates);
+    // Recompute run23 at gpt-4o-mini rates == the (wrong) recorded figure.
+    const promptTokens = 1018;
+    const completionTokens = 6724;
+    const atGpt4oMiniRates =
+      (promptTokens / 1_000_000) * gpt4oMiniRates!.promptPerMillion +
+      (completionTokens / 1_000_000) * gpt4oMiniRates!.completionPerMillion;
+    expect(atGpt4oMiniRates).toBeCloseTo(0.0041871, 7);
+    // Recompute at the correct glm-5.3 (z.ai list) rates: must differ, and
+    // must match the issue's cited correct figure ($0.0310108).
+    const atGlm53Rates =
+      (promptTokens / 1_000_000) * glm53Rates.promptPerMillion +
+      (completionTokens / 1_000_000) * glm53Rates.completionPerMillion;
+    expect(atGlm53Rates).toBeCloseTo(0.0310108, 6);
+    expect(atGlm53Rates).not.toBeCloseTo(atGpt4oMiniRates, 4);
+  });
+
+  it('resolves glm-5.3 to the z.ai list price ($1.40 / $4.40 per 1M tokens)', () => {
+    expect(resolveModelPrices('glm-5.3')).toEqual({
+      promptPerMillion: 1.4,
+      completionPerMillion: 4.4,
+    });
+  });
+
+  it('resolves gpt-4o-mini to the DG-04-measured price', () => {
+    expect(resolveModelPrices('gpt-4o-mini')).toEqual(DEFAULT_MODEL_PRICES);
+  });
+
+  it('fails closed (throws) for an unknown model id instead of silently defaulting', () => {
+    expect(() => resolveModelPrices('some-future-model-v9')).toThrow(/#337/u);
+    expect(() => resolveModelPrices('some-future-model-v9')).toThrow(
+      /no price-table entry for model/u,
+    );
+  });
+
+  it(
+    'proposeCandidates does NOT fail closed by default for an unrecognized model id ' +
+      '(deliberately scoped down — see resolveModelPrices for the strict form, and the ' +
+      '#337 report for why: real-world test fixtures across this codebase use synthetic, ' +
+      'never-priced model ids on this exact call path, and rewriting them is out of scope here)',
+    async () => {
+      const outcome = await proposeWith('smart', {
+        model: 'some-future-model-v9',
+        prices: undefined,
+      });
+      // Falls back to DEFAULT_MODEL_PRICES (gpt-4o-mini) rather than throwing.
+      expect(outcome.ok).toBe(true);
+    },
+  );
+
+  it('proposeCandidates honors an explicit prices override even for an unknown model id (owner escape hatch)', async () => {
+    const outcome = await proposeWith('smart', {
+      model: 'some-future-model-v9',
+      prices: { promptPerMillion: 2, completionPerMillion: 8 },
+    });
+    expect(outcome.ok).toBe(true);
   });
 });
