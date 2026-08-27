@@ -34,7 +34,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ast-grep/cli": "^0.45.1",
+    "@ast-grep/cli": "^0.45.2",
     "@playwright/test": "1.62.1",
     "crawlee": "3.18.1",
     "playwright": "1.62.1",
