@@ -159,6 +159,8 @@ A slice is **not** "Done" when the code works. It is "Done" only after this ritu
 
 **Banned anti-patterns:** "I'll update SYNC later"; merging code without the doc sync; merging a slice without a `CHANGELOG.md` entry; **`VERSION` and `package.json` `version` disagreeing**; closing an issue whose docs still say "todo"; leaving a TODO a future agent must rediscover.
 
+> **Release gate note:** this ritual covers slice completion, not release cut. When a slice's work feeds a promoted release, the standing human screenshot-inspection gate (§11) also applies before that release ships.
+
 ## 9. Skills & guardrails (applied automatically)
 
 These opencode skills (`.opencode/skills/`, registered in `opencode.json`, mandated in `AGENTS.md`) govern how work is done:
@@ -206,3 +208,7 @@ Concurrent slices declare the files they own before starting.
 ### 10.4 Merge queue (serialized)
 
 Merges are strictly serialized, never concurrent: rebase onto `origin/main` → `gh pr checks <N> --watch` → `pass` → squash-merge → the next branch rebases onto the new `main`. Never merge two PRs whose CI ran against different bases without re-running the second. `main` stays green between every merge.
+
+## 11. Release gates (standing)
+
+Beyond the per-slice gates in §7/§8, a release itself has a standing gate that no slice or CI run can discharge: every promoted release that retains screenshots requires a human visual inspection before tagging or publishing (an LLM cannot certify pixels secret-free). See [`docs/release-gates/screenshot-inspection.md`](./release-gates/screenshot-inspection.md) for the inspector procedure and sign-off format; `RELEASES.md`'s release checklist (step 9) is where this gate is executed.
