@@ -1,6 +1,6 @@
 # FIX-333-validate-records-argv — staged doc updates (charter §10.2)
 
-Issue: #333 · PR: #TBD · Disposition: verified
+Issue: #333 · PR: #336 · Disposition: verified
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
@@ -11,7 +11,7 @@ Issue: #333 · PR: #TBD · Disposition: verified
 ## 2. `docs/SYNC.md` — session-log row (append to the table)
 
 ```
-| 2026-08-27 | **#333 (FIX-333-validate-records-argv) validate-records.ts argv off-by-one DONE.** Replaced index-arithmetic positional filter (`index !== liveKeyEnvIndex + 1`, which dropped index 0 whenever `--live-key-env` was absent since `indexOf` returns `-1`) with a left-to-right token-consuming parser (`parseValidateRecordsArgs`) that resolves flags and the directory positional in any order without special-casing `--live-key-env`. Proved with a real `tsx` subprocess invocation (no mocks) against a temp evidence directory for: single-flag invocation (directory + `--allow-missing-live-key`, no `--live-key-env` — the reported bug), the existing `--live-key-env`-present workaround (directory-first and flags-first orderings). 92/92 package tests pass, typecheck clean, lint clean. **M? ?/?.** Next: #TBD. |
+| 2026-08-27 | **#333 (FIX-333-validate-records-argv) validate-records.ts argv off-by-one DONE.** Replaced index-arithmetic positional filter (`index !== liveKeyEnvIndex + 1`, which dropped index 0 whenever `--live-key-env` was absent since `indexOf` returns `-1`) with a left-to-right token-consuming parser (`parseValidateRecordsArgs`) that resolves flags and the directory positional in any order without special-casing `--live-key-env`. Proved with a real `tsx` subprocess invocation (no mocks) against a temp evidence directory for: single-flag invocation (directory + `--allow-missing-live-key`, no `--live-key-env` — the reported bug), the existing `--live-key-env`-present workaround (directory-first and flags-first orderings). 92/92 package tests pass, typecheck clean, lint clean. **M? ?/?.** Next: #336 to merge, then close #333. |
 ```
 
 ## 3. `CHANGELOG.md` — entry under `## [Unreleased]` → `### fixed`
