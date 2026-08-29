@@ -548,7 +548,7 @@ const server = createServer(async (request, response) => {
   }
   response.end(JSON.stringify({
     id: 'chatcmpl-worker-e2e',
-    model: 'configured-adapter',
+    model: 'gpt-4o-mini',
     choices: [{ message: { role: 'assistant', content } }],
     usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 }
   }));
@@ -595,7 +595,7 @@ policy:
 fixtures:
   personaProvisioner: app-seed-api
 models:
-  provider: configured-adapter
+  provider: gpt-4o-mini
   sourceRetention: disabled
 `,
   );
