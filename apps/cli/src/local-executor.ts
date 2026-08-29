@@ -428,6 +428,35 @@ function ledgerTimestamp(request: RunRequest): string {
  * worse — silently reuse another model's rates (the #337 bug). */
 const HOST_CLI_PRICES: ModelPrices = { promptPerMillion: 0, completionPerMillion: 0 };
 
+/**
+ * Shared `ARXIC_MODEL_TIMEOUT_MS` resolution for BOTH model transports
+ * (HTTP and host-cli). Previously only the HTTP branch read this env var —
+ * the host-cli branch left `ModelAdapterOptions.timeoutMs` undefined, so
+ * `createHostCliTransport` silently fell back to its own 30s default
+ * (`packages/model-adapter/src/host-cli-transport.ts`), which a real agent
+ * CLI processing a full-size structured-output prompt can easily exceed.
+ * Fails closed identically for both transports on an invalid value.
+ */
+function resolveModelTimeoutMs(): number {
+  const rawTimeout = process.env.ARXIC_MODEL_TIMEOUT_MS;
+  const configuredTimeout = Number(rawTimeout);
+  if (
+    rawTimeout !== undefined &&
+    (!Number.isInteger(configuredTimeout) ||
+      configuredTimeout <= 0 ||
+      configuredTimeout > 2_147_483_647)
+  ) {
+    throw new Error(
+      'ARXIC_MODEL_TIMEOUT_MS must be a positive integer within the Node timer range',
+    );
+  }
+  return Number.isInteger(configuredTimeout) &&
+    configuredTimeout > 0 &&
+    configuredTimeout <= 2_147_483_647
+    ? configuredTimeout
+    : 30_000;
+}
+
 export function configuredModel(
   request: RunRequest,
 ): { adapter: ModelAdapter; name: string; prices?: ModelPrices } | undefined {
@@ -446,6 +475,7 @@ export function configuredModel(
         // Unused by the host-cli transport (no HTTP call is made); kept
         // non-empty only to satisfy ModelAdapterOptions' shape.
         baseUrl: 'host-cli://local',
+        timeoutMs: resolveModelTimeoutMs(),
         credentials: () => 'host-bound-local',
         transport: createHostCliTransport(hostCliConfig),
         providerMeta: {
@@ -462,24 +492,7 @@ export function configuredModel(
   const baseUrl = process.env.ARXIC_MODEL_BASE_URL?.trim();
   const apiKey = process.env.ARXIC_MODEL_API_KEY?.trim();
   if (!baseUrl || !apiKey) return undefined;
-  const rawTimeout = process.env.ARXIC_MODEL_TIMEOUT_MS;
-  const configuredTimeout = Number(rawTimeout);
-  if (
-    rawTimeout !== undefined &&
-    (!Number.isInteger(configuredTimeout) ||
-      configuredTimeout <= 0 ||
-      configuredTimeout > 2_147_483_647)
-  ) {
-    throw new Error(
-      'ARXIC_MODEL_TIMEOUT_MS must be a positive integer within the Node timer range',
-    );
-  }
-  const timeoutMs =
-    Number.isInteger(configuredTimeout) &&
-    configuredTimeout > 0 &&
-    configuredTimeout <= 2_147_483_647
-      ? configuredTimeout
-      : 30_000;
+  const timeoutMs = resolveModelTimeoutMs();
   return {
     adapter: new ModelAdapter({
       baseUrl,

@@ -1,0 +1,14 @@
+{
+  "decision": {
+    "buildDigest": "f2f463888fe09a3ef9bc52a2838cbbcd41b13dc99267f22fbac403854c11935d",
+    "disposition": "allowed",
+    "environmentClass": "local-test",
+    "origin": "http://127.0.0.1:34683",
+    "policyVersion": "arxic-target-attestation-v1",
+    "reason": "Target attestation satisfies policy",
+    "target": "http://127.0.0.1:34683",
+    "timestamp": "2026-08-27T17:33:45.855Z"
+  },
+  "diagnostics": [],
+  "disposition": "allowed"
+}

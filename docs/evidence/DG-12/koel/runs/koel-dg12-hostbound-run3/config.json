@@ -1,0 +1,33 @@
+{
+  "fixtures": { "personaProvisioner": "boot-seeded-admin" },
+  "models": { "provider": "openai/gpt-4o-mini", "sourceRetention": "disabled" },
+  "policy": {
+    "externalNetwork": "deny",
+    "humanApproval": ["destructive", "external-side-effect"],
+    "maxDepth": 1,
+    "maxRuntimeMinutes": 30,
+    "maxUrls": 8,
+    "mutation": "leased-fixtures-only",
+    "requiredVerificationRuns": 2,
+    "screenshots": "transition-checkpoints",
+    "trace": "retain"
+  },
+  "scope": {
+    "browsers": ["chromium"],
+    "domains": ["authentication"],
+    "frameworks": ["laravel"],
+    "personas": ["anonymous", "registered-user"]
+  },
+  "source": {
+    "languages": ["php"],
+    "repository": "/home/soultransit/devtony/thirdparty-dg/koel",
+    "revision": "dfec91ff290509c622ff7cf392fb5e506841ee2b"
+  },
+  "target": {
+    "allowedOrigins": ["http://127.0.0.1:21199", "http://127.0.0.1:8123"],
+    "attestationPath": "/.well-known/arxic-test-target.json",
+    "environmentClass": "local-test",
+    "origin": "http://127.0.0.1:21199"
+  },
+  "version": 1
+}

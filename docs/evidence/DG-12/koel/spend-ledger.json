@@ -9,6 +9,27 @@
       "recordedAt": "2026-08-20T14:25:34.213Z",
       "runId": "koel-g3-run1",
       "valid": true
+    },
+    {
+      "calls": 0,
+      "measuredCostUsd": 0,
+      "recordedAt": "2026-08-27T17:36:00.874Z",
+      "runId": "koel-dg12-hostbound-run1",
+      "valid": true
+    },
+    {
+      "calls": 0,
+      "measuredCostUsd": 0,
+      "recordedAt": "2026-08-27T17:39:19.004Z",
+      "runId": "koel-dg12-hostbound-run2",
+      "valid": true
+    },
+    {
+      "calls": 0,
+      "measuredCostUsd": 0,
+      "recordedAt": "2026-08-27T17:56:42.702Z",
+      "runId": "koel-dg12-hostbound-run3",
+      "valid": true
     }
   ],
   "repository": "https://github.com/koel/koel",
