@@ -67,6 +67,14 @@ policy:
   humanApproval: [destructive, external-side-effect]
 fixtures:
   personaProvisioner: boot-seeded-admin
+  replayPersona:
+    mode: per-pass-login
+    login:
+      route: /
+      fields:
+        - { label: Your email address, inputRef: persona.email }
+        - { label: Your password, inputRef: persona.password }
+      submit: { label: Log In }
 models:
   provider: openai/gpt-4o-mini
   sourceRetention: disabled

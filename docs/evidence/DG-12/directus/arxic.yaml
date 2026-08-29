@@ -48,6 +48,14 @@ policy:
   humanApproval: [destructive, external-side-effect]
 fixtures:
   personaProvisioner: boot-seeded-admin
+  replayPersona:
+    mode: per-pass-login
+    login:
+      route: /admin/login
+      fields:
+        - { label: Email, inputRef: persona.email }
+        - { label: Password, inputRef: persona.password }
+      submit: { label: Sign In }
 models:
   # models.provider doubles as the MODEL ID the pipeline sends upstream
   # (apps/cli/src/local-executor.ts:336-345, name: provider).
