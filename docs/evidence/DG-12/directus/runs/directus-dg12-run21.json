@@ -1,0 +1,83 @@
+{
+ "kind": "dg11-validation-run-v1",
+ "schemaVersion": 1,
+ "target": {
+  "name": "directus",
+  "repository": "https://github.com/directus/directus",
+  "commit": "cb846b6a1ddc4811359bc52b74bb31a42eab33db"
+ },
+ "run": {
+  "runId": "directus-dg12-run21",
+  "startedAt": "2026-08-26T16:17:46.473Z",
+  "completedAt": "2026-08-26T16:20:01.696Z",
+  "executor": "local"
+ },
+ "model": "glm-5.3",
+ "pricing": {
+  "pricePerMillionPrompt": 0.15,
+  "pricePerMillionCompletion": 0.6,
+  "reverifyNote": "list prices declared by the operator for this run; the owner re-verifies prices at read time (owner decision 2)"
+ },
+ "telemetry": [
+  {
+   "requestId": "202608270018279990e73a7bd34b4f",
+   "model": "glm-5.3",
+   "promptTokens": 226,
+   "completionTokens": 1870,
+   "latencyMs": 27783,
+   "costUsd": 0.0011559
+  },
+  {
+   "requestId": "20260827001854bf7dcf7745f943cd",
+   "model": "glm-5.3",
+   "promptTokens": 247,
+   "completionTokens": 1871,
+   "latencyMs": 30412,
+   "costUsd": 0.00115965
+  },
+  {
+   "requestId": "2026082700192464c08c66d9d041ad",
+   "model": "glm-5.3",
+   "promptTokens": 226,
+   "completionTokens": 1897,
+   "latencyMs": 36779,
+   "costUsd": 0.0011721
+  }
+ ],
+ "measured": {
+  "calls": 3,
+  "promptTokens": 699,
+  "completionTokens": 5638,
+  "latencyMsTotal": 94974,
+  "estimatedCostUsd": 0.007812,
+  "measuredCostUsd": 0.00348765
+ },
+ "ledger": {
+  "before": {
+   "cumulativeUsd": 0.1700275,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.8299725
+  },
+  "after": {
+   "cumulativeUsd": 0.17351515,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.82648485
+  }
+ },
+ "coverage": {
+  "rows": 105,
+  "coveredRows": 0,
+  "proposals": 0
+ },
+ "outcome": {
+  "exitCode": 1,
+  "status": "failed",
+  "outcome": "blocked",
+  "finalStage": "stage-4"
+ },
+ "events": [],
+ "groundednessSpotCheck": {
+  "status": "pending",
+  "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+ }
+}

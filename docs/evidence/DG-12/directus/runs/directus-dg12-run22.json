@@ -1,0 +1,91 @@
+{
+ "kind": "dg11-validation-run-v1",
+ "schemaVersion": 1,
+ "target": {
+  "name": "directus",
+  "repository": "https://github.com/directus/directus",
+  "commit": "cb846b6a1ddc4811359bc52b74bb31a42eab33db"
+ },
+ "run": {
+  "runId": "directus-dg12-run22",
+  "startedAt": "2026-08-26T17:14:14.732Z",
+  "completedAt": "2026-08-26T17:16:48.374Z",
+  "executor": "local"
+ },
+ "model": "glm-5.3",
+ "pricing": {
+  "pricePerMillionPrompt": 0.15,
+  "pricePerMillionCompletion": 0.6,
+  "reverifyNote": "list prices declared by the operator for this run; the owner re-verifies prices at read time (owner decision 2)"
+ },
+ "telemetry": [
+  {
+   "requestId": "2026082701145497e49d5e5b674454",
+   "model": "glm-5.3",
+   "promptTokens": 226,
+   "completionTokens": 1818,
+   "latencyMs": 27601,
+   "costUsd": 0.0011247
+  },
+  {
+   "requestId": "20260827011522930f6ab237c14c75",
+   "model": "glm-5.3",
+   "promptTokens": 247,
+   "completionTokens": 2640,
+   "latencyMs": 33363,
+   "costUsd": 0.00162105
+  },
+  {
+   "requestId": "2026082701155592cf90c2ef794fd7",
+   "model": "glm-5.3",
+   "promptTokens": 226,
+   "completionTokens": 2023,
+   "latencyMs": 27143,
+   "costUsd": 0.0012477
+  },
+  {
+   "requestId": "202608270116228bb3e4e0c5814f17",
+   "model": "glm-5.3",
+   "promptTokens": 247,
+   "completionTokens": 1729,
+   "latencyMs": 25415,
+   "costUsd": 0.00107445
+  }
+ ],
+ "measured": {
+  "calls": 4,
+  "promptTokens": 946,
+  "completionTokens": 8210,
+  "latencyMsTotal": 113522,
+  "estimatedCostUsd": 0.007812,
+  "measuredCostUsd": 0.0050679
+ },
+ "ledger": {
+  "before": {
+   "cumulativeUsd": 0.17351515,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.82648485
+  },
+  "after": {
+   "cumulativeUsd": 0.17858305,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.82141695
+  }
+ },
+ "coverage": {
+  "rows": 105,
+  "coveredRows": 0,
+  "proposals": 0
+ },
+ "outcome": {
+  "exitCode": 1,
+  "status": "failed",
+  "outcome": "blocked",
+  "finalStage": "stage-4"
+ },
+ "events": [],
+ "groundednessSpotCheck": {
+  "status": "pending",
+  "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+ }
+}

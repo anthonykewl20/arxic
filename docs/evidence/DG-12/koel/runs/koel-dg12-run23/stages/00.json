@@ -1,0 +1,60 @@
+{
+  "checkpoint": {
+    "adapter": { "name": "@arxic/environment", "version": "0.1.1" },
+    "approvals": [],
+    "artifacts": [
+      {
+        "id": "stage:0",
+        "sha256": "5b96772a06e86af20641869e737bcf5991a0715942e6c364d4b4925f90ba6b47"
+      }
+    ],
+    "decisions": ["Target attestation satisfies policy"],
+    "finishedAt": "2026-08-25T08:32:48.186Z",
+    "gateResults": [{ "gate": "attestation", "passed": true }],
+    "name": "attestation",
+    "orchestratorVersion": "0.1.1",
+    "redaction": { "passed": true, "redactedFields": [] },
+    "stage": 0,
+    "startedAt": "2026-08-25T08:32:48.177Z",
+    "status": "completed",
+    "toolVersions": {}
+  },
+  "state": {
+    "activeStage": 0,
+    "artifacts": {
+      "0": {
+        "id": "stage:0",
+        "sha256": "5b96772a06e86af20641869e737bcf5991a0715942e6c364d4b4925f90ba6b47"
+      }
+    },
+    "checkpoints": [
+      {
+        "adapter": { "name": "@arxic/environment", "version": "0.1.1" },
+        "approvals": [],
+        "artifacts": [
+          {
+            "id": "stage:0",
+            "sha256": "5b96772a06e86af20641869e737bcf5991a0715942e6c364d4b4925f90ba6b47"
+          }
+        ],
+        "decisions": ["Target attestation satisfies policy"],
+        "finishedAt": "2026-08-25T08:32:48.186Z",
+        "gateResults": [{ "gate": "attestation", "passed": true }],
+        "name": "attestation",
+        "orchestratorVersion": "0.1.1",
+        "redaction": { "passed": true, "redactedFields": [] },
+        "stage": 0,
+        "startedAt": "2026-08-25T08:32:48.177Z",
+        "status": "completed",
+        "toolVersions": {}
+      }
+    ],
+    "completedStages": [0],
+    "diagnostics": [],
+    "inputFingerprint": "e5b33cde1b425765ad8f041bc1a5b2a42cb0dda366302e129765f645074ec6d2",
+    "outcome": "hypothesized",
+    "promotionEligible": true,
+    "runId": "koel-dg12-run23",
+    "status": "running"
+  }
+}
