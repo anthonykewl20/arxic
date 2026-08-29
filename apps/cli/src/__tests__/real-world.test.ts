@@ -479,7 +479,7 @@ policy:
 fixtures:
   personaProvisioner: app-seed-api
 models:
-  provider: configured-adapter
+  provider: gpt-4o-mini
   sourceRetention: disabled
 `,
   );
@@ -618,7 +618,7 @@ async function startModelEndpoint(): Promise<{ server: HttpServer; baseUrl: stri
     response.end(
       JSON.stringify({
         id: 'chatcmpl-release-cli',
-        model: 'configured-adapter',
+        model: 'gpt-4o-mini',
         choices: [{ message: { role: 'assistant', content } }],
         usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
       }),

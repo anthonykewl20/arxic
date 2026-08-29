@@ -254,7 +254,7 @@ policy:
 fixtures:
   personaProvisioner: boot-seeded-admin
 ${replay}models:
-  provider: configured-adapter
+  provider: gpt-4o-mini
   sourceRetention: disabled
 `,
   );

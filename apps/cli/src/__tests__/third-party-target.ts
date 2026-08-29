@@ -238,7 +238,7 @@ export async function startStubModelEndpoint(): Promise<{
     response.end(
       JSON.stringify({
         id: 'chatcmpl-arxic-288',
-        model: 'configured-adapter',
+        model: 'gpt-4o-mini',
         choices: [{ message: { role: 'assistant', content } }],
         usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 },
       }),
