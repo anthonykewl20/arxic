@@ -189,37 +189,36 @@ describe('dg12-coverage (G-2 / criterion 1)', () => {
 });
 
 describe('dg12-grounded-ratio (G-3 / criterion 2)', () => {
-  it('passes at the 80% default threshold', async () => {
+  it('uses the default 100% threshold over extracted rows and records the legacy total ratio and ceiling', async () => {
     const root = await temporaryRoot();
     await stageRun(root, 'run-1', {
       rows: [
         inventoryRow('a'),
         inventoryRow('b'),
-        inventoryRow('c'),
-        inventoryRow('d'),
-        inventoryRow('e'),
+        inventoryRow('c', 'unextracted-with-reason'),
+        inventoryRow('d', 'unsupported'),
       ],
       ledger: [
         ledgerRow('a', { intents: [groundedIntent('p1')] }),
         ledgerRow('b', { intents: [groundedIntent('p2')] }),
-        ledgerRow('c', { intents: [groundedIntent('p3')] }),
-        ledgerRow('d', { intents: [groundedIntent('p4')] }),
-        ledgerRow('e'),
+        ledgerRow('c', { disposition: 'unextracted-with-reason' }),
+        ledgerRow('d', { disposition: 'unsupported' }),
       ],
     });
     const result = await runScript('dg12-grounded-ratio.mjs', [root]);
     expect(result.code, result.stderr).toBe(0);
-    expect(result.stdout).toContain('4/5 rows grounded = 80.00%');
     expect(result.stdout).toContain(
-      "5/5 rows are 'extracted' = 100.00% is the MAXIMUM ATTAINABLE ratio",
+      'extractable grounded run-1: 2/2 extracted rows grounded = 100.00% (threshold 100%) -> pass',
+    );
+    expect(result.stdout).toContain(
+      'recorded-legacy total ratio run-1: 2/4 rows grounded = 50.00%',
+    );
+    expect(result.stdout).toContain(
+      "2/4 rows are 'extracted' = 50.00% is the MAXIMUM ATTAINABLE ratio",
     );
   });
 
-  it('reports a structural ceiling below 100% when non-extracted rows are present', async () => {
-    // Mirrors the real koel finding (#324): non-extracted rows (here,
-    // 'unsupported') can never carry a grounded intent, so even a perfect
-    // extraction lane cannot reach 100% grounded when the denominator
-    // includes them -- the ceiling line must say so, not just the raw ratio.
+  it('honors an explicit threshold over extractable rows', async () => {
     const root = await temporaryRoot();
     await stageRun(root, 'run-1', {
       rows: [inventoryRow('a'), inventoryRow('b'), inventoryRow('c', 'unsupported')],
@@ -231,21 +230,68 @@ describe('dg12-grounded-ratio (G-3 / criterion 2)', () => {
     });
     const result = await runScript('dg12-grounded-ratio.mjs', [root, '--threshold', '60']);
     expect(result.code, result.stderr).toBe(0);
-    expect(result.stdout).toContain('2/3 rows grounded = 66.67%');
     expect(result.stdout).toContain(
-      "2/3 rows are 'extracted' = 66.67% is the MAXIMUM ATTAINABLE ratio",
+      'extractable grounded run-1: 2/2 extracted rows grounded = 100.00% (threshold 60%) -> pass',
     );
   });
 
-  it('fails below the threshold and names the ungrounded rows', async () => {
+  it('fails when one extracted row is ungrounded even though the legacy total ratio is at least 80%', async () => {
     const root = await temporaryRoot();
     await stageRun(root, 'run-1', {
-      rows: [inventoryRow('a'), inventoryRow('b')],
-      ledger: [ledgerRow('a', { intents: [groundedIntent('p1')] }), ledgerRow('b')],
+      rows: [
+        inventoryRow('a'),
+        inventoryRow('b'),
+        inventoryRow('c'),
+        inventoryRow('d'),
+        inventoryRow('e'),
+        inventoryRow('f'),
+      ],
+      ledger: [
+        ledgerRow('a', { intents: [groundedIntent('p1')] }),
+        ledgerRow('b', { intents: [groundedIntent('p2')] }),
+        ledgerRow('c', { intents: [groundedIntent('p3')] }),
+        ledgerRow('d', { intents: [groundedIntent('p4')] }),
+        ledgerRow('e', { intents: [groundedIntent('p5')] }),
+        ledgerRow('f'),
+      ],
     });
     const result = await runScript('dg12-grounded-ratio.mjs', [root]);
     expect(result.code).toBe(1);
-    expect(result.stderr).toContain('UNGROUNDED rows: b');
+    expect(result.stdout).toContain(
+      'extractable grounded run-1: 5/6 extracted rows grounded = 83.33% (threshold 100%) -> FAIL',
+    );
+    expect(result.stdout).toContain(
+      'recorded-legacy total ratio run-1: 5/6 rows grounded = 83.33%',
+    );
+    expect(result.stderr).toContain('UNGROUNDED rows: f');
+  });
+
+  it('does not penalize unextractable rows when every extracted row is grounded', async () => {
+    const root = await temporaryRoot();
+    await stageRun(root, 'run-1', {
+      rows: [
+        inventoryRow('a'),
+        inventoryRow('b', 'unextracted-with-reason'),
+        inventoryRow('c', 'unsupported'),
+        inventoryRow('d', 'unsafe'),
+        inventoryRow('e', 'unextracted-with-reason'),
+      ],
+      ledger: [
+        ledgerRow('a', { intents: [groundedIntent('p1')] }),
+        ledgerRow('b', { disposition: 'unextracted-with-reason' }),
+        ledgerRow('c', { disposition: 'unsupported' }),
+        ledgerRow('d', { disposition: 'unsafe' }),
+        ledgerRow('e', { disposition: 'unextracted-with-reason' }),
+      ],
+    });
+    const result = await runScript('dg12-grounded-ratio.mjs', [root]);
+    expect(result.code, result.stderr).toBe(0);
+    expect(result.stdout).toContain(
+      'extractable grounded run-1: 1/1 extracted rows grounded = 100.00% (threshold 100%) -> pass',
+    );
+    expect(result.stdout).toContain(
+      'recorded-legacy total ratio run-1: 1/5 rows grounded = 20.00%',
+    );
   });
 
   it('rejects an out-of-range threshold', async () => {
