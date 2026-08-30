@@ -106,7 +106,11 @@ describe('#301 follow-up real Chromium: formScope settles across a re-render', (
       );
       expect(result.observations[0]?.ok).toBe(false);
       expect(result.observations[0]?.locatorResolution).toEqual(
-        expect.objectContaining({ resolved: false, reason: 'semantic-ambiguous' }),
+        expect.objectContaining({
+          resolved: false,
+          reason: 'form-scope-ambiguous',
+          diagnostic: { phase: 'form-scope', candidateCount: 2 },
+        }),
       );
     } finally {
       await driver.close();

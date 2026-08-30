@@ -22,7 +22,10 @@ import type { BoundProposal } from './intent-proposer';
 import type { LeaseState } from '@arxic/policy-engine';
 import type {
   ExecutionLocator,
+  FormScope,
+  LocatorResolutionDiagnostic,
   LocatorResolutionFailure,
+  LocatorResolutionStrategy,
   SemanticLocator,
   StructuralControlConstraint,
 } from '@arxic/playwright-agent-adapter';
@@ -174,6 +177,12 @@ export type LocatorProvenanceRecord = Readonly<
     semantic: SemanticLocator;
     execution: ExecutionLocator;
     structuralConstraint?: StructuralControlConstraint;
+    /** Crawl-bound scope that selected this control on a duplicate-label surface. */
+    formScope?: FormScope;
+    /** Crawl-label strategy that selected this control, when resolution succeeded. */
+    resolutionStrategy?: LocatorResolutionStrategy;
+    /** Candidate counts for a fail-closed form-scope or semantic resolution failure. */
+    diagnostic?: LocatorResolutionDiagnostic;
   } & (
     | Readonly<{ resolved: true; sameElementProof: true }>
     | Readonly<{ resolved: false; reason: LocatorResolutionFailure }>

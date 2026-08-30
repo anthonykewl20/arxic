@@ -282,7 +282,7 @@ export async function runPlannedExploration(
         if (!step) continue;
         if (observation.locatorResolution) {
           locatorProvenance.push(
-            toLocatorProvenanceRecord(step.intent, observation.locatorResolution),
+            toLocatorProvenanceRecord(step.intent, observation.locatorResolution, step.formScope),
           );
         }
         classifyObservation(observation, step, diagnostics, decisions);
@@ -542,6 +542,7 @@ function isExecutableStep(step: PlanStep): boolean {
 function toLocatorProvenanceRecord(
   intent: string,
   resolution: LocatorResolution,
+  formScope: FormScope | undefined,
 ): LocatorProvenanceRecord {
   const locators = {
     semantic: resolution.semantic,
@@ -549,6 +550,11 @@ function toLocatorProvenanceRecord(
     ...(resolution.structuralConstraint
       ? { structuralConstraint: resolution.structuralConstraint }
       : {}),
+    ...(resolution.resolved && resolution.resolutionStrategy
+      ? { resolutionStrategy: resolution.resolutionStrategy }
+      : {}),
+    ...(!resolution.resolved && resolution.diagnostic ? { diagnostic: resolution.diagnostic } : {}),
+    ...(formScope ? { formScope } : {}),
   };
   return resolution.resolved
     ? {
@@ -571,7 +577,11 @@ function classifyObservation(
     if (step.required) {
       const code = locatorDiagnosticCode(reason);
       diagnostics.push(
-        explorationDiagnostic(code, step.intent, `Locator resolution failed: ${reason}`),
+        explorationDiagnostic(
+          code,
+          step.intent,
+          `Locator resolution failed: ${reason}${locatorResolutionDetail(observation.locatorResolution)}`,
+        ),
       );
     } else {
       decisions.push(
@@ -613,8 +623,11 @@ function locatorDiagnosticCode(
 ): ExplorationDiagnosticCode {
   switch (reason) {
     case 'semantic-ambiguous':
+    case 'form-scope-ambiguous':
     case 'execution-ambiguous':
       return ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS;
+    case 'semantic-unresolved':
+    case 'form-scope-unresolved':
     case 'semantic-inaccessible':
     case 'execution-inaccessible':
     case 'semantic-invalid':
@@ -627,6 +640,16 @@ function locatorDiagnosticCode(
       return exhaustive;
     }
   }
+}
+
+function locatorResolutionDetail(
+  resolution: Extract<NonNullable<StepObservation['locatorResolution']>, { resolved: false }>,
+): string {
+  if (!resolution.diagnostic) return '';
+  const strategies = resolution.diagnostic.strategyCounts
+    ?.map(({ strategy, count }) => `${strategy}=${count}`)
+    .join(',');
+  return ` (${resolution.diagnostic.phase} candidates=${resolution.diagnostic.candidateCount}${strategies ? `; ${strategies}` : ''})`;
 }
 
 function successfullyObserved(

@@ -197,9 +197,27 @@ describe('real stage-8 exploration proof', () => {
 
     expect(result.approved).toBe(true);
     expect(result.locatorProvenance?.records).toEqual([
-      { intent: 'fill login email', resolved: true, sameElementProof: true, ...email },
-      { intent: 'fill login password', resolved: true, sameElementProof: true, ...password },
-      { intent: 'click login submit', resolved: true, sameElementProof: true, ...submit },
+      {
+        intent: 'fill login email',
+        resolved: true,
+        sameElementProof: true,
+        resolutionStrategy: 'label',
+        ...email,
+      },
+      {
+        intent: 'fill login password',
+        resolved: true,
+        sameElementProof: true,
+        resolutionStrategy: 'label',
+        ...password,
+      },
+      {
+        intent: 'click login submit',
+        resolved: true,
+        sameElementProof: true,
+        resolutionStrategy: 'button-text-symmetric',
+        ...submit,
+      },
     ]);
     expect(JSON.stringify(result.locatorProvenance?.records)).not.toContain('executionHandle');
 
