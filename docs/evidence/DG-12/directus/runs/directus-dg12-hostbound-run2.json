@@ -1,0 +1,58 @@
+{
+ "kind": "dg11-validation-run-v1",
+ "schemaVersion": 1,
+ "target": {
+  "name": "directus",
+  "repository": "https://github.com/directus/directus",
+  "commit": "cb846b6a1ddc4811359bc52b74bb31a42eab33db"
+ },
+ "run": {
+  "runId": "directus-dg12-hostbound-run2",
+  "startedAt": "2026-08-30T09:59:36.840Z",
+  "completedAt": "2026-08-30T10:11:15.994Z",
+  "executor": "local"
+ },
+ "model": "unobserved",
+ "pricing": {
+  "pricePerMillionPrompt": 0.15,
+  "pricePerMillionCompletion": 0.6,
+  "reverifyNote": "list prices declared by the operator for this run; the owner re-verifies prices at read time (owner decision 2)"
+ },
+ "telemetry": [],
+ "measured": {
+  "calls": 0,
+  "promptTokens": 0,
+  "completionTokens": 0,
+  "latencyMsTotal": 0,
+  "estimatedCostUsd": 0.0202368,
+  "measuredCostUsd": 0
+ },
+ "ledger": {
+  "before": {
+   "cumulativeUsd": 0.02318635,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.97681365
+  },
+  "after": {
+   "cumulativeUsd": 0.02318635,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.97681365
+  }
+ },
+ "coverage": {
+  "rows": 105,
+  "coveredRows": 82,
+  "proposals": 95
+ },
+ "outcome": {
+  "exitCode": 0,
+  "status": "completed",
+  "outcome": "verified",
+  "finalStage": "stage-12"
+ },
+ "events": [],
+ "groundednessSpotCheck": {
+  "status": "pending",
+  "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+ }
+}
