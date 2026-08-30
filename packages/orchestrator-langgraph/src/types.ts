@@ -24,6 +24,7 @@ import type {
   ExecutionLocator,
   LocatorResolutionFailure,
   SemanticLocator,
+  StructuralControlConstraint,
 } from '@arxic/playwright-agent-adapter';
 
 export type RunStatus =
@@ -172,6 +173,7 @@ export type LocatorProvenanceRecord = Readonly<
     intent: string;
     semantic: SemanticLocator;
     execution: ExecutionLocator;
+    structuralConstraint?: StructuralControlConstraint;
   } & (
     | Readonly<{ resolved: true; sameElementProof: true }>
     | Readonly<{ resolved: false; reason: LocatorResolutionFailure }>

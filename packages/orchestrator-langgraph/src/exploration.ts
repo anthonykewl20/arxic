@@ -3,6 +3,7 @@ import { validateDiagnostic } from '@arxic/contracts';
 import {
   PlaywrightExplorationDriver,
   type ExplorationDriver,
+  type FormScope,
   type LocatorPair,
   type LocatorResolution,
   type PlannedExplorationStep,
@@ -84,7 +85,7 @@ export type PlanStep = Readonly<{
   required: boolean;
 }> &
   PlanStepExecution &
-  Readonly<{ formScope?: Readonly<{ fieldLabel: string; submitName: string }> }>;
+  Readonly<{ formScope?: FormScope }>;
 
 export type ExplorationPlan = Readonly<{ steps: readonly PlanStep[] }>;
 
@@ -542,7 +543,13 @@ function toLocatorProvenanceRecord(
   intent: string,
   resolution: LocatorResolution,
 ): LocatorProvenanceRecord {
-  const locators = { semantic: resolution.semantic, execution: resolution.execution };
+  const locators = {
+    semantic: resolution.semantic,
+    execution: resolution.execution,
+    ...(resolution.structuralConstraint
+      ? { structuralConstraint: resolution.structuralConstraint }
+      : {}),
+  };
   return resolution.resolved
     ? {
         intent,

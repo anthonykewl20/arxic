@@ -31,6 +31,24 @@ export type LocatorPair = Readonly<{
   execution: ExecutionLocator;
 }>;
 
+/** A crawl-observed intrinsic control identity used only to narrow a semantic locator. */
+export type StructuralControlConstraint = Readonly<{
+  tag: 'input' | 'button';
+  type: string;
+}>;
+
+/**
+ * Crawl-bound form geometry for a planned control. `control` identifies the
+ * control the current step drives; `submitControl` identifies the form that
+ * contains the plan's submit target. Both remain optional for legacy plans.
+ */
+export type FormScope = Readonly<{
+  fieldLabel: string;
+  submitName: string;
+  control?: StructuralControlConstraint;
+  submitControl?: StructuralControlConstraint;
+}>;
+
 export type LocatorResolutionFailure =
   | 'semantic-ambiguous'
   | 'semantic-inaccessible'
@@ -46,12 +64,14 @@ export type LocatorResolution =
       sameElementProof: true;
       semantic: SemanticLocator;
       execution: ExecutionLocator;
+      structuralConstraint?: StructuralControlConstraint;
     }>
   | Readonly<{
       resolved: false;
       reason: LocatorResolutionFailure;
       semantic: SemanticLocator;
       execution: ExecutionLocator;
+      structuralConstraint?: StructuralControlConstraint;
     }>;
 
 export type PlannedExplorationStep = Readonly<
@@ -71,14 +91,14 @@ export type PlannedExplorationStep = Readonly<
        * it (every pre-existing step), resolution stays page-global and behaves
        * byte-identically.
        */
-      formScope?: Readonly<{ fieldLabel: string; submitName: string }>;
+      formScope?: FormScope;
     }
   | {
       intent: string;
       kind: 'click';
       locator: LocatorPair;
       url?: string;
-      formScope?: Readonly<{ fieldLabel: string; submitName: string }>;
+      formScope?: FormScope;
     }
 >;
 
@@ -168,6 +188,9 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
                 sameElementProof: resolution.sameElementProof,
                 semantic: resolution.semantic,
                 execution: resolution.execution,
+                ...(resolution.structuralConstraint
+                  ? { structuralConstraint: resolution.structuralConstraint }
+                  : {}),
               }
             : resolution;
           if (!resolution.resolved) {
@@ -364,13 +387,20 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
   async #resolveControl(
     page: Page,
     pair: LocatorPair,
-    scope?: Readonly<{ fieldLabel: string; submitName: string }>,
+    scope?: FormScope,
   ): Promise<ControlResolution> {
+    const constrainedPair = withStructuralConstraint(pair, scope?.control);
     if (!validRoleSpecification(pair.semantic)) {
-      return { resolved: false, reason: 'semantic-invalid', ...pair };
+      return { resolved: false, reason: 'semantic-invalid', ...constrainedPair };
     }
     if (!validRoleSpecification(pair.execution)) {
-      return { resolved: false, reason: 'execution-invalid', ...pair };
+      return { resolved: false, reason: 'execution-invalid', ...constrainedPair };
+    }
+    if (
+      (scope?.control && !validStructuralConstraint(scope.control)) ||
+      (scope?.submitControl && !validStructuralConstraint(scope.submitControl))
+    ) {
+      return { resolved: false, reason: 'semantic-invalid', ...constrainedPair };
     }
 
     // DG-08 form scope: resolve the unique scoping form first (the DG-09
@@ -391,7 +421,13 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       const form = page
         .locator('form')
         .filter({ has: fieldAddressed })
-        .filter({ has: page.getByRole('button', { name: scope.submitName, exact: true }) });
+        .filter({
+          has: structurallyConstrainedLocator(
+            page,
+            { kind: 'role', role: 'button', name: scope.submitName, exact: true },
+            scope.submitControl,
+          ),
+        });
       // #301 follow-up (campaign round 4): an SPA re-renders its form after
       // hydration — the navigate step's observation can land mid-swap, so a
       // single immediate count read 0 and every fill/submit failed closed
@@ -407,7 +443,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
           formCount = await form.count();
         }
         if (formCount !== 1) {
-          return { resolved: false, reason: 'semantic-ambiguous', ...pair };
+          return { resolved: false, reason: 'semantic-ambiguous', ...constrainedPair };
         }
       }
       root = form;
@@ -415,7 +451,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
 
     let semanticLocator: Locator;
     try {
-      semanticLocator = playwrightLocator(root, pair.semantic);
+      semanticLocator = structurallyConstrainedLocator(root, pair.semantic, scope?.control);
       await semanticLocator.first().waitFor({
         state: 'attached',
         timeout: this.#options.timeoutMs,
@@ -424,26 +460,26 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       return {
         resolved: false,
         reason: invalidSelector(error) ? 'semantic-invalid' : 'semantic-inaccessible',
-        ...pair,
+        ...constrainedPair,
       };
     }
     let semanticCount: number;
     try {
       semanticCount = await semanticLocator.count();
     } catch {
-      return { resolved: false, reason: 'semantic-invalid', ...pair };
+      return { resolved: false, reason: 'semantic-invalid', ...constrainedPair };
     }
     if (semanticCount !== 1) {
       return {
         resolved: false,
         reason: semanticCount === 0 ? 'semantic-inaccessible' : 'semantic-ambiguous',
-        ...pair,
+        ...constrainedPair,
       };
     }
 
     let executionLocator: Locator;
     try {
-      executionLocator = playwrightLocator(root, pair.execution);
+      executionLocator = structurallyConstrainedLocator(root, pair.execution, scope?.control);
       await executionLocator.first().waitFor({
         state: 'attached',
         timeout: this.#options.timeoutMs,
@@ -452,20 +488,20 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       return {
         resolved: false,
         reason: invalidSelector(error) ? 'execution-invalid' : 'execution-inaccessible',
-        ...pair,
+        ...constrainedPair,
       };
     }
     let executionCount: number;
     try {
       executionCount = await executionLocator.count();
     } catch {
-      return { resolved: false, reason: 'execution-invalid', ...pair };
+      return { resolved: false, reason: 'execution-invalid', ...constrainedPair };
     }
     if (executionCount !== 1) {
       return {
         resolved: false,
         reason: executionCount === 0 ? 'execution-inaccessible' : 'execution-ambiguous',
-        ...pair,
+        ...constrainedPair,
       };
     }
 
@@ -476,7 +512,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       return {
         resolved: false,
         reason: strictModeViolation(error) ? 'semantic-ambiguous' : 'semantic-inaccessible',
-        ...pair,
+        ...constrainedPair,
       };
     }
     let executionHandle;
@@ -487,7 +523,7 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       return {
         resolved: false,
         reason: strictModeViolation(error) ? 'execution-ambiguous' : 'execution-inaccessible',
-        ...pair,
+        ...constrainedPair,
       };
     }
     try {
@@ -500,9 +536,9 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       const same = await page.evaluate(elementIdentityProbe, [semanticHandle, executionHandle]);
       if (!same) {
         await executionHandle.dispose();
-        return { resolved: false, reason: 'mismatch', ...pair };
+        return { resolved: false, reason: 'mismatch', ...constrainedPair };
       }
-      return { resolved: true, sameElementProof: true, executionHandle, ...pair };
+      return { resolved: true, sameElementProof: true, executionHandle, ...constrainedPair };
     } catch (error) {
       await executionHandle.dispose();
       throw error;
@@ -518,6 +554,7 @@ type ControlResolution =
       sameElementProof: true;
       semantic: SemanticLocator;
       execution: ExecutionLocator;
+      structuralConstraint?: StructuralControlConstraint;
       executionHandle: ElementHandle;
     }>
   | Extract<LocatorResolution, { resolved: false }>;
@@ -599,6 +636,31 @@ function playwrightLocator(
     case 'test-id':
       return root.getByTestId(specification.id);
   }
+}
+
+function structurallyConstrainedLocator(
+  root: Page | Locator,
+  specification: ValidatedLocatorSpecification,
+  constraint: StructuralControlConstraint | undefined,
+): Locator {
+  const semantic = playwrightLocator(root, specification);
+  if (!constraint) return semantic;
+  // The constraint is validated before this capability block is called. This
+  // intersection narrows a semantic candidate; it never selects by ordinal.
+  return semantic.and(root.locator(`${constraint.tag}[type="${constraint.type}"]`));
+}
+
+function withStructuralConstraint(
+  pair: LocatorPair,
+  constraint: StructuralControlConstraint | undefined,
+): LocatorPair & Readonly<{ structuralConstraint?: StructuralControlConstraint }> {
+  return constraint ? { ...pair, structuralConstraint: constraint } : pair;
+}
+
+function validStructuralConstraint(
+  constraint: StructuralControlConstraint,
+): constraint is StructuralControlConstraint {
+  return /^(?:input|button)$/u.test(constraint.tag) && /^[A-Za-z0-9_-]+$/u.test(constraint.type);
 }
 
 /**

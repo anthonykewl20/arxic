@@ -223,7 +223,19 @@ describe('#299 (F-E2): form-drive plan composes for the surface-resolvable candi
     expect(plan?.steps[0]?.intent).toBe('observe route /newsletter');
     const fills = plan?.steps.filter((step) => step.kind === 'fill');
     expect(fills?.map((step) => step.intent)).toEqual(['fill Email']);
+    expect(fills?.[0]?.formScope).toEqual({
+      fieldLabel: 'Email',
+      submitName: 'Subscribe',
+      control: { tag: 'input', type: 'email' },
+      submitControl: { tag: 'button', type: 'submit' },
+    });
     expect(plan?.steps.at(-1)?.kind).toBe('click');
+    expect(plan?.steps.at(-1)?.formScope).toEqual({
+      fieldLabel: 'Email',
+      submitName: 'Subscribe',
+      control: { tag: 'button', type: 'submit' },
+      submitControl: { tag: 'button', type: 'submit' },
+    });
   });
 
   it('composes no plan (undefined) when NO candidate resolves a form surface — never guesses', () => {
@@ -284,8 +296,16 @@ describe('form-surface projection from the crawl map', () => {
 
     const form = formSurfaceForRoute(koelSurface, '/');
     expect(form?.fields).toEqual([
-      { label: 'Your email address', inputRef: 'persona.email' },
-      { label: 'Your password', inputRef: 'persona.password' },
+      {
+        label: 'Your email address',
+        inputRef: 'persona.email',
+        control: { tag: 'input', type: 'email' },
+      },
+      {
+        label: 'Your password',
+        inputRef: 'persona.password',
+        control: { tag: 'input', type: 'password' },
+      },
     ]);
     const plan = composeProposalFormDrivePlan({
       candidates: [{ id: koelProposal.id }],
@@ -301,7 +321,13 @@ describe('form-surface projection from the crawl map', () => {
   it('derives labelled fields with persona input refs and the submit control name', () => {
     const form = formSurfaceForRoute(surfaceMap(), '/newsletter');
     expect(form).toBeDefined();
-    expect(form?.fields).toEqual([{ label: 'Email', inputRef: 'persona.email' }]);
+    expect(form?.fields).toEqual([
+      {
+        label: 'Email',
+        inputRef: 'persona.email',
+        control: { tag: 'input', type: 'email' },
+      },
+    ]);
     expect(form?.submitControlName).toBe('Subscribe');
     expect(form?.route).toBe('/newsletter');
   });

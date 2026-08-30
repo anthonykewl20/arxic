@@ -1,5 +1,6 @@
 import type { Diagnostic, EvidenceRef, EvidenceRefRuntime } from '@arxic/contracts';
 import type { SurfaceMap } from '@arxic/crawlee-adapter';
+import type { StructuralControlConstraint } from '@arxic/playwright-agent-adapter';
 import {
   PlaywrightCompiler,
   buildFormFlowWorkflow,
@@ -32,8 +33,9 @@ import {
 export type ProposalFormSurface = Readonly<{
   /** The ENTRY route: the crawl-surface page the form lives ON. */
   route: string;
-  fields: readonly FormFlowField[];
+  fields: readonly (FormFlowField & Readonly<{ control: StructuralControlConstraint }>)[];
   submitControlName: string;
+  submitControl: StructuralControlConstraint;
 }>;
 
 const FIELD_TYPES = new Set(['text', 'email', 'password', 'tel', 'number', 'search', 'url', '']);
@@ -84,9 +86,14 @@ export function formSurfaceForRoute(
         }
         if (actionPath !== route) continue;
         const fields = fillableFields(form.controls);
-        const submitControlName = submitControl(form.controls);
-        if (fields.length > 0 && submitControlName !== undefined) {
-          return { route: routeSurface.path, fields, submitControlName };
+        const submit = submitControl(form.controls);
+        if (fields.length > 0 && submit !== undefined) {
+          return {
+            route: routeSurface.path,
+            fields,
+            submitControlName: submit.name,
+            submitControl: submit.control,
+          };
         }
       }
     }
@@ -96,9 +103,14 @@ export function formSurfaceForRoute(
   if (exact) {
     for (const form of exact.forms) {
       const fields = fillableFields(form.controls);
-      const submitControlName = submitControl(form.controls);
-      if (fields.length > 0 && submitControlName !== undefined) {
-        return { route, fields, submitControlName };
+      const submit = submitControl(form.controls);
+      if (fields.length > 0 && submit !== undefined) {
+        return {
+          route,
+          fields,
+          submitControlName: submit.name,
+          submitControl: submit.control,
+        };
       }
     }
   }
@@ -107,8 +119,8 @@ export function formSurfaceForRoute(
 
 function fillableFields(
   controls: ReadonlyArray<{ tag: string; type: string; label?: string }>,
-): FormFlowField[] {
-  const fields: FormFlowField[] = [];
+): Array<FormFlowField & Readonly<{ control: StructuralControlConstraint }>> {
+  const fields: Array<FormFlowField & Readonly<{ control: StructuralControlConstraint }>> = [];
   for (const control of controls) {
     const label = control.label?.trim();
     if (!label) continue; // hidden csrf tokens and unlabelled controls
@@ -116,7 +128,11 @@ function fillableFields(
       continue;
     }
     if (control.tag === 'input' && FIELD_TYPES.has(control.type)) {
-      fields.push({ label, inputRef: inputRefForLabel(label) });
+      fields.push({
+        label,
+        inputRef: inputRefForLabel(label),
+        control: { tag: 'input', type: control.type },
+      });
     }
   }
   return fields;
@@ -124,12 +140,13 @@ function fillableFields(
 
 function submitControl(
   controls: ReadonlyArray<{ tag: string; type: string; label?: string }>,
-): string | undefined {
+): Readonly<{ name: string; control: StructuralControlConstraint }> | undefined {
   for (const control of controls) {
     const label = control.label?.trim();
     if (!label) continue;
     if (control.type === 'submit' || (control.tag === 'button' && control.type !== 'button')) {
-      return label;
+      if (control.tag !== 'input' && control.tag !== 'button') continue;
+      return { name: label, control: { tag: control.tag, type: control.type || 'submit' } };
     }
   }
   return undefined;
@@ -271,6 +288,7 @@ export function composeProposalFormDrivePlan(input: {
     const formScope = {
       fieldLabel: form.fields[0]!.label,
       submitName: form.submitControlName,
+      submitControl: form.submitControl,
     };
     for (const field of fills) {
       steps.push({
@@ -283,7 +301,7 @@ export function composeProposalFormDrivePlan(input: {
           semantic: { kind: 'label', text: field.label },
           execution: { kind: 'label', text: field.label },
         },
-        formScope,
+        formScope: { ...formScope, control: field.control },
         // Transient in-memory value (never journaled; redaction policy holds).
         value: values[field.inputRef]!,
       });
@@ -298,7 +316,7 @@ export function composeProposalFormDrivePlan(input: {
         semantic: { kind: 'role', role: 'button', name: form.submitControlName },
         execution: { kind: 'role', role: 'button', name: form.submitControlName },
       },
-      formScope,
+      formScope: { ...formScope, control: form.submitControl },
       ...(proposal.fixtureKinds && proposal.fixtureKinds.length === 1
         ? { fixtureKind: proposal.fixtureKinds[0] }
         : input.fallbackFixtureKind
