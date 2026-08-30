@@ -257,6 +257,47 @@ describe('#299 (F-E2): form-drive plan composes for the surface-resolvable candi
 });
 
 describe('form-surface projection from the crawl map', () => {
+  it('maps labelled email-address and password fields to the supplied persona values', () => {
+    const koelSurface: SurfaceMap = {
+      ...surfaceMap(),
+      routes: [
+        {
+          ...surfaceMap().routes[0]!,
+          path: '/',
+          forms: [
+            {
+              action: `${origin}/#/home`,
+              method: 'get',
+              destructive: false,
+              controls: [
+                { tag: 'input', type: 'email', label: 'Your email address', required: true },
+                { tag: 'input', type: 'password', label: 'Your password', required: true },
+                { tag: 'button', type: 'submit', label: 'Log In', required: false },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const koelRow = { ...row(), path: '/' };
+    const koelProposal = { ...proposal(), inventoryRowIds: [koelRow.id] };
+
+    const form = formSurfaceForRoute(koelSurface, '/');
+    expect(form?.fields).toEqual([
+      { label: 'Your email address', inputRef: 'persona.email' },
+      { label: 'Your password', inputRef: 'persona.password' },
+    ]);
+    const plan = composeProposalFormDrivePlan({
+      candidates: [{ id: koelProposal.id }],
+      proposals: [koelProposal],
+      rows: [koelRow],
+      surface: koelSurface,
+      origin,
+      values: { 'persona.email': 'persona@example.test', 'persona.password': 'not-a-real-secret' },
+    });
+    expect(plan?.steps.map((step) => step.kind)).toEqual(['navigate', 'fill', 'fill', 'click']);
+  });
+
   it('derives labelled fields with persona input refs and the submit control name', () => {
     const form = formSurfaceForRoute(surfaceMap(), '/newsletter');
     expect(form).toBeDefined();
