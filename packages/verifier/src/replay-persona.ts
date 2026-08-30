@@ -1,5 +1,5 @@
 import type { Diagnostic } from '@arxic/contracts';
-import { chromium } from '@playwright/test';
+import { chromium, type Page } from '@playwright/test';
 import {
   ARXIC_VERIFY_FIXTURE_DECLARATION_INVALID,
   ARXIC_VERIFY_FIXTURE_LOGIN_BLOCKED,
@@ -217,26 +217,40 @@ export type ReplayPersonaStorageState = Readonly<{
   >;
 }>;
 
+type ReplayLoginResult<TLoginSurface> = Readonly<{
+  storageState?: ReplayPersonaStorageState;
+  loginSurface?: TLoginSurface;
+}>;
+
 /**
  * #297 E2: perform the SAME per-pass replay-persona login, but return the
  * authenticated storage state instead of discarding it — the crawl tier's
  * authenticated-discovery bridge. Same diagnostics, same redaction, same
  * LOGIN-BLOCKED classification on failure.
  */
-export async function replayPersonaStorageState(options: {
+export async function replayPersonaStorageState<TLoginSurface = unknown>(options: {
   origin: string;
   declaration: ReplayPersonaDeclaration;
   persona: VerificationPersona;
   subject: string;
   timeoutMs?: number;
-}): Promise<ReplayPersonaStorageState> {
-  const state = await runReplayLogin(options, true);
-  if (state === undefined)
+  /**
+   * Optional structural observation of the uniquely scoped login form. It
+   * runs before any persona value is filled, so callers can capture labels,
+   * types, and submit semantics without a credential-bearing DOM snapshot.
+   */
+  captureLoginSurface?: (page: Page) => Promise<TLoginSurface>;
+}): Promise<ReplayPersonaStorageState & Readonly<{ loginSurface?: TLoginSurface }>> {
+  const result = await runReplayLogin(options, true);
+  if (result.storageState === undefined)
     throw replayLoginError(
       options.subject,
       'The replay-persona login capture failed to produce a storage state',
     );
-  return state;
+  return {
+    ...result.storageState,
+    ...(result.loginSurface === undefined ? {} : { loginSurface: result.loginSurface }),
+  };
 }
 
 export async function loginReplayPersona(options: {
@@ -249,16 +263,17 @@ export async function loginReplayPersona(options: {
   await runReplayLogin(options, false);
 }
 
-async function runReplayLogin(
+async function runReplayLogin<TLoginSurface>(
   options: {
     origin: string;
     declaration: ReplayPersonaDeclaration;
     persona: VerificationPersona;
     subject: string;
     timeoutMs?: number;
+    captureLoginSurface?: (page: Page) => Promise<TLoginSurface>;
   },
   captureStorageState: boolean,
-): Promise<ReplayPersonaStorageState | undefined> {
+): Promise<ReplayLoginResult<TLoginSurface>> {
   const timeoutMs = options.timeoutMs ?? 20_000;
   const { declaration, persona, subject } = options;
   const valueFor = personaValueLookup(persona);
@@ -275,6 +290,7 @@ async function runReplayLogin(
   }
   let browser;
   let captured: ReplayPersonaStorageState | undefined;
+  let loginSurface: TLoginSurface | undefined;
   try {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext();
@@ -349,6 +365,10 @@ async function runReplayLogin(
           'The declared login form was not uniquely found on the login route (semantic form scoping failed)',
         );
       }
+      // The form has been uniquely scoped by the same semantic locators that
+      // drive it. Let callers retain a structural surface BEFORE filling so
+      // persona values cannot enter their capture by this capability's flow.
+      loginSurface = await options.captureLoginSurface?.(page);
       for (const field of declaration.login.fields) {
         const resolver = resolveFieldLocator(field.label);
         const byLabel = resolver.locator;
@@ -438,7 +458,10 @@ async function runReplayLogin(
       // Teardown must not mask the login result.
     }
   }
-  return captured;
+  return {
+    ...(captured ? { storageState: captured } : {}),
+    ...(loginSurface ? { loginSurface } : {}),
+  };
 }
 
 function replayLoginError(subject: string, message: string): ReplayPersonaLoginError {

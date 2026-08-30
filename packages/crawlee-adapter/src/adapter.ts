@@ -50,6 +50,38 @@ type PageInventory = {
   links: Array<{ href: string; text: string }>;
 };
 
+type PreCrawlLoginSurface = Readonly<{
+  url: string;
+  inventory: PageInventory;
+}>;
+
+function routeSurfaceFromInventory(options: {
+  url: string;
+  depth: number;
+  inventory: PageInventory;
+  origin: string;
+  evidence?: EvidenceRefRuntime;
+}): RouteSurface {
+  const links: SurfaceLink[] = options.inventory.links
+    .map((link) => ({
+      ...link,
+      href: canonicalUrl(link.href),
+      external: !sameOrigin(link.href, options.origin),
+    }))
+    .sort((left, right) => codepointCompare(left.href, right.href));
+  return {
+    truthState: 'observed',
+    url: options.url,
+    path: new URL(options.url).pathname,
+    depth: options.depth,
+    title: options.inventory.title,
+    forms: options.inventory.forms,
+    controls: options.inventory.controls,
+    links,
+    ...(options.evidence ? { evidence: options.evidence } : {}),
+  };
+}
+
 /**
  * DG-289 (#289, SURFACE-005): this callback is serialized into the page by
  * `page.evaluate` (Playwright ships `Function.toString()` and evaluates it in
@@ -278,13 +310,6 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
           .catch(() => undefined);
         inventory = await page.evaluate<PageInventory>(pageInventoryProbe);
       }
-      const links: SurfaceLink[] = inventory.links
-        .map((link) => ({
-          ...link,
-          href: canonicalUrl(link.href),
-          external: !sameOrigin(link.href, input.origin),
-        }))
-        .sort((left, right) => codepointCompare(left.href, right.href));
       for (const form of inventory.forms.filter((candidate) => candidate.destructive)) {
         addDiagnostic(
           surfaceDiagnostic(
@@ -306,20 +331,16 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
             timestamp: this.#options.now(),
           }
         : undefined;
-      const surface: RouteSurface = {
-        truthState: 'observed',
+      const surface = routeSurfaceFromInventory({
         url: finalUrl,
-        path: new URL(finalUrl).pathname,
         depth,
-        title: inventory.title,
-        forms: inventory.forms,
-        controls: inventory.controls,
-        links,
+        inventory,
+        origin: input.origin,
         ...(evidence ? { evidence } : {}),
-      };
+      });
       const existing = routesByUrl.get(finalUrl);
       if (!existing || depth < existing.depth) routesByUrl.set(finalUrl, surface);
-      for (const link of links) {
+      for (const link of surface.links) {
         const nextDepth = depth + 1;
         if (link.external) {
           navigationEdges.push({
@@ -400,7 +421,7 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
     let replayStateSeeded = false;
     if (input.replayPersona) {
       try {
-        replayStorageState = await replayPersonaStorageState({
+        const replayLogin = await replayPersonaStorageState<PreCrawlLoginSurface>({
           origin: input.origin,
           declaration: input.replayPersona.declaration,
           persona: {
@@ -412,7 +433,42 @@ export class CrawleeSurfaceDiscoverer implements SurfaceDiscoverer {
           // 20s default before the honest ARXIC-SURFACE-009 refusal —
           // successful logins navigate long before this cap.
           timeoutMs: 10_000,
+          // The verifier invokes this after it has uniquely scoped the real
+          // login form but before it fills any persona value. The probe emits
+          // the identical value-free shape used by breadth discovery.
+          captureLoginSurface: async (page) => ({
+            url: canonicalUrl(page.url()),
+            inventory: await page.evaluate<PageInventory>(pageInventoryProbe),
+          }),
         });
+        replayStorageState = replayLogin;
+        const loginSurface = replayLogin.loginSurface;
+        // Attribute this observation to the URL the login capability had
+        // actually reached before submitting, not to the declared route or
+        // the post-login redirect. The crawler must remain same-origin.
+        if (loginSurface && sameOrigin(loginSurface.url, input.origin)) {
+          const evidence: EvidenceRefRuntime | undefined = appBuildDigest
+            ? {
+                kind: 'runtime',
+                runId,
+                appBuildDigest,
+                browser: 'chromium',
+                browserVersion: 'unknown',
+                url: loginSurface.url,
+                timestamp: this.#options.now(),
+              }
+            : undefined;
+          routesByUrl.set(
+            loginSurface.url,
+            routeSurfaceFromInventory({
+              url: loginSurface.url,
+              depth: 0,
+              inventory: loginSurface.inventory,
+              origin: input.origin,
+              ...(evidence ? { evidence } : {}),
+            }),
+          );
+        }
       } catch (error) {
         // #301 (AC-4): carry the login core's underlying failure in the
         // diagnostic detail so a refused login is diagnosable from the
