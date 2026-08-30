@@ -642,14 +642,15 @@ function successfullyObserved(
 /**
  * #306: trailing-slash-normalized same-resource comparison for navigation
  * steps — `…/admin` and `…/admin/` are the same resource after browser
- * normalization. This is the ONLY loosening: a different path, query, or
- * origin still does not match (disclosed in the PR).
+ * normalization. Browser-only fragments do not identify a server resource, so
+ * hash-router observations compare without them. A different path, query, or
+ * origin still does not match.
  */
 function sameResourceUrl(observed: string, planned: string): boolean {
-  if (observed === planned) return true;
+  const stripFragment = (url: string) => url.split('#', 1)[0]!;
   const trimTrailingSlash = (url: string) =>
     url.length > 1 && url.endsWith('/') ? url.slice(0, -1) : url;
-  return trimTrailingSlash(observed) === trimTrailingSlash(planned);
+  return trimTrailingSlash(stripFragment(observed)) === trimTrailingSlash(stripFragment(planned));
 }
 
 function formatDiagnostic(diagnostic: Diagnostic): string {

@@ -773,10 +773,10 @@ describe('stage-8 intent exploration', () => {
     expect(result.decisions.join('\n')).not.toContain(ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED);
   }, 15_000);
 
-  it('matches a navigate step modulo a trailing slash, but not a different path (#306)', async () => {
+  it('matches a hash-router navigation modulo fragment and trailing slash, but not a different path', async () => {
     const slashMatch = await run(
-      new FakeDriver([observation(`${origin}/admin/`)]),
-      { steps: [navigation('observe route /admin', '/admin')] },
+      new FakeDriver([observation(`${origin}/#/home`)]),
+      { steps: [navigation('observe route /', '/')] },
       1,
     );
     expect(slashMatch.decisions.join('\n')).not.toContain(ARXIC_EXPLORATION_TRANSITIONS_UNOBSERVED);

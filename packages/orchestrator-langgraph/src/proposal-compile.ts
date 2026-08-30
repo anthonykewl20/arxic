@@ -39,6 +39,12 @@ export type ProposalFormSurface = Readonly<{
 const FIELD_TYPES = new Set(['text', 'email', 'password', 'tel', 'number', 'search', 'url', '']);
 
 function inputRefForLabel(label: string): string {
+  // Persona values have a fixed, env-backed vocabulary. Preserve the crawl's
+  // exact label for locator fidelity, but map common accessible label variants
+  // to that vocabulary so a form such as "Your email address" is driveable.
+  if (/^(?:your\s+)?e-?mail(?:\s+address)?$/iu.test(label.trim())) return 'persona.email';
+  if (/^(?:your\s+)?password$/iu.test(label.trim())) return 'persona.password';
+  if (/^(?:your\s+)?new\s+password$/iu.test(label.trim())) return 'persona.newpassword';
   const slug = label
     .replace(/[^A-Za-z0-9]+/gu, '.')
     .replace(/^\.+|\.+$/gu, '')
