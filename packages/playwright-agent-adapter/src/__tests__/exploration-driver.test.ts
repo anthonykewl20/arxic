@@ -97,6 +97,93 @@ describe('PlaywrightExplorationDriver locator policy', () => {
     }
   });
 
+  it('drives the structurally identified login controls when duplicate labels occur across forms', async () => {
+    const driver = new PlaywrightExplorationDriver();
+    try {
+      const html = `<form action="/forgot">
+          <label>Your email address<input type="email" name="recovery-email"></label>
+          <button type="submit">Send reset</button>
+        </form>
+        <form action="/#/home">
+          <label>Your email address<input type="email" name="login-email"></label>
+          <label>Your email address<input type="text" name="email-hint"></label>
+          <label>Your password<input type="password" name="login-password"></label>
+          <button type="submit" onclick="event.preventDefault(); document.getElementById('status').textContent = this.form.elements['login-email'].value === 'persona@example.test' && this.form.elements['login-password'].value === 'Secret1!' ? 'Login form only' : 'Wrong form or control'">Log In</button>
+        </form><p id="status">Idle</p>`;
+      const url = `data:text/html,${encodeURIComponent(html)}`;
+      const loginScope = {
+        fieldLabel: 'Your email address',
+        submitName: 'Log In',
+        control: { tag: 'input', type: 'email' },
+        submitControl: { tag: 'button', type: 'submit' },
+      } as const;
+      const result = await driver.execute(
+        [
+          {
+            intent: 'fill login email',
+            kind: 'fill',
+            url,
+            locator: {
+              semantic: { kind: 'label', text: 'Your email address', exact: true },
+              execution: { kind: 'label', text: 'Your email address', exact: true },
+            },
+            formScope: loginScope,
+            value: 'persona@example.test',
+          },
+          {
+            intent: 'fill login password',
+            kind: 'fill',
+            locator: {
+              semantic: { kind: 'label', text: 'Your password', exact: true },
+              execution: { kind: 'label', text: 'Your password', exact: true },
+            },
+            formScope: {
+              ...loginScope,
+              control: { tag: 'input', type: 'password' },
+            },
+            value: 'Secret1!',
+          },
+          {
+            intent: 'submit login',
+            kind: 'click',
+            locator: {
+              semantic: { kind: 'role', role: 'button', name: 'Log In', exact: true },
+              execution: { kind: 'role', role: 'button', name: 'Log In', exact: true },
+            },
+            formScope: {
+              ...loginScope,
+              control: { tag: 'button', type: 'submit' },
+            },
+          },
+        ],
+        { allowedOrigin: url },
+      );
+
+      expect(result.observations.map((observation) => observation.ok)).toEqual([true, true, true]);
+      expect(result.observations.map((observation) => observation.locatorResolution)).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            resolved: true,
+            structuralConstraint: { tag: 'input', type: 'email' },
+          }),
+          expect.objectContaining({
+            resolved: true,
+            structuralConstraint: { tag: 'input', type: 'password' },
+          }),
+          expect.objectContaining({
+            resolved: true,
+            structuralConstraint: { tag: 'button', type: 'submit' },
+          }),
+        ]),
+      );
+      expect(JSON.stringify(result.observations[2]?.accessibilitySnapshot)).toContain(
+        'Login form only',
+      );
+    } finally {
+      await driver.close();
+    }
+  });
+
   it('rejects an injected ARIA role before constructing or acting through a locator', async () => {
     const driver = new PlaywrightExplorationDriver();
     try {

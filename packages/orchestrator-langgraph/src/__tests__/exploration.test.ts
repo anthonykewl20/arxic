@@ -975,14 +975,24 @@ describe('stage-8 intent exploration', () => {
         url: `${origin}/login`,
         ok: true,
         originDrifted: false,
-        locatorResolution: { resolved: true, sameElementProof: true, ...email },
+        locatorResolution: {
+          resolved: true,
+          sameElementProof: true,
+          structuralConstraint: { tag: 'input', type: 'email' },
+          ...email,
+        },
       },
       {
         intent: 'driver click observation',
         url: `${origin}/`,
         ok: true,
         originDrifted: false,
-        locatorResolution: { resolved: true, sameElementProof: true, ...submit },
+        locatorResolution: {
+          resolved: true,
+          sameElementProof: true,
+          structuralConstraint: { tag: 'button', type: 'submit' },
+          ...submit,
+        },
       },
     ]);
 
@@ -1031,12 +1041,14 @@ describe('stage-8 intent exploration', () => {
         intent: 'fill login email',
         resolved: true,
         sameElementProof: true,
+        structuralConstraint: { tag: 'input', type: 'email' },
         ...email,
       },
       {
         intent: 'click login submit',
         resolved: true,
         sameElementProof: true,
+        structuralConstraint: { tag: 'button', type: 'submit' },
         ...submit,
       },
     ]);
