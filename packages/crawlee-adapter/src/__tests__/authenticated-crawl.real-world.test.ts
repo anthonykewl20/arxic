@@ -160,6 +160,25 @@ describe('DG-297 E2: authenticated breadth discovery via replayPersona', () => {
           form.controls.some((control) => control.label === 'Email' && control.type === 'email'),
         ),
     ).toBe(true);
+
+    // The pre-crawl login interacted with this real anonymous form before its
+    // cookie seeded breadth discovery. Keep that surface: an authenticated
+    // crawl cannot reach it again. The capture stays structural — neither
+    // persona value may cross the adapter boundary into the recorded map.
+    const login = authenticated.routes.find((route) => route.path === '/login');
+    expect(login?.forms).toContainEqual(
+      expect.objectContaining({
+        action: `${authenticatedOrigin}/login`,
+        method: 'POST',
+        controls: expect.arrayContaining([
+          expect.objectContaining({ tag: 'input', type: 'email', label: 'Email' }),
+          expect.objectContaining({ tag: 'input', type: 'password', label: 'Password' }),
+          expect.objectContaining({ tag: 'button', type: 'submit', label: 'Login' }),
+        ]),
+      }),
+    );
+    expect(JSON.stringify(login)).not.toContain('persona@example.test');
+    expect(JSON.stringify(login)).not.toContain('PersonaPass9!');
   }, 180_000);
 
   it('emits a blocked diagnostic and still maps the anonymous tier when the login is refused', async () => {
