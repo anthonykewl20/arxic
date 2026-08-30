@@ -29,6 +29,11 @@ describe('PlaywrightExplorationDriver locator policy', () => {
         execution: { kind: 'test-id', id: 'save' },
       },
       reason: 'semantic-ambiguous',
+      diagnostic: {
+        phase: 'semantic',
+        candidateCount: 2,
+        strategyCounts: [{ strategy: 'text', count: 2 }],
+      },
     },
     {
       name: 'rejects an inaccessible semantic locator',
@@ -37,7 +42,17 @@ describe('PlaywrightExplorationDriver locator policy', () => {
         semantic: { kind: 'label', text: 'Email', exact: true },
         execution: { kind: 'test-id', id: 'email' },
       },
-      reason: 'semantic-inaccessible',
+      // This is a genuine zero-candidate surface; the refined expectation is
+      // stricter than the former generic inaccessible classification.
+      reason: 'semantic-unresolved',
+      diagnostic: {
+        phase: 'semantic',
+        candidateCount: 0,
+        strategyCounts: [
+          { strategy: 'label', count: 0 },
+          { strategy: 'placeholder-symmetric', count: 0 },
+        ],
+      },
     },
     {
       name: 'rejects an ambiguous execution locator',
@@ -66,7 +81,7 @@ describe('PlaywrightExplorationDriver locator policy', () => {
       },
       reason: 'mismatch',
     },
-  ] as const)('$name', async ({ html, locator, reason }) => {
+  ] as const)('$name', async ({ html, locator, reason, diagnostic }) => {
     // Each case navigates a new Chromium instance before resolving its static DOM. A
     // 250 ms locator-readiness window can expire under suite contention before the
     // semantic control attaches, masking the deliberately constructed execution
@@ -88,6 +103,7 @@ describe('PlaywrightExplorationDriver locator policy', () => {
             reason: reason satisfies LocatorResolutionFailure,
             semantic: locator.semantic,
             execution: locator.execution,
+            ...(diagnostic ? { diagnostic } : {}),
           },
         }),
       ]);
@@ -179,6 +195,223 @@ describe('PlaywrightExplorationDriver locator policy', () => {
       expect(JSON.stringify(result.observations[2]?.accessibilitySnapshot)).toContain(
         'Login form only',
       );
+    } finally {
+      await driver.close();
+    }
+  });
+
+  it('drives the live koel placeholder-only form through crawl-symmetric controls', async () => {
+    // Real koel probe: one form, empty label wrappers, literal aria-label
+    // "undefined", placeholder-only input naming, and a submit whose role
+    // name is nullified by its empty label wrapper.
+    const driver = new PlaywrightExplorationDriver({ timeoutMs: 750 });
+    try {
+      const url = `data:text/html,${encodeURIComponent(`<form data-testid="login-form">
+        <label><input aria-label="undefined" placeholder="Your email address" type="email"></label>
+        <label><input aria-label="undefined" placeholder="Your password" type="password"></label>
+        <label><button data-testid="submit" type="submit" onclick="event.preventDefault(); document.getElementById('status').textContent = 'submitted'">Log In</button></label>
+      </form><p id="status">idle</p>`)}`;
+      const scope = {
+        fieldLabel: 'Your email address',
+        submitName: 'Log In',
+        submitControl: { tag: 'button', type: 'submit' },
+      } as const;
+      const result = await driver.execute(
+        [
+          {
+            intent: 'fill Your email address',
+            kind: 'fill',
+            url,
+            locator: {
+              semantic: { kind: 'label', text: 'Your email address', exact: true },
+              execution: { kind: 'label', text: 'Your email address', exact: true },
+            },
+            formScope: { ...scope, control: { tag: 'input', type: 'email' } },
+            value: 'persona@example.test',
+          },
+          {
+            intent: 'fill Your password',
+            kind: 'fill',
+            locator: {
+              semantic: { kind: 'label', text: 'Your password', exact: true },
+              execution: { kind: 'label', text: 'Your password', exact: true },
+            },
+            formScope: { ...scope, control: { tag: 'input', type: 'password' } },
+            value: 'not-a-real-secret',
+          },
+          {
+            intent: 'submit Log In',
+            kind: 'click',
+            locator: {
+              semantic: { kind: 'role', role: 'button', name: 'Log In', exact: true },
+              execution: { kind: 'role', role: 'button', name: 'Log In', exact: true },
+            },
+            formScope: { ...scope, control: { tag: 'button', type: 'submit' } },
+          },
+        ],
+        { allowedOrigin: url },
+      );
+
+      expect(result.observations.map((observation) => observation.ok)).toEqual([true, true, true]);
+      expect(result.observations.map((observation) => observation.locatorResolution)).toEqual([
+        expect.objectContaining({
+          resolved: true,
+          sameElementProof: true,
+          resolutionStrategy: 'placeholder-symmetric',
+          structuralConstraint: { tag: 'input', type: 'email' },
+        }),
+        expect.objectContaining({
+          resolved: true,
+          sameElementProof: true,
+          resolutionStrategy: 'placeholder-symmetric',
+          structuralConstraint: { tag: 'input', type: 'password' },
+        }),
+        expect.objectContaining({
+          resolved: true,
+          sameElementProof: true,
+          resolutionStrategy: 'button-text-symmetric',
+          structuralConstraint: { tag: 'button', type: 'submit' },
+        }),
+      ]);
+      expect(JSON.stringify(result.observations[2]?.accessibilitySnapshot)).toContain('submitted');
+    } finally {
+      await driver.close();
+    }
+  });
+
+  it('blocks a scoped fill when label and placeholder strategies identify different controls', async () => {
+    const driver = new PlaywrightExplorationDriver({ timeoutMs: 750 });
+    try {
+      const url = `data:text/html,${encodeURIComponent(`<form>
+        <label>Shared email<input type="email" name="label-addressed"></label>
+        <input placeholder="Shared email" type="email" name="placeholder-addressed">
+        <button type="submit">Log In</button>
+      </form>`)}`;
+      const locator = {
+        semantic: { kind: 'label', text: 'Shared email', exact: true },
+        execution: { kind: 'label', text: 'Shared email', exact: true },
+      } as const;
+      const result = await driver.execute(
+        [
+          {
+            intent: 'fill cross-strategy ambiguous email',
+            kind: 'fill',
+            url,
+            locator,
+            formScope: {
+              fieldLabel: 'Shared email',
+              submitName: 'Log In',
+              control: { tag: 'input', type: 'email' },
+              submitControl: { tag: 'button', type: 'submit' },
+            },
+            value: 'persona@example.test',
+          },
+        ],
+        { allowedOrigin: url },
+      );
+
+      expect(result.observations[0]?.locatorResolution).toEqual({
+        resolved: false,
+        reason: 'semantic-ambiguous',
+        diagnostic: {
+          phase: 'semantic',
+          candidateCount: 2,
+          strategyCounts: [
+            { strategy: 'label', count: 1 },
+            { strategy: 'placeholder-symmetric', count: 1 },
+          ],
+        },
+        ...locator,
+        structuralConstraint: { tag: 'input', type: 'email' },
+      });
+    } finally {
+      await driver.close();
+    }
+  });
+
+  it('uses descendant-inclusive button text for a nested-span typed submit', async () => {
+    const driver = new PlaywrightExplorationDriver({ timeoutMs: 750 });
+    try {
+      const url = `data:text/html,${encodeURIComponent(`<form>
+        <label>Email<input type="email"></label>
+        <button type="submit" onclick="event.preventDefault(); document.getElementById('status').textContent = 'submitted'"><span>Log In</span></button>
+      </form><p id="status">idle</p>`)}`;
+      const locator = {
+        semantic: { kind: 'role', role: 'button', name: 'Log In', exact: true },
+        execution: { kind: 'role', role: 'button', name: 'Log In', exact: true },
+      } as const;
+      const result = await driver.execute(
+        [
+          {
+            intent: 'submit nested-span login',
+            kind: 'click',
+            url,
+            locator,
+            formScope: {
+              fieldLabel: 'Email',
+              submitName: 'Log In',
+              control: { tag: 'button', type: 'submit' },
+              submitControl: { tag: 'button', type: 'submit' },
+            },
+          },
+        ],
+        { allowedOrigin: url },
+      );
+
+      expect(result.observations[0]?.locatorResolution).toEqual(
+        expect.objectContaining({
+          resolved: true,
+          sameElementProof: true,
+          resolutionStrategy: 'button-text-symmetric',
+          structuralConstraint: { tag: 'button', type: 'submit' },
+        }),
+      );
+      expect(JSON.stringify(result.observations[0]?.accessibilitySnapshot)).toContain('submitted');
+    } finally {
+      await driver.close();
+    }
+  });
+
+  it('reports a non-unique typed submit form scope with its exact count', async () => {
+    const driver = new PlaywrightExplorationDriver({ timeoutMs: 750 });
+    try {
+      const url = `data:text/html,${encodeURIComponent(`<form>
+        <label><input aria-label="undefined" placeholder="Your email address" type="email"></label>
+        <label><button type="submit">Log In</button></label>
+      </form><form>
+        <label><input aria-label="undefined" placeholder="Your email address" type="email"></label>
+        <label><button type="submit">Log In</button></label>
+      </form>`)}`;
+      const result = await driver.execute(
+        [
+          {
+            intent: 'fill ambiguously scoped email',
+            kind: 'fill',
+            url,
+            locator: {
+              semantic: { kind: 'label', text: 'Your email address', exact: true },
+              execution: { kind: 'label', text: 'Your email address', exact: true },
+            },
+            formScope: {
+              fieldLabel: 'Your email address',
+              submitName: 'Log In',
+              submitControl: { tag: 'button', type: 'submit' },
+              control: { tag: 'input', type: 'email' },
+            },
+            value: 'persona@example.test',
+          },
+        ],
+        { allowedOrigin: url },
+      );
+
+      expect(result.observations[0]?.locatorResolution).toEqual({
+        resolved: false,
+        reason: 'form-scope-ambiguous',
+        diagnostic: { phase: 'form-scope', candidateCount: 2 },
+        semantic: { kind: 'label', text: 'Your email address', exact: true },
+        execution: { kind: 'label', text: 'Your email address', exact: true },
+        structuralConstraint: { tag: 'input', type: 'email' },
+      });
     } finally {
       await driver.close();
     }

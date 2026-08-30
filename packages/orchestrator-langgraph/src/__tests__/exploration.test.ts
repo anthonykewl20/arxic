@@ -840,6 +840,9 @@ describe('stage-8 intent exploration', () => {
 
   it.each([
     ['semantic-ambiguous', ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS],
+    ['semantic-unresolved', ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE],
+    ['form-scope-ambiguous', ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS],
+    ['form-scope-unresolved', ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE],
     ['execution-ambiguous', ARXIC_EXPLORATION_LOCATOR_AMBIGUOUS],
     ['semantic-inaccessible', ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE],
     ['execution-inaccessible', ARXIC_EXPLORATION_LOCATOR_INACCESSIBLE],
@@ -869,7 +872,7 @@ describe('stage-8 intent exploration', () => {
     expect(result.decisions.join('\n')).not.toContain('textbox');
   });
 
-  it('persists failed fill and click locator provenance with their executable intents', async () => {
+  it('persists failed fill and click locator provenance, including semantic candidate diagnostics', async () => {
     const email: LocatorPair = {
       semantic: { kind: 'label', text: 'Email', exact: true },
       execution: { kind: 'role', role: 'textbox', name: 'Email', exact: true },
@@ -893,7 +896,15 @@ describe('stage-8 intent exploration', () => {
         originDrifted: false,
         locatorResolution: {
           resolved: false,
-          reason: 'semantic-ambiguous',
+          reason: 'semantic-unresolved',
+          diagnostic: {
+            phase: 'semantic',
+            candidateCount: 0,
+            strategyCounts: [
+              { strategy: 'label', count: 0 },
+              { strategy: 'placeholder-symmetric', count: 0 },
+            ],
+          },
           ...submit,
         },
       },
@@ -953,10 +964,23 @@ describe('stage-8 intent exploration', () => {
       {
         intent: 'click login submit',
         resolved: false,
-        reason: 'semantic-ambiguous',
+        reason: 'semantic-unresolved',
+        diagnostic: {
+          phase: 'semantic',
+          candidateCount: 0,
+          strategyCounts: [
+            { strategy: 'label', count: 0 },
+            { strategy: 'placeholder-symmetric', count: 0 },
+          ],
+        },
         ...submit,
       },
     ]);
+    expect(result.decisions).toContainEqual(
+      expect.stringContaining(
+        'Locator resolution failed: semantic-unresolved (semantic candidates=0; label=0,placeholder-symmetric=0)',
+      ),
+    );
     expect(JSON.stringify(result)).not.toContain('must-not-be-persisted@example.test');
   });
 
@@ -1053,6 +1077,141 @@ describe('stage-8 intent exploration', () => {
       },
     ]);
     expect(JSON.stringify(result.locatorProvenance?.records)).not.toContain('executionHandle');
+  });
+
+  it('preserves the crawl form scope in duplicate-label form-drive provenance', async () => {
+    // Live koel shape: login and registration forms share these labels. The
+    // plan's typed Log In submit is the crawl-recorded identity that scopes
+    // both fill controls, so the serialized stage-8 receipt must retain it.
+    const email: LocatorPair = {
+      semantic: { kind: 'label', text: 'Your email address', exact: true },
+      execution: { kind: 'label', text: 'Your email address', exact: true },
+    };
+    const password: LocatorPair = {
+      semantic: { kind: 'label', text: 'Your password', exact: true },
+      execution: { kind: 'label', text: 'Your password', exact: true },
+    };
+    const submit: LocatorPair = {
+      semantic: { kind: 'role', role: 'button', name: 'Log In', exact: true },
+      execution: { kind: 'role', role: 'button', name: 'Log In', exact: true },
+    };
+    const scope = {
+      fieldLabel: 'Your email address',
+      submitName: 'Log In',
+      submitControl: { tag: 'button', type: 'submit' },
+    } as const;
+    const driver = new FakeDriver([
+      {
+        intent: 'fill Your email address',
+        url: `${origin}/#/home`,
+        ok: true,
+        originDrifted: false,
+        locatorResolution: {
+          resolved: true,
+          sameElementProof: true,
+          resolutionStrategy: 'placeholder-symmetric',
+          structuralConstraint: { tag: 'input', type: 'email' },
+          ...email,
+        },
+      },
+      {
+        intent: 'fill Your password',
+        url: `${origin}/#/home`,
+        ok: true,
+        originDrifted: false,
+        locatorResolution: {
+          resolved: true,
+          sameElementProof: true,
+          resolutionStrategy: 'placeholder-symmetric',
+          structuralConstraint: { tag: 'input', type: 'password' },
+          ...password,
+        },
+      },
+      {
+        intent: 'submit Log In',
+        url: `${origin}/#/home`,
+        ok: true,
+        originDrifted: false,
+        locatorResolution: {
+          resolved: true,
+          sameElementProof: true,
+          resolutionStrategy: 'button-text-symmetric',
+          structuralConstraint: { tag: 'button', type: 'submit' },
+          ...submit,
+        },
+      },
+    ]);
+
+    const result = await runPlannedExploration({
+      runId: 'koel-duplicate-label-provenance',
+      origin,
+      candidates: [],
+      budget: 3,
+      driver,
+      lease: {
+        id: 'koel-duplicate-label-provenance-lease',
+        owner: 'koel-duplicate-label-provenance',
+        expiresAt: '2099-01-01T00:00:00.000Z',
+        inUse: false,
+        requirement: { kind: 'persona' },
+      },
+      plan: {
+        steps: [
+          {
+            intent: 'fill Your email address',
+            action: 'fill',
+            actionClass: 'read-only',
+            kind: 'fill',
+            required: true,
+            locator: email,
+            formScope: { ...scope, control: { tag: 'input', type: 'email' } },
+            value: 'persona@example.test',
+          },
+          {
+            intent: 'fill Your password',
+            action: 'fill',
+            actionClass: 'read-only',
+            kind: 'fill',
+            required: true,
+            locator: password,
+            formScope: { ...scope, control: { tag: 'input', type: 'password' } },
+            value: 'not-a-real-secret',
+          },
+          {
+            intent: 'submit Log In',
+            action: 'form-submit',
+            actionClass: 'reversible-mutation',
+            fixtureKind: 'persona',
+            kind: 'click',
+            required: true,
+            locator: submit,
+            formScope: { ...scope, control: { tag: 'button', type: 'submit' } },
+          },
+        ],
+      },
+      now: () => '2026-08-30T13:37:40.654Z',
+    });
+
+    expect(result.locatorProvenance?.records).toEqual([
+      expect.objectContaining({
+        intent: 'fill Your email address',
+        resolutionStrategy: 'placeholder-symmetric',
+        structuralConstraint: { tag: 'input', type: 'email' },
+        formScope: { ...scope, control: { tag: 'input', type: 'email' } },
+      }),
+      expect.objectContaining({
+        intent: 'fill Your password',
+        resolutionStrategy: 'placeholder-symmetric',
+        structuralConstraint: { tag: 'input', type: 'password' },
+        formScope: { ...scope, control: { tag: 'input', type: 'password' } },
+      }),
+      expect.objectContaining({
+        intent: 'submit Log In',
+        resolutionStrategy: 'button-text-symmetric',
+        structuralConstraint: { tag: 'button', type: 'submit' },
+        formScope: { ...scope, control: { tag: 'button', type: 'submit' } },
+      }),
+    ]);
   });
 
   it('keeps an unresolved optional locator observed-degraded instead of blocked-approved', async () => {

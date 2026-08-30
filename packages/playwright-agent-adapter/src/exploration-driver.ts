@@ -49,10 +49,33 @@ export type FormScope = Readonly<{
   submitControl?: StructuralControlConstraint;
 }>;
 
+/** Crawl-label strategy that selected the semantic candidate for a driven control. */
+export type LocatorResolutionStrategy =
+  | 'label'
+  | 'placeholder-symmetric'
+  | 'label-or-placeholder-symmetric'
+  | 'role'
+  | 'button-text-symmetric'
+  | 'role-or-button-text-symmetric'
+  | 'text'
+  | 'test-id';
+
+export type LocatorResolutionDiagnostic = Readonly<{
+  phase: 'form-scope' | 'semantic';
+  candidateCount: number;
+  strategyCounts?: readonly Readonly<{
+    strategy: LocatorResolutionStrategy;
+    count: number;
+  }>[];
+}>;
+
 export type LocatorResolutionFailure =
   | 'semantic-ambiguous'
+  | 'semantic-unresolved'
   | 'semantic-inaccessible'
   | 'semantic-invalid'
+  | 'form-scope-ambiguous'
+  | 'form-scope-unresolved'
   | 'execution-ambiguous'
   | 'execution-inaccessible'
   | 'execution-invalid'
@@ -65,6 +88,7 @@ export type LocatorResolution =
       semantic: SemanticLocator;
       execution: ExecutionLocator;
       structuralConstraint?: StructuralControlConstraint;
+      resolutionStrategy?: LocatorResolutionStrategy;
     }>
   | Readonly<{
       resolved: false;
@@ -72,6 +96,7 @@ export type LocatorResolution =
       semantic: SemanticLocator;
       execution: ExecutionLocator;
       structuralConstraint?: StructuralControlConstraint;
+      diagnostic?: LocatorResolutionDiagnostic;
     }>;
 
 export type PlannedExplorationStep = Readonly<
@@ -190,6 +215,9 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
                 execution: resolution.execution,
                 ...(resolution.structuralConstraint
                   ? { structuralConstraint: resolution.structuralConstraint }
+                  : {}),
+                ...(resolution.resolutionStrategy
+                  ? { resolutionStrategy: resolution.resolutionStrategy }
                   : {}),
               }
             : resolution;
@@ -415,17 +443,19 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
       // closed as ambiguous. The fallback addresses controls the same way
       // the crawl (E1) labels them; the unique-form (count === 1) gate is
       // unchanged.
-      const fieldAddressed = page
-        .getByLabel(scope.fieldLabel)
-        .or(page.getByPlaceholder(scope.fieldLabel));
+      const fieldAddressed = locatorFromStrategies(
+        locatorStrategies(page, { kind: 'label', text: scope.fieldLabel, exact: true }, undefined),
+      );
       const form = page
         .locator('form')
         .filter({ has: fieldAddressed })
         .filter({
-          has: structurallyConstrainedLocator(
-            page,
-            { kind: 'role', role: 'button', name: scope.submitName, exact: true },
-            scope.submitControl,
+          has: locatorFromStrategies(
+            locatorStrategies(
+              page,
+              { kind: 'role', role: 'button', name: scope.submitName, exact: true },
+              scope.submitControl,
+            ),
           ),
         });
       // #301 follow-up (campaign round 4): an SPA re-renders its form after
@@ -443,23 +473,61 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
           formCount = await form.count();
         }
         if (formCount !== 1) {
-          return { resolved: false, reason: 'semantic-ambiguous', ...constrainedPair };
+          return {
+            resolved: false,
+            reason: formCount === 0 ? 'form-scope-unresolved' : 'form-scope-ambiguous',
+            diagnostic: { phase: 'form-scope', candidateCount: formCount },
+            ...constrainedPair,
+          };
         }
       }
       root = form;
     }
 
-    let semanticLocator: Locator;
+    let semanticLocator: Locator | undefined;
+    let semanticStrategies: readonly LocatorStrategyEntry[] = [];
     try {
-      semanticLocator = structurallyConstrainedLocator(root, pair.semantic, scope?.control);
+      semanticStrategies = locatorStrategies(root, pair.semantic, scope?.control);
+      semanticLocator = locatorFromStrategies(semanticStrategies);
       await semanticLocator.first().waitFor({
         state: 'attached',
         timeout: this.#options.timeoutMs,
       });
     } catch (error) {
+      if (invalidSelector(error)) {
+        return { resolved: false, reason: 'semantic-invalid', ...constrainedPair };
+      }
+      if (!semanticLocator)
+        return { resolved: false, reason: 'semantic-invalid', ...constrainedPair };
+      const strategyCounts = await strategyCountsOf(semanticStrategies);
+      if (strategyCounts?.every(({ count }) => count === 0)) {
+        return {
+          resolved: false,
+          reason: 'semantic-unresolved',
+          diagnostic: { phase: 'semantic', candidateCount: 0, strategyCounts },
+          ...constrainedPair,
+        };
+      }
+      const candidateCount = await semanticLocator.count();
       return {
         resolved: false,
-        reason: invalidSelector(error) ? 'semantic-invalid' : 'semantic-inaccessible',
+        reason: candidateCount === 0 ? 'semantic-unresolved' : 'semantic-inaccessible',
+        diagnostic: { phase: 'semantic', candidateCount, strategyCounts },
+        ...constrainedPair,
+      };
+    }
+    if (!semanticLocator)
+      return { resolved: false, reason: 'semantic-invalid', ...constrainedPair };
+    const semanticStrategyCounts = await strategyCountsOf(semanticStrategies);
+    if (semanticStrategyCounts?.every(({ count }) => count === 0)) {
+      return {
+        resolved: false,
+        reason: 'semantic-unresolved',
+        diagnostic: {
+          phase: 'semantic',
+          candidateCount: 0,
+          strategyCounts: semanticStrategyCounts,
+        },
         ...constrainedPair,
       };
     }
@@ -472,14 +540,26 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
     if (semanticCount !== 1) {
       return {
         resolved: false,
-        reason: semanticCount === 0 ? 'semantic-inaccessible' : 'semantic-ambiguous',
+        reason: semanticCount === 0 ? 'semantic-unresolved' : 'semantic-ambiguous',
+        diagnostic: {
+          phase: 'semantic',
+          candidateCount: semanticCount,
+          strategyCounts: semanticStrategyCounts,
+        },
         ...constrainedPair,
       };
     }
+    const resolutionStrategy = selectedStrategies(
+      semanticStrategies,
+      semanticStrategyCounts,
+      preferredStrategyFor(pair.semantic),
+    )[0]?.strategy;
 
     let executionLocator: Locator;
+    let executionStrategies: readonly LocatorStrategyEntry[];
     try {
-      executionLocator = structurallyConstrainedLocator(root, pair.execution, scope?.control);
+      executionStrategies = locatorStrategies(root, pair.execution, scope?.control);
+      executionLocator = locatorFromStrategies(executionStrategies);
       await executionLocator.first().waitFor({
         state: 'attached',
         timeout: this.#options.timeoutMs,
@@ -538,7 +618,13 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
         await executionHandle.dispose();
         return { resolved: false, reason: 'mismatch', ...constrainedPair };
       }
-      return { resolved: true, sameElementProof: true, executionHandle, ...constrainedPair };
+      return {
+        resolved: true,
+        sameElementProof: true,
+        executionHandle,
+        ...constrainedPair,
+        ...(resolutionStrategy ? { resolutionStrategy } : {}),
+      };
     } catch (error) {
       await executionHandle.dispose();
       throw error;
@@ -555,6 +641,7 @@ type ControlResolution =
       semantic: SemanticLocator;
       execution: ExecutionLocator;
       structuralConstraint?: StructuralControlConstraint;
+      resolutionStrategy?: LocatorResolutionStrategy;
       executionHandle: ElementHandle;
     }>
   | Extract<LocatorResolution, { resolved: false }>;
@@ -617,37 +704,128 @@ function originOf(url: string): string | undefined {
   }
 }
 
-function playwrightLocator(
-  root: Page | Locator,
-  specification: ValidatedLocatorSpecification,
-): Locator {
-  switch (specification.kind) {
-    case 'role':
-      return root.getByRole(specification.role, {
-        ...(specification.name === undefined ? {} : { name: specification.name }),
-        ...(specification.exact === undefined ? {} : { exact: specification.exact }),
-      });
-    case 'label':
-      return labelOrPlaceholderLocator(root, specification);
-    case 'text':
-      return root.getByText(specification.text, {
-        ...(specification.exact === undefined ? {} : { exact: specification.exact }),
-      });
-    case 'test-id':
-      return root.getByTestId(specification.id);
-  }
-}
+type LocatorStrategyEntry = Readonly<{
+  strategy: LocatorResolutionStrategy;
+  locator: Locator;
+}>;
 
-function structurallyConstrainedLocator(
+function locatorStrategies(
   root: Page | Locator,
   specification: ValidatedLocatorSpecification,
   constraint: StructuralControlConstraint | undefined,
-): Locator {
-  const semantic = playwrightLocator(root, specification);
-  if (!constraint) return semantic;
-  // The constraint is validated before this capability block is called. This
-  // intersection narrows a semantic candidate; it never selects by ordinal.
-  return semantic.and(root.locator(`${constraint.tag}[type="${constraint.type}"]`));
+): readonly LocatorStrategyEntry[] {
+  const constrain = (locator: Locator): Locator => {
+    if (!constraint) return locator;
+    // The constraint is validated before this capability block is called. This
+    // intersection narrows a semantic candidate; it never selects by ordinal.
+    return locator.and(root.locator(`${constraint.tag}[type="${constraint.type}"]`));
+  };
+  switch (specification.kind) {
+    case 'label':
+      return [
+        {
+          strategy: 'label',
+          locator: constrain(
+            root
+              .getByLabel(specification.text, {
+                ...(specification.exact === undefined ? {} : { exact: specification.exact }),
+              })
+              .and(root.locator(':not([aria-label="undefined"]):not([aria-label="null"])')),
+          ),
+        },
+        {
+          strategy: 'placeholder-symmetric',
+          locator: constrain(
+            root.getByPlaceholder(specification.text, {
+              ...(specification.exact === undefined ? {} : { exact: specification.exact }),
+            }),
+          ),
+        },
+      ];
+    case 'role': {
+      const role = constrain(
+        root.getByRole(specification.role as AriaRole, {
+          ...(specification.name === undefined ? {} : { name: specification.name }),
+          ...(specification.exact === undefined ? {} : { exact: specification.exact }),
+        }),
+      );
+      if (specification.role !== 'button' || specification.name === undefined) {
+        return [{ strategy: 'role', locator: role }];
+      }
+      return [
+        { strategy: 'role', locator: role },
+        {
+          // The crawl's final label fallback is button text. Some SPAs wrap a
+          // button in an empty label that removes its accessible role name;
+          // retain crawl↔drive symmetry over descendant text, then reapply the
+          // typed button guard.
+          strategy: 'button-text-symmetric',
+          locator: constrain(
+            root.locator('button').filter({
+              hasText: textContentMatcher(specification.name, specification.exact),
+            }),
+          ),
+        },
+      ];
+    }
+    case 'text':
+      return [
+        {
+          strategy: 'text',
+          locator: constrain(
+            root.getByText(specification.text, {
+              ...(specification.exact === undefined ? {} : { exact: specification.exact }),
+            }),
+          ),
+        },
+      ];
+    case 'test-id':
+      return [{ strategy: 'test-id', locator: constrain(root.getByTestId(specification.id)) }];
+  }
+}
+
+function locatorFromStrategies(strategies: readonly LocatorStrategyEntry[]): Locator {
+  const first = strategies[0];
+  if (!first) throw new Error('No semantic locator strategy was constructed');
+  return strategies
+    .slice(1)
+    .reduce((locator, candidate) => locator.or(candidate.locator), first.locator);
+}
+
+function textContentMatcher(text: string, exact: boolean | undefined): string | RegExp {
+  if (!exact) return text;
+  return new RegExp(`^\\s*${text.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')}\\s*$`, 'u');
+}
+
+async function strategyCountsOf(
+  strategies: readonly LocatorStrategyEntry[],
+): Promise<LocatorResolutionDiagnostic['strategyCounts']> {
+  return Promise.all(
+    strategies.map(async ({ strategy, locator }) => ({ strategy, count: await locator.count() })),
+  );
+}
+
+function selectedStrategies(
+  strategies: readonly LocatorStrategyEntry[],
+  counts: LocatorResolutionDiagnostic['strategyCounts'],
+  preferred: LocatorResolutionStrategy | undefined,
+): readonly LocatorStrategyEntry[] {
+  const preferredIndex = preferred
+    ? counts?.findIndex(({ strategy, count }) => strategy === preferred && count > 0)
+    : -1;
+  const selectedIndex =
+    preferredIndex !== undefined && preferredIndex >= 0
+      ? preferredIndex
+      : (counts?.findIndex(({ count }) => count > 0) ?? -1);
+  return selectedIndex < 0 ? strategies : [strategies[selectedIndex]!];
+}
+
+function preferredStrategyFor(
+  specification: ValidatedLocatorSpecification,
+): LocatorResolutionStrategy | undefined {
+  return specification.kind === 'role' && specification.role === 'button'
+    ? 'button-text-symmetric'
+    : undefined;
 }
 
 function withStructuralConstraint(
@@ -661,26 +839,6 @@ function validStructuralConstraint(
   constraint: StructuralControlConstraint,
 ): constraint is StructuralControlConstraint {
   return /^(?:input|button)$/u.test(constraint.tag) && /^[A-Za-z0-9_-]+$/u.test(constraint.type);
-}
-
-/**
- * #301 (F-E3A): label-first with placeholder fallback (#295 semantics).
- * A 'label'-kind locator may address a control the page addresses ONLY by
- * placeholder (the real directus login shape: zero <label> elements). The
- * fallback is decided INSIDE the attach-wait flow (#resolveControl wraps
- * this locator with waitFor(attached)) — an unhydrated page's empty counts
- * settle before the wait gate, never before it.
- */
-function labelOrPlaceholderLocator(
-  root: Page | Locator,
-  specification: { text: string; exact?: boolean },
-): Locator {
-  const options = {
-    ...(specification.exact === undefined ? {} : { exact: specification.exact }),
-  };
-  const byLabel = root.getByLabel(specification.text, options);
-  const byPlaceholder = root.getByPlaceholder(specification.text, options);
-  return byLabel.or(byPlaceholder);
 }
 
 async function attachedToDom(handle: ElementHandle): Promise<boolean> {
