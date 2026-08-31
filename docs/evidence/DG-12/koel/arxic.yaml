@@ -55,6 +55,7 @@ target:
   allowedOrigins:
     - http://127.0.0.1:DG11-PROXY-PORT
     - http://127.0.0.1:8123
+    - https://app.lemonsqueezy.com
 policy:
   maxUrls: 8
   maxDepth: 1

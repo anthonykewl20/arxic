@@ -1,0 +1,58 @@
+{
+ "kind": "dg11-validation-run-v1",
+ "schemaVersion": 1,
+ "target": {
+  "name": "koel",
+  "repository": "https://github.com/koel/koel",
+  "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b"
+ },
+ "run": {
+  "runId": "koel-dg12-hostbound-run8",
+  "startedAt": "2026-08-30T18:11:57.065Z",
+  "completedAt": "2026-08-30T18:30:38.524Z",
+  "executor": "local"
+ },
+ "model": "unobserved",
+ "pricing": {
+  "pricePerMillionPrompt": 0.15,
+  "pricePerMillionCompletion": 0.6,
+  "reverifyNote": "list prices declared by the operator for this run; the owner re-verifies prices at read time (owner decision 2)"
+ },
+ "telemetry": [],
+ "measured": {
+  "calls": 0,
+  "promptTokens": 0,
+  "completionTokens": 0,
+  "latencyMsTotal": 0,
+  "estimatedCostUsd": 0.0227664,
+  "measuredCostUsd": 0
+ },
+ "ledger": {
+  "before": {
+   "cumulativeUsd": 0.0135657,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.9864343
+  },
+  "after": {
+   "cumulativeUsd": 0.0135657,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.9864343
+  }
+ },
+ "coverage": {
+  "rows": 315,
+  "coveredRows": 304,
+  "proposals": 288
+ },
+ "outcome": {
+  "exitCode": 1,
+  "status": "partial",
+  "outcome": "blocked",
+  "finalStage": "stage-12"
+ },
+ "events": [],
+ "groundednessSpotCheck": {
+  "status": "pending",
+  "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+ }
+}
