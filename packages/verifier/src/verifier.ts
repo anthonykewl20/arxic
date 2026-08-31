@@ -61,6 +61,8 @@ export type PlaywrightVerifierOptions = {
   outputDirectory: string;
   origin: string;
   artifactsDir: string;
+  /** Additive network origins permitted alongside the declared target origin. */
+  allowedOrigins?: readonly string[];
   persona?: VerificationPersona;
   resetAndSeed?: (run: number) => Promise<void>;
   /**
@@ -91,6 +93,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #outputDirectory: string;
   readonly #origin: string;
   readonly #artifactsDirectory: string;
+  readonly #allowedOrigins: readonly string[] | undefined;
   readonly #persona: VerificationPersona | undefined;
   readonly #resetAndSeed: ((run: number) => Promise<void>) | undefined;
   readonly #replayPersona: ReplayPersonaDeclaration | undefined;
@@ -114,6 +117,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     this.#outputDirectory = options.outputDirectory;
     this.#origin = new URL(options.origin).href;
     this.#artifactsDirectory = options.artifactsDir;
+    this.#allowedOrigins = options.allowedOrigins;
     this.#persona = options.persona;
     this.#resetAndSeed = options.resetAndSeed;
     this.#replayPersona = options.replayPersona;
@@ -246,8 +250,13 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       screenshotPolicy = serializeScreenshotPrivacyPolicy(this.#screenshotPrivacyPolicy);
       const runtime = Object.values(bundle.evidenceIndex).find((item) => item.kind === 'runtime');
       if (!runtime) throw new Error('Runtime evidence is required to bind the generated spec');
-      const expectedSpec = generateSpec(bundle.workflow, this.#origin, runtime.url).spec;
-      const expectedFixture = generateFixture(bundle.workflow);
+      const expectedSpec = generateSpec(bundle.workflow, this.#origin, runtime.url, {
+        ...(this.#allowedOrigins ? { allowedOrigins: this.#allowedOrigins } : {}),
+      }).spec;
+      const expectedFixture = generateFixture(
+        bundle.workflow,
+        this.#allowedOrigins ? [...this.#allowedOrigins] : undefined,
+      );
       const expectedTransitionReceiptRuntime = transitionReceiptRuntimeSource();
       const expectedConfig = generateConfig(bundle.workflow);
       const expectedRuntime = screenshotPrivacyRuntimeSource();

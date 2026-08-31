@@ -1,11 +1,6 @@
 import { execFile, spawn, type ChildProcess } from 'node:child_process';
-import {
-  createServer as createNetServer,
-  createConnection as createNetConnection,
-  type Server as NetServer,
-  type Socket,
-} from 'node:net';
-import { createServer as createHttpServer } from 'node:http';
+import { type Server as NetServer } from 'node:net';
+import { createServer as createHttpServer, request as requestHttp } from 'node:http';
 import { cp, mkdtemp, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -32,9 +27,13 @@ export type ThirdPartyTarget = {
   targetOrigin: string;
   /** The app's direct origin (boot-seeding only; never given to arxic). */
   appOrigin: string;
+  /** A second loopback origin that serves the embedded third-party widget. */
+  widgetOrigin: string;
   persona: { email: string; password: string };
   /** Every blocked arxic-protocol request, `${method} ${path} -> 404`. */
   blockedRequests: () => string[];
+  /** Requests made by the injected embedded-widget script. */
+  widgetRequests: () => string[];
   stop: () => Promise<void>;
 };
 
@@ -42,6 +41,8 @@ export async function bootThirdPartyTarget(options: {
   nonce: string;
   persona?: { email: string; password: string };
   mailpitSmtp?: string;
+  /** Inject a real second-origin widget script into navigated HTML documents. */
+  widgetRequest?: boolean;
 }): Promise<ThirdPartyTarget> {
   const persona = options.persona ?? {
     email: 'third-party-admin@example.test',
@@ -88,34 +89,81 @@ export async function bootThirdPartyTarget(options: {
   if (!seeded.ok) throw new Error(`Boot-seed failed: ${seeded.status}`);
 
   const blockedLog: string[] = [];
-  // A RAW TCP reverse proxy (like a real front proxy): bytes flow untouched,
-  // so the Host header the browser sent (the proxy origin) is exactly what
-  // the app sees — Next.js server-action origin validation compares Origin
-  // against Host, and both stay the target origin. Only the two arxic
-  // fixture endpoints are refused, making the target endpoint-less.
-  const proxySockets = new Set<Socket>();
-  const proxy = createNetServer((socket) => {
-    proxySockets.add(socket);
-    socket.on('close', () => proxySockets.delete(socket));
-    socket.once('data', (first: Buffer) => {
-      const requestLine = first.subarray(0, first.indexOf('\r\n')).toString('utf8');
-      const [method, target] = requestLine.split(' ');
-      const path = new URL(target ?? '/', targetOrigin).pathname;
-      if (path === '/__arxic/reset' || path === '/__arxic/seed') {
-        blockedLog.push(`${new Date().toISOString()} ${method} ${path} -> 404`);
-        const body = `Cannot ${method} ${path}`;
-        socket.end(
-          `HTTP/1.1 404 Not Found\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: ${Buffer.byteLength(body)}\r\nConnection: close\r\n\r\n${body}`,
-        );
-        return;
-      }
-      const upstream = createNetConnection(appPort, '127.0.0.1');
-      upstream.on('error', () => socket.destroy());
-      socket.on('error', () => upstream.destroy());
-      upstream.write(first);
-      upstream.pipe(socket);
-      socket.pipe(upstream);
+  const widgetRequests: string[] = [];
+  const widgetPort = await freePort();
+  const widgetOrigin = `http://127.0.0.1:${widgetPort}`;
+  const widgetServer = createHttpServer((request, response) => {
+    widgetRequests.push(`${request.method} ${request.url}`);
+    if (request.url === '/widget.js') {
+      response.writeHead(302, { location: '/widget-ping' });
+      response.end();
+      return;
+    }
+    if (request.url === '/widget-ping') {
+      response.writeHead(200, { 'content-type': 'application/javascript' });
+      response.end('// embedded third-party widget loaded\n');
+      return;
+    }
+    response.writeHead(204);
+    response.end();
+  });
+  await new Promise<void>((resolveListen, rejectListen) => {
+    widgetServer.once('error', rejectListen);
+    widgetServer.listen(widgetPort, '127.0.0.1', resolveListen);
+  });
+  // The browser-visible host stays the proxy target origin when proxying to
+  // the real app, preserving Next.js's Origin-vs-Host validation. The widget
+  // option buffers only HTML documents so it can append a real external script;
+  // all other response bytes remain streamed untouched.
+  const proxy = createHttpServer((request, response) => {
+    const path = new URL(request.url ?? '/', targetOrigin).pathname;
+    if (path === '/__arxic/reset' || path === '/__arxic/seed') {
+      blockedLog.push(`${new Date().toISOString()} ${request.method} ${path} -> 404`);
+      response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+      response.end(`Cannot ${request.method} ${path}`);
+      return;
+    }
+    const upstream = requestHttp(
+      {
+        host: '127.0.0.1',
+        port: appPort,
+        method: request.method,
+        path: request.url,
+        headers: {
+          ...request.headers,
+          host: request.headers.host,
+          connection: 'close',
+          ...(options.widgetRequest && request.headers['sec-fetch-dest'] === 'document'
+            ? { 'accept-encoding': 'identity' }
+            : {}),
+        },
+      },
+      (upstreamResponse) => {
+        if (options.widgetRequest && request.headers['sec-fetch-dest'] === 'document') {
+          const chunks: Buffer[] = [];
+          upstreamResponse.on('data', (chunk: Buffer) => chunks.push(chunk));
+          upstreamResponse.on('end', () => {
+            const headers = { ...upstreamResponse.headers };
+            delete headers['content-length'];
+            delete headers['transfer-encoding'];
+            const body = injectWidgetScript(Buffer.concat(chunks), widgetOrigin);
+            response.writeHead(upstreamResponse.statusCode ?? 502, {
+              ...headers,
+              'content-length': body.byteLength,
+            });
+            response.end(body);
+          });
+          return;
+        }
+        response.writeHead(upstreamResponse.statusCode ?? 502, upstreamResponse.headers);
+        upstreamResponse.pipe(response);
+      },
+    );
+    upstream.on('error', () => {
+      if (!response.headersSent) response.writeHead(502);
+      response.end();
     });
+    request.pipe(upstream);
   });
   await new Promise<void>((resolveListen, rejectListen) => {
     proxy.once('error', rejectListen);
@@ -125,16 +173,26 @@ export async function bootThirdPartyTarget(options: {
   return {
     targetOrigin,
     appOrigin,
+    widgetOrigin,
     persona,
     blockedRequests: () => [...blockedLog],
+    widgetRequests: () => [...widgetRequests],
     stop: async () => {
-      // Net Server has no closeAllConnections; destroying tracked sockets
-      // happens implicitly when the app stops and pipes error out.
-      for (const socket of proxySockets) socket.destroy();
+      proxy.closeAllConnections();
       await new Promise<void>((resolveClose) => proxy.close(() => resolveClose()));
+      widgetServer.closeAllConnections();
+      await new Promise<void>((resolveClose) => widgetServer.close(() => resolveClose()));
       await stopApp(app);
     },
   };
+}
+
+function injectWidgetScript(document: Buffer, widgetOrigin: string): Buffer {
+  return Buffer.from(
+    document
+      .toString('utf8')
+      .replace('<head>', `<head><script src="${widgetOrigin}/widget.js"></script>`),
+  );
 }
 
 /**

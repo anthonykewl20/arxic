@@ -170,6 +170,46 @@ describe('Playwright compiler sad paths', () => {
     ).toEqual({ passed: true, allowedOrigins: ['http://approved.example'] });
   });
 
+  test('adds declared extra origins to the compiler network policy while retaining the declared test base URL', async () => {
+    const directory = await temporaryDirectory();
+    const declaredOrigin = 'http://127.0.0.1:3000';
+    const widgetOrigin = 'http://127.0.0.1:4000';
+    const policy = resolveOriginPolicy({
+      subject: 'authentication.login',
+      declaredOrigin,
+      // The campaign field is deliberately additive: it supplies extra
+      // network origins rather than replacing the declared target origin.
+      allowedOrigins: [widgetOrigin],
+      runtimeUrl: `${widgetOrigin}/widget.js`,
+    });
+
+    expect(policy).toEqual({ passed: true, allowedOrigins: [declaredOrigin, widgetOrigin] });
+
+    const bundle = await new PlaywrightCompiler({
+      outputDirectory: directory,
+      origin: declaredOrigin,
+      allowedOrigins: [widgetOrigin],
+    }).compile(loginWorkflow(), observations());
+    expect(bundle.workflow.id).toBe('authentication.login');
+    const spec = await readFile(join(directory, 'tests/workflow.spec.ts'), 'utf8');
+    expect(spec).toContain(`configureApprovedOrigins(["${declaredOrigin}","${widgetOrigin}"])`);
+    expect(spec).toContain(`page.goto("${declaredOrigin}/login")`);
+    expect(spec).not.toContain(`page.goto("${widgetOrigin}/`);
+  });
+
+  test('continues to deny a runtime origin outside the declared-plus-extra policy', () => {
+    const result = resolveOriginPolicy({
+      subject: 'authentication.login',
+      declaredOrigin: 'http://approved.example',
+      allowedOrigins: ['http://widget.example'],
+      runtimeUrl: 'http://unlisted.example/pixel',
+    });
+    expect(result).toMatchObject({
+      passed: false,
+      diagnostic: { code: ARXIC_COMPILE_ORIGIN_DENIED, severity: 'blocked' },
+    });
+  });
+
   test('origin-denial diagnostics loop-close through the frozen contract', () => {
     const result = resolveOriginPolicy({
       subject: 'authentication.login',

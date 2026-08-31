@@ -199,6 +199,7 @@ describe('real LangGraph orchestration proof', () => {
     const referenceApp = FIXTURE_APPS.find(({ name }) => name === 'reference-auth-app');
     if (!referenceApp) throw new Error('Reference app metadata is unavailable');
     const runId = 'real-default-compile';
+    const widgetOrigin = `http://127.0.0.1:${await freePort()}`;
     const checkpointer = new InMemoryStageCheckpointer();
     const attestation = (await (
       await fetch(`${origin}/.well-known/arxic-test-target.json`)
@@ -252,6 +253,7 @@ describe('real LangGraph orchestration proof', () => {
       },
     }).run({
       ...orchestratorInput(runId),
+      allowedOrigins: [origin, widgetOrigin],
       appBuildDigest: attestation.buildDigest,
       maxUrls: 1,
       maxDepth: 0,
@@ -264,6 +266,9 @@ describe('real LangGraph orchestration proof', () => {
     expect(compilation.stagedBundle).toBeDefined();
     expect(compilation.plan).toBe(compilation.stagedBundle?.plan);
     expect(stagedBundleObserved).toBe(true);
+    expect(
+      await readFile(join(runsDirectory, 'outputs', runId, 'tests', 'workflow.spec.ts'), 'utf8'),
+    ).toContain(`configureApprovedOrigins(["${origin}","${widgetOrigin}"])`);
     expect(result.completedStages).toContain(12);
   }, 180_000);
 });

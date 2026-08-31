@@ -186,8 +186,9 @@ export type OrchestratorInput = Readonly<{
   /**
    * DG-289 C-4 (#289, DECISION issuecomment-5360240026): config-declared
    * `target.allowedOrigins` — flows to the crawl origin gate (stage 5) and
-   * the exploration PolicyEngine origin list (stage 6). Fail-closed default
-   * when unset/empty: target origin only.
+   * the exploration PolicyEngine origin list (stage 6), then to the compiled
+   * replay network gate (stages 9/10). Fail-closed default when unset/empty:
+   * target origin only.
    */
   allowedOrigins?: readonly string[];
   appBuildDigest?: string;
@@ -288,6 +289,7 @@ export type OrchestratorOptions = Readonly<{
     observations: readonly EvidenceRef[];
     outputDirectory: string;
     origin: string;
+    allowedOrigins?: readonly string[];
     intentSpec?: IntentSpec;
   }) => Promise<CompilationResult>;
   verify?: (input: CompilationResult) => Promise<VerificationNodeResult>;
@@ -1282,6 +1284,7 @@ export class LangGraphOrchestrator {
       observations: exploration.evidenceRefs,
       outputDirectory: `${input.artifactsDir}/${input.runId}`,
       origin: input.origin,
+      ...(input.allowedOrigins ? { allowedOrigins: input.allowedOrigins } : {}),
       intentSpec: normalizedIntentSpec,
     });
     const result: CompilationResult = {
@@ -1378,6 +1381,7 @@ export class LangGraphOrchestrator {
         browser: 'chromium',
       },
       origin: input.origin,
+      ...(input.allowedOrigins ? { allowedOrigins: input.allowedOrigins } : {}),
       outputDirectory: `${input.artifactsDir}/${input.runId}`,
     };
   }
@@ -1984,6 +1988,7 @@ async function defaultCompile(input: {
   observations: readonly EvidenceRef[];
   outputDirectory: string;
   origin: string;
+  allowedOrigins?: readonly string[];
 }): Promise<CompilationResult> {
   const workflow = input.candidates[0]?.workflow;
   if (!workflow) return { compiled: false, plan: 'No workflow candidate was available to compile' };
@@ -1991,6 +1996,7 @@ async function defaultCompile(input: {
     const bundle = await new PlaywrightCompiler({
       outputDirectory: input.outputDirectory,
       origin: input.origin,
+      ...(input.allowedOrigins ? { allowedOrigins: input.allowedOrigins } : {}),
     }).compile(workflow, [...input.observations]);
     return { compiled: true, plan: bundle.plan, workflow, stagedBundle: bundle };
   } catch (error) {

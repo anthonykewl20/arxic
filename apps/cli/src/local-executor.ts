@@ -167,6 +167,9 @@ function localPipelineOptions(
         outputDirectory,
         origin: request.config.target.origin,
         artifactsDir: verificationArtifacts,
+        ...(request.config.target.allowedOrigins?.length
+          ? { allowedOrigins: request.config.target.allowedOrigins }
+          : {}),
         ...(persona ? { persona } : {}),
         // #288: the declared per-pass-login replay persona flows to the
         // verifier, which provisions + logs in through the target's own
