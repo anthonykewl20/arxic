@@ -23,6 +23,7 @@ import type { BoundProposal } from '../intent-proposer';
  */
 
 const origin = 'http://127.0.0.1:39191';
+const widgetOrigin = 'http://127.0.0.1:39192';
 
 function surfaceMap(): SurfaceMap {
   return {
@@ -350,6 +351,7 @@ describe('proposal -> DG-09 form-flow compile (no canned assertions)', () => {
         observation,
         scope: { commit: 'a'.repeat(40), environment: 'local-test', browser: 'chromium' },
         origin,
+        allowedOrigins: [widgetOrigin],
         outputDirectory,
       });
       expect(result.compiled).toBe(true);
@@ -378,6 +380,7 @@ describe('proposal -> DG-09 form-flow compile (no canned assertions)', () => {
       expect(spec).toContain('labelOrPlaceholderControl(form, "Email")');
       expect(spec).toContain('ARXIC_INPUT_PERSONA_EMAIL');
       expect(spec).toContain(`getByRole('button', { name: "Subscribe", exact: true })`);
+      expect(spec).toContain(`configureApprovedOrigins(["${origin}","${widgetOrigin}"])`);
       expect(spec).not.toMatch(/authenticat/iu);
       expect(spec).not.toContain('Hunter2');
     } finally {

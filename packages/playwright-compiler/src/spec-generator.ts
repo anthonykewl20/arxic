@@ -17,11 +17,23 @@ export function generateSpec(
   workflow: Workflow,
   origin: string,
   runtimeUrl?: string,
-  options: { captureScreenshots?: boolean; approvedOrigins?: string[] } = {},
+  options: {
+    captureScreenshots?: boolean;
+    /** Additive network origins permitted alongside the declared test base URL. */
+    allowedOrigins?: readonly string[];
+    /** Legacy complete approved-origin allowlist. */
+    approvedOrigins?: string[];
+  } = {},
 ): { spec: string; nonSemanticLocatorRationale?: string } {
   const captureScreenshots = options.captureScreenshots ?? true;
   const approvedOrigin = new URL(origin).origin;
-  const approvedOrigins = options.approvedOrigins ?? [approvedOrigin];
+  const approvedOrigins = [
+    ...new Set(
+      [...(options.approvedOrigins ?? [approvedOrigin]), ...(options.allowedOrigins ?? [])].map(
+        (value) => new URL(value).origin,
+      ),
+    ),
+  ];
   const requiredTransitions = workflow.transitions.filter((item) => item.required !== false);
   const lines = [
     "import { test, expect, assertNetworkContained, assertPageOrigin, configureApprovedOrigins, enforceNetworkContainment } from '../fixtures/workflow.fixture';",

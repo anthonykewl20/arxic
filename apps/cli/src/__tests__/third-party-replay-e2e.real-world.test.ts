@@ -37,6 +37,7 @@ describe('third-party replay E2E (#288 G-4)', () => {
     target = await bootThirdPartyTarget({
       nonce: 'arxic-288-g4',
       mailpitSmtp: mailpit.smtp,
+      widgetRequest: true,
     });
     model = await startStubModelEndpoint();
     const staged = await committedFixtureCopy('arxic-288-g4');
@@ -78,6 +79,7 @@ describe('third-party replay E2E (#288 G-4)', () => {
     const outRoot = await mkdtemp(join(tmpdir(), 'arxic-288-g4-out-'));
     const configPath = await writeConfig({
       origin: running.targetOrigin,
+      allowedOrigins: [running.targetOrigin, running.widgetOrigin],
       sourceDirectory,
       commit,
       declaration: true,
@@ -103,6 +105,8 @@ describe('third-party replay E2E (#288 G-4)', () => {
     // Zero arxic-protocol traffic at all — the declaration routes fixture
     // provisioning through the target's own login form.
     expect(running.blockedRequests()).toEqual([]);
+    expect(running.widgetRequests()).toContain('GET /widget.js');
+    expect(running.widgetRequests()).toContain('GET /widget-ping');
 
     // Credential hygiene (Invariants): the persona values never surface in
     // any run artifact or diagnostic.
@@ -131,6 +135,38 @@ describe('third-party replay E2E (#288 G-4)', () => {
     expect(stage10Second.outcome).toBe('verified');
     expect(stage10Second.runs).toEqual([{ passed: true }, { passed: true }]);
     expect(running.blockedRequests()).toEqual([]);
+  }, 600_000);
+
+  it('fails the stage-10 replay closed when the embedded second origin is not in target.allowedOrigins', async () => {
+    const running = target!;
+    const outRoot = await mkdtemp(join(tmpdir(), 'arxic-356-stage10-denied-out-'));
+    const configPath = await writeConfig({
+      origin: running.targetOrigin,
+      allowedOrigins: [running.targetOrigin],
+      sourceDirectory,
+      commit,
+      declaration: true,
+      mailpit: mailpit!.smtp,
+    });
+
+    const result = await run(configPath, outRoot, 'arxic-356-stage10-denied', {
+      ARXIC_INPUT_PERSONA_EMAIL: running.persona.email,
+      ARXIC_INPUT_PERSONA_PASSWORD: running.persona.password,
+    });
+
+    expect(result.exitCode).not.toBe(0);
+    const runDirectory = join(outRoot, 'arxic-356-stage10-denied');
+    const diagnostics = (await readFile(join(runDirectory, 'diagnostics.jsonl'), 'utf8'))
+      .split('\n')
+      .filter((line) => line.length > 0)
+      .map((line) => JSON.parse(line) as { code: string; severity: string; message: string });
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'ARXIC-VERIFY-RUN-FAILURE',
+        severity: 'contradicted',
+        message: expect.stringContaining('ARXIC-COMPILE-ORIGIN-DENIED'),
+      }),
+    );
   }, 600_000);
 
   it('refuses the undeclared endpoint-less target at stage 7 with the frozen code (G-0 regression half, C-2/AC-3)', async () => {
@@ -205,6 +241,7 @@ async function run(
 
 async function writeConfig(options: {
   origin: string;
+  allowedOrigins?: string[];
   sourceDirectory: string;
   commit: string;
   declaration: boolean;
@@ -240,7 +277,7 @@ target:
   origin: ${JSON.stringify(options.origin)}
   environmentClass: local-test
   attestationPath: /.well-known/arxic-test-target.json
-  allowedOrigins: [${JSON.stringify(options.origin)}]
+  allowedOrigins: [${(options.allowedOrigins ?? [options.origin]).map((origin) => JSON.stringify(origin)).join(', ')}]
 policy:
   maxUrls: 8
   maxDepth: 1

@@ -8,13 +8,20 @@ export type OriginPolicyResult =
 export function resolveOriginPolicy(input: {
   subject: string;
   declaredOrigin: string;
+  /** Additive caller-owned origins permitted alongside the declared target. */
+  allowedOrigins?: readonly string[];
+  /** Legacy complete approved-origin allowlist. */
   approvedOrigins?: string[];
   runtimeUrl: string;
 }): OriginPolicyResult {
   try {
     const declaredOrigin = canonicalOrigin(input.declaredOrigin);
     const allowedOrigins = [
-      ...new Set((input.approvedOrigins ?? [declaredOrigin]).map(canonicalOrigin)),
+      ...new Set(
+        [...(input.approvedOrigins ?? [declaredOrigin]), ...(input.allowedOrigins ?? [])].map(
+          canonicalOrigin,
+        ),
+      ),
     ];
     if (!allowedOrigins.includes(declaredOrigin)) {
       return denied(

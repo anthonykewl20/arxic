@@ -37,6 +37,9 @@ import { transitionReceiptRuntimeSource } from './transition-receipt-runtime';
 export type PlaywrightCompilerOptions = {
   outputDirectory: string;
   origin: string;
+  /** Additive network origins permitted alongside the declared target. */
+  allowedOrigins?: readonly string[];
+  /** Legacy complete approved-origin allowlist. */
   approvedOrigins?: string[];
   captureScreenshots?: boolean;
   now?: () => string;
@@ -55,6 +58,7 @@ export class CompileError extends Error {
 export class PlaywrightCompiler implements WorkflowCompiler {
   readonly #outputDirectory: string;
   readonly #origin: string;
+  readonly #allowedOrigins?: readonly string[];
   readonly #approvedOrigins?: string[];
   readonly #captureScreenshots: boolean;
   readonly #now: () => string;
@@ -62,6 +66,7 @@ export class PlaywrightCompiler implements WorkflowCompiler {
   constructor(options: PlaywrightCompilerOptions) {
     this.#outputDirectory = options.outputDirectory;
     this.#origin = new URL(options.origin).href;
+    this.#allowedOrigins = options.allowedOrigins;
     this.#approvedOrigins = options.approvedOrigins;
     this.#captureScreenshots = options.captureScreenshots ?? true;
     this.#now = options.now ?? (() => new Date().toISOString());
@@ -113,6 +118,7 @@ export class PlaywrightCompiler implements WorkflowCompiler {
     const originPolicy = resolveOriginPolicy({
       subject: workflow.id,
       declaredOrigin: this.#origin,
+      ...(this.#allowedOrigins ? { allowedOrigins: this.#allowedOrigins } : {}),
       ...(this.#approvedOrigins ? { approvedOrigins: this.#approvedOrigins } : {}),
       runtimeUrl: runtime.url,
     });
@@ -122,7 +128,7 @@ export class PlaywrightCompiler implements WorkflowCompiler {
     try {
       const generated = generateSpec(validatedWorkflow.value, this.#origin, runtime.url, {
         captureScreenshots: this.#captureScreenshots,
-        approvedOrigins: originPolicy.allowedOrigins,
+        allowedOrigins: originPolicy.allowedOrigins,
       });
       spec = generated.spec;
       nonSemanticLocatorRationale = generated.nonSemanticLocatorRationale;

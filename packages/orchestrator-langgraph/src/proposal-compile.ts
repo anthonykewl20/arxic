@@ -180,6 +180,8 @@ export type ProposalCompileInput = Readonly<{
   observation: ProposalObservation | undefined;
   scope: Readonly<{ commit: string; environment: string; browser: string }>;
   origin: string;
+  /** Additive target policy origins for the compiled stage-10 network gate. */
+  allowedOrigins?: readonly string[];
   outputDirectory: string;
 }>;
 
@@ -415,6 +417,7 @@ export async function compileProposalCandidate(
     const bundle = await new PlaywrightCompiler({
       outputDirectory: input.outputDirectory,
       origin: input.origin,
+      ...(input.allowedOrigins ? { allowedOrigins: input.allowedOrigins } : {}),
     }).compile(built.workflow, observations);
     return { compiled: true, plan: bundle.plan, workflow: built.workflow, stagedBundle: bundle };
   } catch (error) {
