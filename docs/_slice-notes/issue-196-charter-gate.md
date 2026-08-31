@@ -35,3 +35,5 @@ no — docs-only, not user-observable.
 | Trigger                                                   | Expected disposition | Test |
 | --------------------------------------------------------- | -------------------- | ---- |
 | N/A — docs-only slice, no executable behavior to classify | n/a                  | n/a  |
+
+> Superseded 2026-08-31: #196 closed with the gate institutionalized (RELEASES.md step 9 + charter §11) — AC-3 first human census sign-off remains owed at the first promoted release with retained screenshots. See `issue-196-closure.md` and the SYNC tracker row #196.
