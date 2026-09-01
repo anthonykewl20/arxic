@@ -430,7 +430,7 @@ function anonymousLoginWorkflow(): Workflow {
       from: 'home',
       to: 'login-page',
       action: { intent: 'open Login' },
-      assertions: [{ intent: 'text:Login' }],
+      assertions: [{ intent: 'url:/login' }],
       evidenceRefs: ['src:login-handler', 'run:login'],
     },
   ];

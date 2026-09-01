@@ -7,13 +7,19 @@ import type { Workflow } from '@arxic/contracts';
 export const REPLAY_PERSONA_STORAGE_STATE_ENV = 'ARXIC_REPLAY_PERSONA_STORAGE_STATE';
 
 /**
- * A workflow owns its login interaction only when it supplies both credentials.
- * Password-change flows intentionally do not match: they start authenticated.
+ * A workflow owns its login interaction only when a transition supplies email
+ * and password without a new-password ref. Password-plus-new-password flows
+ * and single-transition change-password forms intentionally do not match: both
+ * start authenticated.
  */
 export function workflowPerformsLogin(workflow: Workflow): boolean {
   return workflow.transitions.some((transition) => {
     const inputRefs = Object.values(transition.action.inputRefs ?? {});
-    return inputRefs.includes('persona.email') && inputRefs.includes('persona.password');
+    return (
+      inputRefs.includes('persona.email') &&
+      inputRefs.includes('persona.password') &&
+      !inputRefs.includes('persona.newpassword')
+    );
   });
 }
 

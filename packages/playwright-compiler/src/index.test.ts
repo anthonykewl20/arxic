@@ -370,6 +370,37 @@ describe('Playwright compiler contracts', () => {
     expect(fixture).toContain('if (!storageState) await context.clearCookies()');
   });
 
+  test('keeps replay-persona injection for password and new-password fields without email', () => {
+    const fixture = generateFixture(
+      authenticatedWorkflowWithInputRefs({
+        password: 'persona.password',
+        confirm: 'persona.newpassword',
+      }),
+    );
+
+    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+  });
+
+  test('keeps replay-persona injection for an email-only transition', () => {
+    const fixture = generateFixture(
+      authenticatedWorkflowWithInputRefs({ email: 'persona.email' }),
+    );
+
+    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+  });
+
+  test('keeps replay-persona injection for a single-transition change-password form', () => {
+    const fixture = generateFixture(
+      authenticatedWorkflowWithInputRefs({
+        email: 'persona.email',
+        password: 'persona.password',
+        confirm: 'persona.newpassword',
+      }),
+    );
+
+    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+  });
+
   test('#307/F-E8 receipt attribution is per request through explicit windows', () => {
     const generated = generateSpec(
       loginWorkflow(),
@@ -616,6 +647,15 @@ function authenticatedPostLoginWorkflow(): Workflow {
     },
   ];
   workflow.verification.screenshotCheckpoints = ['logged-out'];
+  return workflow;
+}
+
+function authenticatedWorkflowWithInputRefs(inputRefs: Record<string, string>): Workflow {
+  const workflow = authenticatedPostLoginWorkflow();
+  workflow.transitions[0]!.action = {
+    ...workflow.transitions[0]!.action,
+    inputRefs,
+  };
   return workflow;
 }
 
