@@ -382,9 +382,7 @@ describe('Playwright compiler contracts', () => {
   });
 
   test('keeps replay-persona injection for an email-only transition', () => {
-    const fixture = generateFixture(
-      authenticatedWorkflowWithInputRefs({ email: 'persona.email' }),
-    );
+    const fixture = generateFixture(authenticatedWorkflowWithInputRefs({ email: 'persona.email' }));
 
     expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
   });
