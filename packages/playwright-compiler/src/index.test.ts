@@ -306,9 +306,12 @@ describe('Playwright compiler contracts', () => {
     const fixture = await readFile(join(directory, 'fixtures/workflow.fixture.ts'), 'utf8');
     expect(fixture).toContain("context.routeWebSocket('**/*'");
     expect(fixture).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
-    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
-    expect(fixture).toContain('browser.newContext(storageState ? { storageState } : undefined)');
-    expect(fixture).toContain('if (!storageState) await context.clearCookies()');
+    expect(fixture).not.toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+    expect(fixture).not.toContain(
+      'browser.newContext(storageState ? { storageState } : undefined)',
+    );
+    expect(fixture).toContain('const context = await browser.newContext();');
+    expect(fixture).toContain('await context.clearCookies();');
     expect(fixture).toContain("if (alias.hostname === '127.0.0.1') alias.hostname = 'localhost'");
     expect(fixture).toContain("await context.route('**/*', async (route) => {");
     expect(fixture).toContain('await route.continue()');
@@ -357,6 +360,43 @@ describe('Playwright compiler contracts', () => {
     expect(generated.spec).not.toContain('form.getByLabel(');
     // the helper's semantics: label FIRST, placeholder fallback (the #303 rule)
     expect(generated.spec).toContain('getByLabel(text).or(root.getByPlaceholder(text))');
+  });
+
+  test('preserves replay-persona storage-state injection for a post-login entry workflow', () => {
+    const fixture = generateFixture(authenticatedPostLoginWorkflow());
+
+    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+    expect(fixture).toContain('browser.newContext(storageState ? { storageState } : undefined)');
+    expect(fixture).toContain('if (!storageState) await context.clearCookies()');
+  });
+
+  test('keeps replay-persona injection for password and new-password fields without email', () => {
+    const fixture = generateFixture(
+      authenticatedWorkflowWithInputRefs({
+        password: 'persona.password',
+        confirm: 'persona.newpassword',
+      }),
+    );
+
+    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+  });
+
+  test('keeps replay-persona injection for an email-only transition', () => {
+    const fixture = generateFixture(authenticatedWorkflowWithInputRefs({ email: 'persona.email' }));
+
+    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+  });
+
+  test('keeps replay-persona injection for a single-transition change-password form', () => {
+    const fixture = generateFixture(
+      authenticatedWorkflowWithInputRefs({
+        email: 'persona.email',
+        password: 'persona.password',
+        confirm: 'persona.newpassword',
+      }),
+    );
+
+    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
   });
 
   test('#307/F-E8 receipt attribution is per request through explicit windows', () => {
@@ -588,6 +628,33 @@ function loginWorkflow(): Workflow {
     },
     evidenceRefs: ['src:login-handler'],
   };
+}
+
+function authenticatedPostLoginWorkflow(): Workflow {
+  const workflow = loginWorkflow();
+  workflow.id = 'authentication.logout';
+  workflow.title = 'Logout';
+  workflow.states = [{ id: 'home' }, { id: 'logged-out' }];
+  workflow.transitions = [
+    {
+      from: 'home',
+      to: 'logged-out',
+      action: { intent: 'Click Logout' },
+      assertions: [{ intent: 'text:Logged out' }],
+      evidenceRefs: ['src:logout-handler'],
+    },
+  ];
+  workflow.verification.screenshotCheckpoints = ['logged-out'];
+  return workflow;
+}
+
+function authenticatedWorkflowWithInputRefs(inputRefs: Record<string, string>): Workflow {
+  const workflow = authenticatedPostLoginWorkflow();
+  workflow.transitions[0]!.action = {
+    ...workflow.transitions[0]!.action,
+    inputRefs,
+  };
+  return workflow;
 }
 
 function observations(): EvidenceRef[] {

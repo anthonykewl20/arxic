@@ -6,9 +6,69 @@ import type { Workflow } from '@arxic/contracts';
  */
 export const REPLAY_PERSONA_STORAGE_STATE_ENV = 'ARXIC_REPLAY_PERSONA_STORAGE_STATE';
 
+/**
+ * A workflow owns its login interaction only when a transition supplies email
+ * and password without a new-password ref. Password-plus-new-password flows
+ * and single-transition change-password forms intentionally do not match: both
+ * start authenticated.
+ */
+export function workflowPerformsLogin(workflow: Workflow): boolean {
+  return workflow.transitions.some((transition) => {
+    const inputRefs = Object.values(transition.action.inputRefs ?? {});
+    return (
+      inputRefs.includes('persona.email') &&
+      inputRefs.includes('persona.password') &&
+      !inputRefs.includes('persona.newpassword')
+    );
+  });
+}
+
 export function generateFixture(workflow: Workflow, approvedOrigins: string[] = []): string {
-  void workflow;
   void approvedOrigins;
+  const contextFixture = workflowPerformsLogin(workflow)
+    ? [
+        'export const test = base.extend({',
+        '  context: async ({ browser }, use) => {',
+        '    const context = await browser.newContext();',
+        '    await context.clearCookies();',
+        '    try {',
+        '      await use(context);',
+        '    } finally {',
+        '      await context.close();',
+        '    }',
+        '  },',
+        '});',
+      ]
+    : [
+        // #362: post-login workflows start from the ephemeral authenticated
+        // replay-persona state when the verifier injects it into the child env.
+        `const REPLAY_PERSONA_STORAGE_STATE_ENV = ${JSON.stringify(REPLAY_PERSONA_STORAGE_STATE_ENV)};`,
+        '',
+        '// #362: post-login replay contexts may use ephemeral persona storage state.',
+        'export const test = base.extend({',
+        '  context: async ({ browser }, use) => {',
+        '    const raw = process.env[REPLAY_PERSONA_STORAGE_STATE_ENV];',
+        '    let storageState;',
+        '    if (raw) {',
+        '      try {',
+        '        storageState = JSON.parse(raw);',
+        "        if (!storageState || !Array.isArray(storageState.cookies) || !Array.isArray(storageState.origins)) throw new Error('invalid storage state');",
+        '      } catch {',
+        "        throw new Error('ARXIC-COMPILE-REPLAY-PERSONA-STATE-INVALID: verifier storage state was unavailable');",
+        '      }',
+        '    }',
+        // Anonymous replays retain clear-cookie hygiene. Persona replays build
+        // from the captured state instead, so cookies remain available to the workflow.
+        '    const context = await browser.newContext(storageState ? { storageState } : undefined);',
+        '    if (!storageState) await context.clearCookies();',
+        '    try {',
+        '      await use(context);',
+        '    } finally {',
+        '      await context.close();',
+        '    }',
+        '  },',
+        '});',
+      ];
   return [
     "import { test as base, expect } from '@playwright/test';",
     'import {',
@@ -21,32 +81,7 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
     "const ORIGIN_DENIED = 'ARXIC-COMPILE-ORIGIN-DENIED';",
     'const violations = new WeakMap();',
     'const cdpSessions = new WeakMap();',
-    `const REPLAY_PERSONA_STORAGE_STATE_ENV = ${JSON.stringify(REPLAY_PERSONA_STORAGE_STATE_ENV)};`,
-    '',
-    'export const test = base.extend({',
-    '  context: async ({ browser }, use) => {',
-    '    const raw = process.env[REPLAY_PERSONA_STORAGE_STATE_ENV];',
-    '    let storageState;',
-    '    if (raw) {',
-    '      try {',
-    '        storageState = JSON.parse(raw);',
-    "        if (!storageState || !Array.isArray(storageState.cookies) || !Array.isArray(storageState.origins)) throw new Error('invalid storage state');",
-    '      } catch {',
-    "        throw new Error('ARXIC-COMPILE-REPLAY-PERSONA-STATE-INVALID: verifier storage state was unavailable');",
-    '      }',
-    '    }',
-    // Anonymous replays retain the prior clear-cookie hygiene. Persona replays
-    // construct their context from the freshly captured state instead: clearing
-    // afterwards would discard the authenticated session before the candidate.
-    '    const context = await browser.newContext(storageState ? { storageState } : undefined);',
-    '    if (!storageState) await context.clearCookies();',
-    '    try {',
-    '      await use(context);',
-    '    } finally {',
-    '      await context.close();',
-    '    }',
-    '  },',
-    '});',
+    ...contextFixture,
     '',
     'export function configureApprovedOrigins(origins) {',
     '  approvedOrigins.clear();',
