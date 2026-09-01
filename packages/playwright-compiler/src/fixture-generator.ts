@@ -1,5 +1,11 @@
 import type { Workflow } from '@arxic/contracts';
 
+/**
+ * Ephemeral verifier-to-fixture channel for a per-pass replay-persona state.
+ * The value is never emitted into generated source or persisted artifacts.
+ */
+export const REPLAY_PERSONA_STORAGE_STATE_ENV = 'ARXIC_REPLAY_PERSONA_STORAGE_STATE';
+
 export function generateFixture(workflow: Workflow, approvedOrigins: string[] = []): string {
   void workflow;
   void approvedOrigins;
@@ -15,8 +21,31 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
     "const ORIGIN_DENIED = 'ARXIC-COMPILE-ORIGIN-DENIED';",
     'const violations = new WeakMap();',
     'const cdpSessions = new WeakMap();',
+    `const REPLAY_PERSONA_STORAGE_STATE_ENV = ${JSON.stringify(REPLAY_PERSONA_STORAGE_STATE_ENV)};`,
     '',
     'export const test = base.extend({',
+    '  context: async ({ browser }, use) => {',
+    '    const raw = process.env[REPLAY_PERSONA_STORAGE_STATE_ENV];',
+    '    let storageState;',
+    '    if (raw) {',
+    '      try {',
+    '        storageState = JSON.parse(raw);',
+    "        if (!storageState || !Array.isArray(storageState.cookies) || !Array.isArray(storageState.origins)) throw new Error('invalid storage state');",
+    '      } catch {',
+    "        throw new Error('ARXIC-COMPILE-REPLAY-PERSONA-STATE-INVALID: verifier storage state was unavailable');",
+    '      }',
+    '    }',
+    // Anonymous replays retain the prior clear-cookie hygiene. Persona replays
+    // construct their context from the freshly captured state instead: clearing
+    // afterwards would discard the authenticated session before the candidate.
+    '    const context = await browser.newContext(storageState ? { storageState } : undefined);',
+    '    if (!storageState) await context.clearCookies();',
+    '    try {',
+    '      await use(context);',
+    '    } finally {',
+    '      await context.close();',
+    '    }',
+    '  },',
     '});',
     '',
     'export function configureApprovedOrigins(origins) {',
@@ -60,7 +89,6 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
     "  if (browserName !== 'chromium') {",
     '    throw new Error(`${ORIGIN_DENIED}: redirect containment requires Chromium CDP`);',
     '  }',
-    '  await context.clearCookies();',
     '  const denied = [];',
     '  let rejectViolation;',
     '  const violation = new Promise((_, reject) => { rejectViolation = reject; });',
