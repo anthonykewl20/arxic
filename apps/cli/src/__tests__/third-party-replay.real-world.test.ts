@@ -1,12 +1,15 @@
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Workflow } from '@arxic/contracts';
-import { PlaywrightCompiler } from '../../../../packages/playwright-compiler/src';
+import {
+  PlaywrightCompiler,
+  REPLAY_PERSONA_STORAGE_STATE_ENV,
+} from '../../../../packages/playwright-compiler/src';
 import { serializeScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from '../config/parse';
-import { PlaywrightVerifier } from '@arxic/verifier';
+import { ensurePlaywrightModule, PlaywrightVerifier, runPlaywrightSuite } from '@arxic/verifier';
 import {
   loginObservations,
   loginWorkflow,
@@ -30,7 +33,7 @@ describe('third-party replay verification (#288 G-3)', () => {
     await target?.stop();
   });
 
-  it('verifies two classified passes through per-pass login when the declaration is present (C-1/AC-2)', async () => {
+  it('replays the login workflow from the anonymous form through the post-login assertion (C-1/AC-2)', async () => {
     const running = target!;
     const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-288-g3-out-'));
     const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-288-g3-artifacts-'));
@@ -43,6 +46,16 @@ describe('third-party replay verification (#288 G-3)', () => {
       outputDirectory,
       origin: running.targetOrigin,
     }).compile(workflow, loginObservations(referenceAuthApp, running.targetOrigin, 'arxic-288-g3'));
+    const [fixture, spec] = await Promise.all([
+      readFile(join(outputDirectory, 'fixtures/workflow.fixture.ts'), 'utf8'),
+      readFile(join(outputDirectory, 'tests/workflow.spec.ts'), 'utf8'),
+    ]);
+    expect(fixture).not.toContain(REPLAY_PERSONA_STORAGE_STATE_ENV);
+    expect(fixture).toContain('const context = await browser.newContext();');
+    expect(spec).toContain('await expect(form).toHaveCount(1);');
+    expect(spec).toContain('ARXIC_INPUT_PERSONA_EMAIL');
+    expect(spec).toContain('ARXIC_INPUT_PERSONA_PASSWORD');
+    expect(spec).toContain('toHaveURL(');
     const serialized = serializeScreenshotPrivacyPolicy({
       schemaVersion: 1,
       id: 'arxic-288-g3-mask',
@@ -109,6 +122,9 @@ describe('third-party replay verification (#288 G-3)', () => {
       origin: running.targetOrigin,
       allowedOrigins: [running.appOrigin],
     }).compile(workflow, observations);
+    expect(await readFile(join(outputDirectory, 'fixtures/workflow.fixture.ts'), 'utf8')).toContain(
+      'browser.newContext(storageState ? { storageState } : undefined)',
+    );
     const serialized = serializeScreenshotPrivacyPolicy({
       schemaVersion: 1,
       id: 'arxic-362-authenticated-mask',
@@ -139,6 +155,40 @@ describe('third-party replay verification (#288 G-3)', () => {
     // candidate must locate it before it can perform the logout transition.
     expect(verification.outcome).toBe('verified');
     expect(verification.runs).toEqual([{ passed: true }, { passed: true }]);
+  }, 300_000);
+
+  it('fails closed on malformed replay storage state for a post-login workflow (AC-3)', async () => {
+    const running = target!;
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-364-invalid-state-out-'));
+    try {
+      const workflow = authenticatedLogoutWorkflow();
+      const observations = loginObservations(
+        referenceAuthApp,
+        running.targetOrigin,
+        'arxic-364-invalid-state',
+      );
+      const runtimeObservation = observations[1];
+      if (!runtimeObservation || runtimeObservation.kind !== 'runtime') {
+        throw new Error('Expected runtime EvidenceRef');
+      }
+      observations[1] = { ...runtimeObservation, url: `${running.targetOrigin}/` };
+      await new PlaywrightCompiler({
+        outputDirectory,
+        origin: running.targetOrigin,
+        allowedOrigins: [running.appOrigin],
+      }).compile(workflow, observations);
+      await ensurePlaywrightModule(outputDirectory);
+
+      const result = await runPlaywrightSuite({
+        testDirectory: outputDirectory,
+        env: { ...process.env, [REPLAY_PERSONA_STORAGE_STATE_ENV]: '{malformed' },
+      });
+
+      expect(result.passed).toBe(false);
+      expect(result.output).toContain('ARXIC-COMPILE-REPLAY-PERSONA-STATE-INVALID');
+    } finally {
+      await rm(outputDirectory, { recursive: true, force: true });
+    }
   }, 300_000);
 
   it('keeps the no-persona replay context anonymous and hygienic (AC-2)', async () => {
@@ -380,7 +430,7 @@ function anonymousLoginWorkflow(): Workflow {
       from: 'home',
       to: 'login-page',
       action: { intent: 'open Login' },
-      assertions: [{ intent: 'text:Login' }],
+      assertions: [{ intent: 'url:/login' }],
       evidenceRefs: ['src:login-handler', 'run:login'],
     },
   ];
