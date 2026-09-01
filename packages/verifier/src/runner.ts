@@ -4,6 +4,7 @@ import { readFile, rm } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
 import {
+  REPLAY_PERSONA_STORAGE_STATE_ENV,
   TRANSITION_RECEIPT_NONCE_ENV,
   TRANSITION_RECEIPT_PATH_ENV,
 } from '@arxic/playwright-compiler';
@@ -230,6 +231,11 @@ function safeUrlWitness(value: string): string | undefined {
 
 function childEnvironment(options: RunPlaywrightSuiteOptions): NodeJS.ProcessEnv {
   const env = { ...process.env, ...options.env };
+  // A verifier invocation with no declared replay-persona state must not
+  // inherit a concurrent caller's credential-bearing child-suite value.
+  if (!options.env || !(REPLAY_PERSONA_STORAGE_STATE_ENV in options.env)) {
+    delete env[REPLAY_PERSONA_STORAGE_STATE_ENV];
+  }
   if (options.transitionReceipts) {
     env[TRANSITION_RECEIPT_PATH_ENV] = options.transitionReceipts.path;
     env[TRANSITION_RECEIPT_NONCE_ENV] = options.transitionReceipts.nonce;

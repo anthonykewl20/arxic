@@ -13,6 +13,7 @@ import type {
 import {
   generateConfig,
   generateFixture,
+  REPLAY_PERSONA_STORAGE_STATE_ENV,
   generateSpec,
   transitionReceiptId,
   transitionReceiptRuntimeSource,
@@ -47,10 +48,11 @@ import {
 } from './diagnostics';
 import { resetAndSeedFixtures, type VerificationPersona } from './reset';
 import {
-  loginReplayPersona,
+  replayPersonaStorageState,
   ReplayPersonaLoginError,
   replayPersonaNotDeclaredRefusal,
   type ReplayPersonaDeclaration,
+  type ReplayPersonaStorageState,
 } from './replay-persona';
 import { runPlaywrightSuite, type RunPass, type TransitionReceiptExpectation } from './runner';
 import { extractRunFailureEvidence } from './failure-evidence';
@@ -336,8 +338,9 @@ export class PlaywrightVerifier implements WorkflowVerifier {
         );
         break;
       }
+      let replayPersonaState: ReplayPersonaStorageState | undefined;
       try {
-        await this.#reset(run);
+        replayPersonaState = await this.#reset(run);
       } catch (error) {
         executionDiagnostics.push(
           error instanceof ReplayPersonaLoginError
@@ -372,6 +375,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
             transitions: requiredTransitionReceipts,
             forbiddenSubstrings: personaForbiddenSubstrings(this.#persona),
           },
+          replayPersonaState,
         );
       } catch (error) {
         executionDiagnostics.push(
@@ -479,13 +483,16 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     return { ...classification, runs, artifacts };
   }
 
-  async #reset(run: number): Promise<void> {
-    if (this.#resetAndSeed) return this.#resetAndSeed(run);
+  async #reset(run: number): Promise<ReplayPersonaStorageState | undefined> {
+    if (this.#resetAndSeed) {
+      await this.#resetAndSeed(run);
+      return undefined;
+    }
     // #288 (C-1): a declared replay persona provisions through the target's
     // OWN login form per pass (the leased mutation); the endpoint protocol is
     // never attempted against an endpoint-less third-party target.
     if (this.#replayPersona && this.#persona) {
-      return loginReplayPersona({
+      return replayPersonaStorageState({
         origin: this.#origin,
         declaration: this.#replayPersona,
         persona: this.#persona,
@@ -499,7 +506,8 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       );
     }
     if (!this.#persona) throw new Error('No verification persona was configured');
-    return resetAndSeedFixtures(this.#origin, this.#persona);
+    await resetAndSeedFixtures(this.#origin, this.#persona);
+    return undefined;
   }
 
   async #execute(
@@ -511,6 +519,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       capturedAt: string;
     },
     transitionReceipts: TransitionReceiptExpectation,
+    replayPersonaState: ReplayPersonaStorageState | undefined,
   ): Promise<RunPass> {
     const env = {
       ...personaEnvironment(this.#persona),
@@ -518,6 +527,9 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       [SCREENSHOT_PRIVACY_POLICY_SHA256_ENV]: screenshot.policy.sha256,
       [SCREENSHOT_CAPTURE_CORRELATION_ENV]: screenshot.correlation,
       [SCREENSHOT_CAPTURED_AT_ENV]: screenshot.capturedAt,
+      ...(replayPersonaState
+        ? { [REPLAY_PERSONA_STORAGE_STATE_ENV]: JSON.stringify(replayPersonaState) }
+        : {}),
     };
     if (!this.#runSuite) {
       return runPlaywrightSuite({

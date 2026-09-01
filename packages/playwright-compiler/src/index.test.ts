@@ -306,6 +306,9 @@ describe('Playwright compiler contracts', () => {
     const fixture = await readFile(join(directory, 'fixtures/workflow.fixture.ts'), 'utf8');
     expect(fixture).toContain("context.routeWebSocket('**/*'");
     expect(fixture).toContain('ARXIC-COMPILE-ORIGIN-DENIED');
+    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+    expect(fixture).toContain('browser.newContext(storageState ? { storageState } : undefined)');
+    expect(fixture).toContain('if (!storageState) await context.clearCookies()');
     expect(fixture).toContain("if (alias.hostname === '127.0.0.1') alias.hostname = 'localhost'");
     expect(fixture).toContain("await context.route('**/*', async (route) => {");
     expect(fixture).toContain('await route.continue()');

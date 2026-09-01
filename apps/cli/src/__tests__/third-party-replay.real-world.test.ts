@@ -1,6 +1,7 @@
 import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { Workflow } from '@arxic/contracts';
 import { PlaywrightCompiler } from '../../../../packages/playwright-compiler/src';
 import { serializeScreenshotPrivacyPolicy } from '@arxic/playwright-screenshot-privacy';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -86,6 +87,159 @@ describe('third-party replay verification (#288 G-3)', () => {
     const rendered = JSON.stringify(verification);
     expect(rendered).not.toContain(running.persona.email);
     expect(rendered).not.toContain(running.persona.password);
+  }, 300_000);
+
+  it('replays the authenticated logout control in two clean persona passes (C-1/AC-1)', async () => {
+    const running = target!;
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-362-authenticated-out-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-362-authenticated-artifacts-'));
+    const workflow = authenticatedLogoutWorkflow();
+    const observations = loginObservations(
+      referenceAuthApp,
+      running.targetOrigin,
+      'arxic-362-authenticated',
+    );
+    const runtimeObservation = observations[1];
+    if (!runtimeObservation || runtimeObservation.kind !== 'runtime') {
+      throw new Error('Expected runtime EvidenceRef');
+    }
+    observations[1] = { ...runtimeObservation, url: `${running.targetOrigin}/` };
+    const bundle = await new PlaywrightCompiler({
+      outputDirectory,
+      origin: running.targetOrigin,
+      allowedOrigins: [running.appOrigin],
+    }).compile(workflow, observations);
+    const serialized = serializeScreenshotPrivacyPolicy({
+      schemaVersion: 1,
+      id: 'arxic-362-authenticated-mask',
+      authority: {
+        kind: 'repository-policy',
+        reference: 'arxic.yaml:policy.screenshots',
+        recordedAt: new Date().toISOString(),
+      },
+      capture: {
+        mode: 'masked-page',
+        fullPage: true,
+        masks: [{ kind: 'role', role: 'main', exact: true }],
+      },
+    });
+    const verifier = new PlaywrightVerifier({
+      outputDirectory,
+      origin: running.targetOrigin,
+      artifactsDir: artifactsDirectory,
+      allowedOrigins: [running.appOrigin],
+      persona: running.persona,
+      replayPersona: replayDeclaration(),
+      screenshotPrivacyPolicy: serialized.policy,
+    });
+
+    const verification = await verifier.verify(bundle, bundle.workflow.verification);
+
+    // `Logout` exists only in the real app's authenticated DOM. The compiled
+    // candidate must locate it before it can perform the logout transition.
+    expect(verification.outcome).toBe('verified');
+    expect(verification.runs).toEqual([{ passed: true }, { passed: true }]);
+  }, 300_000);
+
+  it('keeps the no-persona replay context anonymous and hygienic (AC-2)', async () => {
+    const running = target!;
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-362-anonymous-out-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-362-anonymous-artifacts-'));
+    const workflow = anonymousLoginWorkflow();
+    const observations = loginObservations(
+      referenceAuthApp,
+      running.targetOrigin,
+      'arxic-362-anonymous',
+    );
+    const runtimeObservation = observations[1];
+    if (!runtimeObservation || runtimeObservation.kind !== 'runtime') {
+      throw new Error('Expected runtime EvidenceRef');
+    }
+    observations[1] = { ...runtimeObservation, url: `${running.targetOrigin}/` };
+    const bundle = await new PlaywrightCompiler({
+      outputDirectory,
+      origin: running.targetOrigin,
+    }).compile(workflow, observations);
+    const serialized = serializeScreenshotPrivacyPolicy({
+      schemaVersion: 1,
+      id: 'arxic-362-anonymous-mask',
+      authority: {
+        kind: 'repository-policy',
+        reference: 'arxic.yaml:policy.screenshots',
+        recordedAt: new Date().toISOString(),
+      },
+      capture: {
+        mode: 'masked-page',
+        fullPage: true,
+        masks: [{ kind: 'role', role: 'main', exact: true }],
+      },
+    });
+    const verifier = new PlaywrightVerifier({
+      outputDirectory,
+      origin: running.targetOrigin,
+      artifactsDir: artifactsDirectory,
+      // The endpoint-less proxy is deliberate: this makes the test prove the
+      // generated fixture's fresh anonymous context, not fixture provisioning.
+      resetAndSeed: async () => undefined,
+      screenshotPrivacyPolicy: serialized.policy,
+    });
+
+    const verification = await verifier.verify(bundle, bundle.workflow.verification);
+
+    expect(verification.outcome).toBe('verified');
+    expect(verification.runs).toEqual([{ passed: true }, { passed: true }]);
+  }, 300_000);
+
+  it('refuses bad replay-persona credentials with the existing LOGIN-BLOCKED diagnostic (AC-3)', async () => {
+    const running = target!;
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-362-bad-persona-out-'));
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'arxic-362-bad-persona-artifacts-'));
+    const workflow = authenticatedLogoutWorkflow();
+    const observations = loginObservations(referenceAuthApp, running.targetOrigin, 'arxic-362-bad');
+    const runtimeObservation = observations[1];
+    if (!runtimeObservation || runtimeObservation.kind !== 'runtime') {
+      throw new Error('Expected runtime EvidenceRef');
+    }
+    observations[1] = { ...runtimeObservation, url: `${running.targetOrigin}/` };
+    const bundle = await new PlaywrightCompiler({
+      outputDirectory,
+      origin: running.targetOrigin,
+      allowedOrigins: [running.appOrigin],
+    }).compile(workflow, observations);
+    const serialized = serializeScreenshotPrivacyPolicy({
+      schemaVersion: 1,
+      id: 'arxic-362-bad-persona-mask',
+      authority: {
+        kind: 'repository-policy',
+        reference: 'arxic.yaml:policy.screenshots',
+        recordedAt: new Date().toISOString(),
+      },
+      capture: {
+        mode: 'masked-page',
+        fullPage: true,
+        masks: [{ kind: 'role', role: 'main', exact: true }],
+      },
+    });
+    const verifier = new PlaywrightVerifier({
+      outputDirectory,
+      origin: running.targetOrigin,
+      artifactsDir: artifactsDirectory,
+      allowedOrigins: [running.appOrigin],
+      persona: { ...running.persona, password: 'WrongReplayPassword9!' },
+      replayPersona: replayDeclaration(),
+      screenshotPrivacyPolicy: serialized.policy,
+    });
+
+    const verification = await verifier.verify(bundle, bundle.workflow.verification);
+
+    expect(verification.outcome).toBe('blocked');
+    expect(verification.runs).toEqual([]);
+    expect(verification.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'ARXIC-VERIFY-FIXTURE-LOGIN-BLOCKED',
+        severity: 'blocked',
+      }),
+    );
   }, 300_000);
 
   it('refuses fail-closed with NOT-DECLARED and zero passes when the declaration is absent (C-2/AC-3/SP-1)', async () => {
@@ -177,6 +331,65 @@ describe('third-party replay verification (#288 G-3)', () => {
     }
   });
 });
+
+function replayDeclaration() {
+  return {
+    mode: 'per-pass-login' as const,
+    login: {
+      route: '/login',
+      fields: [
+        { label: 'Email', inputRef: 'persona.email' as const },
+        { label: 'Password', inputRef: 'persona.password' as const },
+      ],
+      submit: { label: 'Login' },
+    },
+  };
+}
+
+function authenticatedLogoutWorkflow(): Workflow {
+  const workflow = loginWorkflow(referenceAuthApp, {
+    id: 'authentication.replay-persona.authenticated-logout',
+    title: 'Replay authenticated logout control',
+    dualEvidence: true,
+  });
+  workflow.states = [{ id: 'home' }, { id: 'logged-out' }];
+  workflow.transitions = [
+    {
+      from: 'home',
+      to: 'logged-out',
+      action: { intent: 'click Logout' },
+      assertions: [{ intent: 'text:Logged out' }],
+      evidenceRefs: ['src:login-handler', 'run:login'],
+    },
+  ];
+  workflow.verification = {
+    ...workflow.verification,
+    screenshotCheckpoints: ['logged-out'],
+  };
+  return workflow;
+}
+
+function anonymousLoginWorkflow(): Workflow {
+  const workflow = loginWorkflow(referenceAuthApp, {
+    id: 'authentication.replay-persona.anonymous-login',
+    title: 'Replay anonymous login surface',
+    dualEvidence: true,
+  });
+  workflow.transitions = [
+    {
+      from: 'home',
+      to: 'login-page',
+      action: { intent: 'open Login' },
+      assertions: [{ intent: 'text:Login' }],
+      evidenceRefs: ['src:login-handler', 'run:login'],
+    },
+  ];
+  workflow.verification = {
+    ...workflow.verification,
+    screenshotCheckpoints: ['login-page'],
+  };
+  return workflow;
+}
 
 async function writeConfig(options: {
   environmentClass: string;
