@@ -3,6 +3,7 @@ import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {
   ARXIC_PROMOTION_REDACTION_FAILED,
+  classifyPersistedPayload,
   redactAndScanPersistedPayload,
 } from '@arxic/bundle-promoter';
 import { canonicalJson as serializeCanonicalJson, sha256 } from '@arxic/contracts';
@@ -131,7 +132,7 @@ export class FileStageCheckpointer implements StageCheckpointer {
     await mkdir(directory, { recursive: true });
     const bytes = this.#preparePersistedBytes(
       `${serializeStageArtifact(value)}\n`,
-      !isSourceBearingStage(stage),
+      classifyPersistedPayload(`artifacts/${pad(stage)}.json`) === 'credential-bearing',
     );
     const ref = { id: `stage:${stage}`, sha256: sha256(bytes) } as const;
     await atomicWrite(join(directory, `${pad(stage)}.json`), bytes);
@@ -196,15 +197,6 @@ export class FileStageCheckpointer implements StageCheckpointer {
       throw new PersistedSecretError(diagnostics.map(({ subject }) => subject));
     return text;
   }
-}
-
-/**
- * Stages 1–3 and 13 persist source-derived records that can include target
- * source snippets. They remain exact-value scanned, but class regexes would
- * mistake the target's own password-looking code for retained credentials.
- */
-function isSourceBearingStage(stage: StageId): boolean {
-  return stage === 1 || stage === 2 || stage === 3 || stage === 13;
 }
 
 /** Fail-closed write-time redaction sweep using the established promotion code. */
