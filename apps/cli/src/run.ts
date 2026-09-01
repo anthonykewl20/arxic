@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sha256, validateDiagnostic, type Diagnostic } from '@arxic/contracts';
 import type { RunState } from '@arxic/orchestrator-langgraph';
+import type { ArxicConfig } from '@arxic/worker';
 import { loadConfig } from './config/parse';
 import { frameworkGateDiagnostics } from './config/framework-gate';
 import { ARXIC_CLI_INTERNAL, ARXIC_EXEC_CRASH, cliDiagnostic } from './diagnostics';
@@ -51,6 +52,7 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
     },
   };
   const startedAt = now();
+  const persistRedactionValues = replayPersonaCredentialValues(loaded.value);
   // DG-10 (#254): unknown or out-of-range frameworks fail fast here — before
   // any crawl — instead of surfacing as a late stage-3 block. Waived and
   // accepted verdicts ride along as observed diagnostics for the run record.
@@ -75,6 +77,7 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
         },
         runDirectory,
         rulepacksDir,
+        persistRedactionValues,
         now,
       },
       recordingSink,
@@ -124,6 +127,7 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
       result,
       startedAt,
       finishedAt,
+      redactionValues: persistRedactionValues,
       now,
     });
     return {
@@ -161,4 +165,13 @@ async function defaultRunRoot(repositoryDirectory: string): Promise<string> {
 
 function diagnosticKey(diagnostic: Diagnostic): string {
   return JSON.stringify(diagnostic);
+}
+
+function replayPersonaCredentialValues(config: ArxicConfig): readonly string[] {
+  if (!config.fixtures.replayPersona) return [];
+  return [
+    process.env.ARXIC_INPUT_PERSONA_EMAIL,
+    process.env.ARXIC_INPUT_PERSONA_PASSWORD,
+    process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD,
+  ].filter((value): value is string => value !== undefined && value.length > 0);
 }

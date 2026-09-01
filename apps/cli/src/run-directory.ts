@@ -1,5 +1,9 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import {
+  ARXIC_PROMOTION_REDACTION_FAILED,
+  redactAndScanPersistedPayload,
+} from '@arxic/bundle-promoter';
 import { ARXIC_VERSION, canonicalJson, type GateResult } from '@arxic/contracts';
 import type { ArxicConfig } from '@arxic/worker';
 import type { RunResult } from './executor';
@@ -10,6 +14,7 @@ export type RunDirectoryRecord = Readonly<{
   result: RunResult;
   startedAt: string;
   finishedAt: string;
+  redactionValues?: readonly string[];
   now: () => string;
 }>;
 
@@ -64,18 +69,34 @@ export async function writeRunDirectory(
   const diagnosticsBytes = record.result.diagnostics
     .map((diagnostic) => canonicalJson(diagnostic, { mode: 'legacy' }))
     .join('\n');
+  const persist = (text: string): string => {
+    const redacted = redactAndScanPersistedPayload(text, {
+      knownValues: record.redactionValues ?? [],
+      includePatternClasses: true,
+    });
+    if (redacted.diagnostics.length > 0) {
+      throw new Error(
+        `${ARXIC_PROMOTION_REDACTION_FAILED}: refusing to persist ${redacted.diagnostics
+          .map(({ subject }) => subject)
+          .join(', ')}`,
+      );
+    }
+    return redacted.text;
+  };
   await Promise.all([
-    writeFile(join(directory, 'run.json'), `${canonicalJson(runRecord, { mode: 'legacy' })}\n`, {
-      mode: 0o600,
-    }),
+    writeFile(
+      join(directory, 'run.json'),
+      persist(`${canonicalJson(runRecord, { mode: 'legacy' })}\n`),
+      { mode: 0o600 },
+    ),
     writeFile(
       join(directory, 'diagnostics.jsonl'),
-      diagnosticsBytes.length === 0 ? '' : `${diagnosticsBytes}\n`,
+      persist(diagnosticsBytes.length === 0 ? '' : `${diagnosticsBytes}\n`),
       { mode: 0o600 },
     ),
     writeFile(
       join(directory, 'config.json'),
-      `${canonicalJson(redactConfig(record.config), { mode: 'legacy' })}\n`,
+      persist(`${canonicalJson(redactConfig(record.config), { mode: 'legacy' })}\n`),
       { mode: 0o600 },
     ),
   ]);

@@ -13,6 +13,8 @@ export type RunRequest = Readonly<{
   config: ArxicConfig;
   runDirectory: string;
   rulepacksDir: string;
+  /** Runtime-only values that must be redacted from every persisted run payload. */
+  persistRedactionValues?: readonly string[];
   now?: () => string;
 }>;
 

@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import {
+  ARXIC_PROMOTION_REDACTION_FAILED,
+  redactAndScanPersistedPayload,
+} from '@arxic/bundle-promoter';
 import { canonicalJson as serializeCanonicalJson, sha256 } from '@arxic/contracts';
 import type {
   ImmutableArtifactRef,
@@ -73,9 +77,14 @@ export class InMemoryStageCheckpointer implements StageCheckpointer {
 
 export class FileStageCheckpointer implements StageCheckpointer {
   readonly #runsDirectory: string;
+  readonly #redactionValues: readonly string[];
 
-  constructor(runsDirectory: string) {
+  constructor(
+    runsDirectory: string,
+    options: Readonly<{ redactionValues?: readonly string[] }> = {},
+  ) {
     this.#runsDirectory = runsDirectory;
+    this.#redactionValues = options.redactionValues ?? [];
   }
 
   async load(runId: string): Promise<RunState | undefined> {
@@ -120,7 +129,10 @@ export class FileStageCheckpointer implements StageCheckpointer {
     assertRunId(runId);
     const directory = join(this.#runsDirectory, runId, 'artifacts');
     await mkdir(directory, { recursive: true });
-    const bytes = `${serializeStageArtifact(value)}\n`;
+    const bytes = this.#preparePersistedBytes(
+      `${serializeStageArtifact(value)}\n`,
+      !isSourceBearingStage(stage),
+    );
     const ref = { id: `stage:${stage}`, sha256: sha256(bytes) } as const;
     await atomicWrite(join(directory, `${pad(stage)}.json`), bytes);
     return ref;
@@ -159,7 +171,7 @@ export class FileStageCheckpointer implements StageCheckpointer {
     await mkdir(directory, { recursive: true });
     await atomicWrite(
       join(directory, `${pad(checkpoint.stage)}.json`),
-      `${serializeStageArtifact({ checkpoint, state })}\n`,
+      this.#preparePersistedBytes(`${serializeStageArtifact({ checkpoint, state })}\n`, true),
     );
   }
 
@@ -171,8 +183,39 @@ export class FileStageCheckpointer implements StageCheckpointer {
     await mkdir(directory, { recursive: true });
     await atomicWrite(
       join(directory, `${pad(checkpoint.stage)}.json`),
-      `${serializeStageArtifact({ checkpoint, state })}\n`,
+      this.#preparePersistedBytes(`${serializeStageArtifact({ checkpoint, state })}\n`, true),
     );
+  }
+
+  #preparePersistedBytes(bytes: string, includePatternClasses: boolean): string {
+    const { text, diagnostics } = redactAndScanPersistedPayload(bytes, {
+      knownValues: this.#redactionValues,
+      includePatternClasses,
+    });
+    if (diagnostics.length > 0)
+      throw new PersistedSecretError(diagnostics.map(({ subject }) => subject));
+    return text;
+  }
+}
+
+/**
+ * Stages 1–3 and 13 persist source-derived records that can include target
+ * source snippets. They remain exact-value scanned, but class regexes would
+ * mistake the target's own password-looking code for retained credentials.
+ */
+function isSourceBearingStage(stage: StageId): boolean {
+  return stage === 1 || stage === 2 || stage === 3 || stage === 13;
+}
+
+/** Fail-closed write-time redaction sweep using the established promotion code. */
+export class PersistedSecretError extends Error {
+  readonly code = ARXIC_PROMOTION_REDACTION_FAILED;
+  readonly patterns: readonly string[];
+
+  constructor(patterns: readonly string[]) {
+    super(`Refusing to persist sensitive data matched ${patterns.join(', ')}`);
+    this.name = 'PersistedSecretError';
+    this.patterns = patterns;
   }
 }
 
