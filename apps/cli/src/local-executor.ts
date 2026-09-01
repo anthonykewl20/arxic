@@ -43,7 +43,8 @@ import {
 
 export class LocalRunExecutor implements RunExecutor {
   async execute(request: RunRequest, sink: DiagnosticSink): Promise<RunResult> {
-    const baseInput = toOrchestratorInput(request);
+    const persona = configuredPersona();
+    const baseInput = toOrchestratorInput(request, persona);
     // #259: `expectedBuildDigest` (config) is the gate's expectation source.
     // The target-served digest is still RECORDED as the run's
     // `appBuildDigest` input (evidence fingerprint for later stages), but it
@@ -61,8 +62,10 @@ export class LocalRunExecutor implements RunExecutor {
       ...(servedBuildDigest ? { appBuildDigest: servedBuildDigest } : {}),
     };
     const orchestrator = new LangGraphOrchestrator({
-      checkpointer: new FileStageCheckpointer(request.runDirectory),
-      ...localPipelineOptions(request),
+      checkpointer: new FileStageCheckpointer(request.runDirectory, {
+        redactionValues: request.persistRedactionValues ?? personaCredentialValues(persona),
+      }),
+      ...localPipelineOptions(request, persona),
       ...(request.now === undefined ? {} : { now: request.now }),
     });
     const emitted = [];
@@ -99,7 +102,10 @@ export class LocalRunExecutor implements RunExecutor {
   }
 }
 
-export function toOrchestratorInput(request: RunRequest): OrchestratorInput {
+export function toOrchestratorInput(
+  request: RunRequest,
+  persona = configuredPersona(),
+): OrchestratorInput {
   const repository = resolve(request.config.source.repository);
   const commit = resolveCommit(repository, request.config.source.revision);
   // DG-297 E2 (#297): a declared replayPersona authenticates the stage-5
@@ -107,7 +113,7 @@ export function toOrchestratorInput(request: RunRequest): OrchestratorInput {
   // env persona (credentials stay env-only; no declaration-embedded
   // secrets). Missing env persona → anonymous crawl (the verifier's own
   // NOT-DECLARED refusal still guards the replay lane separately).
-  const crawlPersona = configuredPersona();
+  const crawlPersona = persona;
   const replayCrawlPersona =
     request.config.fixtures.replayPersona && crawlPersona
       ? {
@@ -155,9 +161,9 @@ export function toOrchestratorInput(request: RunRequest): OrchestratorInput {
 
 function localPipelineOptions(
   request: RunRequest,
+  persona = configuredPersona(),
 ): Omit<OrchestratorOptions, 'checkpointer' | 'now'> {
   const model = configuredModel(request);
-  const persona = configuredPersona();
   const outputDirectory = join(request.runDirectory, request.runId);
   const verificationArtifacts = join(request.runDirectory, 'verification-artifacts');
   const options: Omit<OrchestratorOptions, 'checkpointer' | 'now'> = {
@@ -518,6 +524,14 @@ function configuredPersona(): VerificationPersona | undefined {
   if (!email || !password) return undefined;
   const newPassword = process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD;
   return { email, password, ...(newPassword ? { newPassword } : {}) };
+}
+
+function personaCredentialValues(persona: VerificationPersona | undefined): readonly string[] {
+  return persona ? [persona.email, persona.password, persona.newPassword].filter(isPresent) : [];
+}
+
+function isPresent(value: string | undefined): value is string {
+  return value !== undefined && value.length > 0;
 }
 
 function uncompiledVerification() {

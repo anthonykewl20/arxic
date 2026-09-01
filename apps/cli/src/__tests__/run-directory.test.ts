@@ -2,6 +2,7 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
+import { scanTextForSecrets } from '@arxic/bundle-promoter';
 import type { ArxicConfig } from '@arxic/worker';
 import type { RunResult } from '../executor';
 import { writeRunDirectory } from '../run-directory';
@@ -81,6 +82,53 @@ describe('writeRunDirectory', () => {
     expect(configBytes).not.toContain('DO-NOT-PERSIST');
     expect(configBytes).toBe(`${previousRunDirectoryJson(echoedConfig)}\n`);
     expect(diagnosticLines[0]).toBe(previousRunDirectoryJson(OBSERVED_DIAGNOSTIC));
+  });
+
+  it('redacts resolved replay-persona values from every run-directory payload before the shared scanner runs', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-run-directory-persona-'));
+    const email = 'persisted.persona@arxic.invalid';
+    const password = 'PersistedPersona1!';
+    const result: RunResult = {
+      runId: 'persona-run',
+      status: 'completed',
+      outcome: 'observed',
+      diagnostics: [{ ...OBSERVED_DIAGNOSTIC, subject: email, message: `password: ${password}` }],
+      runDirectory: directory,
+      state: runState(),
+    };
+
+    await writeRunDirectory(directory, {
+      runId: 'persona-run',
+      config: {
+        ...VALID_CONFIG,
+        fixtures: {
+          ...VALID_CONFIG.fixtures,
+          replayPersona: {
+            mode: 'per-pass-login',
+            login: {
+              route: '/login',
+              fields: [
+                { label: 'Email', inputRef: 'persona.email' },
+                { label: 'Password', inputRef: 'persona.password' },
+              ],
+              submit: { label: 'Login' },
+            },
+          },
+        },
+      },
+      result,
+      startedAt: '2026-08-07T10:00:00.000Z',
+      finishedAt: '2026-08-07T10:00:02.000Z',
+      redactionValues: [email, password],
+      now: () => '2026-08-07T10:00:03.000Z',
+    });
+
+    for (const file of ['run.json', 'diagnostics.jsonl', 'config.json']) {
+      const bytes = await readFile(join(directory, 'persona-run', file), 'utf8');
+      expect(bytes).not.toContain(email);
+      expect(bytes).not.toContain(password);
+      expect(scanTextForSecrets(bytes)).toEqual([]);
+    }
   });
 });
 

@@ -2,6 +2,7 @@ import { mkdtemp, readFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { MailpitContainer, type StartedMailpit } from '@arxic/environment';
+import { scanPersistedPayloadForSecrets } from '@arxic/bundle-promoter';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { runCli } from '../index';
 import {
@@ -116,6 +117,21 @@ describe('third-party replay E2E (#288 G-4)', () => {
       if (bytes.length === 0) continue;
       expect(bytes, `${file} leaked a persona value`).not.toContain(running.persona.email);
       expect(bytes, `${file} leaked a persona value`).not.toContain(running.persona.password);
+    }
+    // #358: exact-value scope applies to every persisted payload, including
+    // source-bearing records. Pattern-class validation stays intentionally
+    // owned by validate-records.ts because source can legitimately contain
+    // password-shaped code (for example a target's own seed literal).
+    for (const file of files) {
+      const bytes = await readFile(file, 'utf8').catch(() => '');
+      if (bytes.length === 0) continue;
+      expect(
+        scanPersistedPayloadForSecrets(bytes, {
+          knownValues: [running.persona.email, running.persona.password],
+          includePatternClasses: false,
+        }),
+        `${file} retained a known persona value`,
+      ).toEqual([]);
     }
 
     // G-5 statelessness half: a second run over the SAME fixed inputs and

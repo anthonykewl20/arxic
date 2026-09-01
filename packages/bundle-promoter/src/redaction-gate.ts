@@ -16,6 +16,20 @@ export type RedactionResult = Readonly<{
   findings: readonly RedactionFinding[];
 }>;
 
+/** Stable token used when a known runtime-only value reaches a persisted payload. */
+export const PERSIST_REDACTION_PLACEHOLDER = '__ARXIC_REDACTED_PERSONA__';
+
+export type PersistenceRedactionResult = Readonly<{
+  text: string;
+  diagnostics: readonly Diagnostic[];
+}>;
+
+/** Controls whether class-pattern checks are meaningful for a persisted payload. */
+export type PersistedPayloadScanOptions = Readonly<{
+  knownValues: readonly string[];
+  includePatternClasses: boolean;
+}>;
+
 const textExtensions = new Set(['.json', '.ts', '.md', '.txt', '.sha256']);
 const patterns = [
   {
@@ -47,6 +61,56 @@ export function scanTextForSecrets(text: string): readonly Diagnostic[] {
         `Sensitive data matched ${pattern.name}`,
       ),
     );
+}
+
+/**
+ * Replaces exact runtime-only values before serialization. Longest values are
+ * replaced first so overlapping values cannot leave a suffix behind; the
+ * placeholder is intentionally constant to preserve deterministic artifacts.
+ */
+export function redactTextForPersistence(text: string, values: readonly string[]): string {
+  const ordered = [...new Set(values.filter((value) => value.length > 0))].sort(
+    (left, right) => right.length - left.length || left.localeCompare(right),
+  );
+  return ordered.reduce(
+    (redacted, value) => redacted.split(value).join(PERSIST_REDACTION_PLACEHOLDER),
+    text,
+  );
+}
+
+/**
+ * Scans a post-redaction payload. Exact known values are always prohibited;
+ * class patterns are deliberately restricted to payloads that cannot embed
+ * target source code. `scanTextForSecrets` remains the evidence-tree API.
+ */
+export function scanPersistedPayloadForSecrets(
+  text: string,
+  options: PersistedPayloadScanOptions,
+): readonly Diagnostic[] {
+  const exactValueDiagnostics = [
+    ...new Set(options.knownValues.filter((value) => value.length > 0)),
+  ]
+    .filter((value) => text.includes(value))
+    .map(() =>
+      promotionDiagnostic(
+        ARXIC_PROMOTION_REDACTION_FAILED,
+        'persona-value',
+        'Sensitive data matched a known replay-persona value',
+      ),
+    );
+  return [
+    ...exactValueDiagnostics,
+    ...(options.includePatternClasses ? scanTextForSecrets(text) : []),
+  ];
+}
+
+/** Redact known runtime values, then apply the scoped write-time secret sweep. */
+export function redactAndScanPersistedPayload(
+  text: string,
+  options: PersistedPayloadScanOptions,
+): PersistenceRedactionResult {
+  const clean = redactTextForPersistence(text, options.knownValues);
+  return { text: clean, diagnostics: scanPersistedPayloadForSecrets(clean, options) };
 }
 
 function matches(pattern: (typeof patterns)[number], content: string): boolean {
