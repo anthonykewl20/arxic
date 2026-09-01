@@ -26,7 +26,10 @@
 import { readFile, readdir, realpath, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { scanTextForSecrets } from '../../bundle-promoter/src/redaction-gate';
+import {
+  classifyPersistedPayload,
+  scanTextForSecrets,
+} from '../../bundle-promoter/src/redaction-gate';
 
 export const DG11_RECORD_KIND_RUN = 'dg11-validation-run-v1' as const;
 export const DG11_RECORD_KIND_REFUSAL = 'dg11-validation-refusal-v1' as const;
@@ -598,15 +601,22 @@ function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && 'code' in error;
 }
 
-/** Scans every file under the directory with the production secret scanner. */
+/**
+ * Scans every file under the directory with the production secret scanner.
+ * This standalone auditor has no campaign/runtime persona-value universe, so
+ * source-bearing artifacts receive only the structural validation below;
+ * credential-bearing payloads retain every production pattern class.
+ */
 export async function scanDirectoryForSecrets(
   directory: string,
 ): Promise<Array<{ file: string; pattern: string }>> {
   const findings: Array<{ file: string; pattern: string }> = [];
   for (const path of await filesUnder(directory)) {
+    const file = relative(directory, path);
+    if (classifyPersistedPayload(file) === 'source-bearing') continue;
     const text = await readFile(path, 'utf8');
     for (const diagnostic of scanTextForSecrets(text)) {
-      findings.push({ file: relative(directory, path), pattern: diagnostic.subject });
+      findings.push({ file, pattern: diagnostic.subject });
     }
   }
   return findings;

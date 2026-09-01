@@ -16,12 +16,17 @@
  * working in both orderings.
  */
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { parseValidateRecordsArgs } from '../validate-records';
+import { classifyPersistedPayload } from '../../../bundle-promoter/src/redaction-gate';
+import {
+  parseValidateRecordsArgs,
+  scanDirectoryForSecrets,
+  validateRecordsDirectory,
+} from '../validate-records';
 
 const exec = promisify(execFile);
 
@@ -141,4 +146,41 @@ describe('validate-records.ts CLI (real subprocess, no mocks)', () => {
     expect(parsed.directory).toBe(evidenceDir);
     expect(parsed.records).toBe(0);
   }, 30_000);
+});
+
+describe('validate-records persisted-payload secret scanning', () => {
+  let evidenceDir: string;
+
+  beforeEach(async () => {
+    evidenceDir = await mkdtemp(join(tmpdir(), 'arxic-validate-records-payload-kind-'));
+    await mkdir(join(evidenceDir, 'artifacts'));
+    const sourceLikePayload = JSON.stringify({
+      source: "const password = 'Hunter2!'; const redirect = 'https://source@token.test/'",
+    });
+    await writeFile(join(evidenceDir, 'artifacts', '01.json'), sourceLikePayload);
+    await writeFile(join(evidenceDir, 'config.json'), sourceLikePayload);
+  });
+
+  afterEach(async () => {
+    await rm(evidenceDir, { recursive: true, force: true });
+  });
+
+  it('sad path: excludes pattern classes from source-bearing artifacts but retains them for credential-bearing payloads', async () => {
+    const findings = await scanDirectoryForSecrets(evidenceDir);
+    const result = await validateRecordsDirectory(evidenceDir);
+
+    expect(findings).toEqual([
+      { file: 'config.json', pattern: 'email-address' },
+      { file: 'config.json', pattern: 'password-literal' },
+    ]);
+    expect(result.problems).toEqual([]);
+    expect(result.ok).toBe(false);
+    expect(result.findings).toEqual(findings);
+  });
+
+  it('imports the production persisted-payload classification', () => {
+    expect(classifyPersistedPayload('artifacts/01.json')).toBe('source-bearing');
+    expect(classifyPersistedPayload('stages/07.json')).toBe('credential-bearing');
+    expect(classifyPersistedPayload('config.json')).toBe('credential-bearing');
+  });
 });

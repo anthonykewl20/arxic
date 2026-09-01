@@ -30,6 +30,24 @@ export type PersistedPayloadScanOptions = Readonly<{
   includePatternClasses: boolean;
 }>;
 
+/** Persisted-payload category that determines whether class patterns apply. */
+export type PersistedPayloadKind = 'source-bearing' | 'credential-bearing';
+
+const sourceBearingArtifactNames = new Set(['01.json', '02.json', '03.json', '13.json']);
+
+/**
+ * Classifies persisted payload paths for the shared write-time and audit-time
+ * secret-scan policy. Source-derived artifacts can carry target source text;
+ * every other persisted payload is credential-bearing and retains full class
+ * pattern scanning.
+ */
+export function classifyPersistedPayload(relPath: string): PersistedPayloadKind {
+  const segments = relPath.replaceAll('\\', '/').split('/');
+  return segments.at(-2) === 'artifacts' && sourceBearingArtifactNames.has(segments.at(-1) ?? '')
+    ? 'source-bearing'
+    : 'credential-bearing';
+}
+
 const textExtensions = new Set(['.json', '.ts', '.md', '.txt', '.sha256']);
 const patterns = [
   {
