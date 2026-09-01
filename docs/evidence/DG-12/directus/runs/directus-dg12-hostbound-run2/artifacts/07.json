@@ -1,1 +1,0 @@
-{"diagnostics":[],"leases":[{"expiresAt":"2026-08-30T10:40:14.632Z","id":"persona-directus-dg12-hostbound-run2","inUse":false,"owner":"directus-dg12-hostbound-run2","requirement":{"kind":"persona"}}],"provisioned":true,"requirements":[{"kind":"persona"}]}
