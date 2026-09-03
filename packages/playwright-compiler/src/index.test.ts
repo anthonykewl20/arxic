@@ -19,6 +19,7 @@ import {
   generateFixture,
   generateSpec,
   probeDiagnostic,
+  workflowPerformsLogin,
 } from './index';
 import { screenshotPrivacyRuntimeSource } from '@arxic/playwright-screenshot-privacy';
 import { ARXIC_COMPILE_ORIGIN_DENIED, resolveOriginPolicy } from './index';
@@ -381,10 +382,34 @@ describe('Playwright compiler contracts', () => {
     expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
   });
 
-  test('keeps replay-persona injection for an email-only transition', () => {
-    const fixture = generateFixture(authenticatedWorkflowWithInputRefs({ email: 'persona.email' }));
+  // #367 defect 1: an email-only transition is a declared login surface
+  // (passwordless target) — it owns its login, so it must replay from the
+  // observed anonymous state, not from injected replay-persona state. This
+  // flips the pre-#367 expectation (injection for email-only), which pinned
+  // the defect the #364 start-state contract contradicts.
+  test('#367 email-only (passwordless) login workflows replay from the anonymous state', () => {
+    const workflow = authenticatedWorkflowWithInputRefs({ email: 'persona.email' });
 
-    expect(fixture).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+    expect(workflowPerformsLogin(workflow)).toBe(true);
+    const fixture = generateFixture(workflow);
+    expect(fixture).not.toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
+    expect(fixture).toContain('const context = await browser.newContext();');
+    expect(fixture).toContain('await context.clearCookies();');
+  });
+
+  // #367 defect 2: the new-password exclusion must hold for every casing of
+  // the ref — persona.newPassword exists in-repo (auth-domain-pack
+  // candidates, this suite) and must not bypass the change-password
+  // exclusion the way the exact lowercase comparison let it.
+  test('#367 excludes a change-password transition regardless of newpassword ref casing', () => {
+    const workflow = authenticatedWorkflowWithInputRefs({
+      email: 'persona.email',
+      password: 'persona.password',
+      confirm: 'persona.newPassword',
+    });
+
+    expect(workflowPerformsLogin(workflow)).toBe(false);
+    expect(generateFixture(workflow)).toContain('ARXIC_REPLAY_PERSONA_STORAGE_STATE');
   });
 
   test('keeps replay-persona injection for a single-transition change-password form', () => {

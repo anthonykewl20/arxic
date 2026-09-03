@@ -7,19 +7,20 @@ import type { Workflow } from '@arxic/contracts';
 export const REPLAY_PERSONA_STORAGE_STATE_ENV = 'ARXIC_REPLAY_PERSONA_STORAGE_STATE';
 
 /**
- * A workflow owns its login interaction only when a transition supplies email
- * and password without a new-password ref. Password-plus-new-password flows
- * and single-transition change-password forms intentionally do not match: both
- * start authenticated.
+ * A workflow owns its login interaction when a transition supplies the login
+ * identity ref (email) without a new-password ref — with or without a
+ * password ref, so passwordless (email-only) login surfaces count (#367).
+ * Refs compare case-insensitively: `persona.newPassword` (in-repo spelling)
+ * must hit the same change-password exclusion as `persona.newpassword`.
+ * Password-plus-new-password flows and single-transition change-password
+ * forms still do not match: both start authenticated.
  */
 export function workflowPerformsLogin(workflow: Workflow): boolean {
   return workflow.transitions.some((transition) => {
-    const inputRefs = Object.values(transition.action.inputRefs ?? {});
-    return (
-      inputRefs.includes('persona.email') &&
-      inputRefs.includes('persona.password') &&
-      !inputRefs.includes('persona.newpassword')
+    const inputRefs = Object.values(transition.action.inputRefs ?? {}).map((ref) =>
+      ref.toLowerCase(),
     );
+    return inputRefs.includes('persona.email') && !inputRefs.includes('persona.newpassword');
   });
 }
 

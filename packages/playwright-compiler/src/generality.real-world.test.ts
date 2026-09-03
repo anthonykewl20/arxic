@@ -17,7 +17,13 @@ import {
   vulnerableAuthApp,
   type RunningApp,
 } from '@arxic/real-world-testkit';
-import { PlaywrightCompiler, generateSpec } from './index';
+import {
+  PlaywrightCompiler,
+  REPLAY_PERSONA_STORAGE_STATE_ENV,
+  generateFixture,
+  generateSpec,
+  workflowPerformsLogin,
+} from './index';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const submitName =
@@ -94,6 +100,14 @@ describe('playwright compiler generality on the vulnerable auth app', () => {
     };
     const generated = generateSpec(workflow, running.origin, `${running.origin}/`);
     expect(generated.spec).toContain('await expect(form).toHaveCount(1);');
+
+    // #367: the real app's email-only surface is a login-owning shape — the
+    // fixture generated for it must replay from the observed anonymous state
+    // (clear-cookies context), never from injected replay-persona state.
+    expect(workflowPerformsLogin(workflow)).toBe(true);
+    const fixture = generateFixture(workflow);
+    expect(fixture).not.toContain(REPLAY_PERSONA_STORAGE_STATE_ENV);
+    expect(fixture).toContain('await context.clearCookies();');
     await page.close();
   });
 });
