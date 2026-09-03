@@ -6,7 +6,20 @@ set -euo pipefail
 # hardening test resolves it by the same name.
 readonly IMAGE_TAG="arxic-worker:dev"
 
-docker build -f apps/worker/Dockerfile -t "${IMAGE_TAG}" .
+# Layer cache under Actions (issue #377): type=gha requires the docker-container
+# buildx driver (docker/setup-buildx-action in ci.yml). Local runs keep plain
+# docker build — no GHA credentials, identical image bytes.
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+  docker buildx build \
+    --cache-from type=gha \
+    --cache-to type=gha \
+    --load \
+    -f apps/worker/Dockerfile \
+    -t "${IMAGE_TAG}" \
+    .
+else
+  docker build -f apps/worker/Dockerfile -t "${IMAGE_TAG}" .
+fi
 
 # Verify the toolchain runs as root (default) AND as a non-root uid. The
 # non-root verify is the realistic sandbox condition (the sandbox runs under the

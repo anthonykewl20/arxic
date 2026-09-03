@@ -4,6 +4,13 @@ name: CI
 # the push-to-main trigger is intentionally dropped to halve billable minutes.
 # Use workflow_dispatch to verify main manually if ever needed.
 # paths-ignore skips CI only for changes that cannot affect the build or gates.
+#
+# Shape (issue #377): the gates run as PARALLEL jobs, not one sequential
+# monolith. The monolith measured 22m46s wall clock with a 19m03s Test step
+# serializing ~2m of static gates, ~1m of packaging gates, and ~30s of
+# fixture-app gates behind it (run 33766937722). No gate was removed: every
+# step from the monolith exists exactly once below. The required
+# branch-protection check name `ci` is produced by the gate job at the end.
 on:
   pull_request:
     paths-ignore:
@@ -16,6 +23,9 @@ on:
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   changes:
@@ -39,13 +49,11 @@ jobs:
             echo 'worker=false' >> "$GITHUB_OUTPUT"
           fi
 
-  ci:
+  # Fast fail-early gates: no browser, no Docker. These previously serialized
+  # behind (or ahead of) the 19m test suite inside one job.
+  static:
     runs-on: ubuntu-latest
-    # 30m (was 20m): the Test step alone measured 17m48s on 2026-08-24
-    # (#297 run 32741358533) — the suite outgrew the 20m cap that the
-    # pre-#297 baseline (19m29s) was already brushing. Same ceiling the
-    # worker-image job below uses. No test was removed or skipped.
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -60,17 +68,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-chromium-
-
-      - name: Install Playwright Chromium
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
 
       - name: Verify metadata (version provenance; CHANGELOG present)
         run: |
@@ -109,14 +106,121 @@ jobs:
       - name: Format
         run: pnpm format:check
 
+      - name: Command-guard denylist test
+        run: bash .opencode/plugins/test-guard.sh
+
+  # The old single Test step (19m03s baseline, 171 test files,
+  # fileParallelism:false by design — real Chromium/Docker/sqlite cannot share
+  # one runner) distributed over 4 runners via `vitest run --shard`. Shards are
+  # fresh runners: own docker daemon, own fallback Mailpit, per-run
+  # Testcontainers on random ports (charter §10), so they cannot interfere.
+  # worker-image.real-world.test.ts self-skips in shards exactly as it did in
+  # the monolith (its image is built only in the worker-image job below).
+  test:
+    name: test (${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    # Same ceiling the monolith carried (real-Docker variance); a balanced
+    # shard lands far below it.
+    timeout-minutes: 30
+    strategy:
+      # Report every failing shard in one run instead of cancelling siblings —
+      # fewer blind fix rounds.
+      fail-fast: false
+      matrix:
+        shard:
+          - '1/4'
+          - '2/4'
+          - '3/4'
+          - '4/4'
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.10 # version comes from package.json "packageManager"
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-chromium-
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
+
+      # Same fallback Mailpit the monolithic Test step had. The suite leaves
+      # ARXIC_MAILPIT_* unset, so tests provision their own per-run
+      # Testcontainers (charter §10); this preserves the exact environment the
+      # suite ran under before.
+      - name: Start Mailpit
+        run: docker run -d --name mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit:v1.30.0
+
+      - name: Test
+        run: pnpm exec vitest run --shard=${{ matrix.shard }}
+
+  # Fixture-app gates: real booting apps against real Mailpit, plus the
+  # isolated-Testcontainers startup proof (env-unset, exactly as before).
+  fixture-apps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.10 # version comes from package.json "packageManager"
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Test isolated Testcontainers Mailpit startup
         run: env -u ARXIC_MAILPIT_SMTP -u ARXIC_MAILPIT_API pnpm exec vitest run packages/fixture-mailpit/src/testcontainers-smoke.test.ts
 
       - name: Start Mailpit
         run: docker run -d --name mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit:v1.30.0
 
-      - name: Test
-        run: pnpm test
+      - name: Fixture apps typecheck
+        run: pnpm --filter reference-auth-app typecheck && pnpm --filter vulnerable-auth-app typecheck
+
+      - name: Fixture apps test (real Mailpit)
+        run: pnpm --filter reference-auth-app test && pnpm --filter vulnerable-auth-app test
+        env:
+          ARXIC_MAILPIT_SMTP: localhost:1025
+          ARXIC_MAILPIT_API: http://localhost:8025
+
+  # Packaging/compliance gates: packed-CLI smoke, license allowlist, SBOM.
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.10 # version comes from package.json "packageManager"
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Tarball smoke
         run: node scripts/tarball-smoke.mjs
@@ -134,18 +238,6 @@ jobs:
           name: sbom-cyclonedx
           path: sbom.cdx.json
           retention-days: 14
-
-      - name: Fixture apps typecheck
-        run: pnpm --filter reference-auth-app typecheck && pnpm --filter vulnerable-auth-app typecheck
-
-      - name: Fixture apps test (real Mailpit)
-        run: pnpm --filter reference-auth-app test && pnpm --filter vulnerable-auth-app test
-        env:
-          ARXIC_MAILPIT_SMTP: localhost:1025
-          ARXIC_MAILPIT_API: http://localhost:8025
-
-      - name: Command-guard denylist test
-        run: bash .opencode/plugins/test-guard.sh
 
   worker-image:
     needs: [changes]
@@ -167,8 +259,41 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The docker-container driver is required for the type=gha layer cache
+      # build-and-verify.sh uses under Actions (issue #377).
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
       - name: Build and verify worker image
         run: bash apps/worker/build-and-verify.sh
 
       - name: Run worker image sandbox suite
         run: ARXIC_WORKER_IMAGE_REQUIRED=1 pnpm exec vitest run packages/environment/src/__tests__/worker-image.real-world.test.ts
+
+  # The required branch-protection check `ci` (strict): green iff every gate
+  # job above is green. worker-image stays a conditional sibling exactly as in
+  # the monolithic shape — visible, but not the merge-blocking check.
+  ci:
+    needs: [static, test, fixture-apps, package]
+    # always() so the gate RUNS and reports red when a dependency failed;
+    # a skipped gate would leave the required check pending forever.
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Assert every gate job succeeded
+        env:
+          STATIC: ${{ needs.static.result }}
+          TEST: ${{ needs.test.result }}
+          FIXTURE_APPS: ${{ needs.fixture-apps.result }}
+          PACKAGE: ${{ needs.package.result }}
+        run: |
+          set -euo pipefail
+          echo "static=$STATIC test=$TEST fixture-apps=$FIXTURE_APPS package=$PACKAGE"
+          for result in "$STATIC" "$TEST" "$FIXTURE_APPS" "$PACKAGE"; do
+            if [ "$result" != "success" ]; then
+              echo "::error::ci gate requires every gate job green; got static=$STATIC test=$TEST fixture-apps=$FIXTURE_APPS package=$PACKAGE"
+              exit 1
+            fi
+          done
+          echo "ci gate: every gate job green."
