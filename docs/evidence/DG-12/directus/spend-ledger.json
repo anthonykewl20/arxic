@@ -23,6 +23,13 @@
       "recordedAt": "2026-08-20T14:17:46.751Z",
       "runId": "directus-g3-run3",
       "valid": true
+    },
+    {
+      "calls": 0,
+      "measuredCostUsd": 0,
+      "recordedAt": "2026-09-01T06:53:58.646Z",
+      "runId": "directus-dg12-hostbound-run3",
+      "valid": true
     }
   ],
   "repository": "https://github.com/directus/directus",
