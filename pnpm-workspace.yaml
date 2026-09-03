@@ -38,3 +38,8 @@ patchedDependencies:
   yazl@3.3.1: patches/yazl@3.3.1.patch
 overrides:
   esbuild: 0.28.1
+  # Security floors for vulnerable transitives (issue #371; dependabot alerts
+  # #217/#218/#221/#222 fast-uri <3.1.6 via ajv, #219/#220 qs <6.16.0 via
+  # express/body-parser). fast-uri stays on 3.x — ajv 8.x declares ^3.
+  fast-uri: ^3.1.6
+  qs: ^6.16.0
