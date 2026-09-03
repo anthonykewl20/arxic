@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### security
 
+- SEC-371-fasturi-qs transitive security floors (#371): pnpm overrides force fast-uri ≥3.1.6 (GHSA-5jgf-p345-68v8, GHSA-fph4-wmhf-6fwf, GHSA-jqff-g426-hqxp, GHSA-f65p-4m7j-42xc; via ajv) and qs ≥6.16.0 (GHSA-4mjr-xmp4-gh2g, GHSA-x5fp-wj9c-mxmx; via express/body-parser), clearing all six open dependabot alerts with no API or behavior change.
 - issue-278-fixture-lockfile-refresh fixture lockfile security refresh (#278): the campaign-next DG-10 evidence fixture's pnpm-lock.yaml is regenerated with the repo-pinned pnpm against the real registry past the Dependabot floors — next 16.2.11, postcss 8.5.26, sharp 0.35.3 — with the floors durably recorded (fixture pnpm-workspace.yaml for pnpm 11 + mirrored pnpm.overrides for pnpm ≤10) and the original campaign lockfile preserved in git history at 8cf21e6; framework-gate expectations now derive from the fixture manifest/lockfile at test time (incl. a manifest↔lockfile coherence test, red on the manifest-bumped-without-lockfile drift that caused the alerts), and the lockfile-outranks-manifest precedence assertion is strengthened. Post-merge, all 14 lockfile-keyed Dependabot alerts on the fixture auto-resolve.
 - Digest-pinned the worker Node base image and added worker-image CI coverage for build, non-root, no-egress, native-module, Chromium, and sandbox checks (refs #191, #193).
 - Extracted bounded realpath-contained no-follow source reads into `@arxic/fs-safe` for both source adapters (refs #211).
