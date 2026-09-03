@@ -32,6 +32,8 @@ export type ThirdPartyTarget = {
   persona: { email: string; password: string };
   /** Every blocked arxic-protocol request, `${method} ${path} -> 404`. */
   blockedRequests: () => string[];
+  /** Every request the proxy forwarded upstream, `${method} ${pathname}` (#368 observable). */
+  proxiedRequests: () => string[];
   /** Requests made by the injected embedded-widget script. */
   widgetRequests: () => string[];
   stop: () => Promise<void>;
@@ -89,6 +91,7 @@ export async function bootThirdPartyTarget(options: {
   if (!seeded.ok) throw new Error(`Boot-seed failed: ${seeded.status}`);
 
   const blockedLog: string[] = [];
+  const proxiedLog: string[] = [];
   const widgetRequests: string[] = [];
   const widgetPort = await freePort();
   const widgetOrigin = `http://127.0.0.1:${widgetPort}`;
@@ -123,6 +126,7 @@ export async function bootThirdPartyTarget(options: {
       response.end(`Cannot ${request.method} ${path}`);
       return;
     }
+    proxiedLog.push(`${request.method} ${path}`);
     const upstream = requestHttp(
       {
         host: '127.0.0.1',
@@ -176,6 +180,7 @@ export async function bootThirdPartyTarget(options: {
     widgetOrigin,
     persona,
     blockedRequests: () => [...blockedLog],
+    proxiedRequests: () => [...proxiedLog],
     widgetRequests: () => [...widgetRequests],
     stop: async () => {
       proxy.closeAllConnections();

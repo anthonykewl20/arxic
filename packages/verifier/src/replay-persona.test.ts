@@ -334,7 +334,7 @@ describe('PlaywrightVerifier with a declared replay persona (#288)', () => {
     expect(suiteRuns).toBe(0);
   });
 
-  test('per-pass login replaces the endpoint protocol: both passes classify with no fixture-endpoint call', async () => {
+  test('#368 skips the per-pass capture for a login-owning workflow: zero logins, zero fixture-protocol calls, both passes run', async () => {
     const { origin, attempts } = await formServer();
     const fixture = await stagedFixture(origin);
     const verifier = new PlaywrightVerifier({
@@ -358,10 +358,50 @@ describe('PlaywrightVerifier with a declared replay persona (#288)', () => {
 
     const result = await verifier.verify(fixture.bundle, policy(2));
 
-    // One leased login PER pass; zero arxic fixture-protocol calls.
+    // #368: the workflow owns its login (persona.email without newpassword) —
+    // the generated fixture replays anonymous and ignores the storage state,
+    // so the verifier captures NOTHING (zero browser logins) and never falls
+    // back to the endpoint protocol; the suite runs both passes.
+    expect(attempts.logins).toBe(0);
+    expect(attempts.fixtureProtocol).toBe(0);
+    expect(result.runs).toEqual([{ passed: true }, { passed: true }]);
+  }, 120_000);
+
+  test('per-pass capture login replaces the endpoint protocol for a post-login workflow', async () => {
+    const { origin, attempts } = await formServer();
+    const fixture = await stagedFixture(origin, postLoginWorkflow());
+    let observedReplayStateEnv: string | undefined = '__unset__';
+    const verifier = new PlaywrightVerifier({
+      outputDirectory: fixture.outputDirectory,
+      artifactsDir: fixture.artifactsDirectory,
+      origin,
+      ensurePlaywrightModule: false,
+      replayPersona: DECLARATION,
+      persona: PERSONA,
+      runSuite: async () => {
+        observedReplayStateEnv = process.env.ARXIC_REPLAY_PERSONA_STORAGE_STATE;
+        return {
+          passed: true,
+          output: '',
+          exitCode: 0,
+          networkErrors: [],
+          observedTransitions: ['home->logged-out'],
+        };
+      },
+      screenshotPrivacyPolicy: screenshotPolicy(),
+      captureCorrelation: (run) => `replay-unit-correlation-${run}`,
+      now: () => '2026-08-24T12:00:00.000Z',
+    });
+
+    const result = await verifier.verify(fixture.bundle, policy(2));
+
+    // One leased capture login PER pass; zero arxic fixture-protocol calls;
+    // the captured state reaches the suite through the ephemeral env channel.
     expect(attempts.logins).toBe(2);
     expect(attempts.fixtureProtocol).toBe(0);
     expect(result.runs).toEqual([{ passed: true }, { passed: true }]);
+    expect(observedReplayStateEnv).toBeDefined();
+    expect(() => JSON.parse(observedReplayStateEnv!)).not.toThrow();
   }, 120_000);
 });
 
@@ -506,7 +546,10 @@ function screenshotPolicy() {
   }).policy;
 }
 
-async function stagedFixture(origin = 'http://127.0.0.1:3000'): Promise<{
+async function stagedFixture(
+  origin = 'http://127.0.0.1:3000',
+  inputWorkflow = workflow(),
+): Promise<{
   bundle: StagedBundle;
   outputDirectory: string;
   artifactsDirectory: string;
@@ -518,7 +561,7 @@ async function stagedFixture(origin = 'http://127.0.0.1:3000'): Promise<{
     outputDirectory,
     origin,
     now: () => '2026-08-24T12:00:00.000Z',
-  }).compile(workflow(), observations(origin));
+  }).compile(inputWorkflow, observations(origin));
   return { bundle, outputDirectory, artifactsDirectory };
 }
 
@@ -560,6 +603,26 @@ function workflow(): Workflow {
     },
     evidenceRefs: ['src:login-handler'],
   };
+}
+
+/** #368: a post-login workflow (no login identity ref) — the capture IS its start state. */
+function postLoginWorkflow(): Workflow {
+  const base = workflow();
+  base.states = [{ id: 'home' }, { id: 'logged-out' }];
+  base.transitions = [
+    {
+      from: 'home',
+      to: 'logged-out',
+      action: { intent: 'click Logout' },
+      assertions: [{ intent: 'text:Logged out' }],
+      evidenceRefs: ['src:login-handler'],
+    },
+  ];
+  base.verification = {
+    ...base.verification,
+    screenshotCheckpoints: ['logged-out'],
+  };
+  return base;
 }
 
 function observations(origin = 'http://127.0.0.1:3000') {
