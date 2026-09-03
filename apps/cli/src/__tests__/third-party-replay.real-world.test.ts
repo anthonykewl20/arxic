@@ -96,6 +96,13 @@ describe('third-party replay verification (#288 G-3)', () => {
     // Zero arxic-protocol round trips succeeded: every attempt was 404-blocked
     // by the proxy — and with the declaration, none is even attempted.
     expect(running.blockedRequests()).toEqual([]);
+    // #368: the workflow owns its login (the generated fixture replays
+    // anonymous), so the verifier must NOT capture a replay-persona storage
+    // state — a capture would be one wasted real-browser login per pass. The
+    // only login submits through the target proxy are the suite's own form
+    // submissions: exactly one per pass (pre-#368 this measured 4: two
+    // capture logins + two suite logins).
+    expect(running.proxiedRequests().filter((line) => line === 'POST /login')).toHaveLength(2);
     // Credential hygiene (Invariants): persona values never surface.
     const rendered = JSON.stringify(verification);
     expect(rendered).not.toContain(running.persona.email);

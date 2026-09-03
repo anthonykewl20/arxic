@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import type { StagedBundle, Workflow } from '@arxic/contracts';
 import { validateDiagnostic } from '@arxic/contracts';
-import { PlaywrightCompiler } from '@arxic/playwright-compiler';
+import { PlaywrightCompiler, REPLAY_PERSONA_STORAGE_STATE_ENV } from '@arxic/playwright-compiler';
 import {
   SCREENSHOT_CAPTURE_CORRELATION_ENV,
   SCREENSHOT_PRIVACY_POLICY_ENV,
@@ -24,6 +24,8 @@ import {
   ARXIC_VERIFY_BLOCKED_FIXTURE,
   ARXIC_VERIFY_BLOCKED_NETWORK,
   ARXIC_VERIFY_DIAGNOSTIC_CODES,
+  ARXIC_VERIFY_FIXTURE_LOGIN_BLOCKED,
+  ARXIC_VERIFY_FIXTURE_NOT_DECLARED,
   ARXIC_VERIFY_FLAKY_RUNS,
   ARXIC_VERIFY_REDACTION_FAILED,
   ARXIC_VERIFY_RUN_FAILURE,
@@ -974,6 +976,147 @@ test('receipt-free probe', async ({ page }) => {
   });
 });
 
+// #368: the replay-persona capture (#reset → replayPersonaStorageState) and
+// the ARXIC_REPLAY_PERSONA_STORAGE_STATE injection (#execute) must be gated on
+// the SAME workflowPerformsLogin predicate the fixture generator uses. A
+// login-owning workflow's generated fixture replays anonymous by contract and
+// ignores the injected state entirely — capturing it is one wasted real-browser
+// login per pass, and its LOGIN-BLOCKED failure mode can no longer serve the
+// fixture. The capture is a REAL browser login against the declared origin, so
+// these tests stage on an origin nothing will ever listen on (port 1): any
+// attempted capture fails fast (connection refused) and deterministically,
+// which is exactly the observable the gating needs.
+describe('PlaywrightVerifier replay-persona capture gating (#368)', () => {
+  const unreachableOrigin = 'http://127.0.0.1:1';
+
+  test(
+    'skips the replay-persona capture for a login-owning workflow',
+    { timeout: 30_000 },
+    async () => {
+      const fixture = await stagedFixture(undefined, unreachableOrigin);
+      let suiteRuns = 0;
+      let observedReplayStateEnv: string | undefined = '__unset__';
+      const verifier = new PlaywrightVerifier({
+        outputDirectory: fixture.outputDirectory,
+        artifactsDir: fixture.artifactsDirectory,
+        origin: unreachableOrigin,
+        ensurePlaywrightModule: false,
+        persona: { email: 'persona@example.test', password: 'PersonaPassword9!' },
+        replayPersona: replayDeclaration(),
+        runSuite: async (_run, _receipts, suiteDirectory) => {
+          suiteRuns += 1;
+          observedReplayStateEnv = process.env[REPLAY_PERSONA_STORAGE_STATE_ENV];
+          await writeRunArtifacts(suiteDirectory, 1);
+          return {
+            passed: true,
+            output: '',
+            exitCode: 0,
+            networkErrors: [],
+            observedTransitions: ['login-page->home'],
+          };
+        },
+        screenshotPrivacyPolicy: screenshotPolicy(),
+        captureCorrelation: (run) => `verifier-unit-correlation-${run}`,
+        now: () => '2026-08-09T12:00:00.000Z',
+      });
+
+      const result = await verifier.verify(fixture.bundle, {
+        ...policy(1),
+        screenshotCheckpoints: ['home'],
+        trace: 'retain',
+      });
+
+      expect(result.outcome, JSON.stringify(result.diagnostics)).toBe('verified');
+      expect(result.runs).toEqual([{ passed: true }]);
+      expect(suiteRuns).toBe(1);
+      expect(observedReplayStateEnv).toBeUndefined();
+    },
+  );
+
+  test(
+    'still captures the replay-persona state for a post-login workflow (fail-closed)',
+    { timeout: 60_000 },
+    async () => {
+      const fixture = await stagedFixture(postLoginWorkflow(), unreachableOrigin);
+      let suiteRuns = 0;
+      const verifier = new PlaywrightVerifier({
+        outputDirectory: fixture.outputDirectory,
+        artifactsDir: fixture.artifactsDirectory,
+        origin: unreachableOrigin,
+        ensurePlaywrightModule: false,
+        persona: { email: 'persona@example.test', password: 'PersonaPassword9!' },
+        replayPersona: replayDeclaration(),
+        runSuite: async () => {
+          suiteRuns += 1;
+          return {
+            passed: true,
+            output: '',
+            exitCode: 0,
+            networkErrors: [],
+            observedTransitions: [],
+          };
+        },
+        screenshotPrivacyPolicy: screenshotPolicy(),
+        captureCorrelation: (run) => `verifier-unit-correlation-${run}`,
+        now: () => '2026-08-09T12:00:00.000Z',
+      });
+
+      const result = await verifier.verify(fixture.bundle, policy(1));
+
+      expect(result.outcome).toBe('blocked');
+      expect(result.runs).toEqual([]);
+      expect(suiteRuns).toBe(0);
+      expect(result.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: ARXIC_VERIFY_FIXTURE_LOGIN_BLOCKED,
+          severity: 'blocked',
+        }),
+      );
+    },
+  );
+
+  test(
+    'refuses a declared replay persona without a persona for a login-owning workflow (fail-closed)',
+    { timeout: 30_000 },
+    async () => {
+      const fixture = await stagedFixture(undefined, unreachableOrigin);
+      let suiteRuns = 0;
+      const verifier = new PlaywrightVerifier({
+        outputDirectory: fixture.outputDirectory,
+        artifactsDir: fixture.artifactsDirectory,
+        origin: unreachableOrigin,
+        ensurePlaywrightModule: false,
+        replayPersona: replayDeclaration(),
+        runSuite: async () => {
+          suiteRuns += 1;
+          return {
+            passed: true,
+            output: '',
+            exitCode: 0,
+            networkErrors: [],
+            observedTransitions: ['login-page->home'],
+          };
+        },
+        screenshotPrivacyPolicy: screenshotPolicy(),
+        captureCorrelation: (run) => `verifier-unit-correlation-${run}`,
+        now: () => '2026-08-09T12:00:00.000Z',
+      });
+
+      const result = await verifier.verify(fixture.bundle, policy(1));
+
+      expect(result.outcome).toBe('blocked');
+      expect(result.runs).toEqual([]);
+      expect(suiteRuns).toBe(0);
+      expect(result.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: ARXIC_VERIFY_FIXTURE_NOT_DECLARED,
+          severity: 'blocked',
+        }),
+      );
+    },
+  );
+});
+
 // #308 (F-E7): the campaign's first fully-verifying run (directus-dg12-run5)
 // ended with artifacts/{00..09,13}.json MISSING from the run root while
 // artifacts/{10,11,12}.json (committed after verification) survived — the
@@ -1031,7 +1174,10 @@ function verifierFor(
   });
 }
 
-async function stagedFixture(inputWorkflow = workflow()): Promise<{
+async function stagedFixture(
+  inputWorkflow = workflow(),
+  origin = 'http://127.0.0.1:3000',
+): Promise<{
   bundle: StagedBundle;
   outputDirectory: string;
   artifactsDirectory: string;
@@ -1041,9 +1187,9 @@ async function stagedFixture(inputWorkflow = workflow()): Promise<{
   temporaryDirectories.push(outputDirectory, artifactsDirectory);
   const bundle = await new PlaywrightCompiler({
     outputDirectory,
-    origin: 'http://127.0.0.1:3000',
+    origin,
     now: () => '2026-08-09T12:00:00.000Z',
-  }).compile(inputWorkflow, observations());
+  }).compile(inputWorkflow, observations(origin));
   return {
     outputDirectory,
     artifactsDirectory,
@@ -1201,7 +1347,41 @@ function noRequiredTransitionsWorkflow(): Workflow {
   return fixture;
 }
 
-function observations() {
+/** #368: a post-login workflow (no login identity ref) — the capture IS its start state. */
+function postLoginWorkflow(): Workflow {
+  const fixture = workflow();
+  fixture.states = [{ id: 'home' }, { id: 'logged-out' }];
+  fixture.transitions = [
+    {
+      from: 'home',
+      to: 'logged-out',
+      action: { intent: 'click Logout' },
+      assertions: [{ intent: 'text:Logged out' }],
+      evidenceRefs: ['src:login-handler', 'run:login'],
+    },
+  ];
+  fixture.verification = {
+    ...fixture.verification,
+    screenshotCheckpoints: ['logged-out'],
+  };
+  return fixture;
+}
+
+function replayDeclaration() {
+  return {
+    mode: 'per-pass-login' as const,
+    login: {
+      route: '/login',
+      fields: [
+        { label: 'Email', inputRef: 'persona.email' as const },
+        { label: 'Password', inputRef: 'persona.password' as const },
+      ],
+      submit: { label: 'Login' },
+    },
+  };
+}
+
+function observations(origin = 'http://127.0.0.1:3000') {
   return [
     {
       kind: 'source' as const,
@@ -1219,7 +1399,7 @@ function observations() {
       appBuildDigest: 'b'.repeat(64),
       browser: 'chromium',
       browserVersion: '1.62.1',
-      url: 'http://127.0.0.1:3000/login',
+      url: `${origin}/login`,
       timestamp: '2026-08-09T12:00:00.000Z',
     },
   ];

@@ -17,6 +17,7 @@ import {
   generateSpec,
   transitionReceiptId,
   transitionReceiptRuntimeSource,
+  workflowPerformsLogin,
 } from '@arxic/playwright-compiler';
 import {
   SCREENSHOT_CAPTURE_CORRELATION_ENV,
@@ -72,7 +73,10 @@ export type PlaywrightVerifierOptions = {
    * present — with a persona — the verifier provisions + logs in the persona
    * through the target's own login form before EVERY pass, in a fresh
    * context, instead of calling the target's arxic fixture endpoints
-   * (first-party apps keep that protocol unchanged, C-4).
+   * (first-party apps keep that protocol unchanged, C-4). #368: workflows
+   * that perform their own login (the fixture generator's
+   * `workflowPerformsLogin` predicate) skip the capture entirely — their
+   * fixture replays anonymous by contract and ignores the storage state.
    */
   replayPersona?: ReplayPersonaDeclaration;
   /**
@@ -112,6 +116,12 @@ export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #captureCorrelation: (run: number) => string;
   /** Set at verify() entry: the workflow id every #reset diagnostic names. */
   #subject: string | undefined;
+  /**
+   * Set at verify() entry (#368): whether the bundle's workflow performs its
+   * own login — the same predicate the fixture generator uses to decide the
+   * fixture's start state. Gates the replay-persona capture.
+   */
+  #workflowOwnsLogin = false;
   /** #308: set at verify() entry — the isolated suite staging directory. */
   #suiteDirectory: string | undefined;
 
@@ -136,6 +146,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     const artifacts: ArtifactRef[] = [];
     const subject = bundle.workflow.id;
     this.#subject = subject;
+    this.#workflowOwnsLogin = workflowPerformsLogin(bundle.workflow);
     // #308 (F-E7): the suite MUST NOT run in the caller's output directory.
     // The screenshot-privacy retention treats its source roots as an
     // EXCLUSIVE capture workspace (inventories and purges everything under
@@ -491,7 +502,14 @@ export class PlaywrightVerifier implements WorkflowVerifier {
     // #288 (C-1): a declared replay persona provisions through the target's
     // OWN login form per pass (the leased mutation); the endpoint protocol is
     // never attempted against an endpoint-less third-party target.
+    // #368: a login-owning workflow's generated fixture replays anonymous by
+    // contract and ignores the injected storage state entirely, so the
+    // per-pass capture login (and its LOGIN-BLOCKED failure mode) can never
+    // serve the suite — skip the capture; the workflow's own login is the
+    // pass's leased mutation. Post-login workflows keep the fail-closed
+    // capture: their fixture starts from the captured state.
     if (this.#replayPersona && this.#persona) {
+      if (this.#workflowOwnsLogin) return undefined;
       return replayPersonaStorageState({
         origin: this.#origin,
         declaration: this.#replayPersona,
