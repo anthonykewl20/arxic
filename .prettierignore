@@ -7,4 +7,6 @@ coverage/
 docs/engineering-charter.md
 docs/SYNC.md
 .github/pull_request_template.md
+# Machine-recorded evidence is immutable; sanitization provenance and bundle checksums forbid rewriting evidence files.
+docs/evidence/
 docs/evidence/**/*.sanitization.json

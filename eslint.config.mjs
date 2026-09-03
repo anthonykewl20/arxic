@@ -12,6 +12,9 @@ export default tseslint.config(
       '.opencode/**',
       '.worktrees/**',
       '**/*.config.{js,mjs,cjs,ts}',
+      // Machine-recorded evidence is immutable; sanitization provenance and bundle
+      // checksums forbid rewriting evidence files.
+      'docs/evidence/**',
     ],
   },
   js.configs.recommended,
