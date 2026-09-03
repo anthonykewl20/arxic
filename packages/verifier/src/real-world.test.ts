@@ -590,7 +590,7 @@ describe.sequential('playwright verifier real-world security proof', () => {
       }
     });
 
-    test('proves control, kill, and rejection through the real adapter and Chromium', async () => {
+    test('proves control, kill, and exact-text sensitivity through the real adapter and Chromium', async () => {
       if (!running) throw new Error('Reference auth app did not start');
       const genuineWorkflow = loginWorkflow(referenceAuthApp, {
         id: 'authentication.login.sensitivity.reference',
@@ -617,7 +617,19 @@ describe.sequential('playwright verifier real-world security proof', () => {
         id: 'authentication.login.sensitivity.insensitive',
         title: 'Insensitive login assertion proof',
       });
-      insensitiveWorkflow.transitions[0]!.assertions[0]!.intent = 'text:Logged in';
+      // Pre-#366 this arm asserted bare `text:Logged in`, which only ever
+      // passed as a SUBSTRING of the home page's "Logged in as <email>" —
+      // and the seeded persona email even made the probe's never-match
+      // mutation marker survive, demonstrating the INSENSITIVE diagnostic
+      // end to end. #366's exact-match emission removes substring semantics
+      // by design, so that weak-assertion class can no longer pass at all
+      // (the control fails instead). The arm now proves the hardened text
+      // emission end to end: the FULL observed sentence passes the control
+      // and both probe operators are killed through real Chromium. The
+      // value-substitution INSENSITIVE diagnostic path stays covered by the
+      // sensitivity-probe unit suite (scripted surviving runs) and the
+      // control-state tautology proof below (omission operator).
+      insensitiveWorkflow.transitions[0]!.assertions[0]!.intent = `text:Logged in as ${insensitivePersona.email}`;
       const insensitive = await createSensitivityProbeAdapter({
         parentDirectory: probeParent,
         env: {
@@ -638,22 +650,14 @@ describe.sequential('playwright verifier real-world security proof', () => {
         diagnostics: [],
       });
       expect(insensitive).toEqual({
-        killed: false,
+        killed: true,
         probed: 2,
         controlPassed: true,
-        diagnostics: [
-          {
-            code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
-            severity: 'blocked',
-            subject: insensitiveWorkflow.id,
-            message:
-              'Assertion "text:Logged in" remained passing after value mutation to "text:__arxic-probe-never-match__"',
-          },
-        ],
+        diagnostics: [],
       });
       expect(await readdir(probeParent)).toEqual([]);
       console.info(
-        `Sensitivity adapter proof: ${JSON.stringify({ controlPassed: genuine.controlPassed, mutationPassed: !genuine.killed, killed: genuine.killed, insensitiveKilled: insensitive.killed, insensitiveDiagnostic: insensitive.diagnostics[0]?.code })}`,
+        `Sensitivity adapter proof: ${JSON.stringify({ controlPassed: genuine.controlPassed, mutationPassed: !genuine.killed, killed: genuine.killed, exactTextKilled: insensitive.killed, exactTextDiagnostics: insensitive.diagnostics.length })}`,
       );
     }, 240_000);
 
