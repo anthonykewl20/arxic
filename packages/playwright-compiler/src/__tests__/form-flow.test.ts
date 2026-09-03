@@ -45,10 +45,11 @@ describe('buildFormFlowWorkflow (generic form-flow executor, inventory-parameter
     expect(transition.to).toBe('newsletter-thanks-page');
     expect(transition.action.intent).toBe('Submit newsletter subscribe form via "Subscribe"');
     expect(transition.action.inputRefs).toEqual({ Email: 'visitor.email' });
-    // Observation-bound assertions, not canned literals.
+    // Observation-bound assertions, not canned literals. Heading anchors are
+    // role-qualified (#366) so the emitted locator is strict-mode race-safe.
     expect(transition.assertions.map(({ intent }) => intent)).toEqual([
       'url:/newsletter/thanks',
-      'text:Subscribed',
+      'text@heading:Subscribed',
     ]);
     expect(transition.evidenceRefs).toContain('run:observation-newsletter');
     expect(transition.evidenceRefs).toContain('src:newsletter-handler');
@@ -87,7 +88,7 @@ describe('buildFormFlowWorkflow (generic form-flow executor, inventory-parameter
     });
     expect(transition.assertions.map(({ intent }) => intent)).toEqual([
       'url:/contact/sent',
-      'text:Message sent',
+      'text@heading:Message sent',
     ]);
   });
 

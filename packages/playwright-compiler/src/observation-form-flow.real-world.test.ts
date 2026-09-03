@@ -173,7 +173,9 @@ describe.sequential('DG-09 compiler observation-bound form flows (real Chromium)
     // url:/dashboard replaces the campaign's canned url:/ (the anchored regex
     // targets /dashboard specifically and tolerates query/fragment only).
     expect(spec).toContain('\\/dashboard(?:[?#].*)?$/);');
-    expect(spec).toContain('await expect(page.getByText("Dashboard")).toBeVisible();');
+    expect(spec).toContain(
+      'await expect(page.getByRole(\'heading\', { name: "Dashboard", exact: true })).toBeVisible();',
+    );
     expect(spec).not.toMatch(/url:\//u);
     // Entry navigation uses the observed entry route.
     expect(spec).toContain(`page.goto(${JSON.stringify(`${origin}/login`)})`);
@@ -221,7 +223,9 @@ describe.sequential('DG-09 compiler observation-bound form flows (real Chromium)
       expect(spec).toContain(`page.goto(${JSON.stringify(`${origin}/newsletter`)})`);
       expect(spec).toContain('labelOrPlaceholderControl(form, "Email")');
       expect(spec).toContain('\\/newsletter\\/thanks(?:[?#].*)?$/);');
-      expect(spec).toContain('await expect(page.getByText("Subscribed")).toBeVisible();');
+      expect(spec).toContain(
+        'await expect(page.getByRole(\'heading\', { name: "Subscribed", exact: true })).toBeVisible();',
+      );
       // No auth semantics anywhere: the flow never touches session state.
       expect(spec).not.toContain('Log in');
     } finally {

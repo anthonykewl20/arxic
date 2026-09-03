@@ -367,7 +367,7 @@ describe('proposal -> DG-09 form-flow compile (no canned assertions)', () => {
       const transition = workflow.transitions[0]!;
       expect(transition.assertions.map(({ intent }) => intent)).toEqual([
         'url:/newsletter/thanks',
-        'text:Subscribed',
+        'text@heading:Subscribed',
       ]);
       expect(transition.evidenceRefs).toContain('run:observation-abc123def456');
       expect(transition.evidenceRefs).toContain('src:app-newsletter-page-tsx:1-12');
@@ -496,7 +496,7 @@ describe('proposal -> DG-09 form-flow compile (no canned assertions)', () => {
       const assertions = result.stagedBundle.workflow.transitions[0]!.assertions.map(
         ({ intent }) => intent,
       );
-      expect(assertions).toEqual(['url:/dashboard', 'text:Dashboard']);
+      expect(assertions).toEqual(['url:/dashboard', 'text@heading:Dashboard']);
       expect(assertions).not.toContain('url:/');
     } finally {
       await rm(outputDirectory, { recursive: true, force: true });

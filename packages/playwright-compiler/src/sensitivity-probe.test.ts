@@ -165,10 +165,52 @@ describe('assertion sensitivity probe', () => {
       ],
     });
     expect(writtenSpecs[2]).toContain('page.goto');
-    expect(writtenSpecs[2]).toContain('getByText("Login")');
+    expect(writtenSpecs[2]).toContain('getByText("Login", { exact: true })');
     expect(writtenSpecs[2]).not.toContain('.fill(');
     expect(writtenSpecs[2]).not.toContain('.click(');
     expect(writtenSpecs[2]).not.toContain("getByRole('button'");
+  });
+
+  // #366: role-qualified text assertions (text@heading:) must be probed like
+  // any other assertion — pre-fix mutateIntent returned undefined for them,
+  // so they silently escaped sensitivity probing (a blindness defect, not a
+  // skip-by-design like unsupported kinds).
+  test('probes role-qualified text assertions with a role-preserving value mutation', async () => {
+    const writtenSpecs: string[] = [];
+    const runResults = [true, false, false];
+    const result = await probeAssertionSensitivity({
+      ...probeOptions(workflowWithAssertions('text@heading:Login')),
+      writeProbeDirectory: async (files) => {
+        writtenSpecs.push(files.spec);
+        return writeProbeDirectory(files);
+      },
+      runSuite: async () => ({ passed: runResults.shift()! }),
+    });
+
+    expect(result.assertions).toEqual([
+      {
+        transitionIndex: 0,
+        assertionIndex: 0,
+        operators: [
+          { kind: 'value-substitution', killed: true, controlPassed: true },
+          { kind: 'control-state-omission', killed: true, controlPassed: true },
+        ],
+        killed: true,
+      },
+    ]);
+    expect(result).toEqual({
+      killed: true,
+      probed: 2,
+      controlPassed: true,
+      diagnostics: [],
+    });
+    expect(writtenSpecs[0]).toContain('getByRole(\'heading\', { name: "Login", exact: true })');
+    expect(writtenSpecs[1]).toContain(
+      'getByRole(\'heading\', { name: "__arxic-probe-never-match__", exact: true })',
+    );
+    expect(writtenSpecs[2]).toContain('getByRole(\'heading\', { name: "Login", exact: true })');
+    expect(writtenSpecs[2]).not.toContain('.fill(');
+    expect(writtenSpecs[2]).not.toContain('.click(');
   });
 
   test('probes every URL and text assertion and reports surviving value and omission mutations', async () => {
@@ -222,11 +264,11 @@ describe('assertion sensitivity probe', () => {
     });
     expect(mutations[0]).not.toContain('__arxic-probe-never__');
     expect(mutations[1]).toContain('__arxic-probe-never__');
-    expect(mutations[1]).toContain('getByText("Logged in")');
+    expect(mutations[1]).toContain('getByText("Logged in", { exact: true })');
     expect(mutations[2]).toContain('toHaveURL(/^http:\\/\\/127');
-    expect(mutations[2]).not.toContain('getByText("Logged in")');
-    expect(mutations[3]).toContain('getByText("__arxic-probe-never-match__")');
-    expect(mutations[4]).toContain('getByText("Logged in")');
+    expect(mutations[2]).not.toContain('getByText("Logged in"');
+    expect(mutations[3]).toContain('getByText("__arxic-probe-never-match__", { exact: true })');
+    expect(mutations[4]).toContain('getByText("Logged in", { exact: true })');
   });
 
   test('writes an action-free control state for one assertion at the transition from-state', async () => {
@@ -259,7 +301,7 @@ describe('assertion sensitivity probe', () => {
       diagnostics: [],
     });
     expect(writtenSpecs[2]).toContain('page.goto("http://127.0.0.1:3000/login")');
-    expect(writtenSpecs[2]).toContain('getByText("Logged in")');
+    expect(writtenSpecs[2]).toContain('getByText("Logged in", { exact: true })');
     expect(writtenSpecs[2]).not.toContain('.fill(');
     expect(writtenSpecs[2]).not.toContain('.click(');
     expect(writtenSpecs[2]).not.toContain("getByRole('button'");
