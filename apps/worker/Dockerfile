@@ -36,13 +36,57 @@ RUN mkdir -p /opt/pnpm && chmod 1777 /opt/pnpm
 
 WORKDIR /app
 
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
-COPY . .
-
+# Manifest-first layer order (issue #377, CI-efficiency follow-up from the
+# 2026-08-13(7) session): the dependency + Chromium layers used to rebuild on
+# every source change because `COPY . .` preceded `pnpm install`. Copying only
+# the workspace manifests first lets those layers survive source-only changes
+# (buildx type=gha cache in ci.yml). BuildKit wildcard COPY flattens
+# directories (`packages/*/package.json` collapses to one file — verified), so
+# every workspace manifest is listed explicitly; pnpm fails closed under
+# --frozen-lockfile if a workspace package is added without a line here.
+# patches/ must exist before install: pnpm applies patchedDependencies at
+# resolve time. The final image content is identical to the previous
+# single-`COPY . .` ordering — only layer boundaries moved.
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml .npmrc ./
+COPY patches ./patches
+COPY apps/cli/package.json apps/cli/
+COPY apps/worker/package.json apps/worker/
+COPY packages/ast-grep-adapter/package.json packages/ast-grep-adapter/
+COPY packages/auth-domain-pack/package.json packages/auth-domain-pack/
+COPY packages/bundle-promoter/package.json packages/bundle-promoter/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/crawlee-adapter/package.json packages/crawlee-adapter/
+COPY packages/domain-inventory-spike/package.json packages/domain-inventory-spike/
+COPY packages/environment/package.json packages/environment/
+COPY packages/evidence-graph/package.json packages/evidence-graph/
+COPY packages/fixture-mailpit/package.json packages/fixture-mailpit/
+COPY packages/fixture-otplib/package.json packages/fixture-otplib/
+COPY packages/fs-safe/package.json packages/fs-safe/
+COPY packages/intent/package.json packages/intent/
+COPY packages/intent-proposal-spike/package.json packages/intent-proposal-spike/
+COPY packages/m0-pipeline/package.json packages/m0-pipeline/
+COPY packages/model-adapter/package.json packages/model-adapter/
+COPY packages/orchestrator-langgraph/package.json packages/orchestrator-langgraph/
+COPY packages/playwright-agent-adapter/package.json packages/playwright-agent-adapter/
+COPY packages/playwright-compiler/package.json packages/playwright-compiler/
+COPY packages/playwright-screenshot-privacy/package.json packages/playwright-screenshot-privacy/
+COPY packages/playwright-trace-sanitizer/package.json packages/playwright-trace-sanitizer/
+COPY packages/policy-engine/package.json packages/policy-engine/
+COPY packages/real-world-testkit/package.json packages/real-world-testkit/
+COPY packages/reconciler/package.json packages/reconciler/
+COPY packages/source-ua-adapter/package.json packages/source-ua-adapter/
+COPY packages/verification-spike/package.json packages/verification-spike/
+COPY packages/verifier/package.json packages/verifier/
+# test-fixtures/dg12-fabrication-audit is data-only (no package.json) — it is
+# not a pnpm workspace member and needs no manifest line.
+COPY test-fixtures/reference-auth-app/package.json test-fixtures/reference-auth-app/
+COPY test-fixtures/vulnerable-auth-app/package.json test-fixtures/vulnerable-auth-app/
 RUN pnpm install --frozen-lockfile
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 RUN pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
 RUN chmod -R a+rX /opt/ms-playwright
+
+COPY . .
 RUN pnpm --filter @arxic/worker build
 
 CMD ["node", "/app/apps/worker/dist/main.js"]
