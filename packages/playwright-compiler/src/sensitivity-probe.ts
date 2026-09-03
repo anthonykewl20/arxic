@@ -187,6 +187,13 @@ function withAssertions(
 
 function mutateIntent(intent: string): string | undefined {
   if (intent.startsWith('url:')) return 'url:/__arxic-probe-never__';
+  // #366: the value mutation PRESERVES the role qualifier — mutating
+  // `text@heading:X` back to a plain `text:` intent would conflate the
+  // value-substitution operator with a locator-scope change, and dropping it
+  // from the probed set entirely would let role-qualified assertions escape
+  // sensitivity probing.
+  const roleQualified = /^text@([a-z]+):(.*)$/su.exec(intent);
+  if (roleQualified) return `text@${roleQualified[1]}:__arxic-probe-never-match__`;
   if (intent.startsWith('text:')) return 'text:__arxic-probe-never-match__';
   return undefined;
 }

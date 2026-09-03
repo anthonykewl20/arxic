@@ -57,8 +57,33 @@ describe('deriveAssertionsFromObservation (productionized DG-03 derivation)', ()
     if (!result.ok) return;
     expect(result.assertions.map(({ intent }) => intent)).toEqual([
       'url:/newsletter/thanks',
-      'text:Subscribed',
-      'text:Next steps',
+      'text@heading:Subscribed',
+      'text@heading:Next steps',
+    ]);
+  });
+
+  // #366: derived heading anchors are heading-ROLE-qualified so the emitted
+  // locator scopes by role — an h1 "Login" next to a "Login" submit button
+  // (the real reference-auth-app shape) resolves uniquely instead of
+  // strict-mode-violating on 2 exact-text elements.
+  it('derives heading anchors as role-qualified intents (race-safe emission input)', () => {
+    const result = deriveAssertionsFromObservation({
+      url: 'http://127.0.0.1:39321/login',
+      headings: ['Login'],
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(
+      result.assertions.map(({ intent, expectedValue }) => ({ intent, expectedValue })),
+    ).toEqual([
+      {
+        intent: 'url:/login',
+        expectedValue: 'url:/login',
+      },
+      {
+        intent: 'text@heading:Login',
+        expectedValue: 'text@heading:Login',
+      },
     ]);
   });
 

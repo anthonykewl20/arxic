@@ -211,6 +211,13 @@ function renderAction(transition: WorkflowTransition): {
   );
 }
 
+// #366: roles a role-qualified text assertion (`text@<role>:<text>`) may
+// bind to. Deliberately tight — the observation lanes derive heading anchors
+// only, so `heading` is the one role with derivation-side evidence. Anything
+// else fails closed at compile instead of emitting a locator that can never
+// resolve.
+const TEXT_ASSERTION_ROLES: ReadonlySet<string> = new Set(['heading']);
+
 function renderAssertions(
   transition: WorkflowTransition,
   origin: string,
@@ -226,10 +233,27 @@ function renderAssertions(
       const expectedRoute = new RegExp(`^${escapeRegExp(expectedUrl)}(?:[?#].*)?$`);
       return `    await expect(page).toHaveURL(${expectedRoute.toString()});`;
     }
+    // #366: role-qualified text assertions scope the locator by the observed
+    // role so pages where a heading and a control share the EXACT full text
+    // (the real reference-auth-app /login: <h1>Login</h1> + <button>Login</button>)
+    // resolve one element instead of strict-mode-violating on two.
+    const roleQualified = /^text@([a-z]+):(.*)$/su.exec(assertion.intent);
+    if (roleQualified) {
+      const [, role, rawText] = roleQualified;
+      const expected = rawText!.trim();
+      // The role is allowlist-validated lowercase ([a-z]+), so it inlines
+      // safely as a single-quoted literal — matching the generated spec's
+      // other role-locator emissions.
+      if (!expected || !TEXT_ASSERTION_ROLES.has(role!)) throw unsupportedAssertion(transition);
+      return `    await expect(page.getByRole('${role}', { name: ${JSON.stringify(expected)}, exact: true })).toBeVisible();`;
+    }
     if (assertion.intent.startsWith('text:')) {
       const expected = assertion.intent.slice(5).trim();
       if (!expected) throw unsupportedAssertion(transition);
-      return `    await expect(page.getByText(${JSON.stringify(expected)})).toBeVisible();`;
+      // Exact matching (#366): unscoped substring getByText resolves every
+      // element CONTAINING the text — a render race then fails strict mode
+      // (or passes spuriously against still-mounted pre-navigation DOM).
+      return `    await expect(page.getByText(${JSON.stringify(expected)}, { exact: true })).toBeVisible();`;
     }
     throw unsupportedAssertion(transition);
   });

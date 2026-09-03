@@ -16,6 +16,7 @@ import {
   PlaywrightCompiler,
   compileDiagnostic,
   enforceCompilePolicy,
+  generateControlStateSpec,
   generateFixture,
   generateSpec,
   probeDiagnostic,
@@ -527,6 +528,59 @@ describe('Playwright compiler contracts', () => {
     );
     expect(generated.spec).toContain(
       'toHaveURL(/^http:\\/\\/127\\.0\\.0\\.1:3000\\/change-password(?:[?#].*)?$/)',
+    );
+  });
+
+  // #366: unscoped substring getByText is strict-mode-fragile during render
+  // races — two elements matching the substring fail the pass (and a single
+  // match on the pre-navigation DOM passes spuriously). Plain hand-authored
+  // text: intents must bind EXACT full-text matching.
+  test('renders plain text assertions with exact matching, never bare substring getByText', () => {
+    const workflow = loginWorkflow();
+    workflow.transitions[0]!.assertions = [{ intent: 'text:Logged out' }];
+    const generated = generateSpec(workflow, 'http://127.0.0.1:3000');
+    expect(generated.spec).toContain(
+      'await expect(page.getByText("Logged out", { exact: true })).toBeVisible();',
+    );
+    expect(generated.spec).not.toContain('getByText("Logged out")');
+  });
+
+  // #366: heading and submit control can share the EXACT full text "Login"
+  // (real reference-auth-app /login: <h1>Login</h1> + <button>Login</button>),
+  // so exact text alone still resolves 2 elements. Observation-derived
+  // headings carry their role in the intent; the emission must scope by it.
+  test('renders role-qualified text assertions as role-scoped exact-name locators', () => {
+    const workflow = loginWorkflow();
+    workflow.transitions[0]!.assertions = [{ intent: 'text@heading:Login' }];
+    const generated = generateSpec(workflow, 'http://127.0.0.1:3000');
+    expect(generated.spec).toContain(
+      'await expect(page.getByRole(\'heading\', { name: "Login", exact: true })).toBeVisible();',
+    );
+    expect(generated.spec).not.toContain('getByText("Login"');
+  });
+
+  test('rejects a text assertion with an unsupported role qualifier fail-closed', async () => {
+    const workflow = loginWorkflow();
+    workflow.transitions[0]!.assertions = [{ intent: 'text@banana:Login' }];
+    await expect(compiler().compile(workflow, observations())).rejects.toMatchObject({
+      diagnostic: { code: ARXIC_COMPILE_UNSUPPORTED_STEP, severity: 'blocked' },
+    });
+  });
+
+  test('rejects an empty role-qualified text assertion like an empty plain one', async () => {
+    const workflow = loginWorkflow();
+    workflow.transitions[0]!.assertions = [{ intent: 'text@heading:' }];
+    await expect(compiler().compile(workflow, observations())).rejects.toMatchObject({
+      diagnostic: { code: ARXIC_COMPILE_UNSUPPORTED_STEP, severity: 'blocked' },
+    });
+  });
+
+  test('renders control-state specs with the same race-safe text emission', () => {
+    const workflow = loginWorkflow();
+    workflow.transitions[0]!.assertions = [{ intent: 'text@heading:Login' }];
+    const { spec } = generateControlStateSpec(workflow, 'http://127.0.0.1:3000', 0, 0);
+    expect(spec).toContain(
+      'await expect(page.getByRole(\'heading\', { name: "Login", exact: true })).toBeVisible();',
     );
   });
 

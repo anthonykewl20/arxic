@@ -60,7 +60,15 @@ export function deriveAssertionsFromObservation(
     if (!trimmed || seen.has(trimmed)) continue;
     if (seen.size >= maxText) break;
     seen.add(trimmed);
-    assertions.push({ kind: 'text', intent: `text:${trimmed}`, expectedValue: `text:${trimmed}` });
+    // #366: heading anchors are role-qualified — the derivation knows these
+    // texts are heading accessible-names, so the emitted locator scopes by
+    // role and stays strict-mode race-safe even when a heading and a control
+    // share the exact full text on the observed page.
+    assertions.push({
+      kind: 'text',
+      intent: `text@heading:${trimmed}`,
+      expectedValue: `text@heading:${trimmed}`,
+    });
   }
   if (assertions.length === 0) {
     return { ok: false, diagnostics: [derivationEmpty(observation.url)] };
