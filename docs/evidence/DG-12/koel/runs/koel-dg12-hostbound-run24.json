@@ -1,0 +1,443 @@
+{
+ "kind": "dg11-validation-run-v1",
+ "schemaVersion": 1,
+ "target": {
+  "name": "koel",
+  "repository": "https://github.com/koel/koel",
+  "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b"
+ },
+ "run": {
+  "runId": "koel-dg12-hostbound-run24",
+  "startedAt": "2026-09-04T16:40:31.361Z",
+  "completedAt": "2026-09-04T17:09:03.101Z",
+  "executor": "local"
+ },
+ "model": "glm-5.3",
+ "pricing": {
+  "pricePerMillionPrompt": 1.4,
+  "pricePerMillionCompletion": 4.4,
+  "reverifyNote": "list prices declared by the operator for this run; the owner re-verifies prices at read time (owner decision 2)"
+ },
+ "telemetry": [
+  {
+   "requestId": "20260905004040ad1e5ec4fbc34f53",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 1343,
+   "latencyMs": 30747,
+   "costUsd": 0.0068248
+  },
+  {
+   "requestId": "20260905004111cec9c777d0774953",
+   "model": "glm-5.3",
+   "promptTokens": 1688,
+   "completionTokens": 3203,
+   "latencyMs": 56224,
+   "costUsd": 0.0164564
+  },
+  {
+   "requestId": "20260905004207ae7831480ec346bc",
+   "model": "glm-5.3",
+   "promptTokens": 2013,
+   "completionTokens": 3768,
+   "latencyMs": 71049,
+   "costUsd": 0.0193974
+  },
+  {
+   "requestId": "2026090500431884e196488df44fc4",
+   "model": "glm-5.3",
+   "promptTokens": 844,
+   "completionTokens": 1324,
+   "latencyMs": 26936,
+   "costUsd": 0.0070072
+  },
+  {
+   "requestId": "20260905004345f557ae939b3e4afc",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 1250,
+   "latencyMs": 27382,
+   "costUsd": 0.0064156
+  },
+  {
+   "requestId": "20260905004412b5eee46a8f094b90",
+   "model": "glm-5.3",
+   "promptTokens": 717,
+   "completionTokens": 1021,
+   "latencyMs": 20256,
+   "costUsd": 0.0054962
+  },
+  {
+   "requestId": "20260905004433663012284f6a4874",
+   "model": "glm-5.3",
+   "promptTokens": 651,
+   "completionTokens": 912,
+   "latencyMs": 19798,
+   "costUsd": 0.0049242
+  },
+  {
+   "requestId": "202609050044521e253b66b97a412a",
+   "model": "glm-5.3",
+   "promptTokens": 716,
+   "completionTokens": 1253,
+   "latencyMs": 25796,
+   "costUsd": 0.0065156
+  },
+  {
+   "requestId": "20260905004518b19be6e237084249",
+   "model": "glm-5.3",
+   "promptTokens": 965,
+   "completionTokens": 1278,
+   "latencyMs": 26485,
+   "costUsd": 0.0069742
+  },
+  {
+   "requestId": "202609050045457736286f15834152",
+   "model": "glm-5.3",
+   "promptTokens": 657,
+   "completionTokens": 1222,
+   "latencyMs": 24966,
+   "costUsd": 0.0062966
+  },
+  {
+   "requestId": "2026090500461050019b099f794e14",
+   "model": "glm-5.3",
+   "promptTokens": 916,
+   "completionTokens": 1342,
+   "latencyMs": 30111,
+   "costUsd": 0.0071872
+  },
+  {
+   "requestId": "2026090500464071681dbf9f0445f2",
+   "model": "glm-5.3",
+   "promptTokens": 789,
+   "completionTokens": 1197,
+   "latencyMs": 30504,
+   "costUsd": 0.0063714
+  },
+  {
+   "requestId": "2026090500471053dbc3de1e0b4de0",
+   "model": "glm-5.3",
+   "promptTokens": 653,
+   "completionTokens": 916,
+   "latencyMs": 24473,
+   "costUsd": 0.0049446
+  },
+  {
+   "requestId": "20260905004735681b52fb10794ab5",
+   "model": "glm-5.3",
+   "promptTokens": 841,
+   "completionTokens": 1752,
+   "latencyMs": 36761,
+   "costUsd": 0.0088862
+  },
+  {
+   "requestId": "202609050048125696c2ce8006417e",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 1029,
+   "latencyMs": 21734,
+   "costUsd": 0.0054432
+  },
+  {
+   "requestId": "202609050048332117ef6ebeca49e8",
+   "model": "glm-5.3",
+   "promptTokens": 853,
+   "completionTokens": 1775,
+   "latencyMs": 32411,
+   "costUsd": 0.0090042
+  },
+  {
+   "requestId": "20260905004906e652ff65beca4123",
+   "model": "glm-5.3",
+   "promptTokens": 848,
+   "completionTokens": 2650,
+   "latencyMs": 52230,
+   "costUsd": 0.0128472
+  },
+  {
+   "requestId": "20260905004958034a396c5a214f08",
+   "model": "glm-5.3",
+   "promptTokens": 848,
+   "completionTokens": 1747,
+   "latencyMs": 31084,
+   "costUsd": 0.008874
+  },
+  {
+   "requestId": "20260905005029324e2458ce254f97",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 1513,
+   "latencyMs": 29888,
+   "costUsd": 0.0075728
+  },
+  {
+   "requestId": "20260905005059b061d100b93f4ca6",
+   "model": "glm-5.3",
+   "promptTokens": 846,
+   "completionTokens": 1777,
+   "latencyMs": 34596,
+   "costUsd": 0.0090032
+  },
+  {
+   "requestId": "202609050051348e520ec6e00a41c7",
+   "model": "glm-5.3",
+   "promptTokens": 658,
+   "completionTokens": 1038,
+   "latencyMs": 23076,
+   "costUsd": 0.0054884
+  },
+  {
+   "requestId": "2026090500515705b605356b0044ab",
+   "model": "glm-5.3",
+   "promptTokens": 1553,
+   "completionTokens": 3820,
+   "latencyMs": 63994,
+   "costUsd": 0.0189822
+  },
+  {
+   "requestId": "202609050053017ecc6134a64b42d6",
+   "model": "glm-5.3",
+   "promptTokens": 721,
+   "completionTokens": 1164,
+   "latencyMs": 22804,
+   "costUsd": 0.006131
+  },
+  {
+   "requestId": "2026090500532386ead558bbcf4462",
+   "model": "glm-5.3",
+   "promptTokens": 658,
+   "completionTokens": 1321,
+   "latencyMs": 27211,
+   "costUsd": 0.0067336
+  },
+  {
+   "requestId": "202609050053512368c2918c974197",
+   "model": "glm-5.3",
+   "promptTokens": 652,
+   "completionTokens": 911,
+   "latencyMs": 20209,
+   "costUsd": 0.0049212
+  },
+  {
+   "requestId": "20260905005411469ca3852dbd4b6a",
+   "model": "glm-5.3",
+   "promptTokens": 651,
+   "completionTokens": 1643,
+   "latencyMs": 30440,
+   "costUsd": 0.0081406
+  },
+  {
+   "requestId": "20260905005441c58ea755654e4bde",
+   "model": "glm-5.3",
+   "promptTokens": 655,
+   "completionTokens": 1516,
+   "latencyMs": 31663,
+   "costUsd": 0.0075874
+  },
+  {
+   "requestId": "202609050055135d855193e16a44a4",
+   "model": "glm-5.3",
+   "promptTokens": 1720,
+   "completionTokens": 3454,
+   "latencyMs": 59616,
+   "costUsd": 0.0176056
+  },
+  {
+   "requestId": "202609050056139c121ba728614e33",
+   "model": "glm-5.3",
+   "promptTokens": 1394,
+   "completionTokens": 3222,
+   "latencyMs": 53495,
+   "costUsd": 0.0161284
+  },
+  {
+   "requestId": "202609050057061ba69d67fb974a1f",
+   "model": "glm-5.3",
+   "promptTokens": 1541,
+   "completionTokens": 3023,
+   "latencyMs": 46105,
+   "costUsd": 0.0154586
+  },
+  {
+   "requestId": "20260905005752b9952c57d2f946e7",
+   "model": "glm-5.3",
+   "promptTokens": 840,
+   "completionTokens": 2277,
+   "latencyMs": 36737,
+   "costUsd": 0.0111948
+  },
+  {
+   "requestId": "202609050058294229c87ef9bf4c31",
+   "model": "glm-5.3",
+   "promptTokens": 1105,
+   "completionTokens": 2431,
+   "latencyMs": 44218,
+   "costUsd": 0.0122434
+  },
+  {
+   "requestId": "202609050059135b58aa4f246c48a1",
+   "model": "glm-5.3",
+   "promptTokens": 650,
+   "completionTokens": 1073,
+   "latencyMs": 20373,
+   "costUsd": 0.0056312
+  },
+  {
+   "requestId": "202609050059345acc179b920547b2",
+   "model": "glm-5.3",
+   "promptTokens": 652,
+   "completionTokens": 967,
+   "latencyMs": 19314,
+   "costUsd": 0.0051676
+  },
+  {
+   "requestId": "20260905005953257d4acfaf384fab",
+   "model": "glm-5.3",
+   "promptTokens": 3227,
+   "completionTokens": 4784,
+   "latencyMs": 76717,
+   "costUsd": 0.0255674
+  },
+  {
+   "requestId": "20260905010110b2322b6b123749ad",
+   "model": "glm-5.3",
+   "promptTokens": 3227,
+   "completionTokens": 3962,
+   "latencyMs": 67903,
+   "costUsd": 0.0219506
+  },
+  {
+   "requestId": "202609050102187360462e9f8245ed",
+   "model": "glm-5.3",
+   "promptTokens": 3248,
+   "completionTokens": 3274,
+   "latencyMs": 52733,
+   "costUsd": 0.0189528
+  },
+  {
+   "requestId": "20260905010310ed0b68dfc92045ec",
+   "model": "glm-5.3",
+   "promptTokens": 2034,
+   "completionTokens": 2831,
+   "latencyMs": 48236,
+   "costUsd": 0.015304
+  },
+  {
+   "requestId": "2026090501035985b6e50f111a48ec",
+   "model": "glm-5.3",
+   "promptTokens": 649,
+   "completionTokens": 1100,
+   "latencyMs": 21447,
+   "costUsd": 0.0057486
+  },
+  {
+   "requestId": "20260905010420201df1f648d64cc3",
+   "model": "glm-5.3",
+   "promptTokens": 719,
+   "completionTokens": 1180,
+   "latencyMs": 24977,
+   "costUsd": 0.0061986
+  },
+  {
+   "requestId": "2026090501044516fc5137609f4e24",
+   "model": "glm-5.3",
+   "promptTokens": 740,
+   "completionTokens": 1120,
+   "latencyMs": 21105,
+   "costUsd": 0.005964
+  },
+  {
+   "requestId": "202609050105068ff9d56f5915411f",
+   "model": "glm-5.3",
+   "promptTokens": 716,
+   "completionTokens": 1263,
+   "latencyMs": 23082,
+   "costUsd": 0.0065596
+  },
+  {
+   "requestId": "20260905010529be09a7753a444598",
+   "model": "glm-5.3",
+   "promptTokens": 1543,
+   "completionTokens": 3337,
+   "latencyMs": 50547,
+   "costUsd": 0.016843
+  },
+  {
+   "requestId": "202609050106206f3e6241c9dd4b1a",
+   "model": "glm-5.3",
+   "promptTokens": 769,
+   "completionTokens": 1357,
+   "latencyMs": 26552,
+   "costUsd": 0.0070474
+  },
+  {
+   "requestId": "20260905010647d472065733224076",
+   "model": "glm-5.3",
+   "promptTokens": 650,
+   "completionTokens": 836,
+   "latencyMs": 19265,
+   "costUsd": 0.0045884
+  },
+  {
+   "requestId": "202609050107063dea036392884ab8",
+   "model": "glm-5.3",
+   "promptTokens": 1202,
+   "completionTokens": 2626,
+   "latencyMs": 48812,
+   "costUsd": 0.0132372
+  },
+  {
+   "requestId": "20260905010755f6642bf8b859494d",
+   "model": "glm-5.3",
+   "promptTokens": 658,
+   "completionTokens": 1264,
+   "latencyMs": 24813,
+   "costUsd": 0.0064828
+  },
+  {
+   "requestId": "2026090501081912840c22a4414943",
+   "model": "glm-5.3",
+   "promptTokens": 688,
+   "completionTokens": 772,
+   "latencyMs": 16756,
+   "costUsd": 0.00436
+  }
+ ],
+ "measured": {
+  "calls": 48,
+  "promptTokens": 50981,
+  "completionTokens": 89838,
+  "latencyMsTotal": 1675631,
+  "estimatedCostUsd": 0.1812744,
+  "measuredCostUsd": 0.4666606
+ },
+ "ledger": {
+  "before": {
+   "cumulativeUsd": 0.6516803,
+   "ceilingUsd": 2.5,
+   "remainingUsd": 1.8483197
+  },
+  "after": {
+   "cumulativeUsd": 1.1183409,
+   "ceilingUsd": 2.5,
+   "remainingUsd": 1.3816591
+  }
+ },
+ "coverage": {
+  "rows": 315,
+  "coveredRows": 304,
+  "proposals": 263
+ },
+ "outcome": {
+  "exitCode": 0,
+  "status": "completed",
+  "outcome": "verified",
+  "finalStage": "stage-12"
+ },
+ "events": [],
+ "groundednessSpotCheck": {
+  "status": "pending",
+  "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+ }
+}

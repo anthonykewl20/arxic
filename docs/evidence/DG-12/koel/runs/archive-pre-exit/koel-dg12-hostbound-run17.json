@@ -1,0 +1,91 @@
+{
+ "kind": "dg11-validation-run-v1",
+ "schemaVersion": 1,
+ "target": {
+  "name": "koel",
+  "repository": "https://github.com/koel/koel",
+  "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b"
+ },
+ "run": {
+  "runId": "koel-dg12-hostbound-run17",
+  "startedAt": "2026-09-04T13:18:10.928Z",
+  "completedAt": "2026-09-04T13:19:52.665Z",
+  "executor": "local"
+ },
+ "model": "glm-5.3",
+ "pricing": {
+  "pricePerMillionPrompt": 1.4,
+  "pricePerMillionCompletion": 4.4,
+  "reverifyNote": "list prices declared by the operator for this run; the owner re-verifies prices at read time (owner decision 2)"
+ },
+ "telemetry": [
+  {
+   "requestId": "202609042118202f369fc9fdf544ed",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 888,
+   "latencyMs": 12179,
+   "costUsd": 0.0048228
+  },
+  {
+   "requestId": "2026090421183236b9b1ed891048ec",
+   "model": "glm-5.3",
+   "promptTokens": 1688,
+   "completionTokens": 3197,
+   "latencyMs": 34730,
+   "costUsd": 0.01643
+  },
+  {
+   "requestId": "20260904211902117d1da407234920",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 1024,
+   "latencyMs": 14688,
+   "costUsd": 0.0054212
+  },
+  {
+   "requestId": "20260904211917a8d7f37718c44800",
+   "model": "glm-5.3",
+   "promptTokens": 1688,
+   "completionTokens": 3201,
+   "latencyMs": 35695,
+   "costUsd": 0.0164476
+  }
+ ],
+ "measured": {
+  "calls": 4,
+  "promptTokens": 4684,
+  "completionTokens": 8310,
+  "latencyMsTotal": 97292,
+  "estimatedCostUsd": 0.1812744,
+  "measuredCostUsd": 0.0431216
+ },
+ "ledger": {
+  "before": {
+   "cumulativeUsd": 0.0135657,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.9864343
+  },
+  "after": {
+   "cumulativeUsd": 0.0566873,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.9433127
+  }
+ },
+ "coverage": {
+  "rows": 316,
+  "coveredRows": 0,
+  "proposals": 0
+ },
+ "outcome": {
+  "exitCode": 1,
+  "status": "failed",
+  "outcome": "blocked",
+  "finalStage": "stage-4"
+ },
+ "events": [],
+ "groundednessSpotCheck": {
+  "status": "pending",
+  "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+ }
+}

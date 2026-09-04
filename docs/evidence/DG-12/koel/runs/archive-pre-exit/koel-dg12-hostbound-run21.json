@@ -1,0 +1,427 @@
+{
+ "kind": "dg11-validation-run-v1",
+ "schemaVersion": 1,
+ "target": {
+  "name": "koel",
+  "repository": "https://github.com/koel/koel",
+  "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b"
+ },
+ "run": {
+  "runId": "koel-dg12-hostbound-run21",
+  "startedAt": "2026-09-04T15:16:17.621Z",
+  "completedAt": "2026-09-04T15:49:05.592Z",
+  "executor": "local"
+ },
+ "model": "glm-5.3",
+ "pricing": {
+  "pricePerMillionPrompt": 1.4,
+  "pricePerMillionCompletion": 4.4,
+  "reverifyNote": "list prices declared by the operator for this run; the owner re-verifies prices at read time (owner decision 2)"
+ },
+ "telemetry": [
+  {
+   "requestId": "20260904231626369b1092544a4966",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 1265,
+   "latencyMs": 31933,
+   "costUsd": 0.0064816
+  },
+  {
+   "requestId": "202609042316587ce5916a8c0e4296",
+   "model": "glm-5.3",
+   "promptTokens": 1688,
+   "completionTokens": 4079,
+   "latencyMs": 76526,
+   "costUsd": 0.0203108
+  },
+  {
+   "requestId": "2026090423181409720c4cc5844c32",
+   "model": "glm-5.3",
+   "promptTokens": 2013,
+   "completionTokens": 2778,
+   "latencyMs": 51135,
+   "costUsd": 0.0150414
+  },
+  {
+   "requestId": "202609042319059e360e2191454026",
+   "model": "glm-5.3",
+   "promptTokens": 844,
+   "completionTokens": 2675,
+   "latencyMs": 50545,
+   "costUsd": 0.0129516
+  },
+  {
+   "requestId": "20260904231956e319b78018ef4521",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 708,
+   "latencyMs": 18556,
+   "costUsd": 0.0040308
+  },
+  {
+   "requestId": "2026090423201514c8e750684e4417",
+   "model": "glm-5.3",
+   "promptTokens": 717,
+   "completionTokens": 1174,
+   "latencyMs": 25665,
+   "costUsd": 0.0061694
+  },
+  {
+   "requestId": "202609042320402c02078ac7f0429a",
+   "model": "glm-5.3",
+   "promptTokens": 651,
+   "completionTokens": 1184,
+   "latencyMs": 24233,
+   "costUsd": 0.006121
+  },
+  {
+   "requestId": "202609042321058a86051f1f904795",
+   "model": "glm-5.3",
+   "promptTokens": 716,
+   "completionTokens": 1208,
+   "latencyMs": 29263,
+   "costUsd": 0.0063176
+  },
+  {
+   "requestId": "202609042321348b5e6941bf37471b",
+   "model": "glm-5.3",
+   "promptTokens": 965,
+   "completionTokens": 2031,
+   "latencyMs": 43551,
+   "costUsd": 0.0102874
+  },
+  {
+   "requestId": "202609042322173cca8067cd8b4384",
+   "model": "glm-5.3",
+   "promptTokens": 657,
+   "completionTokens": 899,
+   "latencyMs": 20987,
+   "costUsd": 0.0048754
+  },
+  {
+   "requestId": "2026090423223821f7adcd3fda4ccf",
+   "model": "glm-5.3",
+   "promptTokens": 916,
+   "completionTokens": 2035,
+   "latencyMs": 40241,
+   "costUsd": 0.0102364
+  },
+  {
+   "requestId": "2026090423231929e99c5a07d34b7c",
+   "model": "glm-5.3",
+   "promptTokens": 789,
+   "completionTokens": 2198,
+   "latencyMs": 42989,
+   "costUsd": 0.0107758
+  },
+  {
+   "requestId": "20260904232402bb127d1d56c44976",
+   "model": "glm-5.3",
+   "promptTokens": 653,
+   "completionTokens": 1132,
+   "latencyMs": 26174,
+   "costUsd": 0.005895
+  },
+  {
+   "requestId": "202609042324286455d3d3eff640e6",
+   "model": "glm-5.3",
+   "promptTokens": 841,
+   "completionTokens": 1417,
+   "latencyMs": 31563,
+   "costUsd": 0.0074122
+  },
+  {
+   "requestId": "2026090423245973ac16f318dd4bb6",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 1882,
+   "latencyMs": 46045,
+   "costUsd": 0.0091964
+  },
+  {
+   "requestId": "202609042325453d7413e3d30b4b65",
+   "model": "glm-5.3",
+   "promptTokens": 853,
+   "completionTokens": 1561,
+   "latencyMs": 29313,
+   "costUsd": 0.0080626
+  },
+  {
+   "requestId": "20260904232615d9d3662866f9434e",
+   "model": "glm-5.3",
+   "promptTokens": 848,
+   "completionTokens": 2417,
+   "latencyMs": 48674,
+   "costUsd": 0.011822
+  },
+  {
+   "requestId": "20260904232703a1ac8c9f633a4f63",
+   "model": "glm-5.3",
+   "promptTokens": 848,
+   "completionTokens": 1631,
+   "latencyMs": 30434,
+   "costUsd": 0.0083636
+  },
+  {
+   "requestId": "20260904232734f7487823d1f344d7",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 787,
+   "latencyMs": 18651,
+   "costUsd": 0.0043784
+  },
+  {
+   "requestId": "20260904232753ce03e5d44a874741",
+   "model": "glm-5.3",
+   "promptTokens": 846,
+   "completionTokens": 2676,
+   "latencyMs": 50632,
+   "costUsd": 0.0129588
+  },
+  {
+   "requestId": "2026090423284301a9eedd22514cf5",
+   "model": "glm-5.3",
+   "promptTokens": 658,
+   "completionTokens": 800,
+   "latencyMs": 17545,
+   "costUsd": 0.0044412
+  },
+  {
+   "requestId": "2026090423290164f1373b69144557",
+   "model": "glm-5.3",
+   "promptTokens": 1553,
+   "completionTokens": 6117,
+   "latencyMs": 109570,
+   "costUsd": 0.029089
+  },
+  {
+   "requestId": "202609042330506abdd4ce734142d4",
+   "model": "glm-5.3",
+   "promptTokens": 721,
+   "completionTokens": 869,
+   "latencyMs": 18742,
+   "costUsd": 0.004833
+  },
+  {
+   "requestId": "202609042331093ad60eae77f747d0",
+   "model": "glm-5.3",
+   "promptTokens": 658,
+   "completionTokens": 1034,
+   "latencyMs": 29408,
+   "costUsd": 0.0054708
+  },
+  {
+   "requestId": "2026090423313938abaae9a1c5478f",
+   "model": "glm-5.3",
+   "promptTokens": 652,
+   "completionTokens": 1038,
+   "latencyMs": 25140,
+   "costUsd": 0.00548
+  },
+  {
+   "requestId": "202609042332041a69404e5aab4513",
+   "model": "glm-5.3",
+   "promptTokens": 651,
+   "completionTokens": 1492,
+   "latencyMs": 28707,
+   "costUsd": 0.0074762
+  },
+  {
+   "requestId": "20260904233232db61680526bb4097",
+   "model": "glm-5.3",
+   "promptTokens": 655,
+   "completionTokens": 1151,
+   "latencyMs": 28740,
+   "costUsd": 0.0059814
+  },
+  {
+   "requestId": "2026090423330112832abebd8249cc",
+   "model": "glm-5.3",
+   "promptTokens": 1720,
+   "completionTokens": 4841,
+   "latencyMs": 83128,
+   "costUsd": 0.0237084
+  },
+  {
+   "requestId": "20260904233424fc2c23b44e224f11",
+   "model": "glm-5.3",
+   "promptTokens": 1394,
+   "completionTokens": 3957,
+   "latencyMs": 87127,
+   "costUsd": 0.0193624
+  },
+  {
+   "requestId": "202609042335526b80453b3cea4f7f",
+   "model": "glm-5.3",
+   "promptTokens": 1541,
+   "completionTokens": 1862,
+   "latencyMs": 36372,
+   "costUsd": 0.0103502
+  },
+  {
+   "requestId": "202609042336286d8640199c084fbd",
+   "model": "glm-5.3",
+   "promptTokens": 840,
+   "completionTokens": 2069,
+   "latencyMs": 45147,
+   "costUsd": 0.0102796
+  },
+  {
+   "requestId": "20260904233713c389f9a1c44849e7",
+   "model": "glm-5.3",
+   "promptTokens": 1105,
+   "completionTokens": 2119,
+   "latencyMs": 42695,
+   "costUsd": 0.0108706
+  },
+  {
+   "requestId": "202609042337561dfc9af3f9cc4a83",
+   "model": "glm-5.3",
+   "promptTokens": 650,
+   "completionTokens": 1208,
+   "latencyMs": 28188,
+   "costUsd": 0.0062252
+  },
+  {
+   "requestId": "202609042338249cc0173e01b64f95",
+   "model": "glm-5.3",
+   "promptTokens": 652,
+   "completionTokens": 1032,
+   "latencyMs": 25698,
+   "costUsd": 0.0054536
+  },
+  {
+   "requestId": "202609042338500d9a32f5e7d746e2",
+   "model": "glm-5.3",
+   "promptTokens": 673,
+   "completionTokens": 1170,
+   "latencyMs": 24251,
+   "costUsd": 0.0060902
+  },
+  {
+   "requestId": "202609042339146a3ca2fcb0824f91",
+   "model": "glm-5.3",
+   "promptTokens": 3227,
+   "completionTokens": 5167,
+   "latencyMs": 100117,
+   "costUsd": 0.0272526
+  },
+  {
+   "requestId": "20260904234054b8684d42039f4f35",
+   "model": "glm-5.3",
+   "promptTokens": 3227,
+   "completionTokens": 4525,
+   "latencyMs": 85276,
+   "costUsd": 0.0244278
+  },
+  {
+   "requestId": "202609042342196417b3ac0c1b4797",
+   "model": "glm-5.3",
+   "promptTokens": 2034,
+   "completionTokens": 5713,
+   "latencyMs": 106497,
+   "costUsd": 0.0279848
+  },
+  {
+   "requestId": "2026090423440632fd03feb3864675",
+   "model": "glm-5.3",
+   "promptTokens": 649,
+   "completionTokens": 1160,
+   "latencyMs": 25373,
+   "costUsd": 0.0060126
+  },
+  {
+   "requestId": "202609042344312a102e5649624dd1",
+   "model": "glm-5.3",
+   "promptTokens": 719,
+   "completionTokens": 1709,
+   "latencyMs": 39499,
+   "costUsd": 0.0085262
+  },
+  {
+   "requestId": "20260904234511b9855591911a4e6d",
+   "model": "glm-5.3",
+   "promptTokens": 716,
+   "completionTokens": 934,
+   "latencyMs": 20249,
+   "costUsd": 0.005112
+  },
+  {
+   "requestId": "202609042345315e3f043c48a34112",
+   "model": "glm-5.3",
+   "promptTokens": 1543,
+   "completionTokens": 4126,
+   "latencyMs": 72520,
+   "costUsd": 0.0203146
+  },
+  {
+   "requestId": "20260904234644403f9c6df38842b4",
+   "model": "glm-5.3",
+   "promptTokens": 769,
+   "completionTokens": 1388,
+   "latencyMs": 28445,
+   "costUsd": 0.0071838
+  },
+  {
+   "requestId": "20260904234712f365d44e2545494a",
+   "model": "glm-5.3",
+   "promptTokens": 650,
+   "completionTokens": 1104,
+   "latencyMs": 24540,
+   "costUsd": 0.0057676
+  },
+  {
+   "requestId": "20260904234737c24849db629c461f",
+   "model": "glm-5.3",
+   "promptTokens": 1202,
+   "completionTokens": 1903,
+   "latencyMs": 41620,
+   "costUsd": 0.010056
+  },
+  {
+   "requestId": "202609042348184ebd7905963c428e",
+   "model": "glm-5.3",
+   "promptTokens": 658,
+   "completionTokens": 948,
+   "latencyMs": 21361,
+   "costUsd": 0.0050924
+  }
+ ],
+ "measured": {
+  "calls": 46,
+  "promptTokens": 46978,
+  "completionTokens": 95173,
+  "latencyMsTotal": 1933065,
+  "estimatedCostUsd": 0.1812744,
+  "measuredCostUsd": 0.4845304
+ },
+ "ledger": {
+  "before": {
+   "cumulativeUsd": 0.1104319,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.8895681
+  },
+  "after": {
+   "cumulativeUsd": 0.5949623,
+   "ceilingUsd": 1,
+   "remainingUsd": 0.4050377
+  }
+ },
+ "coverage": {
+  "rows": 315,
+  "coveredRows": 304,
+  "proposals": 261
+ },
+ "outcome": {
+  "exitCode": 1,
+  "status": "partial",
+  "outcome": "blocked",
+  "finalStage": "stage-12"
+ },
+ "events": [],
+ "groundednessSpotCheck": {
+  "status": "pending",
+  "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+ }
+}

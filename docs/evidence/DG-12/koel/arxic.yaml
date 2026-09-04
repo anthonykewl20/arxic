@@ -55,6 +55,13 @@ target:
   allowedOrigins:
     - http://127.0.0.1:DG11-PROXY-PORT
     - http://127.0.0.1:8123
+    # Ratified on #256 before koel run10's measurement (amendment 5492405255),
+    # run11's measurement (amendment 5493582849). Main's template never carried
+    # them (they lived only in the campaign session's uncommitted edit); folded
+    # here 2026-09-05 with disclosure after run21 denied them fail-closed.
+    - https://app.lemonsqueezy.com
+    - https://assets.lemonsqueezy.com
+    - https://www.gravatar.com
 policy:
   maxUrls: 8
   maxDepth: 1
@@ -76,5 +83,9 @@ fixtures:
         - { label: Your password, inputRef: persona.password }
       submit: { label: Log In }
 models:
-  provider: openai/gpt-4o-mini
+  # models.provider doubles as the MODEL ID sent upstream (local-executor.ts).
+  # DECISION AMENDMENT 3 on #256 (recorded 2026-09-04, before run20): glm-5.3
+  # over the z.ai coding-plan endpoint — the transport runs 16-18 measured;
+  # matches MODEL_PRICE_TABLE's glm-5.3 row ($1.40/$4.40 per 1M, CORRECTION-337).
+  provider: glm-5.3
   sourceRetention: disabled
