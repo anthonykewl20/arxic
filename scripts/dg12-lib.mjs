@@ -232,15 +232,24 @@ export function groundedRatioForRun(ledgerRows) {
   );
   const extractedCount = ledgerRows.filter((row) => row.disposition === 'extracted').length;
   const denominator = ledgerRows.length;
+  // CCR (2026-09-04, #256 DECISION): criterion 2's denominator is the
+  // EXTRACTABLE population (`extracted` rows) — non-extracted rows can never
+  // carry a grounded intent, and ADR-008 Decision 2's vocabulary exists to
+  // express exactly that. The all-rows ratio stays measured at the call site
+  // as SP-3 disclosure, and every non-extracted row MUST carry its reason.
+  const nonExtractedWithoutReason = ledgerRows
+    .filter((row) => row.disposition !== 'extracted' && !(row.reason ?? '').trim())
+    .map((row) => row.inventoryKey);
   return {
     denominator,
     grounded: grounded.length,
     extractedCount,
+    nonExtractedWithoutReason,
     structuralCeilingRatio: denominator === 0 ? 0 : extractedCount / denominator,
     ungroundedKeys: ledgerRows
       .filter((row) => !grounded.includes(row))
       .map((row) => row.inventoryKey),
-    ratio: denominator === 0 ? 0 : grounded.length / denominator,
+    ratio: extractedCount === 0 ? 0 : grounded.length / extractedCount,
   };
 }
 

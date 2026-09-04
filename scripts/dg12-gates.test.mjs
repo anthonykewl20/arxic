@@ -44,14 +44,14 @@ function inventoryRow(key, disposition = 'extracted') {
 
 function ledgerRow(
   key,
-  { intents = [], replayStatus = 'not-attempted', disposition = 'extracted' } = {},
+  { intents = [], replayStatus = 'not-attempted', disposition = 'extracted', reason } = {},
 ) {
   return {
     inventoryKey: key,
     domain: 'content',
     surface: { kind: 'endpoint', method: 'GET', path: `/${key}` },
     disposition,
-    reason: 'route with handler',
+    reason: reason ?? 'route with handler',
     verbs: ['read'],
     evidence: {
       sourceRefs: [
@@ -253,6 +253,72 @@ describe('dg12-grounded-ratio (G-3 / criterion 2)', () => {
     const result = await runScript('dg12-grounded-ratio.mjs', [root, '--threshold', '0']);
     expect(result.code).toBe(2);
     expect(result.stderr).toContain('threshold must be a percentage');
+  });
+});
+
+describe('dg12-grounded-ratio CCR amendment (criterion 2 = grounded/extracted; #256 DECISION 2026-09-04)', () => {
+  it('passes at 100% grounded/extracted when unextractable rows are honestly dispositioned (the directus run3 shape)', async () => {
+    // The real recorded directus run3 measures grounded/all = 82/105 = 78.10%
+    // = the structural ceiling by construction — unsatisfiable under the
+    // literal all-rows text. Under the amended criterion the same honest
+    // accounting is grounded/extracted = 82/82 = 100%.
+    const root = await temporaryRoot();
+    await stageRun(root, 'run-1', {
+      rows: [
+        inventoryRow('a'),
+        inventoryRow('b'),
+        inventoryRow('c', 'unextracted-with-reason'),
+        inventoryRow('d', 'unextracted-with-reason'),
+      ],
+      ledger: [
+        ledgerRow('a', { intents: [groundedIntent('p1')] }),
+        ledgerRow('b', { intents: [groundedIntent('p2')] }),
+        ledgerRow('c', { disposition: 'unextracted-with-reason', reason: 'source-parse-error' }),
+        ledgerRow('d', {
+          disposition: 'unextracted-with-reason',
+          reason: 'source-scan-diagnostic',
+        }),
+      ],
+    });
+    const result = await runScript('dg12-grounded-ratio.mjs', [root]);
+    expect(result.code, result.stderr).toBe(0);
+    expect(result.stdout).toContain('2/2 rows grounded (extractable denominator) = 100.00%');
+    expect(result.stdout).toContain('all-rows disclosure');
+    expect(result.stdout).toContain('2/4 rows grounded');
+  });
+
+  it('fails closed when a non-extracted row lacks its disposition reason', async () => {
+    const root = await temporaryRoot();
+    await stageRun(root, 'run-1', {
+      rows: [
+        inventoryRow('a'),
+        inventoryRow('c', 'unextracted-with-reason'),
+        inventoryRow('d', 'unsupported'),
+      ],
+      ledger: [
+        ledgerRow('a', { intents: [groundedIntent('p1')] }),
+        ledgerRow('c', { disposition: 'unextracted-with-reason', reason: '' }),
+        ledgerRow('d', { disposition: 'unsupported', reason: 'not covered' }),
+      ],
+    });
+    const result = await runScript('dg12-grounded-ratio.mjs', [root]);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain('NON-EXTRACTED WITHOUT REASON');
+    expect(result.stderr).toContain('c');
+  });
+
+  it('fails closed when zero rows are extracted (no vacuous pass)', async () => {
+    const root = await temporaryRoot();
+    await stageRun(root, 'run-1', {
+      rows: [inventoryRow('c', 'unextracted-with-reason'), inventoryRow('d', 'unsupported')],
+      ledger: [
+        ledgerRow('c', { disposition: 'unextracted-with-reason', reason: 'source-parse-error' }),
+        ledgerRow('d', { disposition: 'unsupported', reason: 'not covered' }),
+      ],
+    });
+    const result = await runScript('dg12-grounded-ratio.mjs', [root]);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toContain('NO EXTRACTED ROWS');
   });
 });
 

@@ -41,12 +41,38 @@ await runGate(async () => {
     const { ledger } = await loadLedger(runDirectory);
     const ratio = groundedRatioForRun(ledger.rows);
     const percent = (ratio.ratio * 100).toFixed(2);
-    const pass = ratio.ratio >= threshold;
+    // CCR (2026-09-04, #256 DECISION): the PASS line reads grounded/EXTRACTED
+    // (the extractable denominator); the all-rows ratio below is the SP-3
+    // disclosure; non-extracted rows must all carry reasons (fail closed).
+    const pass =
+      ratio.extractedCount > 0 &&
+      ratio.nonExtractedWithoutReason.length === 0 &&
+      ratio.ratio >= threshold;
     const ceilingPercent = (ratio.structuralCeilingRatio * 100).toFixed(2);
     console.log(
-      `grounded ${runId}: ${ratio.grounded}/${ratio.denominator} rows grounded = ${percent}% ` +
+      `grounded ${runId}: ${ratio.grounded}/${ratio.extractedCount} rows grounded (extractable denominator) = ${percent}% ` +
         `(threshold ${(threshold * 100).toFixed(0)}%) -> ${pass ? 'pass' : 'FAIL'}`,
     );
+    const allRowsPercent = (
+      ratio.denominator === 0 ? 0 : (ratio.grounded / ratio.denominator) * 100
+    ).toFixed(2);
+    console.log(
+      `  all-rows disclosure ${runId}: ${ratio.grounded}/${ratio.denominator} rows grounded = ${allRowsPercent}% ` +
+        `(criterion 1 still requires 100% disposition coverage over ALL rows)`,
+    );
+    if (ratio.extractedCount === 0) {
+      console.error(
+        `  NO EXTRACTED ROWS: ${runId} has zero extracted rows — the ratio is undefined and can never read as a pass`,
+      );
+    }
+    if (ratio.nonExtractedWithoutReason.length > 0) {
+      console.error(
+        `  NON-EXTRACTED WITHOUT REASON: ${ratio.nonExtractedWithoutReason.slice(0, 40).join(', ')}` +
+          (ratio.nonExtractedWithoutReason.length > 40
+            ? ` …and ${ratio.nonExtractedWithoutReason.length - 40} more`
+            : ''),
+      );
+    }
     console.log(
       `  structural ceiling ${runId}: ${ratio.extractedCount}/${ratio.denominator} rows are ` +
         `'extracted' = ${ceilingPercent}% is the MAXIMUM ATTAINABLE ratio by construction ` +
