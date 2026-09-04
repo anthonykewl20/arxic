@@ -12,5 +12,8 @@
     "@arxic/playwright-screenshot-privacy": "workspace:*",
     "@arxic/playwright-trace-sanitizer": "workspace:*",
     "@playwright/test": "1.62.1"
+  },
+  "devDependencies": {
+    "@arxic/real-world-testkit": "workspace:*"
   }
 }
