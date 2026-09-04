@@ -592,7 +592,7 @@ describe('Playwright compiler contracts', () => {
     };
     const generated = generateSpec(workflow, 'http://127.0.0.1:3000');
     expect(generated.spec).toContain(
-      ".filter({ has: page.getByRole('button', { name: /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i }) })",
+      '.filter({ has: submitControlByPattern(page, /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i) })',
     );
     expect(generated.spec).toContain('await expect(form).toHaveCount(1);');
   });
@@ -645,7 +645,7 @@ describe('Playwright compiler contracts', () => {
     expect(spec).toContain('labelOrPlaceholderControl(form, "Current password")');
     expect(spec).toContain('labelOrPlaceholderControl(form, "New password")');
     expect(spec).toContain(
-      ".filter({ has: page.getByRole('button', { name: /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i }) })",
+      '.filter({ has: submitControlByPattern(page, /submit|log in|login|sign in|continue|send|change|reset|verify|confirm|enroll|register|sign up/i) })',
     );
     expect(spec).toContain('await expect(form).toHaveCount(1);');
     expect(spec).toContain('ARXIC_INPUT_PERSONA_NEWPASSWORD');

@@ -55,6 +55,22 @@ export function generateSpec(
     '  return root.getByLabel(text).or(root.getByPlaceholder(text));',
     '}',
     '',
+    '// #383: submit controls bind by accessible name OR exact text content.',
+    '// The captured koel login shape (koel @ dfec91ff, live capture 2026-09-04)',
+    '// renders a label-wrapped <button type="submit">Log In</button> whose',
+    "// accessible name is EMPTY in Chromium's a11y tree (aria snapshot",
+    '// `- button: Log In` — text content only), so a name-only binding can',
+    '// never resolve it and the form filter yields 0. The union semantics keep',
+    '// named controls resolving once (both branches match the same element)',
+    '// and refuse — strict mode — when the branches match DIFFERENT controls.',
+    'function submitControl(root, name) {',
+    '  const exactText = new RegExp("^\\\\s*" + name.replace(/[.*+?^${}()|[\\\\]\\\\]/g, "\\\\$&") + "\\\\s*$");',
+    "  return root.getByRole('button', { name, exact: true }).or(root.locator('button').filter({ hasText: exactText }));",
+    '}',
+    'function submitControlByPattern(root, pattern) {',
+    "  return root.getByRole('button', { name: pattern }).or(root.locator('button').filter({ hasText: pattern }));",
+    '}',
+    '',
     `configureApprovedOrigins(${JSON.stringify(approvedOrigins)});`,
     '',
     `test(${JSON.stringify(workflow.id)}, async ({ page, context }) => {`,
@@ -154,7 +170,7 @@ function renderAction(transition: WorkflowTransition): {
     const formFilter = labels
       .map((value) => `.filter({ has: labelOrPlaceholderControl(page, ${JSON.stringify(value)}) })`)
       .join('');
-    const submitButtonFilter = `.filter({ has: page.getByRole('button', { name: ${controlName}, exact: true }) })`;
+    const submitButtonFilter = `.filter({ has: submitControl(page, ${controlName}) })`;
     return {
       lines: [
         `    const form = page.locator('form')${formFilter}${submitButtonFilter};`,
@@ -163,7 +179,7 @@ function renderAction(transition: WorkflowTransition): {
           ([name, reference]) =>
             `    await labelOrPlaceholderControl(form, ${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
         ),
-        `    await enforceNetworkContainment(page, () => form.getByRole('button', { name: ${controlName}, exact: true }).click());`,
+        `    await enforceNetworkContainment(page, () => submitControl(form, ${controlName}).click());`,
       ],
       formScoped: true,
     };
@@ -173,7 +189,7 @@ function renderAction(transition: WorkflowTransition): {
     const formFilter = labels
       .map((value) => `.filter({ has: labelOrPlaceholderControl(page, ${JSON.stringify(value)}) })`)
       .join('');
-    const submitButtonFilter = `.filter({ has: page.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }) })`;
+    const submitButtonFilter = `.filter({ has: submitControlByPattern(page, ${SUBMIT_BUTTON_NAME}) })`;
     return {
       lines: [
         `    const form = page.locator('form')${formFilter}${submitButtonFilter};`,
@@ -182,7 +198,7 @@ function renderAction(transition: WorkflowTransition): {
           ([name, reference]) =>
             `    await labelOrPlaceholderControl(form, ${JSON.stringify(label(name))}).fill(process.env[${JSON.stringify(environmentName(reference))}] ?? '');`,
         ),
-        `    await enforceNetworkContainment(page, () => form.getByRole('button', { name: ${SUBMIT_BUTTON_NAME} }).click());`,
+        `    await enforceNetworkContainment(page, () => submitControlByPattern(form, ${SUBMIT_BUTTON_NAME}).click());`,
       ],
       formScoped: true,
     };
