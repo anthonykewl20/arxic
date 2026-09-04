@@ -1,8 +1,17 @@
 import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  realpath,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { StagedBundle } from '@arxic/contracts';
 import {
@@ -455,6 +464,46 @@ describe.sequential('playwright verifier real-world security proof', () => {
     }
   });
 
+  test('resolves promoted-bundle provenance from the sibling reports directory', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-bundle-trace-inventory-'));
+    try {
+      await mkdir(join(directory, 'artifacts', 'traces'), { recursive: true });
+      await mkdir(join(directory, 'artifacts', 'reports'), { recursive: true });
+      // The bundle layout: sanitized trace under artifacts/traces, provenance
+      // under artifacts/reports (bundle-assembler.ts) — no adjacent copy.
+      await copyFile(
+        join(root, 'docs/evidence/M1-15/exploration-trace.zip'),
+        join(directory, 'artifacts', 'traces', '001-trace.zip'),
+      );
+      await copyFile(
+        join(root, 'docs/evidence/M1-15/exploration-trace.zip.sanitization.json'),
+        join(directory, 'artifacts', 'reports', '001-trace.zip.sanitization.json'),
+      );
+      const archives = await inspectRetainedArchives(directory);
+      expect(archives).toHaveLength(1);
+      expect(archives[0]?.tracePath).toBe(join(directory, 'artifacts', 'traces', '001-trace.zip'));
+      expect(archives[0]?.inspected.ok, 'bundle-layout provenance must resolve').toBe(true);
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  test('a bundle-layout trace with no reports provenance still fails closed', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'arxic-bundle-trace-missing-'));
+    try {
+      await mkdir(join(directory, 'artifacts', 'traces'), { recursive: true });
+      await copyFile(
+        join(root, 'docs/evidence/M1-15/exploration-trace.zip'),
+        join(directory, 'artifacts', 'traces', '001-trace.zip'),
+      );
+      const archives = await inspectRetainedArchives(directory);
+      expect(archives).toHaveLength(1);
+      expect(archives[0]?.inspected).toMatchObject({ ok: false, code: 'TRACE_PROVENANCE_INVALID' });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
   test('does not let a neutral archive filename evade retained-evidence inspection', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'arxic-neutral-trace-inventory-'));
     try {
@@ -746,8 +795,29 @@ async function inspectRetainedArchives(directory: string) {
       tracePath,
       inspected: await inspectPlaywrightTrace({
         tracePath,
-        provenancePath: `${tracePath}.sanitization.json`,
+        provenancePath: await retainedProvenancePath(tracePath),
       }),
     })),
   );
+}
+
+/**
+ * Resolve a retained trace's sanitization provenance the way the product
+ * records it. Verification-suite captures keep provenance ADJACENT
+ * (`<trace>.sanitization.json`); promoted bundles pair the sanitized trace in
+ * `artifacts/traces/<name>` with its provenance in the sibling
+ * `artifacts/reports/<name>.sanitization.json` (bundle-assembler.ts;
+ * redaction-gate.ts resolves the same pairing). A trace with no resolvable
+ * provenance keeps the adjacent path — the inspector then fails exactly as
+ * before (fail-closed preserved).
+ */
+async function retainedProvenancePath(tracePath: string): Promise<string> {
+  const adjacent = `${tracePath}.sanitization.json`;
+  const parent = dirname(tracePath);
+  const grandparent = dirname(parent);
+  if (basename(parent) === 'traces' && basename(grandparent) === 'artifacts') {
+    const reportsSibling = join(grandparent, 'reports', `${basename(tracePath)}.sanitization.json`);
+    if (await realpath(reportsSibling).catch(() => undefined)) return reportsSibling;
+  }
+  return adjacent;
 }
