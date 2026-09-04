@@ -1,0 +1,1 @@
+{"kind":"dg12-launcher-environ-proof-v1","runId":"koel-dg12-hostbound-run13","source":"/proc/self/environ of launcher immediately before validation-process launch","intendedPersonaKeys":["ARXIC_INPUT_PERSONA_EMAIL","ARXIC_INPUT_PERSONA_PASSWORD"],"observedPersonaKeys":[],"unexpectedPersonaKeys":[],"allIntendedValuesMatch":false,"valueSha256":{}}

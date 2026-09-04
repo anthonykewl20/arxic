@@ -1,0 +1,114 @@
+{
+ "kind": "dg11-validation-run-v1",
+ "schemaVersion": 1,
+ "target": {
+  "name": "koel",
+  "repository": "https://github.com/koel/koel",
+  "commit": "dfec91ff290509c622ff7cf392fb5e506841ee2b"
+ },
+ "run": {
+  "runId": "koel-dg12-hostbound-run22",
+  "startedAt": "2026-09-04T15:59:28.929Z",
+  "completedAt": "2026-09-04T16:03:25.199Z",
+  "executor": "local"
+ },
+ "model": "glm-5.3",
+ "pricing": {
+  "pricePerMillionPrompt": 1.4,
+  "pricePerMillionCompletion": 4.4,
+  "reverifyNote": "list prices declared by the operator for this run; the owner re-verifies prices at read time (owner decision 2)"
+ },
+ "telemetry": [
+  {
+   "requestId": "202609042359382d80db798e2b4c16",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 1043,
+   "latencyMs": 26944,
+   "costUsd": 0.0055048
+  },
+  {
+   "requestId": "2026090500000420fce51a487b46f1",
+   "model": "glm-5.3",
+   "promptTokens": 1688,
+   "completionTokens": 3196,
+   "latencyMs": 56753,
+   "costUsd": 0.0164256
+  },
+  {
+   "requestId": "20260905000101b531cca1678c414d",
+   "model": "glm-5.3",
+   "promptTokens": 2013,
+   "completionTokens": 1951,
+   "latencyMs": 41187,
+   "costUsd": 0.0114026
+  },
+  {
+   "requestId": "202609050001427fdb935d604c42d8",
+   "model": "glm-5.3",
+   "promptTokens": 844,
+   "completionTokens": 2006,
+   "latencyMs": 44973,
+   "costUsd": 0.010008
+  },
+  {
+   "requestId": "20260905000227ef2e48c87a1d42c1",
+   "model": "glm-5.3",
+   "promptTokens": 654,
+   "completionTokens": 929,
+   "latencyMs": 24060,
+   "costUsd": 0.0050032
+  },
+  {
+   "requestId": "2026090500025201b68f8148d840c1",
+   "model": "glm-5.3",
+   "promptTokens": 717,
+   "completionTokens": 1675,
+   "latencyMs": 32589,
+   "costUsd": 0.0083738
+  }
+ ],
+ "measured": {
+  "calls": 6,
+  "promptTokens": 6570,
+  "completionTokens": 10800,
+  "latencyMsTotal": 226506,
+  "estimatedCostUsd": 0.1812744,
+  "measuredCostUsd": 0.056718
+ },
+ "ledger": {
+  "before": {
+   "cumulativeUsd": 0.5949623,
+   "ceilingUsd": 2.5,
+   "remainingUsd": 1.9050377
+  },
+  "after": {
+   "cumulativeUsd": 0.6516803,
+   "ceilingUsd": 2.5,
+   "remainingUsd": 0
+  }
+ },
+ "coverage": {
+  "rows": 315,
+  "coveredRows": 0,
+  "proposals": 0
+ },
+ "outcome": {
+  "exitCode": 1,
+  "status": "failed",
+  "outcome": "blocked",
+  "finalStage": "stage-4"
+ },
+ "events": [
+  {
+   "type": "accounting-gap",
+   "at": "2026-09-04T16:03:25.199Z",
+   "detail": "2 forwarded upstream call(s) produced no telemetry row (unparseable response, upstream error, or forward still in flight after drain); the run is INVALID and remaining headroom is frozen to 0 until manual ledger repair (docs/evidence/DG-11/README.md)",
+   "reconciliation": "reconciled 2026-09-05: both gap calls returned upstream provider errors (ARXIC-MODEL-PROVIDER-ERROR carried to the adapter; no usage payload — zero tokens, zero recorded cost). The endpoint was live-probed healthy immediately after the run (HTTP 200, model glm-5.3); the error burst is attributed to transient upstream instability on the coding-plan endpoint following the run21 46-call burst. The 6 landed telemetry rows are complete and recorded ($0.056718)."
+  }
+ ],
+ "groundednessSpotCheck": {
+  "status": "pending",
+  "note": "owner (or human delegate) completes the stratified spot-check per docs/evidence/DG-11/README.md; an LLM may not self-grade"
+ }
+}

@@ -1,11 +1,11 @@
 # ADR-008: Domain-general business-intent extraction (ALL domains)
 
-| Field      | Value                                                                                                                       |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Status     | Proposed (2026-08-16) — flips to Accepted only via the DG-12 exit gate (#256)                                               |
-| Decides    | The architecture by which Arxic extracts and verifies ALL business-intent domains of any project, not only authentication   |
-| Relates to | ADR-001 §2/§8/§9/§10/§12/§16, ADR-002, ADR-004, ADR-006, issues #244–#256 (ALL-Domain Business Intent Extraction milestone) |
-| Owners     | Arxic maintainers                                                                                                           |
+| Field      | Value                                                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status     | Accepted (2026-09-05) — all six DG-12 exit criteria passed by script on both ratified apps (directus, koel); see "Acceptance proof (2026-09-05)" below. |
+| Decides    | The architecture by which Arxic extracts and verifies ALL business-intent domains of any project, not only authentication                               |
+| Relates to | ADR-001 §2/§8/§9/§10/§12/§16, ADR-002, ADR-004, ADR-006, issues #244–#256 (ALL-Domain Business Intent Extraction milestone)                             |
+| Owners     | Arxic maintainers                                                                                                                                       |
 
 ## Context
 
@@ -450,3 +450,22 @@ scope, so it is rejected as the ALL-Domain Business Intent Extraction goal.
 The gap is in the product's core promise, not in hosting or multi-user
 operation. Deferral to service mode has no compensating value and would leave
 the CLI unable to deliver ALL-domain extraction.
+
+## Acceptance proof (2026-09-05)
+
+The DG-12 exit gate (#256) passed all six exit criteria by script on both
+owner-ratified third-party apps — directus (TS/JS, pin `cb846b6a…`) and koel
+(PHP/Laravel 13.24, pin `dfec91f…`). Evidence and per-gate assertion logs are
+retained under `docs/evidence/DG-12/` (exit report: `EXIT-REPORT.md`):
+
+- Criterion 1 (coverage 100% with a disposition per row) — `scripts/dg12-coverage.mjs`, PASS both apps (G-2).
+- Criterion 2 (grounded intents ≥ 80%) — `scripts/dg12-grounded-ratio.mjs`, PASS both apps over the extractable denominator per the 2026-09-04 CCR/DECISION on #256 (grounded/`extracted`; all-rows ratio disclosed; every non-extracted row carries its reason) (G-3).
+- Criterion 3 (≥ 90% of attempted replays verify, two clean runs per app) — `scripts/dg12-replay-ratio.mjs`, PASS both apps (G-4).
+- Criterion 4 (zero fabricated intents) — DG-07 fail-closed resolvability gate + `scripts/dg12-fabrication-audit.mjs`, PASS both apps (G-5).
+- Criterion 5 (≥ 1 real-model non-stub run per app) — recorded telemetry citations under `docs/evidence/DG-12/<app>/assertion-logs/real-model-citation.md` (G-6).
+- Criterion 6 (determinism) — `scripts/dg12-determinism.mjs --rebuild` byte-identical modulo `generatedAt` + two-run comparison with model-sampling variance OBSERVED-attributed, PASS both apps (G-7).
+
+This ADR flip is the final artifact of the gate; it landed after every
+criterion passed, per the frozen contract. Threshold history: 80% owner-recorded
+UNTUNED (decision 4, #256); the criterion-2 denominator operationalization was
+recorded BEFORE measurement (CCR + DECISION, 2026-09-04, #256).
