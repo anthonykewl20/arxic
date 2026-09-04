@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, symlink } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { validateManifest } from '@arxic/contracts';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
@@ -27,7 +28,10 @@ describe.each(FIXTURE_APPS)('playwright compiler real-world proof: $name', (app)
 
   beforeAll(async () => {
     running = await bootFixtureApp(root, app, `arxic-compiler-${app.name}`);
-    outputDirectory = await mkdtemp(join(root, '.arxic-compiler-output-'));
+    // #395: stage OUTSIDE the repo under evaluation — an in-repo staging
+    // directory couples the staged run to repository content (config fallback
+    // walks, workspace discovery, test discovery) with no proof value.
+    outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-compiler-output-'));
     await seedFixture(running.origin, `compiler-${app.name}`, app.persona);
   }, 240_000);
 
