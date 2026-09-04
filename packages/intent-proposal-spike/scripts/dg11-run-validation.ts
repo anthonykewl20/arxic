@@ -575,6 +575,34 @@ async function listenLoopback(server: Server): Promise<number> {
   return address.port;
 }
 
+/** Historical proxy upstream window (ms) when ARXIC_DG11_UPSTREAM_TIMEOUT_MS is unset. */
+export const DG11_DEFAULT_UPSTREAM_TIMEOUT_MS = 120_000;
+
+/**
+ * Upstream window for the recording proxy's forwarded chat completions.
+ * Reasoning models on full-size structured-output prompts can legitimately
+ * exceed the historical 120s; a hardcoded window aborted them mid-flight and
+ * every such call landed as an accounting gap (run INVALID). Operators raise
+ * the window via ARXIC_DG11_UPSTREAM_TIMEOUT_MS; invalid values fail closed
+ * at proxy start, before any forward.
+ */
+export function resolveUpstreamTimeoutMs(): number {
+  const raw = process.env.ARXIC_DG11_UPSTREAM_TIMEOUT_MS;
+  if (raw === undefined || raw.trim() === '') return DG11_DEFAULT_UPSTREAM_TIMEOUT_MS;
+  if (!/^\d+$/.test(raw.trim())) {
+    throw new Error(
+      `ARXIC_DG11_UPSTREAM_TIMEOUT_MS must be a positive integer number of milliseconds (got ${JSON.stringify(raw)})`,
+    );
+  }
+  const parsed = Number.parseInt(raw.trim(), 10);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
+    throw new Error(
+      `ARXIC_DG11_UPSTREAM_TIMEOUT_MS must be a positive integer number of milliseconds (got ${JSON.stringify(raw)})`,
+    );
+  }
+  return parsed;
+}
+
 /**
  * Local recording proxy in front of the real model endpoint. Injects the
  * real Authorization only on the upstream hop; records per-call telemetry;
@@ -604,6 +632,7 @@ export class RecordingModelProxy {
   readonly #spendBeforeUsd: number;
   readonly #prices: Dg11Prices;
   readonly #runId: string;
+  readonly #upstreamTimeoutMs: number;
   readonly #pending = new Set<Promise<void>>();
   #forwards = 0;
   #stopPromise: Promise<void> | undefined;
@@ -628,6 +657,7 @@ export class RecordingModelProxy {
     this.#spendBeforeUsd = spendBeforeUsd;
     this.#prices = prices;
     this.#runId = runId;
+    this.#upstreamTimeoutMs = resolveUpstreamTimeoutMs();
   }
 
   static async start(options: {
@@ -751,7 +781,7 @@ export class RecordingModelProxy {
           'content-type': 'application/json',
         },
         body,
-        signal: AbortSignal.timeout(120_000),
+        signal: AbortSignal.timeout(this.#upstreamTimeoutMs),
       });
     } catch {
       response.writeHead(502, { 'content-type': 'application/json' });
