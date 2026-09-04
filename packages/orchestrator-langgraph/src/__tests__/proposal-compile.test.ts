@@ -379,7 +379,7 @@ describe('proposal -> DG-09 form-flow compile (no canned assertions)', () => {
       const spec = await readFile(resolve(outputDirectory, specPath!), 'utf8');
       expect(spec).toContain('labelOrPlaceholderControl(form, "Email")');
       expect(spec).toContain('ARXIC_INPUT_PERSONA_EMAIL');
-      expect(spec).toContain(`getByRole('button', { name: "Subscribe", exact: true })`);
+      expect(spec).toContain(`submitControl(form, "Subscribe").click()`);
       expect(spec).toContain(`configureApprovedOrigins(["${origin}","${widgetOrigin}"])`);
       expect(spec).not.toMatch(/authenticat/iu);
       expect(spec).not.toContain('Hunter2');
