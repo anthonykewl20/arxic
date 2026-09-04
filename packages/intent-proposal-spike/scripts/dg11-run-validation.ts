@@ -65,6 +65,24 @@ import {
 
 export type Dg11Prices = Readonly<{ promptPerMillion: number; completionPerMillion: number }>;
 
+/**
+ * Upstream (model endpoint) request timeout for the recording proxy,
+ * milliseconds. Env: ARXIC_DG11_UPSTREAM_TIMEOUT_MS — must be a positive
+ * integer; invalid values fail closed. Default 120_000 (the historical
+ * hardcoded value).
+ */
+export function resolveUpstreamTimeoutMs(): number {
+  const raw = process.env.ARXIC_DG11_UPSTREAM_TIMEOUT_MS;
+  if (raw === undefined || raw.trim() === '') return 120_000;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value <= 0 || value > 2_147_483_647) {
+    throw new Error(
+      `ARXIC_DG11_UPSTREAM_TIMEOUT_MS must be a positive integer within the Node timer range (received ${raw})`,
+    );
+  }
+  return value;
+}
+
 /** Owner decision 1: USD 1.00 per ratified target, cumulative (DG-11 + DG-12). */
 export const DG11_DEFAULT_CEILING_USD = 1.0;
 /** Owner decision 2: gpt-4o-mini list prices at DG-04 measurement — RE-VERIFY at run time. */
@@ -751,7 +769,12 @@ export class RecordingModelProxy {
           'content-type': 'application/json',
         },
         body,
-        signal: AbortSignal.timeout(120_000),
+        // DG-12 run17/18: reasoning models (glm-5.3 over the coding
+        // endpoint) legitimately exceed the historical hard 120s on
+        // full-size structured-output prompts — a mid-reasoning abort here
+        // surfaces downstream as an ACCOUNTING GAP. Operator-tunable, fail
+        // closed on invalid values, default preserves the old behavior.
+        signal: AbortSignal.timeout(resolveUpstreamTimeoutMs()),
       });
     } catch {
       response.writeHead(502, { 'content-type': 'application/json' });
