@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- FIX-390 DG-11 recording-proxy upstream timeout is operator-tunable (#390, PR #389): `ARXIC_DG11_UPSTREAM_TIMEOUT_MS` (default 120000) replaces the hardcoded 120s upstream window in the DG-11 campaign runner's recording model proxy; invalid values fail closed before any forward. Reasoning-model batch calls that legitimately exceed the historical window no longer abort mid-flight into accounting-gap INVALID runs; fail-closed accounting semantics are unchanged.
+- FIX-393 retained-evidence ZIP provenance resolution (#393, PR #394): the verifier's retained-evidence inspection now resolves a promoted bundle's trace provenance from the designed `artifacts/reports/` sibling directory (adjacency remains the fallback for verification-suite captures); inspection strictness is unchanged — a trace with no resolvable or non-verifying provenance still fails.
+- FIX-395 compiler real-world proof stages outside the repo (#395, PR #396): the generated verification suite now stages under the OS temporary directory instead of `<repo>/.arxic-compiler-output-*`, removing the staged run's coupling to repository content (config fallback, workspace and test discovery); proof assertions unchanged.
+
+### Internal
+
+- DG-12 exit gate (#256, PR #392): ALL-domain intent extraction proven on both ratified third-party apps (directus, koel) — two clean verified+promoted campaigns per app; all six ADR-008 exit criteria passed by script (coverage 100%, grounded/extracted 100% both apps, replay 2/2, zero fabrication, real-model citations, determinism); koel campaign templates carry the ratified origin set + glm-5.3 provider; 23 pre-exit koel attempts retained under archive-pre-exit with per-run causes; ADR-008 flipped Proposed→Accepted.
+
 <!-- Add new entries under [Unreleased]. One entry per merged slice. Use verbs: added/changed/deprecated/removed/fixed/security/internal. -->
 
 ### added
