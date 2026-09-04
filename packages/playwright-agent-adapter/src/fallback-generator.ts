@@ -144,6 +144,13 @@ async function ensurePlaywrightModule(testDir: string): Promise<void> {
   }
 }
 
+// #379 (mirrors #366 in the playwright-compiler spec generator): roles a
+// role-qualified text assertion (`text@<role>:<text>`) may bind to. The
+// observation lanes derive heading anchors only, so `heading` is the one
+// role with derivation-side evidence. Anything else fails closed at
+// generation instead of emitting a locator that can never resolve.
+const TEXT_ASSERTION_ROLES: ReadonlySet<string> = new Set(['heading']);
+
 export function renderFallbackSpec(workflow: Workflow, origin: string): string {
   const lines = [
     "import { test, expect } from '@playwright/test';",
@@ -170,9 +177,34 @@ export function renderFallbackSpec(workflow: Workflow, origin: string): string {
         lines.push(
           `    await expect(page).toHaveURL(${JSON.stringify(new URL(expected, origin).href)});`,
         );
-      } else if (assertion.intent.startsWith('text:')) {
+      } else if (isRoleQualifiedText(assertion.intent)) {
+        // #379: role-qualified text assertions scope the locator by the
+        // observed role so pages where a heading and a control share the
+        // EXACT full text (the real reference-auth-app /login renders
+        // <h1>Login</h1> + <button>Login</button>) resolve one element
+        // instead of strict-mode-violating on two.
+        const roleQualified = /^text@([a-z]+):(.*)$/su.exec(assertion.intent);
+        const [, role, rawText] = roleQualified ?? [];
+        const expected = rawText?.trim() ?? '';
+        if (!expected || !TEXT_ASSERTION_ROLES.has(role ?? ''))
+          throw new Error(
+            `Unsupported text assertion intent: ${assertion.intent} (role outside the allowed set or empty text)`,
+          );
+        // The role is allowlist-validated lowercase ([a-z]+), so it inlines
+        // safely as a single-quoted literal — matching the spec generator's
+        // role-locator emissions.
         lines.push(
-          `    await expect(page.getByText(${JSON.stringify(assertion.intent.slice(5).trim())})).toBeVisible();`,
+          `    await expect(page.getByRole('${role}', { name: ${JSON.stringify(expected)}, exact: true })).toBeVisible();`,
+        );
+      } else if (assertion.intent.startsWith('text:')) {
+        const expected = assertion.intent.slice(5).trim();
+        if (!expected)
+          throw new Error(`Unsupported text assertion intent: ${assertion.intent} (empty text)`);
+        // Exact matching (#379): unscoped substring getByText resolves every
+        // element CONTAINING the text — a render race then fails strict mode
+        // (or passes spuriously against still-mounted pre-navigation DOM).
+        lines.push(
+          `    await expect(page.getByText(${JSON.stringify(expected)}, { exact: true })).toBeVisible();`,
         );
       } else {
         lines.push(
@@ -196,6 +228,10 @@ export function renderFallbackConfig(): string {
     "export default defineConfig({ testDir: '.', workers: 1, use: { browserName: 'chromium', headless: true, trace: 'retain-on-failure' } });",
     '',
   ].join('\n');
+}
+
+function isRoleQualifiedText(intent: string): boolean {
+  return /^text@[a-z]+:/u.test(intent);
 }
 
 function statePath(state: string): string {
