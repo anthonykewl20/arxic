@@ -1,0 +1,37 @@
+{
+  "name": "login",
+  "sourceCommit": "1c647c04848aeda6c440387b7ba840b468476083",
+  "selectedRowId": "inv:page:GET:7db4b8bf2d28",
+  "route": "/login",
+  "observedAt": "2026-09-05T12:46:49.975Z",
+  "transport": "authenticated host coding agent; tools denied; operator-default model",
+  "outcome": "verified",
+  "verification": {
+    "outcome": "verified",
+    "passedRuns": 2,
+    "runs": 2
+  },
+  "inventoryRows": 8,
+  "candidateRows": [
+    "inv:page:GET:7db4b8bf2d28"
+  ],
+  "diagnosticCodes": [
+    "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+    "ARXIC-SURFACE-002",
+    "ARXIC-SURFACE-002",
+    "ARXIC-ORCH-POSTCRAWL-REPROPOSAL",
+    "ARXIC-ORCH-HEALING-DEFERRED"
+  ],
+  "mailpitMessages": 0
+}
