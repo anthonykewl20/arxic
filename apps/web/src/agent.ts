@@ -45,7 +45,19 @@ export async function runAgent(run: Run, directory: string): Promise<RunResult> 
   const snapshot = join(directory, 'engine-config.json');
   await writeFile(
     snapshot,
-    JSON.stringify({ ...loaded.value, source: { ...loaded.value.source, repository: source } }),
+    JSON.stringify({
+      ...loaded.value,
+      source: {
+        ...loaded.value.source,
+        repository: source,
+        ...(run.workflowScope ? { revision: run.workflowScope.sourceCommit } : {}),
+      },
+      ...(run.workflowScope
+        ? {
+            scope: { ...loaded.value.scope, inventoryRowIds: [run.workflowScope.inventoryRowId] },
+          }
+        : {}),
+    }),
     { mode: 0o600 },
   );
   const outcome = await runAction({

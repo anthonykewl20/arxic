@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import { chmod, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { Project, Run, RunResult } from './types';
+import type { Campaign, Project, Run, RunResult } from './types';
 
 export class Store {
   private constructor(readonly db: Database.Database) {}
@@ -18,6 +18,7 @@ export class Store {
       CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, project_id TEXT NOT NULL, state TEXT NOT NULL, slot TEXT UNIQUE, data TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS baselines (project_id TEXT NOT NULL, spec TEXT NOT NULL, run_id TEXT NOT NULL, capture_id TEXT NOT NULL, PRIMARY KEY(project_id, spec));
       CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY, at TEXT NOT NULL, action TEXT NOT NULL, subject TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS campaigns (id TEXT PRIMARY KEY, data TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS run_state ON runs(state);`);
     return new Store(db);
   }
@@ -29,7 +30,7 @@ export class Store {
   }
   summaries(): Array<Run & { hasInventory: boolean; hasLedger: boolean }> {
     return this.documents(
-      `SELECT json_set(json_remove(data, '$.result.inventory', '$.result.frontend', '$.result.manifest', '$.result.ledger', '$.result.engineRun', '$.result.diagnostics'), '$.hasInventory', json_type(data, '$.result.inventory') IS NOT NULL, '$.hasLedger', json_type(data, '$.result.ledger') IS NOT NULL) AS data FROM runs ORDER BY rowid DESC LIMIT 200`,
+      `SELECT json_set(json_remove(data, '$.result.inventory', '$.result.workflowRows', '$.result.frontend', '$.result.manifest', '$.result.ledger', '$.result.engineRun', '$.result.diagnostics'), '$.hasInventory', json_type(data, '$.result.inventory') IS NOT NULL, '$.hasLedger', json_type(data, '$.result.ledger') IS NOT NULL) AS data FROM runs ORDER BY rowid DESC LIMIT 200`,
     );
   }
   project(id: string): Project | undefined {
@@ -37,6 +38,26 @@ export class Store {
   }
   run(id: string): Run | undefined {
     return this.document<Run>('SELECT data FROM runs WHERE id = ?', id);
+  }
+  campaigns(): Campaign[] {
+    return this.documents<Campaign>('SELECT data FROM campaigns ORDER BY rowid DESC LIMIT 100');
+  }
+  campaign(id: string): Campaign | undefined {
+    return this.document<Campaign>('SELECT data FROM campaigns WHERE id = ?', id);
+  }
+  saveCampaign(campaign: Campaign) {
+    this.db
+      .prepare(
+        'INSERT INTO campaigns VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data=excluded.data',
+      )
+      .run(campaign.id, JSON.stringify(campaign));
+  }
+  referencesCampaign(runId: string): boolean {
+    return !!this.db
+      .prepare(
+        "SELECT 1 FROM campaigns WHERE json_extract(data, '$.discoveryRunId')=? UNION ALL SELECT 1 FROM campaigns, json_each(campaigns.data, '$.runIds') AS child WHERE child.value=? LIMIT 1",
+      )
+      .get(runId, runId);
   }
   saveProject(project: Project) {
     this.db

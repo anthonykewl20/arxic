@@ -55,6 +55,8 @@ export async function startWorkbench(options: WorkbenchOptions) {
     const assets: Record<string, [string, string]> = {
       '/': ['index.html', 'text/html'],
       '/app.js': ['app.js', 'text/javascript'],
+      '/html.js': ['html.js', 'text/javascript'],
+      '/campaigns.js': ['campaigns.js', 'text/javascript'],
       '/app.css': ['app.css', 'text/css'],
       '/base.css': ['base.css', 'text/css'],
     };
@@ -129,6 +131,21 @@ export async function startWorkbench(options: WorkbenchOptions) {
     const runRoute = /^\/api\/projects\/([a-f0-9-]+)\/runs$/u.exec(path);
     if (runRoute && request.method === 'POST')
       return json(response, 202, workbench.enqueue(runRoute[1], (await readJson(request)).mode));
+    const campaignCreate = /^\/api\/projects\/([a-f0-9-]+)\/campaigns$/u.exec(path);
+    if (campaignCreate && request.method === 'POST')
+      return json(
+        response,
+        202,
+        await workbench.enqueueCampaign(campaignCreate[1], await readJson(request)),
+      );
+    const campaignDetail = /^\/api\/campaigns\/([a-f0-9-]+)$/u.exec(path);
+    if (campaignDetail && request.method === 'GET')
+      return json(response, 200, workbench.campaign(campaignDetail[1]));
+    const campaignCancel = /^\/api\/campaigns\/([a-f0-9-]+)\/cancel$/u.exec(path);
+    if (campaignCancel && request.method === 'POST') {
+      await workbench.cancelCampaign(campaignCancel[1]);
+      return json(response, 200, { ok: true });
+    }
     const cancelRoute = /^\/api\/runs\/([a-f0-9-]+)\/cancel$/u.exec(path);
     if (cancelRoute && request.method === 'POST') {
       await workbench.cancel(cancelRoute[1]);

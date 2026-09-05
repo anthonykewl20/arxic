@@ -23,8 +23,10 @@ for exact supported syntax, scan limits and omissions.
 File-based AI execution supports `scope.inventoryRowIds` for current source
 consumer rows. Stale selections block before model inference; unselected rows
 stay visible in the complete ledger. Each engine run still attempts at most one
-candidate. Dashboard selection and persisted multi-workflow campaigns remain
-tracked in #402.
+candidate. Guided dashboard campaigns create one serialized job per selected source row,
+preserve the full denominator and survive restart. Unsupported/unselected rows
+and uncompiled hypotheses remain visible. Recurring campaigns and broader state
+coverage remain tracked in #402.
 
 The initial visual lane captures configured anonymous viewports and compares
 approved pixels. It does not perform AI semantic image review or exhaustive

@@ -1,13 +1,17 @@
 import { hostname } from 'node:os';
+import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, realpath, rm, unlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { HttpError } from './errors';
 import { Store } from './store';
 import { allowedFolder, nextSlot, runMode, validateProject } from './projects';
 import { launchJob, stopProcess } from './process';
-import type { Run, RunResult } from './types';
+import type { Campaign, Run, RunResult } from './types';
 import { compareCapture, digest } from './visual';
 import { executionEnvironment } from './execution';
+import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
+import { sourceRevision } from './source';
+import { campaignRows, campaignView } from './campaigns';
 
 export class Workbench {
   private active: ReturnType<typeof launchJob> | null = null;
@@ -71,6 +75,9 @@ export class Workbench {
       audit: this.store.auditLog(),
       baselines: this.store.baselines(),
       queueError: this.queueError,
+      campaigns: this.store.campaigns().map((item) => {
+        return { ...this.campaign(item.id), rows: undefined };
+      }),
     };
   }
   async saveProject(input: Record<string, unknown>, id?: string) {
@@ -84,18 +91,131 @@ export class Workbench {
     return project;
   }
   enqueue(projectId: string, mode: unknown): Run {
+    this.requireQueueCapacity(1);
+    const project = this.store.project(projectId);
+    if (!project) throw new HttpError(404, 'Project not found');
+    const run = this.store.enqueue(project, runMode(mode))!;
+    this.store.audit('run.queued', run.id);
+    this.kick();
+    return run;
+  }
+  async enqueueCampaign(projectId: string, input: Record<string, unknown>) {
+    return this.mutate(() => this.queueCampaign(projectId, input));
+  }
+  private async queueCampaign(projectId: string, input: Record<string, unknown>) {
+    this.requireQueueCapacity(0);
+    const discovery =
+      typeof input.discoveryRunId === 'string' ? this.store.run(input.discoveryRunId) : undefined;
+    if (
+      !discovery ||
+      discovery.projectId !== projectId ||
+      discovery.mode !== 'discovery' ||
+      discovery.state !== 'completed' ||
+      !discovery.result?.inventory
+    )
+      throw new HttpError(400, 'A completed discovery for this project is required');
+    const rows = toProposalConsumerInventory(discovery.result.inventory as DomainInventory).rows;
+    const selected = input.inventoryRowIds;
+    if (
+      Object.keys(input).some((key) => !['discoveryRunId', 'inventoryRowIds'].includes(key)) ||
+      !Array.isArray(selected) ||
+      !selected.length ||
+      selected.length > 20 ||
+      new Set(selected).size !== selected.length ||
+      selected.some((id) => typeof id !== 'string' || !rows.some((row) => row.id === id))
+    )
+      throw new HttpError(
+        400,
+        'Campaign selection must contain 1–20 unique discovered source rows',
+      );
+    if (this.store.activeCount() + selected.length > 20)
+      throw new HttpError(429, 'Insufficient queue capacity for the whole campaign');
+    const project = this.store.project(projectId);
+    if (!project?.execution)
+      throw new HttpError(400, 'Campaigns require saved guided AI execution settings');
+    const current = await sourceRevision(project.folder);
+    const discovered = toProposalConsumerInventory(
+      discovery.result.inventory as DomainInventory,
+    ).source;
+    if (
+      current.dirty ||
+      current.commit !== discovered.commit ||
+      discovery.project.folder !== project.folder
+    )
+      throw new HttpError(409, 'Source changed since discovery; commit changes and discover again');
+    const campaign: Campaign = {
+      id: randomUUID(),
+      projectId,
+      projectName: project.name,
+      discoveryRunId: discovery.id,
+      sourceCommit: current.commit,
+      createdAt: new Date().toISOString(),
+      runIds: [],
+      rows: campaignRows(discovery.result.inventory as DomainInventory),
+    };
+    this.store.db.transaction(() => {
+      this.requireQueueCapacity(selected.length);
+      if (JSON.stringify(this.store.project(projectId)) !== JSON.stringify(project))
+        throw new HttpError(409, 'Project settings changed; review the campaign again');
+      if (!this.store.run(discovery.id))
+        throw new HttpError(409, 'Discovery was deleted; discover again');
+      for (const inventoryRowId of selected as string[]) {
+        const run = this.store.enqueue(project, 'agent')!;
+        run.workflowScope = {
+          campaignId: campaign.id,
+          inventoryRowId,
+          sourceCommit: current.commit,
+        };
+        this.store.saveRun(run);
+        campaign.runIds.push(run.id);
+        campaign.rows.find((row) => row.inventoryRowId === inventoryRowId)!.runId = run.id;
+      }
+      this.store.saveCampaign(campaign);
+      this.store.audit('campaign.queued', campaign.id);
+    })();
+    this.kick();
+    return campaign;
+  }
+  private requireQueueCapacity(count: number) {
     if (this.closed || this.queueError)
       throw new HttpError(
         503,
         'Run queue is unavailable; restart the server after checking storage',
       );
-    const project = this.store.project(projectId);
-    if (!project) throw new HttpError(404, 'Project not found');
-    if (this.store.activeCount() >= 20) throw new HttpError(429, 'Run queue is full');
-    const run = this.store.enqueue(project, runMode(mode))!;
-    this.store.audit('run.queued', run.id);
-    this.kick();
-    return run;
+    if (this.store.activeCount() + count > 20)
+      throw new HttpError(429, 'Insufficient queue capacity for the whole campaign');
+  }
+  campaign(id: string) {
+    const campaign = this.store.campaign(id);
+    if (!campaign) throw new HttpError(404, 'Campaign not found');
+    return campaignView(
+      campaign,
+      campaign.runIds.map((runId) => this.store.run(runId)),
+    );
+  }
+  async cancelCampaign(id: string) {
+    const campaign = this.campaign(id);
+    if (!campaign.counts.pending) throw new HttpError(409, 'Campaign is already finished');
+    let interrupt = false;
+    this.store.db.transaction(() => {
+      this.store.saveCampaign({
+        ...this.store.campaign(id)!,
+        cancelledAt: new Date().toISOString(),
+      });
+      for (const runId of campaign.runIds) {
+        const run = this.store.run(runId);
+        if (!run || !['queued', 'running'].includes(run.state)) continue;
+        interrupt ||= run.state === 'running';
+        this.store.saveRun({
+          ...run,
+          state: 'cancelled',
+          finishedAt: new Date().toISOString(),
+          result: { outcome: 'blocked', summary: 'Campaign cancelled by administrator' },
+        });
+      }
+      this.store.audit('campaign.cancelled', id);
+    })();
+    if (interrupt && this.active) await stopProcess(this.active.child);
   }
   tick(now = new Date()) {
     if (this.closed || this.queueError) return;
@@ -134,6 +254,14 @@ export class Workbench {
       let timeout: ReturnType<typeof setTimeout> | undefined;
       try {
         await allowedFolder(run.project.folder, this.roots);
+        if (run.workflowScope) {
+          const current = await sourceRevision(run.project.folder);
+          if (current.dirty || current.commit !== run.workflowScope.sourceCommit)
+            throw new HttpError(
+              409,
+              'Source changed since campaign discovery; commit changes and start a new campaign',
+            );
+        }
         const directory = join(this.directory, 'runs', run.id);
         await mkdir(directory, { recursive: true, mode: 0o700 });
         const input = join(directory, 'input.json');
@@ -240,6 +368,8 @@ export class Workbench {
     return this.mutate(async () => {
       const run = this.store.run(id);
       if (!run) throw new HttpError(404, 'Run not found');
+      if (this.store.referencesCampaign(id))
+        throw new HttpError(409, 'Evidence referenced by a campaign cannot be deleted');
       if (['queued', 'running'].includes(run.state) || this.store.referencesBaseline(id))
         throw new HttpError(409, 'Active runs and approved baselines cannot be deleted');
       await rm(join(this.directory, 'runs', id), { recursive: true, force: true });

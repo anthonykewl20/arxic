@@ -92,8 +92,9 @@ Changed selection invalidates terminal-run reuse.
 Omitting the field preserves the existing proposal scope. The full inventory
 remains in the ledger; stage 4 records selected and unselected consumer-row IDs.
 This engine run still compiles at most one candidate from the selected scope.
-Selecting several rows does not execute a campaign or establish coverage of all
-selected rows. To exercise a specific supported route, select that single row.
+Selecting several rows in one engine configuration does not execute a campaign
+or establish coverage of all selected rows. The [web campaign interface](web-workbench.md#on-demand-workflow-campaigns)
+creates a separate engine run for each selected source row. To exercise a specific supported route, select that single row.
 Selection restricts proposal candidates, not prerequisite navigation or discovery
 URLs; the existing origin, fixture and mutation policies still apply.
 

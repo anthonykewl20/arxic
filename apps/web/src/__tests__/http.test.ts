@@ -120,3 +120,40 @@ it('requires same-origin JSON writes, invalidates logout sessions, and serves no
   ).toBe(200);
   expect((await fetch(`${app.origin}/api/state`, { headers: { cookie } })).status).toBe(401);
 });
+
+it('requires authentication and same-origin writes for campaign management', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'arxic-web-campaign-http-'));
+  cleanups.push(() => rm(directory, { recursive: true, force: true }));
+  const token = 'test-administrator-token-32-characters';
+  const app = await startWorkbench({
+    stateDirectory: directory,
+    roots: [directory],
+    adminToken: token,
+    port: 0,
+  });
+  cleanups.push(() => app.close());
+  const path = '/api/projects/00000000/campaigns';
+  expect((await fetch(app.origin + '/api/campaigns/00000000')).status).toBe(401);
+  const login = await fetch(app.origin + '/api/session', {
+    method: 'POST',
+    headers: { origin: app.origin, 'content-type': 'application/json' },
+    body: JSON.stringify({ token }),
+  });
+  const cookie = login.headers.get('set-cookie')!.split(';')[0];
+  expect(
+    (
+      await fetch(app.origin + path, {
+        method: 'POST',
+        headers: { cookie, 'content-type': 'application/json' },
+        body: '{}',
+      })
+    ).status,
+  ).toBe(403);
+  const response = await fetch(app.origin + path, {
+    method: 'POST',
+    headers: { cookie, origin: app.origin, 'content-type': 'application/json' },
+    body: '{}',
+  });
+  expect(response.status).toBe(400);
+  expect(await response.text()).toContain('completed discovery');
+});

@@ -1,23 +1,27 @@
 @import url('/base.css');
 
 @media (max-width: 760px) {
-  .frontend-inventory .table thead {
+  .frontend-inventory .table thead,
+  .run-list .table thead {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
     clip-path: inset(50%);
   }
-  .frontend-inventory .table tr {
+  .frontend-inventory .table tr,
+  .run-list .table tr {
     display: grid;
   }
-  .frontend-inventory .table td {
+  .frontend-inventory .table td,
+  .run-list .table td {
     display: block;
     word-break: normal;
     overflow-wrap: anywhere;
     padding: 10px 16px;
   }
-  .frontend-inventory .table td::before {
+  .frontend-inventory .table td::before,
+  .run-list .table td::before {
     content: attr(data-label);
     display: block;
     color: var(--muted);
@@ -50,5 +54,52 @@
   }
   #execution-fields .form-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.workflow-selection {
+  margin: 24px 0;
+}
+.workflow-choices,
+.campaign-rows {
+  list-style: none;
+  padding: 0;
+}
+.workflow-choices li,
+.campaign-rows li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.workflow-choices label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.workflow-choices input {
+  width: auto;
+  flex: 0 0 auto;
+}
+.campaign-rows li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.campaign-rows small,
+.workflow-choices small {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+}
+@media (max-width: 760px) {
+  .campaign-rows li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .campaign-detail .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

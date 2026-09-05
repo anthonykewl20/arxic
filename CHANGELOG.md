@@ -12,6 +12,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Durable on-demand web campaigns (refs #402): choose up to 20 discovered source surfaces in the guided dashboard, reserve queue capacity atomically and run each through a separate source-bound engine job. Per-workflow verifier results remain separate from unsupported/unselected rows and uncovered hypotheses. Campaign history survives restart, cancellation stops unfinished work and referenced evidence is protected from individual deletion. Source changes block queued children. A reproduced real-filesystem race between campaign creation and discovery deletion is prevented by shared mutation serialization. Recurring campaigns, retention and comprehensive business-state coverage remain pending.
+
 - Scoped engine execution (refs #402): optional `scope.inventoryRowIds` restricts proposals and post-crawl re-proposals to current source consumer rows through the shared local/worker configuration. Stale selections block before inference, changed selection invalidates checkpoint reuse, and the full inventory remains in the ledger. Real Next.js login and password-reset selections pass two verifier replays each. This is a single-candidate prerequisite for multi-workflow campaigns, whose dashboard and scheduling remain pending.
 
 - Guided web AI execution (refs #402): model/persona settings, server secret references, deployment declarations and bounded crawl/runtime settings generate engine-validated configuration without a project YAML file. Missing secrets block before launch; selected credentials remain outside project/run JSON. Existing file-based execution remains available. Domain declarations do not filter routes and planning estimates are not billing guarantees.
@@ -25,6 +27,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 - Arxic's primary product is now a local/server web frontend testing application (ADR-009). The owner-defined release line is `v0.0.200` (canonical package metadata `0.0.200`); minor releases add 100 and patch fixes add 1. CLI, dashboard and release tags share the padded `v` label; scripts align every workspace manifest. The prior engine release audit does not establish readiness for the expanded web product. No release tag or publication is performed.
 
 ### Fixed
+
+- Campaign review controls and responsive layout: campaign children navigate back to their campaign instead of starting an unscoped retry, protected evidence no longer offers individual deletion, checkbox captions sit beside their controls, and mobile run rows stack with visible column labels. Real browser geometry assertions reproduce the layout defects.
 
 - stream-json path-filter depth hardening (refs #406): a hash-pinned compatibility patch rejects evaluated paths beyond 1,024 levels through the stream error channel, addressing GHSA-528h-pc64-c93x without replacing Crawlee’s CommonJS API with incompatible ESM exports. All four filters, boundary depths, ordinary output, Crawlee serialization and real browser discovery are covered. Version-only scanners may continue flagging stock 1.9.1. Security documentation now distinguishes the historical engine release from the unreleased web product and its host trust boundary.
 

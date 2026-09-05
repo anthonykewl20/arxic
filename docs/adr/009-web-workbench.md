@@ -48,6 +48,23 @@ input fingerprint. This is the prerequisite for campaign orchestration; one
 engine run still compiles at most one candidate. No workflow or truth contract
 changes and no LLM verification authority are introduced.
 
+### Durable workflow campaigns (2026-09-05 continuation, refs #402)
+
+The web action creates an immutable campaign record and one existing engine job
+per selected source consumer row in a single SQLite transaction. Guided settings
+and the discovered source commit bind every child; current source is checked
+before enqueue and again before child launch. The existing serial queue owns
+execution, fixture lifetime and restart handling. No separate execution engine
+or LLM truth authority is added.
+
+Campaign state is derived from referenced child records. Selected workflow
+verification counts remain separate from unselected/non-proposable inventory and
+uncompiled hypotheses. Cancellation records all unfinished children before
+interrupting an active process. Referenced evidence cannot be deleted through
+individual run deletion. This first campaign interface is on demand; cron still
+schedules individual run modes. Retention, recurring campaigns and broader
+business-state exploration remain release requirements.
+
 ### Frontend declaration inventory (2026-09-05 continuation, refs #402)
 
 An additive source-adapter capability emits `arxic-frontend-inventory-v1` from
@@ -103,7 +120,8 @@ than manufacturing it.
 from a folder path. Scope includes source revision, deployment, routes,
 components, states, personas, flags, inputs, actions and viewports. Gaps remain in
 the denominator. Semantic AI image analysis and comprehensive multi-workflow
-campaigns are required by #402 and are not implemented by the initial workbench.
+campaigns are required by #402. On-demand source-row campaigns now exist; broader
+state/persona/flag exploration and semantic image review remain incomplete.
 
 ## Scheduling and deployment
 

@@ -18,19 +18,33 @@ import {
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
 import { Workbench } from '../workbench';
 
-it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'] as const)(
+it.each([
+  'file',
+  'guided',
+  'stale-selection',
+  'selected-login',
+  'selected-reset',
+  'campaign',
+] as const)(
   'runs the actual AI/compiler/verifier pipeline from a %s web project and exposes its validated intent ledger',
   async (mode) => {
+    const guided = mode === 'guided' || mode === 'campaign';
     const root = resolve(import.meta.dirname, '../../../..');
     const helpersPath = pathToFileURL(join(root, 'scripts/human-flow-e2e.mjs')).href;
     const { createConfig, modelStubOutput } = await import(helpersPath);
-    const mailpit = mode === 'selected-reset' ? await new MailpitContainer().start() : undefined;
+    const mailpit =
+      mode === 'selected-reset' || mode === 'campaign'
+        ? await new MailpitContainer().start()
+        : undefined;
     if (mailpit) {
       vi.stubEnv('ARXIC_MAILPIT_SMTP', mailpit.smtp);
       vi.stubEnv('ARXIC_MAILPIT_API', mailpit.api);
     }
     let selectedRowId: string | undefined;
     let projectId: string | undefined;
+    let discoveryRunId: string | undefined;
+    let campaignRowIds: string[] = [];
+    const requestedBatches: string[][] = [];
     const requestedRows: string[] = [];
     const target = await bootFixtureApp(root, referenceAuthApp, 'web-agent-reference');
     const repo = await makeRepository('reference-auth-app');
@@ -46,12 +60,17 @@ it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'
       for await (const chunk of req) body += chunk;
       const data = JSON.parse(body);
       requests++;
+      const requestedPaths: string[] = [];
       for (const message of data.messages) {
         const payload = message.content.match(
           /INVENTORY_DATA[^\n]*\n([\s\S]*?)\nEND_INVENTORY_DATA/u,
         )?.[1];
-        if (payload)
-          requestedRows.push(...JSON.parse(payload).map((row: { id: string }) => row.id));
+        if (payload) {
+          const rows = JSON.parse(payload) as Array<{ id: string; path: string }>;
+          requestedRows.push(...rows.map((row) => row.id));
+          requestedBatches.push(rows.map((row) => row.id));
+          requestedPaths.push(...rows.map((row) => row.path));
+        }
       }
       res.setHeader('Content-Type', 'application/json');
       res.end(
@@ -65,7 +84,10 @@ it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'
                 content: JSON.stringify(
                   modelStubOutput(
                     data.messages,
-                    mode === 'selected-reset'
+                    mode === 'selected-reset' ||
+                      (mode === 'campaign' &&
+                        requestedPaths.length === 1 &&
+                        requestedPaths[0] === '/forgot-password')
                       ? {
                           path: '/forgot-password',
                           intent: 'request a password reset',
@@ -88,12 +110,12 @@ it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'
     const address = model.address() as { port: number };
     vi.stubEnv('ARXIC_MODEL_PROVIDER', 'http');
     vi.stubEnv('ARXIC_MODEL_BASE_URL', `http://127.0.0.1:${address.port}`);
-    vi.stubEnv('ARXIC_MODEL_API_KEY', mode !== 'guided' ? 'web-agent-test-key' : '');
-    vi.stubEnv('ARXIC_INPUT_PERSONA_EMAIL', mode !== 'guided' ? 'web-agent@example.test' : '');
-    vi.stubEnv('ARXIC_INPUT_PERSONA_PASSWORD', mode !== 'guided' ? 'WebAgentTest9!' : '');
+    vi.stubEnv('ARXIC_MODEL_API_KEY', !guided ? 'web-agent-test-key' : '');
+    vi.stubEnv('ARXIC_INPUT_PERSONA_EMAIL', !guided ? 'web-agent@example.test' : '');
+    vi.stubEnv('ARXIC_INPUT_PERSONA_PASSWORD', !guided ? 'WebAgentTest9!' : '');
     const workbench = await Workbench.open(state, [repo.root]);
     try {
-      if (mode.startsWith('selected-')) {
+      if (mode.startsWith('selected-') || mode === 'campaign') {
         const connected = await workbench.saveProject({
           name: 'Selected reference',
           folder: repo.root,
@@ -102,6 +124,7 @@ it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'
         projectId = connected.id;
         const discovery = workbench.enqueue(connected.id, 'discovery');
         await workbench.idle();
+        discoveryRunId = discovery.id;
         const inventory = toProposalConsumerInventory(
           workbench.store.run(discovery.id)!.result!.inventory as DomainInventory,
         );
@@ -111,8 +134,17 @@ it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'
             row.path === (mode === 'selected-reset' ? '/forgot-password' : '/login'),
         )?.id;
         expect(selectedRowId).toBeDefined();
+        if (mode === 'campaign') {
+          campaignRowIds = inventory.rows
+            .filter(
+              (row) => row.method === 'GET' && ['/login', '/forgot-password'].includes(row.path),
+            )
+            .map((row) => row.id);
+          expect(campaignRowIds).toHaveLength(2);
+          selectedRowId = undefined;
+        }
       }
-      if (mode !== 'guided') {
+      if (!guided) {
         const config = parseYaml(
           createConfig({ origin: target.origin, repository: repo.root, revision: 'HEAD' }),
         );
@@ -143,7 +175,7 @@ it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'
           name: 'Agent reference',
           folder: repo.root,
           origin: target.origin,
-          ...(mode !== 'guided'
+          ...(!guided
             ? { configPath: 'arxic.yaml' }
             : {
                 execution: {
@@ -165,6 +197,41 @@ it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'
         },
         projectId,
       );
+      if (mode === 'campaign') {
+        const campaign = await workbench.enqueueCampaign(project.id, {
+          discoveryRunId,
+          inventoryRowIds: campaignRowIds,
+        });
+        await workbench.idle();
+        const view = workbench.campaign(campaign.id);
+        expect(view).toMatchObject({
+          state: 'completed',
+          counts: { selected: 2, verified: 2, contradicted: 0, blocked: 0, pending: 0 },
+        });
+        expect(view.rows.length).toBeGreaterThan(2);
+        for (const id of campaign.runIds) {
+          const child = workbench.store.run(id)!;
+          const ledger = child.result!.ledger as IntentLedger;
+          expect(ledger.verification).toMatchObject({
+            outcome: 'verified',
+            passedRuns: 2,
+            runs: 2,
+          });
+          expect(
+            ledger.rows
+              .filter((row) => row.intents.some((intent) => intent.isCandidate))
+              .map((row) => row.inventoryRowId),
+          ).toEqual([child.workflowScope!.inventoryRowId]);
+        }
+        expect(new Set(requestedRows)).toEqual(new Set(campaignRowIds));
+        expect(requestedBatches.every((rows) => rows.length === 1)).toBe(true);
+        expect(
+          ((await (await fetch(mailpit!.api + '/api/v1/messages')).json()) as { total: number })
+            .total,
+        ).toBeGreaterThanOrEqual(3);
+        await assertNoCredentials(state);
+        return;
+      }
       const run = workbench.enqueue(project.id, 'agent');
       await workbench.idle();
       const result = workbench.store.run(run.id)!.result!;
@@ -220,15 +287,7 @@ it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'
         ).toBeGreaterThanOrEqual(3);
       expect(JSON.stringify(result)).not.toContain('web-agent-test-key');
       expect(JSON.stringify(result)).not.toContain('WebAgentTest9!');
-      // Inspect persisted settings, SQLite/WAL, engine records and safe evidence.
-      for (const entry of await readdir(state, { recursive: true, withFileTypes: true })) {
-        if (!entry.isFile()) continue;
-        const bytes = await readFile(join(entry.parentPath, entry.name));
-        for (const value of ['web-agent-test-key', 'WebAgentTest9!', 'web-agent@example.test'])
-          expect(bytes.includes(Buffer.from(value)), `Credential persisted in ${entry.name}`).toBe(
-            false,
-          );
-      }
+      await assertNoCredentials(state);
     } finally {
       await workbench.close();
       await mailpit?.stop();
@@ -243,3 +302,15 @@ it.each(['file', 'guided', 'stale-selection', 'selected-login', 'selected-reset'
   },
   300_000,
 );
+
+async function assertNoCredentials(state: string) {
+  // Inspect persisted settings, SQLite/WAL, engine records and safe evidence.
+  for (const entry of await readdir(state, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile()) continue;
+    const bytes = await readFile(join(entry.parentPath, entry.name));
+    for (const value of ['web-agent-test-key', 'WebAgentTest9!', 'web-agent@example.test'])
+      expect(bytes.includes(Buffer.from(value)), `Credential persisted in ${entry.name}`).toBe(
+        false,
+      );
+  }
+}
