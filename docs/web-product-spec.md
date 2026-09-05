@@ -64,6 +64,8 @@ hierarchy inspired by Linear. The shell, overview, intent inventory, workflow se
 schedules, administration, run/capture details, image review, model fields and
 Models & accounts implement that foundation. The project form uses React markup but
 retains its native dialog and existing submission actions.
+Review/campaign pending state survives navigation, and session invalidation clears
+unsent drafts/consent while rejecting late responses from prior sessions.
 Browser account-login flows, richer connection management and full paid-plan
 coverage remain explicit follow-up work under #402.
 

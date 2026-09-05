@@ -177,7 +177,56 @@ it('lets an administrator select and verify two real workflows with honest campa
       '01-selected-workflows',
       'Missing guided settings prevented launch; two source rows selected and selection survived polling',
     );
+    let campaignReady!: () => void;
+    let releaseCampaign!: () => void;
+    const campaignHeld = new Promise<void>((resolve) => {
+      campaignReady = resolve;
+    });
+    const campaignReleased = new Promise<void>((resolve) => {
+      releaseCampaign = resolve;
+    });
+    await page.route('**/api/projects/*/campaigns', async (route) => {
+      const response = await route.fetch();
+      campaignReady();
+      await campaignReleased;
+      await route.fulfill({ response });
+    });
     await start.click();
+    await campaignHeld;
+    const lateCampaignResponse = page.waitForResponse(
+      (response) => response.url().endsWith('/campaigns') && response.request().method() === 'POST',
+    );
+    try {
+      expect(
+        await page.getByRole('checkbox', { name: 'Select GET /login', exact: true }).isDisabled(),
+      ).toBe(true);
+      await page.getByRole('button', { name: 'Overview', exact: false }).click();
+      await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+      expect(await start.isDisabled()).toBe(true);
+      expect(
+        await page.getByRole('checkbox', { name: 'Select GET /login', exact: true }).isDisabled(),
+      ).toBe(true);
+      await page.locator('.workflow-selection').scrollIntoViewIfNeeded();
+      await capture(
+        '07-pending-campaign-navigation',
+        'Selected workflows stay disabled across navigation until the real campaign enqueue response completes',
+      );
+      await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+      await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
+      await page.getByRole('button', { name: 'Open workbench' }).click();
+      await page.getByRole('heading', { name: 'Intent inventory', exact: true }).waitFor();
+    } finally {
+      releaseCampaign();
+    }
+    await lateCampaignResponse;
+    await page.waitForTimeout(500);
+    expect(await page.locator('#page-title').textContent()).toBe('Intent inventory');
+    await capture(
+      '08-late-campaign-session',
+      'An earlier session campaign response cannot navigate the newly authenticated workspace',
+    );
+    await page.getByRole('button', { name: 'Campaigns', exact: true }).click();
+    await page.getByRole('button', { name: 'View campaign', exact: true }).click();
     await expect
       .poll(() => page.locator('.campaign-detail').textContent(), { timeout: 120_000 })
       .toContain('2 verified');
