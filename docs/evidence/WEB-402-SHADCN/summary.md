@@ -56,5 +56,8 @@ The full web area passed **47 tests in 13 files, 229.24 s**, at `bf9392a` before
 the final checkbox/border corrections. All four browser suites then passed at
 `1d3aab1` (**85.78 s**). The final campaign capture correction passed at `fa55326`
 (**46.23 s**). Root/package type checks, lint and the license gate pass locally.
-Required PR-head CI and merge remain pending; local checks do not establish
-completion of this slice or the wider release.
+Required CI 33983074261 passed on final PR head
+`569db18379dcf0b2913aaf47dcfcf55bc0efda70`: all four test shards, static, packaging
+and fixture apps pass; worker image was conditionally skipped because no worker
+inputs changed. PR #414 merged as `7a947df5aef6fb4049435f9f7c6c0ef7c5180832`.
+This completes that presentation slice, not the wider release.
