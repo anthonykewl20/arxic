@@ -102,6 +102,7 @@ import {
   postActionObservationFrom,
 } from './proposal-compile';
 import {
+  ARXIC_ORCH_WORKFLOW_SCOPE,
   ARXIC_ORCH_EMPTY_COVERAGE,
   ARXIC_ORCH_HASH_MISMATCH,
   ARXIC_ORCH_INFERENCE_ERROR,
@@ -181,6 +182,7 @@ export type OrchestratorInput = Readonly<{
   features?: readonly string[];
   languages?: readonly string[];
   personas?: readonly string[];
+  inventoryRowIds?: readonly string[];
   maxUrls?: number;
   maxDepth?: number;
   requiredVerificationRuns?: number;
@@ -364,6 +366,9 @@ export class LangGraphOrchestrator {
           },
           config: {
             features: input.features,
+            ...(input.inventoryRowIds === undefined
+              ? {}
+              : { inventoryRowIds: input.inventoryRowIds }),
             framework: input.framework,
             languages: input.languages,
             model: this.#options.model,
@@ -824,6 +829,42 @@ export class LangGraphOrchestrator {
       input,
       13,
     );
+    const projected = inventoryEnvelope
+      ? toProposalConsumerInventory(inventoryEnvelope.inventory)
+      : undefined;
+    let selected = projected;
+    if (input.inventoryRowIds !== undefined) {
+      const wanted = input.inventoryRowIds;
+      if (
+        !Array.isArray(wanted) ||
+        wanted.length === 0 ||
+        wanted.length > 20 ||
+        new Set(wanted).size !== wanted.length ||
+        !projected ||
+        wanted.some((id) => !projected.rows.some((row) => row.id === id)) ||
+        this.#options.inferCandidates !== undefined ||
+        !this.#options.modelAdapter ||
+        !this.#options.model
+      ) {
+        return {
+          artifact: { requestId: 'workflow-scope-refused', candidates: [] },
+          adapter: '@arxic/orchestrator-langgraph:inference',
+          diagnostics: [
+            orchDiagnostic(
+              ARXIC_ORCH_WORKFLOW_SCOPE,
+              'blocked',
+              input.runId,
+              'Workflow selection must name current supported source inventory rows; stale, empty or unsupported selections cannot fall back to another workflow',
+            ),
+          ],
+          blocked: true,
+          fatal: true,
+          promotionEligible: false,
+          gates: [{ gate: 'workflow-scope', passed: false }],
+        };
+      }
+      selected = { ...projected, rows: projected.rows.filter((row) => wanted.includes(row.id)) };
+    }
     const evidenceRefs = [...structural.events, ...rules.events].flatMap((event) =>
       'ref' in event && event.ref ? [event.ref] : [],
     );
@@ -839,7 +880,7 @@ export class LangGraphOrchestrator {
       this.#options.model &&
       inventoryEnvelopeKnown
         ? intentProposerInfer(this.#options.modelAdapter, this.#options.model, {
-            inventory: toProposalConsumerInventory(inventoryEnvelope.inventory),
+            inventory: selected!,
             seeders: this.#options.domainSeeders,
             budgetUsd: this.#options.modelBudgetUsd ?? DEFAULT_MODEL_BUDGET_USD,
             // #337: resolve by the CONFIGURED model rather than defaulting to
@@ -880,7 +921,25 @@ export class LangGraphOrchestrator {
               ]
             : [];
         return {
-          artifact: parsed,
+          artifact:
+            input.inventoryRowIds === undefined
+              ? parsed
+              : {
+                  ...parsed,
+                  workflowSelection: {
+                    selectedRowIds: [...input.inventoryRowIds],
+                    unselectedRowIds: projected!.rows
+                      .filter((row) => !input.inventoryRowIds!.includes(row.id))
+                      .map((row) => row.id),
+                  },
+                },
+          ...(input.inventoryRowIds === undefined
+            ? {}
+            : {
+                decisions: [
+                  `Workflow proposals are limited to ${selected!.rows.length} of ${projected!.rows.length} source consumer rows; the full inventory and unattempted rows remain in the ledger`,
+                ],
+              }),
           adapter: '@arxic/orchestrator-langgraph:inference',
           modelRequestId: parsed.requestId,
           diagnostics,
@@ -1080,6 +1139,7 @@ export class LangGraphOrchestrator {
       model: this.#options.model,
       runId: input.runId,
       fusedInventory: fused,
+      ...(input.inventoryRowIds === undefined ? {} : { inventoryRowIds: input.inventoryRowIds }),
       stage4Proposals: inference.proposalRun.proposals,
       stage4EstimatedCostUsd: inference.proposalRun.estimatedCostUsd,
       budgetUsd: this.#options.modelBudgetUsd ?? DEFAULT_MODEL_BUDGET_USD,

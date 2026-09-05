@@ -88,6 +88,8 @@ export type ArxicConfig = Readonly<{
     browsers: readonly string[];
     personas: readonly string[];
     featureFlags?: Readonly<Record<string, boolean>>;
+    /** Limits workflow proposals to these current source consumer-row identities. */
+    inventoryRowIds?: readonly string[];
   }>;
   target: Readonly<{
     origin: string;

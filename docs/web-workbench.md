@@ -128,7 +128,11 @@ the project folder with guided settings disabled. Commit it (or keep it properly
 excluded from the source snapshot) before provenance-dependent execution. Its
 resolved `source.repository` and `target.origin` must match the dashboard project;
 relative source paths resolve from that folder. File-based jobs retain the
-existing server model/fixture environment and a 30-minute outer deadline.
+existing server model/fixture environment and a 30-minute outer deadline. A
+file may set `scope.inventoryRowIds` to select current source consumer rows;
+see the [scope reference](configuration.md#scope). This is a single-candidate
+execution control. Persisted multi-workflow campaigns and dashboard row selection
+remain pending in #402.
 
 Missing models, invalid configuration, mismatched source/target, fixture failure
 or failed policy gates produce blocked results with diagnostics. Agent tools

@@ -20,6 +20,12 @@ The full JSON preserves every enumerated file and every gap. Declaration
 counts are not runtime or business acceptance coverage. See the setup guide
 for exact supported syntax, scan limits and omissions.
 
+File-based AI execution supports `scope.inventoryRowIds` for current source
+consumer rows. Stale selections block before model inference; unselected rows
+stay visible in the complete ledger. Each engine run still attempts at most one
+candidate. Dashboard selection and persisted multi-workflow campaigns remain
+tracked in #402.
+
 The initial visual lane captures configured anonymous viewports and compares
 approved pixels. It does not perform AI semantic image review or exhaustive
 business-state exploration. See tracker #402 for those release requirements.
