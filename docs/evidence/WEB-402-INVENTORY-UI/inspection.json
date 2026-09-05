@@ -1,0 +1,102 @@
+{
+  "sourceCommit": "f673f33a3d7dc9c3aec0bf78786d3ee1efb18e59",
+  "screenshots": [
+    {
+      "path": "campaign/01-selected-workflows.png",
+      "sha256": "b213914b3bab3c8145eefabbb881df4ace277432c2c07ecf380f8db932511ad4",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/02-verified-campaign.png",
+      "sha256": "8ae3cec042db31bcfef611eb678b95aa6f05bd949b500a060cdae59c474b1ff4",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/03-mobile-campaign.png",
+      "sha256": "4407a5b7a3221f8341ec56ea2d9b9c45d16179b95fc04a65b6737e9e1e86e126",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/04-workflow-result.png",
+      "sha256": "3bfc5662864bc25eed5d9bd7f8e469a4e6a0b15e3d5e3c511f91c209aa656d65",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/05-ledger-source-evidence.png",
+      "sha256": "61cef9ab3687d45e1882dce787c3e7c6a8030daabf2abb5359d27fc0f8f735e1",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/06-new-discovery-selection.png",
+      "sha256": "6a30e437b7eea8a1e6b77d89000054826fa1f18f08b40f8fb2aee7d426ab7f0c",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/01-empty-workspace.png",
+      "sha256": "63ab7065d3626236e215bbacab82a305b002f323fa7a65d53343fb9fd0694e1d",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/02-project-overview.png",
+      "sha256": "9795f055da3acc1a87e85efe43f02f7bcddd4353a79921ce72dfffc6646fe51e",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/03-intent-inventory.png",
+      "sha256": "ddacb184c7fbb95bbc33684a615b943dfe22ee4d3a4ca8972b9edea21a6b7785",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/04-visual-comparison.png",
+      "sha256": "0b7a8c09c039b5cb6da98b27a517d215fd3a5c9123b51422411894e94827706c",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/05-schedule.png",
+      "sha256": "aff7489632255d7ce84e255d543b62049c4524bb76d45c407e95f056983a2944",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/06-administration.png",
+      "sha256": "63468d4c4e14af0f8a43cb5434dbbc94f541acce1d3053a6ca5f3e2a5cf534c8",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/07-mobile-overview.png",
+      "sha256": "7f62a56b6f9bbb75673c5cc32fae1ad4a2c5dd51c272fcfb1b67f994c5d5699e",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/08-signed-out.png",
+      "sha256": "9489e6d9f2dddc233878f9bd3017138b37911c4de31d847b362908410aed3bd3",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/09-frontend-declarations.png",
+      "sha256": "0bb756017781187103b0e50e68a1156cc3b4acf9fb3760ec3bc19fa885f075c2",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/10-mobile-declarations.png",
+      "sha256": "356865d4b708362c246b2bcd1051962055e51c866a0b9f8de2b97117ecffa0fd",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/11-guided-settings.png",
+      "sha256": "abb16fe24e4c5007382a1231d9522fb6c89c848c599c46ff3fe0de38a76538ba",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/12-mobile-guided-settings.png",
+      "sha256": "324d7d238e9ff19113d15dc25cde707cdf0ee0de55a09aa684e6bd45551b4756",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/13-mobile-navigation.png",
+      "sha256": "96e9f4ddf0dfb965ae67aa1790f47f376f6f0fc8daa4bccde9aa15be28a0792a",
+      "inspection": "agent-inspected; human release inspection not performed"
+    }
+  ],
+  "hashCheckedTimelines": 2,
+  "rawTraceRetained": false
+}
