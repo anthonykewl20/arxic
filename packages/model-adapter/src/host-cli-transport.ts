@@ -59,6 +59,8 @@ export type HostCliTransportConfig = {
   imageDirectory?: string;
   /** Supervisor owns the process group and kills all remaining descendants. */
   inheritProcessGroup?: boolean;
+  /** Start in a private empty directory, also for text-only native agent requests. */
+  isolatedCwd?: boolean;
   /** Working directory for the spawned process. Defaults to process.cwd(). */
   cwd?: string;
 };
@@ -132,7 +134,10 @@ export function hostCliConfigFromEnv(
 
   const rawArgs = env.ARXIC_MODEL_HOST_CLI_ARGS?.trim();
   const imageArgs = parseImageArgs(env.ARXIC_MODEL_HOST_CLI_IMAGE_ARGS);
-  const images = imageArgs === undefined ? {} : { imageArgs };
+  const images = {
+    ...(imageArgs === undefined ? {} : { imageArgs }),
+    ...(env.ARXIC_MODEL_HOST_CLI_ISOLATE === '1' ? { isolatedCwd: true } : {}),
+  };
   let modelArgs: string[] | undefined;
   if (env.ARXIC_MODEL_HOST_CLI_MODEL_ARGS?.trim()) {
     try {
@@ -204,18 +209,22 @@ export function createHostCliTransport(
   config: HostCliTransportConfig,
 ): StructuredCompletionTransport {
   return async (input) => {
-    if (input.images === undefined) return runHostCli(config, input);
-    if (!validImageArgs(config.imageArgs)) return providerFailure(false);
+    if (input.images === undefined && !config.isolatedCwd) return runHostCli(config, input);
+    if (input.images !== undefined && !validImageArgs(config.imageArgs))
+      return providerFailure(false);
     let directory: string | undefined;
     try {
       directory = await mkdtemp(join(config.imageDirectory ?? tmpdir(), 'arxic-model-images-'));
       const args = [...(config.args ?? [])];
-      for (const [index, image] of input.images.entries()) {
+      for (const [index, image] of (input.images ?? []).entries()) {
         const file = join(directory, `image-${index + 1}.png`);
         await writeFile(file, image.bytes, { mode: 0o600, flag: 'wx' });
-        args.push(...config.imageArgs.map((arg) => (arg === '{image}' ? file : arg)));
+        args.push(...config.imageArgs!.map((arg) => (arg === '{image}' ? file : arg)));
       }
-      const result = await runHostCli({ ...config, args }, input);
+      const result = await runHostCli(
+        { ...config, args, ...(config.isolatedCwd ? { cwd: directory } : {}) },
+        input,
+      );
       // Temporary attachment paths are transport internals, never model artifacts.
       if (
         result.ok &&

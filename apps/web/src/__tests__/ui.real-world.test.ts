@@ -179,7 +179,8 @@ it('lets a real browser register a folder, discover source intent, run visual ch
       await page
         .locator('#execution-model-controls datalist option')
         .evaluateAll((options) => options.map((option) => option.getAttribute('value'))),
-    ).toEqual(['provider/code-model']);
+    ).toEqual([]);
+    // Operator pricing entries are not an authoritative provider model catalog.
     await page.getByLabel('Model name', { exact: true }).fill('custom/provider-model:local');
     await page.waitForTimeout(5500);
     expect(await page.getByLabel('Model name', { exact: true }).inputValue()).toBe(

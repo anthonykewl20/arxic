@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Subscription/account connection bridges for Claude Code, Codex and OpenCode, compatible Kimi/OpenRouter connections and dedicated OpenClaw gateway routing (refs #402). Model catalogs come from providers or native CLI metadata, with refresh, visible stale/error states, account-sensitive cache invalidation and custom IDs. A React/shadcn Models & accounts screen adds setup guidance and searchable catalogs; the remaining frontend migration is tracked in #402. Native text-only calls now use private temporary working directories.
+
 - Retain clean Node 22.22.0 source-install/browser proof with baseline persistence, restart session invalidation and recovery after forced termination during a real browser request (refs #402).
 
 - Provider-agnostic dashboard model controls (refs #402): named operator-owned API/host-agent connections, provider-specific suggestions, editable custom IDs and per-job credential/rate binding for guided runs, campaigns and image reviews. Host model argument forwarding now passes the exact chosen ID; legacy agents disclose their selection limitation. No hardcoded GPT default remains in the forms.

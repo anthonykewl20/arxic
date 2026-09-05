@@ -6,7 +6,12 @@ import { AUTH_DOMAIN, authDomainSeeder } from '@arxic/auth-domain-pack';
 import { orchestrationConfig } from '@arxic/worker';
 import { discoverTargetBuildDigest } from '@arxic/environment';
 import { assembleBundle, BundlePromoterAdapter, scanTextForSecrets } from '@arxic/bundle-promoter';
-import { ModelAdapter, createHostCliTransport, hostCliConfigFromEnv } from '@arxic/model-adapter';
+import {
+  ModelAdapter,
+  createHostCliTransport,
+  hostCliConfigFromEnv,
+  createOpenClawTransport,
+} from '@arxic/model-adapter';
 import {
   serializeScreenshotPrivacyPolicy,
   type ScreenshotPrivacyPolicy,
@@ -438,6 +443,13 @@ export function configuredModel(
 ): { adapter: ModelAdapter; name: string; prices?: ModelPrices } | undefined {
   const provider = request.config.models.provider.trim();
   if (isUnconfiguredProvider(provider)) return undefined;
+  const billing = process.env.ARXIC_MODEL_BILLING_MODE;
+  if (billing !== undefined && !['api', 'subscription', 'operator-managed'].includes(billing))
+    throw new Error('Invalid model billing mode');
+  const billingMeta: { billing?: 'api' | 'subscription' | 'operator-managed' } =
+    billing === 'api' || billing === 'subscription' || billing === 'operator-managed'
+      ? { billing }
+      : {};
 
   if ((process.env.ARXIC_MODEL_PROVIDER?.trim().toLowerCase() ?? '') === 'host-cli') {
     const hostCliConfig = hostCliConfigFromEnv();
@@ -462,6 +474,7 @@ export function configuredModel(
         providerMeta: {
           sourceSharing: request.config.models.sourceRetention,
           provider: 'host-bound',
+          ...billingMeta,
         },
         ...(request.now === undefined ? {} : { now: request.now }),
       }),
@@ -499,7 +512,10 @@ export function configuredModel(
       baseUrl,
       timeoutMs,
       credentials: () => process.env.ARXIC_MODEL_API_KEY ?? '',
-      providerMeta: { sourceSharing: request.config.models.sourceRetention },
+      ...(process.env.ARXIC_MODEL_PROVIDER === 'openclaw'
+        ? { transport: createOpenClawTransport(process.env.ARXIC_MODEL_GATEWAY_AGENT ?? 'arxic') }
+        : {}),
+      providerMeta: { sourceSharing: request.config.models.sourceRetention, ...billingMeta },
       ...(request.now === undefined ? {} : { now: request.now }),
     }),
     name: provider,

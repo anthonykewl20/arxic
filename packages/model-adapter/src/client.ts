@@ -110,6 +110,7 @@ export type StructuredCompletionTransport = (
 
 export async function postStructuredCompletion(
   input: StructuredCompletionInput,
+  routing?: { model: string; headers: Record<string, string>; toolChoice: 'none' },
 ): Promise<ClientResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? 30_000);
@@ -119,9 +120,11 @@ export async function postStructuredCompletion(
       headers: {
         authorization: `Bearer ${input.bearerToken}`,
         'content-type': 'application/json',
+        ...routing?.headers,
       },
       body: JSON.stringify({
-        model: input.model,
+        model: routing?.model ?? input.model,
+        ...(routing ? { tool_choice: routing.toolChoice } : {}),
         messages:
           input.images === undefined
             ? input.messages

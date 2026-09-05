@@ -1,10 +1,19 @@
+import { createHash } from 'node:crypto';
 import { HttpError } from './errors';
+import { subscriptionPresets } from './provider-presets';
+import { discoverHttpModels, type CatalogModel } from './model-catalog';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 
 type Prices = { promptPerMillion: number; completionPerMillion: number };
 type Connection = {
   id: string;
   label: string;
-  transport: 'http' | 'host-cli';
+  transport: 'http' | 'host-cli' | 'openclaw';
+  agentId?: string;
+  catalogProvider?: string;
+  catalogAgent?: 'codex' | 'claude' | 'opencode' | 'opencode-go' | 'openclaw';
   baseUrl?: string;
   credentialRef?: string;
   command?: string;
@@ -13,8 +22,10 @@ type Connection = {
   imageArgs?: string[];
   models: Array<{ id: string; prices?: Prices }>;
   customModelPrices?: Prices;
+  billing?: 'api' | 'subscription' | 'operator-managed';
+  isolatedCwd?: boolean;
 };
-const modelId = /^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,119}$/u;
+const modelId = /^[a-zA-Z0-9][a-zA-Z0-9._:/[\]-]{0,119}$/u;
 const credentialRef = /^ARXIC_SECRET_[A-Z][A-Z0-9_]{0,80}$/u;
 const isPrices = (value: unknown): value is Prices => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -33,7 +44,7 @@ const args = (value: unknown): value is string[] =>
 
 /** Operator-owned connections. Never expose endpoints, commands or bindings to the browser. */
 function connections(env: NodeJS.ProcessEnv): Connection[] {
-  if (!env.ARXIC_MODEL_CONNECTIONS?.trim()) return [];
+  if (!env.ARXIC_MODEL_CONNECTIONS?.trim()) return subscriptionPresets();
   try {
     const values: Connection[] = JSON.parse(env.ARXIC_MODEL_CONNECTIONS);
     if (!Array.isArray(values) || values.length > 30) throw new Error();
@@ -56,6 +67,11 @@ function connections(env: NodeJS.ProcessEnv): Connection[] {
               'imageArgs',
               'models',
               'customModelPrices',
+              'billing',
+              'isolatedCwd',
+              'agentId',
+              'catalogAgent',
+              'catalogProvider',
             ].includes(key),
         ) ||
         typeof item.id !== 'string' ||
@@ -69,6 +85,23 @@ function connections(env: NodeJS.ProcessEnv): Connection[] {
       )
         throw new Error();
       ids.add(item.id);
+      if (
+        item.billing !== undefined &&
+        !['api', 'subscription', 'operator-managed'].includes(item.billing)
+      )
+        throw new Error();
+      if (item.isolatedCwd !== undefined && typeof item.isolatedCwd !== 'boolean')
+        throw new Error();
+      if (
+        item.catalogAgent !== undefined &&
+        !['codex', 'claude', 'opencode', 'opencode-go', 'openclaw'].includes(item.catalogAgent)
+      )
+        throw new Error();
+      if (
+        item.catalogProvider !== undefined &&
+        !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/u.test(item.catalogProvider)
+      )
+        throw new Error();
       const models = new Set<string>();
       for (const model of item.models) {
         if (
@@ -87,7 +120,12 @@ function connections(env: NodeJS.ProcessEnv): Connection[] {
         throw new Error();
       if (item.credentialRef !== undefined && !credentialRef.test(item.credentialRef))
         throw new Error();
-      if (item.transport === 'http') {
+      if (
+        item.agentId !== undefined &&
+        (item.transport !== 'openclaw' || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/u.test(item.agentId))
+      )
+        throw new Error();
+      if (item.transport === 'http' || item.transport === 'openclaw') {
         if (
           typeof item.baseUrl !== 'string' ||
           item.command !== undefined ||
@@ -120,7 +158,7 @@ function connections(env: NodeJS.ProcessEnv): Connection[] {
           throw new Error();
       } else throw new Error();
     }
-    return values;
+    return [...values, ...subscriptionPresets().filter((item) => !ids.has(item.id))];
   } catch {
     throw new HttpError(
       400,
@@ -136,16 +174,23 @@ export function modelConnections(env: NodeJS.ProcessEnv = process.env) {
       label: 'Server default',
       transport: env.ARXIC_MODEL_PROVIDER === 'host-cli' ? 'host-cli' : 'http',
       models: [] as string[],
+      catalog: { status: 'unavailable', fetchedAt: null, error: null },
       modelSelection:
         env.ARXIC_MODEL_PROVIDER !== 'host-cli' || !!env.ARXIC_MODEL_HOST_CLI_MODEL_ARGS,
     },
-    ...connections(env).map(({ id, label, transport, models }) => ({
-      id,
-      label,
-      transport,
-      models: models.map((model) => model.id),
-      modelSelection: true,
-    })),
+    ...connections(env).map((connection) => {
+      const { id, label, transport, billing } = connection;
+      const key = catalogKey(connection, env);
+      return {
+        id,
+        label,
+        transport,
+        models: catalogs.get(key)?.models.map((model) => model.id) ?? [],
+        catalog: catalogStatus(key),
+        modelSelection: true,
+        billing: billing ?? (transport === 'host-cli' ? 'operator-managed' : 'api'),
+      };
+    }),
   ];
 }
 
@@ -170,14 +215,19 @@ export function modelEnvironment(
     throw new HttpError(400, 'A selected secret reference is not available on this server');
   if (!connection) return binding ? { ARXIC_MODEL_API_KEY: env[binding] } : {};
   const prices =
-    connection.models.find((item) => item.id === model)?.prices ?? connection.customModelPrices;
-  if (connection.transport === 'http' && !prices)
+    connection.models.find((item) => item.id === model)?.prices ??
+    catalogs.get(catalogKey(connection, env))?.models.find((item) => item.id === model)?.prices ??
+    connection.customModelPrices;
+  if (connection.transport !== 'host-cli' && !prices && connection.billing !== 'subscription')
     throw new HttpError(400, 'Configure model prices for this provider and model before execution');
   return {
     ARXIC_MODEL_PROVIDER: connection.transport,
+    ARXIC_MODEL_GATEWAY_AGENT: connection.agentId,
+    ARXIC_MODEL_BILLING_MODE: connection.billing,
     ARXIC_MODEL_BASE_URL: connection.baseUrl,
     ARXIC_MODEL_API_KEY: binding ? env[binding] : undefined,
     ARXIC_MODEL_HOST_CLI: connection.command,
+    ARXIC_MODEL_HOST_CLI_ISOLATE: connection.isolatedCwd ? '1' : undefined,
     ARXIC_MODEL_HOST_CLI_ARGS: connection.args ? JSON.stringify(connection.args) : undefined,
     ARXIC_MODEL_HOST_CLI_MODEL_ARGS: connection.modelArgs
       ? JSON.stringify(connection.modelArgs)
@@ -185,6 +235,110 @@ export function modelEnvironment(
     ARXIC_MODEL_HOST_CLI_IMAGE_ARGS: connection.imageArgs
       ? JSON.stringify(connection.imageArgs)
       : undefined,
-    ARXIC_MODEL_PRICES: prices ? JSON.stringify(prices) : undefined,
+    ARXIC_MODEL_PRICES:
+      connection.billing === 'subscription'
+        ? '{"promptPerMillion":0,"completionPerMillion":0}'
+        : prices
+          ? JSON.stringify(prices)
+          : undefined,
   };
+}
+
+type CatalogState = {
+  models: CatalogModel[];
+  fetchedAt?: string;
+  attemptedAt: number;
+  error?: string;
+  pending?: Promise<void>;
+};
+const catalogs = new Map<string, CatalogState>();
+function catalogKey(connection: Connection, env: NodeJS.ProcessEnv) {
+  return createHash('sha256')
+    .update(
+      JSON.stringify([connection, connection.credentialRef ? env[connection.credentialRef] : null]),
+    )
+    .digest('hex');
+}
+const catalogTtl = 5 * 60_000;
+function catalogStatus(id: string) {
+  const state = catalogs.get(id);
+  return {
+    status: state?.pending
+      ? 'refreshing'
+      : state?.error
+        ? 'error'
+        : state?.fetchedAt
+          ? 'ready'
+          : 'unfetched',
+    fetchedAt: state?.fetchedAt ?? null,
+    error: state?.error ?? null,
+  };
+}
+/** Authenticated dashboard action: deduplicate refreshes and preserve visibly stale data on failure. */
+export async function refreshModelCatalog(id: string, env: NodeJS.ProcessEnv = process.env) {
+  validateConnection(id, env);
+  const connection = connections(env).find((item) => item.id === id);
+  if (!connection) throw new HttpError(400, 'Choose a named provider to discover its models');
+  const key = catalogKey(connection, env);
+  const previous = catalogs.get(key);
+  if (previous?.pending) return previous.pending;
+  const state: CatalogState = {
+    models: previous?.models ?? [],
+    fetchedAt: previous?.fetchedAt,
+    attemptedAt: Date.now(),
+  };
+  catalogs.set(key, state);
+  state.pending = (async () => {
+    await Promise.resolve();
+    try {
+      if (connection.transport === 'http') {
+        const binding = connection.credentialRef;
+        if (binding && !env[binding])
+          throw new Error('The provider credential is not configured on this server');
+        state.models = await discoverHttpModels(
+          connection.baseUrl!,
+          binding ? env[binding] : undefined,
+        );
+      } else {
+        const native = connection.catalogAgent;
+        if (!native)
+          throw new Error(
+            'This agent has no catalog discovery adapter. Custom model IDs remain available',
+          );
+        const script = fileURLToPath(
+          new URL('../../../scripts/model-catalog-bridge.mjs', import.meta.url),
+        );
+        const { stdout } = await promisify(execFile)(process.execPath, [script, native], {
+          env: {
+            ...env,
+            ARXIC_MODEL_GATEWAY_AGENT: connection.agentId,
+            ARXIC_MODEL_CATALOG_PROVIDER: connection.catalogProvider,
+          },
+          timeout: 30_000,
+          maxBuffer: 4 * 1024 * 1024,
+        });
+        state.models = JSON.parse(stdout);
+      }
+      state.fetchedAt = new Date().toISOString();
+    } catch (error) {
+      state.error =
+        error instanceof Error &&
+        !('cmd' in error) &&
+        /^(Model discovery failed \(HTTP \d{3}\)|Provider |The provider credential|This agent has no catalog)/u.test(
+          error.message,
+        )
+          ? error.message
+          : 'Model discovery failed. Check the provider connection and installed CLI';
+    } finally {
+      state.pending = undefined;
+    }
+  })();
+  await state.pending;
+}
+export function refreshDueModelCatalogs(env: NodeJS.ProcessEnv = process.env) {
+  for (const connection of connections(env)) {
+    const state = catalogs.get(catalogKey(connection, env));
+    if (state && !state.pending && Date.now() - state.attemptedAt >= catalogTtl)
+      void refreshModelCatalog(connection.id, env);
+  }
 }
