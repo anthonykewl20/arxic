@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Provider-owned catalog discovery for configured server-default HTTP connections, shared with project model fields and Models & accounts. Refresh changed IDs without replacing custom input; retain visibly stale results on failure and invalidate cache on account changes. Unconfigured/opaque defaults explain why discovery is unavailable (refs #402).
+
 - Preserve pending review/campaign submissions across navigation with atomic duplicate guards. Invalidated sessions clear drafts, image consent and selection state; late responses cannot redirect a new administrator session (refs #402).
 
 - React/shadcn run lists, capture comparison, image-review forms and shared provider-driven model fields. Keep review settings disabled during submission, clear unsent drafts/consent on logout and hide selected run details when they do not match the project filter (refs #402).

@@ -2,6 +2,56 @@ import { createServer } from 'node:http';
 import { expect, it } from 'vitest';
 import { discoverHttpModels } from '../model-catalog';
 
+it('discovers the configured server default and invalidates its stale catalog on account changes', async () => {
+  const { refreshModelCatalog, modelConnections } = await import('../model-connections');
+  let failing = false;
+  let revision = 1;
+  const server = createServer((request, response) => {
+    expect(request.url).toBe('/v1/models');
+    expect(request.headers.authorization).toBe('Bearer default-catalog-secret');
+    if (failing) return response.writeHead(503).end('private-provider-error');
+    response.end(JSON.stringify({ data: [{ id: `provider/default-${revision}` }] }));
+  }).listen(0, '127.0.0.1');
+  await new Promise<void>((resolve) => server.once('listening', resolve));
+  try {
+    const env = {
+      ARXIC_MODEL_PROVIDER: 'http',
+      ARXIC_MODEL_BASE_URL: `http://127.0.0.1:${(server.address() as { port: number }).port}/v1`,
+      ARXIC_MODEL_API_KEY: 'default-catalog-secret',
+    };
+    failing = true;
+    await refreshModelCatalog('', env);
+    expect(modelConnections(env)[0]).toMatchObject({
+      models: [],
+      catalog: { status: 'error', error: 'Model discovery failed (HTTP 503)' },
+    });
+    failing = false;
+    await refreshModelCatalog('', env);
+    expect(modelConnections(env)[0]).toMatchObject({
+      models: ['provider/default-1'],
+      catalog: { status: 'ready' },
+    });
+    revision = 2;
+    await refreshModelCatalog('', env);
+    expect(modelConnections(env)[0].models).toEqual(['provider/default-2']);
+    failing = true;
+    await refreshModelCatalog('', env);
+    expect(modelConnections(env)[0]).toMatchObject({
+      models: ['provider/default-2'],
+      catalog: { status: 'error' },
+    });
+    expect(modelConnections({ ...env, ARXIC_MODEL_API_KEY: 'new-account' })[0]).toMatchObject({
+      models: [],
+      catalog: { status: 'unfetched' },
+    });
+    expect(JSON.stringify(modelConnections(env))).not.toContain('default-catalog-secret');
+    expect(JSON.stringify(modelConnections(env))).not.toContain('private-provider-error');
+  } finally {
+    server.closeAllConnections();
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  }
+});
+
 it('reports provider failures without exposing response bodies or credentials', async () => {
   const server = createServer((_request, response) => {
     response.writeHead(401).end('private-account-detail');

@@ -1,0 +1,41 @@
+{
+  "sourceCommit": "e3ac87abd76b61ea3640412df4d967ba16cc1412",
+  "screenshots": [
+    {
+      "path": "browser/01-provider-catalog.png",
+      "sha256": "976c689cec9b723362c9417fc24fdfe9cdff10d8b8432f0e71eb5e2c623bfe65",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "browser/02-provider-stale.png",
+      "sha256": "71e9c88db39c6d18466acd7765e66afbea127780b0d93147556cbffc573830ac",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "browser/03-provider-mobile.png",
+      "sha256": "099c06ba3fcf893c89b28744aab47b82df3966c642f577da226f332964e9aecd",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "browser/04-default-provider-catalog.png",
+      "sha256": "bf08f6b2b41af88e79232f42f0c0595f2bbd1402f22bec92cc95ee1f46086376",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "browser/05-default-provider-stale.png",
+      "sha256": "2b5e4fbc2e0420a049dbb0eaa8238d06d641c994e37d665b1437fddb86938135",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "browser/06-default-provider-management.png",
+      "sha256": "2cd79bb3afa229aafbc7bb9d590e94637261bcb5aac9eb98e595f8cdecab607f",
+      "inspection": "agent-inspected; human release inspection not performed"
+    }
+  ],
+  "humanInspection": "not performed",
+  "timeline": {
+    "path": "browser/timeline.json",
+    "sha256": "db92496cb2f33d84485d4ffa5ba70d50592beaf43d76a61db1cd81b13ae4b2f9",
+    "inspection": "allow-listed actions/assertions inspected; no raw trace"
+  }
+}

@@ -143,8 +143,8 @@ export async function startWorkbench(options: WorkbenchOptions) {
       });
     }
     const catalogRoute = /^\/api\/model-connections\/([a-z][a-z0-9-]{0,39})\/refresh$/u.exec(path);
-    if (catalogRoute && request.method === 'POST') {
-      await refreshModelCatalog(catalogRoute[1]);
+    if ((catalogRoute || path === '/api/model-connections/refresh') && request.method === 'POST') {
+      await refreshModelCatalog(catalogRoute?.[1] ?? '');
       return json(response, 200, { modelConnections: modelConnections() });
     }
     if (path === '/api/projects' && request.method === 'POST')

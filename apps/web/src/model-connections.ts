@@ -170,14 +170,49 @@ function connections(env: NodeJS.ProcessEnv): Connection[] {
   }
 }
 
+function serverDefaultConnection(env: NodeJS.ProcessEnv): Connection | undefined {
+  if (env.ARXIC_MODEL_PROVIDER && env.ARXIC_MODEL_PROVIDER !== 'http') return undefined;
+  const baseUrl = env.ARXIC_MODEL_BASE_URL?.trim();
+  if (!baseUrl) return undefined;
+  return {
+    id: '',
+    label: 'Server default',
+    transport: 'http',
+    baseUrl,
+    credentialRef: env.ARXIC_MODEL_API_KEY ? 'ARXIC_MODEL_API_KEY' : undefined,
+    models: [],
+  };
+}
+
 export function modelConnections(env: NodeJS.ProcessEnv = process.env) {
+  const defaultConnection = serverDefaultConnection(env);
+  const defaultKey = defaultConnection ? catalogKey(defaultConnection, env) : undefined;
+  const billing = env.ARXIC_MODEL_BILLING_MODE;
   return [
     {
       id: '',
       label: 'Server default',
-      transport: env.ARXIC_MODEL_PROVIDER === 'host-cli' ? 'host-cli' : 'http',
-      models: [] as string[],
-      catalog: { status: 'unavailable', fetchedAt: null, error: null },
+      billing:
+        billing && ['api', 'subscription', 'operator-managed'].includes(billing)
+          ? billing
+          : env.ARXIC_MODEL_PROVIDER === 'host-cli'
+            ? 'operator-managed'
+            : 'api',
+      transport:
+        env.ARXIC_MODEL_PROVIDER === 'host-cli'
+          ? 'host-cli'
+          : env.ARXIC_MODEL_PROVIDER === 'openclaw'
+            ? 'openclaw'
+            : 'http',
+      models: defaultKey ? (catalogs.get(defaultKey)?.models.map((model) => model.id) ?? []) : [],
+      catalog: defaultKey
+        ? catalogStatus(defaultKey)
+        : {
+            status: 'unavailable',
+            fetchedAt: null,
+            error:
+              'Catalog discovery is unavailable for this server default. Configure an HTTP endpoint or choose a named provider. Custom model IDs remain available.',
+          },
       modelSelection:
         env.ARXIC_MODEL_PROVIDER !== 'host-cli' || !!env.ARXIC_MODEL_HOST_CLI_MODEL_ARGS,
     },
@@ -279,8 +314,14 @@ function catalogStatus(id: string) {
 /** Authenticated dashboard action: deduplicate refreshes and preserve visibly stale data on failure. */
 export async function refreshModelCatalog(id: string, env: NodeJS.ProcessEnv = process.env) {
   validateConnection(id, env);
-  const connection = connections(env).find((item) => item.id === id);
-  if (!connection) throw new HttpError(400, 'Choose a named provider to discover its models');
+  const connection = id
+    ? connections(env).find((item) => item.id === id)
+    : serverDefaultConnection(env);
+  if (!connection)
+    throw new HttpError(
+      400,
+      'Configure the default HTTP endpoint or choose a named provider to discover models',
+    );
   const key = catalogKey(connection, env);
   const previous = catalogs.get(key);
   if (previous?.pending) return previous.pending;
@@ -338,7 +379,11 @@ export async function refreshModelCatalog(id: string, env: NodeJS.ProcessEnv = p
   await state.pending;
 }
 export function refreshDueModelCatalogs(env: NodeJS.ProcessEnv = process.env) {
-  for (const connection of connections(env)) {
+  const defaultConnection = serverDefaultConnection(env);
+  for (const connection of [
+    ...connections(env),
+    ...(defaultConnection ? [defaultConnection] : []),
+  ]) {
     const state = catalogs.get(catalogKey(connection, env));
     if (state && !state.pending && Date.now() - state.attemptedAt >= catalogTtl)
       void refreshModelCatalog(connection.id, env);

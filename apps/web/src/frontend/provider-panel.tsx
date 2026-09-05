@@ -29,12 +29,14 @@ type Props = {
   onRefresh: (id: string) => Promise<void>;
 };
 function ProviderPanel({ connections, setup, onRefresh }: Props) {
-  const [selected, setSelected] = useState('');
+  const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [pending, setPending] = useState(new Set<string>());
   const [error, setError] = useState('');
-  const named = connections.filter((item) => item.id);
-  const active = named.find((item) => item.id === selected) ?? named[0];
+  const available = connections
+    .filter((item) => item.id)
+    .concat(connections.filter((item) => !item.id && item.catalog?.status !== 'unavailable'));
+  const active = available.find((item) => item.id === selected) ?? available[0];
   const guide = setup.find((item) => item.id === active?.id);
   const refresh = async (id: string) => {
     setPending((old) => new Set(old).add(id));
@@ -61,12 +63,12 @@ function ProviderPanel({ connections, setup, onRefresh }: Props) {
           <h2>Your models. Your accounts.</h2>
           <p>Connect the tools you already use. Model choices come from each provider.</p>
         </div>
-        <Badge variant="outline">{named.length} connections</Badge>
+        <Badge variant="outline">{available.length} connections</Badge>
       </div>
       <div className="provider-layout">
         <nav className="provider-list" aria-label="Model providers">
           <div className="provider-list-label">CONNECTIONS</div>
-          {named.map((item) => (
+          {available.map((item) => (
             <button
               key={item.id}
               type="button"

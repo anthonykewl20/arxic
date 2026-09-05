@@ -240,7 +240,7 @@ function editProject(id = '') {
     },
     refreshModels,
   );
-  if (item.execution?.modelConnection) void refreshModels(item.execution.modelConnection);
+  if (item.execution) void refreshModels(item.execution.modelConnection ?? '');
   for (const key of ['name', 'folder', 'origin', 'configPath', 'cron', 'scheduleMode'])
     form.elements.namedItem(key).value = item[key] ?? '';
   form.elements.namedItem('paths').value = item.paths.join('\n');
@@ -516,8 +516,14 @@ setInterval(() => {
 
 async function refreshModels(id) {
   const epoch = sessionEpoch;
+  if (state.modelConnections?.find((item) => item.id === id)?.catalog.status === 'unavailable')
+    return;
   try {
-    const result = await api(`/model-connections/${encodeURIComponent(id)}/refresh`, 'POST', {});
+    const result = await api(
+      `/model-connections${id ? `/${encodeURIComponent(id)}` : ''}/refresh`,
+      'POST',
+      {},
+    );
     if (epoch !== sessionEpoch || signingOut) return;
     state.modelConnections = result.modelConnections;
     updateModelCatalogs(state.modelConnections);
@@ -530,9 +536,7 @@ async function refreshModels(id) {
 setInterval(() => {
   if (document.hidden || $('#app').hidden) return;
   const selected = new Set(
-    [...document.querySelectorAll('[data-model-connection]')]
-      .map((select) => select.value)
-      .filter(Boolean),
+    [...document.querySelectorAll('[data-model-connection]')].map((select) => select.value),
   );
   for (const id of selected) void refreshModels(id);
 }, 5 * 60_000);

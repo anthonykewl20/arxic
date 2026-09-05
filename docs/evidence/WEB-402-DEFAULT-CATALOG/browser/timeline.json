@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "arxic-ui-timeline-v1",
+  "actions": [
+    {
+      "action": "Provider catalog loaded in React/shadcn management screen",
+      "result": "passed"
+    },
+    {
+      "action": "Changed catalog replaces old IDs; failed refresh retains visibly stale data",
+      "result": "passed"
+    },
+    {
+      "action": "Provider management fits mobile viewport without horizontal page overflow",
+      "result": "passed"
+    },
+    {
+      "action": "The configured server default refreshes changed provider IDs while preserving a custom model",
+      "result": "passed"
+    },
+    {
+      "action": "A default-provider refresh failure preserves the last catalog with visible failure and fetch time",
+      "result": "passed"
+    },
+    {
+      "action": "Models and accounts manages the same server-default catalog as project model controls",
+      "result": "passed"
+    }
+  ]
+}

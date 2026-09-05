@@ -19,6 +19,8 @@ it('refreshes provider-owned models in a real browser and preserves search and s
   await new Promise<void>((resolve) => provider.once('listening', resolve));
   const state = await mkdtemp(join(tmpdir(), 'arxic-provider-ui-'));
   const address = provider.address() as { port: number };
+  vi.stubEnv('ARXIC_MODEL_PROVIDER', 'http');
+  vi.stubEnv('ARXIC_MODEL_BASE_URL', `http://127.0.0.1:${address.port}/v1`);
   vi.stubEnv(
     'ARXIC_MODEL_CONNECTIONS',
     JSON.stringify([
@@ -121,6 +123,60 @@ it('refreshes provider-owned models in a real browser and preserves search and s
     await capture(
       '03-provider-mobile',
       'Provider management fits mobile viewport without horizontal page overflow',
+    );
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.locator('#new-project').click();
+    await page.getByLabel('Configure AI execution in this dashboard').check();
+    const refreshDefault = page
+      .locator('#project-dialog')
+      .getByRole('button', { name: 'Refresh models', exact: true });
+    expect(await refreshDefault.isDisabled()).toBe(false);
+    await refreshDefault.click();
+    await expect.poll(() => page.locator('[data-model-help]').textContent()).toContain('HTTP 503');
+    failing = false;
+    revision = 3;
+    await page.getByLabel('Model name', { exact: true }).fill('custom/provider-model');
+    await refreshDefault.click();
+    await expect
+      .poll(() => page.locator('#models-project option').getAttribute('value'))
+      .toBe('provider/revision-3[1m]');
+    revision = 4;
+    await refreshDefault.click();
+    await expect
+      .poll(() => page.locator('#models-project option').getAttribute('value'))
+      .toBe('provider/revision-4[1m]');
+    expect(await page.getByLabel('Model name', { exact: true }).inputValue()).toBe(
+      'custom/provider-model',
+    );
+    await page.locator('[data-model-controls]').scrollIntoViewIfNeeded();
+    await capture(
+      '04-default-provider-catalog',
+      'The configured server default refreshes changed provider IDs while preserving a custom model',
+    );
+    failing = true;
+    await refreshDefault.click();
+    await expect.poll(() => page.locator('[data-model-help]').textContent()).toContain('HTTP 503');
+    expect(await page.locator('#models-project option').getAttribute('value')).toBe(
+      'provider/revision-4[1m]',
+    );
+    expect(await page.locator('[data-model-help]').textContent()).toContain('Last fetched');
+    await capture(
+      '05-default-provider-stale',
+      'A default-provider refresh failure preserves the last catalog with visible failure and fetch time',
+    );
+    await page.locator('#close-dialog').click();
+    const defaultProvider = page.locator('.provider-row').filter({ hasText: 'Server default' });
+    expect(await defaultProvider.count()).toBe(1);
+    await defaultProvider.click();
+    expect(await page.getByText('API billing', { exact: true }).isVisible()).toBe(true);
+    await page.getByText('provider/revision-4[1m]', { exact: true }).waitFor();
+    failing = false;
+    revision = 5;
+    await page.getByRole('button', { name: 'Refresh models', exact: true }).click();
+    await page.getByText('provider/revision-5[1m]', { exact: true }).waitFor();
+    await capture(
+      '06-default-provider-management',
+      'Models and accounts manages the same server-default catalog as project model controls',
     );
     expect(errors).toEqual([]);
     if (evidence) {
