@@ -293,6 +293,7 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     expect(await page.getByLabel('I inspected this screenshot', { exact: false }).isChecked()).toBe(
       false,
     );
+    await page.locator('.review-controls').scrollIntoViewIfNeeded();
     await proof(
       '06-new-session-consent',
       'Signing out clears the unsent review draft and requires fresh screenshot consent',
