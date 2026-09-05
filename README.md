@@ -119,5 +119,5 @@ tracked in `CHANGELOG.md`.
 
 MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE`.
 
-Current scoped proof: [React run and review controls](docs/evidence/WEB-402-RUN-REVIEW/summary.md), [subscription accounts and dynamic catalogs](docs/evidence/WEB-402-SUBSCRIPTIONS/summary.md), [provider/model controls](docs/evidence/WEB-402-MODELS/summary.md)
+Current scoped proof: [session and pending-request protection](docs/evidence/WEB-402-SESSIONS/summary.md), [React run and review controls](docs/evidence/WEB-402-RUN-REVIEW/summary.md), [subscription accounts and dynamic catalogs](docs/evidence/WEB-402-SUBSCRIPTIONS/summary.md), [provider/model controls](docs/evidence/WEB-402-MODELS/summary.md)
 and [clean source installation/recovery](docs/evidence/WEB-402-INSTALL/summary.md).

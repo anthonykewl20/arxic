@@ -1,0 +1,34 @@
+[
+  {
+    "action": "Real capture visible; review remains disabled without explicit inspected-image authorization",
+    "result": "passed"
+  },
+  {
+    "action": "Review settings and submit stay disabled until the enqueue response completes",
+    "result": "passed"
+  },
+  {
+    "action": "Returning to the source capture preserves pending state and prevents duplicate review submission",
+    "result": "passed"
+  },
+  {
+    "action": "Proposed region overlays the exact retained capture with criterion and separate independent check",
+    "result": "passed"
+  },
+  {
+    "action": "Review image and findings remain within the mobile viewport",
+    "result": "passed"
+  },
+  {
+    "action": "Selecting another project hides the previously selected run and its review",
+    "result": "passed"
+  },
+  {
+    "action": "Signing out clears the unsent review draft and requires fresh screenshot consent",
+    "result": "passed"
+  },
+  {
+    "action": "An invalidated session clears unsent image consent before a new administrator session",
+    "result": "passed"
+  }
+]

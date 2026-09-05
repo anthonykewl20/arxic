@@ -273,3 +273,5 @@ before callers can navigate or mutate current dashboard state. Explicit logout
 and unauthorized responses share one cleanup path for drafts, consent, selections,
 model metadata and mounted project controls. Already accepted server jobs continue
 to be retained; rejecting a stale browser response does not cancel a server job.
+
+See [session and pending-request proof](../evidence/WEB-402-SESSIONS/summary.md).

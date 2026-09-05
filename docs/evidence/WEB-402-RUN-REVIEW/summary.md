@@ -27,7 +27,7 @@ Full web area: **47 tests in 13 files passed, 225.46 s**. Root and package type
 checks, lint and the license gate pass. The subsequent test-only screenshot
 position change is `520b256`; its real review journey passed independently (25.40 s).
 Full-repository format after final docs: `All matched files use Prettier code style!`.
-Final PR-head CI and merge remain required. No release completion is claimed.
+PR #416 required CI 33985669768 passed on `e2985ca9b143c80829b2a5b53f628ca2e2142527`: all four test shards, static, package and fixture apps. Worker-image was conditionally skipped. The slice merged as `804802886e0fe7213c5c5313423c8c5499d4596e`. No release completion is claimed.
 
 | User-level journey | Result | Retained proof |
 | --- | --- | --- |

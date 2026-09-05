@@ -1,0 +1,98 @@
+{
+  "sourceCommit": "44af0884946e1fb146d5362148e69bd8eebfeafd",
+  "screenshots": [
+    {
+      "path": "campaign/01-selected-workflows.png",
+      "sha256": "5aa19ea605390023ecab703be1286fd8888c2873af03c8abdcd80c5507acc192",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/02-verified-campaign.png",
+      "sha256": "c6c5db85746ce9faf1f253bddb7a11078b843757799814903e1e8c13f1175c7a",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/03-mobile-campaign.png",
+      "sha256": "4407a5b7a3221f8341ec56ea2d9b9c45d16179b95fc04a65b6737e9e1e86e126",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/04-workflow-result.png",
+      "sha256": "3103371e87d24406e03de370955e466027632a6f948fed6e613b2004e9c2d298",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/05-ledger-source-evidence.png",
+      "sha256": "61cef9ab3687d45e1882dce787c3e7c6a8030daabf2abb5359d27fc0f8f735e1",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/06-new-discovery-selection.png",
+      "sha256": "3e74698950993f90e3561f876312a08d1f198c37f8727ebb70cddbde56132187",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/07-pending-campaign-navigation.png",
+      "sha256": "465d5a44e0c0a60ad5a51026a7c9c3c550a76560c91c4e898f8bad06cd5766d9",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/08-late-campaign-session.png",
+      "sha256": "325048ec39df79b2d946e9b3d9856be329d7d87fbb0c9dd130d95a68ca503f78",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/01-inspected-capture.png",
+      "sha256": "0393b6b871004b016c333968511321f32503e33f65f8f7564a7add19a77627e9",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/02-grounded-hypothesis.png",
+      "sha256": "a290dd837c4105f62071ce6b00eb6bfc1a635a9fdc4cec4adfe9af5a2f811516",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/03-mobile-review.png",
+      "sha256": "58f18f2a1c3be60c04aa8b585c85dd551ce40584718d59eec40010ac504d452d",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/04-review-submission-pending.png",
+      "sha256": "2ebc80aa8134a5cbbc56d20c943a7e2bf65293a13f0a94a655f10c488588a8a5",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/05-project-filter.png",
+      "sha256": "66e9507724969a3af5287946315791c4c673d2c5d0602c0712d4594413ae61e3",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/06-new-session-consent.png",
+      "sha256": "bedc63f65a7b03a130c35552197c76e30f3b1d9bea2f387e3c3b47b43315f0c3",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/07-expired-session-consent.png",
+      "sha256": "b2c7007e12e2b3a0cb0c14cdc684621c6f5cde03f643d4912d4c04e18b439e7c",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/08-pending-review-navigation.png",
+      "sha256": "65758e1cf976aade62ff17802439750a2936167ed38ccab2cc43a33a5ee3cf3f",
+      "inspection": "agent-inspected; human release inspection not performed"
+    }
+  ],
+  "timelines": [
+    {
+      "path": "campaign/timeline.json",
+      "sha256": "61c6f4cf379d443e43a1ed5499708f0baa0d207fe7a437a8fe3669c7a799bcda",
+      "inspection": "allow-listed action/assertion results inspected; no raw trace"
+    },
+    {
+      "path": "review/timeline.json",
+      "sha256": "839f37a60f04c8ec124ba704580da918f46cf748489fdb735149555ae227fafe",
+      "inspection": "allow-listed action/assertion results inspected; no raw trace"
+    }
+  ],
+  "humanInspection": "not performed"
+}
