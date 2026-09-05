@@ -1,9 +1,14 @@
 # Release policy
 
-Arxic follows the [Semantic Versioning baseline](../RELEASES.md). This document
+Arxic uses the [release version policy](../RELEASES.md). This document
 defines the public-surface, support, and deprecation commitments that apply at
-`1.0.0` and later; the pre-`1.0.0` convention remains the `0.MINOR.PATCH`
-policy in `RELEASES.md`.
+`1.0.0` and later; the pre-`1.0.0` convention uses the owner-defined `v0.0.NNN` counter
+policy in `RELEASES.md` (minor +100; patch +1).
+
+The expanded web product is tracked by [ADR-009](adr/009-web-workbench.md) and
+the [product specification](web-product-spec.md). Its initial dashboard is a
+development preview. A three-digit patch display such as `v0.0.100` is a label;
+canonical package versions remain valid SemVer such as `0.0.100`.
 
 ## Public surface and SemVer
 

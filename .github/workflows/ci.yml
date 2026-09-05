@@ -167,6 +167,16 @@ jobs:
 
       - name: Test
         run: pnpm exec vitest run --shard=${{ matrix.shard }}
+        env:
+          ARXIC_WEB_EVIDENCE_DIR: ${{ runner.temp }}/arxic-web-evidence
+
+      - name: Retain sanitized web dashboard proof
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-dashboard-${{ strategy.job-index }}
+          path: ${{ runner.temp }}/arxic-web-evidence/
+          if-no-files-found: ignore
 
   # Fixture-app gates: real booting apps against real Mailpit, plus the
   # isolated-Testcontainers startup proof (env-unset, exactly as before).

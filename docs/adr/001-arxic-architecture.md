@@ -1,5 +1,11 @@
 # ADR-001: Arxic — Evidence-Driven Behavioral Intent Compiler for Playwright
 
+> 2026-09-05 product addendum: [ADR-009](009-web-workbench.md) expands the primary
+> product to a self-hosted web dashboard for frontend testing, visual regression,
+> schedules and administration. The engine contracts and truth states below
+> remain in force. See the [web product specification](../web-product-spec.md)
+> for current implementation and full-release gaps.
+
 | Field                     | Value                                                                                                                                       |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Status                    | Accepted (2026-08-04)                                                                                                                       |

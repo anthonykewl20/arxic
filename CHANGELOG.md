@@ -5,9 +5,18 @@ entry - this file is NEVER out of sync with main (see engineering-charter.md
 section 8 and RELEASES.md).
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and package metadata uses [Semantic Versioning syntax](https://semver.org/spec/v2.0.0.html);
+pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ## [Unreleased]
+
+### Added
+
+- Initial self-hosted web workbench (refs #401): authenticated project configuration; source/domain inventory; the existing AI/compiler/verifier pipeline; real Chromium viewport captures and Pixelmatch comparisons; explicit, hash-checked baseline approval; persistent SQLite run history, cancellation and protected deletion; serialized UTC cron schedules with restart recovery; administrator audit events; local/server setup. Captures mask inputs and require every additional privacy selector to resolve. Broader semantic AI visual auditing and comprehensive frontend state campaigns remain tracked in #402.
+
+### Product direction
+
+- Arxic's primary product is now a local/server web frontend testing application (ADR-009). The owner-defined release line is `v0.0.100` (canonical package metadata `0.0.100`); minor releases add 100 and patch fixes add 1. CLI, dashboard and release tags share the padded `v` label; scripts align every workspace manifest. The prior engine release audit does not establish readiness for the expanded web product. No release tag or publication is performed.
 
 ### Fixed
 

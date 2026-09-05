@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arxic · Frontend workbench</title>
+    <link rel="stylesheet" href="/app.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <section id="login" class="login-shell">
+      <form id="login-form" class="login-card">
+        <div class="brand-mark">a</div>
+        <p class="eyebrow">ARXIC / WORKBENCH</p>
+        <h1>A clearer view of your frontend.</h1>
+        <p class="muted">Discover intent. Replay behavior. Review visual change.</p>
+        <label
+          >Administrator token<input
+            name="token"
+            type="password"
+            autocomplete="current-password"
+            required
+            minlength="32"
+        /></label>
+        <button class="primary" type="submit">
+          Open workbench <span aria-hidden="true">→</span>
+        </button>
+        <p id="login-error" role="alert"></p>
+        <small>Use the token configured on this Arxic instance.</small>
+      </form>
+    </section>
+    <div id="app" class="shell" hidden>
+      <aside class="sidebar">
+        <a class="brand" href="/"
+          ><span class="brand-mark">a</span><span>arxic<small>FRONTEND WORKBENCH</small></span></a
+        >
+        <p class="nav-label">WORKSPACE</p>
+        <nav aria-label="Workspace">
+          <button data-nav="overview" class="nav-item active">Overview <span>↗</span></button>
+          <button data-nav="intents" class="nav-item">Intent inventory</button>
+          <button data-nav="runs" class="nav-item">Test runs</button>
+          <button data-nav="schedules" class="nav-item">Schedules</button>
+          <button data-nav="admin" class="nav-item">Administration</button>
+        </nav>
+        <div class="sidebar-bottom">
+          <span class="online-dot"></span> Self-hosted instance
+          <p>Administrator · <span id="version"></span></p>
+          <button id="logout" class="text-button">Sign out</button>
+        </div>
+      </aside>
+      <main>
+        <header class="topbar">
+          <span>Workspace <span class="muted">/</span> <span id="breadcrumb">Overview</span></span
+          ><span class="instance-label">PRIVATE WORKSPACE</span>
+        </header>
+        <div class="page">
+          <div id="notice" role="status" hidden></div>
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">YOUR FRONTEND, WITH EVIDENCE</p>
+              <h1 id="page-title">Workspace overview</h1>
+              <p id="page-description" class="muted">
+                Manage projects, uncover gaps, and review what changed.
+              </p>
+            </div>
+            <button id="new-project" class="primary">+ Add project</button>
+          </div>
+          <div id="content"></div>
+        </div>
+      </main>
+    </div>
+    <dialog id="project-dialog">
+      <form id="project-form">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">PROJECT SETTINGS</p>
+            <h2 id="dialog-title">Connect a project</h2>
+          </div>
+          <button
+            type="button"
+            id="close-dialog"
+            class="secondary"
+            aria-label="Close project settings"
+          >
+            ×
+          </button>
+        </div>
+        <p class="muted">
+          Choose a folder accessible to this Arxic server. Source discovery can run before a test
+          app is available.
+        </p>
+        <div class="form-grid">
+          <label
+            >Project name<input name="name" required maxlength="100" placeholder="Customer portal"
+          /></label>
+          <label
+            >Project folder<input name="folder" required placeholder="/workspace/customer-portal"
+          /></label>
+          <label
+            >Running test app origin<input
+              name="origin"
+              type="url"
+              placeholder="http://localhost:3000"
+            /><small>No path, query string, or credentials.</small></label
+          >
+          <label
+            >AI E2E configuration file<input
+              name="configPath"
+              placeholder="arxic.config.yaml"
+            /><small
+              >Relative to the project folder. Uses existing Arxic CLI configuration.</small
+            ></label
+          >
+          <label
+            >Visual checkpoint paths<textarea
+              name="paths"
+              rows="3"
+              placeholder="/&#10;/login"
+            ></textarea
+            ><small>One path per line. Maximum 20. Anonymous, read-only pages.</small></label
+          >
+          <label
+            >Additional privacy masks<textarea
+              name="masks"
+              rows="3"
+              placeholder="[data-private]"
+            ></textarea
+            ><small>One CSS selector per line. Inputs are always masked.</small></label
+          >
+          <label
+            >Viewport sizes<input name="viewports" placeholder="1440x900, 390x844" required /><small
+              >Up to 3 sizes. Each capture covers the visible viewport.</small
+            ></label
+          >
+          <label
+            >Schedule (UTC cron)<input name="cron" placeholder="0 9 * * *" /><small
+              >Five fields: minute, hour, day, month, weekday. Blank disables.</small
+            ></label
+          >
+          <label
+            >Scheduled run<select name="scheduleMode">
+              <option value="discovery">Source discovery</option>
+              <option value="visual">Visual regression</option>
+              <option value="agent">AI E2E</option>
+            </select></label
+          >
+          <label class="checkbox"
+            ><input name="paused" type="checkbox" checked /> Pause scheduled runs</label
+          >
+        </div>
+        <label class="checkbox consent"
+          ><input name="captureConsent" type="checkbox" /> I authorize screenshot capture of this
+          test environment. The pages contain test data; I have added masks for any other sensitive
+          content.</label
+        >
+        <p id="project-error" role="alert"></p>
+        <div class="dialog-footer">
+          <small
+            >Discovery reports known scope and gaps; source alone cannot prove complete business
+            coverage.</small
+          ><button type="submit" class="primary">Save project</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

@@ -3,32 +3,41 @@
 ![CI](https://github.com/anthonykewl20/arxic/actions/workflows/ci.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
-![Status](https://img.shields.io/badge/status-0.1.0%20release%20validation-blue)
+![Status](https://img.shields.io/badge/status-web%20workbench%20preview-blue)
 
-Evidence-driven behavioral intent compiler that produces independently replayable
-Playwright workflow bundles with explicit evidence, provenance, and verifiable
-coverage.
+Self-hosted frontend testing workbench for source-intent discovery, AI-assisted
+E2E, visual regression review, scheduled runs, and project administration.
 
-Status: pre-1.0.0. The CLI and both local and worker executors are implemented;
-domain-general intent extraction is implemented. The v0.1.0 release audit and
-remaining release gates are recorded in [the audit report](docs/reviews/release-0.1.0-398.md).
+The initial web workbench includes real source scanning, an existing AI/replay
+engine, Chromium screenshot comparisons and a management dashboard. The full
+product remains in development: semantic AI image review and comprehensive
+frontend state/intent campaigns are tracked in [#402](https://github.com/anthonykewl20/arxic/issues/402).
+See the [product specification](docs/web-product-spec.md) for the exact coverage
+boundary. Dashboard version labels use `v0.0.100`; canonical package versions are
+`0.0.100`.
 
-## Install and quickstart
+## Run the web app locally
 
 ```bash
-npm i -g arxic
-npx arxic@latest --version
+pnpm install --frozen-lockfile
+pnpm --filter @arxic/web exec playwright install chromium
+export ARXIC_ADMIN_TOKEN="$(node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")"
+export ARXIC_WEB_ROOTS='["/absolute/path/to/your/projects"]'
+pnpm web
 ```
 
-Then follow the [end-to-end quickstart](docs/quickstart.md) for prerequisites,
-an attested local target, `arxic.yaml`, and the expected no-model outcome. The
+Open `http://127.0.0.1:4310` and sign in with your configured token. Follow the
+[web setup and deployment guide](docs/web-workbench.md) for projects, visual
+baselines, AI configuration, scheduling and a server behind an HTTPS proxy.
+The [CLI engine quickstart](docs/quickstart.md) covers the underlying pipeline,
+attested targets and the expected no-model outcome. The
 [user documentation index](docs/README.md) links to the CLI and configuration
 references. Local execution is the default; `--executor worker` requires Docker
 and a lockstep worker image.
 
 ## What is Arxic?
 
-Arxic is an evidence-discovery + verification compiler for behavioral capabilities.
+Arxic's execution engine is an evidence-discovery + verification compiler for behavioral capabilities.
 It discovers capabilities from pinned source, then runs a safe test deployment and
 verifies discoverable behavior with replayable Playwright runs before promotion.
 Its primary output is an evidence-grounded Intent Ledger: every inventoried
@@ -48,10 +57,12 @@ enough. An LLM may never assign `verified`; only deterministic replay verificati
 4. Replay and verify them with policy-constrained runs and required gates (ADR §8/§9/§15).
 5. Promote only when evidence, policy, coverage, and replay gates pass.
 
-Arxic assembles proven open-source engines at their public seams — Playwright,
+The dashboard manages projects, queued runs, visual comparisons, baselines and
+UTC schedules. The engine assembles open-source capabilities at their public seams — Playwright,
 Crawlee, ast-grep, LangGraph.js, Graphology, AJV, Testcontainers, Mailpit, and
 otplib. For the canonical architecture, see `docs/adr/001-arxic-architecture.md` section 8
-and the pipeline in section 9.
+and the pipeline in section 9. [ADR-009](docs/adr/009-web-workbench.md) records the
+expanded web-product direction and the initial single-administrator architecture.
 
 ## Repo map
 
@@ -83,6 +94,7 @@ Milestones are tracked on GitHub: https://github.com/anthonykewl20/arxic/milesto
 - M1-EXIT (`#27`) - complete: two structurally different reference apps produce independently replayable bundles without app-specific generator code
 - Domain-general intent extraction (ADR-008) - accepted after the DG-12 campaigns
 - v0.1.0 release preparation - audit fixes merged with retained CI proof; human release gate remains explicit
+- Web workbench (ADR-009) - initial management/visual comparison implementation in #401; full frontend intent campaigns and AI visual auditing remain open in #402
 
 ## Contributing
 

@@ -1,6 +1,6 @@
 # Arxic configuration reference
 
-> **Version: 0.1.0**
+> **Version: 0.0.100**
 
 Pass a YAML file to `arxic run --config <path>`. The file must be a plain YAML
 object and may contain only the top-level keys below. All listed objects are

@@ -1,29 +1,52 @@
 # Releases
 
-This project follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
+Package metadata uses npm-compatible SemVer syntax. The owner-defined pre-1.0
+release cadence is a numeric counter, described below.
 
-## Pre-1.0 policy
+## Pre-1.0 policy (owner directive, 2026-09-05)
 
-Before `1.0.0`, versions use `0.MINOR.PATCH`:
+Release labels use **`v0.0.NNN`**:
 
-- Milestone exits are **minor** releases.
-- Slice-level fixes are **patch** releases.
-- Breaking changes are allowed pre-1.0 when required by validation.
+- A **minor release adds 100**: `v0.0.100` → `v0.0.200`.
+- A **patch fix adds 1**: `v0.0.100` → `v0.0.101`.
+- Addition is literal: `v0.0.101` → `v0.0.201` for a minor release.
+- Counter digits are padded to at least three places and never truncated or
+  automatically reset. After `v0.0.900`, a minor increment is `v0.0.1000`.
+- Changes to the first two numeric components require an explicit release-line
+  decision; the bump commands do not guess one.
 
-For the post-1.0 public-surface, support, and deprecation commitments, see
-[`docs/RELEASE_POLICY.md`](docs/RELEASE_POLICY.md).
+This supersedes the earlier pre-1.0 `0.MINOR.PATCH` milestone mapping. Existing
+historical tags and evidence keep their original labels. Post-1.0 support and
+public-surface commitments are recorded in [docs/RELEASE_POLICY.md](docs/RELEASE_POLICY.md).
 
 ### Single source of truth
 
-`VERSION` is the source of truth for current version. `package.json` version
-must mirror `VERSION` exactly for each release.
+`VERSION` and every non-fixture app/package manifest store the same **canonical
+numeric version**, currently `0.0.100`. Public labels, CLI `--version`, dashboard
+labels and Git tags use **`v0.0.100`**. Below counter 100, npm syntax remains
+unpadded (`0.0.7`) and the label is `v0.0.007`; leading-zero numeric components
+are invalid npm package versions.
+
+`packages/contracts/src/version-policy.mjs` is shared by the CLI, dashboard and
+release scripts. Use:
+
+```sh
+pnpm version:minor # adds 100 and aligns VERSION + all workspace manifests
+pnpm version:patch # adds 1 and aligns VERSION + all workspace manifests
+node scripts/version.mjs label # prints the current v-prefixed release label
+```
+
+Then update release docs/changelog and run provenance, package and behavior
+gates. Fixture apps remain private at `0.0.0`.
 
 ### Current release target (2026-09-05)
 
-The owner requested the first public npm release as **0.1.0** (refs #398).
-`VERSION`, the root manifest, and every app/package manifest now agree on 0.1.0.
-The older 0.1.1 preparation labels below are historical. No new tag or npm
-publication is performed by the release audit.
+**v0.0.100**, canonical `0.0.100`, is the initial web product release line.
+The owner expanded the scope to a self-hosted web product (ADR-009, refs #401
+and #402). The initial workbench is a development preview; the full product
+exit remains open. This supersedes the earlier owner target of 0.1.0.
+The older engine audit remains evidence for its recorded source tree, not an
+approval for the expanded web app. No tag or npm publication is performed here.
 
 ### Versioning correction (2026-08-14)
 
@@ -46,7 +69,7 @@ Git tags are the release history.
 
 1. Ensure `CHANGELOG.md` `## [Unreleased]` is complete.
 2. Decide the next bump from the unreleased section verbs.
-3. Update `VERSION` and `package.json` versions identically.
+3. Run `pnpm version:minor` (+100) or `pnpm version:patch` (+1); check that all workspace manifests match `VERSION`.
 4. Rename `## [Unreleased]` to `## [x.y.z] - YYYY-MM-DD` and add a fresh
    `## [Unreleased]` at top.
 5. Commit with `chore(release): x.y.z`.
@@ -56,28 +79,30 @@ Git tags are the release history.
    workflow fails closed if it is absent. Migrate to npm trusted publishing when
    npm supports this repository's GitHub Actions OIDC identity.
 8. Complete the human [screenshot inspection gate](docs/release-gates/screenshot-inspection.md) for every retained promoted screenshot and record its sign-off **before tagging or publishing**.
-9. Tag `vx.y.z` and push the tag. Publication waits for the supported six-cell
+9. Tag the exact output of `node scripts/version.mjs label` and push the tag. Publication waits for the supported six-cell
    OS/Node matrix, the packed human-flow gate, and the release checks. The workflow
    checks the tag against `VERSION`, publishes with npm provenance, then creates
    the GitHub Release.
 
 ## Maintainer release readiness
 
-Use the [v0.1.0 audit report](docs/reviews/release-0.1.0-398.md) for current proof,
+Complete the [web product acceptance](docs/web-product-spec.md) in #402 before
+calling the expanded web app release-ready. Use the
+[v0.1.0 audit report](docs/reviews/release-0.1.0-398.md) for the earlier engine proof,
 limitations, and CI status. Historical dry runs do not approve a new release.
 The sequence is current-head checks and packed E2E → complete human screenshot
-census/sign-off → configure publishing credentials → tag `v0.1.0`.
+census/sign-off → configure publishing credentials → tag `v0.0.100`.
 A workflow dispatch runs release validation without publishing.
 
 ## How to pick the next bump from changelog verbs
 
 - **added / changed / removed / fixed / security** at user-observable level
   suggest an API or behavior-impacting release.
-- pre-1.0, backward-incompatible or feature changes bump MINOR (`0.x.0`).
-- fixes and patch-only changes bump PATCH.
+- pre-1.0, backward-incompatible or feature changes add 100 to the counter.
+- fixes and patch-only changes add 1 to the counter.
 - MAJOR (`1.0.0`) is reserved for the first stable release.
 
-This follows SemVer §4's pre-1.0 convention.
+This is the owner-defined pre-1.0 cadence; it uses SemVer-compatible numeric syntax, with distinct increment semantics.
 
 This process stays in sync by requiring `VERSION` and `package.json` updates in
 every release and every user-visible slice.

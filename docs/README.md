@@ -1,8 +1,10 @@
 # Arxic user documentation
 
-> **Version: 0.1.0**
+For the self-hosted dashboard, start with the [web workbench guide](web-workbench.md). The [web product specification](web-product-spec.md) distinguishes the initial workbench from the full release requirements.
 
-This is the current user-documentation snapshot for Arxic 0.1.0. The current
+> **Version: 0.0.100**
+
+This is the current user-documentation snapshot for Arxic 0.0.100. The current
 documented version points here; a minor or major release creates a matching
 documentation snapshot, and release changes update the affected user guides.
 See the [release policy](./RELEASE_POLICY.md) and
@@ -12,11 +14,11 @@ See the [release policy](./RELEASE_POLICY.md) and
 
 | Guide                                              | Version | Use it for                                                                                |
 | -------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| [Quickstart](./quickstart.md)                      | 0.1.0   | Install the CLI, prepare an attested local target, make a configuration file, and run it. |
-| [CLI reference](./cli-reference.md)                | 0.1.0   | Commands, flags, environment variables, exits, and run records.                           |
-| [Configuration reference](./configuration.md)      | 0.1.0   | Every accepted `arxic.yaml` field, its validation rules, and a complete example.          |
-| [Attestation guide](./attestation-for-your-app.md) | 0.1.0   | Add the required target attestation endpoint to an application you may test.              |
-| [Worker deployment](./operator/worker-deploy.md)   | 0.1.0   | Build and deploy the worker image in lockstep with the CLI.                               |
+| [Quickstart](./quickstart.md)                      | 0.0.100 | Install the CLI, prepare an attested local target, make a configuration file, and run it. |
+| [CLI reference](./cli-reference.md)                | 0.0.100 | Commands, flags, environment variables, exits, and run records.                           |
+| [Configuration reference](./configuration.md)      | 0.0.100 | Every accepted `arxic.yaml` field, its validation rules, and a complete example.          |
+| [Attestation guide](./attestation-for-your-app.md) | 0.0.100 | Add the required target attestation endpoint to an application you may test.              |
+| [Worker deployment](./operator/worker-deploy.md)   | 0.0.100 | Build and deploy the worker image in lockstep with the CLI.                               |
 
 - [Independent bundle replay](./bundle-replay.md) — copied Playwright bundle execution and screenshot-policy setup.
 - [Release audit](./reviews/release-0.1.0-398.md) — fixes, evidence and current release gates.

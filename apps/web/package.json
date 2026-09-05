@@ -1,0 +1,25 @@
+{
+  "name": "@arxic/web",
+  "version": "0.0.100",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@arxic/contracts": "workspace:*",
+    "@arxic/domain-inventory": "workspace:*",
+    "@arxic/source-ua-adapter": "workspace:*",
+    "better-sqlite3": "13.0.3",
+    "cron-parser": "5.10.0",
+    "pixelmatch": "7.2.0",
+    "playwright": "1.62.1",
+    "sharp": "0.35.4",
+    "tsx": "4.23.12",
+    "@arxic/playwright-screenshot-privacy": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "9.6.0"
+  }
+}

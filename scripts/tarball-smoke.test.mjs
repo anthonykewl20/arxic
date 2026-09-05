@@ -28,9 +28,9 @@ describe('tarball smoke sad paths', () => {
         pack: async () => '/tmp/arxic.tgz',
         listTarball: async () => packagedFiles,
         install: async () => {},
-        runCli: async (args) => (args[0] === '--version' ? '0.1.2' : ''),
+        runCli: async (args) => (args[0] === '--version' ? 'v0.1.002' : ''),
       }),
-    ).rejects.toThrow('packed arxic --version output 0.1.2 does not match VERSION 0.1.1');
+    ).rejects.toThrow('packed arxic --version output v0.1.002 does not match label v0.1.001');
   });
 
   it('rejects a packed CLI whose help command fails', async () => {
@@ -42,7 +42,7 @@ describe('tarball smoke sad paths', () => {
         listTarball: async () => packagedFiles,
         install: async () => {},
         runCli: async (args) => {
-          if (args[0] === '--version') return '0.1.1';
+          if (args[0] === '--version') return 'v0.1.001';
           throw new Error('help failed');
         },
       }),
@@ -58,7 +58,7 @@ describe('tarball smoke sad paths', () => {
         listTarball: async () => packagedFiles,
         install: async () => {},
         runCli: async (args) => {
-          if (args[0] === '--version') return '0.1.1';
+          if (args[0] === '--version') return 'v0.1.001';
           if (args[0] === 'run' && args[1] === '--config') {
             throw configFailure({
               stderr: 'Error: unexpected packed runtime failure\n    at runCli',
@@ -130,7 +130,7 @@ describe('tarball smoke allowed path', () => {
           ),
         install: async () => {},
         runCli: async (args) => {
-          if (args[0] === '--version') return '0.1.1';
+          if (args[0] === '--version') return 'v0.1.001';
           if (args[0] === 'run' && args[1] === '--config') throw configFailure();
           return 'Usage: arxic';
         },
@@ -147,7 +147,7 @@ describe('tarball smoke allowed path', () => {
         listTarball: async () => packagedFiles,
         install: async () => {},
         runCli: async (args) => {
-          if (args[0] === '--version') return '0.1.1';
+          if (args[0] === '--version') return 'v0.1.001';
           if (args[0] === 'run' && args[1] === '--config') throw configFailure();
           return 'Usage: arxic';
         },
