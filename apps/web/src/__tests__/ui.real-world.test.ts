@@ -155,6 +155,7 @@ it('lets a real browser register a folder, discover source intent, run visual ch
     );
     await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('button', { name: 'Overview', exact: false }).click();
+    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
