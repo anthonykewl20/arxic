@@ -1,0 +1,94 @@
+{
+  "sourceCommit": "d00aa586420285d01f0401da692faddd4b54b1f1",
+  "controlledRegression": "CSS mutation of actual Next reference login response; external model is real, not stubbed",
+  "before": {
+    "button": {
+      "x": 97,
+      "y": 311.25,
+      "width": 384,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": true
+  },
+  "after": {
+    "button": {
+      "x": 817,
+      "y": 311.25,
+      "width": 150,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": false
+  },
+  "changedPixels": 27145,
+  "detectedClippingHypothesis": false,
+  "review": {
+    "outcome": "hypothesized",
+    "summary": "0 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "83baa203-f543-45e9-ae6f-60ae20ab5ec3",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+        "specHash": "961b563ca91a7889c32abe3b44db0b2abee3825b026a525b02ec41acf8338be4",
+        "browserVersion": "151.0.7922.34",
+        "status": "changed",
+        "changedPixels": 27145,
+        "ratio": 0.056552083333333336,
+        "baselineRunId": "fa7f7851-9720-4761-bf9a-18750c9f66fc",
+        "baselineFile": "checkpoint-1.png",
+        "diffFile": "checkpoint-1.diff.png"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T14:23:18.462Z",
+      "model": "operator-configured-host-image",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [],
+      "runRecord": {
+        "requestId": "host-cli-mtoh3vzj-f1n6pt",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "operator-configured-host-image",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T14:23:40.977Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+            "width": 800,
+            "height": 600,
+            "bytes": 7617
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "providerIdentity": "actual underlying host model operator-configured; tool permissions denied by probe wrapper",
+  "humanReleaseInspection": "not performed"
+}

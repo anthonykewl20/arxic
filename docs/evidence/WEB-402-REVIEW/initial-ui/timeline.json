@@ -1,0 +1,14 @@
+[
+  {
+    "action": "Real capture visible; review remains disabled without explicit inspected-image authorization",
+    "result": "passed"
+  },
+  {
+    "action": "Proposed region overlays the exact retained capture with criterion and separate independent check",
+    "result": "passed"
+  },
+  {
+    "action": "Review image and findings remain within the mobile viewport",
+    "result": "passed"
+  }
+]

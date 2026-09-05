@@ -1,0 +1,160 @@
+{
+  "sourceCommit": "ef3a126737609604e86191b655e4040a36014a05",
+  "controlledRegression": "Persistent CSS asset mutation of actual Next reference login page; external model is real, not stubbed",
+  "before": {
+    "button": {
+      "x": 97,
+      "y": 311.25,
+      "width": 384,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": true
+  },
+  "after": {
+    "button": {
+      "x": 817,
+      "y": 311.25,
+      "width": 150,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": false
+  },
+  "changedPixels": 27145,
+  "detectedClippingHypothesis": true,
+  "cleanReview": {
+    "outcome": "hypothesized",
+    "summary": "0 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "469f8c8c-0de6-4d66-a6ec-43cc7862e363",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+        "specHash": "8007ef31535d2666ed3925fd749e637bbb25a1bc023c33431d52caf62b7976dc",
+        "browserVersion": "151.0.7922.34",
+        "status": "needs-baseline"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T14:30:30.829Z",
+      "model": "operator-configured-host-image",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [],
+      "runRecord": {
+        "requestId": "host-cli-mtohcwus-l0jpqo",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "operator-configured-host-image",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T14:30:42.006Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+            "width": 800,
+            "height": 600,
+            "bytes": 8576
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "review": {
+    "outcome": "hypothesized",
+    "summary": "1 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "80d25de1-ff3f-4d2c-9c3b-21ce028fa08d",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+        "specHash": "8007ef31535d2666ed3925fd749e637bbb25a1bc023c33431d52caf62b7976dc",
+        "browserVersion": "151.0.7922.34",
+        "status": "changed",
+        "changedPixels": 27145,
+        "ratio": 0.056552083333333336,
+        "baselineRunId": "469f8c8c-0de6-4d66-a6ec-43cc7862e363",
+        "baselineFile": "checkpoint-1.png",
+        "diffFile": "checkpoint-1.diff.png"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T14:30:44.640Z",
+      "model": "operator-configured-host-image",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [
+        {
+          "title": "Required submit button is not visible inside the login card",
+          "description": "The visible login card contains the Login heading and Email and Password labels, but no submit button is visible in its unmasked area, including the space below the password mask. This suggests the requirement to display the submit button completely inside the card and viewport is unmet. The masked regions cannot establish whether the button is obscured or positioned elsewhere.",
+          "severity": "error",
+          "region": {
+            "x": 64,
+            "y": 48,
+            "width": 672,
+            "height": 337
+          },
+          "suggestedCheck": "Inspect the rendered submit button bounds and masking coverage. Confirm the entire button is visible within both the card and the 800-by-600 viewport and that viewing it requires no horizontal scrolling.",
+          "id": "finding-1",
+          "truthState": "hypothesized"
+        }
+      ],
+      "runRecord": {
+        "requestId": "host-cli-mtohdctg-t5zb3p",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "operator-configured-host-image",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T14:31:02.695Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+            "width": 800,
+            "height": 600,
+            "bytes": 7617
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "providerIdentity": "actual underlying host model operator-configured; tool permissions denied by probe wrapper",
+  "humanReleaseInspection": "not performed"
+}

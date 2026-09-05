@@ -1,0 +1,4 @@
+{"at":"2026-09-05T14:23:40.970Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3056,"input":3010,"output":23,"reasoning":23,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T14:26:14.036Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3084,"input":3012,"output":23,"reasoning":49,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T14:30:41.997Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3106,"input":3085,"output":21,"reasoning":0,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T14:31:02.687Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3250,"input":3082,"output":168,"reasoning":0,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
