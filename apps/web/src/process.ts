@@ -22,6 +22,7 @@ export function launchJob(input: string, result: string, overrides?: NodeJS.Proc
   const require = createRequire(import.meta.url);
   const env: NodeJS.ProcessEnv = { ...process.env, ARXIC_WEB_JOB: '1' };
   delete env.ARXIC_ADMIN_TOKEN;
+  delete env.ARXIC_MODEL_CONNECTIONS;
   env.ARXIC_MODEL_IMAGE_DIRECTORY = join(dirname(result), '.model-images');
   if (overrides) {
     for (const key of Object.keys(env)) if (key.startsWith('ARXIC_SECRET_')) delete env[key];

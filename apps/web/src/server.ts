@@ -4,6 +4,7 @@ import { Workbench } from './workbench';
 import { HttpError } from './errors';
 import { readFile } from 'node:fs/promises';
 import { ARXIC_VERSION, ARXIC_VERSION_LABEL, sha256 } from '@arxic/contracts';
+import { modelConnections } from './model-connections';
 
 export type WorkbenchOptions = {
   stateDirectory: string;
@@ -58,6 +59,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
       '/html.js': ['html.js', 'text/javascript'],
       '/visual-review.js': ['visual-review.js', 'text/javascript'],
       '/campaigns.js': ['campaigns.js', 'text/javascript'],
+      '/model-controls.js': ['model-controls.js', 'text/javascript'],
       '/app.css': ['app.css', 'text/css'],
       '/base.css': ['base.css', 'text/css'],
     };
@@ -119,6 +121,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
         ...workbench.state(),
         version: ARXIC_VERSION,
         versionLabel: ARXIC_VERSION_LABEL,
+        modelConnections: modelConnections(),
       });
     if (path === '/api/projects' && request.method === 'POST')
       return json(response, 201, await workbench.saveProject(await readJson(request)));

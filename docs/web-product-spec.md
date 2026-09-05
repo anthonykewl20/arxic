@@ -29,7 +29,8 @@ AI interpretation grounded in the permitted screenshots.
    retain source references. Explain unsupported syntax, ignored files, dynamic
    routes and missing runtime access.
 3. **Configure:** choose personas, flags, feature scope, viewports, fixture/reset
-   strategy, action permissions, model/agent, execution budgets and schedules.
+   strategy, action permissions, provider connection and provider-agnostic model ID,
+   execution budgets and schedules. Model suggestions must not restrict custom IDs.
    Credentials use server-side secret references. Unknown or destructive actions
    require appropriate operator policy and isolated fixtures.
 4. **Exercise:** explore the selected scope in real browsers; create/replay small
@@ -69,7 +70,7 @@ never assign `verified` or decide that a visual difference is an accepted change
 | Capability                 | Implemented workbench (#401/#402)                                                                                                                                 | Full release requirement (#402)                                                                        |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Local/server web dashboard | Implemented from source checkout; single administrator                                                                                                            | Clean-install server distribution and recovery proof                                                   |
-| Project configuration      | Folder, target, visual settings, cron; guided model/persona/secret-reference/budget/deployment settings or engine config path                                     | Remaining worker/retention controls, richer fixture setup and safe runtime onboarding                  |
+| Project configuration      | Folder, target, visual settings, cron; guided provider/model/persona/secret-reference/budget/deployment settings or engine config path                            | Remaining worker/retention controls, richer fixture setup and safe runtime onboarding                  |
 | Source discovery           | Route/domain inventory plus JS/TS/JSX/TSX frontend declarations and Markdown/text requirements; line/hash provenance, filtering and explicit file/runtime gaps    | Semantic intent synthesis, richer framework support and source-to-runtime campaign mapping             |
 | AI-assisted E2E            | Guided on-demand campaigns: one serialized engine run per selected source row, full denominator, per-workflow verifier outcomes and restart/cancellation controls | Broader state/persona/flag campaigns, recurring campaigns and independent business acceptance criteria |
 | Visual regression          | Stable anonymous viewport captures, explicit baseline approval, real pixel differences                                                                            | Authenticated workflow checkpoints, responsive/state coverage, reviewed baseline lifecycle             |

@@ -151,3 +151,8 @@ arxic intents .arxic-runs/local-auth-01
 # Read the ledger shipped inside a promoted bundle as machine JSON.
 arxic intents .arxic-runs/promoted/local-auth-01.bundle --json
 ```
+
+HTTP model rates can be supplied with `ARXIC_MODEL_PRICES`; host model argument
+forwarding uses `ARXIC_MODEL_HOST_CLI_MODEL_ARGS`. See the
+[model configuration contract](configuration.md#host-bound-model-binding-host-bound-model)
+and [web provider profiles](web-workbench.md#provider-connections-and-model-ids).

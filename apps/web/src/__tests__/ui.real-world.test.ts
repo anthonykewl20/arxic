@@ -5,7 +5,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import {
   bootFixtureApp,
@@ -23,6 +23,19 @@ it('lets a real browser register a folder, discover source intent, run visual ch
   const repo = await makeRepository('vulnerable-auth-app');
   const state = await mkdtemp(join(tmpdir(), 'arxic-web-ui-'));
   const target = await bootFixtureApp(root, vulnerableAuthApp, 'web-ui-target');
+  vi.stubEnv(
+    'ARXIC_MODEL_CONNECTIONS',
+    JSON.stringify([
+      {
+        id: 'local-agent',
+        label: 'Local coding agent',
+        transport: 'host-cli',
+        command: 'operator-agent',
+        modelArgs: ['--model', '{model}'],
+        models: [{ id: 'provider/code-model' }],
+      },
+    ]),
+  );
   const app = await startWorkbench({
     roots: [repo.root],
     stateDirectory: state,
@@ -161,7 +174,17 @@ it('lets a real browser register a folder, discover source intent, run visual ch
     await expect.poll(() => page.locator('#content').textContent()).toContain('0 9 * * *');
     await page.getByRole('button', { name: 'Configure', exact: true }).click();
     await page.getByLabel('Configure AI execution in this dashboard').check();
-    await page.getByLabel('Model name', { exact: true }).fill('gpt-4o-mini');
+    await page.getByLabel('Model provider', { exact: true }).selectOption('local-agent');
+    expect(
+      await page
+        .locator('#execution-model-controls datalist option')
+        .evaluateAll((options) => options.map((option) => option.getAttribute('value'))),
+    ).toEqual(['provider/code-model']);
+    await page.getByLabel('Model name', { exact: true }).fill('custom/provider-model:local');
+    await page.waitForTimeout(5500);
+    expect(await page.getByLabel('Model name', { exact: true }).inputValue()).toBe(
+      'custom/provider-model:local',
+    );
     await page.getByLabel('Frameworks', { exact: false }).fill('express');
     await page.getByLabel('Domain declarations', { exact: false }).fill('authentication');
     await page.getByLabel('Persona strategy', { exact: false }).selectOption('seed-api');
@@ -188,6 +211,12 @@ it('lets a real browser register a folder, discover source intent, run visual ch
     await page.getByRole('button', { name: 'Save project' }).click();
     await expect.poll(() => page.locator('#content').textContent()).toContain('active');
     await page.getByRole('button', { name: 'Configure', exact: true }).click();
+    expect(await page.getByLabel('Model provider', { exact: true }).inputValue()).toBe(
+      'local-agent',
+    );
+    expect(await page.getByLabel('Model name', { exact: true }).inputValue()).toBe(
+      'custom/provider-model:local',
+    );
     expect(await page.getByLabel('Email secret reference', { exact: true }).inputValue()).toBe(
       'ARXIC_SECRET_TEST_EMAIL',
     );
@@ -283,6 +312,7 @@ it('lets a real browser register a folder, discover source intent, run visual ch
       );
     }
   } finally {
+    vi.unstubAllEnvs();
     await browser.close();
     await app.close();
     await stopApp(target.child);

@@ -204,7 +204,10 @@ classify `blocked` with `ARXIC-VERIFY-FIXTURE-LOGIN-BLOCKED`.
 The YAML configuration names the provider but does not hold its endpoint or
 credential. Configure `ARXIC_MODEL_BASE_URL` and `ARXIC_MODEL_API_KEY` when
 model inference is needed. Without a configured model, the CLI can still write
-an honest partial run rather than inventing a candidate.
+an honest partial run rather than inventing a candidate. `ARXIC_MODEL_PRICES`
+optionally supplies explicit nonnegative `promptPerMillion` and
+`completionPerMillion` rates in USD as JSON for the selected HTTP model, including
+custom IDs absent from the built-in table. Unknown prices remain blocked.
 
 ### Host-bound model binding (#host-bound-model)
 
@@ -216,6 +219,12 @@ or name of the executable>` — `ARXIC_MODEL_BASE_URL` and
 `ARXIC_MODEL_API_KEY` are then NOT required. Extra argv for the executable is
 optional via `ARXIC_MODEL_HOST_CLI_ARGS` (whitespace-separated, or a JSON
 array of strings for arguments containing spaces).
+
+To forward the configured model ID, set `ARXIC_MODEL_HOST_CLI_MODEL_ARGS` to a
+JSON string array containing a separate `{model}` argument, for example
+`["--model", "{model}"]`. It is appended once without a shell. Without this
+setting the legacy CLI selects its own model; the recorded requested ID is not
+proof of the underlying model. Named [web provider connections](web-workbench.md#provider-connections-and-model-ids) require explicit forwarding.
 
 Library image requests additionally require `ARXIC_MODEL_HOST_CLI_IMAGE_ARGS`,
 a JSON array such as `["--image", "{image}"]` matching the installed CLI's actual

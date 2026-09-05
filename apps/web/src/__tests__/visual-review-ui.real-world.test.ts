@@ -18,10 +18,15 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
   const root = resolve(import.meta.dirname, '../../../..');
   const state = await mkdtemp(join(tmpdir(), 'arxic-review-browser-'));
   const target = await bootFixtureApp(root, vulnerableAuthApp, 'arxic-review-ui-target');
+  const requests: Array<{ model: string; authorized: boolean }> = [];
   const provider = createServer(async (req, res) => {
     let body = '';
     for await (const c of req) body += c;
     const input = JSON.parse(body);
+    requests.push({
+      model: input.model,
+      authorized: req.headers.authorization === 'Bearer selected-image-profile-canary',
+    });
     if (
       !input.messages.some(
         (m: { content: unknown }) =>
@@ -34,7 +39,7 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     res.end(
       JSON.stringify({
         id: 'image-ui-model-boundary',
-        model: 'gpt-4o-mini',
+        model: input.model,
         choices: [
           {
             message: {
@@ -67,6 +72,27 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     `http://127.0.0.1:${(provider.address() as { port: number }).port}`,
   );
   vi.stubEnv('ARXIC_MODEL_API_KEY', 'image-ui-provider-canary');
+  vi.stubEnv('ARXIC_SECRET_REVIEW_PROFILE', 'selected-image-profile-canary');
+  vi.stubEnv(
+    'ARXIC_MODEL_CONNECTIONS',
+    JSON.stringify([
+      {
+        id: 'image-provider',
+        label: 'Image model provider',
+        transport: 'http',
+        baseUrl: `http://127.0.0.1:${(provider.address() as { port: number }).port}`,
+        credentialRef: 'ARXIC_SECRET_REVIEW_PROFILE',
+        models: [
+          {
+            id: 'vendor/vision-model:local',
+            prices: { promptPerMillion: 0.1, completionPerMillion: 0.2 },
+          },
+        ],
+        customModelPrices: { promptPerMillion: 0.1, completionPerMillion: 0.2 },
+      },
+    ]),
+  );
+  vi.stubEnv('ARXIC_MODEL_BASE_URL', 'http://127.0.0.1:1');
   const app = await startWorkbench({
     roots: [root],
     stateDirectory: state,
@@ -138,6 +164,14 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     await page.waitForTimeout(5500);
     expect(await page.getByLabel('Review model', { exact: true }).isVisible()).toBe(true);
     expect(await page.getByRole('button', { name: 'Review these pixels' }).isDisabled()).toBe(true);
+    expect(await page.getByLabel('Review model', { exact: true }).inputValue()).toBe('');
+    await page.getByLabel('Review provider', { exact: true }).selectOption('image-provider');
+    expect(
+      await page
+        .locator('[data-model-controls] datalist option')
+        .evaluateAll((options) => options.map((option) => option.getAttribute('value'))),
+    ).toEqual(['vendor/vision-model:local']);
+    await page.getByLabel('Review model', { exact: true }).fill('another/custom-vision:local');
     await page
       .getByLabel('Independent acceptance criterion', { exact: false })
       .fill('Labels and fields should align at the configured viewport.');
@@ -145,6 +179,12 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     expect(
       await page.getByLabel('Independent acceptance criterion', { exact: false }).inputValue(),
     ).toBe('Labels and fields should align at the configured viewport.');
+    expect(await page.getByLabel('Review model', { exact: true }).inputValue()).toBe(
+      'another/custom-vision:local',
+    );
+    expect(await page.getByLabel('Review provider', { exact: true }).inputValue()).toBe(
+      'image-provider',
+    );
     expect(await page.evaluate(() => document.activeElement?.getAttribute('name'))).toBe(
       'acceptanceCriterion',
     );
@@ -158,6 +198,7 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     await page
       .getByRole('heading', { name: 'AI visual hypotheses', exact: true })
       .waitFor({ timeout: 30_000 });
+    expect(requests).toEqual([{ model: 'another/custom-vision:local', authorized: true }]);
     expect(await page.locator('.visual-review-result').textContent()).toContain('hypothesized');
     expect(await page.getByRole('button', { name: 'Run again', exact: true }).count()).toBe(0);
     expect(await page.locator('.review-image svg rect').getAttribute('width')).toBe('700');

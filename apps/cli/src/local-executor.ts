@@ -474,6 +474,26 @@ export function configuredModel(
   const apiKey = process.env.ARXIC_MODEL_API_KEY?.trim();
   if (!baseUrl || !apiKey) return undefined;
   const timeoutMs = resolveModelTimeoutMs();
+  let prices: ModelPrices | undefined;
+  if (process.env.ARXIC_MODEL_PRICES !== undefined) {
+    try {
+      const value = JSON.parse(process.env.ARXIC_MODEL_PRICES) as ModelPrices;
+      if (
+        !value ||
+        typeof value !== 'object' ||
+        Object.keys(value).length !== 2 ||
+        ![value.promptPerMillion, value.completionPerMillion].every(
+          (price) => typeof price === 'number' && Number.isFinite(price) && price >= 0,
+        )
+      )
+        throw new Error();
+      prices = value;
+    } catch {
+      throw new Error(
+        'ARXIC_MODEL_PRICES must contain nonnegative promptPerMillion and completionPerMillion rates',
+      );
+    }
+  }
   return {
     adapter: new ModelAdapter({
       baseUrl,
@@ -483,6 +503,7 @@ export function configuredModel(
       ...(request.now === undefined ? {} : { now: request.now }),
     }),
     name: provider,
+    ...(prices ? { prices } : {}),
   };
 }
 

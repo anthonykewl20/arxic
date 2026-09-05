@@ -51,6 +51,8 @@ export type HostCliTransportConfig = {
   command: string;
   /** Extra argv passed to the executable, before the prompt is written to stdin. */
   args?: string[];
+  /** Appended once, replacing a separate literal {model} with the selected ID. */
+  modelArgs?: string[];
   /** Repeated per PNG. Must contain a separate literal {image} argument. */
   imageArgs?: string[];
   /** Existing private parent directory owned/cleaned by a supervising job. */
@@ -131,7 +133,20 @@ export function hostCliConfigFromEnv(
   const rawArgs = env.ARXIC_MODEL_HOST_CLI_ARGS?.trim();
   const imageArgs = parseImageArgs(env.ARXIC_MODEL_HOST_CLI_IMAGE_ARGS);
   const images = imageArgs === undefined ? {} : { imageArgs };
-  if (!rawArgs) return { command, ...images };
+  let modelArgs: string[] | undefined;
+  if (env.ARXIC_MODEL_HOST_CLI_MODEL_ARGS?.trim()) {
+    try {
+      modelArgs = JSON.parse(env.ARXIC_MODEL_HOST_CLI_MODEL_ARGS);
+    } catch {
+      throw new Error('Invalid ARXIC_MODEL_HOST_CLI_MODEL_ARGS');
+    }
+    if (!validModelArgs(modelArgs))
+      throw new Error(
+        'ARXIC_MODEL_HOST_CLI_MODEL_ARGS must be a JSON string array containing {model}',
+      );
+  }
+  const models = modelArgs === undefined ? {} : { modelArgs };
+  if (!rawArgs) return { command, ...images, ...models };
 
   if (rawArgs.startsWith('[')) {
     let parsed: unknown;
@@ -143,9 +158,19 @@ export function hostCliConfigFromEnv(
     if (!Array.isArray(parsed) || !parsed.every((item) => typeof item === 'string')) {
       throw new Error('ARXIC_MODEL_HOST_CLI_ARGS JSON array must contain only strings');
     }
-    return { command, args: parsed, ...images };
+    return { command, args: parsed, ...images, ...models };
   }
-  return { command, args: rawArgs.split(/\s+/u), ...images };
+  return { command, args: rawArgs.split(/\s+/u), ...images, ...models };
+}
+
+function validModelArgs(input: unknown): input is string[] {
+  return (
+    Array.isArray(input) &&
+    input.length > 0 &&
+    input.length <= 50 &&
+    input.every((item) => typeof item === 'string' && !item.includes('\0')) &&
+    input.includes('{model}')
+  );
 }
 
 function validImageArgs(input: unknown): input is string[] {
@@ -212,17 +237,26 @@ function runHostCli(
   config: HostCliTransportConfig,
   input: StructuredCompletionInput,
 ): Promise<ClientResult> {
+  if (config.modelArgs !== undefined && !validModelArgs(config.modelArgs))
+    return Promise.resolve(providerFailure(false));
   return new Promise<ClientResult>((resolve) => {
     const prompt = renderPrompt(input.messages);
     const timeoutMs = input.timeoutMs ?? 30_000;
 
     let child;
     try {
-      child = spawn(config.command, config.args ?? [], {
-        cwd: config.cwd,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        detached: process.platform !== 'win32' && !config.inheritProcessGroup,
-      });
+      child = spawn(
+        config.command,
+        [
+          ...(config.args ?? []),
+          ...(config.modelArgs ?? []).map((arg) => (arg === '{model}' ? input.model : arg)),
+        ],
+        {
+          cwd: config.cwd,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          detached: process.platform !== 'win32' && !config.inheritProcessGroup,
+        },
+      );
     } catch {
       resolve(providerFailure(false));
       return;

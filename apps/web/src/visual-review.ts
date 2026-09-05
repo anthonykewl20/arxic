@@ -11,6 +11,7 @@ export type VisualReviewScope = {
   capture: Capture;
   inspectedAndAuthorizedAt: string;
   model: string;
+  modelConnection?: string;
   modelSecretRef: string;
   budgetUsd: number;
   acceptanceCriterion: string;

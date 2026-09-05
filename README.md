@@ -19,6 +19,8 @@ boundary. Dashboard version labels use `v0.0.200`; canonical package versions ar
 
 The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
+The dashboard supports [provider connections and custom model IDs](docs/web-workbench.md#provider-connections-and-model-ids) for guided AI execution and inspected-image review.
+
 ## Run the web app locally
 
 ```bash

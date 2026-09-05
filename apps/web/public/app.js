@@ -2,6 +2,7 @@ const $ = (selector) => document.querySelector(selector);
 import { escape, pill, time } from './html.js';
 import { workflowSelection, campaignScreen } from './campaigns.js';
 import { captureReviewForm, visualReviewResult, reviewDrafts } from './visual-review.js';
+import { modelControls, changeModelConnection } from './model-controls.js';
 const titles = {
   overview: 'Workspace overview',
   intents: 'Intent inventory',
@@ -204,7 +205,7 @@ function runDetail(run) {
       const approved = state.baselines.some(
         (item) => item.run_id === run.id && item.capture_id === capture.id,
       );
-      return `<article class="capture"><div class="capture-head"><div><h3>${escape(capture.path)} <span class="muted">${capture.viewport.width} × ${capture.viewport.height}</span></h3><small>${pill(capture.status)} ${capture.changedPixels === undefined ? '' : `${capture.changedPixels.toLocaleString()} changed pixels · ${(capture.ratio * 100).toFixed(3)}%`}</small></div>${approved ? pill('approved baseline') : run.state === 'completed' && capture.status !== 'unstable' ? `<button class="secondary" data-approve="${capture.id}" data-run="${run.id}">Approve as baseline</button>` : ''}</div><div class="compare">${figure('Approved baseline', capture.baselineRunId, capture.baselineFile)}${figure('Current capture', run.id, capture.file)}${figure('Pixel difference', run.id, capture.diffFile)}</div>${captureReviewForm(run, capture)}</article>`;
+      return `<article class="capture"><div class="capture-head"><div><h3>${escape(capture.path)} <span class="muted">${capture.viewport.width} × ${capture.viewport.height}</span></h3><small>${pill(capture.status)} ${capture.changedPixels === undefined ? '' : `${capture.changedPixels.toLocaleString()} changed pixels · ${(capture.ratio * 100).toFixed(3)}%`}</small></div>${approved ? pill('approved baseline') : run.state === 'completed' && capture.status !== 'unstable' ? `<button class="secondary" data-approve="${capture.id}" data-run="${run.id}">Approve as baseline</button>` : ''}</div><div class="compare">${figure('Approved baseline', capture.baselineRunId, capture.baselineFile)}${figure('Current capture', run.id, capture.file)}${figure('Pixel difference', run.id, capture.diffFile)}</div>${captureReviewForm(run, capture, state.modelConnections)}</article>`;
     })
     .join(
       '',
@@ -280,6 +281,12 @@ function editProject(id = '') {
   };
   const form = $('#project-form');
   form.reset();
+  $('#execution-model-controls').innerHTML = modelControls(
+    state.modelConnections,
+    item.execution?.modelConnection ?? '',
+    item.execution?.model ?? '',
+    'exec_',
+  );
   for (const key of ['name', 'folder', 'origin', 'configPath', 'cron', 'scheduleMode'])
     form.elements.namedItem(key).value = item[key] ?? '';
   form.elements.namedItem('paths').value = item.paths.join('\n');
@@ -405,6 +412,10 @@ $('#project-form').addEventListener('submit', async (event) => {
   }
 });
 document.addEventListener('change', (event) => {
+  if (event.target.matches('[data-model-connection]')) {
+    changeModelConnection(event.target, state.modelConnections ?? []);
+    event.target.dispatchEvent(new Event('input', { bubbles: true }));
+  }
   if (event.target.dataset.workflowRow) {
     const id = event.target.dataset.discovery;
     const selected = workflowSelections.get(id) ?? new Set();
@@ -460,6 +471,7 @@ document.addEventListener('submit', async (event) => {
       sha256: form.dataset.hash,
       inspectedAndAuthorized: values.has('inspectedAndAuthorized'),
       model: values.get('model'),
+      modelConnection: values.get('modelConnection'),
       modelSecretRef: values.get('modelSecretRef'),
       budgetUsd: Number(values.get('budgetUsd')),
       acceptanceCriterion: values.get('acceptanceCriterion'),
