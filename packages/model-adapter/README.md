@@ -30,7 +30,7 @@ pixels per image. It reuses the canonical PNG inspector (CRC, chunk structure,
 bounded decompression, no metadata or trailing payloads). Invalid evidence blocks
 before provider contact with `ARXIC-MODEL-IMAGE-INVALID`.
 
-HTTP requests append one user message with ordered OpenAI-compatible `image_url`
+The wire format follows the official [image guide](https://developers.openai.com/api/docs/guides/images-vision). HTTP requests append one user message with ordered OpenAI-compatible `image_url`
 content parts, inline PNG data URLs and `detail: high`. Host CLI image requests
 require `imageArgs`, a string array containing a separate literal `{image}`
 argument. The array is repeated for each image; each placeholder becomes a

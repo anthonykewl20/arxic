@@ -1,0 +1,7 @@
+{
+  "sha256": "a8fd46ac17ec656b99214842d2b6f9d44b82331fd47da88a295e096162475d6c",
+  "sourceCommit": "925fb84a5b2bd2b5cf2e9cc46b14e21dcbb3fe5e",
+  "policy": "anonymous reference-app state; all inputs and textareas masked at capture",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed"
+}

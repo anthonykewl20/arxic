@@ -1,0 +1,143 @@
+{
+  "sourceCommit": "925fb84a5b2bd2b5cf2e9cc46b14e21dcbb3fe5e",
+  "provider": "installed host coding agent; actual underlying model operator-configured",
+  "toolUseAllowed": false,
+  "records": [
+    {
+      "order": [
+        "01-reference-page.png",
+        "02-reference-page.png"
+      ],
+      "ok": true,
+      "output": {
+        "schemaVersion": "arxic-image-probe-v1",
+        "images": [
+          {
+            "heading": "Vulnerable Auth App",
+            "buttons": [
+              "Login",
+              "Logout",
+              "Send reset link",
+              "Reset password"
+            ]
+          },
+          {
+            "heading": "Login",
+            "buttons": [
+              "Login"
+            ]
+          }
+        ]
+      },
+      "runRecord": {
+        "requestId": "host-cli-mtog0cou-m626qo",
+        "schemaVersion": "arxic-image-probe-v1",
+        "schemaSha256": "c90541280c81ae2a267eae8a4b943c87640bf89008f4cace03c143884126cbc7",
+        "model": "operator-configured-host-agent",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T13:52:56.384Z",
+        "provider": "host-bound",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "faad6570f3cc51ab5119668abced195b91d884d52497b23f4003aae9ba089df2",
+            "width": 1000,
+            "height": 760,
+            "bytes": 24134
+          },
+          {
+            "mediaType": "image/png",
+            "sha256": "a8fd46ac17ec656b99214842d2b6f9d44b82331fd47da88a295e096162475d6c",
+            "width": 1000,
+            "height": 760,
+            "bytes": 9814
+          }
+        ]
+      },
+      "comparisons": [
+        {
+          "image": "01-reference-page.png",
+          "headingMatches": true,
+          "buttonsMatch": true
+        },
+        {
+          "image": "02-reference-page.png",
+          "headingMatches": true,
+          "buttonsMatch": true
+        }
+      ]
+    },
+    {
+      "order": [
+        "02-reference-page.png",
+        "01-reference-page.png"
+      ],
+      "ok": true,
+      "output": {
+        "schemaVersion": "arxic-image-probe-v1",
+        "images": [
+          {
+            "heading": "Login",
+            "buttons": [
+              "Login"
+            ]
+          },
+          {
+            "heading": "Vulnerable Auth App",
+            "buttons": [
+              "Login",
+              "Logout",
+              "Send reset link",
+              "Reset password"
+            ]
+          }
+        ]
+      },
+      "runRecord": {
+        "requestId": "host-cli-mtog0j3l-2r4vh2",
+        "schemaVersion": "arxic-image-probe-v1",
+        "schemaSha256": "c90541280c81ae2a267eae8a4b943c87640bf89008f4cace03c143884126cbc7",
+        "model": "operator-configured-host-agent",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T13:53:04.690Z",
+        "provider": "host-bound",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "a8fd46ac17ec656b99214842d2b6f9d44b82331fd47da88a295e096162475d6c",
+            "width": 1000,
+            "height": 760,
+            "bytes": 9814
+          },
+          {
+            "mediaType": "image/png",
+            "sha256": "faad6570f3cc51ab5119668abced195b91d884d52497b23f4003aae9ba089df2",
+            "width": 1000,
+            "height": 760,
+            "bytes": 24134
+          }
+        ]
+      },
+      "comparisons": [
+        {
+          "image": "02-reference-page.png",
+          "headingMatches": true,
+          "buttonsMatch": true
+        },
+        {
+          "image": "01-reference-page.png",
+          "headingMatches": true,
+          "buttonsMatch": true
+        }
+      ]
+    }
+  ]
+}
