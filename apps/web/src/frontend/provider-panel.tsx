@@ -5,6 +5,7 @@ import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
 import { Input } from './components/ui/input';
 import './styles.css';
+import './workspace.css';
 
 type Connection = {
   id: string;
@@ -214,3 +215,7 @@ export function unmountProviderPanel(element: Element) {
   roots.get(element)?.unmount();
   roots.delete(element);
 }
+
+export { mountWorkspaceShell } from './workspace-shell';
+
+export { mountWorkspacePanel, unmountWorkspacePanel } from './workspace-panels';

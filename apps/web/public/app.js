@@ -1,7 +1,14 @@
-import { mountProviderPanel, unmountProviderPanel } from '/provider-ui.js';
+import {
+  mountProviderPanel,
+  unmountProviderPanel,
+  mountWorkspaceShell,
+  mountWorkspacePanel,
+  unmountWorkspacePanel,
+} from '/provider-ui.js';
+mountWorkspaceShell(document.querySelector('#workspace-root'));
 const $ = (selector) => document.querySelector(selector);
 import { escape, pill, time } from './html.js';
-import { workflowSelection, campaignScreen } from './campaigns.js';
+import { workflowSelection } from './campaigns.js';
 import { captureReviewForm, visualReviewResult, reviewDrafts } from './visual-review.js';
 import { modelControls, changeModelConnection, updateModelCatalogs } from './model-controls.js';
 const titles = {
@@ -109,26 +116,6 @@ function runTable(runs) {
     return `<div class="empty"><h2>No runs yet</h2><p class="muted">Start with source discovery. Add a test origin for visual comparison or an Arxic configuration for AI E2E.</p></div>`;
   return `<div class="panel run-list"><table class="table"><thead><tr><th>PROJECT / RUN</th><th>TYPE</th><th>STATUS</th><th>STARTED</th><th></th></tr></thead><tbody>${runs.map((run) => `<tr><td data-label="PROJECT / RUN">${escape(run.project.name)}<small>${escape(run.id.slice(0, 8))}</small></td><td data-label="TYPE">${escape(run.mode)}</td><td data-label="STATUS">${pill(run.state)} ${run.result ? pill(run.result.outcome) : ''}</td><td data-label="STARTED">${escape(time(run.createdAt))}</td><td data-label="ACTIONS"><button class="text-button" data-open-run="${run.id}">View result →</button></td></tr>`).join('')}</tbody></table></div>`;
 }
-function overview() {
-  const changed = state.runs.filter((run) =>
-    run.result?.captures?.some((capture) => capture.status === 'changed'),
-  ).length;
-  const stats = [
-    ['Connected projects', state.projects.length, 'Folders on this instance'],
-    [
-      'Active runs',
-      state.runs.filter((run) => ['queued', 'running'].includes(run.state)).length,
-      'Durable, serialized queue',
-    ],
-    ['Runs with visual changes', changed, 'In the latest 200 runs'],
-    [
-      'Active schedules',
-      state.projects.filter((item) => item.cron && !item.paused).length,
-      'UTC · server must be running',
-    ],
-  ];
-  return `<div class="stats">${stats.map(([title, value, caption]) => `<div class="stat"><span class="stat-label">${title}</span><strong>${value}</strong><small>${caption}</small></div>`).join('')}</div><div class="section-heading"><h2>Your projects</h2><small>${state.projects.length} connected</small></div>${state.projects.length ? `<div class="project-grid">${state.projects.map((item) => `<article class="card"><div class="card-top"><div class="project-icon" aria-hidden="true">⌘</div><button class="text-button" data-edit="${item.id}">Settings ↗</button></div><h3>${escape(item.name)}</h3><p class="folder">${escape(item.folder)}</p><div class="card-info"><span>${item.origin ? escape(item.origin) : 'Source discovery only'}</span><span>${item.cron && !item.paused ? 'Scheduled' : 'On demand'}</span></div><div class="card-actions"><button class="primary" data-start="discovery" data-project="${item.id}">Discover intents</button><button class="secondary" data-start="visual" data-project="${item.id}">Visual test</button><button class="secondary" data-start="agent" data-project="${item.id}">AI E2E</button></div></article>`).join('')}</div>` : `<div class="empty"><h2>Connect your first frontend</h2><p class="muted">Point Arxic at a project folder to inventory source evidence. Then connect a running test app to inspect visual changes and replay behavior.</p><button class="primary" data-add>Add project</button></div>`}<div class="scope-note"><strong>Coverage with context.</strong> Discovered surfaces are hypotheses until runtime evidence supports them. A matching screenshot does not prove business correctness. Blocked and unsupported areas stay visible.</div><div class="section-heading"><h2>Recent activity</h2><button class="text-button" data-go="runs">All test runs →</button></div>${runTable(state.runs.slice(0, 6))}`;
-}
 function projectSelect() {
   return `<select id="project-filter" aria-label="Filter by project"><option value="">All projects</option>${state.projects.map((item) => `<option value="${item.id}" ${selectedProject === item.id ? 'selected' : ''}>${escape(item.name)}</option>`).join('')}</select>`;
 }
@@ -218,12 +205,6 @@ function runs() {
   const chosen = state.runs.find((item) => item.id === selectedRun);
   return `<div class="toolbar">${projectSelect()}<small>Latest 200 runs. All results persist on this instance.</small></div>${runTable(state.runs.filter((item) => !selectedProject || item.projectId === selectedProject))}${chosen ? runDetail(chosen) : ''}`;
 }
-function schedules() {
-  return `<div class="scope-note">Schedules use UTC and require this server to remain running. Missed slots are coalesced into one run after restart. Jobs run one at a time; no catch-up burst.</div>${state.projects.map((item) => `<article class="card"><div class="card-top"><div><h3>${escape(item.name)}</h3><p class="muted">${escape(item.cron || 'No schedule configured')} · ${escape(item.scheduleMode)}</p><small>Next due: ${item.paused ? 'Paused' : escape(time(item.nextRunAt))}</small></div><div>${pill(item.paused || !item.cron ? 'paused' : 'active')} <button class="secondary" data-edit="${item.id}">Configure</button></div></div></article>`).join('') || '<div class="empty"><h2>Add a project to schedule tests</h2></div>'}`;
-}
-function administration() {
-  return `<div class="project-grid"><section class="card"><p class="eyebrow">ACCESS & EXECUTION</p><h2>Single administrator</h2><p class="muted">Session-based access. Eight-hour sessions. Token rotation requires a server restart. Run jobs execute on this host with the operator’s installed engines and agent credentials.</p><div class="scope-note">Only mount trusted project folders. This instance is not a multi-tenant sandbox.</div></section><section class="card"><p class="eyebrow">ALLOWED PROJECT ROOTS</p><h2>Server workspace</h2>${state.roots.map((root) => `<p class="folder">${escape(root)}</p>`).join('')}<p class="muted">Folders are resolved on the server, including symlinks. Change the root allow-list in server configuration.</p></section></div><div class="section-heading"><h2>Administrator activity</h2><small>Latest 100 events</small></div><div class="card"><ul class="audit-list">${state.audit.map((item) => `<li><span>${escape(item.action)}<small class="folder"> ${escape(item.subject)}</small></span><small>${escape(time(item.at))}</small></li>`).join('') || '<li>No activity recorded.</li>'}</ul></div>`;
-}
 function render() {
   const openDetails = new Set(
     [...document.querySelectorAll('[data-detail-key][open]')].map(
@@ -245,6 +226,23 @@ function render() {
     .querySelectorAll('[data-nav]')
     .forEach((button) => button.classList.toggle('active', button.dataset.nav === section));
   const providerRoot = $('#provider-panel-root');
+  const workspacePanel = $('#workspace-panel-root');
+  if (['overview', 'schedules', 'admin', 'campaigns'].includes(section)) {
+    if (providerRoot) unmountProviderPanel(providerRoot);
+    if (!workspacePanel) $('#content').innerHTML = '<div id="workspace-panel-root"></div>';
+    mountWorkspacePanel($('#workspace-panel-root'), {
+      section,
+      state,
+      campaign: {
+        campaigns: state.campaigns ?? [],
+        selectedId: selectedCampaign,
+        projectId: selectedProject,
+        pages: campaignPages,
+      },
+    });
+    return;
+  }
+  if (workspacePanel) unmountWorkspacePanel(workspacePanel);
   if (section === 'providers') {
     if (!providerRoot) $('#content').innerHTML = '<div id="provider-panel-root"></div>';
     mountProviderPanel($('#provider-panel-root'), {
@@ -256,13 +254,8 @@ function render() {
   }
   if (providerRoot) unmountProviderPanel(providerRoot);
   $('#content').innerHTML = {
-    overview,
     intents: inventories,
-    campaigns: () =>
-      campaignScreen(state.campaigns ?? [], selectedCampaign, selectedProject, campaignPages),
     runs,
-    schedules,
-    admin: administration,
   }[section]();
   document.querySelectorAll('[data-detail-key]').forEach((element) => {
     element.open = openDetails.has(element.dataset.detailKey);
