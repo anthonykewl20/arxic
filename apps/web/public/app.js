@@ -22,6 +22,9 @@ let noticeTimer;
 let sessionEpoch = 0;
 let refreshSequence = 0;
 let signingOut = false;
+let declarationKind = '';
+let declarationSearch = '';
+const declarationPages = new Map();
 
 async function api(path, method = 'GET', body) {
   const epoch = sessionEpoch;
@@ -58,11 +61,10 @@ async function refresh() {
   const desired =
     section === 'intents'
       ? snapshot.projects
-          .map(
-            (item) =>
-              snapshot.runs.find(
-                (run) => run.projectId === item.id && (run.hasInventory || run.hasLedger),
-              )?.id,
+          .flatMap((item) =>
+            ['hasInventory', 'hasLedger'].map(
+              (key) => snapshot.runs.find((run) => run.projectId === item.id && run[key])?.id,
+            ),
           )
           .filter(Boolean)
       : section === 'runs' && selectedRun
@@ -82,7 +84,8 @@ async function refresh() {
   $('#login').hidden = true;
   $('#version').textContent = state.versionLabel;
   if (state.queueError) notice(state.queueError);
-  if (!$('#project-dialog').open) render();
+  if (!$('#project-dialog').open && !document.activeElement?.closest('#declaration-search'))
+    render();
 }
 function project(id) {
   return state.projects.find((item) => item.id === id);
@@ -115,6 +118,36 @@ function overview() {
 function projectSelect() {
   return `<select id="project-filter" aria-label="Filter by project"><option value="">All projects</option>${state.projects.map((item) => `<option value="${item.id}" ${selectedProject === item.id ? 'selected' : ''}>${escape(item.name)}</option>`).join('')}</select>`;
 }
+function frontendInventory(run) {
+  const inventory = run?.result?.frontend;
+  if (!inventory) return '';
+  const matches = inventory.rows.filter(
+    (row) =>
+      (!declarationKind || row.kind === declarationKind) &&
+      `${row.label} ${row.source.path}`.toLowerCase().includes(declarationSearch.toLowerCase()),
+  );
+  const page = Math.min(
+    declarationPages.get(run.id) ?? 0,
+    Math.max(0, Math.ceil(matches.length / 100) - 1),
+  );
+  declarationPages.set(run.id, page);
+  return `<section class="frontend-inventory"><div class="section-heading"><h2>Frontend declarations</h2><small>${inventory.rows.length} hypotheses · ${inventory.coverage.analyzedFiles}/${inventory.coverage.enumeratedFiles} files analyzed</small></div>
+  <div class="scope-note">Source declarations describe possible behavior. Runtime coverage is still missing for: ${inventory.coverage.unobservedDimensions.map(escape).join(', ')}. Git-ignored files are outside this scan. Source revision: <code>${escape(inventory.revision.commit)}</code>${inventory.revision.dirty ? ' · Uncommitted files excluded' : ''}.</div>
+  <div class="panel"><table class="table" data-frontend-rows><thead><tr><th>KIND</th><th>DECLARATION</th><th>SOURCE EVIDENCE</th></tr></thead><tbody>${
+    matches
+      .slice(page * 100, (page + 1) * 100)
+      .map(
+        (row) =>
+          `<tr><td>${escape(row.kind)}<small>${escape(row.basis)} · hypothesized</small></td><td>${escape(row.label)}</td><td>${escape(row.source.path)}:${row.source.startLine}–${row.source.endLine}<small title="${escape(row.source.blobSha256)}">SHA-256 ${escape(row.source.blobSha256.slice(0, 12))}</small></td></tr>`,
+      )
+      .join('') || '<tr><td colspan="3">No declarations match these filters.</td></tr>'
+  }</tbody></table></div>
+  <div class="toolbar"><button class="secondary" data-declaration-page="${run.id}" data-direction="-1" ${page === 0 ? 'disabled' : ''}>Previous declarations</button><small>${matches.length ? page * 100 + 1 : 0}–${Math.min((page + 1) * 100, matches.length)} of ${matches.length}</small><button class="secondary" data-declaration-page="${run.id}" data-direction="1" ${(page + 1) * 100 >= matches.length ? 'disabled' : ''}>Next declarations</button><a href="/api/runs/${run.id}" target="_blank" rel="noopener">Complete inventory JSON</a></div>
+  <details data-detail-key="${run.id}-gaps"><summary>Coverage gaps</summary><p>${inventory.gaps.length} file gaps. First 100 shown; the complete JSON preserves every gap and per-file row count. Scan limits: ${inventory.coverage.fileLimit} eligible files, ${inventory.coverage.rowLimit} declarations.</p><ul>${inventory.gaps
+    .slice(0, 100)
+    .map((gap) => `<li>${escape(gap.path)} · ${escape(gap.reason)}</li>`)
+    .join('')}</ul></details></section>`;
+}
 function inventories() {
   const latest = state.projects
     .filter((item) => !selectedProject || item.id === selectedProject)
@@ -123,10 +156,11 @@ function inventories() {
       run: state.runs.find(
         (run) => run.projectId === item.id && (run.result?.inventory || run.result?.ledger),
       ),
+      discovery: state.runs.find((run) => run.projectId === item.id && run.result?.frontend),
     }));
-  return `<div class="toolbar">${projectSelect()}</div><div class="scope-note">Source discovery inventories routes and domain clues; it does not recover every business rule. AI E2E adds evidence-grounded proposals and replay outcomes. Unseen personas, states, flags, and pages remain uncovered.</div>${
+  return `<div class="toolbar">${projectSelect()}<select id="declaration-kind" aria-label="Declaration kind"><option value="">All declarations</option>${['component', 'control', 'condition', 'state', 'action', 'requirement', 'test', 'feature-flag'].map((kind) => `<option ${kind === declarationKind ? 'selected' : ''}>${kind}</option>`).join('')}</select><form id="declaration-search"><input aria-label="Search declarations" name="query" value="${escape(declarationSearch)}" placeholder="Declaration or source file" maxlength="200" /><button class="secondary">Search</button></form></div><div class="scope-note">Source discovery inventories routes and frontend declarations with explicit gaps; it does not recover every business rule. AI E2E adds evidence-grounded proposals and replay outcomes. Unseen personas, states, flags, and pages remain uncovered.</div>${
     latest
-      .map(({ item, run }) => {
+      .map(({ item, run, discovery }) => {
         if (!run)
           return `<div class="empty"><h2>${escape(item.name)}</h2><p class="muted">No inventory yet.</p><button class="primary" data-start="discovery" data-project="${item.id}">Discover intents</button></div>`;
         const rows = run.result.ledger?.rows ?? run.result.inventory?.rows ?? [];
@@ -142,7 +176,7 @@ function inventories() {
                   '',
                 )}${row.intents?.length === 0 ? '<small>No intent proposal for this surface.</small>' : ''}</td></tr>`,
           )
-          .join('')}</tbody></table></div>`;
+          .join('')}</tbody></table></div>${frontendInventory(discovery)}`;
       })
       .join('') || '<div class="empty"><h2>No connected projects</h2></div>'
   }`;
@@ -175,6 +209,11 @@ function administration() {
   return `<div class="project-grid"><section class="card"><p class="eyebrow">ACCESS & EXECUTION</p><h2>Single administrator</h2><p class="muted">Session-based access. Eight-hour sessions. Token rotation requires a server restart. Run jobs execute on this host with the operator’s installed engines and agent credentials.</p><div class="scope-note">Only mount trusted project folders. This instance is not a multi-tenant sandbox.</div></section><section class="card"><p class="eyebrow">ALLOWED PROJECT ROOTS</p><h2>Server workspace</h2>${state.roots.map((root) => `<p class="folder">${escape(root)}</p>`).join('')}<p class="muted">Folders are resolved on the server, including symlinks. Change the root allow-list in server configuration.</p></section></div><div class="section-heading"><h2>Administrator activity</h2><small>Latest 100 events</small></div><div class="card"><ul class="audit-list">${state.audit.map((item) => `<li><span>${escape(item.action)}<small class="folder"> ${escape(item.subject)}</small></span><small>${escape(time(item.at))}</small></li>`).join('') || '<li>No activity recorded.</li>'}</ul></div>`;
 }
 function render() {
+  const openDetails = new Set(
+    [...document.querySelectorAll('[data-detail-key][open]')].map(
+      (element) => element.dataset.detailKey,
+    ),
+  );
   $('#page-title').textContent = titles[section];
   $('#breadcrumb').textContent = titles[section];
   $('#page-description').textContent = {
@@ -194,6 +233,9 @@ function render() {
     schedules,
     admin: administration,
   }[section]();
+  document.querySelectorAll('[data-detail-key]').forEach((element) => {
+    element.open = openDetails.has(element.dataset.detailKey);
+  });
 }
 function editProject(id = '') {
   editing = id;
@@ -288,15 +330,35 @@ $('#project-form').addEventListener('submit', async (event) => {
   }
 });
 document.addEventListener('change', (event) => {
+  if (event.target.id === 'declaration-kind') {
+    declarationKind = event.target.value;
+    declarationPages.clear();
+    render();
+  }
   if (event.target.id === 'project-filter') {
     selectedProject = event.target.value;
     render();
   }
 });
+document.addEventListener('submit', (event) => {
+  if (event.target.id !== 'declaration-search') return;
+  event.preventDefault();
+  declarationSearch = new FormData(event.target).get('query');
+  declarationPages.clear();
+  render();
+});
 document.addEventListener('click', async (event) => {
   const button = event.target.closest('button');
   if (!button) return;
   try {
+    if (button.dataset.declarationPage) {
+      const id = button.dataset.declarationPage;
+      declarationPages.set(
+        id,
+        Math.max(0, (declarationPages.get(id) ?? 0) + Number(button.dataset.direction)),
+      );
+      render();
+    }
     if (button.dataset.nav || button.dataset.go) {
       section = button.dataset.nav ?? button.dataset.go;
       await refresh();

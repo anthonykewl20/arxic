@@ -29,7 +29,7 @@ export class Store {
   }
   summaries(): Array<Run & { hasInventory: boolean; hasLedger: boolean }> {
     return this.documents(
-      `SELECT json_set(json_remove(data, '$.result.inventory', '$.result.manifest', '$.result.ledger', '$.result.engineRun', '$.result.diagnostics'), '$.hasInventory', json_type(data, '$.result.inventory') IS NOT NULL, '$.hasLedger', json_type(data, '$.result.ledger') IS NOT NULL) AS data FROM runs ORDER BY rowid DESC LIMIT 200`,
+      `SELECT json_set(json_remove(data, '$.result.inventory', '$.result.frontend', '$.result.manifest', '$.result.ledger', '$.result.engineRun', '$.result.diagnostics'), '$.hasInventory', json_type(data, '$.result.inventory') IS NOT NULL, '$.hasLedger', json_type(data, '$.result.ledger') IS NOT NULL) AS data FROM runs ORDER BY rowid DESC LIMIT 200`,
     );
   }
   project(id: string): Project | undefined {

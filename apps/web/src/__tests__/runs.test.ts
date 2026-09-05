@@ -47,7 +47,16 @@ it('discovers real Next.js routes, persists history, and schedules one job per d
   expect(result?.result).toMatchObject({
     outcome: 'hypothesized',
     inventory: { rows: expect.arrayContaining([expect.objectContaining({ path: '/login' })]) },
+    frontend: {
+      rows: expect.arrayContaining([
+        expect.objectContaining({ kind: 'component', label: 'LoginPage' }),
+      ]),
+      coverage: { complete: false },
+    },
   });
+  expect(
+    workbench.state().runs.find((item) => item.id === run.id)?.result?.frontend,
+  ).toBeUndefined();
   const due = new Date(project.nextRunAt!);
   workbench.tick(due);
   workbench.tick(due);

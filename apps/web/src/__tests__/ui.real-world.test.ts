@@ -122,9 +122,23 @@ it('lets a real browser register a folder, discover source intent, run visual ch
       .toContain('source surfaces');
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
     await expect.poll(() => page.locator('#content').textContent()).toContain('POST /login');
+    await page.getByRole('heading', { name: 'Frontend declarations' }).waitFor({ timeout: 5000 });
+    await page.getByLabel('Declaration kind').selectOption('requirement');
+    await expect
+      .poll(() => page.locator('[data-frontend-rows]').textContent())
+      .toContain('README.md');
+    await page.getByText('Coverage gaps', { exact: true }).click();
+    await expect
+      .poll(() => page.locator('#content').textContent())
+      .toContain('unsupported-framework');
     await capture(
       '03-intent-inventory',
       'Real source scanner reported login surface and source evidence',
+    );
+    await page.locator('.frontend-inventory').scrollIntoViewIfNeeded();
+    await capture(
+      '09-frontend-declarations',
+      'Real documentation declarations have source hashes; unsupported EJS stays in coverage gaps',
     );
     await page.getByRole('button', { name: 'Overview', exact: false }).click();
     await page.getByRole('button', { name: 'Visual test', exact: true }).click();
@@ -160,6 +174,23 @@ it('lets a real browser register a folder, discover source intent, run visual ch
       true,
     );
     await capture('07-mobile-overview', 'Mobile dashboard fits its viewport');
+    await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await page.getByRole('heading', { name: 'Frontend declarations' }).waitFor();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.getByLabel('Search declarations').fill('README');
+    await page.waitForTimeout(3000);
+    expect(await page.getByLabel('Search declarations').inputValue()).toBe('README');
+    await page.getByRole('button', { name: 'Search', exact: true }).click();
+    await expect
+      .poll(() => page.locator('[data-frontend-rows]').textContent())
+      .toContain('README.md');
+    await page.locator('.frontend-inventory').scrollIntoViewIfNeeded();
+    await capture(
+      '10-mobile-declarations',
+      'Mobile search survives status polling and filters real source declarations',
+    );
     await page.setViewportSize({ width: 1440, height: 1000 });
     let releaseResponse!: () => void;
     let responseReady!: () => void;

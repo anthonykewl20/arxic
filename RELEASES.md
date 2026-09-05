@@ -22,8 +22,8 @@ public-surface commitments are recorded in [docs/RELEASE_POLICY.md](docs/RELEASE
 ### Single source of truth
 
 `VERSION` and every non-fixture app/package manifest store the same **canonical
-numeric version**, currently `0.0.100`. Public labels, CLI `--version`, dashboard
-labels and Git tags use **`v0.0.100`**. Below counter 100, npm syntax remains
+numeric version**, currently `0.0.200`. Public labels, CLI `--version`, dashboard
+labels and Git tags use **`v0.0.200`**. Below counter 100, npm syntax remains
 unpadded (`0.0.7`) and the label is `v0.0.007`; leading-zero numeric components
 are invalid npm package versions.
 
@@ -41,7 +41,7 @@ gates. Fixture apps remain private at `0.0.0`.
 
 ### Current release target (2026-09-05)
 
-**v0.0.100**, canonical `0.0.100`, is the initial web product release line.
+**v0.0.200**, canonical `0.0.200`, adds frontend declaration inventory to the web development preview.
 The owner expanded the scope to a self-hosted web product (ADR-009, refs #401
 and #402). The initial workbench is a development preview; the full product
 exit remains open. This supersedes the earlier owner target of 0.1.0.
@@ -91,7 +91,7 @@ calling the expanded web app release-ready. Use the
 [v0.1.0 audit report](docs/reviews/release-0.1.0-398.md) for the earlier engine proof,
 limitations, and CI status. Historical dry runs do not approve a new release.
 The sequence is current-head checks and packed E2E → complete human screenshot
-census/sign-off → configure publishing credentials → tag `v0.0.100`.
+census/sign-off → configure publishing credentials → tag the current version label.
 A workflow dispatch runs release validation without publishing.
 
 ## How to pick the next bump from changelog verbs

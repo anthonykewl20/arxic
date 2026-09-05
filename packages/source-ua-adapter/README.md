@@ -8,6 +8,23 @@ rather than importing its internals or copying the project wholesale.
 
 ## Seams
 
+- `collectFrontendInventory(root, sourceIndex)` adds a separate, versioned
+  frontend declaration inventory without changing the frozen SourceIndexer.
+  It reuses the native parser and bounded no-follow source reader, checks
+  bytes against the indexed manifest, and never grants dirty or changed bytes
+  committed provenance. JS/TS/JSX/TSX syntax yields component declarations and
+  uses, native controls, action attributes, conditional branches, state hooks
+  and attributes, test declarations and environment/flag member expressions.
+  Markdown/text headings and requirement language outside fenced code yield
+  declared requirements, with an explicit gap for unproved acceptance semantics.
+  Every row is hypothesized and carries commit/path/line/hash provenance.
+  Unsupported templates (including EJS, Vue and Svelte), malformed files,
+  uncommitted bytes and quota stops remain per-file gaps. Limits are 1 MiB per
+  file, 5,000 eligible analyzed files and 20,000 declarations; all enumerated
+  files remain accounted for. Runtime personas, flag values, route/state/action
+  outcomes and viewport coverage remain explicitly unobserved. Tests use both
+  real reference source trees and adversarial filesystem/budget cases.
+
 - Git resolves a full commit, rejects shallow/no-commit inputs, reports dirty
   paths, and enumerates tracked plus non-ignored untracked files bytewise.
 - The manifest hashes raw working-tree bytes and classifies language/category,

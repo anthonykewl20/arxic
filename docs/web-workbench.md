@@ -3,7 +3,7 @@
 The web workbench is an initial, usable self-hosted frontend for the existing
 engine and a new visual comparison lane. The [product specification](web-product-spec.md)
 lists what is implemented and what remains before the full web product release.
-The dashboard displays `v0.0.100`; the CLI displays the same label and canonical package metadata uses `0.0.100`.
+The dashboard displays `v0.0.200`; the CLI displays the same label and canonical package metadata uses `0.0.200`.
 
 ## Local setup
 
@@ -36,7 +36,7 @@ scoped evidence according to its model/source-retention configuration.
 1. Add a project with a name and an absolute **server-side** folder path. Symlink
    escapes from the allow-list are rejected.
 2. Run **Discover intents**. This runs the actual source parser and shows its
-   route/domain inventory and evidence references. It is source discovery, not
+   route/domain inventory, frontend declarations and evidence references. It is source discovery, not
    an assertion that all frontend business rules have been recovered.
 3. For visual runs, enter the already-running test app's HTTP(S) origin, checkpoint
    paths, and viewport sizes. The initial lane captures the visible viewport,
@@ -51,6 +51,25 @@ scoped evidence according to its model/source-retention configuration.
    screenshot is a review item; an unchanged one is not proof of business logic.
 6. Use **AI E2E** after configuring the existing engine below. Review its outcome
    and the intent inventory; a single verified candidate is not complete coverage.
+
+In **Intent inventory**, filter declarations by kind or search their labels and
+source paths. Each row has a source revision, line range and SHA-256. Pages show
+100 declarations; **Complete inventory JSON** contains all rows, per-file counts
+and gaps. Active search text survives status polling. **Coverage gaps** exposes
+unsupported templates, parsing failures, unsafe/symlinked paths, uncommitted or
+changed bytes, and exhausted scan limits. These gaps stay visible alongside AI
+ledger results.
+
+Supported extraction is structural JS/TS/JSX/TSX: components, native controls,
+action attributes, conditionals, state hooks/attributes, test declarations and
+environment/feature-flag member expressions. Markdown/text headings and
+requirement language outside fenced code are declarations, not independently
+accepted business rules. EJS, HTML, Vue, Svelte and MDX component syntax are
+explicitly unsupported; arbitrary aliases, generated markup and hidden
+requirements cannot be recovered completely. Limits are 1 MiB per file, 5,000
+eligible analyzed files and 20,000 declarations. Git-ignored and configured
+source-policy exclusions are outside the manifest. Persona, flag value,
+runtime route/state/action outcome and viewport coverage remains unobserved.
 
 Stable visual captures require two consecutive identical PNG captures. Locale
 `en-US`, timezone UTC, light color scheme, scale 1, reduced motion and browser
