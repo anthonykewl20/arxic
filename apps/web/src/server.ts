@@ -62,9 +62,6 @@ export async function startWorkbench(options: WorkbenchOptions) {
     const assets: Record<string, [string, string]> = {
       '/': ['index.html', 'text/html'],
       '/app.js': ['app.js', 'text/javascript'],
-      '/html.js': ['html.js', 'text/javascript'],
-      '/visual-review.js': ['visual-review.js', 'text/javascript'],
-      '/model-controls.js': ['model-controls.js', 'text/javascript'],
       '/app.css': ['app.css', 'text/css'],
       '/base.css': ['base.css', 'text/css'],
     };

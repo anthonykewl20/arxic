@@ -249,3 +249,14 @@ Existing action handlers retain selection limits, requests and session protectio
 Persisted inventory/ledger fields remain typed views at the UI boundary; this
 change does not add a browser schema validator or union outcomes across runs.
 See [inventory browser proof](../evidence/WEB-402-INVENTORY-UI/summary.md).
+
+## 2026-09-06 run and review presentation
+
+Run lists, capture comparisons, image hypotheses and provider/model fields now
+render through React/shadcn. Shared model controls subscribe to provider metadata
+while retaining editable custom IDs. Review forms own pending and draft state;
+a submission disables its settings and captures consent for the exact image.
+The action layer owns enqueue requests, session-epoch checks and navigation to
+the accepted run before refreshing its state. Logout unmounts component roots
+and clears unsent review drafts. Run details honor the selected project filter.
+Server policy and deterministic truth-state assignment remain unchanged.

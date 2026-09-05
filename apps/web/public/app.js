@@ -4,12 +4,14 @@ import {
   mountWorkspaceShell,
   mountWorkspacePanel,
   unmountWorkspacePanel,
+  mountProjectModelControls,
+  unmountProjectModelControls,
+  updateModelCatalogs,
+  reviewDrafts,
+  reviewDraftKey,
 } from '/provider-ui.js';
 mountWorkspaceShell(document.querySelector('#workspace-root'));
 const $ = (selector) => document.querySelector(selector);
-import { escape, pill, time } from './html.js';
-import { captureReviewForm, visualReviewResult, reviewDrafts } from './visual-review.js';
-import { modelControls, changeModelConnection, updateModelCatalogs } from './model-controls.js';
 const titles = {
   overview: 'Workspace overview',
   intents: 'Intent inventory',
@@ -110,41 +112,7 @@ async function refresh() {
 function project(id) {
   return state.projects.find((item) => item.id === id);
 }
-function runTable(runs) {
-  if (!runs.length)
-    return `<div class="empty"><h2>No runs yet</h2><p class="muted">Start with source discovery. Add a test origin for visual comparison or an Arxic configuration for AI E2E.</p></div>`;
-  return `<div class="panel run-list"><table class="table"><thead><tr><th>PROJECT / RUN</th><th>TYPE</th><th>STATUS</th><th>STARTED</th><th></th></tr></thead><tbody>${runs.map((run) => `<tr><td data-label="PROJECT / RUN">${escape(run.project.name)}<small>${escape(run.id.slice(0, 8))}</small></td><td data-label="TYPE">${escape(run.mode)}</td><td data-label="STATUS">${pill(run.state)} ${run.result ? pill(run.result.outcome) : ''}</td><td data-label="STARTED">${escape(time(run.createdAt))}</td><td data-label="ACTIONS"><button class="text-button" data-open-run="${run.id}">View result →</button></td></tr>`).join('')}</tbody></table></div>`;
-}
-function projectSelect() {
-  return `<select id="project-filter" aria-label="Filter by project"><option value="">All projects</option>${state.projects.map((item) => `<option value="${item.id}" ${selectedProject === item.id ? 'selected' : ''}>${escape(item.name)}</option>`).join('')}</select>`;
-}
-function runDetail(run) {
-  const result = run.result;
-  const figure = (label, runId, file) =>
-    `<figure><figcaption>${label}</figcaption>${file ? `<a href="/api/runs/${runId}/artifacts/${escape(file)}" target="_blank" rel="noopener"><img alt="${label}" src="/api/runs/${runId}/artifacts/${escape(file)}" /></a>` : '<div class="placeholder">Awaiting a reviewed baseline</div>'}</figure>`;
-  return `<section class="run-detail"><div class="section-heading"><div><h2>${escape(run.project.name)} / ${escape(run.mode)}</h2><small>${escape(run.id)}</small></div>${['running', 'queued'].includes(run.state) ? `<button class="danger" data-cancel="${run.id}">Cancel run</button>` : run.visualReview ? `<button class="secondary" data-open-run="${run.visualReview.sourceRunId}">View source capture</button>` : run.workflowScope ? `<button class="secondary" data-open-campaign="${run.workflowScope.campaignId}">View campaign</button>` : `<button class="secondary" data-start="${run.mode}" data-project="${run.projectId}">Run again</button>`}</div><div class="panel"><div class="result-summary">${pill(run.state)} ${result ? pill(result.outcome) : ''}<p>${escape(result?.summary ?? 'The job is queued or running. Results update automatically.')}</p></div>${result?.findings?.length ? `<div class="findings"><h3>Observed frontend findings</h3><ul>${result.findings.map((item) => `<li>${escape(item.path)} · ${escape(item.kind)}: ${item.count}</li>`).join('')}</ul></div>` : ''}${result?.engineRun || result?.diagnostics ? `<details><summary>Engine diagnostics and evidence</summary><pre>${escape(JSON.stringify({ diagnostics: result.diagnostics, run: result.engineRun }, null, 2))}</pre></details>` : ''}</div>${(
-    result?.captures ?? []
-  )
-    .map((capture) => {
-      const approved = state.baselines.some(
-        (item) => item.run_id === run.id && item.capture_id === capture.id,
-      );
-      return `<article class="capture"><div class="capture-head"><div><h3>${escape(capture.path)} <span class="muted">${capture.viewport.width} × ${capture.viewport.height}</span></h3><small>${pill(capture.status)} ${capture.changedPixels === undefined ? '' : `${capture.changedPixels.toLocaleString()} changed pixels · ${(capture.ratio * 100).toFixed(3)}%`}</small></div>${approved ? pill('approved baseline') : run.state === 'completed' && capture.status !== 'unstable' ? `<button class="secondary" data-approve="${capture.id}" data-run="${run.id}">Approve as baseline</button>` : ''}</div><div class="compare">${figure('Approved baseline', capture.baselineRunId, capture.baselineFile)}${figure('Current capture', run.id, capture.file)}${figure('Pixel difference', run.id, capture.diffFile)}</div>${captureReviewForm(run, capture, state.modelConnections)}</article>`;
-    })
-    .join(
-      '',
-    )}${visualReviewResult(run)}${run.workflowScope ? '<p class="scope-note">Kept as campaign evidence. Start another selected campaign from Intent inventory to test again.</p>' : !['queued', 'running'].includes(run.state) ? `<p class="section-heading"><button class="danger" data-delete-run="${run.id}">Delete run and artifacts</button></p>` : ''}${result?.captures?.length ? `<div class="scope-note">Inputs are masked. Review all remaining pixels before sharing. Baseline approval records your visual decision; it does not assign a verified business outcome. Captures cover configured viewports and paths only. <a href="/api/runs/${run.id}/artifacts/timeline.json">Action timeline</a> · <a href="/api/runs/${run.id}/artifacts/timeline.sanitization.json">Sanitization provenance</a></div>` : ''}</section>`;
-}
-function runs() {
-  const chosen = state.runs.find((item) => item.id === selectedRun);
-  return `<div class="toolbar">${projectSelect()}<small>Latest 200 runs. All results persist on this instance.</small></div>${runTable(state.runs.filter((item) => !selectedProject || item.projectId === selectedProject))}${chosen ? runDetail(chosen) : ''}`;
-}
 function render() {
-  const openDetails = new Set(
-    [...document.querySelectorAll('[data-detail-key][open]')].map(
-      (element) => element.dataset.detailKey,
-    ),
-  );
   $('#page-title').textContent = titles[section];
   $('#breadcrumb').textContent = titles[section];
   $('#page-description').textContent = {
@@ -161,12 +129,19 @@ function render() {
     .forEach((button) => button.classList.toggle('active', button.dataset.nav === section));
   const providerRoot = $('#provider-panel-root');
   const workspacePanel = $('#workspace-panel-root');
-  if (['overview', 'schedules', 'admin', 'campaigns', 'intents'].includes(section)) {
+  if (['overview', 'schedules', 'admin', 'campaigns', 'intents', 'runs'].includes(section)) {
     if (providerRoot) unmountProviderPanel(providerRoot);
     if (!workspacePanel) $('#content').innerHTML = '<div id="workspace-panel-root"></div>';
     mountWorkspacePanel($('#workspace-panel-root'), {
       section,
       state,
+      runPanel: {
+        state,
+        selectedId: selectedRun,
+        projectId: selectedProject,
+        onRefresh: refreshModels,
+        onReview: requestVisualReview,
+      },
       inventory: {
         projects: state.projects,
         runs: state.runs,
@@ -197,12 +172,6 @@ function render() {
     return;
   }
   if (providerRoot) unmountProviderPanel(providerRoot);
-  $('#content').innerHTML = {
-    runs,
-  }[section]();
-  document.querySelectorAll('[data-detail-key]').forEach((element) => {
-    element.open = openDetails.has(element.dataset.detailKey);
-  });
 }
 function toggleExecution() {
   const form = $('#project-form');
@@ -232,11 +201,13 @@ function editProject(id = '') {
   };
   const form = $('#project-form');
   form.reset();
-  $('#execution-model-controls').innerHTML = modelControls(
-    state.modelConnections,
-    item.execution?.modelConnection ?? '',
-    item.execution?.model ?? '',
-    'exec_',
+  mountProjectModelControls(
+    $('#execution-model-controls'),
+    {
+      modelConnection: item.execution?.modelConnection ?? '',
+      model: item.execution?.model ?? '',
+    },
+    refreshModels,
   );
   if (item.execution?.modelConnection) void refreshModels(item.execution.modelConnection);
   for (const key of ['name', 'folder', 'origin', 'configPath', 'cron', 'scheduleMode'])
@@ -251,6 +222,7 @@ function editProject(id = '') {
   form.elements.namedItem('guided').checked = !!item.execution;
   if (item.execution) {
     for (const [key, value] of Object.entries(item.execution)) {
+      if (key === 'model' || key === 'modelConnection') continue;
       if (key === 'persona') {
         for (const [field, text] of Object.entries(value))
           form.elements.namedItem(`persona_${field}`).value = text;
@@ -289,6 +261,16 @@ $('#logout').addEventListener('click', async () => {
     state = { projects: [], runs: [], audit: [], baselines: [] };
     selectedRun = '';
     selectedProject = '';
+    const workspacePanel = $('#workspace-panel-root');
+    const providerPanel = $('#provider-panel-root');
+    if (workspacePanel) unmountWorkspacePanel(workspacePanel);
+    if (providerPanel) unmountProviderPanel(providerPanel);
+    unmountProjectModelControls($('#execution-model-controls'));
+    reviewDrafts.clear();
+    workflowSelections.clear();
+    updateModelCatalogs([]);
+    $('#project-form').reset();
+    toggleExecution();
     $('#content').replaceChildren();
     $('#app').hidden = true;
     $('#login').hidden = false;
@@ -364,11 +346,6 @@ $('#project-form').addEventListener('submit', async (event) => {
   }
 });
 document.addEventListener('change', (event) => {
-  if (event.target.matches('[data-model-connection]')) {
-    changeModelConnection(event.target, state.modelConnections ?? []);
-    if (event.target.value) void refreshModels(event.target.value);
-    event.target.dispatchEvent(new Event('input', { bubbles: true }));
-  }
   if (event.target.dataset.workflowRow) {
     const id = event.target.dataset.discovery;
     const selected = workflowSelections.get(id) ?? new Set();
@@ -399,46 +376,23 @@ document.addEventListener('submit', (event) => {
   declarationPages.clear();
   render();
 });
-document.addEventListener('input', (event) => {
-  const form = event.target.closest('[data-review-form]');
-  if (!form) return;
-  const values = new FormData(form);
-  const inspectedAndAuthorized = values.has('inspectedAndAuthorized');
-  reviewDrafts.set(form.dataset.reviewForm, {
-    ...Object.fromEntries(values),
-    inspectedAndAuthorized,
-    open: true,
-  });
-  form.querySelector('button[type="submit"]').disabled = !inspectedAndAuthorized;
-});
-document.addEventListener('submit', async (event) => {
-  const form = event.target;
-  if (!form.dataset.reviewForm) return;
-  event.preventDefault();
-  const button = form.querySelector('button[type="submit"]');
-  button.disabled = true;
-  const values = new FormData(form);
+async function requestVisualReview(request) {
+  const epoch = sessionEpoch;
+  const { sourceRunId, ...body } = request;
+  const run = await api(`/runs/${sourceRunId}/reviews`, 'POST', body);
+  if (epoch !== sessionEpoch || signingOut) return;
+  reviewDrafts.delete(reviewDraftKey(sourceRunId, body.captureId, body.sha256));
+  document.activeElement?.blur();
+  selectedRun = run.id;
+  section = 'runs';
+  state.runs = [run, ...state.runs.filter((item) => item.id !== run.id)];
+  render();
   try {
-    const run = await api(`/runs/${form.dataset.run}/reviews`, 'POST', {
-      captureId: form.dataset.capture,
-      sha256: form.dataset.hash,
-      inspectedAndAuthorized: values.has('inspectedAndAuthorized'),
-      model: values.get('model'),
-      modelConnection: values.get('modelConnection'),
-      modelSecretRef: values.get('modelSecretRef'),
-      budgetUsd: Number(values.get('budgetUsd')),
-      acceptanceCriterion: values.get('acceptanceCriterion'),
-    });
-    reviewDrafts.delete(form.dataset.reviewForm);
-    document.activeElement?.blur();
-    selectedRun = run.id;
-    section = 'runs';
     await refresh();
   } catch (error) {
     notice(error.message);
-    button.disabled = false;
   }
-});
+}
 document.addEventListener('submit', async (event) => {
   const form = event.target;
   if (!form.dataset.campaignForm) return;
@@ -541,8 +495,10 @@ setInterval(() => {
 }, 2500);
 
 async function refreshModels(id) {
+  const epoch = sessionEpoch;
   try {
     const result = await api(`/model-connections/${encodeURIComponent(id)}/refresh`, 'POST', {});
+    if (epoch !== sessionEpoch || signingOut) return;
     state.modelConnections = result.modelConnections;
     updateModelCatalogs(state.modelConnections);
     if (section === 'providers') render();
@@ -550,13 +506,6 @@ async function refreshModels(id) {
     notice(error.message);
   }
 }
-document.addEventListener('click', (event) => {
-  const button = event.target.closest('[data-model-refresh]');
-  if (button)
-    void refreshModels(
-      button.closest('[data-model-controls]').querySelector('[data-model-connection]').value,
-    );
-});
 
 setInterval(() => {
   if (document.hidden || $('#app').hidden) return;

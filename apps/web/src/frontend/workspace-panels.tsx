@@ -1,3 +1,6 @@
+import { RunPanel, type RunPanelProps } from './run-panel';
+import { RunTable, Status } from './run-table';
+import { time } from './display';
 import { InventoryPanel, type InventoryPanelProps } from './inventory-panel';
 import { CampaignPanel, type CampaignPanelProps } from './campaign-panel';
 import { createRoot, type Root } from 'react-dom/client';
@@ -14,68 +17,9 @@ import {
 } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { Card, CardContent } from './components/ui/card';
-import { Badge } from './components/ui/badge';
 import type { Workbench } from '../workbench';
-import type { Run } from '../types';
 
 type State = ReturnType<Workbench['state']>;
-const time = (value: string | null) =>
-  value ? `${new Date(value).toISOString().slice(0, 19).replace('T', ' ')} UTC` : '—';
-export function Status({ value }: { value: string }) {
-  return (
-    <Badge variant="outline" className={`pill ${value}`}>
-      {value}
-    </Badge>
-  );
-}
-export function RunTable({ runs }: { runs: Run[] }) {
-  if (!runs.length)
-    return (
-      <div className="empty">
-        <Activity size={24} />
-        <h2>No runs yet</h2>
-        <p className="muted">
-          Start with source discovery. Add a test origin for visual comparison or an Arxic
-          configuration for AI E2E.
-        </p>
-      </div>
-    );
-  return (
-    <div className="panel run-list">
-      <table className="table">
-        <thead>
-          <tr>
-            <th>PROJECT / RUN</th>
-            <th>TYPE</th>
-            <th>STATUS</th>
-            <th>STARTED</th>
-            <th />
-          </tr>
-        </thead>
-        <tbody>
-          {runs.map((run) => (
-            <tr key={run.id}>
-              <td data-label="PROJECT / RUN">
-                {run.project.name}
-                <small>{run.id.slice(0, 8)}</small>
-              </td>
-              <td data-label="TYPE">{run.mode}</td>
-              <td data-label="STATUS">
-                <Status value={run.state} /> {run.result && <Status value={run.result.outcome} />}
-              </td>
-              <td data-label="STARTED">{time(run.createdAt)}</td>
-              <td data-label="ACTIONS">
-                <Button variant="ghost" size="sm" className="text-button" data-open-run={run.id}>
-                  View result <ArrowUpRight />
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
 function Overview({ state }: { state: State }) {
   const stats = [
     {
@@ -297,17 +241,23 @@ export function mountWorkspacePanel(
     state,
     campaign,
     inventory,
+    runPanel,
   }: {
-    section: 'overview' | 'schedules' | 'admin' | 'campaigns' | 'intents';
+    section: 'overview' | 'schedules' | 'admin' | 'campaigns' | 'intents' | 'runs';
     state: State;
     campaign: CampaignPanelProps;
     inventory: InventoryPanelProps;
+    runPanel: RunPanelProps;
   },
 ) {
   let root = roots.get(element);
   if (!root) {
     root = createRoot(element);
     roots.set(element, root);
+  }
+  if (section === 'runs') {
+    root.render(<RunPanel {...runPanel} />);
+    return;
   }
   if (section === 'intents') {
     root.render(<InventoryPanel {...inventory} />);
