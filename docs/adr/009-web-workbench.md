@@ -33,7 +33,7 @@ Frozen evidence/workflow contracts are unchanged.
 An additive source-adapter capability emits `arxic-frontend-inventory-v1` from
 the existing hashed source manifest and native JS/TS/JSX/TSX parser. Bounded,
 no-follow reads must match the indexed bytes. Component/control/action/state/
-condition/test/flag declarations and Markdown/text requirements carry their
+condition/test/configuration/flag declarations and Markdown/text requirements carry their
 commit, path, line range and content hash. Unsupported, unsafe, malformed,
 dirty, changed and truncated inputs remain explicit file gaps. Static rows
 remain hypothesized; their count is never a runtime coverage percentage.

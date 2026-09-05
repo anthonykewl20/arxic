@@ -14,6 +14,7 @@ export type FrontendKind =
   | 'action'
   | 'requirement'
   | 'test'
+  | 'configuration'
   | 'feature-flag';
 export type FrontendRow = {
   id: string;
@@ -241,11 +242,13 @@ function extractFrontend(
         else emit('test', `${callee} (dynamic declaration)`, 'declaration');
       }
     }
+    if (node.type === 'member_expression' && /^(?:flags\.|featureFlags\.)/u.test(node.text))
+      emit('feature-flag', node.text);
     if (
       node.type === 'member_expression' &&
-      /^(?:process\.env\.|import\.meta\.env\.|flags\.|featureFlags\.)/u.test(node.text)
+      /^(?:process\.env\.|import\.meta\.env\.)/u.test(node.text)
     )
-      emit('feature-flag', node.text);
+      emit('configuration', node.text);
     for (let i = node.namedChildren.length - 1; i >= 0; i--) stack.push(node.namedChildren[i]);
   }
 }

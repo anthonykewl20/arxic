@@ -14,7 +14,7 @@ rather than importing its internals or copying the project wholesale.
   bytes against the indexed manifest, and never grants dirty or changed bytes
   committed provenance. JS/TS/JSX/TSX syntax yields component declarations and
   uses, native controls, action attributes, conditional branches, state hooks
-  and attributes, test declarations and environment/flag member expressions.
+  and attributes, test declarations and configuration references and flag member expressions.
   Markdown/text headings and requirement language outside fenced code yield
   declared requirements, with an explicit gap for unproved acceptance semantics.
   Every row is hypothesized and carries commit/path/line/hash provenance.
@@ -62,7 +62,7 @@ rather than importing its internals or copying the project wholesale.
   identified by language id in manifest and diagnostics; only genuinely
   unidentified extensions report an explicit no-language condition
   (ADR-008 Decision 5).
-- Every source claim is a frozen `EvidenceRef`; dirty-file bytes never receive
+- Every core SourceIndexer claim is a frozen `EvidenceRef`; dirty-file bytes never receive
   committed provenance. Gaps are frozen-contract-valid, blocked diagnostics.
 
 `SourceScanPolicy` owns fail-closed quotas, supported languages, extra ignores,

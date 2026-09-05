@@ -62,11 +62,13 @@ ledger results.
 
 Supported extraction is structural JS/TS/JSX/TSX: components, native controls,
 action attributes, conditionals, state hooks/attributes, test declarations and
-environment/feature-flag member expressions. Markdown/text headings and
+configuration references and feature-flag member expressions. Markdown/text headings and
 requirement language outside fenced code are declarations, not independently
 accepted business rules. EJS, HTML, Vue, Svelte and MDX component syntax are
 explicitly unsupported; arbitrary aliases, generated markup and hidden
-requirements cannot be recovered completely. Limits are 1 MiB per file, 5,000
+requirements cannot be recovered completely. Conditions and declarations may also
+come from server/test code; component-to-runtime reachability is not proven.
+Environment variables are configuration references, not proven feature flags. Limits are 1 MiB per file, 5,000
 eligible analyzed files and 20,000 declarations. Git-ignored and configured
 source-policy exclusions are outside the manifest. Persona, flag value,
 runtime route/state/action outcome and viewport coverage remains unobserved.

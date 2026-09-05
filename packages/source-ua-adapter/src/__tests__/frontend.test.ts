@@ -80,6 +80,12 @@ it('inventories real Next.js components, controls, actions, conditions and exist
         /^[a-f0-9]{64}$/u.test(row.source.blobSha256),
     ),
   ).toBe(true);
+  expect(
+    result.rows.some((row) => row.kind === 'feature-flag' && row.label.startsWith('process.env.')),
+  ).toBe(false);
+  expect(
+    result.rows.some((row) => row.kind === 'configuration' && row.label.startsWith('process.env.')),
+  ).toBe(true);
   expect(await collectFrontendInventory(repo.root, source)).toEqual(result);
 });
 

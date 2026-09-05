@@ -12,7 +12,7 @@ decisions. Storage/process/browser helpers provide mechanics. `job.ts` reuses
 the existing source/inventory and CLI execution seams. Jobs are serialized and
 isolated by process lifetime; the host is a single trusted administrative domain.
 
-Discovery adds JS/TS/JSX/TSX component, control, action, condition, state, test
+Discovery adds JS/TS/JSX/TSX component, control, action, condition, state, test, configuration
 and feature-flag declarations plus Markdown/text requirement declarations.
 The dashboard filters and searches these hypotheses, shows source revision,
 line ranges and hashes, and exposes unsupported/changed/dirty/unsafe files.

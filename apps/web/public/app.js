@@ -138,7 +138,7 @@ function frontendInventory(run) {
       .slice(page * 100, (page + 1) * 100)
       .map(
         (row) =>
-          `<tr><td>${escape(row.kind)}<small>${escape(row.basis)} · hypothesized</small></td><td>${escape(row.label)}</td><td>${escape(row.source.path)}:${row.source.startLine}–${row.source.endLine}<small title="${escape(row.source.blobSha256)}">SHA-256 ${escape(row.source.blobSha256.slice(0, 12))}</small></td></tr>`,
+          `<tr><td data-label="KIND">${escape(row.kind)}<small>${escape(row.basis)} · hypothesized</small></td><td data-label="DECLARATION">${escape(row.label)}</td><td data-label="SOURCE EVIDENCE">${escape(row.source.path)}:${row.source.startLine}–${row.source.endLine}<small title="${escape(row.source.blobSha256)}">SHA-256 ${escape(row.source.blobSha256.slice(0, 12))}</small></td></tr>`,
       )
       .join('') || '<tr><td colspan="3">No declarations match these filters.</td></tr>'
   }</tbody></table></div>
@@ -158,7 +158,7 @@ function inventories() {
       ),
       discovery: state.runs.find((run) => run.projectId === item.id && run.result?.frontend),
     }));
-  return `<div class="toolbar">${projectSelect()}<select id="declaration-kind" aria-label="Declaration kind"><option value="">All declarations</option>${['component', 'control', 'condition', 'state', 'action', 'requirement', 'test', 'feature-flag'].map((kind) => `<option ${kind === declarationKind ? 'selected' : ''}>${kind}</option>`).join('')}</select><form id="declaration-search"><input aria-label="Search declarations" name="query" value="${escape(declarationSearch)}" placeholder="Declaration or source file" maxlength="200" /><button class="secondary">Search</button></form></div><div class="scope-note">Source discovery inventories routes and frontend declarations with explicit gaps; it does not recover every business rule. AI E2E adds evidence-grounded proposals and replay outcomes. Unseen personas, states, flags, and pages remain uncovered.</div>${
+  return `<div class="toolbar">${projectSelect()}<select id="declaration-kind" aria-label="Declaration kind"><option value="">All declarations</option>${['component', 'control', 'condition', 'state', 'action', 'requirement', 'test', 'configuration', 'feature-flag'].map((kind) => `<option ${kind === declarationKind ? 'selected' : ''}>${kind}</option>`).join('')}</select><form id="declaration-search"><input aria-label="Search declarations" name="query" value="${escape(declarationSearch)}" placeholder="Declaration or source file" maxlength="200" /><button class="secondary">Search</button></form></div><div class="scope-note">Source discovery inventories routes and frontend declarations with explicit gaps; it does not recover every business rule. AI E2E adds evidence-grounded proposals and replay outcomes. Unseen personas, states, flags, and pages remain uncovered.</div>${
     latest
       .map(({ item, run, discovery }) => {
         if (!run)

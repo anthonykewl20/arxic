@@ -12,7 +12,7 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
-- Frontend declaration inventory (refs #402): native JS/TS/JSX/TSX component/control/action/condition/state/test/flag extraction plus Markdown/text requirements, source revision/line/hash provenance, per-file unsupported and unsafe-source gaps, bounded scans, dashboard filtering/search/pagination and complete JSON access. All declarations remain hypotheses; campaign and runtime coverage remain explicit release gaps.
+- Frontend declaration inventory (refs #402): native JS/TS/JSX/TSX component/control/action/condition/state/test/configuration/flag extraction plus Markdown/text requirements, source revision/line/hash provenance, per-file unsupported and unsafe-source gaps, bounded scans, dashboard filtering/search/pagination and complete JSON access. All declarations remain hypotheses; campaign and runtime coverage remain explicit release gaps.
 
 - Initial self-hosted web workbench (refs #401): authenticated project configuration; source/domain inventory; the existing AI/compiler/verifier pipeline; real Chromium viewport captures and Pixelmatch comparisons; explicit, hash-checked baseline approval; persistent SQLite run history, cancellation and protected deletion; serialized UTC cron schedules with restart recovery; administrator audit events; local/server setup. Captures mask inputs and require every additional privacy selector to resolve. Broader semantic AI visual auditing and comprehensive frontend state campaigns remain tracked in #402.
 
@@ -22,7 +22,7 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Fixed
 
-- Inventory search survives dashboard polling; expanded gap details remain open during refresh. Routine status polling omits the large frontend payload. Real Chromium desktop/mobile journeys cover the new inventory and the reproduced search-entry loss.
+- Environment settings are configuration references rather than mislabeled feature flags; mobile declaration rows stack for readability. Inventory search survives dashboard polling; expanded gap details remain open during refresh. Routine status polling omits the large frontend payload. Real Chromium desktop/mobile journeys cover the new inventory and the reproduced search-entry loss.
 
 - Web integration guards (refs #401): session/image hashes reuse the shared contracts capability; the exact app/package workspace census is 29 and the web TypeScript configuration follows the workspace contract. The duplicate-implementation guard and source-inclusion assertion remain unchanged.
 
