@@ -90,7 +90,7 @@ export async function reviewVisual(run: Run, runsDirectory: string): Promise<Run
     additionalProperties: false,
     required: ['schemaVersion', 'findings'],
     properties: {
-      schemaVersion: { const: 'arxic-web-visual-review-v1' },
+      schemaVersion: { type: 'string', const: 'arxic-web-visual-review-v1' },
       findings: {
         type: 'array',
         maxItems: 20,
@@ -101,7 +101,7 @@ export async function reviewVisual(run: Run, runsDirectory: string): Promise<Run
           properties: {
             title: { type: 'string', minLength: 1, maxLength: 160 },
             description: { type: 'string', minLength: 1, maxLength: 1000 },
-            severity: { enum: ['info', 'warning', 'error'] },
+            severity: { type: 'string', enum: ['info', 'warning', 'error'] },
             region: {
               type: 'object',
               additionalProperties: false,

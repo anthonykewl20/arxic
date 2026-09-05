@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Declare explicit string types for visual-review constants/enums required by Codex native structured output. A real API schema rejection reproduced the gap; accepted values and field bounds remain unchanged (refs #402).
+
 - Forward output schemas to native Claude/Codex controls after a live account returned an overlong reproduction check. Native bridges receive a prompt/schema envelope on stdin; ordinary host wrappers retain text input. Claude structured-result envelopes are validated by the existing adapter without relaxing field limits (refs #402).
 
 - Tighten screenshot-review criteria after a live Claude account probe reported style preferences on a clean reference screen. Privacy-mask geometry and unsupported design assumptions are excluded from the review instructions; original failures remain in proof. Reap native catalog process groups after metadata requests, including CLIs that ignore termination (refs #402).
