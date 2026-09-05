@@ -339,3 +339,10 @@ Inspect retained pixels before exporting/sharing. The standing human screenshot
 inspection still applies before tagging or publishing a release. This workbench
 does not implement comprehensive authenticated visual state campaigns, multi-user roles, automatic project startup or notifications.
 Those remain explicit requirements in [#402](https://github.com/anthonykewl20/arxic/issues/402).
+
+[Clean source-install/recovery proof](evidence/WEB-402-INSTALL/summary.md) covers
+Node 22.22.0, a fresh dependency/browser installation, real reference discovery
+and pixels, session invalidation, and forced termination during browser navigation.
+[Provider/model proof](evidence/WEB-402-MODELS/summary.md) covers the configured
+connections and real installed-agent selection. These are scoped checks; the
+remaining [full product requirements](web-product-spec.md) stay open.

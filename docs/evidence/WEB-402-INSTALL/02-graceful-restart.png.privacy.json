@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "00e14a88528d1f017cf62f490a7a0280fae26bfe",
+  "sha256": "3afc06ffa50d08cce8e6c02f4c85b3f9a622f3f4792b1f977f54b3d70348d898",
+  "policy": "signed-in empty-persona administrative test state; token form cleared and password inputs masked",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed"
+}

@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "c700befbd0bdd0866b4be5475e212c5e5af1b2f9",
+  "sha256": "e316916163c5b1d72c4b2cff298920269041225495eaac11d910d56e023cffa3",
+  "policy": "anonymous reference-app/dashboard test data; password inputs masked",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed"
+}

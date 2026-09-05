@@ -118,3 +118,6 @@ tracked in `CHANGELOG.md`.
 ## License
 
 MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE`.
+
+Current scoped proof: [provider/model controls](docs/evidence/WEB-402-MODELS/summary.md)
+and [clean source installation/recovery](docs/evidence/WEB-402-INSTALL/summary.md).

@@ -1,0 +1,176 @@
+{
+  "sourceCommit": "9dc3a53c09fd9f82e97b245603398cbc29834e45",
+  "controlledRegression": "Persistent CSS asset mutation of actual Next reference login page; external model is real, not stubbed",
+  "before": {
+    "button": {
+      "x": 97,
+      "y": 311.25,
+      "width": 384,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": true
+  },
+  "after": {
+    "button": {
+      "x": 817,
+      "y": 311.25,
+      "width": 150,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": false
+  },
+  "changedPixels": 27145,
+  "detectedClippingHypothesis": true,
+  "cleanReview": {
+    "outcome": "hypothesized",
+    "summary": "0 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "d3efadae-e031-4ffa-bc88-f4fc5691416b",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+        "specHash": "95bee68fe2fb0d62c24ceb2ce4979f01c4b289963fc0077adb97eae64abfe067",
+        "browserVersion": "151.0.7922.34",
+        "status": "needs-baseline"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T15:21:07.965Z",
+      "model": "openai/gpt-5.6-terra",
+      "modelConnection": "installed-agent",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [],
+      "runRecord": {
+        "requestId": "host-cli-mtoj6058-ek1xbu",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "openai/gpt-5.6-terra",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T15:21:18.910Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+            "width": 800,
+            "height": 600,
+            "bytes": 8576
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "review": {
+    "outcome": "hypothesized",
+    "summary": "2 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "831c1cea-fa72-495e-97c8-01265a4a76d8",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+        "specHash": "95bee68fe2fb0d62c24ceb2ce4979f01c4b289963fc0077adb97eae64abfe067",
+        "browserVersion": "151.0.7922.34",
+        "status": "changed",
+        "changedPixels": 27145,
+        "ratio": 0.056552083333333336,
+        "baselineRunId": "d3efadae-e031-4ffa-bc88-f4fc5691416b",
+        "baselineFile": "checkpoint-1.png",
+        "diffFile": "checkpoint-1.diff.png"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T15:21:21.623Z",
+      "model": "openai/gpt-5.6-terra",
+      "modelConnection": "installed-agent",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [
+        {
+          "title": "Submit button is not visible inside the login card",
+          "description": "No submit button is visible in the otherwise unmasked lower portion of the login card. The card spans approximately x=64..735 and y=48..384; below the password field, x=97..734 and y=300..383 is blank.",
+          "severity": "error",
+          "region": {
+            "x": 97,
+            "y": 300,
+            "width": 638,
+            "height": 84
+          },
+          "suggestedCheck": "Render the login form at this viewport size and verify that its submit button is fully visible within both the card bounds and the 800x600 viewport.",
+          "id": "finding-1",
+          "truthState": "hypothesized"
+        },
+        {
+          "title": "Form fields visibly overflow the card and viewport",
+          "description": "The bright magenta email and password field areas extend from x=97 to the image's right edge at x=799, beyond the card's right border near x=735. This indicates horizontal overflow in the visible form.",
+          "severity": "error",
+          "region": {
+            "x": 736,
+            "y": 183,
+            "width": 64,
+            "height": 116
+          },
+          "suggestedCheck": "Check the computed widths and horizontal overflow of the login form controls at 800px viewport width; confirm no form control exceeds the card or creates horizontal scrolling.",
+          "id": "finding-2",
+          "truthState": "hypothesized"
+        }
+      ],
+      "runRecord": {
+        "requestId": "host-cli-mtoj6che-2mqj78",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "openai/gpt-5.6-terra",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T15:21:34.900Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+            "width": 800,
+            "height": 600,
+            "bytes": 7617
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "providerIdentity": "installed agent explicitly invoked with openai/gpt-5.6-terra; provider internals and billing not independently attested; tools denied",
+  "humanReleaseInspection": "not performed"
+}

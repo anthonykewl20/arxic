@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Retain clean Node 22.22.0 source-install/browser proof with baseline persistence, restart session invalidation and recovery after forced termination during a real browser request (refs #402).
+
 - Provider-agnostic dashboard model controls (refs #402): named operator-owned API/host-agent connections, provider-specific suggestions, editable custom IDs and per-job credential/rate binding for guided runs, campaigns and image reviews. Host model argument forwarding now passes the exact chosen ID; legacy agents disclose their selection limitation. No hardcoded GPT default remains in the forms.
 
 - Inspected-image dashboard AI review (refs #402): queued review of one stable PNG, model secret references, estimates, criteria/gaps, screenshot-bound proposed regions, reproduction and model provenance. Missing consent, changed evidence, invalid regions and insufficient estimates block. Findings remain hypotheses. Real cancellation exposed orphan host providers; owned process groups and private attachment directories now clean up on cancellation, completion and restart. Review forms preserve open state, text and focus through polling. Live review exposed a missed required submit button; the prompt now explicitly assesses the independent criterion before general visual findings.
