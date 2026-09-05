@@ -217,6 +217,15 @@ or name of the executable>` — `ARXIC_MODEL_BASE_URL` and
 optional via `ARXIC_MODEL_HOST_CLI_ARGS` (whitespace-separated, or a JSON
 array of strings for arguments containing spaces).
 
+Library image requests additionally require `ARXIC_MODEL_HOST_CLI_IMAGE_ARGS`,
+a JSON array such as `["--image", "{image}"]` matching the installed CLI's actual
+attachment syntax. The literal `{image}` must be a separate argument. Each PNG
+is attached through a private temporary file and removed after the request.
+Missing or malformed image configuration fails closed; ordinary text requests
+retain their existing arguments. This is a transport prerequisite for semantic
+visual review, not a new dashboard review mode. See the
+[model adapter contract](../packages/model-adapter/README.md#image-evidence).
+
 Because the model does not honour `response_format: json_schema` over this
 transport, the adapter relies entirely on the schema-in-prompt path plus its
 existing retry-on-invalid-JSON loop — AJV validation and the `schemaVersion`

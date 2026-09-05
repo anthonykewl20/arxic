@@ -16,6 +16,8 @@ See the [product specification](docs/web-product-spec.md) for the exact coverage
 boundary. Dashboard version labels use `v0.0.200`; canonical package versions are
 `0.0.200`.
 
+The model adapter supports bounded PNG attachments for HTTP and configured host agents; dashboard AI image review remains under development.
+
 ## Run the web app locally
 
 ```bash
