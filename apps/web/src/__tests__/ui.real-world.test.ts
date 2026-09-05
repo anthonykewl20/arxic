@@ -59,8 +59,27 @@ it('lets a real browser register a folder, discover source intent, run visual ch
       ),
     );
   };
+  let releaseInitial!: () => void;
+  let initialReady!: () => void;
+  const initialHeld = new Promise<void>((done) => {
+    initialReady = done;
+  });
+  const initialReleased = new Promise<void>((done) => {
+    releaseInitial = done;
+  });
+  await page.route(
+    '**/api/state',
+    async (route) => {
+      const response = await route.fetch();
+      initialReady();
+      await initialReleased;
+      await route.fulfill({ response });
+    },
+    { times: 1 },
+  );
   try {
     await page.goto(app.origin);
+    await initialHeld;
     await page.getByLabel('Administrator token').fill('incorrect-but-long-enough-token-for-test');
     await page.getByRole('button', { name: 'Open workbench' }).click();
     await expect
@@ -70,9 +89,16 @@ it('lets a real browser register a folder, discover source intent, run visual ch
     await page.getByRole('button', { name: 'Open workbench' }).click();
     await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
     expect(await page.getByLabel('Administrator token').inputValue()).toBe('');
+    const initialResponse = page.waitForResponse(
+      (response) => response.url().endsWith('/api/state') && response.status() === 401,
+    );
+    releaseInitial();
+    await initialResponse;
+    await page.waitForTimeout(300);
+    expect(await page.locator('#app').isHidden()).toBe(false);
     await capture(
       '01-empty-workspace',
-      'Invalid login refused; administrator opened empty workspace',
+      'Invalid login refused; late anonymous response cannot hide authenticated workspace',
     );
     await page.locator('#new-project').click();
     await page.getByLabel('Project name', { exact: true }).fill('Reference frontend');

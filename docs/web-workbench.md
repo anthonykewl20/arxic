@@ -132,7 +132,7 @@ No CORS wildcard or proxy-header-derived authentication is enabled.
 
 Sessions last eight hours, use HTTP-only/SameSite=Strict cookies and gain Secure
 on HTTPS. Writes require same-origin JSON. Login attempts are rate limited.
-Signing out discards pending dashboard responses; a late response cannot reopen the workspace. Restarting the server clears sessions. To rotate access, change the configured
+Authentication changes discard stale dashboard responses: old anonymous errors cannot hide a new session, and late authenticated data cannot reopen a signed-out workspace. Restarting the server clears sessions. To rotate access, change the configured
 token and restart. The admin UI exposes roots and audit history, not the token.
 
 ## Evidence and release status

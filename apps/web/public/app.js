@@ -24,6 +24,7 @@ let refreshSequence = 0;
 let signingOut = false;
 
 async function api(path, method = 'GET', body) {
+  const epoch = sessionEpoch;
   const response = await fetch(`/api${path}`, {
     method,
     headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
@@ -31,7 +32,7 @@ async function api(path, method = 'GET', body) {
   });
   const data = await response.json();
   if (!response.ok) {
-    if (response.status === 401) {
+    if (response.status === 401 && epoch === sessionEpoch) {
       sessionEpoch++;
       $('#app').hidden = true;
       $('#login').hidden = false;
@@ -223,6 +224,7 @@ function editProject(id = '') {
 }
 $('#login-form').addEventListener('submit', async (event) => {
   event.preventDefault();
+  sessionEpoch++;
   try {
     await api('/session', 'POST', { token: event.target.elements.token.value });
     event.target.reset();
