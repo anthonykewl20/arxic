@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 import { HttpError } from './errors';
 import { subscriptionPresets } from './provider-presets';
 import { discoverHttpModels, type CatalogModel } from './model-catalog';
@@ -257,11 +257,9 @@ type CatalogState = {
 };
 const catalogs = new Map<string, CatalogState>();
 function catalogKey(connection: Connection, env: NodeJS.ProcessEnv) {
-  return createHash('sha256')
-    .update(
-      JSON.stringify([connection, connection.credentialRef ? env[connection.credentialRef] : null]),
-    )
-    .digest('hex');
+  return sha256(
+    JSON.stringify([connection, connection.credentialRef ? env[connection.credentialRef] : null]),
+  );
 }
 const catalogTtl = 5 * 60_000;
 function catalogStatus(id: string) {

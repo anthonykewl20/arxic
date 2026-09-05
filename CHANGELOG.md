@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Reuse the shared SHA-256 capability for provider catalog cache keys after CI caught a duplicate implementation; the unchanged architecture gate and cache tests pass locally (refs #402).
+
 - Declare explicit string types for visual-review constants/enums required by Codex native structured output. A real API schema rejection reproduced the gap; accepted values and field bounds remain unchanged (refs #402).
 
 - Forward output schemas to native Claude/Codex controls after a live account returned an overlong reproduction check. Native bridges receive a prompt/schema envelope on stdin; ordinary host wrappers retain text input. Claude structured-result envelopes are validated by the existing adapter without relaxing field limits (refs #402).
