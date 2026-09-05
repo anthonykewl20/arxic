@@ -24,6 +24,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Fixed
 
+- stream-json path-filter depth hardening (refs #406): a hash-pinned compatibility patch rejects evaluated paths beyond 1,024 levels through the stream error channel, addressing GHSA-528h-pc64-c93x without replacing Crawlee’s CommonJS API with incompatible ESM exports. All four filters, boundary depths, ordinary output, Crawlee serialization and real browser discovery are covered. Version-only scanners may continue flagging stock 1.9.1. Security documentation now distinguishes the historical engine release from the unreleased web product and its host trust boundary.
+
 - Dashboard timestamps now explicitly use UTC. A browser in Asia/Manila previously displayed a 09:00 UTC schedule as an unlabeled 17:00 next-due time; the real-browser assertion reproduces this ambiguity and pins the correction.
 
 - Environment settings are configuration references rather than mislabeled feature flags; mobile declaration rows stack for readability. Inventory search survives dashboard polling; expanded gap details remain open during refresh. Routine status polling omits the large frontend payload. Real Chromium desktop/mobile journeys cover the new inventory and the reproduced search-entry loss.

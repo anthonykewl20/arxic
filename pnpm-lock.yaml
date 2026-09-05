@@ -10,6 +10,7 @@ overrides:
   qs: ^6.16.0
 
 patchedDependencies:
+  stream-json@1.9.1: 8e43577fd905a5f96839767957ec6fc089a055e082814f5dfb026b19d865b0a5
   yazl@3.3.1: 0828e6163503647010829ccd73424bf2cdca0f59a7db3a03714ac23911e6cad4
 
 importers:
@@ -5656,7 +5657,7 @@ snapshots:
       json5: 2.2.3
       minimatch: 9.0.9
       ow: 0.28.2
-      stream-json: 1.9.1
+      stream-json: 1.9.1(patch_hash=8e43577fd905a5f96839767957ec6fc089a055e082814f5dfb026b19d865b0a5)
       tldts: 7.4.10
       tough-cookie: 6.0.2
       tslib: 2.8.1
@@ -9663,7 +9664,7 @@ snapshots:
     dependencies:
       duplexer: 0.1.2
 
-  stream-json@1.9.1:
+  stream-json@1.9.1(patch_hash=8e43577fd905a5f96839767957ec6fc089a055e082814f5dfb026b19d865b0a5):
     dependencies:
       stream-chain: 2.2.5
 

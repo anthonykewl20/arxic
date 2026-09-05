@@ -35,6 +35,7 @@ minimumReleaseAgeExclude:
   - '@crawlee/utils@3.18.0'
   - crawlee@3.18.0
 patchedDependencies:
+  stream-json@1.9.1: patches/stream-json@1.9.1.patch
   yazl@3.3.1: patches/yazl@3.3.1.patch
 overrides:
   esbuild: 0.28.1

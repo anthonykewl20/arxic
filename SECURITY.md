@@ -1,12 +1,15 @@
 # Security Policy
 
-Arxic executes untrusted repositories and reads potentially adversarial web
-content. Security is core to the design (ADR §16), not an afterthought.
+Arxic inspects repositories and potentially adversarial web content. Local and
+dashboard execution requires trusted project folders and operator-configured host
+tools; it is not a hostile-code or multi-tenant sandbox. Worker isolation and
+evidence controls have the boundaries described below (ADR §16).
 
 ## Supported versions
 
-Pre-1.0 development against the `main` branch only. There are no tagged releases
-yet; fixes land on `main`.
+Pre-1.0 fixes land on `main`. The current web workbench line is unreleased
+`v0.0.200`. The historical `v0.2.0` engine release remains published; it does not
+represent the expanded web product or its current security fixes.
 
 ## Reporting a vulnerability
 
@@ -70,7 +73,18 @@ for public disclosure) is found in history. At each release re-evaluation, run
 a fresh full-history secret scan and have the maintainer record the result
 before reconfirming the decision.
 
-## Hardening roadmap
+## Dependency hardening
 
-See ADR §16. Adversarial prompt-injection, origin-escape, secret-leakage, and
-destructive-action test hardening is planned for Milestone 2 (not yet filed).
+The [stream-json assessment](docs/reviews/stream-json-406.md) records the bounded
+path-filter patch for GHSA-528h-pc64-c93x and Crawlee compatibility proof. The
+lockfile pins the patch; version-only scanners may still report stock 1.9.1.
+Use frozen-lockfile installs and retain the patch until a compatible fixed
+upstream dependency replaces it.
+
+## Current hardening work
+
+Milestone 2 engine hardening is implemented; see the architecture record and
+`docs/SYNC.md` for its historical gates. Expanded web-product controls and release
+proof remain tracked in [#402](https://github.com/anthonykewl20/arxic/issues/402).
+The existing worker boundary does not imply equivalent isolation for local or
+host-agent execution.

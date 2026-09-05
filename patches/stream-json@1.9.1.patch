@@ -1,0 +1,15 @@
+diff --git a/filters/FilterBase.js b/filters/FilterBase.js
+index 2e96d1581e8ca67ca600ab9228ec7a4a1c84d4af..e8e5f814778050637c443f5584f4e4eb00925e1d 100644
+--- a/filters/FilterBase.js
++++ b/filters/FilterBase.js
+@@ -55,6 +55,10 @@ class FilterBase extends Transform {
+   }
+ 
+   _check(chunk, _, callback) {
++    // Bound path construction (GHSA-528h-pc64-c93x). Pass/skip states do not join paths.
++    if (this._stack.length > 1024) {
++      return callback(new RangeError('stream-json path filter maximum depth of 1024 exceeded'));
++    }
+     // update the last stack key
+     switch (chunk.name) {
+       case 'startObject':
