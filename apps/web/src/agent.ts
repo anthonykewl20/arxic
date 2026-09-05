@@ -5,21 +5,31 @@ import { LocalRunExecutor } from '../../cli/src/local-executor';
 import { runAction } from '../../cli/src/run';
 import { validateIntentLedger } from '../../../packages/intent/src/ledger';
 import { inside } from './projects';
+import { executionConfig } from './execution';
 import type { Run, RunResult } from './types';
 
 export async function runAgent(run: Run, directory: string): Promise<RunResult> {
-  if (!run.project.configPath)
+  if (!run.project.configPath && !run.project.execution)
     return {
       outcome: 'blocked',
-      summary: 'Choose an Arxic configuration file in the project settings before running AI E2E.',
+      summary:
+        'Configure guided AI execution or choose an Arxic configuration file before running AI E2E.',
     };
-  const configPath = await realpath(run.project.configPath);
-  if (!inside(run.project.folder, configPath))
-    return {
-      outcome: 'blocked',
-      summary: 'The configuration file no longer belongs to the project folder.',
+  let loaded;
+  if (run.project.execution) {
+    loaded = {
+      ok: true as const,
+      value: executionConfig(run.project.execution, run.project.folder, run.project.origin),
     };
-  const loaded = await loadConfig(configPath);
+  } else {
+    const configPath = await realpath(run.project.configPath);
+    if (!inside(run.project.folder, configPath))
+      return {
+        outcome: 'blocked',
+        summary: 'The configuration file no longer belongs to the project folder.',
+      };
+    loaded = await loadConfig(configPath);
+  }
   if (!loaded.ok)
     return {
       outcome: 'blocked',

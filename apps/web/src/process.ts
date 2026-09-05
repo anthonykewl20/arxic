@@ -17,10 +17,17 @@ export async function stopProcess(child: ChildProcess): Promise<void> {
   }
 }
 
-export function launchJob(input: string, result: string) {
+export function launchJob(input: string, result: string, overrides?: NodeJS.ProcessEnv) {
   const require = createRequire(import.meta.url);
   const env: NodeJS.ProcessEnv = { ...process.env, ARXIC_WEB_JOB: '1' };
   delete env.ARXIC_ADMIN_TOKEN;
+  if (overrides) {
+    for (const key of Object.keys(env)) if (key.startsWith('ARXIC_SECRET_')) delete env[key];
+    for (const [key, value] of Object.entries(overrides)) {
+      if (value === undefined) delete env[key];
+      else env[key] = value;
+    }
+  }
   const child = fork(fileURLToPath(new URL('./job.ts', import.meta.url)), [input, result], {
     execArgv: ['--import', require.resolve('tsx')],
     detached: process.platform !== 'win32',

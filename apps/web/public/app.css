@@ -27,3 +27,28 @@
     margin-bottom: 4px;
   }
 }
+
+#execution-fields {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 24px 0 0;
+  min-width: 0;
+  padding: 20px;
+}
+#execution-fields legend {
+  font-weight: 650;
+}
+#execution-fields details {
+  margin-top: 24px;
+}
+#execution-fields .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 760px) {
+  #execution-fields {
+    padding: 12px;
+  }
+  #execution-fields .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

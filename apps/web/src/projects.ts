@@ -4,6 +4,7 @@ import { isAbsolute, relative, resolve } from 'node:path';
 import { CronExpressionParser } from 'cron-parser';
 import { HttpError } from './errors';
 import type { Project, RunMode } from './types';
+import { validateExecution } from './execution';
 
 export function nextSlot(cron: string, now = new Date()): string | null {
   if (!cron) return null;
@@ -58,6 +59,7 @@ export async function validateProject(
     'masks',
     'captureConsent',
     'configPath',
+    'execution',
     'cron',
     'scheduleMode',
     'paused',
@@ -147,6 +149,9 @@ export async function validateProject(
     }
   }
   const cron = text('cron', '', 100);
+  const execution = validateExecution(input.execution, folder, origin);
+  if (execution && configPath)
+    throw new HttpError(400, 'Choose guided execution or a configuration file, not both');
   return {
     id: previous?.id ?? randomUUID(),
     name,
@@ -157,6 +162,7 @@ export async function validateProject(
     masks,
     captureConsent: input.captureConsent === true,
     configPath,
+    ...(execution ? { execution } : {}),
     cron,
     scheduleMode: runMode(input.scheduleMode ?? 'discovery'),
     paused: input.paused !== false,

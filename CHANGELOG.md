@@ -12,6 +12,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Guided web AI execution (refs #402): model/persona settings, server secret references, deployment declarations and bounded crawl/runtime settings generate engine-validated configuration without a project YAML file. Missing secrets block before launch; selected credentials remain outside project/run JSON. Existing file-based execution remains available. Domain declarations do not filter routes and planning estimates are not billing guarantees.
+
 - Frontend declaration inventory (refs #402): native JS/TS/JSX/TSX component/control/action/condition/state/test/configuration/flag extraction plus Markdown/text requirements, source revision/line/hash provenance, per-file unsupported and unsafe-source gaps, bounded scans, dashboard filtering/search/pagination and complete JSON access. All declarations remain hypotheses; campaign and runtime coverage remain explicit release gaps.
 
 - Initial self-hosted web workbench (refs #401): authenticated project configuration; source/domain inventory; the existing AI/compiler/verifier pipeline; real Chromium viewport captures and Pixelmatch comparisons; explicit, hash-checked baseline approval; persistent SQLite run history, cancellation and protected deletion; serialized UTC cron schedules with restart recovery; administrator audit events; local/server setup. Captures mask inputs and require every additional privacy selector to resolve. Broader semantic AI visual auditing and comprehensive frontend state campaigns remain tracked in #402.
@@ -21,6 +23,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 - Arxic's primary product is now a local/server web frontend testing application (ADR-009). The owner-defined release line is `v0.0.200` (canonical package metadata `0.0.200`); minor releases add 100 and patch fixes add 1. CLI, dashboard and release tags share the padded `v` label; scripts align every workspace manifest. The prior engine release audit does not establish readiness for the expanded web product. No release tag or publication is performed.
 
 ### Fixed
+
+- Dashboard timestamps now explicitly use UTC. A browser in Asia/Manila previously displayed a 09:00 UTC schedule as an unlabeled 17:00 next-due time; the real-browser assertion reproduces this ambiguity and pins the correction.
 
 - Environment settings are configuration references rather than mislabeled feature flags; mobile declaration rows stack for readability. Inventory search survives dashboard polling; expanded gap details remain open during refresh. Routine status polling omits the large frontend payload. Real Chromium desktop/mobile journeys cover the new inventory and the reproduced search-entry loss.
 

@@ -149,6 +149,141 @@
           >
         </div>
         <label class="checkbox consent"
+          ><input name="guided" type="checkbox" /> Configure AI execution in this dashboard</label
+        >
+        <fieldset id="execution-fields" hidden disabled>
+          <legend>AI execution</legend>
+          <p class="muted">
+            Uses the model connection configured by your server operator. Secret references name
+            server environment variables; enter no passwords or API keys here.
+          </p>
+          <div class="form-grid">
+            <label>Model name<input name="exec_model" required placeholder="gpt-4o-mini" /></label>
+            <label
+              >Model secret reference<input
+                name="exec_modelSecretRef"
+                placeholder="ARXIC_SECRET_MODEL_KEY"
+              /><small>Blank uses the server's model credential.</small></label
+            >
+            <label
+              >Frameworks<input name="exec_frameworks" required placeholder="nextjs" /><small
+                >Comma-separated declarations; engine support is checked before crawling.</small
+              ></label
+            >
+            <label
+              >Domain declarations<input
+                name="exec_domains"
+                required
+                placeholder="authentication"
+              /><small
+                >Comma-separated. Enables matching domain seeders; does not restrict discovered
+                routes.</small
+              ></label
+            >
+            <label
+              >Languages<input name="exec_languages" required value="typescript, javascript"
+            /></label>
+            <label
+              >Environment<select name="exec_environmentClass">
+                <option value="local-test">Local test</option>
+                <option value="preview">Preview</option>
+                <option value="staging">Staging</option>
+              </select></label
+            >
+            <label
+              >Planning budget (estimated USD)<input
+                name="exec_modelBudgetUsd"
+                type="number"
+                min="0"
+                max="100"
+                step="0.001"
+                value="0.025"
+                required
+              /><small
+                >Engine estimate. Host agent billing may be unavailable; this is not a billing
+                limit.</small
+              ></label
+            >
+            <label
+              >Maximum run minutes<input
+                name="exec_maxRuntimeMinutes"
+                type="number"
+                min="1"
+                max="30"
+                value="10"
+                required
+            /></label>
+            <label
+              >Maximum crawl URLs<input
+                name="exec_maxUrls"
+                type="number"
+                min="1"
+                max="500"
+                value="20"
+                required
+            /></label>
+            <label
+              >Maximum crawl depth<input
+                name="exec_maxDepth"
+                type="number"
+                min="1"
+                max="10"
+                value="2"
+                required
+            /></label>
+            <label
+              >Persona strategy<select name="persona_mode">
+                <option value="anonymous">Anonymous</option>
+                <option value="seed-api">Test app seed API</option>
+                <option value="per-pass-login">Existing test account login</option>
+              </select></label
+            >
+            <label
+              >Email secret reference<input
+                name="persona_emailRef"
+                placeholder="ARXIC_SECRET_TEST_EMAIL"
+            /></label>
+            <label
+              >Password secret reference<input
+                name="persona_passwordRef"
+                placeholder="ARXIC_SECRET_TEST_PASSWORD"
+            /></label>
+            <label
+              >New password secret reference<input
+                name="persona_newPasswordRef"
+                placeholder="ARXIC_SECRET_NEW_PASSWORD"
+            /></label>
+          </div>
+          <details>
+            <summary>Login and deployment declarations</summary>
+            <p class="muted">
+              Login fields apply to existing test accounts. Feature flags describe the running
+              deployment; Arxic does not change them.
+            </p>
+            <div class="form-grid">
+              <label>Login path<input name="persona_loginPath" value="/login" /></label>
+              <label>Email field label<input name="persona_emailLabel" value="Email" /></label>
+              <label
+                >Password field label<input name="persona_passwordLabel" value="Password"
+              /></label>
+              <label>Login button label<input name="persona_submitLabel" value="Login" /></label>
+              <label
+                >Attestation path<input
+                  name="exec_attestationPath"
+                  value="/.well-known/arxic-test-target.json"
+              /></label>
+              <label
+                >Feature flag declarations<textarea
+                  name="exec_featureFlags"
+                  placeholder="passwordReset=true"
+                  rows="3"
+                ></textarea
+                ><small>One name=true or name=false per line.</small></label
+              >
+            </div>
+          </details>
+        </fieldset>
+        <label class="checkbox consent"
           ><input name="captureConsent" type="checkbox" /> I authorize screenshot capture of this
           test environment. The pages contain test data; I have added masks for any other sensitive
           content.</label

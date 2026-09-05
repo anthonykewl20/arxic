@@ -7,6 +7,7 @@ import { allowedFolder, nextSlot, runMode, validateProject } from './projects';
 import { launchJob, stopProcess } from './process';
 import type { Run, RunResult } from './types';
 import { compareCapture, digest } from './visual';
+import { executionEnvironment } from './execution';
 
 export class Workbench {
   private active: ReturnType<typeof launchJob> | null = null;
@@ -140,12 +141,18 @@ export class Workbench {
         await writeFile(input, JSON.stringify(run), { mode: 0o600 });
         if (this.closed || this.store.run(run.id)?.state === 'cancelled')
           throw new Error('Run cancelled before launch');
-        this.active = launchJob(input, output);
+        const overrides =
+          run.mode === 'agent' && run.project.execution
+            ? executionEnvironment(run.project.execution, process.env)
+            : undefined;
+        this.active = launchJob(input, output, overrides);
         timeout = setTimeout(
           () => {
             if (this.active) void stopProcess(this.active.child);
           },
-          run.mode === 'agent' ? 30 * 60_000 : 5 * 60_000,
+          run.mode === 'agent'
+            ? (run.project.execution?.maxRuntimeMinutes ?? 30) * 60_000
+            : 5 * 60_000,
         );
         const code = await this.active.finished;
         if (code !== 0) throw new Error('Interrupted engine');
@@ -176,11 +183,13 @@ export class Workbench {
               diffFile,
             });
           }
-      } catch {
+      } catch (error) {
         result = {
           outcome: 'blocked',
           summary:
-            'Run stopped: invalid project, engine failure, cancellation, or runtime limit. Prior baselines were preserved.',
+            error instanceof HttpError
+              ? error.message
+              : 'Run stopped: invalid project, engine failure, cancellation, or runtime limit. Prior baselines were preserved.',
         };
       } finally {
         if (timeout) clearTimeout(timeout);

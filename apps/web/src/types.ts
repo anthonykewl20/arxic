@@ -9,6 +9,7 @@ export type Project = {
   masks: string[];
   captureConsent: boolean;
   configPath: string;
+  execution?: import('./execution').ExecutionSettings;
   cron: string;
   scheduleMode: RunMode;
   paused: boolean;
