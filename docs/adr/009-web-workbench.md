@@ -260,3 +260,5 @@ The action layer owns enqueue requests, session-epoch checks and navigation to
 the accepted run before refreshing its state. Logout unmounts component roots
 and clears unsent review drafts. Run details honor the selected project filter.
 Server policy and deterministic truth-state assignment remain unchanged.
+
+See [run/review browser proof](../evidence/WEB-402-RUN-REVIEW/summary.md).

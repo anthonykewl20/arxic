@@ -1,0 +1,133 @@
+{
+  "screenshots": [
+    {
+      "path": "core/01-empty-workspace.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "63ab7065d3626236e215bbacab82a305b002f323fa7a65d53343fb9fd0694e1d",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/02-project-overview.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "9df80155170ace83a7a34d1d17c8bee013ee516cea3e427c004f52b33d5073c1",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/03-intent-inventory.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "ddacb184c7fbb95bbc33684a615b943dfe22ee4d3a4ca8972b9edea21a6b7785",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/04-visual-comparison.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "ede850c1fa882c3f7d574a840516f1ea181dd88faf762d1464a16d63b7c4a170",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/05-schedule.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "aff7489632255d7ce84e255d543b62049c4524bb76d45c407e95f056983a2944",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/06-administration.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "0ad082af513407c08a05c712562bc7133d8e6a8e384e45165939f1c4d7912133",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/07-mobile-overview.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "a385115cb66454697151ee59716a3926cc3faa47416d5c9fdd1d7753a0ed5bbe",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/08-signed-out.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "9489e6d9f2dddc233878f9bd3017138b37911c4de31d847b362908410aed3bd3",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/09-frontend-declarations.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "0bb756017781187103b0e50e68a1156cc3b4acf9fb3760ec3bc19fa885f075c2",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/10-mobile-declarations.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "356865d4b708362c246b2bcd1051962055e51c866a0b9f8de2b97117ecffa0fd",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/11-guided-settings.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "fea274516d764a1a16abf744790c4e113b30a0266f3439915bcbbe5b7cadb0a2",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/12-mobile-guided-settings.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "f7000316321f8ebf5650285b7f131507e96e83c0d390fc57d5d12000788a3040",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/13-mobile-navigation.png",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "96e9f4ddf0dfb965ae67aa1790f47f376f6f0fc8daa4bccde9aa15be28a0792a",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/01-inspected-capture.png",
+      "sourceCommit": "520b256e76a1e93fd5d70a9c1bd2287930b6bc3b",
+      "sha256": "1d216c1830bf3c4895a96cbd77711335b5a51c992926a68f72e60e9ffb8fdd32",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/02-grounded-hypothesis.png",
+      "sourceCommit": "520b256e76a1e93fd5d70a9c1bd2287930b6bc3b",
+      "sha256": "c0a2659de7a61c78110daeed3b03e1457f597af8fe9f12e3869233bb40c76d0a",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/03-mobile-review.png",
+      "sourceCommit": "520b256e76a1e93fd5d70a9c1bd2287930b6bc3b",
+      "sha256": "58f18f2a1c3be60c04aa8b585c85dd551ce40584718d59eec40010ac504d452d",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/04-review-submission-pending.png",
+      "sourceCommit": "520b256e76a1e93fd5d70a9c1bd2287930b6bc3b",
+      "sha256": "b80efc36748bb036c12bbe8941b7e9b9f114d07a796d6eaa2ca4aaeeff4c817c",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/05-project-filter.png",
+      "sourceCommit": "520b256e76a1e93fd5d70a9c1bd2287930b6bc3b",
+      "sha256": "66e9507724969a3af5287946315791c4c673d2c5d0602c0712d4594413ae61e3",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/06-new-session-consent.png",
+      "sourceCommit": "520b256e76a1e93fd5d70a9c1bd2287930b6bc3b",
+      "sha256": "bedc63f65a7b03a130c35552197c76e30f3b1d9bea2f387e3c3b47b43315f0c3",
+      "inspection": "agent-inspected; human release inspection not performed"
+    }
+  ],
+  "timelines": [
+    {
+      "path": "core/timeline.json",
+      "sourceCommit": "5c56b79a7cd6ce76d966780eb2fbe4548f57739a",
+      "sha256": "f207d58ac8daf148d25a79b8d22f43fa75388c83ba31e5ee325e65c490eadaee",
+      "inspection": "allow-listed action/assertion results inspected; no raw trace"
+    },
+    {
+      "path": "review/timeline.json",
+      "sourceCommit": "520b256e76a1e93fd5d70a9c1bd2287930b6bc3b",
+      "sha256": "5ed5f0dda45d806b1f3484c2c347100654465ede3a074442973925a62a53159e",
+      "inspection": "allow-listed action/assertion results inspected; no raw trace"
+    }
+  ],
+  "humanInspection": "not performed"
+}
