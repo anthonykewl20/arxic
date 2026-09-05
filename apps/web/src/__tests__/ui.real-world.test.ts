@@ -30,7 +30,10 @@ it('lets a real browser register a folder, discover source intent, run visual ch
     port: 0,
   });
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const page = await browser.newPage({
+    viewport: { width: 1440, height: 1000 },
+    timezoneId: 'Asia/Manila',
+  });
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.name));
   const timeline: Array<{ action: string; result: 'passed' }> = [];
@@ -200,6 +203,7 @@ it('lets a real browser register a folder, discover source intent, run visual ch
     );
     await page.locator('#close-dialog').click();
     await page.setViewportSize({ width: 1440, height: 1000 });
+    await expect.poll(() => page.locator('#content').textContent()).toContain('09:00:00 UTC');
     await capture('05-schedule', 'Administrator enabled the persisted UTC cron schedule');
     await page.getByRole('button', { name: 'Administration', exact: true }).click();
     await expect.poll(() => page.locator('#content').textContent()).toContain('baseline.approved');

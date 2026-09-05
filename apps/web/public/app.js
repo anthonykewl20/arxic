@@ -5,7 +5,8 @@ const escape = (value) =>
     (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char],
   );
 const pill = (value) => `<span class="pill ${escape(value)}">${escape(value)}</span>`;
-const time = (value) => (value ? new Date(value).toLocaleString() : '—');
+const time = (value) =>
+  value ? `${new Date(value).toISOString().slice(0, 19).replace('T', ' ')} UTC` : '—';
 const titles = {
   overview: 'Workspace overview',
   intents: 'Intent inventory',

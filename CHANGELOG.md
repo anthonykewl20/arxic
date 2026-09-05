@@ -24,6 +24,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Fixed
 
+- Dashboard timestamps now explicitly use UTC. A browser in Asia/Manila previously displayed a 09:00 UTC schedule as an unlabeled 17:00 next-due time; the real-browser assertion reproduces this ambiguity and pins the correction.
+
 - Environment settings are configuration references rather than mislabeled feature flags; mobile declaration rows stack for readability. Inventory search survives dashboard polling; expanded gap details remain open during refresh. Routine status polling omits the large frontend payload. Real Chromium desktop/mobile journeys cover the new inventory and the reproduced search-entry loss.
 
 - Web integration guards (refs #401): session/image hashes reuse the shared contracts capability; the exact app/package workspace census is 29 and the web TypeScript configuration follows the workspace contract. The duplicate-implementation guard and source-inclusion assertion remain unchanged.

@@ -138,6 +138,7 @@ operators, not for running hostile user submissions or isolating tenants.
 
 ## Schedules and history
 
+Dashboard timestamps, including **Next due**, explicitly display UTC in every browser timezone.
 Project settings accept five-field cron in **UTC**, for example `0 9 * * *`
 (daily at 09:00 UTC) or `0 9 * * 1` (Mondays). Pick discovery, visual or AI E2E
 and uncheck **Pause scheduled runs** to enable it. The server must remain running.
