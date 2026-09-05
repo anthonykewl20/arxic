@@ -169,6 +169,13 @@ function run(overrides: Partial<Parameters<typeof runPostCrawlReproposal>[0]> = 
 }
 
 describe('runPostCrawlReproposal (#324 AC-3, Cause C)', () => {
+  it('does not send a form-backed row outside the explicit workflow scope to the model', async () => {
+    const outcome = await run({ inventoryRowIds: ['inv:page:GET:000000000000'] });
+    expect(outcome.record.formBackedRowIds).toHaveLength(1);
+    expect(outcome.record.reproposedRowIds).toHaveLength(0);
+    expect(outcome.record.skippedReason).toContain('selected scope');
+    expect(requests).toHaveLength(0);
+  });
   it('SKIPS with a stated reason when the crawl backed no form (pre-crawl shape)', async () => {
     const outcome = await run({ fusedInventory: fused([invRow({})]) });
     expect(outcome.record.proposals).toHaveLength(0);

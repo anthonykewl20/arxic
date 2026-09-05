@@ -62,6 +62,21 @@ export function validateConfig(input: unknown): ValidationResult {
     invalid(diagnostics, 'config.scope.browsers', 'must contain exactly chromium');
   }
   const personas = stringArray(scope?.personas, 'config.scope.personas', diagnostics);
+  const inventoryRowIds =
+    scope?.inventoryRowIds === undefined
+      ? undefined
+      : stringArray(scope.inventoryRowIds, 'config.scope.inventoryRowIds', diagnostics, true);
+  if (
+    inventoryRowIds &&
+    (inventoryRowIds.length > 20 ||
+      new Set(inventoryRowIds).size !== inventoryRowIds.length ||
+      inventoryRowIds.some((id) => !/^inv:(page|route):[^:\s]{1,20}:[a-f0-9]{12}$/u.test(id)))
+  )
+    invalid(
+      diagnostics,
+      'config.scope.inventoryRowIds',
+      'must contain 1–20 unique source inventory consumer-row ids',
+    );
   const featureFlags = recordOfBooleans(
     scope?.featureFlags,
     'config.scope.featureFlags',
@@ -256,6 +271,7 @@ export function validateConfig(input: unknown): ValidationResult {
         browsers: browsers!,
         personas: personas!,
         ...(featureFlags === undefined ? {} : { featureFlags }),
+        ...(inventoryRowIds === undefined ? {} : { inventoryRowIds }),
       },
       target: {
         origin: origin!,

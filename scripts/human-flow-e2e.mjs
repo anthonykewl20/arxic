@@ -485,7 +485,16 @@ async function startModel(requests) {
 }
 
 /** A model-boundary stub; proposals cite actual rows supplied by the packed CLI. */
-export function modelStubOutput(messages) {
+export function modelStubOutput(
+  messages,
+  {
+    path = '/login',
+    intent = 'log in with credentials',
+    fromState = 'signed-out',
+    toState = 'signed-in',
+    rationale = 'Reference-app login hypothesis grounded in the supplied inventory row',
+  } = {},
+) {
   const inventoryMessage = messages.find(
     (message) => message.role === 'user' && message.content.includes('INVENTORY_DATA'),
   );
@@ -493,21 +502,21 @@ export function modelStubOutput(messages) {
     /INVENTORY_DATA[^\n]*\n([\s\S]*?)\nEND_INVENTORY_DATA/u,
   )?.[1];
   if (!inventory) throw new Error('Model stub did not receive the current inventory contract');
-  const row = JSON.parse(inventory).find((item) => item.path === '/login' && item.method === 'GET');
+  const row = JSON.parse(inventory).find((item) => item.path === path && item.method === 'GET');
   return {
     schemaVersion: 'arxic-intent-proposal-v1',
     proposals: row
       ? [
           {
             domain: 'authentication',
-            intent: 'log in with credentials',
+            intent,
             action: `perform ${row.method} ${row.path}`,
-            fromState: 'signed-out',
-            toState: 'signed-in',
+            fromState,
+            toState,
             persona: 'registered-user',
             inventoryRowIds: [row.id],
             evidenceRefIds: row.evidenceRefIds,
-            rationale: 'Reference-app login hypothesis grounded in the supplied inventory row',
+            rationale,
           },
         ]
       : [],

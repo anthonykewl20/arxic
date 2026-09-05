@@ -7,6 +7,36 @@ import { validateConfig } from '../config/validate';
 import { VALID_CONFIG, VALID_YAML } from './fixtures';
 
 describe('CLI configuration sad paths', () => {
+  it.each([
+    [],
+    null,
+    ['bad-id'],
+    ['inv:page:GET:000000000000', 'inv:page:GET:000000000000'],
+    Array.from(
+      { length: 21 },
+      (_, index) => `inv:page:GET:${index.toString(16).padStart(12, '0')}`,
+    ),
+  ])('refuses malformed or excessive workflow scope %j', (inventoryRowIds) => {
+    expect(
+      validateConfig({ ...VALID_CONFIG, scope: { ...VALID_CONFIG.scope, inventoryRowIds } }),
+    ).toMatchObject({
+      ok: false,
+      diagnostics: expect.arrayContaining([
+        expect.objectContaining({ subject: 'config.scope.inventoryRowIds' }),
+      ]),
+    });
+  });
+  it('retains a valid explicit workflow scope in the validated engine config', () => {
+    expect(
+      validateConfig({
+        ...VALID_CONFIG,
+        scope: { ...VALID_CONFIG.scope, inventoryRowIds: ['inv:page:GET:000000000001'] },
+      }),
+    ).toMatchObject({
+      ok: true,
+      value: { scope: { inventoryRowIds: ['inv:page:GET:000000000001'] } },
+    });
+  });
   it.each([{ browsers: [] }, { browsers: ['firefox'] }, { browsers: ['chromium', 'webkit'] }])(
     'refuses an unsupported browser selection %j',
     ({ browsers }) => {

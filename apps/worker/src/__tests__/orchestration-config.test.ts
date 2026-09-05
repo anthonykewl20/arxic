@@ -17,6 +17,7 @@ it('both execution lanes retain declared extra origins and replay authentication
   };
   const config = {
     ...VALID_CONFIG,
+    scope: { ...VALID_CONFIG.scope, inventoryRowIds: ['inv:page:GET:000000000001'] },
     fixtures: { ...VALID_CONFIG.fixtures, replayPersona: declaration },
   };
   const persona = { id: 'test', email: 'audit@example.test', password: 'Canary398!' };
@@ -24,5 +25,6 @@ it('both execution lanes retain declared extra origins and replay authentication
     allowedOrigins: config.target.allowedOrigins,
     replayPersona: { declaration, persona: { email: persona.email, password: persona.password } },
     requiredVerificationRuns: 2,
+    inventoryRowIds: ['inv:page:GET:000000000001'],
   });
 });

@@ -50,6 +50,7 @@ export async function runPostCrawlReproposal(input: {
   readonly runId: string;
   /** The runtime-fused inventory (stage-13 source rows + stage-5 crawl). */
   readonly fusedInventory: DomainInventory;
+  readonly inventoryRowIds?: readonly string[];
   /** Proposals stage 4 already accepted — used only to find unbound rows. */
   readonly stage4Proposals: readonly BoundProposal[];
   /** Stage 4's own estimate, subtracted from the cap so the run stays bounded. */
@@ -74,9 +75,18 @@ export async function runPostCrawlReproposal(input: {
   for (const proposal of input.stage4Proposals) {
     for (const rowId of proposal.inventoryRowIds) bound.add(rowId);
   }
-  const reproposedRowIds = formBackedRowIds.filter((rowId) => !bound.has(rowId));
+  const reproposedRowIds = formBackedRowIds.filter(
+    (rowId) =>
+      !bound.has(rowId) &&
+      (input.inventoryRowIds === undefined || input.inventoryRowIds.includes(rowId)),
+  );
   if (reproposedRowIds.length === 0) {
-    return skip('stage 4 already bound every form-backed row', reproposedRowIds);
+    return skip(
+      input.inventoryRowIds === undefined
+        ? 'stage 4 already bound every form-backed row'
+        : 'no unbound form-backed row remains inside the selected scope',
+      reproposedRowIds,
+    );
   }
 
   // Bound the whole run, not just this pass: whatever stage 4 estimated is

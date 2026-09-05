@@ -69,13 +69,33 @@ Unknown top-level fields are rejected.
 
 ## `scope`
 
-| Field          | Required | Type and validation                | Default |
-| -------------- | -------- | ---------------------------------- | ------- |
-| `domains`      | Yes      | Non-empty array of strings.        | —       |
-| `frameworks`   | Yes      | Non-empty array of strings.        | —       |
-| `browsers`     | Yes      | Exactly `[chromium]`.              | —       |
-| `personas`     | Yes      | Array of strings; it may be empty. | —       |
-| `featureFlags` | No       | Object whose values are booleans.  | Omitted |
+| Field             | Required | Type and validation                          | Default |
+| ----------------- | -------- | -------------------------------------------- | ------- |
+| `domains`         | Yes      | Non-empty array of strings.                  | —       |
+| `frameworks`      | Yes      | Non-empty array of strings.                  | —       |
+| `browsers`        | Yes      | Exactly `[chromium]`.                        | —       |
+| `personas`        | Yes      | Array of strings; it may be empty.           | —       |
+| `featureFlags`    | No       | Object whose values are booleans.            | Omitted |
+| `inventoryRowIds` | No       | 1–20 unique current source consumer-row IDs. | Omitted |
+
+`inventoryRowIds` restricts AI proposals and post-crawl re-proposals to selected
+source rows. Use the `inventoryRowId` values in an existing Intent Ledger, or
+`toProposalConsumerInventory` from `@arxic/domain-inventory` on the discovery
+inventory. IDs have the form `inv:page:GET:<12 lowercase hex digits>` or
+`inv:route:<method>:<12 lowercase hex digits>`; raw inventory keys and frontend
+declaration IDs are different identifiers. Each run checks the selection against
+its freshly extracted source inventory before inference. Empty, duplicate,
+malformed or oversized selections are invalid configuration; stale IDs and an
+unavailable model-backed selection path block with `ARXIC-ORCH-WORKFLOW-SCOPE`.
+Changed selection invalidates terminal-run reuse.
+
+Omitting the field preserves the existing proposal scope. The full inventory
+remains in the ledger; stage 4 records selected and unselected consumer-row IDs.
+This engine run still compiles at most one candidate from the selected scope.
+Selecting several rows does not execute a campaign or establish coverage of all
+selected rows. To exercise a specific supported route, select that single row.
+Selection restricts proposal candidates, not prerequisite navigation or discovery
+URLs; the existing origin, fixture and mutation policies still apply.
 
 ## `target`
 

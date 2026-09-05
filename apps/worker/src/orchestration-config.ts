@@ -23,6 +23,9 @@ export function orchestrationConfig(config: ArxicConfig, persona?: VerificationP
       : {}),
     framework: config.scope.frameworks[0],
     features: config.scope.domains,
+    ...(config.scope.inventoryRowIds === undefined
+      ? {}
+      : { inventoryRowIds: config.scope.inventoryRowIds }),
     languages: config.source.languages,
     personas: config.scope.personas,
     maxUrls: config.policy.maxUrls,

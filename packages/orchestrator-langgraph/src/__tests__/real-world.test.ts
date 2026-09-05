@@ -156,58 +156,66 @@ describe('real LangGraph orchestration proof', () => {
     expect(await persistedRunBytes('real-invalid-model')).not.toContain(promptBytes);
   }, 90_000);
 
-  it('blocks a reused id when a real persisted reference-app run receives a changed source revision', async () => {
-    const runId = 'real-input-fingerprint';
-    const first = await new LangGraphOrchestrator({
-      checkpointer: new FileStageCheckpointer(runsDirectory),
-      inferCandidates: async () => ({ requestId: runId, candidates: [] }),
-    }).run(orchestratorInput(runId));
-    const persisted = await new FileStageCheckpointer(runsDirectory).load(runId);
-    const reused = await new LangGraphOrchestrator({
-      checkpointer: new FileStageCheckpointer(runsDirectory),
-      inferCandidates: async () => {
-        throw new Error('Changed inputs must not execute a stale terminal run');
-      },
-    }).run({
-      ...orchestratorInput(runId),
-      revision: { ...orchestratorInput(runId).revision, commit: 'f'.repeat(40) },
-    });
-
-    expect(first.completedStages).toHaveLength(14);
-    // DG-06: the domain-inventory stage ran on the REAL reference app —
-    // fused by the real DG-05 translator path and projected into the
-    // evidence graph before inference.
-    const inventoryCheckpoint = first.checkpoints.find(({ stage }) => stage === 13);
-    expect(inventoryCheckpoint).toMatchObject({
-      name: 'domain-inventory',
-      status: 'completed',
-      adapter: { name: '@arxic/domain-inventory' },
-    });
-    expect(inventoryCheckpoint?.artifacts).toHaveLength(1);
-    expect(persisted?.inputFingerprint).toMatch(/^[a-f0-9]{64}$/u);
-    expect(reused.status).toBe('failed');
-    expect(reused.outcome).toBe('blocked');
-    expect(reused.diagnostics).toContainEqual(
-      expect.objectContaining({
-        code: ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH,
-        severity: 'blocked',
-      }),
-    );
-    for (const changed of [
-      { expectedBuildDigest: 'f'.repeat(64) },
-      { allowedOrigins: [origin, 'http://127.0.0.1:1'] },
-      { requiredVerificationRuns: 3 },
-    ]) {
-      const rejected = await new LangGraphOrchestrator({
+  it.each(['revision', 'workflow-selection', 'empty-selection'])(
+    'blocks a reused id when a real persisted reference-app run receives changed %s',
+    async (changed) => {
+      const runId = `real-input-fingerprint-${changed}`;
+      const first = await new LangGraphOrchestrator({
         checkpointer: new FileStageCheckpointer(runsDirectory),
-      }).run({ ...orchestratorInput(runId), ...changed });
-      expect(rejected.outcome).toBe('blocked');
-      expect(rejected.diagnostics).toContainEqual(
-        expect.objectContaining({ code: ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH }),
+        inferCandidates: async () => ({ requestId: runId, candidates: [] }),
+      }).run(orchestratorInput(runId));
+      const persisted = await new FileStageCheckpointer(runsDirectory).load(runId);
+      const reused = await new LangGraphOrchestrator({
+        checkpointer: new FileStageCheckpointer(runsDirectory),
+        inferCandidates: async () => {
+          throw new Error('Changed inputs must not execute a stale terminal run');
+        },
+      }).run({
+        ...orchestratorInput(runId),
+        ...(changed === 'revision'
+          ? { revision: { ...orchestratorInput(runId).revision, commit: 'f'.repeat(40) } }
+          : {
+              inventoryRowIds: changed === 'empty-selection' ? [] : ['inv:page:GET:000000000000'],
+            }),
+      });
+
+      expect(first.completedStages).toHaveLength(14);
+      // DG-06: the domain-inventory stage ran on the REAL reference app —
+      // fused by the real DG-05 translator path and projected into the
+      // evidence graph before inference.
+      const inventoryCheckpoint = first.checkpoints.find(({ stage }) => stage === 13);
+      expect(inventoryCheckpoint).toMatchObject({
+        name: 'domain-inventory',
+        status: 'completed',
+        adapter: { name: '@arxic/domain-inventory' },
+      });
+      expect(inventoryCheckpoint?.artifacts).toHaveLength(1);
+      expect(persisted?.inputFingerprint).toMatch(/^[a-f0-9]{64}$/u);
+      expect(reused.status).toBe('failed');
+      expect(reused.outcome).toBe('blocked');
+      expect(reused.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH,
+          severity: 'blocked',
+        }),
       );
-      expect(await new FileStageCheckpointer(runsDirectory).load(runId)).toEqual(persisted);
-    }
-  }, 180_000);
+      for (const changed of [
+        { expectedBuildDigest: 'f'.repeat(64) },
+        { allowedOrigins: [origin, 'http://127.0.0.1:1'] },
+        { requiredVerificationRuns: 3 },
+      ]) {
+        const rejected = await new LangGraphOrchestrator({
+          checkpointer: new FileStageCheckpointer(runsDirectory),
+        }).run({ ...orchestratorInput(runId), ...changed });
+        expect(rejected.outcome).toBe('blocked');
+        expect(rejected.diagnostics).toContainEqual(
+          expect.objectContaining({ code: ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH }),
+        );
+        expect(await new FileStageCheckpointer(runsDirectory).load(runId)).toEqual(persisted);
+      }
+    },
+    180_000,
+  );
 
   it('uses the full default compiler for a real reference-app candidate', async () => {
     const referenceApp = FIXTURE_APPS.find(({ name }) => name === 'reference-auth-app');

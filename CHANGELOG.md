@@ -12,6 +12,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Scoped engine execution (refs #402): optional `scope.inventoryRowIds` restricts proposals and post-crawl re-proposals to current source consumer rows through the shared local/worker configuration. Stale selections block before inference, changed selection invalidates checkpoint reuse, and the full inventory remains in the ledger. Real Next.js login and password-reset selections pass two verifier replays each. This is a single-candidate prerequisite for multi-workflow campaigns, whose dashboard and scheduling remain pending.
+
 - Guided web AI execution (refs #402): model/persona settings, server secret references, deployment declarations and bounded crawl/runtime settings generate engine-validated configuration without a project YAML file. Missing secrets block before launch; selected credentials remain outside project/run JSON. Existing file-based execution remains available. Domain declarations do not filter routes and planning estimates are not billing guarantees.
 
 - Frontend declaration inventory (refs #402): native JS/TS/JSX/TSX component/control/action/condition/state/test/configuration/flag extraction plus Markdown/text requirements, source revision/line/hash provenance, per-file unsupported and unsafe-source gaps, bounded scans, dashboard filtering/search/pagination and complete JSON access. All declarations remain hypotheses; campaign and runtime coverage remain explicit release gaps.

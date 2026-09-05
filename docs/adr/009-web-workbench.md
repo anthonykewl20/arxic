@@ -37,6 +37,17 @@ model costs are estimates, not a guaranteed host-agent billing ceiling. Domain
 and feature-flag declarations do not implement deployment toggles or campaign
 route filters. Frozen evidence/workflow contracts are unchanged.
 
+### Scoped engine execution (2026-09-05 continuation, refs #402)
+
+The optional configuration field `scope.inventoryRowIds` passes through the
+shared local/worker projection. The orchestrator validates current source rows
+before inference, restricts proposals and re-proposals, and records selection
+separately from the unchanged full inventory. Invalid or stale selections block
+instead of running a default candidate. Selection participates in the persisted
+input fingerprint. This is the prerequisite for campaign orchestration; one
+engine run still compiles at most one candidate. No workflow or truth contract
+changes and no LLM verification authority are introduced.
+
 ### Frontend declaration inventory (2026-09-05 continuation, refs #402)
 
 An additive source-adapter capability emits `arxic-frontend-inventory-v1` from
