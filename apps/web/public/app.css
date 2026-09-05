@@ -154,3 +154,21 @@
   border-top: 1px solid var(--border);
   padding: 16px 0;
 }
+
+.visual-review-result {
+  padding: 24px;
+}
+.visual-review-result > h3 {
+  margin-bottom: 10px;
+}
+.visual-review-result > p,
+.review-finding p {
+  margin: 12px 0;
+}
+.review-image {
+  max-width: 800px;
+  margin-inline: auto;
+}
+.review-finding h4 {
+  margin-bottom: 10px;
+}
