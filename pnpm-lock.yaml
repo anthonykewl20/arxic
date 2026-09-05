@@ -126,6 +126,9 @@ importers:
       '@arxic/domain-inventory':
         specifier: workspace:*
         version: link:../../packages/domain-inventory-spike
+      '@arxic/model-adapter':
+        specifier: workspace:*
+        version: link:../../packages/model-adapter
       '@arxic/playwright-screenshot-privacy':
         specifier: workspace:*
         version: link:../../packages/playwright-screenshot-privacy

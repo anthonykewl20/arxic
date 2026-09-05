@@ -222,8 +222,8 @@ a JSON array such as `["--image", "{image}"]` matching the installed CLI's actua
 attachment syntax. The literal `{image}` must be a separate argument. Each PNG
 is attached through a private temporary file and removed after the request.
 Missing or malformed image configuration fails closed; ordinary text requests
-retain their existing arguments. This is a transport prerequisite for semantic
-visual review, not a new dashboard review mode. See the
+retain their existing arguments. The dashboard uses this binding after inspected-image authorization for a
+retained stable capture; image review receives no persona credentials. See the
 [model adapter contract](../packages/model-adapter/README.md#image-evidence).
 
 Because the model does not honour `response_format: json_schema` over this

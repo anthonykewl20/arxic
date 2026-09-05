@@ -53,6 +53,10 @@ export type HostCliTransportConfig = {
   args?: string[];
   /** Repeated per PNG. Must contain a separate literal {image} argument. */
   imageArgs?: string[];
+  /** Existing private parent directory owned/cleaned by a supervising job. */
+  imageDirectory?: string;
+  /** Supervisor owns the process group and kills all remaining descendants. */
+  inheritProcessGroup?: boolean;
   /** Working directory for the spawned process. Defaults to process.cwd(). */
   cwd?: string;
 };
@@ -179,7 +183,7 @@ export function createHostCliTransport(
     if (!validImageArgs(config.imageArgs)) return providerFailure(false);
     let directory: string | undefined;
     try {
-      directory = await mkdtemp(join(tmpdir(), 'arxic-model-images-'));
+      directory = await mkdtemp(join(config.imageDirectory ?? tmpdir(), 'arxic-model-images-'));
       const args = [...(config.args ?? [])];
       for (const [index, image] of input.images.entries()) {
         const file = join(directory, `image-${index + 1}.png`);
@@ -217,7 +221,7 @@ function runHostCli(
       child = spawn(config.command, config.args ?? [], {
         cwd: config.cwd,
         stdio: ['pipe', 'pipe', 'pipe'],
-        detached: process.platform !== 'win32',
+        detached: process.platform !== 'win32' && !config.inheritProcessGroup,
       });
     } catch {
       resolve(providerFailure(false));
@@ -241,6 +245,8 @@ function runHostCli(
       if (child.pid) {
         if (process.platform === 'win32') {
           execFile('taskkill', ['/PID', String(child.pid), '/T', '/F'], () => undefined);
+        } else if (config.inheritProcessGroup) {
+          child.kill('SIGKILL');
         } else {
           try {
             process.kill(-child.pid, 'SIGKILL');

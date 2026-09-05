@@ -1,6 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 import { escape, pill, time } from './html.js';
 import { workflowSelection, campaignScreen } from './campaigns.js';
+import { captureReviewForm, visualReviewResult, reviewDrafts } from './visual-review.js';
 const titles = {
   overview: 'Workspace overview',
   intents: 'Intent inventory',
@@ -90,7 +91,10 @@ async function refresh() {
   $('#login').hidden = true;
   $('#version').textContent = state.versionLabel;
   if (state.queueError) notice(state.queueError);
-  if (!$('#project-dialog').open && !document.activeElement?.closest('#declaration-search'))
+  if (
+    !$('#project-dialog').open &&
+    !document.activeElement?.closest('#declaration-search, [data-review-form]')
+  )
     render();
 }
 function project(id) {
@@ -193,18 +197,18 @@ function runDetail(run) {
   const result = run.result;
   const figure = (label, runId, file) =>
     `<figure><figcaption>${label}</figcaption>${file ? `<a href="/api/runs/${runId}/artifacts/${escape(file)}" target="_blank" rel="noopener"><img alt="${label}" src="/api/runs/${runId}/artifacts/${escape(file)}" /></a>` : '<div class="placeholder">Awaiting a reviewed baseline</div>'}</figure>`;
-  return `<section class="run-detail"><div class="section-heading"><div><h2>${escape(run.project.name)} / ${escape(run.mode)}</h2><small>${escape(run.id)}</small></div>${['running', 'queued'].includes(run.state) ? `<button class="danger" data-cancel="${run.id}">Cancel run</button>` : run.workflowScope ? `<button class="secondary" data-open-campaign="${run.workflowScope.campaignId}">View campaign</button>` : `<button class="secondary" data-start="${run.mode}" data-project="${run.projectId}">Run again</button>`}</div><div class="panel"><div class="result-summary">${pill(run.state)} ${result ? pill(result.outcome) : ''}<p>${escape(result?.summary ?? 'The job is queued or running. Results update automatically.')}</p></div>${result?.findings?.length ? `<div class="findings"><h3>Observed frontend findings</h3><ul>${result.findings.map((item) => `<li>${escape(item.path)} · ${escape(item.kind)}: ${item.count}</li>`).join('')}</ul></div>` : ''}${result?.engineRun || result?.diagnostics ? `<details><summary>Engine diagnostics and evidence</summary><pre>${escape(JSON.stringify({ diagnostics: result.diagnostics, run: result.engineRun }, null, 2))}</pre></details>` : ''}</div>${(
+  return `<section class="run-detail"><div class="section-heading"><div><h2>${escape(run.project.name)} / ${escape(run.mode)}</h2><small>${escape(run.id)}</small></div>${['running', 'queued'].includes(run.state) ? `<button class="danger" data-cancel="${run.id}">Cancel run</button>` : run.visualReview ? `<button class="secondary" data-open-run="${run.visualReview.sourceRunId}">View source capture</button>` : run.workflowScope ? `<button class="secondary" data-open-campaign="${run.workflowScope.campaignId}">View campaign</button>` : `<button class="secondary" data-start="${run.mode}" data-project="${run.projectId}">Run again</button>`}</div><div class="panel"><div class="result-summary">${pill(run.state)} ${result ? pill(result.outcome) : ''}<p>${escape(result?.summary ?? 'The job is queued or running. Results update automatically.')}</p></div>${result?.findings?.length ? `<div class="findings"><h3>Observed frontend findings</h3><ul>${result.findings.map((item) => `<li>${escape(item.path)} · ${escape(item.kind)}: ${item.count}</li>`).join('')}</ul></div>` : ''}${result?.engineRun || result?.diagnostics ? `<details><summary>Engine diagnostics and evidence</summary><pre>${escape(JSON.stringify({ diagnostics: result.diagnostics, run: result.engineRun }, null, 2))}</pre></details>` : ''}</div>${(
     result?.captures ?? []
   )
     .map((capture) => {
       const approved = state.baselines.some(
         (item) => item.run_id === run.id && item.capture_id === capture.id,
       );
-      return `<article class="capture"><div class="capture-head"><div><h3>${escape(capture.path)} <span class="muted">${capture.viewport.width} × ${capture.viewport.height}</span></h3><small>${pill(capture.status)} ${capture.changedPixels === undefined ? '' : `${capture.changedPixels.toLocaleString()} changed pixels · ${(capture.ratio * 100).toFixed(3)}%`}</small></div>${approved ? pill('approved baseline') : run.state === 'completed' && capture.status !== 'unstable' ? `<button class="secondary" data-approve="${capture.id}" data-run="${run.id}">Approve as baseline</button>` : ''}</div><div class="compare">${figure('Approved baseline', capture.baselineRunId, capture.baselineFile)}${figure('Current capture', run.id, capture.file)}${figure('Pixel difference', run.id, capture.diffFile)}</div></article>`;
+      return `<article class="capture"><div class="capture-head"><div><h3>${escape(capture.path)} <span class="muted">${capture.viewport.width} × ${capture.viewport.height}</span></h3><small>${pill(capture.status)} ${capture.changedPixels === undefined ? '' : `${capture.changedPixels.toLocaleString()} changed pixels · ${(capture.ratio * 100).toFixed(3)}%`}</small></div>${approved ? pill('approved baseline') : run.state === 'completed' && capture.status !== 'unstable' ? `<button class="secondary" data-approve="${capture.id}" data-run="${run.id}">Approve as baseline</button>` : ''}</div><div class="compare">${figure('Approved baseline', capture.baselineRunId, capture.baselineFile)}${figure('Current capture', run.id, capture.file)}${figure('Pixel difference', run.id, capture.diffFile)}</div>${captureReviewForm(run, capture)}</article>`;
     })
     .join(
       '',
-    )}${run.workflowScope ? '<p class="scope-note">Kept as campaign evidence. Start another selected campaign from Intent inventory to test again.</p>' : !['queued', 'running'].includes(run.state) ? `<p class="section-heading"><button class="danger" data-delete-run="${run.id}">Delete run and artifacts</button></p>` : ''}${result?.captures?.length ? `<div class="scope-note">Inputs are masked. Review all remaining pixels before sharing. Baseline approval records your visual decision; it does not assign a verified business outcome. Captures cover configured viewports and paths only. <a href="/api/runs/${run.id}/artifacts/timeline.json">Action timeline</a> · <a href="/api/runs/${run.id}/artifacts/timeline.sanitization.json">Sanitization provenance</a></div>` : ''}</section>`;
+    )}${visualReviewResult(run)}${run.workflowScope ? '<p class="scope-note">Kept as campaign evidence. Start another selected campaign from Intent inventory to test again.</p>' : !['queued', 'running'].includes(run.state) ? `<p class="section-heading"><button class="danger" data-delete-run="${run.id}">Delete run and artifacts</button></p>` : ''}${result?.captures?.length ? `<div class="scope-note">Inputs are masked. Review all remaining pixels before sharing. Baseline approval records your visual decision; it does not assign a verified business outcome. Captures cover configured viewports and paths only. <a href="/api/runs/${run.id}/artifacts/timeline.json">Action timeline</a> · <a href="/api/runs/${run.id}/artifacts/timeline.sanitization.json">Sanitization provenance</a></div>` : ''}</section>`;
 }
 function runs() {
   const chosen = state.runs.find((item) => item.id === selectedRun);
@@ -430,6 +434,45 @@ document.addEventListener('submit', (event) => {
   declarationSearch = new FormData(event.target).get('query');
   declarationPages.clear();
   render();
+});
+document.addEventListener('input', (event) => {
+  const form = event.target.closest('[data-review-form]');
+  if (!form) return;
+  const values = new FormData(form);
+  const inspectedAndAuthorized = values.has('inspectedAndAuthorized');
+  reviewDrafts.set(form.dataset.reviewForm, {
+    ...Object.fromEntries(values),
+    inspectedAndAuthorized,
+    open: true,
+  });
+  form.querySelector('button[type="submit"]').disabled = !inspectedAndAuthorized;
+});
+document.addEventListener('submit', async (event) => {
+  const form = event.target;
+  if (!form.dataset.reviewForm) return;
+  event.preventDefault();
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  const values = new FormData(form);
+  try {
+    const run = await api(`/runs/${form.dataset.run}/reviews`, 'POST', {
+      captureId: form.dataset.capture,
+      sha256: form.dataset.hash,
+      inspectedAndAuthorized: values.has('inspectedAndAuthorized'),
+      model: values.get('model'),
+      modelSecretRef: values.get('modelSecretRef'),
+      budgetUsd: Number(values.get('budgetUsd')),
+      acceptanceCriterion: values.get('acceptanceCriterion'),
+    });
+    reviewDrafts.delete(form.dataset.reviewForm);
+    document.activeElement?.blur();
+    selectedRun = run.id;
+    section = 'runs';
+    await refresh();
+  } catch (error) {
+    notice(error.message);
+    button.disabled = false;
+  }
 });
 document.addEventListener('submit', async (event) => {
   const form = event.target;

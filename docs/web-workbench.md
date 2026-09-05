@@ -181,6 +181,34 @@ inherit the operator's configured permissions. The dashboard token is removed
 from child environments. This initial workbench is for trusted projects and
 operators, not for running hostile user submissions or isolating tenants.
 
+## AI review of an inspected screenshot
+
+Open a stable checkpoint's full current capture, then expand **Ask AI to review
+this screenshot**. Choose the model, optional `ARXIC_SECRET_` model credential
+reference, budget estimate and an independent criterion from your specification.
+Confirm that you inspected and authorize sharing these pixels, then select
+**Review these pixels**. This authorizes one retained screenshot, not new states.
+
+A durable review job checks PNG integrity and privacy provenance at enqueue and
+execution. Source evidence remains protected while referenced. Review jobs require
+explicit authorization and cannot be created through ordinary run/cron routes.
+
+Findings remain **hypothesized**, with numbered proposed regions, exact screenshot,
+source-run reproduction, independent criterion (or an explicit gap), a separate
+AI-suggested check and model metadata. Out-of-image regions block the result.
+Valid coordinates do not prove a defect. Empty findings do not establish a
+defect-free page. Authenticated and broader state coverage remain under #402.
+
+One request uses the existing server model binding with no automatic retry.
+HTTP estimates use the configured price table and a 20,000 input / 4,000 output
+token allowance, not a billing ceiling. Unknown prices block. Host usage remains
+operator-managed; the executable needs explicit image attachment arguments
+([configuration](configuration.md#host-bound-model-binding-host-bound-model)).
+Configure the trusted host executable with tools disabled for this lane; Arxic
+does not sandbox the provider executable. Review jobs inherit an owned process
+group. Cancellation stops providers and removes private attachments; interrupted
+attachments are cleaned at restart.
+
 ## Schedules and history
 
 Dashboard timestamps, including **Next due**, explicitly display UTC in every browser timezone.
@@ -239,6 +267,5 @@ there is no public share URL.
 
 Inspect retained pixels before exporting/sharing. The standing human screenshot
 inspection still applies before tagging or publishing a release. This workbench
-does not implement semantic AI image review, comprehensive authenticated visual
-state campaigns, multi-user roles, automatic project startup or notifications.
+does not implement comprehensive authenticated visual state campaigns, multi-user roles, automatic project startup or notifications.
 Those remain explicit requirements in [#402](https://github.com/anthonykewl20/arxic/issues/402).

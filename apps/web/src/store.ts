@@ -52,6 +52,13 @@ export class Store {
       )
       .run(campaign.id, JSON.stringify(campaign));
   }
+  referencesReview(runId: string): boolean {
+    return !!this.db
+      .prepare(
+        "SELECT 1 FROM runs WHERE json_extract(data, '$.visualReview.sourceRunId')=? LIMIT 1",
+      )
+      .get(runId);
+  }
   referencesCampaign(runId: string): boolean {
     return !!this.db
       .prepare(

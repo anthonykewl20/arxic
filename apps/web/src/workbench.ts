@@ -8,10 +8,11 @@ import { allowedFolder, nextSlot, runMode, validateProject } from './projects';
 import { launchJob, stopProcess } from './process';
 import type { Campaign, Run, RunResult } from './types';
 import { compareCapture, digest } from './visual';
-import { executionEnvironment } from './execution';
+import { executionEnvironment, secretRef, secretEnvironment } from './execution';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
 import { campaignRows, campaignView } from './campaigns';
+import { reviewImage, type VisualReviewScope } from './visual-review';
 
 export class Workbench {
   private active: ReturnType<typeof launchJob> | null = null;
@@ -61,7 +62,19 @@ export class Workbench {
       mode: 0o600,
     });
     try {
-      return new Workbench(await Store.open(directory), resolved, directory);
+      const store = await Store.open(directory);
+      try {
+        for (const run of store.runs())
+          if (run.state === 'running')
+            await rm(join(directory, 'runs', run.id, '.model-images'), {
+              recursive: true,
+              force: true,
+            });
+        return new Workbench(store, resolved, directory);
+      } catch (error) {
+        store.db.close();
+        throw error;
+      }
     } catch (error) {
       await unlink(lock);
       throw error;
@@ -98,6 +111,71 @@ export class Workbench {
     this.store.audit('run.queued', run.id);
     this.kick();
     return run;
+  }
+  async enqueueVisualReview(runId: string, input: Record<string, unknown>) {
+    return this.mutate(async () => {
+      this.requireQueueCapacity(1);
+      if (input.inspectedAndAuthorized !== true)
+        throw new HttpError(
+          400,
+          'You must inspect the screenshot and authorize sharing its pixels',
+        );
+      if (
+        Object.keys(input).some(
+          (key) =>
+            ![
+              'captureId',
+              'sha256',
+              'inspectedAndAuthorized',
+              'model',
+              'budgetUsd',
+              'acceptanceCriterion',
+              'modelSecretRef',
+            ].includes(key),
+        ) ||
+        typeof input.model !== 'string' ||
+        !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,119}$/u.test(input.model) ||
+        typeof input.budgetUsd !== 'number' ||
+        !Number.isFinite(input.budgetUsd) ||
+        input.budgetUsd <= 0 ||
+        input.budgetUsd > 100 ||
+        typeof input.acceptanceCriterion !== 'string' ||
+        input.acceptanceCriterion.length > 2000
+      )
+        throw new HttpError(400, 'Invalid image review settings');
+      const source = this.store.run(runId);
+      const capture = source?.result?.captures?.find((c) => c.id === input.captureId);
+      if (
+        !source ||
+        source.mode !== 'visual' ||
+        source.state !== 'completed' ||
+        !capture ||
+        capture.status === 'unstable'
+      )
+        throw new HttpError(409, 'A completed stable visual capture is required');
+      if (input.sha256 !== capture.sha256)
+        throw new HttpError(409, 'The screenshot changed; inspect it again');
+      const scope: VisualReviewScope = {
+        sourceRunId: runId,
+        capture,
+        inspectedAndAuthorizedAt: new Date().toISOString(),
+        model: input.model,
+        modelSecretRef: secretRef(input.modelSecretRef),
+        budgetUsd: input.budgetUsd,
+        acceptanceCriterion: input.acceptanceCriterion.trim(),
+      };
+      await reviewImage(join(this.directory, 'runs'), scope);
+      const run = this.store.db.transaction(() => {
+        this.requireQueueCapacity(1);
+        const review = this.store.enqueue(source.project, 'review')!;
+        review.visualReview = scope;
+        this.store.saveRun(review);
+        this.store.audit('visual-review.authorized-and-queued', review.id);
+        return review;
+      })();
+      this.kick();
+      return run;
+    });
   }
   async enqueueCampaign(projectId: string, input: Record<string, unknown>) {
     return this.mutate(() => this.queueCampaign(projectId, input));
@@ -264,6 +342,7 @@ export class Workbench {
         }
         const directory = join(this.directory, 'runs', run.id);
         await mkdir(directory, { recursive: true, mode: 0o700 });
+        await mkdir(join(directory, '.model-images'), { recursive: true, mode: 0o700 });
         const input = join(directory, 'input.json');
         const output = join(directory, 'result.json');
         await writeFile(input, JSON.stringify(run), { mode: 0o600 });
@@ -272,7 +351,12 @@ export class Workbench {
         const overrides =
           run.mode === 'agent' && run.project.execution
             ? executionEnvironment(run.project.execution, process.env)
-            : undefined;
+            : run.mode === 'review'
+              ? secretEnvironment(
+                  [[run.visualReview!.modelSecretRef, 'ARXIC_MODEL_API_KEY']],
+                  process.env,
+                )
+              : undefined;
         this.active = launchJob(input, output, overrides);
         timeout = setTimeout(
           () => {
@@ -322,6 +406,10 @@ export class Workbench {
       } finally {
         if (timeout) clearTimeout(timeout);
         this.active = null;
+        await rm(join(this.directory, 'runs', run.id, '.model-images'), {
+          recursive: true,
+          force: true,
+        });
       }
       if (this.store.run(run.id)?.state !== 'cancelled') this.store.finish(run, result);
     }
@@ -368,6 +456,8 @@ export class Workbench {
     return this.mutate(async () => {
       const run = this.store.run(id);
       if (!run) throw new HttpError(404, 'Run not found');
+      if (this.store.referencesReview(id))
+        throw new HttpError(409, 'Evidence referenced by an AI review cannot be deleted');
       if (this.store.referencesCampaign(id))
         throw new HttpError(409, 'Evidence referenced by a campaign cannot be deleted');
       if (['queued', 'running'].includes(run.state) || this.store.referencesBaseline(id))
