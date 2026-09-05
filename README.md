@@ -119,5 +119,5 @@ tracked in `CHANGELOG.md`.
 
 MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE`.
 
-Current scoped proof: [provider/model controls](docs/evidence/WEB-402-MODELS/summary.md)
+Current scoped proof: [subscription accounts and dynamic catalogs](docs/evidence/WEB-402-SUBSCRIPTIONS/summary.md), [provider/model controls](docs/evidence/WEB-402-MODELS/summary.md)
 and [clean source installation/recovery](docs/evidence/WEB-402-INSTALL/summary.md).

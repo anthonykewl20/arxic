@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Retain subscription/catalog proof with 13 hash-checked masked screenshots, native model metadata, real Codex/Claude clean/regressed Next image pairs, original failures and the disclosed lexical-oracle correction (refs #402).
+
 - Reuse the shared SHA-256 capability for provider catalog cache keys after CI caught a duplicate implementation; the unchanged architecture gate and cache tests pass locally (refs #402).
 
 - Declare explicit string types for visual-review constants/enums required by Codex native structured output. A real API schema rejection reproduced the gap; accepted values and field bounds remain unchanged (refs #402).

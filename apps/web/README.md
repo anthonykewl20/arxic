@@ -41,3 +41,7 @@ Models & accounts screen uses React and shadcn/ui; other screens are still being
 migrated. Catalog failure timestamps remain visible. Selected credentials and
 explicit HTTP rates resolve per job; host profiles require model forwarding.
 See [provider setup](../../docs/web-workbench.md#provider-connections-and-model-ids).
+
+[Subscription/catalog proof](../../docs/evidence/WEB-402-SUBSCRIPTIONS/summary.md)
+retains native account results, browser artifacts and failed probes. This does
+not establish the complete paid-provider or visual-defect matrix.

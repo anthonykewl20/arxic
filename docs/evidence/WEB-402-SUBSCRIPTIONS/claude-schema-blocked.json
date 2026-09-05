@@ -1,0 +1,43 @@
+{
+  "sourceCommit": "7db924d3afb25e4f4c46111abd94db9ddf3a7fcc",
+  "disposition": "blocked",
+  "reason": "Native result exceeded unchanged suggestedCheck length limit",
+  "result": {
+    "outcome": "blocked",
+    "summary": "AI image review was refused or the provider returned invalid evidence.",
+    "diagnostics": {
+      "diagnostics": [
+        {
+          "code": "ARXIC-MODEL-RETRIES-EXHAUSTED",
+          "severity": "blocked",
+          "subject": "structured-output",
+          "message": "Structured output remained invalid; retries exhausted: /findings/0/suggestedCheck must NOT have more than 500 characters"
+        }
+      ],
+      "runRecord": {
+        "requestId": "host-cli-mtomsoas-yi5ctv",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "default",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T17:02:55.507Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "billing": "subscription",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+            "width": 800,
+            "height": 600,
+            "bytes": 7617
+          }
+        ]
+      }
+    }
+  }
+}

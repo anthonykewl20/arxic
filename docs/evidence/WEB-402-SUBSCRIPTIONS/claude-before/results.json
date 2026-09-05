@@ -1,0 +1,273 @@
+{
+  "sourceCommit": "ce0866c97d36c93dcbb39e2947be3af644994b38",
+  "controlledRegression": "Persistent CSS asset mutation of actual Next reference login page; external model is real, not stubbed",
+  "before": {
+    "button": {
+      "x": 97,
+      "y": 311.25,
+      "width": 384,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": true
+  },
+  "after": {
+    "button": {
+      "x": 817,
+      "y": 311.25,
+      "width": 150,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": false
+  },
+  "changedPixels": 27145,
+  "detectedClippingHypothesis": true,
+  "cleanReview": {
+    "outcome": "hypothesized",
+    "summary": "3 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "1d8fdc99-8f09-4076-80e0-4ff79444ea1a",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+        "specHash": "0538876c2b02a157b4129a79d82e0c527d01d791b6c337e0bc2fdb02f1995602",
+        "browserVersion": "151.0.7922.34",
+        "status": "needs-baseline"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T16:53:26.035Z",
+      "model": "default",
+      "modelConnection": "claude-account",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [
+        {
+          "title": "Submit button styling appears to fall back to browser default inside an otherwise styled card",
+          "description": "The 'Login' submit control renders as a pale grey rectangle with a thin 1px hairline border and dark default label text, visually unlike the rest of the card, which uses a deliberate white surface, rounded corners and a soft border. Its corners are square while the card's are rounded, and it carries no fill colour tying it to the form. This is consistent with the element receiving no author stylesheet rule (missing or misspelled class, or a stylesheet that failed to apply to this element) and thus rendering with user-agent button styling. Note the button itself is fully drawn within the card bounds and within the 800x600 viewport, with no clipping at its right edge and no content extending past the card's right border at x=736.",
+          "severity": "info",
+          "region": {
+            "x": 96,
+            "y": 310,
+            "width": 388,
+            "height": 43
+          },
+          "suggestedCheck": "In DevTools, select the submit button and inspect the Computed styles pane; confirm whether background-color, border and border-radius originate from an author rule or from the user-agent stylesheet. Compare the button's class attribute against the selector defined in the stylesheet for typographical mismatches.",
+          "id": "finding-1",
+          "truthState": "hypothesized"
+        },
+        {
+          "title": "Form controls occupy roughly half the card width, leaving a large unused right-hand region",
+          "description": "The email field, password field and submit button all terminate at approximately x=481, while the card's inner content area extends to roughly x=705 (card border at x=736). The result is a band of empty white space about 225px wide running down the right side of the form, so the left padding (about 33px) and the effective right gap are strongly asymmetric. This pattern is typical of controls carrying a fixed pixel width or a max-width smaller than the container rather than a fluid width, and it may indicate the intended responsive sizing rule is not being applied to the inputs and button.",
+          "severity": "info",
+          "region": {
+            "x": 96,
+            "y": 158,
+            "width": 612,
+            "height": 196
+          },
+          "suggestedCheck": "Inspect the computed width of the input elements and the submit button and check whether it resolves to a fixed px value or a percentage of the parent. Then resize the browser window across several widths and observe whether the controls scale with the card or remain pinned at the same pixel width.",
+          "id": "finding-2",
+          "truthState": "hypothesized"
+        },
+        {
+          "title": "Card is anchored to the top of the viewport with a large empty area beneath it",
+          "description": "The card's lower border sits at approximately y=384, leaving roughly 215px of empty page background between it and the bottom of the 600px viewport, whereas only about 48px separates the card from the top. If the intended layout centres the authentication card in the viewport, this asymmetry suggests the vertical centring is not taking effect, for example because the flex or grid container lacks a resolved full-viewport height. This is reported as an observation about layout symmetry, not as a judgement about the visual design.",
+          "severity": "info",
+          "region": {
+            "x": 62,
+            "y": 46,
+            "width": 676,
+            "height": 552
+          },
+          "suggestedCheck": "Inspect the card's parent container and confirm whether its computed height resolves to the full viewport height and whether align-items or justify-content centring properties are present and effective. Compare the rendered top and bottom offsets of the card at several viewport heights.",
+          "id": "finding-3",
+          "truthState": "hypothesized"
+        }
+      ],
+      "runRecord": {
+        "requestId": "host-cli-mtomh87f-gxksep",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "default",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T16:54:01.422Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "billing": "subscription",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+            "width": 800,
+            "height": 600,
+            "bytes": 8576
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "review": {
+    "outcome": "hypothesized",
+    "summary": "4 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "ca1594d7-d5f7-4704-9fb7-0a67f25acb6c",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+        "specHash": "0538876c2b02a157b4129a79d82e0c527d01d791b6c337e0bc2fdb02f1995602",
+        "browserVersion": "151.0.7922.34",
+        "status": "changed",
+        "changedPixels": 27145,
+        "ratio": 0.056552083333333336,
+        "baselineRunId": "1d8fdc99-8f09-4076-80e0-4ff79444ea1a",
+        "baselineFile": "checkpoint-1.png",
+        "diffFile": "checkpoint-1.diff.png"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T16:54:04.104Z",
+      "model": "default",
+      "modelConnection": "claude-account",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [
+        {
+          "title": "No submit button visible anywhere inside the login card",
+          "description": "The criterion expects a submit button rendered completely inside the visible card and viewport. The card (approx. x 64-736, y 45-383) contains only the 'Login' heading, the Email label/field, and the Password label/field. Below the password field there is an empty white region roughly 80px tall before the card's bottom border, which is where a submit control would normally sit, and it contains no button, text, or border. No submit affordance appears elsewhere in the card or in the surrounding page background either, so the expectation is visibly unmet in this render.",
+          "severity": "error",
+          "region": {
+            "x": 80,
+            "y": 298,
+            "width": 656,
+            "height": 86
+          },
+          "suggestedCheck": "In the rendered DOM, query the form for a submit control (button[type=submit] / input[type=submit]) and assert it exists; if present, log its getBoundingClientRect() and computed display/visibility/opacity/height to determine whether it is absent from the tree or present but collapsed/hidden.",
+          "id": "finding-1",
+          "truthState": "hypothesized"
+        },
+        {
+          "title": "Email and password fields extend past the card's right border",
+          "description": "Both masked input bars start at the card's left content edge (x≈96) but continue past the card's right border at x≈736 and keep going to the image edge. The card border is visible above and below each bar but is interrupted where the bars cross it, so the fields render outside their container rather than being clipped or wrapped by it. This is consistent with the inputs having a fixed or unconstrained width that exceeds the card's inner content width.",
+          "severity": "error",
+          "region": {
+            "x": 700,
+            "y": 178,
+            "width": 100,
+            "height": 118
+          },
+          "suggestedCheck": "Compare offsetWidth/getBoundingClientRect().right of each input against the card element's content-box right edge; inspect the inputs' computed width, min-width, box-sizing, and any explicit size/cols attribute, and check the card's overflow value.",
+          "id": "finding-2",
+          "truthState": "hypothesized"
+        },
+        {
+          "title": "Field content reaches and is cut off at the right viewport edge, suggesting horizontal overflow",
+          "description": "The two field bars run continuously to x=799 and terminate flush at the image boundary with no right-hand edge, padding, or rounded corner visible, unlike their clearly rounded left ends at x≈96. Content extending to and being truncated at the viewport boundary is the visual signature of a layout wider than the viewport, which the criterion explicitly disallows ('without horizontal scrolling'). No horizontal scrollbar is drawn in this capture, so the overflow state cannot be confirmed from pixels alone.",
+          "severity": "warning",
+          "region": {
+            "x": 736,
+            "y": 178,
+            "width": 64,
+            "height": 118
+          },
+          "suggestedCheck": "In the browser at 800x600, compare document.documentElement.scrollWidth and document.body.scrollWidth against window.innerWidth; if scrollWidth is greater, walk descendants comparing each element's boundingClientRect().right to innerWidth to identify the widest offender.",
+          "id": "finding-3",
+          "truthState": "hypothesized"
+        },
+        {
+          "title": "Card bottom whitespace is disproportionate to the rest of the card's vertical rhythm",
+          "description": "Spacing between the heading, labels, and fields is compact (roughly 12-30px gaps), but the gap between the bottom of the password field (y≈294) and the card's bottom border (y≈383) is roughly 89px of empty white. This asymmetric gap is the shape of a reserved slot whose content did not render, which is consistent with the missing submit button noted above rather than with intentional bottom padding.",
+          "severity": "info",
+          "region": {
+            "x": 64,
+            "y": 294,
+            "width": 672,
+            "height": 90
+          },
+          "suggestedCheck": "Inspect the card's last child nodes and its computed padding-bottom; check whether a zero-height or empty wrapper element occupies the gap by toggling outline on all form descendants.",
+          "id": "finding-4",
+          "truthState": "hypothesized"
+        }
+      ],
+      "runRecord": {
+        "requestId": "host-cli-mtomhxqu-p5kc6v",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "default",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T16:54:34.520Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "billing": "subscription",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+            "width": 800,
+            "height": 600,
+            "bytes": 7617
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "providerIdentity": {
+    "agent": "claude",
+    "model": "default",
+    "connection": "claude-account",
+    "catalogSource": "native metadata handshake; no Arxic model presets",
+    "subscriptionAuthChecked": true,
+    "tools": "disabled by native CLI arguments"
+  },
+  "catalog": [
+    {
+      "id": "default"
+    },
+    {
+      "id": "opus[1m]"
+    },
+    {
+      "id": "claude-fable-5-1[1m]"
+    },
+    {
+      "id": "sonnet"
+    },
+    {
+      "id": "haiku"
+    }
+  ],
+  "humanReleaseInspection": "not performed"
+}

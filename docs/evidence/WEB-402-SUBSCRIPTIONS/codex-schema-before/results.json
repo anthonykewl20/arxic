@@ -1,0 +1,144 @@
+{
+  "sourceCommit": "c7d6b66d11aed1d7df9300dafd044df0243f69cd",
+  "controlledRegression": "Persistent CSS asset mutation of actual Next reference login page; external model is real, not stubbed",
+  "before": {
+    "button": {
+      "x": 97,
+      "y": 311.25,
+      "width": 384,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": true
+  },
+  "after": {
+    "button": {
+      "x": 817,
+      "y": 311.25,
+      "width": 150,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": false
+  },
+  "changedPixels": 27145,
+  "detectedClippingHypothesis": false,
+  "cleanReview": {
+    "outcome": "blocked",
+    "summary": "AI image review was refused or the provider returned invalid evidence.",
+    "diagnostics": {
+      "diagnostics": [
+        {
+          "code": "ARXIC-MODEL-PROVIDER-ERROR",
+          "severity": "blocked",
+          "subject": "model-provider",
+          "message": "Model provider request failed"
+        }
+      ],
+      "runRecord": {
+        "requestId": "",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "gpt-6-astra",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T17:11:56.139Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "billing": "subscription",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+            "width": 800,
+            "height": 600,
+            "bytes": 8576
+          }
+        ]
+      }
+    }
+  },
+  "review": {
+    "outcome": "blocked",
+    "summary": "AI image review was refused or the provider returned invalid evidence.",
+    "diagnostics": {
+      "diagnostics": [
+        {
+          "code": "ARXIC-MODEL-PROVIDER-ERROR",
+          "severity": "blocked",
+          "subject": "model-provider",
+          "message": "Model provider request failed"
+        }
+      ],
+      "runRecord": {
+        "requestId": "",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "gpt-6-astra",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T17:12:05.607Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "billing": "subscription",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+            "width": 800,
+            "height": 600,
+            "bytes": 7617
+          }
+        ]
+      }
+    }
+  },
+  "providerIdentity": {
+    "agent": "codex",
+    "model": "gpt-6-astra",
+    "connection": "codex-account",
+    "catalogSource": "native metadata handshake; no Arxic model presets",
+    "subscriptionAuthChecked": true,
+    "tools": "disabled by native CLI arguments"
+  },
+  "catalog": [
+    {
+      "id": "gpt-6-astra"
+    },
+    {
+      "id": "gpt-5.6-sol"
+    },
+    {
+      "id": "gpt-5.6-terra"
+    },
+    {
+      "id": "gpt-5.6-luna"
+    },
+    {
+      "id": "gpt-5.5"
+    },
+    {
+      "id": "gpt-5.4-mini"
+    },
+    {
+      "id": "gpt-5.3-codex-spark"
+    }
+  ],
+  "humanReleaseInspection": "not performed"
+}

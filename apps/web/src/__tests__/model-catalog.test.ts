@@ -107,3 +107,35 @@ it('marks failed refreshes stale and invalidates cached models when the credenti
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });
+
+it('does not forward credentials through redirects and rejects oversized or malformed responses', async () => {
+  let requestsAtRedirectTarget = 0;
+  const target = createServer((_request, response) => {
+    requestsAtRedirectTarget++;
+    response.end('{"data":[]}');
+  }).listen(0, '127.0.0.1');
+  await new Promise<void>((resolve) => target.once('listening', resolve));
+  const targetAddress = target.address() as { port: number };
+  const provider = createServer((request, response) => {
+    if (request.url === '/redirect/models')
+      return response
+        .writeHead(302, { Location: `http://127.0.0.1:${targetAddress.port}/models` })
+        .end();
+    if (request.url === '/oversize/models') return response.end('x'.repeat(4 * 1024 * 1024 + 1));
+    response.end('not-json');
+  }).listen(0, '127.0.0.1');
+  await new Promise<void>((resolve) => provider.once('listening', resolve));
+  try {
+    const address = provider.address() as { port: number };
+    const base = `http://127.0.0.1:${address.port}`;
+    await expect(discoverHttpModels(`${base}/redirect`, 'private-credential')).rejects.toThrow();
+    expect(requestsAtRedirectTarget).toBe(0);
+    await expect(discoverHttpModels(`${base}/oversize`)).rejects.toThrow('response limit');
+    await expect(discoverHttpModels(`${base}/malformed`)).rejects.toThrow(
+      'invalid catalog response',
+    );
+  } finally {
+    await new Promise<void>((resolve) => provider.close(() => resolve()));
+    await new Promise<void>((resolve) => target.close(() => resolve()));
+  }
+});

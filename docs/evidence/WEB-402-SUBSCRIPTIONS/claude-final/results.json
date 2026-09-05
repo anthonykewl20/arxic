@@ -1,0 +1,188 @@
+{
+  "sourceCommit": "c7d6b66d11aed1d7df9300dafd044df0243f69cd",
+  "controlledRegression": "Persistent CSS asset mutation of actual Next reference login page; external model is real, not stubbed",
+  "before": {
+    "button": {
+      "x": 97,
+      "y": 311.25,
+      "width": 384,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": true
+  },
+  "after": {
+    "button": {
+      "x": 817,
+      "y": 311.25,
+      "width": 150,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": false
+  },
+  "changedPixels": 27145,
+  "detectedClippingHypothesis": false,
+  "cleanReview": {
+    "outcome": "hypothesized",
+    "summary": "0 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "3daa57df-9aca-490e-9df3-e91c489aa8cc",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+        "specHash": "b398205387c5e36053924537b6866f13265422ee29e3051a168309b2128bff62",
+        "browserVersion": "151.0.7922.34",
+        "status": "needs-baseline"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T17:09:37.834Z",
+      "model": "default",
+      "modelConnection": "claude-account",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [],
+      "runRecord": {
+        "requestId": "host-cli-mton1hao-4udcv8",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "default",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T17:09:46.322Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "billing": "subscription",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+            "width": 800,
+            "height": 600,
+            "bytes": 8576
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "review": {
+    "outcome": "hypothesized",
+    "summary": "1 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "1a78f5e4-129a-480e-966f-757118bd0e51",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+        "specHash": "b398205387c5e36053924537b6866f13265422ee29e3051a168309b2128bff62",
+        "browserVersion": "151.0.7922.34",
+        "status": "changed",
+        "changedPixels": 27145,
+        "ratio": 0.056552083333333336,
+        "baselineRunId": "3daa57df-9aca-490e-9df3-e91c489aa8cc",
+        "baselineFile": "checkpoint-1.png",
+        "diffFile": "checkpoint-1.diff.png"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T17:09:49.015Z",
+      "model": "default",
+      "modelConnection": "claude-account",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [
+        {
+          "title": "No submit button visible inside the login card",
+          "description": "The acceptance criterion requires the login form's submit button to be fully visible inside the card and viewport. In the rendered card (roughly x=64..736, y=45..383) the visible sequence is the \"Login\" heading, the \"Email\" label with its field, and the \"Password\" label with its field. Below the password field the card interior from about y=295 to the card's bottom border at y=383 is unmasked plain white with no button, label, or control of any kind, and no submit control appears anywhere else in the 800x600 viewport. The region where a submit control would be expected is therefore visible and empty, so the criterion's required control cannot be confirmed as present on screen. Reported as a hypothesis about the visible pixels only; nothing here determines whether the element exists in the DOM, is positioned outside the captured viewport, or is otherwise not painted.",
+          "severity": "error",
+          "region": {
+            "x": 64,
+            "y": 293,
+            "width": 672,
+            "height": 92
+          },
+          "suggestedCheck": "In a browser at 800x600, load the login page and query the form's submit control (e.g. button[type=submit] / input[type=submit]). Assert exactly one exists, then read getBoundingClientRect() and assert width>0, height>0, and that top/left/bottom/right fall inside both the card element's rect and the viewport (0,0,800,600). Independently assert document.documentElement.scrollWidth <= clientWidth to confirm no horizontal scrolling is required to reach it.",
+          "id": "finding-1",
+          "truthState": "hypothesized"
+        }
+      ],
+      "runRecord": {
+        "requestId": "host-cli-mton1z5c-0g6j98",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "4236b8f28ada607e14accdec2233f381f772debbe71bbdaab6b0769fbdf3fa88",
+        "model": "default",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T17:10:09.460Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "billing": "subscription",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+            "width": 800,
+            "height": 600,
+            "bytes": 7617
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "providerIdentity": {
+    "agent": "claude",
+    "model": "default",
+    "connection": "claude-account",
+    "catalogSource": "native metadata handshake; no Arxic model presets",
+    "subscriptionAuthChecked": true,
+    "tools": "disabled by native CLI arguments"
+  },
+  "catalog": [
+    {
+      "id": "default"
+    },
+    {
+      "id": "opus[1m]"
+    },
+    {
+      "id": "claude-fable-5-1[1m]"
+    },
+    {
+      "id": "sonnet"
+    },
+    {
+      "id": "haiku"
+    }
+  ],
+  "humanReleaseInspection": "not performed"
+}

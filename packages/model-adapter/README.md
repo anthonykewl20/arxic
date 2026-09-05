@@ -76,3 +76,17 @@ Model output is untrusted data. The adapter owns no policy, allowlist, or action
 `client.ts` is the provider wire service. `validator.ts` is the real-AJV schema service. `run-record.ts` is the metadata-only observability, deterministic schema-hash, and redaction service. `adapter.ts` orchestrates retries, fail-closed handling, and the credential-plus-canary boundary. `diagnostics.ts` owns stable diagnostic manufacturing and loop-close validation.
 
 This spike does not modify the frozen `@arxic/contracts` capability boundary. The truth-state and no-promotion decision stays in orchestration for M1 #42.
+
+Native account bridges may opt into `jsonInput` (`ARXIC_MODEL_HOST_CLI_JSON_INPUT=1`)
+to receive `{ prompt, schema }` on stdin. Legacy wrappers retain text input.
+`isolatedCwd` (`ARXIC_MODEL_HOST_CLI_ISOLATE=1`) provides an empty private directory
+for text-only and image calls. Claude uses native schema-constrained output;
+Codex receives a private output-schema file. The same adapter validation and
+field limits apply to the final result. Optional run-record `billing` distinguishes
+subscription/API/operator-managed use; subscription zero-token estimates do not
+establish free usage or enforce provider quotas.
+
+`createOpenClawTransport(agentId)` targets the dedicated gateway agent and forwards
+the selected backend model through `x-openclaw-model`. Client `tool_choice: none`
+does not disable that agent's internal tools; configure its tool policy separately.
+See [connection setup and evidence](../../docs/web-workbench.md#subscription-accounts-and-provider-catalogs).
