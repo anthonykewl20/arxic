@@ -1,23 +1,27 @@
 @import url('/base.css');
 
 @media (max-width: 760px) {
-  .frontend-inventory .table thead {
+  .frontend-inventory .table thead,
+  .run-list .table thead {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
     clip-path: inset(50%);
   }
-  .frontend-inventory .table tr {
+  .frontend-inventory .table tr,
+  .run-list .table tr {
     display: grid;
   }
-  .frontend-inventory .table td {
+  .frontend-inventory .table td,
+  .run-list .table td {
     display: block;
     word-break: normal;
     overflow-wrap: anywhere;
     padding: 10px 16px;
   }
-  .frontend-inventory .table td::before {
+  .frontend-inventory .table td::before,
+  .run-list .table td::before {
     content: attr(data-label);
     display: block;
     color: var(--muted);
@@ -69,6 +73,7 @@
 }
 .workflow-choices label {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
 }

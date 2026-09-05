@@ -157,6 +157,21 @@ it('lets an administrator select and verify two real workflows with honest campa
       await page.getByRole('checkbox', { name: 'Select GET /login', exact: true }).isChecked(),
     ).toBe(true);
     await page.getByRole('checkbox', { name: 'Select GET /forgot-password', exact: true }).check();
+    expect(
+      await page
+        .getByRole('checkbox', { name: 'Select GET /login', exact: true })
+        .evaluate((input) => {
+          const label = input.closest('label')!;
+          const text = [...label.childNodes].find(
+            (node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim(),
+          )!;
+          const range = document.createRange();
+          range.selectNode(text);
+          const box = input.getBoundingClientRect();
+          const caption = range.getBoundingClientRect();
+          return box.right <= caption.left && box.top < caption.bottom && caption.top < box.bottom;
+        }),
+    ).toBe(true);
     await page.locator('.workflow-selection').scrollIntoViewIfNeeded();
     await capture(
       '01-selected-workflows',
@@ -189,6 +204,32 @@ it('lets an administrator select and verify two real workflows with honest campa
     );
     await detail.getByRole('button', { name: 'Workflow result' }).first().click();
     await expect.poll(() => page.locator('.run-detail').textContent()).toContain('verified');
+    expect(
+      await page
+        .locator('.run-detail')
+        .getByRole('button', { name: 'Run again', exact: true })
+        .count(),
+    ).toBe(0);
+    expect(
+      await page
+        .locator('.run-detail')
+        .getByRole('button', { name: 'View campaign', exact: true })
+        .count(),
+    ).toBe(1);
+    expect(
+      await page
+        .locator('.run-detail')
+        .getByRole('button', { name: 'Delete run and artifacts', exact: true })
+        .count(),
+    ).toBe(0);
+    expect(
+      await page.locator('.table tbody td').evaluateAll((cells) =>
+        cells.every((cell) => {
+          const box = cell.getBoundingClientRect();
+          return box.left >= 0 && box.right <= window.innerWidth;
+        }),
+      ),
+    ).toBe(true);
     await capture(
       '04-workflow-result',
       'Campaign links to the selected child engine result and diagnostic evidence',

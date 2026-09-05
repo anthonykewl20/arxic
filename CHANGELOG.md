@@ -28,6 +28,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Fixed
 
+- Campaign review controls and responsive layout: campaign children navigate back to their campaign instead of starting an unscoped retry, protected evidence no longer offers individual deletion, checkbox captions sit beside their controls, and mobile run rows stack with visible column labels. Real browser geometry assertions reproduce the layout defects.
+
 - stream-json path-filter depth hardening (refs #406): a hash-pinned compatibility patch rejects evaluated paths beyond 1,024 levels through the stream error channel, addressing GHSA-528h-pc64-c93x without replacing Crawlee’s CommonJS API with incompatible ESM exports. All four filters, boundary depths, ordinary output, Crawlee serialization and real browser discovery are covered. Version-only scanners may continue flagging stock 1.9.1. Security documentation now distinguishes the historical engine release from the unreleased web product and its host trust boundary.
 
 - Dashboard timestamps now explicitly use UTC. A browser in Asia/Manila previously displayed a 09:00 UTC schedule as an unlabeled 17:00 next-due time; the real-browser assertion reproduces this ambiguity and pins the correction.

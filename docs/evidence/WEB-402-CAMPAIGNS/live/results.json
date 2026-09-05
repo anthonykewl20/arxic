@@ -1,0 +1,86 @@
+{
+  "sourceCommit": "78d0fe9d6ded6d9dec4b735302a06842bb0bfb64",
+  "credentialScan": "pass",
+  "mailpitMessages": 3,
+  "campaignState": "completed",
+  "counts": {
+    "selected": 2,
+    "verified": 2,
+    "contradicted": 0,
+    "blocked": 0,
+    "uncovered": 0,
+    "pending": 0,
+    "unselected": 5,
+    "unsupported": 1
+  },
+  "results": [
+    {
+      "name": "reset",
+      "sourceCommit": "78d0fe9d6ded6d9dec4b735302a06842bb0bfb64",
+      "selectedRowId": "inv:page:GET:17251c2c0bbc",
+      "route": "/forgot-password",
+      "observedAt": "2026-09-05T13:21:20.851Z",
+      "transport": "authenticated host coding agent; tools denied; operator-default model",
+      "outcome": "verified",
+      "verification": {
+        "outcome": "verified",
+        "passedRuns": 2,
+        "runs": 2
+      },
+      "inventoryRows": 8,
+      "candidateRows": [
+        "inv:page:GET:17251c2c0bbc"
+      ],
+      "diagnosticCodes": [
+        "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+        "ARXIC-SURFACE-002",
+        "ARXIC-SURFACE-002",
+        "ARXIC-ORCH-POSTCRAWL-REPROPOSAL",
+        "ARXIC-ORCH-HEALING-DEFERRED"
+      ]
+    },
+    {
+      "name": "login",
+      "sourceCommit": "78d0fe9d6ded6d9dec4b735302a06842bb0bfb64",
+      "selectedRowId": "inv:page:GET:7db4b8bf2d28",
+      "route": "/login",
+      "observedAt": "2026-09-05T13:21:20.861Z",
+      "transport": "authenticated host coding agent; tools denied; operator-default model",
+      "outcome": "verified",
+      "verification": {
+        "outcome": "verified",
+        "passedRuns": 2,
+        "runs": 2
+      },
+      "inventoryRows": 8,
+      "candidateRows": [
+        "inv:page:GET:7db4b8bf2d28"
+      ],
+      "diagnosticCodes": [
+        "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+        "ARXIC-SURFACE-002",
+        "ARXIC-SURFACE-002",
+        "ARXIC-ORCH-POSTCRAWL-REPROPOSAL",
+        "ARXIC-ORCH-HEALING-DEFERRED"
+      ]
+    }
+  ]
+}

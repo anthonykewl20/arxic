@@ -154,7 +154,9 @@ The **Campaigns** page shows selected, verified, contradicted, blocked, uncovere
 and pending counts, plus unselected and non-proposable source rows. Uncompiled
 hypotheses remain uncovered. Campaign management state is separate from workflow
 truth: even a completed campaign does not certify every frontend behavior.
-Each row links to its individual engine result. The complete campaign JSON and
+Each row links to its individual engine result. Campaign children link back to
+the campaign instead of offering an unscoped “Run again”; start a new selected
+campaign to repeat the intended scope. The complete campaign JSON and
 referenced discovery preserve the denominator and evidence; a route can still
 have untested states, personas and flags.
 
