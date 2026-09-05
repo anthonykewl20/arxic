@@ -28,6 +28,8 @@ function modelHelp(connection?: ModelConnection) {
   if (!connection.modelSelection)
     return 'This legacy agent chooses its own model. The operator must configure model forwarding to use this ID.';
   const status = connection.catalog;
+  if (status.status === 'unavailable')
+    return status.error ?? 'Catalog discovery is unavailable. Custom model IDs remain available.';
   const fetched = status.fetchedAt ? ` Last fetched ${time(status.fetchedAt)}.` : '';
   if (status.status === 'error')
     return `${status.error ?? 'Model discovery failed'}.${fetched}${status.error?.toLowerCase().includes('custom') ? '' : ' Custom IDs remain available.'}`;
@@ -51,7 +53,8 @@ export function ModelControls({
   const connection = connections.find((item) => item.id === value.modelConnection);
   const [pending, setPending] = useState(0);
   const refresh = async (id: string) => {
-    if (!id) return;
+    const target = connections.find((item) => item.id === id);
+    if (!target || target.catalog.status === 'unavailable') return;
     setPending((count) => count + 1);
     try {
       await onRefresh(id);
@@ -114,7 +117,7 @@ export function ModelControls({
         variant="outline"
         className="secondary"
         data-model-refresh
-        disabled={!value.modelConnection || pending > 0}
+        disabled={!connection || connection.catalog.status === 'unavailable' || pending > 0}
         onClick={() => void refresh(value.modelConnection)}
       >
         <RefreshCw size={14} aria-hidden="true" />

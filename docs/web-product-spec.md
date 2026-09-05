@@ -55,7 +55,9 @@ CLI metadata. Arxic must not ship fixed model catalogs or silently substitute a
 model. Failures and stale fetch times stay visible; custom IDs remain available.
 Subscription/account connections include Claude Pro/Max, Codex/ChatGPT, eligible
 SuperGrok through OpenClaw, Kimi Coding, OpenCode Go, OpenRouter and extensible
-operator profiles. Native tools own login and refresh; a listed model alone does
+operator profiles. Configured default HTTP connections also discover provider-owned models; opaque
+server-default wrappers explicitly require a named discovery profile.
+Native tools own login and refresh; a listed model alone does
 not establish account entitlement. Each claimed paid execution path needs live
 account proof.
 

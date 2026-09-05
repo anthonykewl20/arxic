@@ -94,7 +94,11 @@ translate an ID into a different model. **Model provider** selects an operator-o
 connection; **Model name** offers a catalog fetched from that provider and
 accepts a custom ID. Screenshot review uses the same controls. Changing provider
 clears the model field so an old provider's ID is not selected accidentally.
-Catalogs have no built-in model IDs. Refresh explicitly or use the five-minute
+Catalogs have no built-in model IDs. A server-default HTTP connection configured
+with `ARXIC_MODEL_BASE_URL` also supports discovery and appears in Models & accounts;
+its configured API key is used only on the server. Without a default HTTP endpoint,
+or with an opaque host/gateway default, choose a named provider for discovery.
+Custom IDs remain available. Refresh explicitly or use the five-minute
 automatic refresh while the connection is in use. Failures show the last successful
 fetch time and leave stale models visibly identified. The **Models & accounts**
 screen uses React and shadcn/ui, with setup guidance and searchable catalogs.

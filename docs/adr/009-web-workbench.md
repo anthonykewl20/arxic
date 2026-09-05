@@ -275,3 +275,15 @@ model metadata and mounted project controls. Already accepted server jobs contin
 to be retained; rejecting a stale browser response does not cancel a server job.
 
 See [session and pending-request proof](../evidence/WEB-402-SESSIONS/summary.md).
+
+## 2026-09-06 default-provider catalog discovery
+
+Configured server-default HTTP connections use the same bounded metadata fetch,
+account-sensitive cache, failure sanitization and five-minute refresh policy as
+named providers. The default refresh route has no provider-ID path segment; this
+preserves the existing empty default ID without reserving an operator profile name.
+Public state exposes only model IDs and catalog status, never endpoints or keys.
+Opaque host/gateway defaults do not infer a native catalog adapter; they explain
+the limitation and allow choosing a named provider. Models & accounts includes
+the configured default catalog while retaining existing named-provider ordering.
+Execution pricing and entitlement policies are unchanged by metadata discovery.

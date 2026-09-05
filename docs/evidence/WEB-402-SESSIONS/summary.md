@@ -26,8 +26,7 @@ strict locator is relaxed and no business-outcome matcher is widened.
 Source revision: `44af0884946e1fb146d5362148e69bd8eebfeafd`, rebased onto merged
 PR #416 (`804802886e0fe7213c5c5313423c8c5499d4596e`). All **47 web tests in 13 files pass (229.62 s)**. Root/package type checks,
 lint and the license gate pass locally. Full-repository format after final docs:
-`All matched files use Prettier code style!`. Required PR-head CI and merge remain
-pending; no release completion is claimed.
+`All matched files use Prettier code style!`. PR #417 required CI 33986496965 passed on `7fb62726deb35875bfcc46a2a125fd85432ed125`: all four shards, static, package and fixture apps. Worker-image was conditionally skipped. The slice merged as `1b0f0a0be6d94fd2d03ee36ea8c69f6e0be14634`; no release completion is claimed.
 
 | User-level journey | Result | Retained proof |
 | --- | --- | --- |
