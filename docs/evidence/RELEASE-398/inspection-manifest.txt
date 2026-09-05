@@ -1,6 +1,15 @@
 Screenshot inspection manifest
 Root: RELEASE-398
-Screenshots: 9
+Screenshots: 12
+
+Group: final-ci/screenshots/001
+- final-ci/screenshots/001/001-step-1-login-page-home.png | 4367 bytes | sha256 2886cac0566c4cd1378a9638a61fca387b8986f4e6812aa1c7facda1ed608fd2 | 1280x720
+
+Group: final-ci/screenshots/002
+- final-ci/screenshots/002/001-step-1-login-page-home.png | 4367 bytes | sha256 2886cac0566c4cd1378a9638a61fca387b8986f4e6812aa1c7facda1ed608fd2 | 1280x720
+
+Group: final-ci/screenshots/003
+- final-ci/screenshots/003/001-step-1-login-page-home.png | 4367 bytes | sha256 2886cac0566c4cd1378a9638a61fca387b8986f4e6812aa1c7facda1ed608fd2 | 1280x720
 
 Group: live-provider/screenshots/001
 - live-provider/screenshots/001/001-step-1-forgot-password-page-forgot-password-page.png | 4367 bytes | sha256 80832ae4633b30db6b71f48a98dbb650d23bf0127b2c7788446b269d986c91cf | 1280x720

@@ -1,8 +1,50 @@
 {
   "schemaVersion": 1,
   "root": "RELEASE-398",
-  "screenshotCount": 9,
+  "screenshotCount": 12,
   "groups": [
+    {
+      "path": "final-ci/screenshots/001",
+      "files": [
+        {
+          "relativePath": "final-ci/screenshots/001/001-step-1-login-page-home.png",
+          "byteSize": 4367,
+          "sha256": "2886cac0566c4cd1378a9638a61fca387b8986f4e6812aa1c7facda1ed608fd2",
+          "dimensions": {
+            "width": 1280,
+            "height": 720
+          }
+        }
+      ]
+    },
+    {
+      "path": "final-ci/screenshots/002",
+      "files": [
+        {
+          "relativePath": "final-ci/screenshots/002/001-step-1-login-page-home.png",
+          "byteSize": 4367,
+          "sha256": "2886cac0566c4cd1378a9638a61fca387b8986f4e6812aa1c7facda1ed608fd2",
+          "dimensions": {
+            "width": 1280,
+            "height": 720
+          }
+        }
+      ]
+    },
+    {
+      "path": "final-ci/screenshots/003",
+      "files": [
+        {
+          "relativePath": "final-ci/screenshots/003/001-step-1-login-page-home.png",
+          "byteSize": 4367,
+          "sha256": "2886cac0566c4cd1378a9638a61fca387b8986f4e6812aa1c7facda1ed608fd2",
+          "dimensions": {
+            "width": 1280,
+            "height": 720
+          }
+        }
+      ]
+    },
     {
       "path": "live-provider/screenshots/001",
       "files": [

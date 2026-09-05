@@ -1,0 +1,21 @@
+{
+  "sourceHead": "e2f99d343069be3db391372498149f26bf042e34",
+  "workflowRun": "https://github.com/anthonykewl20/arxic/actions/runs/33952621810",
+  "job": "https://github.com/anthonykewl20/arxic/actions/runs/33952621810/job/101270166347",
+  "downloadedArtifactId": 9965502022,
+  "packedGate": {
+    "result": "pass",
+    "totalMs": 93754
+  },
+  "agentVisualInspection": {
+    "files": [
+      "screenshots/001/001-step-1-login-page-home.png",
+      "screenshots/002/001-step-1-login-page-home.png",
+      "screenshots/003/001-step-1-login-page-home.png"
+    ],
+    "observed": "Main landmark fully masked, plain surrounding background. Behavioral results come from executed assertions and receipts, not masked pixels.",
+    "hashesMatchAdjacentPrivacyProvenance": true,
+    "humanSignOff": "not performed"
+  },
+  "timelines": "All three ZIP projections passed independent inspectPlaywrightTrace with adjacent provenance; 78 retained actions each."
+}

@@ -1,0 +1,98 @@
+[
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  },
+  {
+    "method": "POST",
+    "path": "/chat/completions",
+    "structuredOutput": true,
+    "authorizationPresent": true
+  }
+]

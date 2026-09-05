@@ -1,0 +1,140 @@
+{
+  "appBuildDigest": "0bc0d86678ee0d612b17890194257224cfc38a1cef43f45f893162962969f83a",
+  "bundleVersion": 1,
+  "commit": "c4d27210d50c45b34430eb84e249e843003bc481",
+  "coverage": {
+    "blocked": 0,
+    "contradicted": 0,
+    "denominator": 1,
+    "uncovered": 0,
+    "verified": 1
+  },
+  "environment": {
+    "browser": "chromium",
+    "class": "local-test",
+    "persona": "registered-user"
+  },
+  "fileHashes": [
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/human-happy-ca9d865c-0561-4d6b-9995-b9684fe80ab9/tests/workflow.spec.ts",
+      "sha256": "1a6b5c6f065c2c6afbc8a05ed99c8cd0217bb3544d07260bb39a002ea8636424"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/human-happy-ca9d865c-0561-4d6b-9995-b9684fe80ab9/fixtures/workflow.fixture.ts",
+      "sha256": "128283cc62654d17dd4febe5c43c4fb63f1991a3928d50a7c064ce9f1e3aa9d8"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/human-happy-ca9d865c-0561-4d6b-9995-b9684fe80ab9/fixtures/transition-receipts.ts",
+      "sha256": "6c5a6b5374bffba570b611f3d4e03a1710ea52be3946f28f116c67eb18930d36"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/human-happy-ca9d865c-0561-4d6b-9995-b9684fe80ab9/fixtures/screenshot-privacy.ts",
+      "sha256": "0bbd41a4894f5415c6a1d13da737b0767ea120be75b943ade64b06effb191238"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/human-happy-ca9d865c-0561-4d6b-9995-b9684fe80ab9/plan.md",
+      "sha256": "5dff1e70d3fb5341c9282c556e2af4d9ab9520d4f24eed27f04f4f0c7352b7e2"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/human-happy-ca9d865c-0561-4d6b-9995-b9684fe80ab9/playwright.config.ts",
+      "sha256": "b530848f2bfc36b90adcfd35be709ed77b2625c427f516fa8364bb9725683735"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/human-happy-ca9d865c-0561-4d6b-9995-b9684fe80ab9/intents.json",
+      "sha256": "0810324f8511f5d004dde11316460bdb3f2ba32db32d07b75bb4b7030561c245"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-1/trace-001.zip",
+      "sha256": "2d3dbce2218098152d21ab9661f1cbe6af4a5cdb1018c18b5a1461ed09f4c5ff"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-1/trace-001.zip.sanitization.json",
+      "sha256": "d6b641486577aac9b1c11408a580e70185d024a3958ebb06cb13e27b6a6c012c"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-1/001-step-1-login-page-home.png",
+      "sha256": "2886cac0566c4cd1378a9638a61fca387b8986f4e6812aa1c7facda1ed608fd2"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-1/001-step-1-login-page-home.png.privacy.json",
+      "sha256": "fdf4e70fb486fa63b30b394c49d82d1a33df7b318e93294d970491f4340ec8eb"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-2/trace-001.zip",
+      "sha256": "2d3dbce2218098152d21ab9661f1cbe6af4a5cdb1018c18b5a1461ed09f4c5ff"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-2/trace-001.zip.sanitization.json",
+      "sha256": "fdc3569eed37ab327167dd0ff3a5704bbfe3319a32ac76dec6b6b45748c195c4"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-2/001-step-1-login-page-home.png",
+      "sha256": "2886cac0566c4cd1378a9638a61fca387b8986f4e6812aa1c7facda1ed608fd2"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-2/001-step-1-login-page-home.png.privacy.json",
+      "sha256": "571c74790ad783f774bb9ec0d5c9fec3b3c7c336d87f8142b8566a3f5f65159d"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-3/trace-001.zip",
+      "sha256": "2d3dbce2218098152d21ab9661f1cbe6af4a5cdb1018c18b5a1461ed09f4c5ff"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-3/trace-001.zip.sanitization.json",
+      "sha256": "6d9d171d712ccf7a7218f217bfb671b902b8dbea9694672a71d99b83707548a3"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-3/001-step-1-login-page-home.png",
+      "sha256": "2886cac0566c4cd1378a9638a61fca387b8986f4e6812aa1c7facda1ed608fd2"
+    },
+    {
+      "path": "/tmp/arxic-human-flow-1R92gR/state/runs/d8c2331839a00ee4/verification-artifacts/verification/run-3/001-step-1-login-page-home.png.privacy.json",
+      "sha256": "bb75c7dc44e9851f9db7e9f543bf23e1fdd9a04432412333b44c4d9090491cc2"
+    }
+  ],
+  "gateResults": [
+    {
+      "gate": "compile",
+      "passed": true
+    },
+    {
+      "gate": "policy",
+      "passed": true
+    },
+    {
+      "gate": "verify",
+      "passed": true
+    }
+  ],
+  "generator": {
+    "id": "@arxic/playwright-compiler",
+    "version": "0.1.0"
+  },
+  "repository": "file:///tmp/arxic-human-flow-1R92gR/reference-auth-app",
+  "runId": "human-happy-ca9d865c-0561-4d6b-9995-b9684fe80ab9",
+  "schemaVersion": 1,
+  "verification": {
+    "requiredRuns": 3,
+    "runs": [
+      {
+        "finishedAt": "2026-09-05T07:40:37.613Z",
+        "passed": true,
+        "startedAt": "2026-09-05T07:40:37.613Z"
+      },
+      {
+        "finishedAt": "2026-09-05T07:40:37.613Z",
+        "passed": true,
+        "startedAt": "2026-09-05T07:40:37.613Z"
+      },
+      {
+        "finishedAt": "2026-09-05T07:40:37.613Z",
+        "passed": true,
+        "startedAt": "2026-09-05T07:40:37.613Z"
+      }
+    ]
+  },
+  "workflow": {
+    "id": "prop:e6e950dffee0587a",
+    "status": "verified"
+  }
+}

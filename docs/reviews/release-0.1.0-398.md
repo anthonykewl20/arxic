@@ -1,9 +1,13 @@
 # v0.1.0 release audit — refs #398
 
-Audit date: 2026-09-05. Starting main commit:
-`16a3b2f9b7d594fa575d548f7cf203ca974fec71`. Production changes and the packed
-release proof are based on `e046590` on `audit/release-398`. Final PR/CI status is linked from [tracker #398](https://github.com/anthonykewl20/arxic/issues/398);
-completion requires the required `ci` check to pass on the current PR head.
+Audit date: 2026-09-05. Starting main: `16a3b2f`.
+The implementation was merged through [PR #399](https://github.com/anthonykewl20/arxic/pull/399)
+as `b15b59b`, whose tree matches the tested code head `e2f99d3`.
+[Required CI passed](https://github.com/anthonykewl20/arxic/actions/runs/33952621810/job/101272428821).
+The initial local proof was captured at `e046590`; the retained
+[final CI proof](../evidence/RELEASE-398/final-ci/summary.md) covers `e2f99d3`.
+Final integration and release-cell results are recorded on
+[tracker #398](https://github.com/anthonykewl20/arxic/issues/398).
 
 **The audit found real release defects, including a false-positive login gate.**
 The fixes have passing targeted regressions and a clean-installed v0.1.0 journey.
@@ -97,35 +101,42 @@ byte cap and opaque diagnostic rules remain enforced.
 ## Evidence and validation
 
 The [retained proof](../evidence/RELEASE-398/summary.md) contains a pass/fail table,
-nine named screenshots with privacy provenance, nine independently inspected
+twelve named screenshots with privacy provenance, twelve independently inspected
 sanitized action timelines, the promoted manifest, and annotated test results.
 The screenshots mask the main landmark; the transition proof comes from the
 executed assertions/receipts, not inference from obscured pixels. Automated
-visual review was performed on all nine images; this is not human sign-off.
+visual review was performed on all twelve images; this is not human sign-off.
 
-| Check                                                                            | Result                                                                                                                                                                                      |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Fresh npm-installed v0.1.0 → real Next.js app → Chromium → three verifier passes | PASS, 141.872 s for the complete packed gate                                                                                                                                                |
-| Same complete gate with exact CI Node 22.22.0/npm 10.9.4                         | PASS, 123.646 s; [retained regression proof](../evidence/RELEASE-398/node22/summary.md)                                                                                                     |
-| Independent copied bundle with correct/wrong credentials                         | PASS / expected failure; no raw failure trace                                                                                                                                               |
-| Native PHP grammar and bundle SBOM                                               | PASS                                                                                                                                                                                        |
-| Unreachable target preserves prior promoted envelope                             | PASS                                                                                                                                                                                        |
-| Next.js reference fixture suite + real Mailpit                                   | PASS, 3 tests                                                                                                                                                                               |
-| Express vulnerable fixture suite + real Mailpit                                  | PASS, 1 test (intentional app vulnerabilities remain fixtures)                                                                                                                              |
-| Worker image toolchain: root/nonroot, native modules, Chromium, no-egress tools  | PASS                                                                                                                                                                                        |
-| Worker-image real Docker hardening tests                                         | PASS, 2 tests                                                                                                                                                                               |
-| Dependency license gate                                                          | PASS, 787 packages; zero rejected, two documented license metadata exceptions                                                                                                               |
-| Root lint/typecheck and package typechecks                                       | PASS locally; final CI status below                                                                                                                                                         |
-| Complete stable-head suite                                                       | Final run and check results recorded on tracker #398; see validation note below                                                                                                             |
-| Current PR required `ci`                                                         | Must pass before merge; exact-head result recorded on tracker #398                                                                                                                          |
-| Fresh live-provider pipeline                                                     | PASS with Mailpit: three clean verifier passes and promotion; independent message count 4. Missing-Mailpit run correctly blocked. [Proof](../evidence/RELEASE-398/live-provider/summary.md) |
-| Human release screenshot census/sign-off                                         | NOT PERFORMED; owner/reviewer release gate                                                                                                                                                  |
+| Check                                                                            | Result                                                                                                                                                                                                          |
+| -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fresh npm-installed v0.1.0 → real Next.js app → Chromium → three verifier passes | PASS, 141.872 s for the complete packed gate                                                                                                                                                                    |
+| Same complete gate with exact CI Node 22.22.0/npm 10.9.4                         | PASS, 123.646 s; [retained regression proof](../evidence/RELEASE-398/node22/summary.md)                                                                                                                         |
+| Final code head packed journey in GitHub-hosted CI                               | PASS, 93.754 s; [permanent proof](../evidence/RELEASE-398/final-ci/summary.md)                                                                                                                                  |
+| Independent copied bundle with correct/wrong credentials                         | PASS / expected failure; no raw failure trace                                                                                                                                                                   |
+| Native PHP grammar and bundle SBOM                                               | PASS                                                                                                                                                                                                            |
+| Unreachable target preserves prior promoted envelope                             | PASS                                                                                                                                                                                                            |
+| Next.js reference fixture suite + real Mailpit                                   | PASS, 3 tests                                                                                                                                                                                                   |
+| Express vulnerable fixture suite + real Mailpit                                  | PASS, 1 test (intentional app vulnerabilities remain fixtures)                                                                                                                                                  |
+| Worker image toolchain: root/nonroot, native modules, Chromium, no-egress tools  | PASS                                                                                                                                                                                                            |
+| Worker-image real Docker hardening tests                                         | PASS, 2 tests                                                                                                                                                                                                   |
+| Dependency license gate                                                          | PASS, 787 packages; zero rejected, two documented license metadata exceptions                                                                                                                                   |
+| Root lint/typecheck and package typechecks                                       | PASS in required CI at e2f99d3                                                                                                                                                                                  |
+| Complete stable-head suite                                                       | 212 files; 1,879 shard passes. The two image tests skipped in shards both pass in the dedicated required image job: all 1,881 tests executed across required jobs.                                              |
+| Current PR required `ci`                                                         | PASS on e2f99d3 before PR #399 merged; [CI run](https://github.com/anthonykewl20/arxic/actions/runs/33952621810)                                                                                                |
+| Fresh live-provider pipeline                                                     | PASS with Mailpit: three clean verifier passes and promotion; independent message count 4. Missing-Mailpit run correctly blocked. [Proof](../evidence/RELEASE-398/live-provider/summary.md)                     |
+| Supported OS/Node release cells                                                  | Final results: [six-cell matrix at e2f99d3](https://github.com/anthonykewl20/arxic/actions/runs/33952621811). Windows/macOS install/lint/typecheck/native packed smoke; Ubuntu also runs the full engine suite. |
+| Human release screenshot census/sign-off                                         | NOT PERFORMED; owner/reviewer release gate                                                                                                                                                                      |
 
 The local full-suite run also exposed three old 0.1.1 provenance expectations
 and three oracle canonical hashes whose identities include the package version
 after the requested version alignment. They were changed to the exact new 0.1.0
 value, and version-bound hashes were re-pinned (`0514a897…` → `76b5675e…`, `bd21463f…` → `9c49f94e…`, `ab685d16…` → `7bdca772…`), without relaxing either comparison; the affected real-engine suites are
-rerun and the PR CI runs the full suite at the final head.
+rerun successfully. Required CI executes the full test inventory at the final code head; its two shard-local image skips are explicitly accounted for in the dedicated image job.
+
+The commands and immutable run references are recorded in
+[validation.json](../evidence/RELEASE-398/validation.json). Full-repo format after
+the closeout documentation and evidence census prints:
+`All matched files use Prettier code style!`
 
 ## Limits and release decisions
 
