@@ -104,8 +104,8 @@ it('requires same-origin JSON writes, invalidates logout sessions, and serves no
     ).status,
   ).toBe(415);
   const state = await (await fetch(`${app.origin}/api/state`, { headers: { cookie } })).json();
-  expect(state.version).toBe('0.0.100');
-  expect(state.versionLabel).toBe('v0.0.100');
+  expect(state.version).toBe('0.0.200');
+  expect(state.versionLabel).toBe('v0.0.200');
   expect((await fetch(`${app.origin}/api/runs/00000000/artifacts/checkpoint-1.png`)).status).toBe(
     401,
   );

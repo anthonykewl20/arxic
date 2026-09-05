@@ -1,1 +1,29 @@
 @import url('/base.css');
+
+@media (max-width: 760px) {
+  .frontend-inventory .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .frontend-inventory .table tr {
+    display: grid;
+  }
+  .frontend-inventory .table td {
+    display: block;
+    word-break: normal;
+    overflow-wrap: anywhere;
+    padding: 10px 16px;
+  }
+  .frontend-inventory .table td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+}

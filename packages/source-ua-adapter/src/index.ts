@@ -13,6 +13,7 @@ export * from './diagnostics';
 export { ARXIC_SOURCE_UNSAFE_FILE } from './safe-source';
 export * from './normalize';
 export * from './policy';
+export * from './frontend';
 export * from './language-packs';
 export {
   INTERCHANGE_SCHEMA_VERSION,

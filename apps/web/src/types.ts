@@ -34,6 +34,7 @@ export type RunResult = {
   outcome: 'hypothesized' | 'observed' | 'verified' | 'contradicted' | 'blocked';
   summary: string;
   inventory?: unknown;
+  frontend?: import('@arxic/source-ua-adapter').FrontendInventory;
   manifest?: unknown;
   diagnostics?: unknown;
   captures?: Capture[];

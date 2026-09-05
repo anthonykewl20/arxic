@@ -28,6 +28,20 @@ model, compilation and verifier gates. The web action binds source and target to
 the registered project and snapshots the validated configuration before running.
 Frozen evidence/workflow contracts are unchanged.
 
+### Frontend declaration inventory (2026-09-05 continuation, refs #402)
+
+An additive source-adapter capability emits `arxic-frontend-inventory-v1` from
+the existing hashed source manifest and native JS/TS/JSX/TSX parser. Bounded,
+no-follow reads must match the indexed bytes. Component/control/action/state/
+condition/test/configuration/flag declarations and Markdown/text requirements carry their
+commit, path, line range and content hash. Unsupported, unsafe, malformed,
+dirty, changed and truncated inputs remain explicit file gaps. Static rows
+remain hypothesized; their count is never a runtime coverage percentage.
+The web discovery result persists this inventory separately from route/domain
+inventory and the existing AI ledger. Dashboard filtering/pagination and JSON
+access expose the finite denominator and omissions. This addition does not
+implement multi-workflow campaigns or semantic image review.
+
 Jobs execute in separate child processes with bounded lifetime. The dashboard's
 administrator token is excluded from job environments. This is process lifecycle
 isolation, not a hostile-code security sandbox: mounted projects and configured
@@ -91,9 +105,9 @@ The owner requires `v0.0.NNN` release labels: a minor release adds 100 to the
 counter (`v0.0.100` → `v0.0.200`); a patch adds 1. No counter digits are reset or
 truncated. Labels pad to at least three counter digits and include `v`.
 
-Current release line: **v0.0.100**. `VERSION`, package manifests and generated
-machine provenance store npm-compatible `0.0.100`; CLI `--version`, dashboard
-labels and Git tags use `v0.0.100`. For a counter below 100, the canonical numeric
+Current release line: **v0.0.200**. `VERSION`, package manifests and generated
+machine provenance store npm-compatible `0.0.200`; CLI `--version`, dashboard
+labels and Git tags use `v0.0.200`. For a counter below 100, the canonical numeric
 form remains unpadded (`0.0.7`) and the label is `v0.0.007`. One shared policy
 module formats labels and computes increments. Release automation and package
 smoke tests check this mapping. `pnpm version:minor` and `pnpm version:patch`

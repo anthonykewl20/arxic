@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { dirname } from 'node:path';
-import { SourceUaAdapter, diagnosticsOf } from '@arxic/source-ua-adapter';
+import { SourceUaAdapter, diagnosticsOf, collectFrontendInventory } from '@arxic/source-ua-adapter';
 import { buildSourceInventory } from '@arxic/domain-inventory';
 import type { Run, RunResult } from './types';
 
@@ -31,10 +31,12 @@ async function runJob(run: Run): Promise<RunResult> {
   const interchanges = await adapter.collectRouteInventories(request);
   const inventory = buildSourceInventory({ sourceIndex, interchanges });
   const diagnostics = diagnosticsOf(sourceIndex.events);
+  const frontend = await collectFrontendInventory(run.project.folder, sourceIndex);
   return {
     outcome: sourceIndex.manifest.length ? 'hypothesized' : 'blocked',
-    summary: `${inventory.rows.length} source surfaces across ${inventory.clusters.length} domains. Source evidence is not runtime or business-acceptance proof.`,
+    summary: `${inventory.rows.length} source surfaces across ${inventory.clusters.length} domains; ${frontend.rows.length} frontend declarations and ${frontend.gaps.length} explicit gaps. Source evidence is not runtime or business-acceptance proof.`,
     inventory,
+    frontend,
     manifest: sourceIndex.manifest,
     diagnostics,
   };
