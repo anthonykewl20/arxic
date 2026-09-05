@@ -19,6 +19,9 @@ let selectedProject = '';
 let selectedRun = '';
 let editing = '';
 let noticeTimer;
+let sessionEpoch = 0;
+let refreshSequence = 0;
+let signingOut = false;
 
 async function api(path, method = 'GET', body) {
   const response = await fetch(`/api${path}`, {
@@ -29,6 +32,7 @@ async function api(path, method = 'GET', body) {
   const data = await response.json();
   if (!response.ok) {
     if (response.status === 401) {
+      sessionEpoch++;
       $('#app').hidden = true;
       $('#login').hidden = false;
     }
@@ -45,13 +49,17 @@ function notice(message) {
   }, 10_000);
 }
 async function refresh() {
-  state = await api('/state');
+  if (signingOut) return;
+  const epoch = sessionEpoch;
+  const sequence = ++refreshSequence;
+  const snapshot = await api('/state');
+  if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
   const desired =
     section === 'intents'
-      ? state.projects
+      ? snapshot.projects
           .map(
             (item) =>
-              state.runs.find(
+              snapshot.runs.find(
                 (run) => run.projectId === item.id && (run.hasInventory || run.hasLedger),
               )?.id,
           )
@@ -62,11 +70,13 @@ async function refresh() {
   await Promise.all(
     desired.map(async (id) => {
       const detail = await api(`/runs/${id}`);
-      const index = state.runs.findIndex((run) => run.id === id);
-      if (index >= 0) state.runs[index] = detail;
-      else state.runs.push(detail);
+      const index = snapshot.runs.findIndex((run) => run.id === id);
+      if (index >= 0) snapshot.runs[index] = detail;
+      else snapshot.runs.push(detail);
     }),
   );
+  if (epoch !== sessionEpoch || sequence !== refreshSequence || signingOut) return;
+  state = snapshot;
   $('#app').hidden = false;
   $('#login').hidden = true;
   $('#version').textContent = state.versionLabel;
@@ -223,14 +233,20 @@ $('#login-form').addEventListener('submit', async (event) => {
   }
 });
 $('#logout').addEventListener('click', async () => {
+  sessionEpoch++;
+  signingOut = true;
   try {
     await api('/session', 'DELETE', {});
     state = { projects: [], runs: [], audit: [], baselines: [] };
+    selectedRun = '';
+    selectedProject = '';
     $('#content').replaceChildren();
     $('#app').hidden = true;
     $('#login').hidden = false;
   } catch (error) {
     notice(error.message);
+  } finally {
+    signingOut = false;
   }
 });
 $('#new-project').addEventListener('click', () => editProject());

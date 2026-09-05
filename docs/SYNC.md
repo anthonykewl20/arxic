@@ -8,7 +8,7 @@
 
 ## 🔖 RESUME HERE
 
-**Status:** Web workbench implementation and version cadence are in progress on `feat/web-workbench`, refs [#401](https://github.com/anthonykewl20/arxic/issues/401). The owner now wants a self-hosted web frontend audit product. [ADR-009](./adr/009-web-workbench.md), the [product spec](./web-product-spec.md), and [setup guide](./web-workbench.md) distinguish the implemented foundation from the full product tracked by [#402](https://github.com/anthonykewl20/arxic/issues/402). Current-head CI has not passed yet; this slice is not done.
+**Status:** Web workbench implementation and version cadence are in progress on `feat/web-workbench`, refs [#401](https://github.com/anthonykewl20/arxic/issues/401). The owner now wants a self-hosted web frontend audit product. [ADR-009](./adr/009-web-workbench.md), the [product spec](./web-product-spec.md), and [setup guide](./web-workbench.md) distinguish the implemented foundation from the full product tracked by [#402](https://github.com/anthonykewl20/arxic/issues/402). Local targeted validation passed (44 tests), including exact version-bound hash pins; final review also reproduced and fixed a late-response logout race with a real Chromium red/green test. Current-head CI has not passed yet; this slice is not done.
 
 **Active version:** `VERSION` and all 30 non-fixture manifests use `0.0.100`. CLI/dashboard/tag labels use `v0.0.100`. Owner-defined minor releases add **100**; patch fixes add **1**. Use `pnpm version:minor` or `pnpm version:patch`; minimum-three-digit labels share one formatter. Historical versions and evidence remain unchanged. No tag or publication has been performed.
 

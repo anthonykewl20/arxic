@@ -133,8 +133,33 @@ it('lets a real browser register a folder, discover source intent, run visual ch
     );
     await capture('07-mobile-overview', 'Mobile dashboard fits its viewport');
     await page.setViewportSize({ width: 1440, height: 1000 });
+    let releaseResponse!: () => void;
+    let responseReady!: () => void;
+    const held = new Promise<void>((done) => {
+      responseReady = done;
+    });
+    const released = new Promise<void>((done) => {
+      releaseResponse = done;
+    });
+    await page.route('**/api/state', async (route) => {
+      const response = await route.fetch();
+      responseReady();
+      await released;
+      await route.fulfill({ response });
+    });
+    await page.getByRole('button', { name: 'Overview', exact: false }).click();
+    await held;
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();
     await page.getByRole('heading', { name: 'A clearer view of your frontend.' }).waitFor();
+    const staleResponse = page.waitForResponse('**/api/state');
+    releaseResponse();
+    await staleResponse;
+    await page.waitForTimeout(300);
+    expect(await page.locator('#app').isHidden()).toBe(true);
+    await capture(
+      '08-signed-out',
+      'Late pre-logout dashboard response cannot restore a signed-out workspace',
+    );
     expect(errors).toEqual([]);
     if (evidence) {
       const bytes = JSON.stringify(timeline, null, 2);
