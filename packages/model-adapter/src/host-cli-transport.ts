@@ -156,7 +156,7 @@ export function createHostCliTransport(
         return;
       }
 
-      let stdout = '';
+      const stdoutChunks: Buffer[] = [];
       let stdoutBytes = 0;
       const maximumOutputBytes = 8 * 1024 * 1024;
       let settled = false;
@@ -198,7 +198,7 @@ export function createHostCliTransport(
           finish(providerFailure(false));
           return;
         }
-        stdout += chunk.toString('utf8');
+        stdoutChunks.push(chunk);
       });
       // stderr is intentionally not captured into any diagnostic message —
       // it may echo the prompt back, and diagnostics must not carry raw
@@ -221,7 +221,9 @@ export function createHostCliTransport(
           finish(providerFailure(false));
           return;
         }
-        const parsed = extractJsonPayload(stdout);
+        // A pipe chunk can end inside a UTF-8 code point. Decode only after
+        // collecting the bounded byte stream so model text is not corrupted.
+        const parsed = extractJsonPayload(Buffer.concat(stdoutChunks).toString('utf8'));
         if (parsed === undefined) {
           finish(providerFailure(false));
           return;

@@ -104,6 +104,33 @@ describe('hostCliConfigFromEnv', () => {
 });
 
 describe('createHostCliTransport (real subprocess)', () => {
+  it('preserves Unicode when stdout splits a multibyte character between pipe writes', async () => {
+    const payload = { label: 'é日本🙂' };
+    const transport = createHostCliTransport({
+      command: NODE,
+      args: [
+        '-e',
+        `
+        const bytes = Buffer.from(${JSON.stringify(JSON.stringify(payload))});
+        const split = bytes.indexOf(0xc3) + 1;
+        process.stdout.write(bytes.subarray(0, split));
+        setTimeout(() => process.stdout.write(bytes.subarray(split)), 100);
+      `,
+      ],
+    });
+    const result = await transport({
+      baseUrl: 'unused',
+      bearerToken: 'unused',
+      model: 'test-model-v1',
+      messages: [{ role: 'user', content: 'hi' }],
+      schema: {},
+      schemaName: 'x',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error('expected ok');
+    expect(JSON.parse(result.raw.choices[0].message.content)).toEqual(payload);
+  });
+
   it('bounds timeout even when a descendant retains the provider output pipe', async () => {
     const transport = createHostCliTransport({
       command: NODE,

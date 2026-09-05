@@ -12,6 +12,15 @@ M0-13 provides a source-only OpenAI-compatible structured-output adapter. It sen
 
 The default `maxRetries` is 2, meaning one initial request plus two retries. Invalid JSON, AJV-invalid output, or schema-version drift appends a system note that the prior output was invalid before each retry. Provider failures and provider timeouts are not retried. The client distinguishes `ARXIC-MODEL-PROVIDER-TIMEOUT` from `ARXIC-MODEL-PROVIDER-ERROR` and never throws.
 
+## Host CLI transport
+
+`createHostCliTransport` sends the prompt through stdin to a configured local
+executable and parses structured JSON from stdout. It preserves UTF-8 across
+pipe chunk boundaries, caps output at 8 MiB, handles early stdin closure, and
+bounds provider execution with process cleanup. Provider stderr is drained and
+never copied into diagnostics. Host CLI token counts are recorded as zero because
+this transport has no provider usage receipt; that is not proof of zero cost.
+
 ## Run record
 
 The run record is flat and contains `requestId`, `schemaVersion`, deterministic `schemaSha256`, `model`, `tokens`, optional `cost`, optional `retention`, optional `region`, optional `sourceSharing`, and `timestamp`. It has no provider nesting and no `completedAt`. The schema hash is SHA-256 over recursively key-sorted canonical JSON. The adapter never sets `cost`.
