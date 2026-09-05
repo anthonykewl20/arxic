@@ -1,0 +1,50 @@
+{
+  "sourceCommit": "b6b5551058fe56f92afb73ff1b020048b321dd51",
+  "results": [
+    {
+      "app": "reference-auth-app",
+      "sourceCommit": "b6b5551058fe56f92afb73ff1b020048b321dd51",
+      "fixtureCommit": "cdbc8cbbfa3467b8cee7d349cb4c065a934b05e8",
+      "result": "passed",
+      "twoPassIdentity": true,
+      "enumeratedFiles": 35,
+      "rowCount": 219,
+      "kindCounts": {
+        "action": 8,
+        "component": 12,
+        "condition": 143,
+        "control": 32,
+        "feature-flag": 20,
+        "test": 4
+      },
+      "gapCounts": {
+        "unsupported-file-kind": 4
+      },
+      "inventorySha256": "c0a285ec348425f46b2fd9bc9f7e40020c221dabd62c0419e25b30cfd5f835d7",
+      "runtimeCoverageClaimed": false
+    },
+    {
+      "app": "vulnerable-auth-app",
+      "sourceCommit": "b6b5551058fe56f92afb73ff1b020048b321dd51",
+      "fixtureCommit": "538930fdbd647ba41ea42a5902eead71ec5a15fa",
+      "result": "passed",
+      "twoPassIdentity": true,
+      "enumeratedFiles": 15,
+      "rowCount": 67,
+      "kindCounts": {
+        "condition": 49,
+        "feature-flag": 14,
+        "requirement": 2,
+        "test": 2
+      },
+      "gapCounts": {
+        "binary": 3,
+        "documentation-declarations-not-acceptance-proof": 1,
+        "unsupported-file-kind": 3,
+        "unsupported-framework": 1
+      },
+      "inventorySha256": "6e7bf5f513a6e0ec61a1188778316180bf60cdec594cd620646fa68b39e2abcc",
+      "runtimeCoverageClaimed": false
+    }
+  ]
+}
