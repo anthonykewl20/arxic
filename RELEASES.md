@@ -69,7 +69,7 @@ Git tags are the release history.
 
 1. Ensure `CHANGELOG.md` `## [Unreleased]` is complete.
 2. Decide the next bump from the unreleased section verbs.
-3. Run `pnpm version:minor` (+100) or `pnpm version:patch` (+1); check that all workspace manifests match `VERSION`.
+3. Run `pnpm version:minor` (+100) or `pnpm version:patch` (+1); check that all workspace manifests match `VERSION`. Update explicit version assertions and review exact version-bound evidence hash pins; never relax those comparisons to make a release pass.
 4. Rename `## [Unreleased]` to `## [x.y.z] - YYYY-MM-DD` and add a fresh
    `## [Unreleased]` at top.
 5. Commit with `chore(release): x.y.z`.

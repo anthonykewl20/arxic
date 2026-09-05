@@ -1,0 +1,7 @@
+{
+  "sha256": "17334dcbcb94a8770a04f73908fd87378c688d1ccd25878f220d421891d6df0e",
+  "policy": "persona-free reference-app dashboard; password inputs masked",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed",
+  "sourceCommit": "92127871eb035af3c30720c33c72d254e3f69811"
+}

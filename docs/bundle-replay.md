@@ -1,6 +1,6 @@
 # Replay a generated bundle independently
 
-Version: 0.1.0. The release audit executes this path against the installed
+Version: 0.0.100. The release audit executes this path against the installed
 reference app, including a wrong-password failure. See the
 [proof report](./reviews/release-0.1.0-398.md).
 

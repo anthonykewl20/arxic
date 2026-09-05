@@ -1,0 +1,31 @@
+{
+  "observedAt": "2026-09-05T08:47:49.230Z",
+  "transport": "authenticated host coding agent; tools denied",
+  "outcome": "blocked",
+  "summary": "The AI pipeline did not produce a verified candidate. Review its diagnostics and unmet prerequisites.",
+  "ledger": {
+    "outcome": "blocked",
+    "passedRuns": 2,
+    "runs": 2
+  },
+  "diagnostics": [
+    "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+    "ARXIC-SURFACE-002",
+    "ARXIC-SURFACE-002",
+    "ARXIC-ORCH-POSTCRAWL-REPROPOSAL",
+    "ARXIC-VERIFY-BLOCKED-NETWORK",
+    "ARXIC-ORCH-STAGE-BLOCKED",
+    "ARXIC-ORCH-HEALING-DEFERRED"
+  ]
+}

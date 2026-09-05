@@ -21,7 +21,7 @@ See the [release policy](./RELEASE_POLICY.md) and
 | [Worker deployment](./operator/worker-deploy.md)   | 0.0.100 | Build and deploy the worker image in lockstep with the CLI.                               |
 
 - [Independent bundle replay](./bundle-replay.md) — copied Playwright bundle execution and screenshot-policy setup.
-- [Release audit](./reviews/release-0.1.0-398.md) — fixes, evidence and current release gates.
+- [Release audit](./reviews/release-0.1.0-398.md) — historical CLI engine fixes and evidence; expanded web release gates are in the product spec.
 
 ## Other documentation
 

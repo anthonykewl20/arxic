@@ -69,6 +69,7 @@ it('lets a real browser register a folder, discover source intent, run visual ch
     await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
     await page.getByRole('button', { name: 'Open workbench' }).click();
     await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+    expect(await page.getByLabel('Administrator token').inputValue()).toBe('');
     await capture(
       '01-empty-workspace',
       'Invalid login refused; administrator opened empty workspace',
