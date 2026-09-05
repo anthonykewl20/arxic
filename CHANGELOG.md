@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Tighten screenshot-review criteria after a live Claude account probe reported style preferences on a clean reference screen. Privacy-mask geometry and unsupported design assumptions are excluded from the review instructions; original failures remain in proof. Reap native catalog process groups after metadata requests, including CLIs that ignore termination (refs #402).
+
 - Subscription/account connection bridges for Claude Code, Codex and OpenCode, compatible Kimi/OpenRouter connections and dedicated OpenClaw gateway routing (refs #402). Model catalogs come from providers or native CLI metadata, with refresh, visible stale/error states, account-sensitive cache invalidation and custom IDs. A React/shadcn Models & accounts screen adds setup guidance and searchable catalogs; the remaining frontend migration is tracked in #402. Native text-only calls now use private temporary working directories.
 
 - Retain clean Node 22.22.0 source-install/browser proof with baseline persistence, restart session invalidation and recovery after forced termination during a real browser request (refs #402).

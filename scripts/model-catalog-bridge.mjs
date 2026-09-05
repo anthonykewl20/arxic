@@ -1,5 +1,4 @@
 import { spawn, execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -11,6 +10,16 @@ const project = (ids) =>
   [...new Set(ids.filter((id) => typeof id === 'string' && validId.test(id)))].map((id) => ({
     id,
   }));
+
+function terminateCatalogProcess(child) {
+  if (!child.pid) return;
+  try {
+    if (process.platform !== 'win32') process.kill(-child.pid, 'SIGKILL');
+    else child.kill('SIGKILL');
+  } catch {
+    child.kill('SIGKILL');
+  }
+}
 
 /** Metadata-only native handshake. Never sends an inference prompt or reads token caches. */
 export async function discoverNativeModels(provider, inherited = process.env) {
@@ -39,11 +48,24 @@ export async function discoverNativeModels(provider, inherited = process.env) {
               env.ARXIC_MODEL_GATEWAY_AGENT || 'arxic',
               '--json',
             ];
-      const { stdout } = await promisify(execFile)(command, args, {
-        cwd,
-        env,
-        timeout: 25_000,
-        maxBuffer: 4 * 1024 * 1024,
+      const stdout = await new Promise((resolve, reject) => {
+        const child = execFile(
+          command,
+          args,
+          {
+            cwd,
+            env,
+            timeout: 25_000,
+            maxBuffer: 4 * 1024 * 1024,
+            detached: process.platform !== 'win32',
+            killSignal: 'SIGKILL',
+          },
+          (error, output) => {
+            terminateCatalogProcess(child);
+            if (error) reject(new Error('Native model catalog discovery failed'));
+            else resolve(output);
+          },
+        );
       });
       return project(
         agent === 'opencode'
@@ -58,25 +80,47 @@ export async function discoverNativeModels(provider, inherited = process.env) {
         agent === 'codex'
           ? ['app-server']
           : agentInvocation('claude', '', '', []).args.slice(0, -2);
-      const child = spawn(command, args, { cwd, env, stdio: ['pipe', 'pipe', 'ignore'] });
+      const child = spawn(command, args, {
+        cwd,
+        env,
+        detached: process.platform !== 'win32',
+        stdio: ['pipe', 'pipe', 'ignore'],
+      });
       let settled = false;
       let buffer = '';
       let bytes = 0;
       const ids = [];
       const cursors = new Set();
+      let failure = true;
+      const complete = () => {
+        if (failure) reject(new Error('Native model catalog discovery failed'));
+        else resolve(project(ids));
+      };
       const finish = (error) => {
         if (settled) return;
         settled = true;
+        failure = error;
         clearTimeout(timer);
-        child.kill();
-        if (error) reject(new Error('Native model catalog discovery failed'));
-        else resolve(project(ids));
+        // Metadata requests are complete. Reap the entire owned process group;
+        // a CLI or plugin ignoring SIGTERM must not survive a catalog refresh.
+        if (!child.pid) {
+          complete();
+          return;
+        }
+        terminateCatalogProcess(child);
       };
       const timer = setTimeout(() => finish(true), 25_000);
       const send = (value) => child.stdin.write(JSON.stringify(value) + '\n');
       child.on('error', () => finish(true));
       child.stdin.on('error', () => finish(true));
-      child.on('close', () => finish(true));
+      child.on('close', () => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          failure = true;
+        }
+        complete();
+      });
       child.stdout.setEncoding('utf8');
       child.stdout.on('data', (chunk) => {
         bytes += Buffer.byteLength(chunk);

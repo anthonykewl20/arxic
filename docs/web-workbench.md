@@ -403,3 +403,7 @@ Provider references: [Claude account plans](https://support.claude.com/en/articl
 [OpenCode Go](https://opencode.ai/docs/go/),
 [OpenClaw xAI](https://docs.openclaw.ai/providers/xai),
 [OpenClaw HTTP routing](https://docs.openclaw.ai/gateway/openai-http-api).
+
+Visual review treats magenta privacy masks as unavailable evidence and excludes
+unsupported design preferences. These prompt constraints do not establish a
+zero-false-positive detector; findings remain hypotheses requiring independent checks.
