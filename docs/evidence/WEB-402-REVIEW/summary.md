@@ -59,3 +59,11 @@ Limits: one clean/regressed case is not a comprehensive detector evaluation.
 Reviews cover one explicitly inspected anonymous viewport; authenticated states,
 broader semantic comparisons and campaign coverage remain under #402. HTTP budget
 allowances are estimates, and host-provider tools/billing are operator-managed.
+
+CI installation follow-up: run 33972262170 failed in the static job's dependency
+installation, inside node-gyp/undici's Node header download, before type/format
+checks. `native-install.json` records the exact Node archive and an isolated red/
+green probe: an unavailable header endpoint fails without a local SDK; matching
+installed headers permit a forced SQLite source build and SQL round trip with
+zero header fetches. CI now validates and selects its installed Node headers.
+No test was weakened, skipped or retried to conceal a product assertion failure.

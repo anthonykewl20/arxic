@@ -1,0 +1,22 @@
+{
+  "failure": {
+    "ciRun": 33972262170,
+    "job": 101322741473,
+    "phase": "pnpm frozen install / better-sqlite3 node-gyp header download",
+    "diagnostic": "undici Parser.finish assert(!this.paused)",
+    "applicationTestsReachedInJob": false
+  },
+  "source": "https://github.com/actions/node-versions/releases/tag/22.22.0-20981702931",
+  "nodeArchiveSha256": "b8b1d4c4b33e962797d4083d198916161ea39770fe93a74afd7b5499c70e3d75",
+  "probe": {
+    "node": "22.22.0",
+    "nodeGyp": "12.4.0",
+    "sqlitePackage": "13.0.3",
+    "sqliteRuntime": "3.53.4",
+    "downloadEndpoint": "http://127.0.0.1:9",
+    "withoutLocalHeaders": "configure fails attempting header download",
+    "withLocalHeaders": "forced source build passes; zero gyp HTTP log entries",
+    "sqlRoundTrip": 42,
+    "nativeBinarySha256": "68b9a65edcf77a6d1874f9c966d228ec79891bdb52c131c540f70b2337ae2b31"
+  }
+}

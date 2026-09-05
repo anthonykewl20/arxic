@@ -66,6 +66,9 @@ jobs:
           node-version: 22.22.0
           cache: pnpm
 
+      - name: Use installed Node headers for native builds
+        run: node scripts/ci-native-headers.mjs
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -144,6 +147,9 @@ jobs:
           node-version: 22.22.0
           cache: pnpm
 
+      - name: Use installed Node headers for native builds
+        run: node scripts/ci-native-headers.mjs
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -195,6 +201,9 @@ jobs:
           node-version: 22.22.0
           cache: pnpm
 
+      - name: Use installed Node headers for native builds
+        run: node scripts/ci-native-headers.mjs
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -228,6 +237,9 @@ jobs:
         with:
           node-version: 22.22.0
           cache: pnpm
+
+      - name: Use installed Node headers for native builds
+        run: node scripts/ci-native-headers.mjs
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -278,6 +290,9 @@ jobs:
         with:
           node-version: 22.22.0
           cache: pnpm
+
+      - name: Use installed Node headers for native builds
+        run: node scripts/ci-native-headers.mjs
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

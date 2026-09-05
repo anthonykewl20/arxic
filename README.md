@@ -12,6 +12,7 @@ The web workbench includes real source scanning with frontend declarations and c
 engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, Chromium screenshot comparisons, on-demand selected-workflow campaigns and a management dashboard. The full
 product remains in development: authenticated visual states and comprehensive
 frontend state/intent campaigns are tracked in [#402](https://github.com/anthonykewl20/arxic/issues/402).
+Contributor setup and CI native-build details are in [CONTRIBUTING.md](CONTRIBUTING.md).
 See the [product specification](docs/web-product-spec.md) for the exact coverage
 boundary. Dashboard version labels use `v0.0.200`; canonical package versions are
 `0.0.200`.

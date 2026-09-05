@@ -2,7 +2,7 @@
 
 Welcome, and thanks for helping shape Arxic.
 
-Arxic is an evidence-driven behavioral compiler. Contributions are expected to
+Arxic is a self-hosted frontend testing workbench backed by an evidence-driven behavioral compiler. Contributions are expected to
 produce replayable behavior artifacts and evidence, then verify that evidence in
 independent runs.
 
@@ -17,7 +17,7 @@ blocked) govern every outcome; an LLM may never assign `verified`. See
 
 ## Prerequisites
 
-- Node.js 22+
+- Node.js 22.22+
 - pnpm 11 (via corepack; `packageManager` is pinned in `package.json`)
 
 ## Getting started
@@ -35,6 +35,15 @@ pnpm format:check
 pnpm test
 ```
 
+## Native dependency builds in CI
+
+CI uses the matching headers bundled with the full Node distribution installed
+by `actions/setup-node`. `scripts/ci-native-headers.mjs` checks the header version
+and required build files, then sets node-gyp's `nodedir` through its supported
+package-config environment variable. This avoids a second header download during
+native dependency installation; it does not skip builds or change runtime versions.
+See [node-gyp configuration](https://github.com/nodejs/node-gyp#configuration).
+
 ## Branching model
 
 **Strategy: trunk-based development** (confirmed decision). There is no long-lived `dev` or `release` branch.
@@ -42,7 +51,7 @@ pnpm test
 - `main` is the single integration branch. The repository has been **public since 2026-08-12** (it was private earlier in pre-1.0). Branch protection is **enabled** with `strict: true`: the required `ci` check must pass, changes land through PRs, protection is enforced for admins, linear history is required, and force-pushes are disabled. **Merge only when `ci` is green** (`gh pr checks <N> --watch` → `pass`); do not push directly or delete `main`.
 - All work lands via **short-lived branches** named by intent: `feat/<scope>`, `fix/<scope>`, `docs/<scope>`, `chore/<scope>`, `spike/<scope>`. Rebase stale dependency-bump branches onto `main` before evaluating CI.
 - Open a PR against `main`; the `ci` check must pass before merge. Solo maintainers may self-merge (0 required reviews). Merge style: **squash**.
-- `main` is always shippable. **Releases are cut from `main` via tags** (`v0.1.0`, `v0.2.0`, …) per `RELEASES.md` — never via a release branch.
+- `main` is always shippable. **Releases are cut from `main` via tags** (`v0.0.100`, `v0.0.200`, …; minor increments add 100) per `RELEASES.md` — never via a release branch.
 - Conventional Commits are expected (`feat(contracts): …`, `fix(verifier): …`).
 
 ## Slice workflow (mandatory)
