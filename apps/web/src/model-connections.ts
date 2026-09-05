@@ -191,6 +191,9 @@ export function modelConnections(env: NodeJS.ProcessEnv = process.env) {
     {
       id: '',
       label: 'Server default',
+      billing:
+        env.ARXIC_MODEL_BILLING_MODE ??
+        (env.ARXIC_MODEL_PROVIDER === 'host-cli' ? 'operator-managed' : 'api'),
       transport:
         env.ARXIC_MODEL_PROVIDER === 'host-cli'
           ? 'host-cli'

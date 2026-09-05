@@ -168,6 +168,7 @@ it('refreshes provider-owned models in a real browser and preserves search and s
     const defaultProvider = page.locator('.provider-row').filter({ hasText: 'Server default' });
     expect(await defaultProvider.count()).toBe(1);
     await defaultProvider.click();
+    expect(await page.getByText('API billing', { exact: true }).isVisible()).toBe(true);
     await page.getByText('provider/revision-4[1m]', { exact: true }).waitFor();
     failing = false;
     revision = 5;
