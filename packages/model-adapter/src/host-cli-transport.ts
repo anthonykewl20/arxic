@@ -1,4 +1,7 @@
 import { execFile, spawn } from 'node:child_process';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   ARXIC_MODEL_PROVIDER_ERROR,
   ARXIC_MODEL_PROVIDER_TIMEOUT,
@@ -9,6 +12,7 @@ import type {
   OpenAICompletion,
   OpenAIMessage,
   StructuredCompletionTransport,
+  StructuredCompletionInput,
 } from './client';
 
 /**
@@ -47,6 +51,8 @@ export type HostCliTransportConfig = {
   command: string;
   /** Extra argv passed to the executable, before the prompt is written to stdin. */
   args?: string[];
+  /** Repeated per PNG. Must contain a separate literal {image} argument. */
+  imageArgs?: string[];
   /** Working directory for the spawned process. Defaults to process.cwd(). */
   cwd?: string;
 };
@@ -119,7 +125,9 @@ export function hostCliConfigFromEnv(
   if (!command) return undefined;
 
   const rawArgs = env.ARXIC_MODEL_HOST_CLI_ARGS?.trim();
-  if (!rawArgs) return { command };
+  const imageArgs = parseImageArgs(env.ARXIC_MODEL_HOST_CLI_IMAGE_ARGS);
+  const images = imageArgs === undefined ? {} : { imageArgs };
+  if (!rawArgs) return { command, ...images };
 
   if (rawArgs.startsWith('[')) {
     let parsed: unknown;
@@ -131,117 +139,177 @@ export function hostCliConfigFromEnv(
     if (!Array.isArray(parsed) || !parsed.every((item) => typeof item === 'string')) {
       throw new Error('ARXIC_MODEL_HOST_CLI_ARGS JSON array must contain only strings');
     }
-    return { command, args: parsed };
+    return { command, args: parsed, ...images };
   }
-  return { command, args: rawArgs.split(/\s+/u) };
+  return { command, args: rawArgs.split(/\s+/u), ...images };
+}
+
+function validImageArgs(input: unknown): input is string[] {
+  return (
+    Array.isArray(input) &&
+    input.length > 0 &&
+    input.length <= 20 &&
+    input.every((item) => typeof item === 'string' && !item.includes('\0')) &&
+    input.includes('{image}')
+  );
+}
+
+function parseImageArgs(raw: string | undefined): string[] | undefined {
+  if (!raw?.trim()) return undefined;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error(
+      'ARXIC_MODEL_HOST_CLI_IMAGE_ARGS must be a JSON string array containing {image}',
+    );
+  }
+  if (!validImageArgs(parsed))
+    throw new Error(
+      'ARXIC_MODEL_HOST_CLI_IMAGE_ARGS must be a JSON string array containing {image}',
+    );
+  return parsed;
 }
 
 export function createHostCliTransport(
   config: HostCliTransportConfig,
 ): StructuredCompletionTransport {
-  return (input) =>
-    new Promise<ClientResult>((resolve) => {
-      const prompt = renderPrompt(input.messages);
-      const timeoutMs = input.timeoutMs ?? 30_000;
-
-      let child;
-      try {
-        child = spawn(config.command, config.args ?? [], {
-          cwd: config.cwd,
-          stdio: ['pipe', 'pipe', 'pipe'],
-          detached: process.platform !== 'win32',
-        });
-      } catch {
-        resolve(providerFailure(false));
-        return;
+  return async (input) => {
+    if (input.images === undefined) return runHostCli(config, input);
+    if (!validImageArgs(config.imageArgs)) return providerFailure(false);
+    let directory: string | undefined;
+    try {
+      directory = await mkdtemp(join(tmpdir(), 'arxic-model-images-'));
+      const args = [...(config.args ?? [])];
+      for (const [index, image] of input.images.entries()) {
+        const file = join(directory, `image-${index + 1}.png`);
+        await writeFile(file, image.bytes, { mode: 0o600, flag: 'wx' });
+        args.push(...config.imageArgs.map((arg) => (arg === '{image}' ? file : arg)));
       }
+      const result = await runHostCli({ ...config, args }, input);
+      // Temporary attachment paths are transport internals, never model artifacts.
+      if (
+        result.ok &&
+        result.raw.choices.some((choice) =>
+          choice.message.content.includes(JSON.stringify(directory).slice(1, -1)),
+        )
+      )
+        return providerFailure(false);
+      return result;
+    } catch {
+      return providerFailure(false);
+    } finally {
+      if (directory) await rm(directory, { recursive: true, force: true });
+    }
+  };
+}
 
-      const stdoutChunks: Buffer[] = [];
-      let stdoutBytes = 0;
-      const maximumOutputBytes = 8 * 1024 * 1024;
-      let settled = false;
-      let timedOut = false;
+function runHostCli(
+  config: HostCliTransportConfig,
+  input: StructuredCompletionInput,
+): Promise<ClientResult> {
+  return new Promise<ClientResult>((resolve) => {
+    const prompt = renderPrompt(input.messages);
+    const timeoutMs = input.timeoutMs ?? 30_000;
 
-      const finish = (result: ClientResult): void => {
-        if (settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve(result);
-      };
+    let child;
+    try {
+      child = spawn(config.command, config.args ?? [], {
+        cwd: config.cwd,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        detached: process.platform !== 'win32',
+      });
+    } catch {
+      resolve(providerFailure(false));
+      return;
+    }
 
-      const stop = () => {
-        if (child.pid) {
-          if (process.platform === 'win32') {
-            execFile('taskkill', ['/PID', String(child.pid), '/T', '/F'], () => undefined);
-          } else {
-            try {
-              process.kill(-child.pid, 'SIGKILL');
-            } catch {
-              child.kill('SIGKILL');
-            }
+    const stdoutChunks: Buffer[] = [];
+    let stdoutBytes = 0;
+    const maximumOutputBytes = 8 * 1024 * 1024;
+    let settled = false;
+    let timedOut = false;
+
+    const finish = (result: ClientResult): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(result);
+    };
+
+    const stop = () => {
+      if (child.pid) {
+        if (process.platform === 'win32') {
+          execFile('taskkill', ['/PID', String(child.pid), '/T', '/F'], () => undefined);
+        } else {
+          try {
+            process.kill(-child.pid, 'SIGKILL');
+          } catch {
+            child.kill('SIGKILL');
           }
         }
-        child.stdin?.destroy();
-        child.stdout?.destroy();
-        child.stderr?.destroy();
-      };
-      const timer = setTimeout(() => {
-        timedOut = true;
-        stop();
-        finish(providerFailure(true));
-      }, timeoutMs);
+      }
+      child.stdin?.destroy();
+      child.stdout?.destroy();
+      child.stderr?.destroy();
+    };
+    const timer = setTimeout(() => {
+      timedOut = true;
+      stop();
+      finish(providerFailure(true));
+    }, timeoutMs);
 
-      child.stdout?.on('data', (chunk: Buffer) => {
-        stdoutBytes += chunk.length;
-        if (stdoutBytes > maximumOutputBytes) {
-          stop();
-          finish(providerFailure(false));
-          return;
-        }
-        stdoutChunks.push(chunk);
-      });
-      // stderr is intentionally not captured into any diagnostic message —
-      // it may echo the prompt back, and diagnostics must not carry raw
-      // prompt/response content outside the redaction gate.
-      child.stderr?.resume();
-      // Pipe writes fail asynchronously when a provider exits before reading
-      // a large prompt. An unhandled EPIPE must not crash the caller process.
-      child.stdin?.on('error', () => {
-        stop();
-        finish(providerFailure(timedOut));
-      });
-
-      child.on('error', () => finish(providerFailure(timedOut)));
-      child.on('close', (code) => {
-        if (timedOut) {
-          finish(providerFailure(true));
-          return;
-        }
-        if (code !== 0) {
-          finish(providerFailure(false));
-          return;
-        }
-        // A pipe chunk can end inside a UTF-8 code point. Decode only after
-        // collecting the bounded byte stream so model text is not corrupted.
-        const parsed = extractJsonPayload(Buffer.concat(stdoutChunks).toString('utf8'));
-        if (parsed === undefined) {
-          finish(providerFailure(false));
-          return;
-        }
-        const raw: OpenAICompletion = {
-          id: `host-cli-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-          model: input.model,
-          choices: [{ message: { role: 'assistant', content: JSON.stringify(parsed) } }],
-          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
-        };
-        finish({ ok: true, raw, diagnostics: [] });
-      });
-
-      try {
-        child.stdin?.end(prompt);
-      } catch {
+    child.stdout?.on('data', (chunk: Buffer) => {
+      stdoutBytes += chunk.length;
+      if (stdoutBytes > maximumOutputBytes) {
         stop();
         finish(providerFailure(false));
+        return;
       }
+      stdoutChunks.push(chunk);
     });
+    // stderr is intentionally not captured into any diagnostic message —
+    // it may echo the prompt back, and diagnostics must not carry raw
+    // prompt/response content outside the redaction gate.
+    child.stderr?.resume();
+    // Pipe writes fail asynchronously when a provider exits before reading
+    // a large prompt. An unhandled EPIPE must not crash the caller process.
+    child.stdin?.on('error', () => {
+      stop();
+      finish(providerFailure(timedOut));
+    });
+
+    child.on('error', () => finish(providerFailure(timedOut)));
+    child.on('close', (code) => {
+      if (timedOut) {
+        finish(providerFailure(true));
+        return;
+      }
+      if (code !== 0) {
+        finish(providerFailure(false));
+        return;
+      }
+      // A pipe chunk can end inside a UTF-8 code point. Decode only after
+      // collecting the bounded byte stream so model text is not corrupted.
+      const parsed = extractJsonPayload(Buffer.concat(stdoutChunks).toString('utf8'));
+      if (parsed === undefined) {
+        finish(providerFailure(false));
+        return;
+      }
+      const raw: OpenAICompletion = {
+        id: `host-cli-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+        model: input.model,
+        choices: [{ message: { role: 'assistant', content: JSON.stringify(parsed) } }],
+        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+      };
+      finish({ ok: true, raw, diagnostics: [] });
+    });
+
+    try {
+      child.stdin?.end(prompt);
+    } catch {
+      stop();
+      finish(providerFailure(false));
+    }
+  });
 }

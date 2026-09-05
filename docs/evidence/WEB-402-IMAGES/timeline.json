@@ -1,0 +1,18 @@
+[
+  {
+    "action": "capture anonymous reference 1 with input masks",
+    "result": "passed"
+  },
+  {
+    "action": "capture anonymous reference 2 with input masks",
+    "result": "passed"
+  },
+  {
+    "action": "live host image transcription in order 0,1",
+    "result": "passed"
+  },
+  {
+    "action": "live host image transcription in order 1,0",
+    "result": "passed"
+  }
+]

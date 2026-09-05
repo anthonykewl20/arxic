@@ -1,4 +1,5 @@
 import type { Diagnostic } from '@arxic/contracts';
+import type { PreparedModelImage } from './images';
 import {
   ARXIC_MODEL_PROVIDER_ERROR,
   ARXIC_MODEL_PROVIDER_TIMEOUT,
@@ -91,6 +92,7 @@ export type StructuredCompletionInput = {
   messages: OpenAIMessage[];
   schema: object;
   schemaName: string;
+  images?: readonly PreparedModelImage[];
   timeoutMs?: number;
 };
 
@@ -120,7 +122,22 @@ export async function postStructuredCompletion(
       },
       body: JSON.stringify({
         model: input.model,
-        messages: input.messages,
+        messages:
+          input.images === undefined
+            ? input.messages
+            : [
+                ...input.messages,
+                {
+                  role: 'user',
+                  content: input.images.map((image) => ({
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:image/png;base64,${Buffer.from(image.bytes).toString('base64')}`,
+                      detail: 'high',
+                    },
+                  })),
+                },
+              ],
         response_format: {
           type: 'json_schema',
           json_schema: { name: input.schemaName, schema: input.schema, strict: true },

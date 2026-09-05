@@ -154,3 +154,16 @@ update every non-fixture manifest together with `VERSION`.
 This owner instruction supersedes the earlier pre-1.0 minor/patch cadence and
 the earlier 0.1.0 target. Historical audit evidence is preserved under its original
 version. No tag or publication is performed by this decision.
+
+## 2026-09-05 image transport prerequisite
+
+The local model-adapter API accepts optional integrity-checked PNG evidence.
+HTTP uses ordered image content parts; explicitly configured host transports use
+private temporary attachments with cleanup. Run records retain image hashes,
+dimensions and byte counts. Existing text-only requests remain unchanged.
+
+This is an additive local capability; the frozen contracts and truth-state
+boundary are unchanged. The dashboard must separately authorize capture and
+transmission, bind findings to image hashes and independently assess claims.
+Transport success establishes delivery, not defect correctness or semantic
+coverage. Semantic visual review is still an open #402 requirement.

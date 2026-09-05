@@ -10,6 +10,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ## [Unreleased]
 
+- Add bounded, hash-checked PNG delivery to HTTP and explicitly configured host model transports, with metadata-only records and temporary attachment cleanup (refs #402).
+
 ### Added
 
 - Durable on-demand web campaigns (refs #402): choose up to 20 discovered source surfaces in the guided dashboard, reserve queue capacity atomically and run each through a separate source-bound engine job. Per-workflow verifier results remain separate from unsupported/unselected rows and uncovered hypotheses. Campaign history survives restart, cancellation stops unfinished work and referenced evidence is protected from individual deletion. Source changes block queued children. A reproduced real-filesystem race between campaign creation and discovery deletion is prevented by shared mutation serialization. Recurring campaigns, retention and comprehensive business-state coverage remain pending.

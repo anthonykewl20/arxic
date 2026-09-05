@@ -1,6 +1,7 @@
 import { canonicalJson, sha256 } from '@arxic/contracts';
 import type { Diagnostic } from '@arxic/contracts';
 import type { OpenAICompletion } from './client';
+import type { ModelImageMetadata } from './images';
 import { ARXIC_MODEL_CREDENTIAL_LEAK_DETECTED, modelDiagnostic } from './diagnostics';
 
 export type ModelRunRecord = {
@@ -24,6 +25,8 @@ export type ModelRunRecord = {
    * identical run records for existing callers.
    */
   provider?: 'host-bound';
+  /** Pixel integrity and dimensions only; never image bytes or temporary file paths. */
+  images?: readonly ModelImageMetadata[];
   timestamp: string;
 };
 
@@ -45,6 +48,7 @@ export function buildRunRecord(input: {
   response?: OpenAICompletion;
   provider?: ProviderMeta;
   now: () => string;
+  images?: readonly ModelImageMetadata[];
 }): ModelRunRecord {
   const record: ModelRunRecord = {
     requestId: input.response?.id ?? '',
@@ -66,6 +70,7 @@ export function buildRunRecord(input: {
     record.sourceSharing = input.provider.sourceSharing;
   }
   if (input.provider?.provider !== undefined) record.provider = input.provider.provider;
+  if (input.images !== undefined) record.images = input.images;
   return record;
 }
 

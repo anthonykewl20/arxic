@@ -64,6 +64,22 @@ describe('extractJsonPayload', () => {
 });
 
 describe('hostCliConfigFromEnv', () => {
+  it('requires explicit per-image argument configuration without changing text-only argv', () => {
+    expect(
+      hostCliConfigFromEnv({
+        ARXIC_MODEL_HOST_CLI: 'agent',
+        ARXIC_MODEL_HOST_CLI_IMAGE_ARGS: '["--image","{image}"]',
+      }),
+    ).toEqual({ command: 'agent', imageArgs: ['--image', '{image}'] });
+    for (const value of ['--image {image}', '["--image"]', '[1,"{image}"]', '["prefix{image}"]']) {
+      expect(() =>
+        hostCliConfigFromEnv({
+          ARXIC_MODEL_HOST_CLI: 'agent',
+          ARXIC_MODEL_HOST_CLI_IMAGE_ARGS: value,
+        }),
+      ).toThrow();
+    }
+  });
   it('is undefined when ARXIC_MODEL_HOST_CLI is unset', () => {
     expect(hostCliConfigFromEnv({})).toBeUndefined();
   });

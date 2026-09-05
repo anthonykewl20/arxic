@@ -9,6 +9,7 @@ import {
 import {
   ARXIC_MODEL_PROVIDER_ERROR,
   ARXIC_MODEL_PROVIDER_TIMEOUT,
+  ARXIC_MODEL_IMAGE_INVALID,
   ARXIC_MODEL_RETRIES_EXHAUSTED,
   ARXIC_MODEL_SCHEMA_VERSION_DRIFT,
   ARXIC_MODEL_STRUCTURED_OUTPUT_INVALID,
@@ -24,6 +25,7 @@ import {
   type ProviderMeta,
 } from './run-record';
 import { assertSchemaVersion, compileSchema, validateStructuredOutput } from './validator';
+import { prepareModelImages, type ModelImage, type PreparedModelImage } from './images';
 
 export type CredentialResolver = () => Promise<string> | string;
 
@@ -51,6 +53,7 @@ export type StructuredOutputRequest = {
   schema: object;
   schemaVersion: string;
   maxRetries?: number;
+  images?: readonly ModelImage[];
 };
 
 export type StructuredOutputResult =
@@ -86,6 +89,7 @@ export class ModelAdapter {
 
   async requestStructuredOutput(request: StructuredOutputRequest): Promise<StructuredOutputResult> {
     try {
+      let images: PreparedModelImage[] | undefined;
       const now = this.options.now ?? (() => new Date().toISOString());
       const schemaSha256 = computeSchemaSha256(request.schema);
       const recordFrom = (response?: OpenAICompletion): ModelRunRecord => {
@@ -95,6 +99,7 @@ export class ModelAdapter {
           model: request.model,
           response,
           provider: this.options.providerMeta,
+          ...(images === undefined ? {} : { images: images.map((image) => image.metadata) }),
           now,
         });
         if (record.schemaSha256 !== schemaSha256)
@@ -113,6 +118,15 @@ export class ModelAdapter {
       });
 
       let credential: string;
+      try {
+        images = prepareModelImages(request.images);
+      } catch {
+        return blocked(
+          ARXIC_MODEL_IMAGE_INVALID,
+          'model-images',
+          'Image evidence is malformed, oversized or does not match its hash',
+        );
+      }
       try {
         credential =
           typeof this.options.credentials === 'string'
@@ -136,6 +150,7 @@ export class ModelAdapter {
 
       const forbidden = [
         credential,
+        ...(images ?? []).map((image) => Buffer.from(image.bytes).toString('base64')),
         ...request.messages.map((message) => message.content),
         ...(this.options.canaries ?? []),
       ].filter(Boolean);
@@ -192,6 +207,7 @@ export class ModelAdapter {
           schema: request.schema,
           schemaName: schemaNameFromVersion(request.schemaVersion),
           timeoutMs: this.options.timeoutMs,
+          ...(images === undefined ? {} : { images }),
         });
         if (!result.ok) {
           if (result.diagnostics[0]?.code === ARXIC_MODEL_PROVIDER_TIMEOUT) {

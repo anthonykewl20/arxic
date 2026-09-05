@@ -460,12 +460,19 @@ importers:
       '@arxic/contracts':
         specifier: workspace:*
         version: link:../contracts
+      '@arxic/playwright-screenshot-privacy':
+        specifier: workspace:*
+        version: link:../playwright-screenshot-privacy
       ajv:
         specifier: ^8.17.1
         version: 8.20.0
       ajv-formats:
         specifier: ^3.0.1
         version: 3.0.1(ajv@8.20.0)
+    devDependencies:
+      playwright:
+        specifier: 1.62.1
+        version: 1.62.1
 
   packages/orchestrator-langgraph:
     dependencies:
