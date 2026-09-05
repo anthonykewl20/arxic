@@ -14,9 +14,11 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- React/shadcn run lists, capture comparison, image-review forms and shared provider-driven model fields. Keep review settings disabled during submission, clear unsent drafts/consent on logout and hide selected run details when they do not match the project filter (refs #402).
+
 - React/shadcn intent inventory, source declarations and workflow selection. Restore line-anchored source references for AI intent-ledger rows, stack mobile surface evidence fields and reset selected checkboxes when a new discovery arrives during polling (refs #402).
 
-- React/shadcn workspace shell, overview, campaign history/details, schedules and administrator activity with a compact neutral design and mobile navigation. Escape closes the mobile menu and restores focus; project persona option values retain their exact saved values (refs #402). Run details, model controls and image review remain migration work.
+- React/shadcn workspace shell, overview, campaign history/details, schedules and administrator activity with a compact neutral design and mobile navigation. Escape closes the mobile menu and restores focus; project persona option values retain their exact saved values (refs #402).
 
 - Retain subscription/catalog proof with 13 hash-checked masked screenshots, native model metadata, real Codex/Claude clean/regressed Next image pairs, original failures and the disclosed lexical-oracle correction (refs #402).
 

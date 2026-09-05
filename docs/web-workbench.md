@@ -102,10 +102,11 @@ The navigation shell, overview, intent inventory, workflow selection, campaign h
 also use React/shadcn, with compact neutral styling and an expandable mobile menu.
 Escape closes that menu and returns focus to its toggle. Intent-ledger rows display
 their recorded line-anchored source references. New discoveries reset old workflow
-selections; mobile source rows stack their evidence fields. Run details, model
-fields and image-review presentation still use the
-existing dashboard renderer; the project form retains native dialog behavior.
-Their migration remains under #402.
+selections; mobile source rows stack their evidence fields. Run details, capture
+comparisons, image review and model fields also use React/shadcn. Review settings
+stay disabled during submission, and logout clears unsent drafts and image consent.
+Project filtering hides details belonging to another project. The project form
+retains native dialog behavior and shared API actions.
 
 Set `ARXIC_MODEL_CONNECTIONS` to a JSON array before starting the server. For example:
 

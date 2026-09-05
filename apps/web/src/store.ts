@@ -154,7 +154,11 @@ export class Store {
       .all();
   }
   baselines() {
-    return this.db.prepare('SELECT project_id, spec, run_id, capture_id FROM baselines').all();
+    return this.db
+      .prepare<[], { project_id: string; spec: string; run_id: string; capture_id: string }>(
+        'SELECT project_id, spec, run_id, capture_id FROM baselines',
+      )
+      .all();
   }
   private documents<T>(query: string): T[] {
     return (this.db.prepare(query).all() as Array<{ data: string }>).map(

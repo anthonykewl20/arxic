@@ -36,8 +36,10 @@ work. The broader #402 requirements and human release inspection remain open.
 Source revision: `f673f33a3d7dc9c3aec0bf78786d3ee1efb18e59`, rebased onto merged
 PR #414. Full web area: **47 tests in 13 files pass, 232.63 s**. Root/package type
 checks, lint and the license gate also pass locally. Full-repository format after
-final documentation: `All matched files use Prettier code style!`. Required final PR-head CI and merge remain
-pending; no release completion is claimed.
+final documentation: `All matched files use Prettier code style!`. PR #415 required CI passed on `b7012b4e7ee02b7da51d68ec02a37d6bded3b47b`
+(run 33984408362): four test shards, static, package and fixture-app jobs.
+The worker-image job was conditionally skipped. The slice merged as
+`969c07f88fc65406a388e01f189ee7200194f9d6`; no release completion is claimed.
 
 | User-level test | Result | Proof |
 | --- | --- | --- |

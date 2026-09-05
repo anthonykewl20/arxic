@@ -1,0 +1,6 @@
+{
+  "sourceCommit": "520b256e76a1e93fd5d70a9c1bd2287930b6bc3b",
+  "sha256": "5ed5f0dda45d806b1f3484c2c347100654465ede3a074442973925a62a53159e",
+  "method": "allow-listed actions/assertion outcomes only; no raw DOM/network or traces",
+  "rawTraceRetained": false
+}

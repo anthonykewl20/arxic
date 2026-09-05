@@ -202,7 +202,37 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
       'Real capture visible; review remains disabled without explicit inspected-image authorization',
     );
     await page.getByLabel('I inspected this screenshot', { exact: false }).check();
+    let holdReady!: () => void;
+    let releaseReview!: () => void;
+    const heldReview = new Promise<void>((resolve) => {
+      holdReady = resolve;
+    });
+    const releasedReview = new Promise<void>((resolve) => {
+      releaseReview = resolve;
+    });
+    await page.route('**/api/runs/*/reviews', async (route) => {
+      const response = await route.fetch();
+      holdReady();
+      await releasedReview;
+      await route.fulfill({ response });
+    });
     await page.getByRole('button', { name: 'Review these pixels' }).click();
+    await heldReview;
+    try {
+      expect(await page.getByLabel('Review model', { exact: true }).isDisabled()).toBe(true);
+      expect(
+        await page.getByLabel('Independent acceptance criterion', { exact: false }).isDisabled(),
+      ).toBe(true);
+      expect(await page.getByRole('button', { name: 'Review these pixels' }).isDisabled()).toBe(
+        true,
+      );
+      await proof(
+        '04-review-submission-pending',
+        'Review settings and submit stay disabled until the enqueue response completes',
+      );
+    } finally {
+      releaseReview();
+    }
     await page
       .getByRole('heading', { name: 'AI visual hypotheses', exact: true })
       .waitFor({ timeout: 30_000 });
@@ -221,6 +251,53 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
       true,
     );
     await proof('03-mobile-review', 'Review image and findings remain within the mobile viewport');
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const otherProjectResponse = await page.request.post(`${app.origin}/api/projects`, {
+      headers: { origin: app.origin },
+      data: {
+        name: 'Separate project without runs',
+        folder: join(root, 'test-fixtures/vulnerable-auth-app'),
+        origin: target.origin,
+      },
+    });
+    expect(otherProjectResponse.ok()).toBe(true);
+    await expect
+      .poll(() => page.getByLabel('Filter by project').locator('option').allTextContents(), {
+        timeout: 10_000,
+      })
+      .toContain('Separate project without runs');
+    await page
+      .getByLabel('Filter by project')
+      .selectOption({ label: 'Separate project without runs' });
+    expect(await page.locator('.run-detail').count()).toBe(0);
+    await proof(
+      '05-project-filter',
+      'Selecting another project hides the previously selected run and its review',
+    );
+    await page.getByLabel('Filter by project').selectOption('');
+    await page.getByRole('button', { name: 'View source capture', exact: true }).click();
+    await page.getByText('Ask AI to review this screenshot', { exact: true }).click();
+    await page
+      .getByLabel('Independent acceptance criterion', { exact: false })
+      .fill('Unsubmitted session draft');
+    await page.getByLabel('I inspected this screenshot', { exact: false }).check();
+    const sourceRunId = await page.locator('[data-review-form]').getAttribute('data-run');
+    await page.locator('#logout').click();
+    await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
+    await page.getByRole('button', { name: 'Open workbench' }).click();
+    await page.locator(`[data-open-run="${sourceRunId}"]`).click();
+    await page.getByText('Ask AI to review this screenshot', { exact: true }).click();
+    expect(
+      await page.getByLabel('Independent acceptance criterion', { exact: false }).inputValue(),
+    ).toBe('');
+    expect(await page.getByLabel('I inspected this screenshot', { exact: false }).isChecked()).toBe(
+      false,
+    );
+    await page.locator('.review-controls').scrollIntoViewIfNeeded();
+    await proof(
+      '06-new-session-consent',
+      'Signing out clears the unsent review draft and requires fresh screenshot consent',
+    );
     expect(errors).toEqual([]);
     if (evidence) {
       const bytes = JSON.stringify(timeline, null, 2);

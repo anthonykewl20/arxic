@@ -61,8 +61,8 @@ account proof.
 
 The target interface uses React and shadcn/ui, with a polished, compact visual
 hierarchy inspired by Linear. The shell, overview, intent inventory, workflow selection, campaign history/details,
-schedules, administration and Models & accounts implement that foundation.
-Run details, model fields and image-review presentation still require migration. The project form uses React markup but
+schedules, administration, run/capture details, image review, model fields and
+Models & accounts implement that foundation. The project form uses React markup but
 retains its native dialog and existing submission actions.
 Browser account-login flows, richer connection management and full paid-plan
 coverage remain explicit follow-up work under #402.

@@ -219,3 +219,10 @@ export function unmountProviderPanel(element: Element) {
 export { mountWorkspaceShell } from './workspace-shell';
 
 export { mountWorkspacePanel, unmountWorkspacePanel } from './workspace-panels';
+
+export {
+  mountProjectModelControls,
+  unmountProjectModelControls,
+  updateModelCatalogs,
+} from './model-controls';
+export { reviewDrafts, reviewDraftKey } from './review-form';
