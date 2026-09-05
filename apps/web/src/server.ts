@@ -56,6 +56,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
       '/': ['index.html', 'text/html'],
       '/app.js': ['app.js', 'text/javascript'],
       '/html.js': ['html.js', 'text/javascript'],
+      '/visual-review.js': ['visual-review.js', 'text/javascript'],
       '/campaigns.js': ['campaigns.js', 'text/javascript'],
       '/app.css': ['app.css', 'text/css'],
       '/base.css': ['base.css', 'text/css'],
@@ -161,6 +162,13 @@ export async function startWorkbench(options: WorkbenchOptions) {
       await workbench.deleteRun(detailRoute[1]);
       return json(response, 200, { ok: true });
     }
+    const reviewRoute = /^\/api\/runs\/([a-f0-9-]+)\/reviews$/u.exec(path);
+    if (reviewRoute && request.method === 'POST')
+      return json(
+        response,
+        202,
+        await workbench.enqueueVisualReview(reviewRoute[1], await readJson(request)),
+      );
     const baselineRoute = /^\/api\/runs\/([a-f0-9-]+)\/baselines$/u.exec(path);
     if (baselineRoute && request.method === 'POST') {
       const body = await readJson(request);

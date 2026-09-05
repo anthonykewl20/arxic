@@ -43,7 +43,7 @@ const string = (value: unknown, fallback = ''): string => {
     throw new HttpError(400, 'Invalid AI execution text setting');
   return value.trim();
 };
-const secretRef = (value: unknown): string => {
+export const secretRef = (value: unknown): string => {
   const ref = string(value);
   if (ref && !/^ARXIC_SECRET_[A-Z][A-Z0-9_]{0,80}$/u.test(ref))
     throw new HttpError(
@@ -239,16 +239,32 @@ export function executionEnvironment(
     ARXIC_INPUT_PERSONA_PASSWORD: undefined,
     ARXIC_INPUT_PERSONA_NEWPASSWORD: undefined,
   };
-  const bind = (ref: string, name: string) => {
-    if (!ref) return;
-    const value = env[ref];
+  return {
+    ...overrides,
+    ...secretEnvironment(
+      [
+        [settings.modelSecretRef, 'ARXIC_MODEL_API_KEY'],
+        [settings.persona.emailRef, 'ARXIC_INPUT_PERSONA_EMAIL'],
+        [settings.persona.passwordRef, 'ARXIC_INPUT_PERSONA_PASSWORD'],
+        [settings.persona.newPasswordRef, 'ARXIC_INPUT_PERSONA_NEWPASSWORD'],
+      ],
+      env,
+    ),
+  };
+}
+
+/** Resolves an explicitly named binding set; callers choose the destination policy. */
+export function secretEnvironment(
+  bindings: readonly (readonly [string, string])[],
+  env: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+  const overrides: NodeJS.ProcessEnv = {};
+  for (const [ref, name] of bindings) {
+    if (!ref) continue;
+    const value = env[secretRef(ref)];
     if (!value)
       throw new HttpError(400, 'A selected secret reference is not available on this server');
     overrides[name] = value;
-  };
-  bind(settings.modelSecretRef, 'ARXIC_MODEL_API_KEY');
-  bind(settings.persona.emailRef, 'ARXIC_INPUT_PERSONA_EMAIL');
-  bind(settings.persona.passwordRef, 'ARXIC_INPUT_PERSONA_PASSWORD');
-  bind(settings.persona.newPasswordRef, 'ARXIC_INPUT_PERSONA_NEWPASSWORD');
+  }
   return overrides;
 }

@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Inspected-image dashboard AI review (refs #402): queued review of one stable PNG, model secret references, estimates, criteria/gaps, screenshot-bound proposed regions, reproduction and model provenance. Missing consent, changed evidence, invalid regions and insufficient estimates block. Findings remain hypotheses. Real cancellation exposed orphan host providers; owned process groups and private attachment directories now clean up on cancellation, completion and restart. Review forms preserve open state, text and focus through polling. Live review exposed a missed required submit button; the prompt now explicitly assesses the independent criterion before general visual findings.
+
 - Durable on-demand web campaigns (refs #402): choose up to 20 discovered source surfaces in the guided dashboard, reserve queue capacity atomically and run each through a separate source-bound engine job. Per-workflow verifier results remain separate from unsupported/unselected rows and uncovered hypotheses. Campaign history survives restart, cancellation stops unfinished work and referenced evidence is protected from individual deletion. Source changes block queued children. A reproduced real-filesystem race between campaign creation and discovery deletion is prevented by shared mutation serialization. Recurring campaigns, retention and comprehensive business-state coverage remain pending.
 
 - Scoped engine execution (refs #402): optional `scope.inventoryRowIds` restricts proposals and post-crawl re-proposals to current source consumer rows through the shared local/worker configuration. Stale selections block before inference, changed selection invalidates checkpoint reuse, and the full inventory remains in the ledger. Real Next.js login and password-reset selections pass two verifier replays each. This is a single-candidate prerequisite for multi-workflow campaigns, whose dashboard and scheduling remain pending.
@@ -29,6 +31,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 - Arxic's primary product is now a local/server web frontend testing application (ADR-009). The owner-defined release line is `v0.0.200` (canonical package metadata `0.0.200`); minor releases add 100 and patch fixes add 1. CLI, dashboard and release tags share the padded `v` label; scripts align every workspace manifest. The prior engine release audit does not establish readiness for the expanded web product. No release tag or publication is performed.
 
 ### Fixed
+
+- CI native dependency setup uses the exact installed Node headers. The first visual-review CI run failed inside node-gyp/undici while downloading those headers, before static gates. Matching local headers eliminate that extra fetch; a forced SQLite source build and SQL round trip pass on the exact CI Node runtime with the download endpoint disabled. No tests or build gates were skipped.
 
 - Campaign review controls and responsive layout: campaign children navigate back to their campaign instead of starting an unscoped retry, protected evidence no longer offers individual deletion, checkbox captions sit beside their controls, and mobile run rows stack with visible column labels. Real browser geometry assertions reproduce the layout defects.
 

@@ -10,13 +10,14 @@ E2E, visual regression review, scheduled runs, and project administration.
 
 The web workbench includes real source scanning with frontend declarations and coverage gaps, an existing AI/replay
 engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, Chromium screenshot comparisons, on-demand selected-workflow campaigns and a management dashboard. The full
-product remains in development: semantic AI image review and comprehensive
+product remains in development: authenticated visual states and comprehensive
 frontend state/intent campaigns are tracked in [#402](https://github.com/anthonykewl20/arxic/issues/402).
+Contributor setup and CI native-build details are in [CONTRIBUTING.md](CONTRIBUTING.md).
 See the [product specification](docs/web-product-spec.md) for the exact coverage
 boundary. Dashboard version labels use `v0.0.200`; canonical package versions are
 `0.0.200`.
 
-The model adapter supports bounded PNG attachments for HTTP and configured host agents; dashboard AI image review remains under development.
+The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
 ## Run the web app locally
 
@@ -97,7 +98,7 @@ Milestones are tracked on GitHub: https://github.com/anthonykewl20/arxic/milesto
 - M1-EXIT (`#27`) - complete: two structurally different reference apps produce independently replayable bundles without app-specific generator code
 - Domain-general intent extraction (ADR-008) - accepted after the DG-12 campaigns
 - v0.1.0 release preparation - audit fixes merged with retained CI proof; human release gate remains explicit
-- Web workbench (ADR-009) - initial management/visual comparison implementation in #401; full frontend intent campaigns and AI visual auditing remain open in #402
+- Web workbench (ADR-009) - initial management/visual comparison implementation in #401; broader frontend state campaigns and visual coverage remain open in #402
 
 ## Contributing
 

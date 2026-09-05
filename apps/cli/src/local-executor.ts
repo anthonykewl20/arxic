@@ -434,7 +434,7 @@ function resolveModelTimeoutMs(): number {
 }
 
 export function configuredModel(
-  request: RunRequest,
+  request: Pick<RunRequest, 'now'> & { config: Pick<RunRequest['config'], 'models'> },
 ): { adapter: ModelAdapter; name: string; prices?: ModelPrices } | undefined {
   const provider = request.config.models.provider.trim();
   if (isUnconfiguredProvider(provider)) return undefined;
@@ -453,7 +453,12 @@ export function configuredModel(
         baseUrl: 'host-cli://local',
         timeoutMs: resolveModelTimeoutMs(),
         credentials: () => 'host-bound-local',
-        transport: createHostCliTransport(hostCliConfig),
+        transport: createHostCliTransport({
+          ...hostCliConfig,
+          ...(process.env.ARXIC_WEB_JOB === '1'
+            ? { inheritProcessGroup: true, imageDirectory: process.env.ARXIC_MODEL_IMAGE_DIRECTORY }
+            : {}),
+        }),
         providerMeta: {
           sourceSharing: request.config.models.sourceRetention,
           provider: 'host-bound',

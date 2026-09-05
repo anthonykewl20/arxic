@@ -1,4 +1,4 @@
-export type RunMode = 'discovery' | 'visual' | 'agent';
+export type RunMode = 'discovery' | 'visual' | 'agent' | 'review';
 export type Project = {
   id: string;
   name: string;
@@ -32,6 +32,7 @@ export type Capture = {
   diffFile?: string;
 };
 export type RunResult = {
+  review?: import('./visual-review').VisualReviewResult;
   outcome: 'hypothesized' | 'observed' | 'verified' | 'contradicted' | 'blocked';
   summary: string;
   inventory?: unknown;
@@ -53,6 +54,7 @@ export type Run = {
   finishedAt: string | null;
   project: Project;
   result: RunResult | null;
+  visualReview?: import('./visual-review').VisualReviewScope;
   workflowScope?: { campaignId: string; inventoryRowId: string; sourceCommit: string };
 };
 export type Campaign = {

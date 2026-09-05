@@ -8,6 +8,8 @@ import { sourceRevision } from './source';
 import { campaignRows } from './campaigns';
 
 async function runJob(run: Run): Promise<RunResult> {
+  if (run.mode === 'review')
+    return (await import('./visual-review')).reviewVisual(run, dirname(dirname(process.argv[3])));
   if (run.mode === 'visual')
     return (await import('./visual')).captureVisual(run, dirname(process.argv[3]));
   if (run.mode === 'agent')

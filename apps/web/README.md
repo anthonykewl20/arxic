@@ -28,6 +28,8 @@ preserve the full denominator and survive restart. Unsupported/unselected rows
 and uncompiled hypotheses remain visible. Recurring campaigns and broader state
 coverage remain tracked in #402.
 
-The initial visual lane captures configured anonymous viewports and compares
-approved pixels. It does not perform AI semantic image review or exhaustive
-business-state exploration. See tracker #402 for those release requirements.
+The visual lane compares anonymous viewports against approved pixels. Stable
+retained captures support inspected-image AI review with model/secret-reference/
+budget/criterion controls, proposed regions, reproduction and model provenance.
+Findings remain hypotheses. Authenticated checkpoints and comprehensive
+business-state exploration remain under #402.

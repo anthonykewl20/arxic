@@ -37,7 +37,10 @@ argument. The array is repeated for each image; each placeholder becomes a
 private temporary PNG path. Files use mode 0600 inside a 0700 temporary directory
 and are removed after completion, failure or timeout. Missing capability blocks
 without spawning. Returned temporary paths and whole-image base64 echoes block.
-Text-only requests preserve their existing wire shape and records.
+Text-only requests preserve their existing wire shape and records. Supervising
+jobs may supply a private `imageDirectory` and `inheritProcessGroup`; the
+supervisor then owns group termination and cleanup after interruption. The web
+supervisor uses this to prevent orphan providers and attachments on cancellation.
 
 This capability does not authorize screenshot transmission or prove arbitrary
 pixels secret-free. Application actions must own consent, masking, permitted

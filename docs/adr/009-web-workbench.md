@@ -121,7 +121,7 @@ from a folder path. Scope includes source revision, deployment, routes,
 components, states, personas, flags, inputs, actions and viewports. Gaps remain in
 the denominator. Semantic AI image analysis and comprehensive multi-workflow
 campaigns are required by #402. On-demand source-row campaigns now exist; broader
-state/persona/flag exploration and semantic image review remain incomplete.
+state/persona/flag exploration and broader semantic evaluation remain incomplete.
 
 ## Scheduling and deployment
 
@@ -166,4 +166,19 @@ This is an additive local capability; the frozen contracts and truth-state
 boundary are unchanged. The dashboard must separately authorize capture and
 transmission, bind findings to image hashes and independently assess claims.
 Transport success establishes delivery, not defect correctness or semantic
-coverage. Semantic visual review is still an open #402 requirement.
+coverage. The dated dashboard review decision below supplies its first application flow; broader coverage remains under #402.
+
+## 2026-09-05 inspected-image dashboard review
+
+An on-demand `review` job binds administrator inspection/sharing attestation to
+one stable retained screenshot hash. Queue and execution validate PNG/provenance;
+source evidence is protected while referenced. Ordinary run/cron routes cannot
+create reviews. The durable queue and restart/cancellation handling are reused,
+with job-owned provider process groups and temporary attachment cleanup. Shared
+secret resolution supplies only the chosen model credential to the review child.
+
+AI output has no truth-state field. The application adds `hypothesized` to each
+schema-validated proposed region, binds reproduction and administrator criteria,
+and rejects out-of-image rectangles. Bounds are not semantic proof. No findings
+means no hypotheses returned, not defect-free or complete coverage. Authenticated
+states and broader comparative evaluation remain under #402.
