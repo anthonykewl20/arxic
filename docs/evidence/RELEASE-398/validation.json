@@ -1,0 +1,63 @@
+{
+  "codeHead": "e2f99d343069be3db391372498149f26bf042e34",
+  "mergedCommit": "b15b59b8f65c45a039c6e0b9b8d4a5fe4109838e",
+  "mergedTreeMatchesTestedCodeHead": true,
+  "version": "0.1.0",
+  "requiredCi": {
+    "result": "pass",
+    "url": "https://github.com/anthonykewl20/arxic/actions/runs/33952621810",
+    "shards": [
+      {
+        "files": 53,
+        "passed": 398,
+        "skipped": 0
+      },
+      {
+        "files": 53,
+        "passed": 447,
+        "skipped": 0
+      },
+      {
+        "files": 53,
+        "passed": 573,
+        "skipped": 2
+      },
+      {
+        "files": 53,
+        "passed": 461,
+        "skipped": 0
+      }
+    ],
+    "dedicatedWorkerImageTests": {
+      "passed": 2,
+      "skipped": 0,
+      "accountsForShardSkips": true
+    },
+    "totalDistinctTestsExecuted": 1881
+  },
+  "packedGate": {
+    "passed": true,
+    "totalMs": 93754,
+    "evidence": "final-ci/summary.md"
+  },
+  "licenseGate": {
+    "total": 787,
+    "rejected": 0,
+    "documentedMetadataExceptions": 2
+  },
+  "releaseMatrix": "https://github.com/anthonykewl20/arxic/actions/runs/33952621811",
+  "commands": [
+    "pnpm typecheck",
+    "pnpm typecheck:packages",
+    "pnpm lint",
+    "pnpm format:check",
+    "pnpm exec vitest run --shard=1/4 (and 2/4, 3/4, 4/4)",
+    "pnpm exec vitest run packages/environment/src/__tests__/worker-image.real-world.test.ts",
+    "node scripts/human-flow-e2e.mjs --evidence-dir artifacts/human-flow",
+    "node scripts/tarball-smoke.mjs",
+    "node scripts/assert-version-provenance.mjs",
+    "node scripts/license-gate.mjs"
+  ],
+  "humanScreenshotSignOff": "not performed",
+  "tagOrPublication": "not performed"
+}

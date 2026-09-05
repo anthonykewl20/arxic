@@ -82,7 +82,7 @@ Milestones are tracked on GitHub: https://github.com/anthonykewl20/arxic/milesto
 - M0-EXIT (`#14`) - one manually-supplied login candidate compiles, verifies twice, and promotes with evidence
 - M1-EXIT (`#27`) - complete: two structurally different reference apps produce independently replayable bundles without app-specific generator code
 - Domain-general intent extraction (ADR-008) - accepted after the DG-12 campaigns
-- v0.1.0 release preparation - audit fixes implemented; release gates remain explicit
+- v0.1.0 release preparation - audit fixes merged with retained CI proof; human release gate remains explicit
 
 ## Contributing
 
