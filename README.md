@@ -94,6 +94,9 @@ requires Docker.
 
 ## Roadmap
 
+The [web-product progress review](docs/reviews/web-product-progress-402.md) maps the
+implemented dashboard/provider work, retained proof and remaining release requirements.
+
 Milestones are tracked on GitHub: https://github.com/anthonykewl20/arxic/milestones
 
 - M0-EXIT (`#14`) - one manually-supplied login candidate compiles, verifies twice, and promotes with evidence

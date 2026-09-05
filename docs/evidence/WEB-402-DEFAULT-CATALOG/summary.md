@@ -40,7 +40,14 @@ rebased onto merged PR #417. The billing-metadata follow-up at `e3ac87a` passes
 all 11 catalog/provider/browser tests in three files (7.00 s). Root/package type
 checks, lint and license pass; web type checks and lint were repeated after the
 metadata change. Full format after final docs: `All matched files use Prettier code style!`.
-Required final-head CI and merge remain pending; no release completion is claimed.
+[PR #418](https://github.com/anthonykewl20/arxic/pull/418) merged as
+`1e242d4bb5339622d6089fb2c3c185df0344c0da` after required `ci` printed `pass`
+on final head `56a01513f7005846a7cfe9270ccfc5fa02d8d6e4`.
+[CI run 33987600779](https://github.com/anthonykewl20/arxic/actions/runs/33987600779)
+passed all four test shards (5m00s, 9m11s, 9m36s, 6m26s), static (2m51s),
+packaging (3m08s) and fixture apps (1m34s). The worker-image job was conditionally
+skipped because this slice did not change worker inputs. No release completion
+is claimed.
 
 | User-level behavior | Result | Proof |
 | --- | --- | --- |
