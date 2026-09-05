@@ -54,6 +54,19 @@ exposed that the earlier test could photograph the prior page before navigation 
 Three canonical oracle hashes changed because the bound auth-domain package version changed
 to `0.0.100`. All were repinned to exact new values; no matcher or acceptance criterion was loosened.
 
+## CI integration correction
+
+Run `33958439088` at PR head `84d5d18` caught two missed integration guards in shard 2/4:
+web SHA-256 duplication and an outdated workspace count. Both were reproduced locally.
+The web code now uses `@arxic/contracts` hashing; the structural guard is unchanged.
+The exact census changes from 28 to **29** app/package workspaces for `apps/web`;
+the follow-on assertion also required the new app to use the common `include: ["src"]`
+TypeScript convention. That assertion was not relaxed. All ten web tests passed after
+hash centralization; both contracts suites then passed all ten tests after the configuration fix.
+The CI run had 1,890 shard passes, 2 assertion failures, and the two dedicated image tests
+passed separately; it is not a green release result. The subsequent current-head CI result
+is recorded on PR #403 and #401.
+
 ## Live-provider result and release limits
 
 The [first live probe](live-provider-blocked.json) ran on the uncommitted workbench and

@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256 as digest } from '@arxic/contracts';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
@@ -7,7 +7,7 @@ import pixelmatch from 'pixelmatch';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import type { Capture, Run, RunResult } from './types';
 
-export const digest = (bytes: string | Buffer) => createHash('sha256').update(bytes).digest('hex');
+export { digest };
 
 export async function captureVisual(run: Run, directory: string): Promise<RunResult> {
   const project = run.project;

@@ -1,9 +1,9 @@
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { Workbench } from './workbench';
 import { HttpError } from './errors';
 import { readFile } from 'node:fs/promises';
-import { ARXIC_VERSION, ARXIC_VERSION_LABEL } from '@arxic/contracts';
+import { ARXIC_VERSION, ARXIC_VERSION_LABEL, sha256 } from '@arxic/contracts';
 
 export type WorkbenchOptions = {
   stateDirectory: string;
@@ -31,7 +31,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
   const sessions = new Map<string, number>();
   const workbench = await Workbench.open(options.stateDirectory, options.roots);
   const attempts = new Map<string, { count: number; until: number }>();
-  const hash = (value: string) => createHash('sha256').update(value).digest();
+  const hash = (value: string) => Buffer.from(sha256(value), 'hex');
   let origin = options.publicOrigin ?? '';
   const server = createServer((request, response) => {
     response.setHeader('Cache-Control', 'no-store');
