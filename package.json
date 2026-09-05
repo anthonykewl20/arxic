@@ -1,6 +1,6 @@
 {
   "name": "arxic",
-  "version": "0.1.0",
+  "version": "0.0.100",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -31,6 +31,9 @@
     "typescript"
   ],
   "scripts": {
+    "web": "pnpm --filter @arxic/web start",
+    "version:minor": "node scripts/version.mjs minor",
+    "version:patch": "node scripts/version.mjs patch",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typecheck:packages": "pnpm -r typecheck",
     "lint": "eslint .",

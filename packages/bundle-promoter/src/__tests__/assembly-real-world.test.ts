@@ -133,7 +133,7 @@ describe.each(FIXTURE_APPS)('real-world bundle assembly proof: $name', (app) => 
     expect(provenance).toMatchObject({
       commit: bundle.workflow.scope.commit,
       appBuildDigest: bundle.manifest.appBuildDigest,
-      generator: { id: '@arxic/bundle-promoter', version: '0.1.0' },
+      generator: { id: '@arxic/bundle-promoter', version: '0.0.100' },
     });
     const notice = await readFile(join(assembly.directory, 'NOTICE'), 'utf8');
     expect(notice).toContain(`Workflow: ${bundle.workflow.id}`);

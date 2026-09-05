@@ -1,0 +1,35 @@
+{
+  "sourceCommit": "a5d2bb12c209384f96ce2a64d80382723d8e361e",
+  "network": [
+    "Network or console errors violated verification policy: run 1: http-response 500 http://127.0.0.1:31987/forgot-password, run 2: http-response 500 http://127.0.0.1:31987/forgot-password"
+  ],
+  "observedAt": "2026-09-05T09:27:35.719Z",
+  "transport": "authenticated host coding agent; tools denied",
+  "outcome": "blocked",
+  "summary": "The AI pipeline did not produce a verified candidate. Review its diagnostics and unmet prerequisites.",
+  "ledger": {
+    "outcome": "blocked",
+    "passedRuns": 2,
+    "runs": 2
+  },
+  "diagnostics": [
+    "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+    "ARXIC-SURFACE-002",
+    "ARXIC-SURFACE-002",
+    "ARXIC-ORCH-POSTCRAWL-REPROPOSAL",
+    "ARXIC-VERIFY-BLOCKED-NETWORK",
+    "ARXIC-ORCH-STAGE-BLOCKED",
+    "ARXIC-ORCH-HEALING-DEFERRED"
+  ]
+}

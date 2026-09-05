@@ -1,0 +1,53 @@
+export type RunMode = 'discovery' | 'visual' | 'agent';
+export type Project = {
+  id: string;
+  name: string;
+  folder: string;
+  origin: string;
+  paths: string[];
+  viewports: Array<{ width: number; height: number }>;
+  masks: string[];
+  captureConsent: boolean;
+  configPath: string;
+  cron: string;
+  scheduleMode: RunMode;
+  paused: boolean;
+  nextRunAt: string | null;
+  createdAt: string;
+};
+export type Capture = {
+  id: string;
+  path: string;
+  viewport: { width: number; height: number };
+  file: string;
+  sha256: string;
+  specHash: string;
+  browserVersion: string;
+  status: 'needs-baseline' | 'unchanged' | 'changed' | 'unstable';
+  changedPixels?: number;
+  ratio?: number;
+  baselineRunId?: string;
+  baselineFile?: string;
+  diffFile?: string;
+};
+export type RunResult = {
+  outcome: 'hypothesized' | 'observed' | 'verified' | 'contradicted' | 'blocked';
+  summary: string;
+  inventory?: unknown;
+  manifest?: unknown;
+  diagnostics?: unknown;
+  captures?: Capture[];
+  findings?: Array<{ path: string; kind: string; count: number }>;
+  ledger?: unknown;
+  engineRun?: unknown;
+};
+export type Run = {
+  id: string;
+  projectId: string;
+  mode: RunMode;
+  state: 'queued' | 'running' | 'completed' | 'blocked' | 'cancelled';
+  createdAt: string;
+  finishedAt: string | null;
+  project: Project;
+  result: RunResult | null;
+};

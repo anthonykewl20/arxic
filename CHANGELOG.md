@@ -5,11 +5,24 @@ entry - this file is NEVER out of sync with main (see engineering-charter.md
 section 8 and RELEASES.md).
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and package metadata uses [Semantic Versioning syntax](https://semver.org/spec/v2.0.0.html);
+pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ## [Unreleased]
 
+### Added
+
+- Initial self-hosted web workbench (refs #401): authenticated project configuration; source/domain inventory; the existing AI/compiler/verifier pipeline; real Chromium viewport captures and Pixelmatch comparisons; explicit, hash-checked baseline approval; persistent SQLite run history, cancellation and protected deletion; serialized UTC cron schedules with restart recovery; administrator audit events; local/server setup. Captures mask inputs and require every additional privacy selector to resolve. Broader semantic AI visual auditing and comprehensive frontend state campaigns remain tracked in #402.
+
+### Product direction
+
+- Arxic's primary product is now a local/server web frontend testing application (ADR-009). The owner-defined release line is `v0.0.100` (canonical package metadata `0.0.100`); minor releases add 100 and patch fixes add 1. CLI, dashboard and release tags share the padded `v` label; scripts align every workspace manifest. The prior engine release audit does not establish readiness for the expanded web product. No release tag or publication is performed.
+
 ### Fixed
+
+- Web integration guards (refs #401): session/image hashes reuse the shared contracts capability; the exact app/package workspace census is 29 and the web TypeScript configuration follows the workspace contract. The duplicate-implementation guard and source-inclusion assertion remain unchanged.
+
+- Web session race (refs #401): late dashboard responses can no longer restore a signed-out workspace, hide a newly authenticated workspace, or replace newer navigation state. Reproduced with a delayed real HTTP response in Chromium; the unchanged logout assertion passes after the fix.
 
 - Release audit (refs #398): bounded same-origin attestation discovery and custom-path handshake; configuration-bound terminal reuse; credential-safe diagnostics; shared local/worker policy and replay-persona plumbing; stabilized post-action observations and inventory-bound replay entry URLs; enforced replay counts; PHP grammar in the npm distribution; bounded host-CLI pipes/process/output handling and byte-preserving UTF-8 decoding; immutable staged bundle assembly; sanitized build SBOM in CLI bundles; direct replay defaults to no raw tracing. The packed gate now requires actual signed-in home, three clean passes, copied-bundle replay, wrong-credential failure and prior-bundle preservation. Reference-app build workers use in-memory SQLite so builds cannot contend for or alter runtime databases. Unsupported browser arrays are rejected; the standalone reference fixture pins its workspace-tested Vite toolchain and compatible ESLint peers for Node 22/npm 10 installation. Required CI consumes worker-image results and runs the packed gate; publication consumes the OS/Node matrix. PR #399 merged with required CI green: 1,879 shard passes plus both dedicated image tests. The final packed CI journey passes in 93.754 s; its sanitized proof and 12-image census are retained with the audit report.
 

@@ -1,6 +1,6 @@
 import { basename, resolve } from 'node:path';
 import type { RunExecutor } from './executor';
-import { ARXIC_VERSION } from '@arxic/contracts';
+import { ARXIC_VERSION_LABEL } from '@arxic/contracts';
 import type { WorkerClient } from '@arxic/worker';
 import { parseArgs } from './args';
 
@@ -29,7 +29,7 @@ export async function runCli(
       return { exitCode: 2 };
     }
     if (parsed.command.kind === 'version') {
-      print(stdout, ARXIC_VERSION);
+      print(stdout, ARXIC_VERSION_LABEL);
       return { exitCode: 0 };
     }
     if (parsed.command.kind === 'help') {

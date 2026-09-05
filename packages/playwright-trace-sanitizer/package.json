@@ -1,6 +1,6 @@
 {
   "name": "@arxic/playwright-trace-sanitizer",
-  "version": "0.1.0",
+  "version": "0.0.100",
   "private": true,
   "type": "module",
   "main": "src/index.ts",

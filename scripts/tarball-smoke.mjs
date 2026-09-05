@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { formatVersionLabel } from '../packages/contracts/src/version-policy.mjs';
 
 const execFileAsync = promisify(execFile);
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -40,9 +41,9 @@ export async function assertTarballSmoke({
       installTarball({ tarball, installDirectory }));
     const execute = runCli ?? ((argument) => runPackedCli({ installDirectory, argument }));
     const actualVersion = (await execute(['--version'])).trim();
-    if (actualVersion !== expectedVersion) {
+    if (actualVersion !== formatVersionLabel(expectedVersion)) {
       throw new Error(
-        `packed arxic --version output ${actualVersion} does not match VERSION ${expectedVersion}`,
+        `packed arxic --version output ${actualVersion} does not match label ${formatVersionLabel(expectedVersion)}`,
       );
     }
     await execute(['--help']);

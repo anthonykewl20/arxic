@@ -1,0 +1,35 @@
+import { fork, execFile, type ChildProcess } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+
+export async function stopProcess(child: ChildProcess): Promise<void> {
+  if (!child.pid || child.exitCode !== null || child.signalCode !== null) return;
+  if (process.platform === 'win32') {
+    await new Promise<void>((resolve) =>
+      execFile('taskkill', ['/PID', String(child.pid), '/T', '/F'], () => resolve()),
+    );
+  } else {
+    try {
+      process.kill(-child.pid, 'SIGKILL');
+    } catch {
+      child.kill('SIGKILL');
+    }
+  }
+}
+
+export function launchJob(input: string, result: string) {
+  const require = createRequire(import.meta.url);
+  const env: NodeJS.ProcessEnv = { ...process.env, ARXIC_WEB_JOB: '1' };
+  delete env.ARXIC_ADMIN_TOKEN;
+  const child = fork(fileURLToPath(new URL('./job.ts', import.meta.url)), [input, result], {
+    execArgv: ['--import', require.resolve('tsx')],
+    detached: process.platform !== 'win32',
+    stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+    env,
+  });
+  const finished = new Promise<number | null>((resolve) => {
+    child.once('error', () => resolve(null));
+    child.once('exit', (code) => resolve(code));
+  });
+  return { child, finished };
+}

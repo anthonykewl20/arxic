@@ -1,0 +1,6 @@
+{
+  "sha256": "eb4468c89cd99f5051f8f4f51b3cae95ff5c72c8396c93205a0709cb44347bde",
+  "method": "allow-listed human-readable actions and assertion results; no DOM or network payload capture",
+  "rawTraceRetained": false,
+  "sourceCommit": "92127871eb035af3c30720c33c72d254e3f69811"
+}

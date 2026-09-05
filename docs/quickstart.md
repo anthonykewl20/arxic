@@ -1,5 +1,7 @@
 # Arxic quickstart
 
+For the self-hosted dashboard, start with the [web workbench guide](web-workbench.md). The [web product specification](web-product-spec.md) distinguishes the initial workbench from the full release requirements.
+
 This is a local-test workflow: Arxic reads a committed source checkout and
 refuses a target that does not serve an attestation. It writes run records outside
 the source tree by default. The tarball-equivalent install, Chromium setup, and

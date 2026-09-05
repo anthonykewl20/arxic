@@ -3,6 +3,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative, sep as pathSeparator } from 'node:path';
 import { promisify } from 'node:util';
+import { canonicalVersion, formatVersionLabel } from '../packages/contracts/src/version-policy.mjs';
 
 const execFileAsync = promisify(execFile);
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -31,6 +32,8 @@ export async function assertVersionProvenance({
   },
 } = {}) {
   const version = (await readFile(join(root, 'VERSION'), 'utf8')).trim();
+  if (canonicalVersion(version) !== version)
+    throw new Error('VERSION must use the canonical npm-compatible numeric version');
   const manifests = await workspaceManifests(root);
 
   for (const path of manifests) {
@@ -57,17 +60,22 @@ export async function assertVersionProvenance({
 
   await buildCli();
   const actual = (await cliVersion()).trim();
-  if (actual !== version) {
-    throw new Error(`built arxic --version output ${actual} does not match VERSION ${version}`);
+  if (actual !== formatVersionLabel(version)) {
+    throw new Error(
+      `built arxic --version output ${actual} does not match label ${formatVersionLabel(version)}`,
+    );
   }
 }
 
 async function workspaceManifests(root) {
   const packageDirectories = await readdir(join(root, 'packages'), { withFileTypes: true });
+  const appDirectories = await readdir(join(root, 'apps'), { withFileTypes: true });
   return [
     'package.json',
-    'apps/cli/package.json',
-    'apps/worker/package.json',
+    ...appDirectories
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => `apps/${entry.name}/package.json`)
+      .sort(),
     ...packageDirectories
       .filter((entry) => entry.isDirectory())
       .map((entry) => `packages/${entry.name}/package.json`)
@@ -76,7 +84,10 @@ async function workspaceManifests(root) {
 }
 
 async function productionSourceFiles(root) {
-  const sourceRoots = ['apps/cli/src', 'apps/worker/src'];
+  const appDirectories = await readdir(join(root, 'apps'), { withFileTypes: true });
+  const sourceRoots = appDirectories
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => `apps/${entry.name}/src`);
   const packageDirectories = await readdir(join(root, 'packages'), { withFileTypes: true });
   sourceRoots.push(
     ...packageDirectories

@@ -41,11 +41,27 @@ async function makeWorkspace({ cliVersion = '0.1.1', producer = '0.1.1' } = {}) 
 }
 
 describe('version provenance sad paths', () => {
+  it('rejects version drift in a newly added web application', async () => {
+    const root = await makeWorkspace();
+    await mkdir(join(root, 'apps/web/src'), { recursive: true });
+    await writeFile(join(root, 'apps/web/package.json'), JSON.stringify({ version: '0.1.2' }));
+    await expect(
+      assertVersionProvenance({
+        root,
+        buildCli: async () => {},
+        cliVersion: async () => 'v0.1.001',
+      }),
+    ).rejects.toThrow('apps/web/package.json version 0.1.2 does not match VERSION 0.1.1');
+  });
   it('rejects a non-fixture workspace manifest that drifts from VERSION', async () => {
     const root = await makeWorkspace({ cliVersion: '0.1.2' });
 
     await expect(
-      assertVersionProvenance({ root, buildCli: async () => {}, cliVersion: async () => '0.1.1' }),
+      assertVersionProvenance({
+        root,
+        buildCli: async () => {},
+        cliVersion: async () => 'v0.1.001',
+      }),
     ).rejects.toThrow('apps/cli/package.json version 0.1.2 does not match VERSION 0.1.1');
   });
 
@@ -53,7 +69,11 @@ describe('version provenance sad paths', () => {
     const root = await makeWorkspace({ producer: '0.0.0' });
 
     await expect(
-      assertVersionProvenance({ root, buildCli: async () => {}, cliVersion: async () => '0.1.1' }),
+      assertVersionProvenance({
+        root,
+        buildCli: async () => {},
+        cliVersion: async () => 'v0.1.001',
+      }),
     ).rejects.toThrow('packages/example/src/producer.ts emits literal version 0.0.0');
   });
 
@@ -61,8 +81,12 @@ describe('version provenance sad paths', () => {
     const root = await makeWorkspace();
 
     await expect(
-      assertVersionProvenance({ root, buildCli: async () => {}, cliVersion: async () => '0.1.2' }),
-    ).rejects.toThrow('built arxic --version output 0.1.2 does not match VERSION 0.1.1');
+      assertVersionProvenance({
+        root,
+        buildCli: async () => {},
+        cliVersion: async () => 'v0.1.002',
+      }),
+    ).rejects.toThrow('built arxic --version output v0.1.002 does not match label v0.1.001');
   });
 });
 
@@ -85,7 +109,11 @@ describe('version provenance allowed path', () => {
     const root = await makeWorkspace();
 
     await expect(
-      assertVersionProvenance({ root, buildCli: async () => {}, cliVersion: async () => '0.1.1' }),
+      assertVersionProvenance({
+        root,
+        buildCli: async () => {},
+        cliVersion: async () => 'v0.1.001',
+      }),
     ).resolves.toBeUndefined();
   });
 });

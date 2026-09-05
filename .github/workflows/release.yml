@@ -65,7 +65,7 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           set -euo pipefail
-          expected="v$(cat VERSION)"
+          expected="$(node scripts/version.mjs label)"
           if [ "$expected" != "$GITHUB_REF_NAME" ]; then
             echo "::error::Tag $GITHUB_REF_NAME must equal $expected"
             exit 1

@@ -1,0 +1,32 @@
+{
+  "sourceCommit": "9ed1962ea2392cad631649b36ec3ea074f4e482b",
+  "mailpitMessages": 3,
+  "network": [],
+  "observedAt": "2026-09-05T09:32:13.985Z",
+  "transport": "authenticated host coding agent; tools denied",
+  "outcome": "verified",
+  "summary": "The existing deterministic verifier passed this candidate. Inspect the intent ledger for remaining coverage gaps.",
+  "ledger": {
+    "outcome": "verified",
+    "passedRuns": 2,
+    "runs": 2
+  },
+  "diagnostics": [
+    "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+    "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+    "ARXIC-SURFACE-002",
+    "ARXIC-SURFACE-002",
+    "ARXIC-ORCH-POSTCRAWL-REPROPOSAL",
+    "ARXIC-ORCH-HEALING-DEFERRED"
+  ]
+}
