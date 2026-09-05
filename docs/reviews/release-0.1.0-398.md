@@ -54,7 +54,7 @@ Stage-11 automatic healing remains deliberately deferred by ADR-007.
 | P2       | Fresh npm installation lacked the advertised PHP grammar.                                                            | Runtime dependency/external added; packed native tree-sitter parses PHP successfully.                                                                                                            |
 | P2       | A provider closing stdin crashed the parent with EPIPE; descendants could delay timeout and stdout was unbounded.    | Opaque provider failure, bounded completion/process cleanup and 8 MiB output cap; real subprocess regressions.                                                                                   |
 | P2       | CLI-promoted directory bundles omitted the SBOM supported by the assembler.                                          | Pack the actual workspace dependency graph and include its sanitized CycloneDX form in directory bundles; native grammar presence checked in packed proof.                                       |
-| P2       | Capture settings accepted values the managed pipeline ignored.                                                       | Reject unsupported screenshot/trace policies; document supported Chromium selection and quota boundaries.                                                                                        |
+| P2       | Browser/capture settings accepted values the managed pipeline ignored.                                               | Reject unsupported browser arrays and screenshot/trace policies; document Chromium selection and quota boundaries.                                                                               |
 | P2       | Human-flow cleanup left Next servers running; docs contradicted worker support/release ordering and active versions. | Direct child lifecycle; corrected user guides, before-publish human gate and v0.1.0 metadata; 64 merged notes moved out of active staging with their historical bytes retained.                  |
 
 No existing behavioral matcher was loosened. The new custom-attestation test's
@@ -66,18 +66,30 @@ attestation calls and forbids the default endpoint while allowing legitimate
 later page discovery. Intermediate full-suite runs overlapped red-first edits
 and are not presented as clean final-head results.
 
+The first PR CI run caught an incorrectly shaped table in the new browser test:
+Vitest unpacked the array rows into strings. Correct object-shaped cases exposed
+three genuinely accepted unsupported arrays; all three failed before explicit
+Chromium-only validation and the configuration suite now passes all 40 tests.
+CI also caught the copied reference app's fresh npm installation crashing in
+npm 10's optional-peer resolver. The same failure reproduced with CI's exact
+Node 22.22.0/npm 10.9.4 binaries. Its fixture toolchain now explicitly selects the
+workspace-tested Vite 7.3.6 (including an npm override for Vitest's nested copy)
+and the Next ESLint plugins' compatible 9.x peer range;
+this does not disable peer checks or change the app's runtime dependencies.
+
 ## Evidence and validation
 
 The [retained proof](../evidence/RELEASE-398/summary.md) contains a pass/fail table,
-six named screenshots with privacy provenance, six independently inspected
+nine named screenshots with privacy provenance, nine independently inspected
 sanitized action timelines, the promoted manifest, and annotated test results.
 The screenshots mask the main landmark; the transition proof comes from the
 executed assertions/receipts, not inference from obscured pixels. Automated
-visual review was performed on all six images; this is not human sign-off.
+visual review was performed on all nine images; this is not human sign-off.
 
 | Check                                                                            | Result                                                                                                                                                                                      |
 | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Fresh npm-installed v0.1.0 → real Next.js app → Chromium → three verifier passes | PASS, 141.872 s for the complete packed gate                                                                                                                                                |
+| Same complete gate with exact CI Node 22.22.0/npm 10.9.4                         | PASS, 123.646 s; [retained regression proof](../evidence/RELEASE-398/node22/summary.md)                                                                                                     |
 | Independent copied bundle with correct/wrong credentials                         | PASS / expected failure; no raw failure trace                                                                                                                                               |
 | Native PHP grammar and bundle SBOM                                               | PASS                                                                                                                                                                                        |
 | Unreachable target preserves prior promoted envelope                             | PASS                                                                                                                                                                                        |
@@ -85,7 +97,7 @@ visual review was performed on all six images; this is not human sign-off.
 | Express vulnerable fixture suite + real Mailpit                                  | PASS, 1 test (intentional app vulnerabilities remain fixtures)                                                                                                                              |
 | Worker image toolchain: root/nonroot, native modules, Chromium, no-egress tools  | PASS                                                                                                                                                                                        |
 | Worker-image real Docker hardening tests                                         | PASS, 2 tests                                                                                                                                                                               |
-| Dependency license gate                                                          | PASS, 781 packages; zero rejected, two documented license metadata exceptions                                                                                                               |
+| Dependency license gate                                                          | PASS, 787 packages; zero rejected, two documented license metadata exceptions                                                                                                               |
 | Root lint/typecheck and package typechecks                                       | PASS locally; final CI status below                                                                                                                                                         |
 | Complete stable-head suite                                                       | Final run and check results recorded on tracker #398; see validation note below                                                                                                             |
 | Current PR required `ci`                                                         | Must pass before merge; exact-head result recorded on tracker #398                                                                                                                          |
@@ -93,9 +105,9 @@ visual review was performed on all six images; this is not human sign-off.
 | Human release screenshot census/sign-off                                         | NOT PERFORMED; owner/reviewer release gate                                                                                                                                                  |
 
 The local full-suite run also exposed three old 0.1.1 provenance expectations
-and an oracle canonical hash whose identity includes the package version
+and three oracle canonical hashes whose identities include the package version
 after the requested version alignment. They were changed to the exact new 0.1.0
-value, and the version-bound hash was re-pinned from `0514a897…` to `76b5675e…`, without relaxing either comparison; the affected real-engine suites are
+value, and version-bound hashes were re-pinned (`0514a897…` → `76b5675e…`, `bd21463f…` → `9c49f94e…`, `ab685d16…` → `7bdca772…`), without relaxing either comparison; the affected real-engine suites are
 rerun and the PR CI runs the full suite at the final head.
 
 ## Limits and release decisions
@@ -114,7 +126,9 @@ glm-5.3-flash`; the [separate live pipeline](../evidence/RELEASE-398/live-provid
   filter/assembler APIs were not found in that installed consumer. No blind
   major-version override was applied. Reassess if the dependency usage changes:
   [GHSA-528h-pc64-c93x](https://github.com/advisories/GHSA-528h-pc64-c93x).
-- The new release matrix dependency is required before publication. Local Linux
+- The new release matrix dependency is required before publication. Packed npm
+  smoke installation now runs dependency lifecycle scripts, so native install
+  failures cannot be concealed by `--ignore-scripts`. Local Linux
   tests do not substitute for Windows/macOS release cells.
 - No tag, npm publication, or human screenshot sign-off was performed. Use
   [RELEASES.md](../../RELEASES.md) in its corrected order.

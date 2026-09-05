@@ -94,7 +94,7 @@ async function packCli({ root, tarballDirectory }) {
 }
 
 async function installTarball({ tarball, installDirectory }) {
-  await execFileAsync('npm', ['install', '--ignore-scripts', '--no-package-lock', tarball], {
+  await execFileAsync('npm', ['install', '--no-package-lock', tarball], {
     cwd: installDirectory,
     ...packageManagerSpawnOptions(),
   });

@@ -3,7 +3,7 @@
 Complete this checklist only after visually inspecting every listed screenshot and its adjacent privacy provenance. This template is not a certification by automation or an LLM.
 
 Inspection root: RELEASE-398
-Screenshot count: 6
+Screenshot count: 9
 
 ## live-provider/screenshots/001
 
@@ -22,6 +22,27 @@ Screenshot count: 6
 ## live-provider/screenshots/003
 
 - [ ] `live-provider/screenshots/003/001-step-1-forgot-password-page-forgot-password-page.png`
+  - Reviewer initials:
+  - PASS / FAIL:
+  - Notes:
+
+## node22/screenshots/001
+
+- [ ] `node22/screenshots/001/001-step-1-login-page-home.png`
+  - Reviewer initials:
+  - PASS / FAIL:
+  - Notes:
+
+## node22/screenshots/002
+
+- [ ] `node22/screenshots/002/001-step-1-login-page-home.png`
+  - Reviewer initials:
+  - PASS / FAIL:
+  - Notes:
+
+## node22/screenshots/003
+
+- [ ] `node22/screenshots/003/001-step-1-login-page-home.png`
   - Reviewer initials:
   - PASS / FAIL:
   - Notes:

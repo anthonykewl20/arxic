@@ -58,6 +58,9 @@ export function validateConfig(input: unknown): ValidationResult {
   const domains = stringArray(scope?.domains, 'config.scope.domains', diagnostics, true);
   const frameworks = stringArray(scope?.frameworks, 'config.scope.frameworks', diagnostics, true);
   const browsers = stringArray(scope?.browsers, 'config.scope.browsers', diagnostics);
+  if (browsers && (browsers.length !== 1 || browsers[0] !== 'chromium')) {
+    invalid(diagnostics, 'config.scope.browsers', 'must contain exactly chromium');
+  }
   const personas = stringArray(scope?.personas, 'config.scope.personas', diagnostics);
   const featureFlags = recordOfBooleans(
     scope?.featureFlags,

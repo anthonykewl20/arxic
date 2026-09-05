@@ -7,9 +7,9 @@ import { validateConfig } from '../config/validate';
 import { VALID_CONFIG, VALID_YAML } from './fixtures';
 
 describe('CLI configuration sad paths', () => {
-  it.each([[], ['firefox'], ['chromium', 'webkit']])(
+  it.each([{ browsers: [] }, { browsers: ['firefox'] }, { browsers: ['chromium', 'webkit'] }])(
     'refuses an unsupported browser selection %j',
-    (browsers) => {
+    ({ browsers }) => {
       expect(
         validateConfig({ ...VALID_CONFIG, scope: { ...VALID_CONFIG.scope, browsers } }).ok,
       ).toBe(false);
