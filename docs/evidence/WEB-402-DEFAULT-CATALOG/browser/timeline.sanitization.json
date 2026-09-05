@@ -1,0 +1,6 @@
+{
+  "sourceCommit": "e3ac87abd76b61ea3640412df4d967ba16cc1412",
+  "sha256": "db92496cb2f33d84485d4ffa5ba70d50592beaf43d76a61db1cd81b13ae4b2f9",
+  "policy": "allowlisted named actions and pass disposition only",
+  "rawTraceRetained": false
+}

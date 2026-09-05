@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "e3ac87abd76b61ea3640412df4d967ba16cc1412",
+  "endpoint": "https://openrouter.ai/api/v1/models",
+  "credentialUsed": false,
+  "inferencePerformed": false,
+  "method": "Two metadata-only requests through the server-default catalog path",
+  "reads": [
+    {
+      "pass": 1,
+      "modelCount": 418,
+      "fetchedAt": "2026-09-05T19:34:01.322Z",
+      "idsSha256": "fa98b798e53be84e527ecc243777828707a502f2ee2baf7bada8d04545f1b09b"
+    },
+    {
+      "pass": 2,
+      "modelCount": 418,
+      "fetchedAt": "2026-09-05T19:34:01.392Z",
+      "idsSha256": "fa98b798e53be84e527ecc243777828707a502f2ee2baf7bada8d04545f1b09b"
+    }
+  ]
+}

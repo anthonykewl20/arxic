@@ -287,3 +287,5 @@ Opaque host/gateway defaults do not infer a native catalog adapter; they explain
 the limitation and allow choosing a named provider. Models & accounts includes
 the configured default catalog while retaining existing named-provider ordering.
 Execution pricing and entitlement policies are unchanged by metadata discovery.
+
+See [default-provider browser and live proof](../evidence/WEB-402-DEFAULT-CATALOG/summary.md).
