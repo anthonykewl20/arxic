@@ -99,3 +99,16 @@ authenticated visual checkpoints; guided fixture/model/secret/budget/retention
 configuration; clean server distribution/recovery; independent human release
 inspection. None of these requirements is satisfied merely by declaration
 counts or an unchanged screenshot. No tag or release was published.
+
+## Integration correction
+
+CI run [33963191369](https://github.com/anthonykewl20/arxic/actions/runs/33963191369)
+passed static, package, fixture-app and worker-image jobs, but shards 1 and 4
+found four further test files pinned to the previous package version: CLI
+version output, CLI run-directory provenance, M0 pipeline provenance and bundle
+assembly provenance (the latter is tested against both apps). All five failures
+reproduced locally. The four exact literals now require 0.0.200; all ten tests
+in those files pass locally (38.87 s). No assertion is widened or removed.
+The full repository search leaves 0.0.100 only in historical records and
+intentional version-policy examples. Current integration status is the
+[PR #404 check suite](https://github.com/anthonykewl20/arxic/pull/404/checks).

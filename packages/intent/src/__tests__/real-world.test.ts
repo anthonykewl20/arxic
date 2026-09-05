@@ -28,7 +28,7 @@ const { version: authDomainPackVersion } = JSON.parse(
 ) as { version: string };
 const loginCapability: AuthCapabilityId = 'authentication.login';
 // Oracle identity includes the auth-domain-pack release version; exact pins
-// updated for the owner-requested 0.0.100 target (refs #401).
+// updated for the owner-requested 0.0.200 target (refs #402).
 const pinnedCanonicalSha256: Readonly<Record<string, string>> = {
   'reference-auth-app': 'e55a1a01651e68fbaf2bc003093e2e330da78666a6b0015d41896a6a34814534',
   'vulnerable-auth-app': '62796effae8a11ef4d0d19d1401236a80f8cd602bfd716bf3ad22f6789f9ce9f',

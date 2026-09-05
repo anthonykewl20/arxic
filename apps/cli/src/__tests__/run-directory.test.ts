@@ -40,7 +40,7 @@ describe('writeRunDirectory', () => {
     expect(run).toMatchObject({
       schemaVersion: 1,
       runId: 'test-run',
-      generator: { id: '@arxic/cli', version: '0.0.100' },
+      generator: { id: '@arxic/cli', version: '0.0.200' },
       target: { origin: 'http://127.0.0.1:1', environmentClass: 'local-test' },
       status: 'completed',
       outcome: 'observed',
