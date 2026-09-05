@@ -29,6 +29,7 @@ pnpm web
 Open `http://127.0.0.1:4310` and sign in with your configured token. Follow the
 [web setup and deployment guide](docs/web-workbench.md) for projects, visual
 baselines, AI configuration, scheduling and a server behind an HTTPS proxy.
+Dependency hardening and trust boundaries are documented in [SECURITY.md](SECURITY.md).
 The [CLI engine quickstart](docs/quickstart.md) covers the underlying pipeline,
 attested targets and the expected no-model outcome. The
 [user documentation index](docs/README.md) links to the CLI and configuration
