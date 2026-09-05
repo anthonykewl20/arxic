@@ -17,6 +17,7 @@ const native = (
   modelArgs: ['--model', '{model}'],
   imageArgs: ['--image', '{image}'],
   isolatedCwd: true,
+  jsonInput: true,
   catalogAgent: agent,
   models: models.map((id) => ({ id })),
 });

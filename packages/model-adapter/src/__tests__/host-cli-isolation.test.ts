@@ -38,3 +38,34 @@ it('runs text-only account invocations in a private directory and removes it aft
     await rm(parent, { recursive: true, force: true });
   }
 });
+
+it('forwards the schema and prompt to a native bridge on stdin without changing legacy argv', async () => {
+  const schema = {
+    type: 'object',
+    properties: { answer: { type: 'string', maxLength: 20 } },
+    required: ['answer'],
+  };
+  const transport = createHostCliTransport({
+    command: process.execPath,
+    jsonInput: true,
+    args: [
+      '-e',
+      'let data="";process.stdin.on("data",chunk=>data+=chunk);process.stdin.on("end",()=>{const input=JSON.parse(data);process.stdout.write(JSON.stringify({schema:input.schema,prompt:input.prompt,argv:process.argv.slice(1)}))})',
+    ],
+  });
+  const result = await transport({
+    baseUrl: 'unused',
+    bearerToken: 'not-on-argv',
+    model: 'custom',
+    messages: [{ role: 'user', content: 'inspect this image' }],
+    schema,
+    schemaName: 'answer',
+  });
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw new Error('Expected native input');
+  expect(JSON.parse(result.raw.choices[0].message.content)).toEqual({
+    schema,
+    prompt: '[user]\ninspect this image',
+    argv: [],
+  });
+});

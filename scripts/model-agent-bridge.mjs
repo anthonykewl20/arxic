@@ -1,5 +1,7 @@
 import { spawn } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /** Native CLIs own subscription login/refresh. Never read their credential stores. */
@@ -25,12 +27,13 @@ export function subscriptionEnvironment(provider, inherited) {
   return env;
 }
 
-export function agentInvocation(provider, model, prompt, images) {
+export function agentInvocation(provider, model, prompt, images, schema, schemaFile) {
   if (provider === 'codex')
     return {
       args: [
         'exec',
         '--json',
+        ...(schemaFile ? ['--output-schema', schemaFile] : []),
         '--ephemeral',
         '--ignore-user-config',
         '--skip-git-repo-check',
@@ -63,6 +66,7 @@ export function agentInvocation(provider, model, prompt, images) {
         '--input-format',
         'stream-json',
         '--no-session-persistence',
+        ...(schema ? ['--json-schema', JSON.stringify(schema)] : []),
         '--setting-sources',
         '',
         '--settings',
@@ -129,6 +133,12 @@ export function agentResult(provider, output) {
       result = events(output).findLast((row) => row.type === 'result');
     }
     if (!result) throw new Error('Native agent returned no result');
+    if (
+      !result.is_error &&
+      result.structured_output &&
+      typeof result.structured_output === 'object'
+    )
+      return JSON.stringify(result.structured_output);
     if (result.is_error || typeof result.result !== 'string' || !result.result.trim())
       throw new Error('Native agent failed');
     return result.result;
@@ -184,7 +194,14 @@ function run(command, args, stdin, env, timeoutMs = 180_000) {
   });
 }
 
-export async function runBridge(provider, model, prompt, imagePaths = [], inherited = process.env) {
+export async function runBridge(
+  provider,
+  model,
+  prompt,
+  imagePaths = [],
+  inherited = process.env,
+  schema,
+) {
   if (provider === 'opencode-go') {
     if (!model.startsWith('opencode-go/'))
       throw new Error('Select an OpenCode Go model for the Go plan');
@@ -220,28 +237,44 @@ export async function runBridge(provider, model, prompt, imagePaths = [], inheri
   const images = await Promise.all(
     imagePaths.map(async (path) => ({ path, base64: (await readFile(path)).toString('base64') })),
   );
-  const call = agentInvocation(provider, model, prompt, images);
-  const result = await run(command, call.args, call.stdin, env);
-  let output;
-  let failure;
+  const schemaDirectory =
+    provider === 'codex' && schema
+      ? await mkdtemp(
+          join(
+            inherited.ARXIC_MODEL_HOST_CLI_ISOLATE === '1' ? process.cwd() : tmpdir(),
+            'arxic-native-schema-',
+          ),
+        )
+      : undefined;
   try {
-    if (result.code !== 0) throw new Error('Native agent failed');
-    output = agentResult(provider, result.stdout);
-  } catch (error) {
-    failure = error;
-  }
-  if (provider === 'opencode') {
-    for (const session of new Set(
-      events(result.stdout)
-        .map((row) => row.sessionID)
-        .filter((id) => typeof id === 'string' && /^ses_[a-zA-Z0-9]+$/u.test(id)),
-    )) {
-      const deleted = await run(command, ['session', 'delete', session], '', env, 10_000);
-      if (deleted.code !== 0) throw new Error('Native agent session cleanup failed');
+    const schemaFile = schemaDirectory ? join(schemaDirectory, 'output.json') : undefined;
+    if (schemaFile)
+      await writeFile(schemaFile, JSON.stringify(schema), { mode: 0o600, flag: 'wx' });
+    const call = agentInvocation(provider, model, prompt, images, schema, schemaFile);
+    const result = await run(command, call.args, call.stdin, env);
+    let output;
+    let failure;
+    try {
+      if (result.code !== 0) throw new Error('Native agent failed');
+      output = agentResult(provider, result.stdout);
+    } catch (error) {
+      failure = error;
     }
+    if (provider === 'opencode') {
+      for (const session of new Set(
+        events(result.stdout)
+          .map((row) => row.sessionID)
+          .filter((id) => typeof id === 'string' && /^ses_[a-zA-Z0-9]+$/u.test(id)),
+      )) {
+        const deleted = await run(command, ['session', 'delete', session], '', env, 10_000);
+        if (deleted.code !== 0) throw new Error('Native agent session cleanup failed');
+      }
+    }
+    if (failure) throw failure;
+    return output;
+  } finally {
+    if (schemaDirectory) await rm(schemaDirectory, { recursive: true, force: true });
   }
-  if (failure) throw failure;
-  return output;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -261,7 +294,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       prompt += chunk;
       if (Buffer.byteLength(prompt) > 8 * 1024 * 1024) throw new Error('Prompt limit');
     }
-    process.stdout.write(await runBridge(provider, model, prompt, images));
+    const envelope =
+      process.env.ARXIC_MODEL_HOST_CLI_JSON_INPUT === '1' ? JSON.parse(prompt) : { prompt };
+    if (
+      typeof envelope.prompt !== 'string' ||
+      (envelope.schema !== undefined && (!envelope.schema || typeof envelope.schema !== 'object'))
+    )
+      throw new Error('Invalid native input');
+    process.stdout.write(
+      await runBridge(provider, model, envelope.prompt, images, process.env, envelope.schema),
+    );
   } catch {
     process.stderr.write(
       'Coding agent request blocked; check account login, model access and quota.\n',

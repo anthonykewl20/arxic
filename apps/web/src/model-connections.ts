@@ -24,6 +24,7 @@ type Connection = {
   customModelPrices?: Prices;
   billing?: 'api' | 'subscription' | 'operator-managed';
   isolatedCwd?: boolean;
+  jsonInput?: boolean;
 };
 const modelId = /^[a-zA-Z0-9][a-zA-Z0-9._:/[\]-]{0,119}$/u;
 const credentialRef = /^ARXIC_SECRET_[A-Z][A-Z0-9_]{0,80}$/u;
@@ -69,6 +70,7 @@ function connections(env: NodeJS.ProcessEnv): Connection[] {
               'customModelPrices',
               'billing',
               'isolatedCwd',
+              'jsonInput',
               'agentId',
               'catalogAgent',
               'catalogProvider',
@@ -90,6 +92,7 @@ function connections(env: NodeJS.ProcessEnv): Connection[] {
         !['api', 'subscription', 'operator-managed'].includes(item.billing)
       )
         throw new Error();
+      if (item.jsonInput !== undefined && typeof item.jsonInput !== 'boolean') throw new Error();
       if (item.isolatedCwd !== undefined && typeof item.isolatedCwd !== 'boolean')
         throw new Error();
       if (
@@ -228,6 +231,7 @@ export function modelEnvironment(
     ARXIC_MODEL_API_KEY: binding ? env[binding] : undefined,
     ARXIC_MODEL_HOST_CLI: connection.command,
     ARXIC_MODEL_HOST_CLI_ISOLATE: connection.isolatedCwd ? '1' : undefined,
+    ARXIC_MODEL_HOST_CLI_JSON_INPUT: connection.jsonInput ? '1' : undefined,
     ARXIC_MODEL_HOST_CLI_ARGS: connection.args ? JSON.stringify(connection.args) : undefined,
     ARXIC_MODEL_HOST_CLI_MODEL_ARGS: connection.modelArgs
       ? JSON.stringify(connection.modelArgs)

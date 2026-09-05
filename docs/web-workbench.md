@@ -407,3 +407,9 @@ Provider references: [Claude account plans](https://support.claude.com/en/articl
 Visual review treats magenta privacy masks as unavailable evidence and excludes
 unsupported design preferences. These prompt constraints do not establish a
 zero-false-positive detector; findings remain hypotheses requiring independent checks.
+
+Built-in native bridges receive `jsonInput: true`: a JSON envelope containing the
+prompt and output schema on stdin. Claude uses its native JSON-schema result
+control; Codex receives a private temporary output-schema file. Existing host
+wrappers keep text input unless explicitly configured. The final output still
+passes Arxic schema validation, including field-length limits.

@@ -41,3 +41,25 @@ it('uses ephemeral stdin calls and extracts only the final native text', () => {
   );
   expect(agentInvocation('claude', 'sonnet', 'private prompt', []).args).not.toContain('--bare');
 });
+it('uses native constrained output when a schema is supplied and accepts its result envelope', () => {
+  const schema = {
+    type: 'object',
+    properties: { answer: { type: 'string', maxLength: 20 } },
+    required: ['answer'],
+    additionalProperties: false,
+  };
+  const call = agentInvocation('claude', 'provider-model', 'private prompt', [], schema);
+  expect(call.args).toContain('--json-schema');
+  expect(call.args[call.args.indexOf('--json-schema') + 1]).toBe(JSON.stringify(schema));
+  expect(
+    agentResult(
+      'claude',
+      JSON.stringify({
+        type: 'result',
+        is_error: false,
+        result: '',
+        structured_output: { answer: 'bounded' },
+      }),
+    ),
+  ).toBe('{"answer":"bounded"}');
+});

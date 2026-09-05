@@ -61,6 +61,8 @@ export type HostCliTransportConfig = {
   inheritProcessGroup?: boolean;
   /** Start in a private empty directory, also for text-only native agent requests. */
   isolatedCwd?: boolean;
+  /** Native bridges receive prompt and output schema together on stdin. */
+  jsonInput?: boolean;
   /** Working directory for the spawned process. Defaults to process.cwd(). */
   cwd?: string;
 };
@@ -137,6 +139,7 @@ export function hostCliConfigFromEnv(
   const images = {
     ...(imageArgs === undefined ? {} : { imageArgs }),
     ...(env.ARXIC_MODEL_HOST_CLI_ISOLATE === '1' ? { isolatedCwd: true } : {}),
+    ...(env.ARXIC_MODEL_HOST_CLI_JSON_INPUT === '1' ? { jsonInput: true } : {}),
   };
   let modelArgs: string[] | undefined;
   if (env.ARXIC_MODEL_HOST_CLI_MODEL_ARGS?.trim()) {
@@ -249,7 +252,10 @@ function runHostCli(
   if (config.modelArgs !== undefined && !validModelArgs(config.modelArgs))
     return Promise.resolve(providerFailure(false));
   return new Promise<ClientResult>((resolve) => {
-    const prompt = renderPrompt(input.messages);
+    const rendered = renderPrompt(input.messages);
+    const prompt = config.jsonInput
+      ? JSON.stringify({ prompt: rendered, schema: input.schema })
+      : rendered;
     const timeoutMs = input.timeoutMs ?? 30_000;
 
     let child;
