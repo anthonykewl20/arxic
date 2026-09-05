@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "arxic-ui-timeline-v1",
+  "actions": [
+    {
+      "action": "Provider catalog loaded in React/shadcn management screen",
+      "result": "passed"
+    },
+    {
+      "action": "Changed catalog replaces old IDs; failed refresh retains visibly stale data",
+      "result": "passed"
+    },
+    {
+      "action": "Provider management fits mobile viewport without horizontal page overflow",
+      "result": "passed"
+    }
+  ]
+}

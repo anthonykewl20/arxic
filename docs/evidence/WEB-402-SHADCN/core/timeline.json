@@ -1,0 +1,54 @@
+[
+  {
+    "action": "Invalid login refused; late anonymous response cannot hide authenticated workspace",
+    "result": "passed"
+  },
+  {
+    "action": "Outside-root folder refused; reference project saved with visual and schedule settings",
+    "result": "passed"
+  },
+  {
+    "action": "Real source scanner reported login surface and source evidence",
+    "result": "passed"
+  },
+  {
+    "action": "Real documentation declarations have source hashes; unsupported EJS stays in coverage gaps",
+    "result": "passed"
+  },
+  {
+    "action": "Approved baseline compared against fresh real Chromium capture with zero changed pixels",
+    "result": "passed"
+  },
+  {
+    "action": "Raw credential rejected; guided settings accept only server secret names",
+    "result": "passed"
+  },
+  {
+    "action": "Guided settings persist after save and fit the mobile dialog",
+    "result": "passed"
+  },
+  {
+    "action": "Administrator enabled the persisted UTC cron schedule",
+    "result": "passed"
+  },
+  {
+    "action": "Administration exposes root allow-list and immutable baseline approval audit event",
+    "result": "passed"
+  },
+  {
+    "action": "Mobile navigation exposes every workspace screen and Escape restores toggle focus",
+    "result": "passed"
+  },
+  {
+    "action": "Mobile dashboard fits its viewport",
+    "result": "passed"
+  },
+  {
+    "action": "Mobile search survives status polling and filters real source declarations",
+    "result": "passed"
+  },
+  {
+    "action": "Late pre-logout dashboard response cannot restore a signed-out workspace",
+    "result": "passed"
+  }
+]

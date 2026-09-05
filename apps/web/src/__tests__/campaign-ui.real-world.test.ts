@@ -230,6 +230,7 @@ it('lets an administrator select and verify two real workflows with honest campa
         }),
       ),
     ).toBe(true);
+    await page.locator('.run-detail').scrollIntoViewIfNeeded();
     await capture(
       '04-workflow-result',
       'Campaign links to the selected child engine result and diagnostic evidence',

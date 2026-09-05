@@ -242,12 +242,34 @@ it('lets a real browser register a folder, discover source intent, run visual ch
       'Administration exposes root allow-list and immutable baseline approval audit event',
     );
     await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+    await page.getByRole('button', { name: 'Overview', exact: false }).focus();
+    await page.keyboard.press('Escape');
+    expect(await page.getByRole('button', { name: 'Open navigation', exact: true }).count()).toBe(
+      1,
+    );
+    expect(
+      await page
+        .getByRole('button', { name: 'Open navigation', exact: true })
+        .evaluate((button) => document.activeElement === button),
+    ).toBe(true);
+    await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+    await capture(
+      '13-mobile-navigation',
+      'Mobile navigation exposes every workspace screen and Escape restores toggle focus',
+    );
     await page.getByRole('button', { name: 'Overview', exact: false }).click();
+    expect(
+      await page
+        .getByRole('button', { name: 'Open navigation', exact: true })
+        .getAttribute('aria-expanded'),
+    ).toBe('false');
     await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
     await capture('07-mobile-overview', 'Mobile dashboard fits its viewport');
+    await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
     await page.getByRole('heading', { name: 'Frontend declarations' }).waitFor();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(

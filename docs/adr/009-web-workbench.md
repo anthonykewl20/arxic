@@ -224,3 +224,15 @@ self-contained assets, and the remaining screens migrate incrementally. The
 account successes, schema failures, clean-screen false positives and the explicitly
 disclosed lexical-oracle correction. No expanded product release or complete paid
 provider matrix is established by this addition.
+
+## 2026-09-06 workspace presentation migration
+
+The React/shadcn foundation now renders the workspace shell, overview, campaign
+history/details, schedules and administrator activity. Compact neutral surfaces
+and responsive navigation apply across the workbench. Mobile navigation is an
+inline disclosure, with Escape returning focus to its toggle. Existing action
+handlers continue to own requests, session invalidation, polling and mutations;
+presentation components consume server state without assigning verifier outcomes.
+The project form is React-rendered with a native dialog and existing form actions.
+Inventory, selection, run details, model controls and image review remain explicit
+migration work. See the [browser proof](../evidence/WEB-402-SHADCN/summary.md).

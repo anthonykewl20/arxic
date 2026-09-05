@@ -1,9 +1,15 @@
 # Frontend migration
 
-The Models & accounts screen uses React, Tailwind CSS and shadcn/ui components.
+The workspace shell, overview, campaign history/details, schedules, administration
+and Models & accounts use React, Tailwind CSS and shadcn/ui components.
 Vite compiles the local assets once per server process; the server serves only the
 bundled JavaScript and CSS. No browser CDN or external script is required.
-The rest of the dashboard is being migrated incrementally under issue 402.
+The shell owns mobile disclosure state, including Escape and focus restoration.
+The existing dashboard actions still own API requests, session-race protection,
+project form submission and polling. Inventory, workflow selection, run details,
+model fields and image-review presentation are still imperative and migrate
+incrementally under issue 402. The project form is rendered by React but retains
+its native dialog and existing action handlers; this is not a completed migration.
 
 `components/ui/{button,card,badge,input}.tsx` are adapted from the MIT-licensed
 [shadcn/ui New York registry](https://ui.shadcn.com/docs/components), retrieved

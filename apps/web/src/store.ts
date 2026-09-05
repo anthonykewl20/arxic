@@ -148,7 +148,9 @@ export class Store {
   }
   auditLog() {
     return this.db
-      .prepare('SELECT at, action, subject FROM audit ORDER BY id DESC LIMIT 100')
+      .prepare<[], { at: string; action: string; subject: string }>(
+        'SELECT at, action, subject FROM audit ORDER BY id DESC LIMIT 100',
+      )
       .all();
   }
   baselines() {

@@ -1,0 +1,156 @@
+{
+  "screenshots": [
+    {
+      "path": "before/06-administration.png",
+      "sha256": "2520731db3ddd367acbe6063573d0cf15f1d6b1ac76eb656dddcfe6ba964c9d0",
+      "sourceCommit": "bf9392ab084edb09e7cd4ca56bff8c91e464de63",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "before/12-mobile-guided-settings.png",
+      "sha256": "91966020db783e3d3372bc0a9cc9d169806dab6d94a475997b810a13ca31febb",
+      "sourceCommit": "bf9392ab084edb09e7cd4ca56bff8c91e464de63",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/01-selected-workflows.png",
+      "sha256": "237e03f9c7f833d180b745fa60098824918f058149326752c3c4add29b7ac350",
+      "sourceCommit": "fa55326ff329acb213f24f3a155e0572441c6377",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/02-verified-campaign.png",
+      "sha256": "ae79581b9bea2e3a734af479ca4fbea18e454dfe3b89ee9d6d85f07db9a3d506",
+      "sourceCommit": "fa55326ff329acb213f24f3a155e0572441c6377",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/03-mobile-campaign.png",
+      "sha256": "4407a5b7a3221f8341ec56ea2d9b9c45d16179b95fc04a65b6737e9e1e86e126",
+      "sourceCommit": "fa55326ff329acb213f24f3a155e0572441c6377",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "campaign/04-workflow-result.png",
+      "sha256": "ca5801c95b339727366ee19eb947eecf01b82bb571886470dcaab02233761bd1",
+      "sourceCommit": "fa55326ff329acb213f24f3a155e0572441c6377",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/01-empty-workspace.png",
+      "sha256": "63ab7065d3626236e215bbacab82a305b002f323fa7a65d53343fb9fd0694e1d",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/02-project-overview.png",
+      "sha256": "adea4a54d1cd88a814355eb161dd60b77cebe846145815c91503d6b3c4c9c834",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/03-intent-inventory.png",
+      "sha256": "3cb478e2cea42bcc93a54bbc8005da99a9e370cf9e675667b939c8bda6c05b60",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/04-visual-comparison.png",
+      "sha256": "32662cc1778b3f3208ac3565129a2e922095721c1a6bfa5760b50f13a6ce3621",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/05-schedule.png",
+      "sha256": "aff7489632255d7ce84e255d543b62049c4524bb76d45c407e95f056983a2944",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/06-administration.png",
+      "sha256": "38e2fdf4989c2d096d5300b42ca4bb33a04b67964ec9f07e155fc776544e7db0",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/07-mobile-overview.png",
+      "sha256": "bd12c266b64f27351e543419e75e027518d759b970cce21805283362e803deec",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/08-signed-out.png",
+      "sha256": "9489e6d9f2dddc233878f9bd3017138b37911c4de31d847b362908410aed3bd3",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/09-frontend-declarations.png",
+      "sha256": "4efef1340955f20e66fea41db21072fb034b0e4857634736115e27c83fe4fa29",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/10-mobile-declarations.png",
+      "sha256": "1ed97bc235193d3579f79f0d739dc37368e316ee9d7a2d580b03f032aaa98b0d",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/11-guided-settings.png",
+      "sha256": "abb16fe24e4c5007382a1231d9522fb6c89c848c599c46ff3fe0de38a76538ba",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/12-mobile-guided-settings.png",
+      "sha256": "324d7d238e9ff19113d15dc25cde707cdf0ee0de55a09aa684e6bd45551b4756",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "core/13-mobile-navigation.png",
+      "sha256": "96e9f4ddf0dfb965ae67aa1790f47f376f6f0fc8daa4bccde9aa15be28a0792a",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "provider/01-provider-catalog.png",
+      "sha256": "241ad41010e0c15e154e174092b3cc3bb16705e209897c93fe4ff431759b362b",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "provider/02-provider-stale.png",
+      "sha256": "f8337879a6652e90cdf9a43c5049c803e940feda22f56790afc4175c3f841ca3",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "provider/03-provider-mobile.png",
+      "sha256": "3157881bb671193703f327539aeb3cd72879d3f3314f331a01af12204954ba08",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/01-inspected-capture.png",
+      "sha256": "3ba372e3b70407c34aed96b442c3d0574e3015c8239cb61fcf28d7423bef3feb",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/02-grounded-hypothesis.png",
+      "sha256": "2ba29988023a21e5b8e0dedb9468118dc24418fff95414027dac38d5a5d8bddc",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    },
+    {
+      "path": "review/03-mobile-review.png",
+      "sha256": "b4487362446169a88203af3fa3f34d6a9e83a231a7495f0d399751a942dc6f71",
+      "sourceCommit": "1d3aab1d82e0173e737c9a535c95357efbf4baa7",
+      "inspection": "agent-inspected; human release inspection not performed"
+    }
+  ],
+  "hashCheckedTimelines": 4,
+  "rawTraceRetained": false
+}
