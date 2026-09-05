@@ -18,3 +18,10 @@ crashes while resolving Vite 8's optional devtools/Vitest peer graph. ESLint sta
 on the compatible 9.x peer range required by Next's ESLint plugins; the main
 workspace uses ESLint 10. Neither setting changes the application's runtime
 Next.js/React dependencies.
+
+Next's production-build phase evaluates route modules concurrently. During that
+phase the reference app uses a process-local in-memory database; a build must
+never initialize or lock the runtime SQLite file. Normal `next start` execution
+continues using `ARXIC_DB_PATH` (or `./auth.db`). The real build regression holds
+an exclusive lock on a temporary runtime database and checks that building the
+app leaves its data and schema untouched.

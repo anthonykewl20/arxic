@@ -1,0 +1,22 @@
+{
+  "cause": "Concurrent Next production-build route evaluation opened the shared runtime SQLite file and failed at journal_mode = WAL with SQLITE_BUSY.",
+  "red": {
+    "command": "pnpm exec vitest run scripts/fixture-build.test.mjs",
+    "result": "1 failed",
+    "durationSeconds": 9.93,
+    "setup": "Exclusive lock held on a per-run temporary real SQLite database while executing real next build."
+  },
+  "fix": "Only production-build phase uses process-local in-memory SQLite; normal server execution uses configured persistent SQLite. No retry or assertion relaxation.",
+  "green": {
+    "command": "pnpm exec vitest run scripts/fixture-build.test.mjs apps/cli/src/__tests__/real-world.test.ts packages/intent/src/__tests__/real-world.test.ts",
+    "filesPassed": 3,
+    "testsPassed": 8,
+    "durationSeconds": 36.23,
+    "assertions": [
+      "real build succeeds while runtime database remains exclusively locked",
+      "runtime sentinel unchanged",
+      "build adds no application tables to runtime database",
+      "real CLI journey passes after build"
+    ]
+  }
+}

@@ -57,6 +57,15 @@ Stage-11 automatic healing remains deliberately deferred by ADR-007.
 | P2       | Browser/capture settings accepted values the managed pipeline ignored.                                               | Reject unsupported browser arrays and screenshot/trace policies; document Chromium selection and quota boundaries.                                                                               |
 | P2       | Human-flow cleanup left Next servers running; docs contradicted worker support/release ordering and active versions. | Direct child lifecycle; corrected user guides, before-publish human gate and v0.1.0 metadata; 64 merged notes moved out of active staging with their historical bytes retained.                  |
 
+A later CI shard exposed a reference-app build race: concurrent Next build
+workers opened the runtime SQLite file and hit `SQLITE_BUSY` at WAL setup.
+The exact failure reproduced locally while a real exclusive database lock was
+held during `next build`. Build-phase route evaluation now uses an in-memory
+database; normal server execution retains persistent SQLite. The regression
+also checks that build evaluation leaves the locked runtime data and schema
+untouched. The real server journey also checks that its configured on-disk
+database exists after seeding. [Red/green build proof](../evidence/RELEASE-398/build-db-isolation.json). This fixes the cause rather than retrying a failed build.
+
 No existing behavioral matcher was loosened. The new custom-attestation test's
 whole-test timeout was raised from Vitest's five-second default to 30 seconds
 after concurrent real-engine load exceeded it; the endpoint/egress assertions

@@ -1,6 +1,12 @@
 import Database from 'better-sqlite3';
+import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 
-const databasePath = process.env.ARXIC_DB_PATH || './auth.db';
+// Next evaluates route modules concurrently while collecting build metadata.
+// Those workers must not initialize or contend for the deployed app's database.
+const databasePath =
+  process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD
+    ? ':memory:'
+    : process.env.ARXIC_DB_PATH || './auth.db';
 
 export const db = new Database(databasePath);
 
