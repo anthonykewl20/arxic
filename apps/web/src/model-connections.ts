@@ -187,13 +187,17 @@ function serverDefaultConnection(env: NodeJS.ProcessEnv): Connection | undefined
 export function modelConnections(env: NodeJS.ProcessEnv = process.env) {
   const defaultConnection = serverDefaultConnection(env);
   const defaultKey = defaultConnection ? catalogKey(defaultConnection, env) : undefined;
+  const billing = env.ARXIC_MODEL_BILLING_MODE;
   return [
     {
       id: '',
       label: 'Server default',
       billing:
-        env.ARXIC_MODEL_BILLING_MODE ??
-        (env.ARXIC_MODEL_PROVIDER === 'host-cli' ? 'operator-managed' : 'api'),
+        billing && ['api', 'subscription', 'operator-managed'].includes(billing)
+          ? billing
+          : env.ARXIC_MODEL_PROVIDER === 'host-cli'
+            ? 'operator-managed'
+            : 'api',
       transport:
         env.ARXIC_MODEL_PROVIDER === 'host-cli'
           ? 'host-cli'
