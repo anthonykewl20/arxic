@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- React/shadcn workspace shell, overview, campaign history/details, schedules and administrator activity with a compact neutral design and mobile navigation. Escape closes the mobile menu and restores focus; project persona option values retain their exact saved values (refs #402). Inventory, run details, workflow/model controls and image review remain migration work.
+
 - Retain subscription/catalog proof with 13 hash-checked masked screenshots, native model metadata, real Codex/Claude clean/regressed Next image pairs, original failures and the disclosed lexical-oracle correction (refs #402).
 
 - Reuse the shared SHA-256 capability for provider catalog cache keys after CI caught a duplicate implementation; the unchanged architecture gate and cache tests pass locally (refs #402).

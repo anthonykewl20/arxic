@@ -60,8 +60,11 @@ not establish account entitlement. Each claimed paid execution path needs live
 account proof.
 
 The target interface uses React and shadcn/ui, with a polished, compact visual
-hierarchy inspired by Linear. The Models & accounts screen implements that
-foundation; the remaining screens still require migration and browser proof.
+hierarchy inspired by Linear. The shell, overview, campaign history/details,
+schedules, administration and Models & accounts implement that foundation.
+Inventory, workflow selection, run details, model fields and image-review
+presentation still require migration. The project form uses React markup but
+retains its native dialog and existing submission actions.
 Browser account-login flows, richer connection management and full paid-plan
 coverage remain explicit follow-up work under #402.
 

@@ -78,8 +78,10 @@ outcomes only. No raw trace ZIP or raw provider transport log is retained here.
 7. CI 33979639411 on `7db924d` failed its unchanged canonical-capability check:
    catalog hashing duplicated SHA-256 outside contracts. The same test failed
    locally and passes after using the shared helper. Three other shards, static,
-   fixture apps, packaging and worker image passed that first CI run. New-head CI
-   remains required; this earlier run is not a completed gate.
+   fixture apps, packaging and worker image passed that first CI run. Final head `ef48ae14a0670b09ffa1892627f30f628082f333` passed all required
+   checks in CI 33981138662, including all four test shards. PR #413 merged as
+   `3ed38159fd3401b336025a6b7c2905075f3e8d51`. The earlier failed run remains
+   part of the failure record.
 8. An attempted concurrent native probe collided with Next's shared build lock.
    The final real-app probes run serially. This was a probe orchestration failure,
    not a passing app test.
@@ -90,7 +92,8 @@ The full web area passed 46 tests in 13 files (230.75 s) before final schema and
 architecture corrections. Changed schema/transport/architecture checks pass
 locally after those corrections. Additional real HTTP safety checks reject
 redirects without forwarding credentials, oversized bodies and malformed JSON.
-Type checks, lint and the license gate passed; final PR-head CI is required.
+Type checks, lint and the license gate passed. Final PR-head CI 33981138662
+passed and PR #413 is merged.
 
 Paid Kimi Coding, OpenCode Go, SuperGrok and OpenRouter inference are **not
 live-validated** here. OpenClaw routing has a real local HTTP boundary test, not a
