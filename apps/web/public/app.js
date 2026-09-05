@@ -237,6 +237,20 @@ function render() {
     element.open = openDetails.has(element.dataset.detailKey);
   });
 }
+function toggleExecution() {
+  const form = $('#project-form');
+  const enabled = form.elements.namedItem('guided').checked;
+  $('#execution-fields').hidden = !enabled;
+  $('#execution-fields').disabled = !enabled;
+  form.elements.namedItem('configPath').disabled = enabled;
+}
+const executionNumbers = ['modelBudgetUsd', 'maxRuntimeMinutes', 'maxUrls', 'maxDepth'];
+const executionLists = ['frameworks', 'domains', 'languages'];
+const splitList = (value) =>
+  String(value)
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
 function editProject(id = '') {
   editing = id;
   const item = project(id) ?? {
@@ -260,6 +274,23 @@ function editProject(id = '') {
     .join(', ');
   form.elements.namedItem('paused').checked = item.paused;
   form.elements.namedItem('captureConsent').checked = item.captureConsent;
+  form.elements.namedItem('guided').checked = !!item.execution;
+  if (item.execution) {
+    for (const [key, value] of Object.entries(item.execution)) {
+      if (key === 'persona') {
+        for (const [field, text] of Object.entries(value))
+          form.elements.namedItem(`persona_${field}`).value = text;
+      } else if (key === 'featureFlags') {
+        form.elements.namedItem('exec_featureFlags').value = Object.entries(value)
+          .map(([flag, enabled]) => `${flag}=${enabled}`)
+          .join('\n');
+      } else
+        form.elements.namedItem(`exec_${key}`).value = Array.isArray(value)
+          ? value.join(', ')
+          : value;
+    }
+  }
+  toggleExecution();
   $('#dialog-title').textContent = editing ? 'Project settings' : 'Connect a project';
   $('#project-error').textContent = '';
   $('#project-dialog').showModal();
@@ -294,6 +325,7 @@ $('#logout').addEventListener('click', async () => {
   }
 });
 $('#new-project').addEventListener('click', () => editProject());
+$('#project-form').elements.namedItem('guided').addEventListener('change', toggleExecution);
 $('#close-dialog').addEventListener('click', () => $('#project-dialog').close());
 $('#project-form').addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -321,6 +353,34 @@ $('#project-form').addEventListener('submit', async (event) => {
   body.paused = values.has('paused');
   body.captureConsent = values.has('captureConsent');
   try {
+    if (values.has('guided')) {
+      body.configPath = '';
+      body.execution = { persona: {} };
+      for (const [name, value] of values) {
+        if (name.startsWith('persona_')) body.execution.persona[name.slice(8)] = value;
+        if (!name.startsWith('exec_')) continue;
+        const key = name.slice(5);
+        if (key === 'featureFlags') {
+          const flags = String(value)
+            .split('\n')
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => {
+              const match = /^([A-Za-z][A-Za-z0-9_.-]{0,99})=(true|false)$/u.exec(line);
+              if (!match) throw new Error('Use name=true or name=false for each feature flag');
+              return [match[1], match[2] === 'true'];
+            });
+          if (new Set(flags.map(([key]) => key)).size !== flags.length)
+            throw new Error('Feature flag names must be unique');
+          body.execution.featureFlags = Object.fromEntries(flags);
+        } else
+          body.execution[key] = executionNumbers.includes(key)
+            ? Number(value)
+            : executionLists.includes(key)
+              ? splitList(value)
+              : value;
+      }
+    }
     await api(`/projects${editing ? `/${editing}` : ''}`, editing ? 'PUT' : 'POST', body);
     $('#project-dialog').close();
     await refresh();

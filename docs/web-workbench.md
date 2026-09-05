@@ -89,19 +89,46 @@ verified workflow bundle.
 
 ## AI E2E configuration
 
-Create an [Arxic configuration](configuration.md) within the project folder and
-choose its relative or absolute path in Project settings. Commit it (or keep it
-properly excluded from the source snapshot) before a provenance-dependent run.
-Use `source.revision: HEAD` or the intended existing commit. Its resolved
-`source.repository` and `target.origin` must match the dashboard project. Relative
-source paths resolve from the project folder. The web action snapshots validated
-configuration; it does not edit the project for you.
+In Project settings, enable **Configure AI execution in this dashboard**. Enter
+an installed/available model name, frameworks and domain declarations. Set the
+planning estimate, runtime/crawl limits and persona strategy. No configuration
+file is needed for this path; the dashboard snapshots validated engine
+configuration inside the run directory without editing the project.
 
-The existing [model/agent environment](cli-reference.md), fixture credentials,
-target attestation, Docker/Mailpit prerequisites and replay policies still apply.
-Set model/fixture secrets on the server process; they are not entered into the
-browser form. Each job reuses the existing local executor with a 30-minute outer
-deadline. Only the deterministic verifier may return `verified`.
+- **Anonymous** clears inherited persona credentials for this job.
+- **Test app seed API** uses the existing attested fixture/reset lifecycle.
+- **Existing test account login** uses the engine's per-pass login declaration;
+  configure the relative login path and accessible field/button labels under
+  **Login and deployment declarations**.
+
+Authenticated modes require email and password **reference names**, such as
+`ARXIC_SECRET_TEST_EMAIL` and `ARXIC_SECRET_TEST_PASSWORD`. Set their values in
+the server's environment or secret manager before starting Arxic. The optional
+model reference binds a selected `ARXIC_SECRET_...` value to that job's model
+credential; blank uses the operator's existing model credential. Raw credential
+values and references to `ARXIC_ADMIN_TOKEN` are rejected. Only names are stored
+in project/run settings. Missing selected secrets block execution before launch.
+The guided child receives selected values in the engine's standard credential
+variables; the generic `ARXIC_SECRET_...` environment is removed from that child.
+
+The existing [model/agent connection](cli-reference.md), target attestation,
+Docker/Mailpit prerequisites and replay policies still apply. The model's name
+is selected in the form; the server operator configures the HTTP endpoint or
+host agent executable. Guided settings do not expose arbitrary shell commands.
+Domain declarations enable matching seeders and do not restrict route discovery.
+Framework support is checked by the engine. Feature flags describe the actual
+deployment; they do not toggle the app. Planning budgets are engine estimates,
+not hard billing limits, especially when host agents do not report costs.
+Runtime is capped at 1–30 minutes, crawl URLs at 1–500 and depth at 1–10.
+Chromium, two verifier replays and the engine's fixed mutation/network policies
+remain mandatory. Only the deterministic verifier may return `verified`.
+
+Alternatively, choose an [Arxic configuration](configuration.md) file inside
+the project folder with guided settings disabled. Commit it (or keep it properly
+excluded from the source snapshot) before provenance-dependent execution. Its
+resolved `source.repository` and `target.origin` must match the dashboard project;
+relative source paths resolve from that folder. File-based jobs retain the
+existing server model/fixture environment and a 30-minute outer deadline.
 
 Missing models, invalid configuration, mismatched source/target, fixture failure
 or failed policy gates produce blocked results with diagnostics. Agent tools

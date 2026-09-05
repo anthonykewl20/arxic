@@ -157,9 +157,49 @@ it('lets a real browser register a folder, discover source intent, run visual ch
     await page.getByRole('button', { name: 'Schedules', exact: true }).click();
     await expect.poll(() => page.locator('#content').textContent()).toContain('0 9 * * *');
     await page.getByRole('button', { name: 'Configure', exact: true }).click();
+    await page.getByLabel('Configure AI execution in this dashboard').check();
+    await page.getByLabel('Model name', { exact: true }).fill('gpt-4o-mini');
+    await page.getByLabel('Frameworks', { exact: false }).fill('express');
+    await page.getByLabel('Domain declarations', { exact: false }).fill('authentication');
+    await page.getByLabel('Persona strategy', { exact: false }).selectOption('seed-api');
+    await page
+      .getByLabel('Email secret reference', { exact: true })
+      .fill('raw-persona@example.test');
+    await page
+      .getByLabel('Password secret reference', { exact: true })
+      .fill('ARXIC_SECRET_TEST_PASSWORD');
+    await page.getByRole('button', { name: 'Save project' }).click();
+    await expect
+      .poll(() => page.locator('#project-error').textContent())
+      .toContain('Secret references');
+    await page
+      .getByLabel('Email secret reference', { exact: true })
+      .fill('ARXIC_SECRET_TEST_EMAIL');
+    await page.getByLabel('Maximum run minutes', { exact: true }).fill('5');
+    await page.locator('#execution-fields').scrollIntoViewIfNeeded();
+    await capture(
+      '11-guided-settings',
+      'Raw credential rejected; guided settings accept only server secret names',
+    );
     await page.getByLabel('Pause scheduled runs').uncheck();
     await page.getByRole('button', { name: 'Save project' }).click();
     await expect.poll(() => page.locator('#content').textContent()).toContain('active');
+    await page.getByRole('button', { name: 'Configure', exact: true }).click();
+    expect(await page.getByLabel('Email secret reference', { exact: true }).inputValue()).toBe(
+      'ARXIC_SECRET_TEST_EMAIL',
+    );
+    expect(await page.getByLabel('Maximum run minutes', { exact: true }).inputValue()).toBe('5');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByLabel('Model name', { exact: true }).scrollIntoViewIfNeeded();
+    expect(
+      await page.locator('#project-dialog').evaluate((el) => el.scrollWidth <= el.clientWidth),
+    ).toBe(true);
+    await capture(
+      '12-mobile-guided-settings',
+      'Guided settings persist after save and fit the mobile dialog',
+    );
+    await page.locator('#close-dialog').click();
+    await page.setViewportSize({ width: 1440, height: 1000 });
     await capture('05-schedule', 'Administrator enabled the persisted UTC cron schedule');
     await page.getByRole('button', { name: 'Administration', exact: true }).click();
     await expect.poll(() => page.locator('#content').textContent()).toContain('baseline.approved');

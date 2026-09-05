@@ -26,7 +26,16 @@ Source discovery reuses `SourceUaAdapter` and Domain Inventory. AI E2E reuses th
 existing CLI action and local executor, including its fixture, attestation,
 model, compilation and verifier gates. The web action binds source and target to
 the registered project and snapshots the validated configuration before running.
-Frozen evidence/workflow contracts are unchanged.
+Guided project settings compose the same engine-owned configuration validator as
+file-based execution. Model/fixture values are resolved from server secret names
+only at child launch; project and run records retain reference names. Guided
+jobs clear inherited persona credentials and remove generic secret-reference
+variables before adding selected engine credentials. Missing references block
+before launch. The action owns policy and failure classification; the existing
+local executor remains the execution capability. Crawl/runtime limits are bounded;
+model costs are estimates, not a guaranteed host-agent billing ceiling. Domain
+and feature-flag declarations do not implement deployment toggles or campaign
+route filters. Frozen evidence/workflow contracts are unchanged.
 
 ### Frontend declaration inventory (2026-09-05 continuation, refs #402)
 
