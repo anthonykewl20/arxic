@@ -3,14 +3,15 @@
 ![CI](https://github.com/anthonykewl20/arxic/actions/workflows/ci.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)
-![Status](https://img.shields.io/badge/status-0.1.1%20production%20hardening%20in%20progress-blue)
+![Status](https://img.shields.io/badge/status-0.1.0%20release%20validation-blue)
 
 Evidence-driven behavioral intent compiler that produces independently replayable
 Playwright workflow bundles with explicit evidence, provenance, and verifiable
 coverage.
 
 Status: pre-1.0.0. The CLI and both local and worker executors are implemented;
-the 0.1.1 production-hardening milestone is in progress.
+domain-general intent extraction is implemented. The v0.1.0 release audit and
+remaining release gates are recorded in [the audit report](docs/reviews/release-0.1.0-398.md).
 
 ## Install and quickstart
 
@@ -30,6 +31,9 @@ and a lockstep worker image.
 Arxic is an evidence-discovery + verification compiler for behavioral capabilities.
 It discovers capabilities from pinned source, then runs a safe test deployment and
 verifies discoverable behavior with replayable Playwright runs before promotion.
+Its primary output is an evidence-grounded Intent Ledger: every inventoried
+surface has an explicit disposition. Replayable UI workflows are accompanying
+artifacts; non-UI and unsupported surfaces remain visible in the ledger.
 It does not compile user-specified requirements.
 
 ADR §2 defines five truth states: hypothesized, observed, verified, contradicted,
@@ -77,7 +81,8 @@ Milestones are tracked on GitHub: https://github.com/anthonykewl20/arxic/milesto
 
 - M0-EXIT (`#14`) - one manually-supplied login candidate compiles, verifies twice, and promotes with evidence
 - M1-EXIT (`#27`) - complete: two structurally different reference apps produce independently replayable bundles without app-specific generator code
-- 0.1.1 production hardening - in progress; local and worker executors are available
+- Domain-general intent extraction (ADR-008) - accepted after the DG-12 campaigns
+- v0.1.0 release preparation - audit fixes implemented; release gates remain explicit
 
 ## Contributing
 

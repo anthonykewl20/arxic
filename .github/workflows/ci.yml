@@ -101,7 +101,7 @@ jobs:
         run: pnpm lint
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: pnpm typecheck && pnpm typecheck:packages
 
       - name: Format
         run: pnpm format:check
@@ -224,6 +224,19 @@ jobs:
 
       - name: Tarball smoke
         run: node scripts/tarball-smoke.mjs
+
+      - name: Install Chromium system dependencies for packed replay
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install-deps chromium
+
+      - name: Packed human-flow release regression
+        run: node scripts/human-flow-e2e.mjs --evidence-dir artifacts/human-flow
+
+      - name: Upload sanitized human-flow evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: packed-human-flow-evidence
+          path: artifacts/human-flow
+          retention-days: 14
 
       - name: License gate
         run: node scripts/license-gate.mjs

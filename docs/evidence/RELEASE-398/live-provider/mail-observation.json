@@ -1,0 +1,6 @@
+{
+  "total": 4,
+  "expected": 4,
+  "passed": true,
+  "basis": "One exploration submission plus three deterministic verifier passes against an isolated real Mailpit instance; message contents were not retained."
+}

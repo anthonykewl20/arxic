@@ -1,0 +1,16 @@
+{"code":"ARXIC-RULES-FRAMEWORK-ACCEPTED","message":"framework 'nextjs' 16.3.3 (lockfile evidence) is inside pack nextjs-auth@0.2.0 range >=15 <17","severity":"observed","subject":"framework:nextjs"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for .gitignore; the file is outside scan policy.","severity":"blocked","subject":".gitignore"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for app/globals.css; the file is outside scan policy.","severity":"blocked","subject":"app/globals.css"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for package-lock.json; the file is outside scan policy.","severity":"blocked","subject":"package-lock.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for package.json; the file is outside scan policy.","severity":"blocked","subject":"package.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for tsconfig.json; the file is outside scan policy.","severity":"blocked","subject":"tsconfig.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for .gitignore; the file is outside scan policy.","severity":"blocked","subject":".gitignore"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for app/globals.css; the file is outside scan policy.","severity":"blocked","subject":"app/globals.css"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for package-lock.json; the file is outside scan policy.","severity":"blocked","subject":"package-lock.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for package.json; the file is outside scan policy.","severity":"blocked","subject":"package.json"}
+{"code":"ARXIC-SOURCE-UNSUPPORTED-LANGUAGE","message":"No language is identified for tsconfig.json; the file is outside scan policy.","severity":"blocked","subject":"tsconfig.json"}
+{"code":"ARXIC-RULES-FRAMEWORK-ACCEPTED","message":"framework 'nextjs' 16.3.3 (lockfile evidence) is inside pack nextjs-auth@0.2.0 range >=15 <17","severity":"observed","subject":"framework:nextjs"}
+{"code":"ARXIC-SURFACE-002","message":"Breadth discovery observed a POST form and did not submit it (default-deny mutation policy).","severity":"blocked","subject":"http://127.0.0.1:34799/forgot-password"}
+{"code":"ARXIC-SURFACE-002","message":"Breadth discovery observed a POST form and did not submit it (default-deny mutation policy).","severity":"blocked","subject":"http://127.0.0.1:34799/login"}
+{"code":"ARXIC-ORCH-POSTCRAWL-REPROPOSAL","message":"Post-crawl re-proposal skipped: the crawl observed no form-backed inventory row","severity":"observed","subject":"run:release-398-live-provider-mailpit"}
+{"code":"ARXIC-ORCH-HEALING-DEFERRED","message":"Healing is deferred to M2; no repair was attempted","severity":"observed","subject":"stage-11"}

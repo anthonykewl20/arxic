@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "root": "RELEASE-398",
+  "screenshotCount": 6,
+  "groups": [
+    {
+      "path": "live-provider/screenshots/001",
+      "files": [
+        {
+          "relativePath": "live-provider/screenshots/001/001-step-1-forgot-password-page-forgot-password-page.png",
+          "byteSize": 4367,
+          "sha256": "80832ae4633b30db6b71f48a98dbb650d23bf0127b2c7788446b269d986c91cf",
+          "dimensions": {
+            "width": 1280,
+            "height": 720
+          }
+        }
+      ]
+    },
+    {
+      "path": "live-provider/screenshots/002",
+      "files": [
+        {
+          "relativePath": "live-provider/screenshots/002/001-step-1-forgot-password-page-forgot-password-page.png",
+          "byteSize": 4367,
+          "sha256": "80832ae4633b30db6b71f48a98dbb650d23bf0127b2c7788446b269d986c91cf",
+          "dimensions": {
+            "width": 1280,
+            "height": 720
+          }
+        }
+      ]
+    },
+    {
+      "path": "live-provider/screenshots/003",
+      "files": [
+        {
+          "relativePath": "live-provider/screenshots/003/001-step-1-forgot-password-page-forgot-password-page.png",
+          "byteSize": 4367,
+          "sha256": "80832ae4633b30db6b71f48a98dbb650d23bf0127b2c7788446b269d986c91cf",
+          "dimensions": {
+            "width": 1280,
+            "height": 720
+          }
+        }
+      ]
+    },
+    {
+      "path": "screenshots/001",
+      "files": [
+        {
+          "relativePath": "screenshots/001/001-step-1-login-page-home.png",
+          "byteSize": 4367,
+          "sha256": "ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1",
+          "dimensions": {
+            "width": 1280,
+            "height": 720
+          }
+        }
+      ]
+    },
+    {
+      "path": "screenshots/002",
+      "files": [
+        {
+          "relativePath": "screenshots/002/001-step-1-login-page-home.png",
+          "byteSize": 4367,
+          "sha256": "ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1",
+          "dimensions": {
+            "width": 1280,
+            "height": 720
+          }
+        }
+      ]
+    },
+    {
+      "path": "screenshots/003",
+      "files": [
+        {
+          "relativePath": "screenshots/003/001-step-1-login-page-home.png",
+          "byteSize": 4367,
+          "sha256": "ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1",
+          "dimensions": {
+            "width": 1280,
+            "height": 720
+          }
+        }
+      ]
+    }
+  ]
+}

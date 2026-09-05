@@ -1,0 +1,21 @@
+Screenshot inspection manifest
+Root: RELEASE-398
+Screenshots: 6
+
+Group: live-provider/screenshots/001
+- live-provider/screenshots/001/001-step-1-forgot-password-page-forgot-password-page.png | 4367 bytes | sha256 80832ae4633b30db6b71f48a98dbb650d23bf0127b2c7788446b269d986c91cf | 1280x720
+
+Group: live-provider/screenshots/002
+- live-provider/screenshots/002/001-step-1-forgot-password-page-forgot-password-page.png | 4367 bytes | sha256 80832ae4633b30db6b71f48a98dbb650d23bf0127b2c7788446b269d986c91cf | 1280x720
+
+Group: live-provider/screenshots/003
+- live-provider/screenshots/003/001-step-1-forgot-password-page-forgot-password-page.png | 4367 bytes | sha256 80832ae4633b30db6b71f48a98dbb650d23bf0127b2c7788446b269d986c91cf | 1280x720
+
+Group: screenshots/001
+- screenshots/001/001-step-1-login-page-home.png | 4367 bytes | sha256 ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1 | 1280x720
+
+Group: screenshots/002
+- screenshots/002/001-step-1-login-page-home.png | 4367 bytes | sha256 ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1 | 1280x720
+
+Group: screenshots/003
+- screenshots/003/001-step-1-login-page-home.png | 4367 bytes | sha256 ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1 | 1280x720

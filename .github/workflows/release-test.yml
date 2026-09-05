@@ -53,7 +53,7 @@ jobs:
         run: pnpm lint
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: pnpm typecheck && pnpm typecheck:packages
 
       - name: Build CLI
         run: pnpm --filter './apps/cli' build

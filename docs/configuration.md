@@ -1,6 +1,6 @@
 # Arxic configuration reference
 
-> **Version: 0.1.1**
+> **Version: 0.1.0**
 
 Pass a YAML file to `arxic run --config <path>`. The file must be a plain YAML
 object and may contain only the top-level keys below. All listed objects are
@@ -41,7 +41,7 @@ policy:
 fixtures:
   personaProvisioner: app-seed-api
 models:
-  provider: configured-adapter
+  provider: gpt-4o-mini
   sourceRetention: disabled
 ```
 
@@ -73,7 +73,7 @@ Unknown top-level fields are rejected.
 | -------------- | -------- | ---------------------------------- | ------- |
 | `domains`      | Yes      | Non-empty array of strings.        | —       |
 | `frameworks`   | Yes      | Non-empty array of strings.        | —       |
-| `browsers`     | Yes      | Array of strings; it may be empty. | —       |
+| `browsers`     | Yes      | Exactly `[chromium]`.              | —       |
 | `personas`     | Yes      | Array of strings; it may be empty. | —       |
 | `featureFlags` | No       | Object whose values are booleans.  | Omitted |
 
@@ -83,23 +83,32 @@ Unknown top-level fields are rejected.
 | --------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `origin`              | Yes      | Non-empty absolute `http:` or `https:` URL without user info. It must be in `allowedOrigins`.                                                                                                                                                                                                                                 |
 | `environmentClass`    | Yes      | One of `local-test`, `preview`, or `staging`. Production is refused by the CLI configuration validator.                                                                                                                                                                                                                       |
-| `attestationPath`     | Yes      | Non-empty string beginning with `/`.                                                                                                                                                                                                                                                                                          |
+| `attestationPath`     | Yes      | Absolute-path reference beginning with `/` that resolves on the target origin; network-path and backslash escapes are rejected.                                                                                                                                                                                               |
 | `allowedOrigins`      | Yes      | Non-empty array of absolute `http:` or `https:` URLs without user info; it must include `origin`.                                                                                                                                                                                                                             |
 | `expectedBuildDigest` | No       | Exactly 64 hexadecimal characters. When set, stage 0 refuses a served attestation whose `buildDigest` differs (`ARXIC-ATTESTATION-BUILD-DIGEST-MISMATCH`) — the operator-side binding from [#259](https://github.com/anthonykewl20/arxic/issues/259). Without it, `local-test` targets are trust-on-first-use for the digest. |
 
 ## `policy`
 
-| Field                      | Required | Type and validation                | Default |
-| -------------------------- | -------- | ---------------------------------- | ------- |
-| `maxUrls`                  | Yes      | Integer greater than zero.         | —       |
-| `maxDepth`                 | Yes      | Integer greater than zero.         | —       |
-| `maxRuntimeMinutes`        | Yes      | Integer greater than zero.         | —       |
-| `mutation`                 | Yes      | Literal `leased-fixtures-only`.    | —       |
-| `externalNetwork`          | Yes      | Literal `deny`.                    | —       |
-| `requiredVerificationRuns` | No       | Integer greater than zero.         | `2`     |
-| `screenshots`              | Yes      | Non-empty string.                  | —       |
-| `trace`                    | Yes      | Non-empty string.                  | —       |
-| `humanApproval`            | Yes      | Array of strings; it may be empty. | —       |
+| Field                      | Required | Type and validation                                      | Default |
+| -------------------------- | -------- | -------------------------------------------------------- | ------- |
+| `maxUrls`                  | Yes      | Integer greater than zero.                               | —       |
+| `maxDepth`                 | Yes      | Integer greater than zero.                               | —       |
+| `maxRuntimeMinutes`        | Yes      | Integer greater than zero.                               | —       |
+| `mutation`                 | Yes      | Literal `leased-fixtures-only`.                          | —       |
+| `externalNetwork`          | Yes      | Literal `deny`.                                          | —       |
+| `requiredVerificationRuns` | No       | Integer at least two; every requested pass must succeed. | `2`     |
+| `screenshots`              | Yes      | Literal `transition-checkpoints`.                        | —       |
+| `trace`                    | Yes      | Literal `retain` for managed verification.               | —       |
+| `humanApproval`            | Yes      | Array of strings; it may be empty.                       | —       |
+
+`maxRuntimeMinutes` sets the sandbox worker runtime quota. Local execution has
+bounded provider/action operations but does not impose a whole-run wall-clock
+limit; use worker execution when that isolation and quota are required.
+
+Changed configuration, expected build digest, allowed origins, replay persona,
+attestation path, or replay count invalidates terminal-run reuse. Use a new run ID
+for a changed request. Standalone replay trace defaults are described in the
+[replay guide](./bundle-replay.md).
 
 ## `fixtures`
 

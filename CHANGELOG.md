@@ -11,9 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Release audit (refs #398): bounded same-origin attestation discovery and custom-path handshake; configuration-bound terminal reuse; credential-safe diagnostics; shared local/worker policy and replay-persona plumbing; stabilized post-action observations and inventory-bound replay entry URLs; enforced replay counts; PHP grammar in the npm distribution; bounded host-CLI pipes/process/output handling; immutable staged bundle assembly; sanitized build SBOM in CLI bundles; direct replay defaults to no raw tracing. The packed gate now requires actual signed-in home, three clean passes, copied-bundle replay, wrong-credential failure and prior-bundle preservation. Required CI consumes worker-image results and runs the packed gate; publication consumes the OS/Node matrix. See the audit report and retained proof.
+
 - FIX-390 DG-11 recording-proxy upstream timeout is operator-tunable (#390, PR #389): `ARXIC_DG11_UPSTREAM_TIMEOUT_MS` (default 120000) replaces the hardcoded 120s upstream window in the DG-11 campaign runner's recording model proxy; invalid values fail closed before any forward. Reasoning-model batch calls that legitimately exceed the historical window no longer abort mid-flight into accounting-gap INVALID runs; fail-closed accounting semantics are unchanged.
 - FIX-393 retained-evidence ZIP provenance resolution (#393, PR #394): the verifier's retained-evidence inspection now resolves a promoted bundle's trace provenance from the designed `artifacts/reports/` sibling directory (adjacency remains the fallback for verification-suite captures); inspection strictness is unchanged — a trace with no resolvable or non-verifying provenance still fails.
 - FIX-395 compiler real-world proof stages outside the repo (#395, PR #396): the generated verification suite now stages under the OS temporary directory instead of `<repo>/.arxic-compiler-output-*`, removing the staged run's coupling to repository content (config fallback, workspace and test discovery); proof assertions unchanged.
+
+### Changed
+
+- Release target aligned to the owner's requested **0.1.0** across VERSION and every app/package manifest. This changes release preparation metadata; no tag or npm publish is performed here.
+- User/worker/replay documentation reconciled with current behavior; human screenshot sign-off moved before tagging/publication. Sixty-four historical merged notes preserved under `docs/history/merged-slice-notes/`, leaving the active staging area empty as required by charter §10.2.
 
 ### Internal
 

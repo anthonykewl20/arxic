@@ -40,7 +40,7 @@ This M0 policy is a lexical and structural guard for the enumerated weakening fo
 
 ## Fallback mapping
 
-`generateSpecFromWorkflow` first validates the frozen Workflow IR. For each required transition, it maps the `from` state to a kebab-case path (`login-page` → `/login`), maps each `action.inputRefs` entry to its accessible label and an `ARXIC_INPUT_<REF>` environment variable, submits through a semantic button locator, and maps assertion intents prefixed by `url:` or `text:` to literal Playwright assertions. Other assertion intents become body-text checks. Each transition emits a named screenshot; config enables Chromium, headless execution, one worker, and trace capture on failure. A raw capture is never eligible retained evidence: its caller must project it through `@arxic/playwright-trace-sanitizer`, retain the adjacent sidecar, and delete the source ZIP. Invalid IR emits no spec.
+`generateSpecFromWorkflow` first validates the frozen Workflow IR. For each required transition, it maps the `from` state to a kebab-case path (`login-page` → `/login`), maps each `action.inputRefs` entry to its accessible label and an `ARXIC_INPUT_<REF>` environment variable, submits through a semantic button locator, and maps assertion intents prefixed by `url:` or `text:` to literal Playwright assertions. Other assertion intents become body-text checks. Each transition emits a named screenshot; config enables Chromium, headless execution, one worker, and trace capture off for direct execution (managed M0 verification enables capture before sanitization). A raw capture is never eligible retained evidence: its caller must project it through `@arxic/playwright-trace-sanitizer`, retain the adjacent sidecar, and delete the source ZIP. Invalid IR emits no spec.
 
 `PlaywrightExplorationDriver` applies that same boundary directly. It stops tracing into an ephemeral directory, emits only the fixed-name privacy-preserving action timeline plus adjacent provenance into the requested evidence directory, deletes the raw source in `finally`, and makes `close()` fail when capture, sanitization, or raw cleanup fails so orchestration can classify the run as blocked. The timeline proves action order only; exploration screenshots remain subject to a separate capture-time masking and visual-review policy.
 
@@ -59,3 +59,8 @@ The fallback runner creates a directory symlink to the pinned Playwright package
 5. Fail closed on seam drift: `handshake.ts`.
 6. Direct Playwright fallback: `fallback-generator.ts`.
 7. Upgrade gate: `contract-gate.test.ts`.
+
+Post-click exploration waits within the action budget for relevant document/fetch/XHR
+requests and a stable URL/accessibility observation. A pending action fails closed;
+a committed navigation retires fetch bodies belonging to the previous document.
+This bounded settling period does not prove that an application has no later work.
