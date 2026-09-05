@@ -1,4 +1,15 @@
-import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  rmdir,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import {
   ARXIC_VERSION,
@@ -64,6 +75,28 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
   ) {
     throw new Error('Bundle output directory must not contain the staged directory or be a root');
   }
+  await mkdir(dirname(directory), { recursive: true });
+  const temporary = await mkdtemp(join(dirname(directory), '.arxic-bundle-stage-'));
+  try {
+    const assembled = await assembleInDirectory({ ...input, outputDirectory: temporary });
+    // Existing bundles are immutable. rmdir accepts only an empty placeholder;
+    // it can never remove a prior bundle or an unrelated nonempty directory.
+    try {
+      await rmdir(directory);
+    } catch (error) {
+      if (!error || typeof error !== 'object' || !('code' in error) || error.code !== 'ENOENT')
+        throw error;
+    }
+    await rename(temporary, directory);
+    return { ...assembled, directory };
+  } finally {
+    await rm(temporary, { recursive: true, force: true });
+  }
+}
+
+async function assembleInDirectory(input: BundleAssemblyInput): Promise<BundleAssembly> {
+  const stagedDirectory = resolve(input.stagedDirectory);
+  const directory = resolve(input.outputDirectory);
   const traceGate = await validateTraceArtifacts(input.verificationArtifacts ?? []);
   if (!traceGate.ok) throw new Error(traceGate.reason);
   const allArtifacts = [...input.bundle.artifacts, ...(input.verificationArtifacts ?? [])];
@@ -71,7 +104,6 @@ export async function assembleBundle(input: BundleAssemblyInput): Promise<Bundle
   const validatedTraces = traceGate.traces;
   const validatedScreenshots = traceGate.screenshots;
   const sbom = input.sbom === undefined ? undefined : sanitizeCycloneDxSbom(input.sbom);
-  await rm(directory, { recursive: true, force: true });
   await Promise.all([
     mkdir(join(directory, 'tests'), { recursive: true }),
     mkdir(join(directory, 'fixtures'), { recursive: true }),

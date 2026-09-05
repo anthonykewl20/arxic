@@ -54,7 +54,7 @@ export type AttestationResult = {
   decision: AttestationDecision;
 };
 
-export type AttestationRequest = { origin: string };
+export type AttestationRequest = { origin: string; attestationPath?: string };
 
 export type TargetClassification = {
   productionLooking: boolean;
@@ -277,7 +277,11 @@ export class EnvironmentHandshake {
   ): Promise<Omit<AttestationResult, 'ok'>> {
     try {
       const result = verifyAttestation(
-        await fetchAttestation(request.origin, policy.attestationTimeoutMs),
+        await fetchAttestation(
+          request.origin,
+          policy.attestationTimeoutMs,
+          request.attestationPath,
+        ),
         request,
         policy,
       );

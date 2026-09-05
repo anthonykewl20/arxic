@@ -37,6 +37,8 @@ import { transitionReceiptRuntimeSource } from './transition-receipt-runtime';
 export type PlaywrightCompilerOptions = {
   outputDirectory: string;
   origin: string;
+  /** Inventory-bound entry URL; post-action evidence remains a distinct observation. */
+  entryUrl?: string;
   /** Additive network origins permitted alongside the declared target. */
   allowedOrigins?: readonly string[];
   /** Legacy complete approved-origin allowlist. */
@@ -58,6 +60,7 @@ export class CompileError extends Error {
 export class PlaywrightCompiler implements WorkflowCompiler {
   readonly #outputDirectory: string;
   readonly #origin: string;
+  readonly #entryUrl?: string;
   readonly #allowedOrigins?: readonly string[];
   readonly #approvedOrigins?: string[];
   readonly #captureScreenshots: boolean;
@@ -66,6 +69,7 @@ export class PlaywrightCompiler implements WorkflowCompiler {
   constructor(options: PlaywrightCompilerOptions) {
     this.#outputDirectory = options.outputDirectory;
     this.#origin = new URL(options.origin).href;
+    this.#entryUrl = options.entryUrl;
     this.#allowedOrigins = options.allowedOrigins;
     this.#approvedOrigins = options.approvedOrigins;
     this.#captureScreenshots = options.captureScreenshots ?? true;
@@ -123,13 +127,27 @@ export class PlaywrightCompiler implements WorkflowCompiler {
       runtimeUrl: runtime.url,
     });
     if (!originPolicy.passed) throw new CompileError(originPolicy.diagnostic);
+    if (this.#entryUrl) {
+      const entryPolicy = resolveOriginPolicy({
+        subject: workflow.id,
+        declaredOrigin: this.#origin,
+        approvedOrigins: originPolicy.allowedOrigins,
+        runtimeUrl: this.#entryUrl,
+      });
+      if (!entryPolicy.passed) throw new CompileError(entryPolicy.diagnostic);
+    }
     let spec: string;
     let nonSemanticLocatorRationale: string | undefined;
     try {
-      const generated = generateSpec(validatedWorkflow.value, this.#origin, runtime.url, {
-        captureScreenshots: this.#captureScreenshots,
-        allowedOrigins: originPolicy.allowedOrigins,
-      });
+      const generated = generateSpec(
+        validatedWorkflow.value,
+        this.#origin,
+        this.#entryUrl ?? runtime.url,
+        {
+          captureScreenshots: this.#captureScreenshots,
+          allowedOrigins: originPolicy.allowedOrigins,
+        },
+      );
       spec = generated.spec;
       nonSemanticLocatorRationale = generated.nonSemanticLocatorRationale;
     } catch (error) {

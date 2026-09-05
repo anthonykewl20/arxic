@@ -3,6 +3,7 @@ import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { sha256, type Diagnostic, type StagedBundle } from '@arxic/contracts';
 import { AUTH_DOMAIN, authDomainSeeder } from '@arxic/auth-domain-pack';
+import { discoverTargetBuildDigest } from '@arxic/environment';
 import { ModelAdapter, createHostCliTransport, hostCliConfigFromEnv } from '@arxic/model-adapter';
 import {
   FileStageCheckpointer,
@@ -27,6 +28,7 @@ import {
 import { canonicalPipelineJson, PIPELINE_RESULT_PATH } from './pipeline-result';
 import { projectPipelineResult, type VolumeFile } from './runner-project';
 import type { RunSpec } from './run-spec';
+import { orchestrationConfig } from './orchestration-config';
 import { hashSourceTree } from './source-tree-hash';
 
 const RESULT_ROOT = '/work/result';
@@ -44,13 +46,17 @@ async function main(): Promise<void> {
   const now = () => new Date().toISOString();
   let appBuildDigest: string | undefined;
   try {
-    appBuildDigest = await targetBuildDigest(
+    appBuildDigest = await discoverTargetBuildDigest(
       spec.config.target.origin,
       spec.config.target.attestationPath,
     );
     const input = orchestratorInput(spec, appBuildDigest);
     const orchestrator = new LangGraphOrchestrator({
-      checkpointer: new FileStageCheckpointer(join(RESULT_ROOT, 'checkpoints')),
+      checkpointer: new FileStageCheckpointer(join(RESULT_ROOT, 'checkpoints'), {
+        redactionValues: Object.values(
+          personaInputValues(configuredPersona() ?? { id: 'anonymous', email: '', password: '' }),
+        ).filter(Boolean),
+      }),
       ...pipelineOptions(spec, now),
       now,
     });
@@ -123,7 +129,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function orchestratorInput(spec: RunSpec, appBuildDigest?: string): OrchestratorInput {
   return {
     runId: spec.runId,
-    origin: spec.config.target.origin,
+    ...orchestrationConfig(spec.config, configuredPersona()),
     revision: {
       repository: 'file:///work/source',
       commit: resolveCommit('/work/source', spec.config.source.revision),
@@ -131,12 +137,6 @@ function orchestratorInput(spec: RunSpec, appBuildDigest?: string): Orchestrator
     },
     rulepacksDir: '/app/rulepacks',
     artifactsDir: PIPELINE_WORK_ROOT,
-    framework: spec.config.scope.frameworks[0],
-    features: spec.config.scope.domains,
-    languages: spec.config.source.languages,
-    personas: spec.config.scope.personas,
-    maxUrls: spec.config.policy.maxUrls,
-    maxDepth: spec.config.policy.maxDepth,
     ...(appBuildDigest ? { appBuildDigest } : {}),
   };
 }
@@ -157,8 +157,15 @@ function pipelineOptions(
     verify: async (compilation) => {
       if (!compilation.stagedBundle) return uncompiledVerification();
       const verification = await new PlaywrightVerifier({
+        ...(compilation.entryUrl ? { entryUrl: compilation.entryUrl } : {}),
         outputDirectory: join(PIPELINE_WORK_ROOT, spec.runId),
         origin: spec.config.target.origin,
+        ...(spec.config.target.allowedOrigins?.length
+          ? { allowedOrigins: spec.config.target.allowedOrigins }
+          : {}),
+        ...(spec.config.fixtures.replayPersona
+          ? { replayPersona: spec.config.fixtures.replayPersona }
+          : {}),
         artifactsDir: join(PIPELINE_WORK_ROOT, 'verification-artifacts'),
         ...(persona ? { persona } : {}),
         screenshotPrivacyPolicy: cliScreenshotPolicy(spec.runId, now()),
@@ -208,7 +215,9 @@ function pipelineOptions(
       if (!drivesForm || !persona) {
         return { provisioned: true, requirements: [], leases: [], diagnostics: [] };
       }
-      await resetAndSeedFixtures(spec.config.target.origin, persona);
+      if (!spec.config.fixtures.replayPersona) {
+        await resetAndSeedFixtures(spec.config.target.origin, persona);
+      }
       return {
         provisioned: true,
         requirements: [{ kind: 'persona' }],
@@ -372,22 +381,6 @@ function cliScreenshotPolicy(runId: string, recordedAt: string): ScreenshotPriva
       masks: [{ kind: 'role', role: 'main', exact: true }],
     },
   }).policy;
-}
-
-async function targetBuildDigest(
-  origin: string,
-  attestationPath: string,
-): Promise<string | undefined> {
-  try {
-    const response = await fetch(new URL(attestationPath, origin));
-    if (!response.ok) return undefined;
-    const value = (await response.json()) as { buildDigest?: unknown };
-    return typeof value.buildDigest === 'string' && /^[0-9a-f]{64}$/iu.test(value.buildDigest)
-      ? value.buildDigest
-      : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 function resolveCommit(repository: string, revision: string): string {

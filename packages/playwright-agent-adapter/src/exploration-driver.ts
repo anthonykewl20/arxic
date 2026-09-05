@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { sha256 } from '@arxic/contracts';
 import { sanitizeCapturedPlaywrightTrace } from '@arxic/playwright-trace-sanitizer';
+import { runAndSettleAction } from './post-action-settle';
 import {
   chromium,
   type Browser,
@@ -247,7 +248,11 @@ export class PlaywrightExplorationDriver implements ExplorationDriver {
               });
               this.#filledValues.add(step.value);
             } else {
-              await resolution.executionHandle.click({ timeout: this.#options.timeoutMs });
+              await runAndSettleAction(
+                page,
+                () => resolution.executionHandle.click({ timeout: this.#options.timeoutMs }),
+                this.#options.timeoutMs,
+              );
             }
           } finally {
             try {

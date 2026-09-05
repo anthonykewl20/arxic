@@ -225,7 +225,7 @@ export function renderFallbackConfig(): string {
   return [
     "import { defineConfig } from '@playwright/test';",
     '',
-    "export default defineConfig({ testDir: '.', workers: 1, use: { browserName: 'chromium', headless: true, trace: 'retain-on-failure' } });",
+    "export default defineConfig({ testDir: '.', workers: 1, use: { browserName: 'chromium', headless: true, trace: 'off' } });",
     '',
   ].join('\n');
 }

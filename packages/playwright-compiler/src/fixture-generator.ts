@@ -201,8 +201,10 @@ export function generateConfig(
   workflow: Workflow,
   options: { trace?: 'workflow-policy' | 'off' } = {},
 ): string {
+  // Raw traces require the managed verifier sanitization lifecycle. A copied
+  // bundle replayed directly must not retain them on failure.
   const trace =
-    options.trace === 'off'
+    options.trace !== 'workflow-policy'
       ? 'off'
       : workflow.verification.trace === 'retain'
         ? 'retain-on-failure'

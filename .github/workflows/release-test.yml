@@ -3,11 +3,10 @@ name: Release test matrix
 # This is intentionally separate from the required `ci` workflow. It exercises
 # release installability on every supported Node/OS cell without adding a branch
 # protection check. The release workflow must consume this matrix before it
-# publishes a tag.
+# publishes the package.
 on:
   workflow_dispatch:
-  push:
-    tags: ['v*']
+  workflow_call:
   pull_request:
     paths:
       - '.github/workflows/release-test.yml'

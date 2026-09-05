@@ -193,6 +193,20 @@ describe('real LangGraph orchestration proof', () => {
         severity: 'blocked',
       }),
     );
+    for (const changed of [
+      { expectedBuildDigest: 'f'.repeat(64) },
+      { allowedOrigins: [origin, 'http://127.0.0.1:1'] },
+      { requiredVerificationRuns: 3 },
+    ]) {
+      const rejected = await new LangGraphOrchestrator({
+        checkpointer: new FileStageCheckpointer(runsDirectory),
+      }).run({ ...orchestratorInput(runId), ...changed });
+      expect(rejected.outcome).toBe('blocked');
+      expect(rejected.diagnostics).toContainEqual(
+        expect.objectContaining({ code: ARXIC_ORCH_INPUT_FINGERPRINT_MISMATCH }),
+      );
+      expect(await new FileStageCheckpointer(runsDirectory).load(runId)).toEqual(persisted);
+    }
   }, 180_000);
 
   it('uses the full default compiler for a real reference-app candidate', async () => {

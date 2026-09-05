@@ -3,6 +3,8 @@ import { pathToFileURL } from 'node:url';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import type { ArtifactRef, StagedBundle } from '@arxic/contracts';
 import { AUTH_DOMAIN, authDomainSeeder } from '@arxic/auth-domain-pack';
+import { orchestrationConfig } from '@arxic/worker';
+import { discoverTargetBuildDigest } from '@arxic/environment';
 import { assembleBundle, BundlePromoterAdapter, scanTextForSecrets } from '@arxic/bundle-promoter';
 import { ModelAdapter, createHostCliTransport, hostCliConfigFromEnv } from '@arxic/model-adapter';
 import {
@@ -32,6 +34,7 @@ import {
   stageIntentLedger,
   type StageIntentLedgerOutcome,
 } from '../../../packages/intent/src/ledger';
+import { loadReleaseSbom } from './release-sbom';
 import { ARXIC_EXEC_CRASH, ARXIC_EXEC_RESUMED, cliDiagnostic } from './diagnostics';
 import {
   runResultFromState,
@@ -51,12 +54,12 @@ export class LocalRunExecutor implements RunExecutor {
     // is no longer used as the EXPECTED value the attestation is compared
     // against — that comparison is operator-pinned or absent, never
     // self-referential.
-    const servedBuildDigest = request.config.target.expectedBuildDigest
-      ? undefined
-      : await targetBuildDigest(
-          request.config.target.origin,
-          request.config.target.attestationPath,
-        );
+    const servedBuildDigest =
+      request.config.target.expectedBuildDigest ??
+      (await discoverTargetBuildDigest(
+        request.config.target.origin,
+        request.config.target.attestationPath,
+      ));
     const input: OrchestratorInput = {
       ...baseInput,
       ...(servedBuildDigest ? { appBuildDigest: servedBuildDigest } : {}),
@@ -108,22 +111,9 @@ export function toOrchestratorInput(
 ): OrchestratorInput {
   const repository = resolve(request.config.source.repository);
   const commit = resolveCommit(repository, request.config.source.revision);
-  // DG-297 E2 (#297): a declared replayPersona authenticates the stage-5
-  // crawl through the target's own login form — but ONLY with a resolved
-  // env persona (credentials stay env-only; no declaration-embedded
-  // secrets). Missing env persona → anonymous crawl (the verifier's own
-  // NOT-DECLARED refusal still guards the replay lane separately).
-  const crawlPersona = persona;
-  const replayCrawlPersona =
-    request.config.fixtures.replayPersona && crawlPersona
-      ? {
-          declaration: request.config.fixtures.replayPersona,
-          persona: { email: crawlPersona.email, password: crawlPersona.password },
-        }
-      : undefined;
   return {
     runId: request.runId,
-    origin: request.config.target.origin,
+    ...orchestrationConfig(request.config, persona),
     revision: {
       repository: pathToFileURL(repository).href,
       commit,
@@ -131,31 +121,6 @@ export function toOrchestratorInput(
     },
     rulepacksDir: request.rulepacksDir,
     artifactsDir: request.runDirectory,
-    framework: request.config.scope.frameworks[0],
-    features: request.config.scope.domains,
-    languages: request.config.source.languages,
-    personas: request.config.scope.personas,
-    maxUrls: request.config.policy.maxUrls,
-    maxDepth: request.config.policy.maxDepth,
-    // DG-289 C-4 (#289, DECISION issuecomment-5360240026): config-declared
-    // target.allowedOrigins flows into the runtime origin gates (crawl
-    // origin gate + exploration PolicyEngine). Validation requires the field
-    // for CLI configs, but programmatic RunRequest callers may omit it — the
-    // conditional spread keeps that path fail-closed downstream (gates
-    // default to the target origin only) instead of crashing here.
-    ...(request.config.target.allowedOrigins?.length
-      ? { allowedOrigins: [...request.config.target.allowedOrigins] }
-      : {}),
-    // DG-297 E2 (#297): authenticated breadth discovery input.
-    ...(replayCrawlPersona ? { replayPersona: replayCrawlPersona } : {}),
-    // #259: the operator-pinned expected build digest — the INDEPENDENT
-    // expectation source for the stage-0 attestation gate. Stage 0 compares
-    // the SERVED attestation digest against THIS value (never against a
-    // digest fetched from the target's own endpoint, which made the gate
-    // self-referential on the local lane: a tampered digest passed clean).
-    ...(request.config.target.expectedBuildDigest
-      ? { expectedBuildDigest: request.config.target.expectedBuildDigest }
-      : {}),
   };
 }
 
@@ -170,6 +135,7 @@ function localPipelineOptions(
     verify: async (compilation) => {
       if (!compilation.stagedBundle) return uncompiledVerification();
       const verification = await new PlaywrightVerifier({
+        ...(compilation.entryUrl ? { entryUrl: compilation.entryUrl } : {}),
         outputDirectory,
         origin: request.config.target.origin,
         artifactsDir: verificationArtifacts,
@@ -378,6 +344,7 @@ async function assemblePromotedBundle(bundle: StagedBundle, request: RunRequest)
     artifacts: stagedArtifacts,
   };
   await assembleBundle({
+    sbom: await loadReleaseSbom(),
     bundle: stagedBundle,
     stagedDirectory,
     outputDirectory: join(request.runDirectory, 'promoted', `${request.runId}.bundle`),
@@ -559,22 +526,6 @@ function cliScreenshotPolicy(runId: string, recordedAt: string): ScreenshotPriva
       masks: [{ kind: 'role', role: 'main', exact: true }],
     },
   }).policy;
-}
-
-async function targetBuildDigest(
-  origin: string,
-  attestationPath: string,
-): Promise<string | undefined> {
-  try {
-    const response = await fetch(new URL(attestationPath, origin));
-    if (!response.ok) return undefined;
-    const value = (await response.json()) as { buildDigest?: unknown };
-    return typeof value.buildDigest === 'string' && /^[0-9a-f]{64}$/iu.test(value.buildDigest)
-      ? value.buildDigest
-      : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 function resolveCommit(repository: string, revision: string): string {

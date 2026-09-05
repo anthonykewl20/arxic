@@ -183,6 +183,7 @@ export type OrchestratorInput = Readonly<{
   personas?: readonly string[];
   maxUrls?: number;
   maxDepth?: number;
+  requiredVerificationRuns?: number;
   /**
    * DG-289 C-4 (#289, DECISION issuecomment-5360240026): config-declared
    * `target.allowedOrigins` — flows to the crawl origin gate (stage 5) and
@@ -200,6 +201,7 @@ export type OrchestratorInput = Readonly<{
    * evidence digest and is never used as the gate expectation.
    */
   expectedBuildDigest?: string;
+  attestationPath?: string;
   /**
    * DG-297 E2 (#297): the config's `fixtures.replayPersona` declaration plus
    * the env-resolved persona values — authenticates the stage-5 crawl through
@@ -290,6 +292,7 @@ export type OrchestratorOptions = Readonly<{
     outputDirectory: string;
     origin: string;
     allowedOrigins?: readonly string[];
+    requiredVerificationRuns?: number;
     intentSpec?: IntentSpec;
   }) => Promise<CompilationResult>;
   verify?: (input: CompilationResult) => Promise<VerificationNodeResult>;
@@ -350,8 +353,12 @@ export class LangGraphOrchestrator {
           policy: {
             appBuildDigest: input.appBuildDigest,
             expectedNonce: input.expectedNonce,
+            expectedBuildDigest: input.expectedBuildDigest,
+            attestationPath: input.attestationPath,
+            allowedOrigins: input.allowedOrigins,
             maxDepth: input.maxDepth,
             maxUrls: input.maxUrls,
+            requiredVerificationRuns: input.requiredVerificationRuns,
             requireExplorationApproval: input.requireExplorationApproval,
             supplied: input.policy,
           },
@@ -363,6 +370,7 @@ export class LangGraphOrchestrator {
             modelPrompt: input.modelPrompt,
             oracleRules: input.oracleRules,
             personas: input.personas,
+            replayPersona: input.replayPersona,
             rulepacksDir: input.rulepacksDir,
             supplied: input.config,
             credentialBytes: input.credentialBytes,
@@ -733,7 +741,7 @@ export class LangGraphOrchestrator {
     // lane was fetched from the target's own attestation endpoint (making the
     // gate compare the attestation against itself; a tampered digest passed).
     const result = await new EnvironmentHandshake().attest(
-      { origin: input.origin },
+      { origin: input.origin, attestationPath: input.attestationPath },
       buildAttestationPolicy({
         origin: input.origin,
         ...(input.expectedBuildDigest ? { expectedBuildDigest: input.expectedBuildDigest } : {}),
@@ -1286,6 +1294,7 @@ export class LangGraphOrchestrator {
       origin: input.origin,
       ...(input.allowedOrigins ? { allowedOrigins: input.allowedOrigins } : {}),
       intentSpec: normalizedIntentSpec,
+      requiredVerificationRuns: input.requiredVerificationRuns,
     });
     const result: CompilationResult = {
       ...compileResult,
@@ -1383,6 +1392,7 @@ export class LangGraphOrchestrator {
       origin: input.origin,
       ...(input.allowedOrigins ? { allowedOrigins: input.allowedOrigins } : {}),
       outputDirectory: `${input.artifactsDir}/${input.runId}`,
+      requiredVerificationRuns: input.requiredVerificationRuns,
     };
   }
 
@@ -1989,9 +1999,24 @@ async function defaultCompile(input: {
   outputDirectory: string;
   origin: string;
   allowedOrigins?: readonly string[];
+  requiredVerificationRuns?: number;
 }): Promise<CompilationResult> {
-  const workflow = input.candidates[0]?.workflow;
-  if (!workflow) return { compiled: false, plan: 'No workflow candidate was available to compile' };
+  const candidate = input.candidates[0]?.workflow;
+  if (!candidate)
+    return { compiled: false, plan: 'No workflow candidate was available to compile' };
+  const workflow =
+    input.requiredVerificationRuns === undefined
+      ? candidate
+      : {
+          ...candidate,
+          verification: {
+            ...candidate.verification,
+            requiredRuns: Math.max(
+              candidate.verification.requiredRuns,
+              input.requiredVerificationRuns,
+            ),
+          },
+        };
   try {
     const bundle = await new PlaywrightCompiler({
       outputDirectory: input.outputDirectory,

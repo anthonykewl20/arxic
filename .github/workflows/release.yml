@@ -12,7 +12,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  release-test:
+    uses: ./.github/workflows/release-test.yml
+    permissions:
+      contents: read
+
   release:
+    needs: [release-test]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

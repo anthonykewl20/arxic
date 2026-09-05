@@ -4,8 +4,8 @@ import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sha256, validateDiagnostic, type Diagnostic } from '@arxic/contracts';
+import { redactAndScanPersistedPayload } from '@arxic/bundle-promoter';
 import type { RunState } from '@arxic/orchestrator-langgraph';
-import type { ArxicConfig } from '@arxic/worker';
 import { loadConfig } from './config/parse';
 import { frameworkGateDiagnostics } from './config/framework-gate';
 import { ARXIC_CLI_INTERNAL, ARXIC_EXEC_CRASH, cliDiagnostic } from './diagnostics';
@@ -43,16 +43,24 @@ export async function runAction(options: RunActionOptions): Promise<CliRunOutcom
       : resolve(cwd, options.out);
   const rulepacksDir = resolve(options.rulepacksDir ?? installedRulepacksDir());
   const diagnostics: Diagnostic[] = [];
+  const persistRedactionValues = configuredCredentialValues();
   const recordingSink: DiagnosticSink = {
     emit(diagnostic) {
       if (!validateDiagnostic(diagnostic).ok)
         throw new Error('Executor emitted an invalid Diagnostic');
-      diagnostics.push(diagnostic);
-      options.sink?.emit(diagnostic);
+      const redacted = redactAndScanPersistedPayload(JSON.stringify(diagnostic), {
+        knownValues: persistRedactionValues,
+        includePatternClasses: true,
+      });
+      const safe = JSON.parse(redacted.text) as Diagnostic;
+      if (redacted.diagnostics.length > 0 || !validateDiagnostic(safe).ok) {
+        throw new Error('Executor diagnostic failed the privacy gate');
+      }
+      diagnostics.push(safe);
+      options.sink?.emit(safe);
     },
   };
   const startedAt = now();
-  const persistRedactionValues = replayPersonaCredentialValues(loaded.value);
   // DG-10 (#254): unknown or out-of-range frameworks fail fast here — before
   // any crawl — instead of surfacing as a late stage-3 block. Waived and
   // accepted verdicts ride along as observed diagnostics for the run record.
@@ -167,11 +175,11 @@ function diagnosticKey(diagnostic: Diagnostic): string {
   return JSON.stringify(diagnostic);
 }
 
-function replayPersonaCredentialValues(config: ArxicConfig): readonly string[] {
-  if (!config.fixtures.replayPersona) return [];
+function configuredCredentialValues(): readonly string[] {
   return [
     process.env.ARXIC_INPUT_PERSONA_EMAIL,
     process.env.ARXIC_INPUT_PERSONA_PASSWORD,
     process.env.ARXIC_INPUT_PERSONA_NEWPASSWORD,
+    process.env.ARXIC_MODEL_API_KEY,
   ].filter((value): value is string => value !== undefined && value.length > 0);
 }

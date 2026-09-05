@@ -7,6 +7,23 @@ import { validateConfig } from '../config/validate';
 import { VALID_CONFIG, VALID_YAML } from './fixtures';
 
 describe('CLI configuration sad paths', () => {
+  it.each([[], ['firefox'], ['chromium', 'webkit']])(
+    'refuses an unsupported browser selection %j',
+    (browsers) => {
+      expect(
+        validateConfig({ ...VALID_CONFIG, scope: { ...VALID_CONFIG.scope, browsers } }).ok,
+      ).toBe(false);
+    },
+  );
+  it.each([{ trace: 'discard' }, { screenshots: 'off' }])(
+    'refuses a capture policy that the managed pipeline cannot honor: %j',
+    (policy) => {
+      expect(
+        validateConfig({ ...VALID_CONFIG, policy: { ...VALID_CONFIG.policy, ...policy } }).ok,
+      ).toBe(false);
+    },
+  );
+
   it('fails closed with a stable diagnostic when the file is missing', async () => {
     const result = await loadConfig(join(tmpdir(), `missing-arxic-${process.pid}.yaml`));
     expect(result).toMatchObject({
@@ -142,13 +159,16 @@ describe('CLI configuration sad paths', () => {
     });
   });
 
-  it('rejects zero required verification runs', () => {
-    const input = {
-      ...VALID_CONFIG,
-      policy: { ...VALID_CONFIG.policy, requiredVerificationRuns: 0 },
-    };
-    expect(codes(validateConfig(input))).toContain('ARXIC-CONFIG-INVALID');
-  });
+  it.each([0, 1])(
+    'rejects %s required verification runs below the two-pass release minimum',
+    (requiredVerificationRuns) => {
+      const input = {
+        ...VALID_CONFIG,
+        policy: { ...VALID_CONFIG.policy, requiredVerificationRuns },
+      };
+      expect(codes(validateConfig(input))).toContain('ARXIC-CONFIG-INVALID');
+    },
+  );
 
   it('consistently rejects unknown top-level keys', () => {
     const result = validateConfig({ ...VALID_CONFIG, futurePolicyBypass: true });

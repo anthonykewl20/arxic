@@ -18,6 +18,7 @@ import {
   enforceCompilePolicy,
   generateControlStateSpec,
   generateFixture,
+  generateConfig,
   generateSpec,
   probeDiagnostic,
   workflowPerformsLogin,
@@ -33,6 +34,9 @@ afterEach(async () => {
 });
 
 describe('Playwright compiler sad paths', () => {
+  test('standalone replay does not retain raw traces on failure', () => {
+    expect(generateConfig(loginWorkflow())).toContain('trace: "off"');
+  });
   test('blocks an invalid workflow instead of dropping the malformed transition', async () => {
     const workflow = loginWorkflow();
     delete (workflow.transitions[0] as Partial<Workflow['transitions'][number]>).action;
