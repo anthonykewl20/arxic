@@ -39,6 +39,11 @@ Root/package typechecks, lint and version provenance passed locally. Current-hea
 CI and license results belong on the PR and tracker; local proof alone is not
 merge completion.
 
+The final 75-test rerun initially had 74 passes and one stale dashboard API
+expectation pinned to v0.0.100. The API correctly returned v0.0.200. Both exact
+canonical/display literals were updated to the new release version; no matcher
+was loosened. The targeted HTTP suite then passed all three tests.
+
 ## Live source probes
 
 [Final measurements](source-probes.json) record two identical passes per real
