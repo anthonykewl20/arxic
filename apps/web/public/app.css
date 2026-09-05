@@ -52,3 +52,49 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.workflow-selection {
+  margin: 24px 0;
+}
+.workflow-choices,
+.campaign-rows {
+  list-style: none;
+  padding: 0;
+}
+.workflow-choices li,
+.campaign-rows li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.workflow-choices label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.workflow-choices input {
+  width: auto;
+  flex: 0 0 auto;
+}
+.campaign-rows li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.campaign-rows small,
+.workflow-choices small {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+}
+@media (max-width: 760px) {
+  .campaign-rows li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .campaign-detail .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

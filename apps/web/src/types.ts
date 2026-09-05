@@ -35,6 +35,7 @@ export type RunResult = {
   outcome: 'hypothesized' | 'observed' | 'verified' | 'contradicted' | 'blocked';
   summary: string;
   inventory?: unknown;
+  workflowRows?: Campaign['rows'];
   frontend?: import('@arxic/source-ua-adapter').FrontendInventory;
   manifest?: unknown;
   diagnostics?: unknown;
@@ -52,4 +53,24 @@ export type Run = {
   finishedAt: string | null;
   project: Project;
   result: RunResult | null;
+  workflowScope?: { campaignId: string; inventoryRowId: string; sourceCommit: string };
+};
+export type Campaign = {
+  id: string;
+  projectId: string;
+  projectName: string;
+  discoveryRunId: string;
+  sourceCommit: string;
+  createdAt: string;
+  cancelledAt?: string;
+  runIds: string[];
+  rows: Array<{
+    key: string;
+    method: string;
+    path: string;
+    disposition: string;
+    reason: string;
+    inventoryRowId?: string;
+    runId?: string;
+  }>;
 };

@@ -1,30 +1,23 @@
-import { execFile } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { promisify } from 'node:util';
 import { dirname } from 'node:path';
 import { SourceUaAdapter, diagnosticsOf, collectFrontendInventory } from '@arxic/source-ua-adapter';
 import { buildSourceInventory } from '@arxic/domain-inventory';
 import type { Run, RunResult } from './types';
-
-const execute = promisify(execFile);
+import { sourceRevision } from './source';
+import { campaignRows } from './campaigns';
 
 async function runJob(run: Run): Promise<RunResult> {
   if (run.mode === 'visual')
     return (await import('./visual')).captureVisual(run, dirname(process.argv[3]));
   if (run.mode === 'agent')
     return (await import('./agent')).runAgent(run, dirname(process.argv[3]));
-  const { stdout } = await execute('git', ['rev-parse', '--verify', 'HEAD^{commit}'], {
-    cwd: run.project.folder,
-    timeout: 10_000,
-    maxBuffer: 1024,
-  });
+  const revision = await sourceRevision(run.project.folder);
   const adapter = new SourceUaAdapter();
   const request = {
     revision: {
       repository: pathToFileURL(run.project.folder).href,
-      commit: stdout.trim(),
-      dirty: false,
+      ...revision,
     },
   };
   const sourceIndex = await adapter.collect(request);
@@ -36,6 +29,7 @@ async function runJob(run: Run): Promise<RunResult> {
     outcome: sourceIndex.manifest.length ? 'hypothesized' : 'blocked',
     summary: `${inventory.rows.length} source surfaces across ${inventory.clusters.length} domains; ${frontend.rows.length} frontend declarations and ${frontend.gaps.length} explicit gaps. Source evidence is not runtime or business-acceptance proof.`,
     inventory,
+    workflowRows: campaignRows(inventory),
     frontend,
     manifest: sourceIndex.manifest,
     diagnostics,

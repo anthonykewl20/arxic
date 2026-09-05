@@ -131,8 +131,47 @@ relative source paths resolve from that folder. File-based jobs retain the
 existing server model/fixture environment and a 30-minute outer deadline. A
 file may set `scope.inventoryRowIds` to select current source consumer rows;
 see the [scope reference](configuration.md#scope). This is a single-candidate
-execution control. Persisted multi-workflow campaigns and dashboard row selection
-remain pending in #402.
+execution control; the guided campaign interface below creates a separate run
+for each selected row.
+
+### On-demand workflow campaigns
+
+Save guided AI settings, run **Discover intents**, then open **Intent inventory**.
+**Select workflows** lists the complete discovered source-surface denominator,
+50 rows per page. Choose 1–20 eligible rows and start the selected campaign.
+Selection survives polling and pagination. Rows without usable source evidence
+show their disposition/reason and cannot become proposal inputs. Existing discovery
+records from before campaign support must be refreshed once to expose choices.
+
+Each selected row creates one serialized engine job with its own two verifier
+replays, saved project/persona settings and immutable selected-row/source-commit
+binding. The queue reserves all required slots in one database transaction; if
+capacity is insufficient, it inserts no partial campaign. Missing discovery,
+stale selection, missing guided settings, dirty source or a changed source commit
+refuse launch. Commit source changes and discover again before retrying.
+
+The **Campaigns** page shows selected, verified, contradicted, blocked, uncovered
+and pending counts, plus unselected and non-proposable source rows. Uncompiled
+hypotheses remain uncovered. Campaign management state is separate from workflow
+truth: even a completed campaign does not certify every frontend behavior.
+Each row links to its individual engine result. The complete campaign JSON and
+referenced discovery preserve the denominator and evidence; a route can still
+have untested states, personas and flags.
+
+Campaigns are durable across restarts. Queued children continue; an interrupted
+running child becomes blocked and is never automatically retried. Cancellation
+marks all unfinished children before terminating an active process. Source is
+checked again before each child launches. A changed tree blocks queued children;
+completed evidence remains intact. Campaign creation and evidence deletion share one mutation queue, so a deletion
+already in flight cannot erase a newly referenced discovery. Referenced discovery
+and child records cannot be deleted through individual run deletion. Campaign removal/retention controls
+remain pending.
+
+The displayed total planning estimate is the selected-row count times the saved
+per-run estimate cap. It is not a hard billing limit for host agents. Campaigns
+currently run on demand with guided local execution. Existing cron schedules
+still enqueue individual discovery, visual or AI runs; recurring campaign
+selection and worker controls remain in #402.
 
 Missing models, invalid configuration, mismatched source/target, fixture failure
 or failed policy gates produce blocked results with diagnostics. Agent tools

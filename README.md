@@ -9,7 +9,7 @@ Self-hosted frontend testing workbench for source-intent discovery, AI-assisted
 E2E, visual regression review, scheduled runs, and project administration.
 
 The web workbench includes real source scanning with frontend declarations and coverage gaps, an existing AI/replay
-engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, Chromium screenshot comparisons and a management dashboard. The full
+engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, Chromium screenshot comparisons, on-demand selected-workflow campaigns and a management dashboard. The full
 product remains in development: semantic AI image review and comprehensive
 frontend state/intent campaigns are tracked in [#402](https://github.com/anthonykewl20/arxic/issues/402).
 See the [product specification](docs/web-product-spec.md) for the exact coverage

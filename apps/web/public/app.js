@@ -1,16 +1,11 @@
 const $ = (selector) => document.querySelector(selector);
-const escape = (value) =>
-  String(value ?? '').replace(
-    /[&<>"']/g,
-    (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char],
-  );
-const pill = (value) => `<span class="pill ${escape(value)}">${escape(value)}</span>`;
-const time = (value) =>
-  value ? `${new Date(value).toISOString().slice(0, 19).replace('T', ' ')} UTC` : '—';
+import { escape, pill, time } from './html.js';
+import { workflowSelection, campaignScreen } from './campaigns.js';
 const titles = {
   overview: 'Workspace overview',
   intents: 'Intent inventory',
   runs: 'Test runs',
+  campaigns: 'Workflow campaigns',
   schedules: 'Schedules',
   admin: 'Administration',
 };
@@ -18,6 +13,10 @@ let state = { projects: [], runs: [], audit: [], baselines: [] };
 let section = 'overview';
 let selectedProject = '';
 let selectedRun = '';
+let selectedCampaign = '';
+const workflowSelections = new Map();
+const workflowPages = new Map();
+const campaignPages = new Map();
 let editing = '';
 let noticeTimer;
 let sessionEpoch = 0;
@@ -79,6 +78,12 @@ async function refresh() {
       else snapshot.runs.push(detail);
     }),
   );
+  if (section === 'campaigns' && selectedCampaign) {
+    const detail = await api(`/campaigns/${selectedCampaign}`);
+    const index = snapshot.campaigns.findIndex((item) => item.id === selectedCampaign);
+    if (index >= 0) snapshot.campaigns[index] = detail;
+    else snapshot.campaigns.push(detail);
+  }
   if (epoch !== sessionEpoch || sequence !== refreshSequence || signingOut) return;
   state = snapshot;
   $('#app').hidden = false;
@@ -177,7 +182,9 @@ function inventories() {
                   '',
                 )}${row.intents?.length === 0 ? '<small>No intent proposal for this surface.</small>' : ''}</td></tr>`,
           )
-          .join('')}</tbody></table></div>${frontendInventory(discovery)}`;
+          .join(
+            '',
+          )}</tbody></table></div>${workflowSelection(item, discovery, workflowSelections, workflowPages)}${frontendInventory(discovery)}`;
       })
       .join('') || '<div class="empty"><h2>No connected projects</h2></div>'
   }`;
@@ -221,6 +228,7 @@ function render() {
     overview: 'Manage projects, uncover gaps, and review what changed.',
     intents: 'Source evidence, AI proposals, and the coverage still missing.',
     runs: 'Inspect outcomes, compare captures, and review evidence.',
+    campaigns: 'Follow selected workflows and keep uncovered surfaces visible.',
     schedules: 'Keep testing with recurring, controlled runs.',
     admin: 'Manage instance access, execution scope, and review activity.',
   }[section];
@@ -230,6 +238,8 @@ function render() {
   $('#content').innerHTML = {
     overview,
     intents: inventories,
+    campaigns: () =>
+      campaignScreen(state.campaigns ?? [], selectedCampaign, selectedProject, campaignPages),
     runs,
     schedules,
     admin: administration,
@@ -391,6 +401,19 @@ $('#project-form').addEventListener('submit', async (event) => {
   }
 });
 document.addEventListener('change', (event) => {
+  if (event.target.dataset.workflowRow) {
+    const id = event.target.dataset.discovery;
+    const selected = workflowSelections.get(id) ?? new Set();
+    if (event.target.checked && selected.size >= 20) {
+      event.target.checked = false;
+      notice('Choose at most 20 workflows per campaign.');
+      return;
+    }
+    if (event.target.checked) selected.add(event.target.value);
+    else selected.delete(event.target.value);
+    workflowSelections.set(id, selected);
+    render();
+  }
   if (event.target.id === 'declaration-kind') {
     declarationKind = event.target.value;
     declarationPages.clear();
@@ -408,10 +431,45 @@ document.addEventListener('submit', (event) => {
   declarationPages.clear();
   render();
 });
+document.addEventListener('submit', async (event) => {
+  const form = event.target;
+  if (!form.dataset.campaignForm) return;
+  event.preventDefault();
+  const button = form.querySelector('button[type="submit"]');
+  button.disabled = true;
+  try {
+    const campaign = await api(`/projects/${form.dataset.project}/campaigns`, 'POST', {
+      discoveryRunId: form.dataset.discovery,
+      inventoryRowIds: [...(workflowSelections.get(form.dataset.discovery) ?? [])],
+    });
+    selectedCampaign = campaign.id;
+    section = 'campaigns';
+    await refresh();
+  } catch (error) {
+    notice(error.message);
+    button.disabled = false;
+  }
+});
 document.addEventListener('click', async (event) => {
   const button = event.target.closest('button');
   if (!button) return;
   try {
+    if (button.dataset.openCampaign) {
+      selectedCampaign = button.dataset.openCampaign;
+      section = 'campaigns';
+      await refresh();
+    }
+    if (button.dataset.cancelCampaign) {
+      button.disabled = true;
+      await api(`/campaigns/${button.dataset.cancelCampaign}/cancel`, 'POST', {});
+      await refresh();
+    }
+    if (button.dataset.workflowPage || button.dataset.campaignPage) {
+      const pages = button.dataset.workflowPage ? workflowPages : campaignPages;
+      const id = button.dataset.workflowPage ?? button.dataset.campaignPage;
+      pages.set(id, Math.max(0, (pages.get(id) ?? 0) + Number(button.dataset.direction)));
+      render();
+    }
     if (button.dataset.declarationPage) {
       const id = button.dataset.declarationPage;
       declarationPages.set(
