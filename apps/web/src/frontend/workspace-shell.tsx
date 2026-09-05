@@ -218,11 +218,11 @@ function WorkspaceShell() {
               </select>
             </label>
             <label className="checkbox">
-              <Input name="paused" type="checkbox" defaultChecked /> Pause scheduled runs
+              <input name="paused" type="checkbox" defaultChecked /> Pause scheduled runs
             </label>
           </div>
           <label className="checkbox consent">
-            <Input name="guided" type="checkbox" /> Configure AI execution in this dashboard
+            <input name="guided" type="checkbox" /> Configure AI execution in this dashboard
           </label>
           <fieldset id="execution-fields" hidden disabled>
             <legend>AI execution</legend>
@@ -377,7 +377,7 @@ function WorkspaceShell() {
             </details>
           </fieldset>
           <label className="checkbox consent">
-            <Input name="captureConsent" type="checkbox" /> I authorize screenshot capture of this
+            <input name="captureConsent" type="checkbox" /> I authorize screenshot capture of this
             test environment. The pages contain test data; I have added masks for any other
             sensitive content.
           </label>
