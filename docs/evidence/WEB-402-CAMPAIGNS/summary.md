@@ -2,7 +2,7 @@
 
 Refs #402. Release line: unreleased v0.0.200. Initial production source and live
 probe: `78d0fe9d6ded6d9dec4b735302a06842bb0bfb64` on
-`feat/web-workflow-campaigns`, 2026-09-05. Final UI correction proof follows below.
+`feat/web-workflow-campaigns`, 2026-09-05. Final UI correction source: `1de858d64bd9cb3e6e44a0003675423e9e5e7422`.
 No release tag or publication is authorized by this report.
 
 ## Scope and proof boundaries
@@ -76,8 +76,15 @@ Initial screenshots deliberately preserve the defects found by inspection:
 [clipped mobile run columns and unsafe generic controls](initial-ui/04-workflow-result.png).
 The campaign [desktop](initial-ui/02-verified-campaign.png) and
 [mobile](initial-ui/03-mobile-campaign.png) denominator views already show the
-selected/unselected distinction. Final corrected screenshots will be retained
-separately; historical image bytes are not rewritten.
+selected/unselected distinction. The final journey at `1de858d` passed in 43.77 seconds (45.04 seconds total).
+All four [corrected dashboard PNGs](final-ui/) were opened and visually inspected;
+all image and timeline hashes match adjacent provenance. The corrected
+[selection controls](final-ui/01-selected-workflows.png) place captions beside
+checkboxes; [mobile child results](final-ui/04-workflow-result.png) show readable
+stacked run columns and scoped campaign navigation. All three new geometry/control
+assertions first failed against the earlier code and pass unchanged. Twelve
+initial/final/live images and six sanitized timelines are retained in total;
+historical image bytes are not rewritten.
 
 The live verifier policy masks the whole `main` region. Those four images cannot
 establish hidden-content visual correctness. Functional claims depend on the
