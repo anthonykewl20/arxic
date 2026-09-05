@@ -1,0 +1,14 @@
+[
+  {
+    "action": "live clean-baseline review returns no visual hypotheses",
+    "result": "failed"
+  },
+  {
+    "action": "baseline login button inside clip; controlled real Next regression clips it and changes pixels",
+    "result": "passed"
+  },
+  {
+    "action": "live coding agent reviews authorized current PNG and proposes bounded visual hypotheses",
+    "result": "passed"
+  }
+]

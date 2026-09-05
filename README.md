@@ -19,7 +19,7 @@ boundary. Dashboard version labels use `v0.0.200`; canonical package versions ar
 
 The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
-The dashboard supports [provider connections and custom model IDs](docs/web-workbench.md#provider-connections-and-model-ids) for guided AI execution and inspected-image review.
+The dashboard includes a React/shadcn **Models & accounts** screen with provider-owned model discovery, native subscription-account bridges and [provider connections and custom model IDs](docs/web-workbench.md#provider-connections-and-model-ids) for guided AI execution and inspected-image review.
 
 ## Run the web app locally
 
@@ -119,5 +119,5 @@ tracked in `CHANGELOG.md`.
 
 MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE`.
 
-Current scoped proof: [provider/model controls](docs/evidence/WEB-402-MODELS/summary.md)
+Current scoped proof: [subscription accounts and dynamic catalogs](docs/evidence/WEB-402-SUBSCRIPTIONS/summary.md), [provider/model controls](docs/evidence/WEB-402-MODELS/summary.md)
 and [clean source installation/recovery](docs/evidence/WEB-402-INSTALL/summary.md).

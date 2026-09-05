@@ -1,10 +1,16 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { frontendAssets } from './frontend-assets';
+import { providerSetup } from './provider-presets';
 import { Workbench } from './workbench';
 import { HttpError } from './errors';
 import { readFile } from 'node:fs/promises';
 import { ARXIC_VERSION, ARXIC_VERSION_LABEL, sha256 } from '@arxic/contracts';
-import { modelConnections } from './model-connections';
+import {
+  modelConnections,
+  refreshDueModelCatalogs,
+  refreshModelCatalog,
+} from './model-connections';
 
 export type WorkbenchOptions = {
   stateDirectory: string;
@@ -63,6 +69,20 @@ export async function startWorkbench(options: WorkbenchOptions) {
       '/app.css': ['app.css', 'text/css'],
       '/base.css': ['base.css', 'text/css'],
     };
+    if (
+      ['/provider-ui.js', '/provider-ui.css'].includes(path) &&
+      ['GET', 'HEAD'].includes(request.method ?? '')
+    ) {
+      const bytes = (await frontendAssets()).get(path);
+      if (!bytes) throw new HttpError(404, 'Frontend asset unavailable');
+      response.writeHead(200, {
+        'Content-Type': path.endsWith('.css')
+          ? 'text/css; charset=utf-8'
+          : 'text/javascript; charset=utf-8',
+      });
+      response.end(bytes);
+      return;
+    }
     const asset = assets[path];
     if (asset && ['GET', 'HEAD'].includes(request.method ?? '')) {
       response.writeHead(200, { 'Content-Type': `${asset[1]}; charset=utf-8` });
@@ -116,13 +136,21 @@ export async function startWorkbench(options: WorkbenchOptions) {
       );
       return json(response, 200, { ok: true });
     }
-    if (path === '/api/state' && request.method === 'GET')
+    if (path === '/api/state' && request.method === 'GET') {
+      refreshDueModelCatalogs();
       return json(response, 200, {
         ...workbench.state(),
         version: ARXIC_VERSION,
         versionLabel: ARXIC_VERSION_LABEL,
         modelConnections: modelConnections(),
+        providerSetup,
       });
+    }
+    const catalogRoute = /^\/api\/model-connections\/([a-z][a-z0-9-]{0,39})\/refresh$/u.exec(path);
+    if (catalogRoute && request.method === 'POST') {
+      await refreshModelCatalog(catalogRoute[1]);
+      return json(response, 200, { modelConnections: modelConnections() });
+    }
     if (path === '/api/projects' && request.method === 'POST')
       return json(response, 201, await workbench.saveProject(await readJson(request)));
     const projectRoute = /^\/api\/projects\/([a-f0-9-]+)$/u.exec(path);

@@ -199,3 +199,28 @@ its selection limitation disclosed. Suggested models do not prove availability,
 image capability or underlying provider identity. Frozen engine contracts and
 truth-state rules are unchanged; this is additive web configuration and transport
 argument handling, not native support for all provider protocols.
+
+## 2026-09-06 provider-owned catalogs and native account connections
+
+This supersedes operator model suggestions as an availability source. Model
+catalogs are fetched from compatible provider APIs or installed native CLI
+metadata, with no baked-in model IDs. Operator model entries supply rate overrides
+only. The action deduplicates refreshes, tracks freshness/failure, invalidates API
+catalogs when credentials change, and binds the exact requested ID without
+fallback. Provider metadata may supply rates; absent API rates still block
+inference. A catalog does not establish account entitlement or image capability.
+
+Native Claude/Codex/OpenCode bridges use account login owned by the installed CLI;
+Arxic does not read credential caches. Subscription preflight rejects API-key
+login for Claude/Codex. Native prompts/schema envelopes travel over stdin,
+private working directories and attachments are supervised, and native structured
+output still passes the adapter's existing schema gate. OpenClaw has a dedicated
+agent/body route and explicit backend-model header; internal tool restrictions
+remain part of that gateway agent's operator configuration.
+
+The first React/shadcn screen is Models & accounts. Local Vite bundling serves
+self-contained assets, and the remaining screens migrate incrementally. The
+[retained proof](../evidence/WEB-402-SUBSCRIPTIONS/summary.md) preserves native
+account successes, schema failures, clean-screen false positives and the explicitly
+disclosed lexical-oracle correction. No expanded product release or complete paid
+provider matrix is established by this addition.

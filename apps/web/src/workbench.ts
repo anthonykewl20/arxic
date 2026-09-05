@@ -136,7 +136,7 @@ export class Workbench {
             ].includes(key),
         ) ||
         typeof input.model !== 'string' ||
-        !/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,119}$/u.test(input.model) ||
+        !/^[a-zA-Z0-9][a-zA-Z0-9._:/[\]-]{0,119}$/u.test(input.model) ||
         typeof input.budgetUsd !== 'number' ||
         !Number.isFinite(input.budgetUsd) ||
         input.budgetUsd <= 0 ||

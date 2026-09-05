@@ -1,0 +1,194 @@
+{
+  "sourceCommit": "1dd209be259b42b1a980d9a4e384fce5a575b7d0",
+  "controlledRegression": "Persistent CSS asset mutation of actual Next reference login page; external model is real, not stubbed",
+  "before": {
+    "button": {
+      "x": 97,
+      "y": 311.25,
+      "width": 384,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": true
+  },
+  "after": {
+    "button": {
+      "x": 817,
+      "y": 311.25,
+      "width": 150,
+      "height": 41.1875
+    },
+    "clip": {
+      "x": 64,
+      "y": 48,
+      "width": 672,
+      "height": 337.4375
+    },
+    "insideClip": false
+  },
+  "changedPixels": 27145,
+  "detectedClippingHypothesis": true,
+  "cleanReview": {
+    "outcome": "hypothesized",
+    "summary": "0 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "c955ed97-76d2-4f5b-8298-c09ec71795c9",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+        "specHash": "ec754f2a3c75ec0b653c6368255b8a62cdeaf13dd16c9f88eaa4d3ddaf6beaa1",
+        "browserVersion": "151.0.7922.34",
+        "status": "needs-baseline"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T17:16:52.707Z",
+      "model": "gpt-6-astra",
+      "modelConnection": "codex-account",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [],
+      "runRecord": {
+        "requestId": "host-cli-mtonau9u-bgsjin",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "7a14e87b13be40884d7ecf3da260d30fff03d87654af746570a7ee9226a969ea",
+        "model": "gpt-6-astra",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T17:17:03.044Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "billing": "subscription",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "c8aed4271570de95d04e38fe9fcbd96c75e335b6054e5c6de31a183d20c8834c",
+            "width": 800,
+            "height": 600,
+            "bytes": 8576
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "review": {
+    "outcome": "hypothesized",
+    "summary": "1 visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.",
+    "review": {
+      "sourceRunId": "982b4071-b888-43a9-a99e-9a597b1354c1",
+      "capture": {
+        "id": "checkpoint-1",
+        "path": "/login",
+        "viewport": {
+          "width": 800,
+          "height": 600
+        },
+        "file": "checkpoint-1.png",
+        "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+        "specHash": "ec754f2a3c75ec0b653c6368255b8a62cdeaf13dd16c9f88eaa4d3ddaf6beaa1",
+        "browserVersion": "151.0.7922.34",
+        "status": "changed",
+        "changedPixels": 27145,
+        "ratio": 0.056552083333333336,
+        "baselineRunId": "c955ed97-76d2-4f5b-8298-c09ec71795c9",
+        "baselineFile": "checkpoint-1.png",
+        "diffFile": "checkpoint-1.diff.png"
+      },
+      "inspectedAndAuthorizedAt": "2026-09-05T17:17:05.829Z",
+      "model": "gpt-6-astra",
+      "modelConnection": "codex-account",
+      "modelSecretRef": "",
+      "budgetUsd": 0.1,
+      "acceptanceCriterion": "The login form must show its submit button completely inside the visible card and viewport, without horizontal scrolling.",
+      "findings": [
+        {
+          "title": "Required submit button is not visible within the card",
+          "description": "The visible login card has no submit button in its unmasked area, including the area below the password field. This suggests the requirement to show the complete submit button inside the card and viewport is unmet; masked regions cannot establish its placement.",
+          "severity": "warning",
+          "region": {
+            "x": 65,
+            "y": 300,
+            "width": 670,
+            "height": 84
+          },
+          "suggestedCheck": "Check the submit button’s rendered bounds at 800×600 and confirm that it is visible and entirely within both the card and viewport without horizontal scrolling.",
+          "id": "finding-1",
+          "truthState": "hypothesized"
+        }
+      ],
+      "runRecord": {
+        "requestId": "host-cli-mtonbhlo-1un8r9",
+        "schemaVersion": "arxic-web-visual-review-v1",
+        "schemaSha256": "7a14e87b13be40884d7ecf3da260d30fff03d87654af746570a7ee9226a969ea",
+        "model": "gpt-6-astra",
+        "tokens": {
+          "prompt": 0,
+          "completion": 0,
+          "total": 0
+        },
+        "timestamp": "2026-09-05T17:17:33.278Z",
+        "sourceSharing": "disabled",
+        "provider": "host-bound",
+        "billing": "subscription",
+        "images": [
+          {
+            "mediaType": "image/png",
+            "sha256": "e638af62a70ea4725bde7bda21808623b4d803eb6b57e13a21f332a60ed934ab",
+            "width": 800,
+            "height": 600,
+            "bytes": 7617
+          }
+        ]
+      },
+      "estimatedCostUsd": 0,
+      "coverage": "One retained anonymous viewport and path; masked content, other states and business behavior are not assessed."
+    }
+  },
+  "providerIdentity": {
+    "agent": "codex",
+    "model": "gpt-6-astra",
+    "connection": "codex-account",
+    "catalogSource": "native metadata handshake; no Arxic model presets",
+    "subscriptionAuthChecked": true,
+    "tools": "disabled by native CLI arguments"
+  },
+  "catalog": [
+    {
+      "id": "gpt-6-astra"
+    },
+    {
+      "id": "gpt-5.6-sol"
+    },
+    {
+      "id": "gpt-5.6-terra"
+    },
+    {
+      "id": "gpt-5.6-luna"
+    },
+    {
+      "id": "gpt-5.5"
+    },
+    {
+      "id": "gpt-5.4-mini"
+    },
+    {
+      "id": "gpt-5.3-codex-spark"
+    }
+  ],
+  "humanReleaseInspection": "not performed"
+}

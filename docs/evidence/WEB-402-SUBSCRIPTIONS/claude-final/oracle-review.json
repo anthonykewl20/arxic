@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "c7d6b66d11aed1d7df9300dafd044df0243f69cd",
+  "originalLexicalMatcherResult": false,
+  "correctedMissingControlRecognition": true,
+  "reason": "Original regex recognized missing/hidden/not visible but omitted the equivalent wording No submit button visible. Explicitly add that wording; do not remove the clean-screen or clipping requirements.",
+  "matchedTitle": "No submit button visible inside the login card",
+  "cleanFindings": 0,
+  "originalResultsSha256": "e0ccd1ad69d7aa346ee0c327d1b868d8f263e2cf3dbe7511b99cfc3cd2b6772f",
+  "originalTimelineRetained": true,
+  "verdict": "The live structured result meets the missing-control hypothesis requirement; this is not a verified business outcome."
+}

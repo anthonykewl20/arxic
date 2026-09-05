@@ -57,11 +57,12 @@ it('allows a deliberate per-job credential override and refuses missing connecti
     modelEnvironment('local', 'vendor/model:custom', 'ARXIC_SECRET_OVERRIDE', env),
   ).toMatchObject({ ARXIC_MODEL_API_KEY: 'explicit-credential' });
 });
-it('exposes only connection labels, transport and suggested model IDs', () => {
+it('does not present operator pricing entries as a live provider catalog', () => {
   vi.stubEnv('ARXIC_MODEL_CONNECTIONS', JSON.stringify(profiles));
   const catalog = modelConnections();
   expect(catalog.find((item) => item.id === 'local')).toMatchObject({
-    models: ['vendor/model:custom'],
+    models: [],
+    catalog: { status: 'unfetched', fetchedAt: null, error: null },
     label: 'Local models',
     transport: 'http',
   });

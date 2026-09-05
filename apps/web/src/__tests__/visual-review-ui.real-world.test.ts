@@ -20,6 +20,11 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
   const target = await bootFixtureApp(root, vulnerableAuthApp, 'arxic-review-ui-target');
   const requests: Array<{ model: string; authorized: boolean }> = [];
   const provider = createServer(async (req, res) => {
+    if (req.method === 'GET' && req.url === '/models') {
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ data: [{ id: 'vendor/provider-discovered:vision' }] }));
+      return;
+    }
     let body = '';
     for await (const c of req) body += c;
     const input = JSON.parse(body);
@@ -166,11 +171,14 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     expect(await page.getByRole('button', { name: 'Review these pixels' }).isDisabled()).toBe(true);
     expect(await page.getByLabel('Review model', { exact: true }).inputValue()).toBe('');
     await page.getByLabel('Review provider', { exact: true }).selectOption('image-provider');
-    expect(
-      await page
-        .locator('[data-model-controls] datalist option')
-        .evaluateAll((options) => options.map((option) => option.getAttribute('value'))),
-    ).toEqual(['vendor/vision-model:local']);
+    await expect
+      .poll(() =>
+        page
+          .locator('[data-model-controls] datalist option')
+          .evaluateAll((options) => options.map((option) => option.getAttribute('value'))),
+      )
+      .toEqual(['vendor/provider-discovered:vision']);
+    // Catalog response, not operator pricing entries, owns model suggestions.
     await page.getByLabel('Review model', { exact: true }).fill('another/custom-vision:local');
     await page
       .getByLabel('Independent acceptance criterion', { exact: false })

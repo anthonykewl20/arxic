@@ -48,6 +48,23 @@ AI interpretation grounded in the permitted screenshots.
    configuration, budgets, storage/retention and audit history. Local and server
    deployment have explicit trust and concurrency boundaries.
 
+## Provider and interface requirements
+
+Model IDs must be provider-agnostic and refreshed from the provider or its native
+CLI metadata. Arxic must not ship fixed model catalogs or silently substitute a
+model. Failures and stale fetch times stay visible; custom IDs remain available.
+Subscription/account connections include Claude Pro/Max, Codex/ChatGPT, eligible
+SuperGrok through OpenClaw, Kimi Coding, OpenCode Go, OpenRouter and extensible
+operator profiles. Native tools own login and refresh; a listed model alone does
+not establish account entitlement. Each claimed paid execution path needs live
+account proof.
+
+The target interface uses React and shadcn/ui, with a polished, compact visual
+hierarchy inspired by Linear. The Models & accounts screen implements that
+foundation; the remaining screens still require migration and browser proof.
+Browser account-login flows, richer connection management and full paid-plan
+coverage remain explicit follow-up work under #402.
+
 ## Completeness contract
 
 The goal is exhaustive coverage **within a declared scope**. No tool can infer

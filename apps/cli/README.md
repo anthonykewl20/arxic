@@ -33,3 +33,9 @@ the managed verifier owns trace capture, sanitization, and raw-source deletion.
 Promoted directory bundles include a sanitized CycloneDX build-dependency SBOM.
 See the [replay guide](https://github.com/anthonykewl20/arxic/blob/main/docs/bundle-replay.md)
 for independent execution and screenshot-policy setup.
+
+The web workbench's native account profiles reuse this executor's model adapter.
+`ARXIC_MODEL_BILLING_MODE` records `api`, `subscription` or `operator-managed`;
+`ARXIC_MODEL_HOST_CLI_JSON_INPUT=1` enables a prompt/schema stdin envelope for native
+bridges, while ordinary wrappers retain text input. Named web connections resolve
+these settings per job. See [subscription and provider setup](../../docs/web-workbench.md#subscription-accounts-and-provider-catalogs).

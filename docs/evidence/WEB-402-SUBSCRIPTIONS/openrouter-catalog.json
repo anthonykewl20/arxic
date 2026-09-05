@@ -1,0 +1,8 @@
+{
+  "sourceCommit": "7db924d3afb25e4f4c46111abd94db9ddf3a7fcc",
+  "source": "https://openrouter.ai/api/v1/models",
+  "fetchedAt": "2026-09-05T17:03:06.469Z",
+  "count": 418,
+  "pricedModels": 413,
+  "inference": "not performed; public metadata probe only"
+}

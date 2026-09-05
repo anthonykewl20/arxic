@@ -1,0 +1,6 @@
+{
+  "sourceCommit": "c7d6b66d11aed1d7df9300dafd044df0243f69cd",
+  "sha256": "d74227b03c49d1b7a1567581673ecf26faef1658e6f8f3e3f78055e23d0e9dd8",
+  "method": "allow-listed action labels and comparison outcomes; no raw DOM/network or traces",
+  "rawTraceRetained": false
+}

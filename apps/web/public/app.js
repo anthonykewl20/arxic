@@ -1,8 +1,9 @@
+import { mountProviderPanel, unmountProviderPanel } from '/provider-ui.js';
 const $ = (selector) => document.querySelector(selector);
 import { escape, pill, time } from './html.js';
 import { workflowSelection, campaignScreen } from './campaigns.js';
 import { captureReviewForm, visualReviewResult, reviewDrafts } from './visual-review.js';
-import { modelControls, changeModelConnection } from './model-controls.js';
+import { modelControls, changeModelConnection, updateModelCatalogs } from './model-controls.js';
 const titles = {
   overview: 'Workspace overview',
   intents: 'Intent inventory',
@@ -10,6 +11,7 @@ const titles = {
   campaigns: 'Workflow campaigns',
   schedules: 'Schedules',
   admin: 'Administration',
+  providers: 'Models & accounts',
 };
 let state = { projects: [], runs: [], audit: [], baselines: [] };
 let section = 'overview';
@@ -88,6 +90,7 @@ async function refresh() {
   }
   if (epoch !== sessionEpoch || sequence !== refreshSequence || signingOut) return;
   state = snapshot;
+  updateModelCatalogs(state.modelConnections ?? []);
   $('#app').hidden = false;
   $('#login').hidden = true;
   $('#version').textContent = state.versionLabel;
@@ -236,10 +239,22 @@ function render() {
     campaigns: 'Follow selected workflows and keep uncovered surfaces visible.',
     schedules: 'Keep testing with recurring, controlled runs.',
     admin: 'Manage instance access, execution scope, and review activity.',
+    providers: 'Connect subscriptions and APIs. Discover models directly from your providers.',
   }[section];
   document
     .querySelectorAll('[data-nav]')
     .forEach((button) => button.classList.toggle('active', button.dataset.nav === section));
+  const providerRoot = $('#provider-panel-root');
+  if (section === 'providers') {
+    if (!providerRoot) $('#content').innerHTML = '<div id="provider-panel-root"></div>';
+    mountProviderPanel($('#provider-panel-root'), {
+      connections: state.modelConnections ?? [],
+      setup: state.providerSetup ?? [],
+      onRefresh: refreshModels,
+    });
+    return;
+  }
+  if (providerRoot) unmountProviderPanel(providerRoot);
   $('#content').innerHTML = {
     overview,
     intents: inventories,
@@ -287,6 +302,7 @@ function editProject(id = '') {
     item.execution?.model ?? '',
     'exec_',
   );
+  if (item.execution?.modelConnection) void refreshModels(item.execution.modelConnection);
   for (const key of ['name', 'folder', 'origin', 'configPath', 'cron', 'scheduleMode'])
     form.elements.namedItem(key).value = item[key] ?? '';
   form.elements.namedItem('paths').value = item.paths.join('\n');
@@ -414,6 +430,7 @@ $('#project-form').addEventListener('submit', async (event) => {
 document.addEventListener('change', (event) => {
   if (event.target.matches('[data-model-connection]')) {
     changeModelConnection(event.target, state.modelConnections ?? []);
+    if (event.target.value) void refreshModels(event.target.value);
     event.target.dispatchEvent(new Event('input', { bubbles: true }));
   }
   if (event.target.dataset.workflowRow) {
@@ -586,3 +603,31 @@ setInterval(() => {
   if (!$('#app').hidden && !$('#project-dialog').open)
     void refresh().catch((error) => notice(error.message));
 }, 2500);
+
+async function refreshModels(id) {
+  try {
+    const result = await api(`/model-connections/${encodeURIComponent(id)}/refresh`, 'POST', {});
+    state.modelConnections = result.modelConnections;
+    updateModelCatalogs(state.modelConnections);
+    if (section === 'providers') render();
+  } catch (error) {
+    notice(error.message);
+  }
+}
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-model-refresh]');
+  if (button)
+    void refreshModels(
+      button.closest('[data-model-controls]').querySelector('[data-model-connection]').value,
+    );
+});
+
+setInterval(() => {
+  if (document.hidden || $('#app').hidden) return;
+  const selected = new Set(
+    [...document.querySelectorAll('[data-model-connection]')]
+      .map((select) => select.value)
+      .filter(Boolean),
+  );
+  for (const id of selected) void refreshModels(id);
+}, 5 * 60_000);

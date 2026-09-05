@@ -1,0 +1,24 @@
+{
+  "sourceCommit": "c7d6b66d11aed1d7df9300dafd044df0243f69cd",
+  "fetchedAt": "2026-09-05T17:11:40.739Z",
+  "source": "installed native CLI metadata",
+  "models": [
+    {
+      "id": "default"
+    },
+    {
+      "id": "opus[1m]"
+    },
+    {
+      "id": "claude-fable-5-1[1m]"
+    },
+    {
+      "id": "sonnet"
+    },
+    {
+      "id": "haiku"
+    }
+  ],
+  "inference": "not performed during catalog query",
+  "credentialCachesReadByArxic": false
+}

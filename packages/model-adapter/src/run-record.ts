@@ -25,12 +25,14 @@ export type ModelRunRecord = {
    * identical run records for existing callers.
    */
   provider?: 'host-bound';
+  billing?: 'api' | 'subscription' | 'operator-managed';
   /** Pixel integrity and dimensions only; never image bytes or temporary file paths. */
   images?: readonly ModelImageMetadata[];
   timestamp: string;
 };
 
 export type ProviderMeta = {
+  billing?: 'api' | 'subscription' | 'operator-managed';
   retention?: string;
   region?: string;
   sourceSharing?: string;
@@ -70,6 +72,7 @@ export function buildRunRecord(input: {
     record.sourceSharing = input.provider.sourceSharing;
   }
   if (input.provider?.provider !== undefined) record.provider = input.provider.provider;
+  if (input.provider?.billing !== undefined) record.billing = input.provider.billing;
   if (input.images !== undefined) record.images = input.images;
   return record;
 }

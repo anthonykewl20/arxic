@@ -91,9 +91,14 @@ verified workflow bundle.
 
 Model IDs are provider-agnostic. The dashboard does not prescribe a GPT model or
 translate an ID into a different model. **Model provider** selects an operator-owned
-connection; **Model name** offers that connection's configured suggestions and
+connection; **Model name** offers a catalog fetched from that provider and
 accepts a custom ID. Screenshot review uses the same controls. Changing provider
 clears the model field so an old provider's ID is not selected accidentally.
+Catalogs have no built-in model IDs. Refresh explicitly or use the five-minute
+automatic refresh while the connection is in use. Failures show the last successful
+fetch time and leave stale models visibly identified. The **Models & accounts**
+screen uses React and shadcn/ui, with setup guidance and searchable catalogs.
+The rest of the dashboard is being migrated incrementally under #402.
 
 Set `ARXIC_MODEL_CONNECTIONS` to a JSON array before starting the server. For example:
 
@@ -127,9 +132,11 @@ Set `ARXIC_MODEL_CONNECTIONS` to a JSON array before starting the server. For ex
 
 Replace the illustrative endpoint, IDs, rates and command with your installed
 provider's values. Rates are USD per million input/output tokens, supplied by the
-operator, not current price quotes. HTTP profiles require explicit per-model
-`prices`, or an explicitly configured `customModelPrices` object with the same
-keys for custom IDs. Missing rates block before provider contact. Local APIs still
+operator, not current price quotes. The `models` configuration is a rate table,
+not a list of available models. HTTP profiles can use explicit per-model `prices`,
+provider-advertised catalog prices (when present), or explicit `customModelPrices`
+with the same keys. Missing rates block before inference. Subscription profiles
+record subscription billing rather than estimating a per-token API charge. Local APIs still
 use the existing bearer-credential contract; configure their accepted credential.
 Host-agent costs remain operator-managed and are not inferred from zero token counts.
 
@@ -142,7 +149,8 @@ chosen ID, with no shell evaluation. Optional `imageArgs` similarly uses `{image
 The provider can still reject an unavailable model; suggestions do not establish
 account access, image capability or semantic quality.
 
-Only profile ID, label, transport and suggested model IDs reach the dashboard.
+Only profile ID, label, transport, billing classification, model IDs and catalog
+status reach the dashboard, alongside public provider setup instructions.
 Endpoints, executable arguments and credential bindings remain operator-side;
 keys never enter project/run JSON. Jobs resolve only their selected connection,
 clear inherited settings from other connections and pass only selected secrets.
@@ -346,3 +354,62 @@ and pixels, session invalidation, and forced termination during browser navigati
 [Provider/model proof](evidence/WEB-402-MODELS/summary.md) covers the configured
 connections and real installed-agent selection. These are scoped checks; the
 remaining [full product requirements](web-product-spec.md) stay open.
+
+## Subscription accounts and provider catalogs
+
+Arxic never copies a native CLI's credential cache. Sign in as the operating-system
+user running the Arxic server; each CLI owns its account login and token refresh.
+Select the connection in project settings or screenshot review, then choose a
+provider-returned model ID or enter a custom ID. Install current CLI versions that
+support the flags below. An unavailable command or incompatible CLI blocks the
+operation; Arxic does not switch accounts or models.
+
+| Connection             | Setup on the server                                        | Discovery and execution                                                                                                                                                                      |
+| ---------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Claude Pro / Max       | `claude auth login`                                        | Native initialization metadata; account-authenticated Claude Code with tools disabled, no persistent session and prompts/images on stdin. API-key overrides are removed for this invocation. |
+| Codex / ChatGPT        | `codex login --device-auth`                                | Native app-server `model/list`; account-authenticated ephemeral Codex execution with selected model, private cwd and tools disabled.                                                         |
+| OpenCode accounts      | `opencode auth login`                                      | `opencode models --refresh --pure`; native provider adapters, denied tools and cleanup of created sessions.                                                                                  |
+| OpenCode Go            | Connect the Go plan using `opencode auth login`            | Refreshed Go catalog; native adapter handles each model's protocol. Only IDs returned under the Go provider prefix are accepted for this connection.                                         |
+| Kimi Coding membership | Set `ARXIC_SECRET_KIMI_CODING_KEY`                         | Kimi Coding `/coding/v1/models` and compatible completion endpoint. This is separate from Moonshot API billing.                                                                              |
+| Grok / SuperGrok       | `openclaw models auth login --provider xai --method oauth` | Eligible accounts use OpenClaw's xAI OAuth route. Configure a dedicated gateway agent and set `ARXIC_SECRET_OPENCLAW_TOKEN`. The local CLI supplies its provider-owned catalog.              |
+| OpenRouter API         | Set `ARXIC_SECRET_OPENROUTER_KEY`                          | Authenticated `/models` catalog, provider-advertised rates and compatible structured completions.                                                                                            |
+
+Native command paths can be overridden with `ARXIC_CODEX_COMMAND`,
+`ARXIC_CLAUDE_COMMAND`, `ARXIC_OPENCODE_COMMAND` and `ARXIC_OPENCLAW_COMMAND`.
+Operator profiles in `ARXIC_MODEL_CONNECTIONS` override a built-in profile with the
+same ID. A native profile can declare `catalogAgent` as `codex`, `claude`,
+`opencode`, `opencode-go` or `openclaw`; arbitrary wrappers without such an adapter
+show discovery unavailable and retain custom-ID entry. API discovery uses the
+configured base URL plus `/models`, with bounded response size, no redirects and
+an opaque failure message. A provider/CLI catalog is metadata, not proof of paid
+account entitlement or image capability.
+
+The built-in Grok gateway uses `http://127.0.0.1:18789/v1` and agent `arxic`.
+Override its connection to change these. Enable the gateway's compatible HTTP
+endpoint and configure that dedicated agent to deny internal tools. The request's
+`tool_choice: none` controls client tool calls; it does not disable OpenClaw's
+internal agent tools. The HTTP body targets `openclaw/<agentId>` and the
+`x-openclaw-model` header carries the exact selected provider/model ID. The local
+OpenClaw CLI catalog must correspond to that gateway installation.
+
+Subscription runs record `billing: subscription` and zero incremental API-token
+estimate. This is not a free-usage claim or enforcement of account quotas. Provider
+plan limits, routing and overages remain controlled by the provider. Runtime limits
+and Arxic's job cancellation remain active.
+
+Provider references: [Claude account plans](https://support.claude.com/en/articles/11145838-use-claude-code-with-your-pro-or-max-plan),
+[Codex authentication](https://learn.chatgpt.com/docs/auth),
+[Kimi Coding membership](https://www.kimi.com/code/docs/en/kimi-code/membership.html),
+[OpenCode Go](https://opencode.ai/docs/go/),
+[OpenClaw xAI](https://docs.openclaw.ai/providers/xai),
+[OpenClaw HTTP routing](https://docs.openclaw.ai/gateway/openai-http-api).
+
+Visual review treats magenta privacy masks as unavailable evidence and excludes
+unsupported design preferences. These prompt constraints do not establish a
+zero-false-positive detector; findings remain hypotheses requiring independent checks.
+
+Built-in native bridges receive `jsonInput: true`: a JSON envelope containing the
+prompt and output schema on stdin. Claude uses its native JSON-schema result
+control; Codex receives a private temporary output-schema file. Existing host
+wrappers keep text input unless explicitly configured. The final output still
+passes Arxic schema validation, including field-length limits.

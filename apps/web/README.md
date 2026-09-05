@@ -35,6 +35,13 @@ Findings remain hypotheses. Authenticated checkpoints and comprehensive
 business-state exploration remain under #402.
 
 Provider/model controls use operator-owned named HTTP or host-agent connections,
-provider-specific suggestions and editable custom IDs. Selected credentials and
+provider-owned refreshing catalogs and editable custom IDs. Built-in connections
+support native account CLIs and compatible subscription/API endpoints. The
+Models & accounts screen uses React and shadcn/ui; other screens are still being
+migrated. Catalog failure timestamps remain visible. Selected credentials and
 explicit HTTP rates resolve per job; host profiles require model forwarding.
 See [provider setup](../../docs/web-workbench.md#provider-connections-and-model-ids).
+
+[Subscription/catalog proof](../../docs/evidence/WEB-402-SUBSCRIPTIONS/summary.md)
+retains native account results, browser artifacts and failed probes. This does
+not establish the complete paid-provider or visual-defect matrix.
