@@ -60,7 +60,9 @@ Stage-11 automatic healing remains deliberately deferred by ADR-007.
 No existing behavioral matcher was loosened. The new custom-attestation test's
 whole-test timeout was raised from Vitest's five-second default to 30 seconds
 after concurrent real-engine load exceeded it; the endpoint/egress assertions
-remain strict. An early version of that new test incorrectly expected _all_
+remain strict. The settling probe also clamps its per-snapshot timeout to at
+least one millisecond so a deadline-edge zero cannot disable Playwright's
+timeout; both real Chromium settling regressions pass after that guard. An early version of that new test incorrectly expected _all_
 subsequent crawl requests to use the attestation path; it now checks the two
 attestation calls and forbids the default endpoint while allowing legitimate
 later page discovery. Intermediate full-suite runs overlapped red-first edits

@@ -36,7 +36,7 @@ export async function runAndSettleAction(
     let stableSince = Date.now();
     while (Date.now() < deadline) {
       try {
-        const snapshot = `${page.url()}\n${await page.locator('body').ariaSnapshot({ timeout: Math.min(250, deadline - Date.now()) })}`;
+        const snapshot = `${page.url()}\n${await page.locator('body').ariaSnapshot({ timeout: Math.max(1, Math.min(250, deadline - Date.now())) })}`;
         if (snapshot !== prior) {
           prior = snapshot;
           stableSince = Date.now();
