@@ -82,6 +82,9 @@ describe('real CLI pipeline proof', () => {
         })
       ).status,
     ).toBe(201);
+    // Build-time isolation must not turn normal server execution into an
+    // in-memory database: the seeded app still persists to the configured file.
+    expect((await stat(join(runtime, 'auth.db'))).size).toBeGreaterThan(0);
     configPath = join(configDirectory, 'arxic.yaml');
     await writeConfig(configPath, origin);
     ({ server: modelServer, baseUrl: modelBaseUrl } = await startModelEndpoint());

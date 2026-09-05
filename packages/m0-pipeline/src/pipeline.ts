@@ -355,9 +355,9 @@ async function prepareGeneratedSuite(
 ): Promise<{ config: string; spec: string }> {
   const config = await readFile(configPath, 'utf8');
   if (config !== generatedConfig) throw new Error('Generated config differs from returned bytes');
-  const traceTarget = "trace: 'retain-on-failure'";
+  const traceTarget = "trace: 'off'";
   if (!generatedConfig.includes(traceTarget))
-    throw new Error('Generated config lacks the retained-trace seam');
+    throw new Error('Generated config lacks the managed-trace seam');
   const preparedConfig = generatedConfig.replace(traceTarget, "trace: 'on'");
   await writeFile(configPath, preparedConfig);
   const spec = await readFile(specPath, 'utf8');

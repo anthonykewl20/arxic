@@ -1,6 +1,6 @@
 # Arxic CLI reference
 
-> **Version: 0.1.1**
+> **Version: 0.1.0**
 
 This reference describes the shipped `arxic` command. For a first local run,
 use the [quickstart](./quickstart.md); for configuration values, use the

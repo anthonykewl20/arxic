@@ -224,6 +224,8 @@ export type OracleResolution = Readonly<{
 }>;
 
 export type CompilationResult = Readonly<{
+  /** Inventory-bound replay entry, distinct from the post-action runtime evidence. */
+  entryUrl?: string;
   compiled: boolean;
   plan: string;
   diagnostics?: readonly Diagnostic[];

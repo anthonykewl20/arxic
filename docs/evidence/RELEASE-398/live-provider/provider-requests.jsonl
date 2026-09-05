@@ -1,0 +1,13 @@
+{"at":"2026-09-05T06:14:54.810Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3418,"input":2532,"output":632,"reasoning":254,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:15:25.088Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3337,"input":2534,"output":418,"reasoning":385,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:15:46.285Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3192,"input":2530,"output":397,"reasoning":265,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:16:32.624Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":4547,"input":2611,"output":476,"reasoning":1460,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:17:06.103Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3672,"input":2531,"output":434,"reasoning":707,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:17:30.558Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3585,"input":2526,"output":481,"reasoning":578,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:18:11.109Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":4067,"input":2549,"output":496,"reasoning":1022,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:23:20.695Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":4733,"input":36,"output":435,"reasoning":1766,"cache":{"write":0,"read":2496}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:23:46.590Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3264,"input":38,"output":450,"reasoning":280,"cache":{"write":0,"read":2496}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:24:05.106Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3482,"input":2530,"output":389,"reasoning":563,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:24:30.007Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3453,"input":2611,"output":406,"reasoning":436,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:24:57.529Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":3494,"input":2531,"output":285,"reasoning":678,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}
+{"at":"2026-09-05T06:25:13.497Z","exitCode":0,"textParts":1,"tools":0,"usage":[{"tokens":{"total":2895,"input":2526,"output":138,"reasoning":231,"cache":{"write":0,"read":0}},"cost":0}],"sessionsDeleted":1}

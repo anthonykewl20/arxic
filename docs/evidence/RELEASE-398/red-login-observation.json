@@ -1,0 +1,27 @@
+{
+  "claim": "The previous gate accepted this unchanged login state as successful login.",
+  "gateAccepted": true,
+  "transitions": [
+    {
+      "action": {
+        "inputRefs": {
+          "Email": "persona.email",
+          "Password": "persona.password"
+        },
+        "intent": "Submit log in with credentials form via \"Login\""
+      },
+      "assertions": [
+        {
+          "intent": "url:/login"
+        }
+      ],
+      "evidenceRefs": [
+        "src:app-login-page.tsx:1-23",
+        "run:observation-11e80aef26dc"
+      ],
+      "from": "login-page",
+      "to": "login-page"
+    }
+  ],
+  "newGateResult": "rejected: login did not reach signed-in reference-app state"
+}

@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import {
   ARXIC_MODEL_PROVIDER_ERROR,
   ARXIC_MODEL_PROVIDER_TIMEOUT,
@@ -149,13 +149,16 @@ export function createHostCliTransport(
         child = spawn(config.command, config.args ?? [], {
           cwd: config.cwd,
           stdio: ['pipe', 'pipe', 'pipe'],
+          detached: process.platform !== 'win32',
         });
       } catch {
         resolve(providerFailure(false));
         return;
       }
 
-      let stdout = '';
+      const stdoutChunks: Buffer[] = [];
+      let stdoutBytes = 0;
+      const maximumOutputBytes = 8 * 1024 * 1024;
       let settled = false;
       let timedOut = false;
 
@@ -166,18 +169,47 @@ export function createHostCliTransport(
         resolve(result);
       };
 
+      const stop = () => {
+        if (child.pid) {
+          if (process.platform === 'win32') {
+            execFile('taskkill', ['/PID', String(child.pid), '/T', '/F'], () => undefined);
+          } else {
+            try {
+              process.kill(-child.pid, 'SIGKILL');
+            } catch {
+              child.kill('SIGKILL');
+            }
+          }
+        }
+        child.stdin?.destroy();
+        child.stdout?.destroy();
+        child.stderr?.destroy();
+      };
       const timer = setTimeout(() => {
         timedOut = true;
-        child.kill('SIGKILL');
+        stop();
+        finish(providerFailure(true));
       }, timeoutMs);
 
       child.stdout?.on('data', (chunk: Buffer) => {
-        stdout += chunk.toString('utf8');
+        stdoutBytes += chunk.length;
+        if (stdoutBytes > maximumOutputBytes) {
+          stop();
+          finish(providerFailure(false));
+          return;
+        }
+        stdoutChunks.push(chunk);
       });
       // stderr is intentionally not captured into any diagnostic message —
       // it may echo the prompt back, and diagnostics must not carry raw
       // prompt/response content outside the redaction gate.
       child.stderr?.resume();
+      // Pipe writes fail asynchronously when a provider exits before reading
+      // a large prompt. An unhandled EPIPE must not crash the caller process.
+      child.stdin?.on('error', () => {
+        stop();
+        finish(providerFailure(timedOut));
+      });
 
       child.on('error', () => finish(providerFailure(timedOut)));
       child.on('close', (code) => {
@@ -189,7 +221,9 @@ export function createHostCliTransport(
           finish(providerFailure(false));
           return;
         }
-        const parsed = extractJsonPayload(stdout);
+        // A pipe chunk can end inside a UTF-8 code point. Decode only after
+        // collecting the bounded byte stream so model text is not corrupted.
+        const parsed = extractJsonPayload(Buffer.concat(stdoutChunks).toString('utf8'));
         if (parsed === undefined) {
           finish(providerFailure(false));
           return;
@@ -206,6 +240,7 @@ export function createHostCliTransport(
       try {
         child.stdin?.end(prompt);
       } catch {
+        stop();
         finish(providerFailure(false));
       }
     });

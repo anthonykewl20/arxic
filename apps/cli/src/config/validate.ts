@@ -58,6 +58,9 @@ export function validateConfig(input: unknown): ValidationResult {
   const domains = stringArray(scope?.domains, 'config.scope.domains', diagnostics, true);
   const frameworks = stringArray(scope?.frameworks, 'config.scope.frameworks', diagnostics, true);
   const browsers = stringArray(scope?.browsers, 'config.scope.browsers', diagnostics);
+  if (browsers && (browsers.length !== 1 || browsers[0] !== 'chromium')) {
+    invalid(diagnostics, 'config.scope.browsers', 'must contain exactly chromium');
+  }
   const personas = stringArray(scope?.personas, 'config.scope.personas', diagnostics);
   const featureFlags = recordOfBooleans(
     scope?.featureFlags,
@@ -100,6 +103,15 @@ export function validateConfig(input: unknown): ValidationResult {
   if (attestationPath !== undefined && !attestationPath.startsWith('/')) {
     invalid(diagnostics, 'config.target.attestationPath', 'must start with /');
   }
+  if (attestationPath !== undefined && origin !== undefined) {
+    try {
+      if (new URL(attestationPath, origin).origin !== new URL(origin).origin) {
+        invalid(diagnostics, 'config.target.attestationPath', 'must stay on the target origin');
+      }
+    } catch {
+      invalid(diagnostics, 'config.target.attestationPath', 'must be a valid target-origin path');
+    }
+  }
   const allowedOrigins = urlArray(
     target?.allowedOrigins,
     'config.target.allowedOrigins',
@@ -132,6 +144,13 @@ export function validateConfig(input: unknown): ValidationResult {
           'config.policy.requiredVerificationRuns',
           diagnostics,
         );
+  if (requiredVerificationRuns !== undefined && requiredVerificationRuns < 2) {
+    invalid(
+      diagnostics,
+      'config.policy.requiredVerificationRuns',
+      'must be at least 2 clean replay runs',
+    );
+  }
   // ADR §19's example config and §575's lease-scoped-mutation invariant admit exactly one
   // value each here, and `validateWorkerSecurity` enforces the same pair at run time. The
   // CLI previously also accepted 'allow' (and, for mutation, 'deny') — values the worker
@@ -152,6 +171,12 @@ export function validateConfig(input: unknown): ValidationResult {
   }
   const screenshots = nonEmptyString(policy?.screenshots, 'config.policy.screenshots', diagnostics);
   const trace = nonEmptyString(policy?.trace, 'config.policy.trace', diagnostics);
+  if (screenshots !== undefined && screenshots !== 'transition-checkpoints') {
+    invalid(diagnostics, 'config.policy.screenshots', 'must be transition-checkpoints');
+  }
+  if (trace !== undefined && trace !== 'retain') {
+    invalid(diagnostics, 'config.policy.trace', 'must be retain for managed verification');
+  }
   const humanApproval = stringArray(
     policy?.humanApproval,
     'config.policy.humanApproval',

@@ -115,6 +115,32 @@ const observation: ProposalObservation = {
   },
 };
 
+it('preserves an operator requirement for three clean replays in the compiled bundle (refs #398)', async () => {
+  const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-three-replays-'));
+  try {
+    const input = {
+      proposal: proposal(),
+      row: row(),
+      evidenceIndex,
+      surface: surfaceMap(),
+      observation,
+      scope: { commit: 'a'.repeat(40), environment: 'local-test', browser: 'chromium' },
+      origin,
+      outputDirectory,
+      requiredVerificationRuns: 3,
+    };
+    const result = await compileProposalCandidate(input);
+    expect(result.compiled).toBe(true);
+    expect(result.workflow?.verification.requiredRuns).toBe(3);
+    expect(result.stagedBundle?.manifest.verification.requiredRuns).toBe(3);
+    expect(await readFile(join(outputDirectory, 'tests/workflow.spec.ts'), 'utf8')).toContain(
+      `page.goto("${origin}/newsletter")`,
+    );
+  } finally {
+    await rm(outputDirectory, { recursive: true, force: true });
+  }
+});
+
 describe('DG-297 E3 (#297): surface-aware candidate selection', () => {
   const surface = surfaceMap();
 

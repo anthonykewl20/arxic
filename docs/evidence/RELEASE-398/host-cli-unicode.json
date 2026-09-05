@@ -1,0 +1,20 @@
+{
+  "command": "pnpm exec vitest run packages/model-adapter/src/__tests__/host-cli-transport.test.ts",
+  "probe": "Real Node subprocess splits a UTF-8 code point across two stdout writes separated by 100 ms.",
+  "expected": {
+    "label": "é日本🙂"
+  },
+  "red": {
+    "received": {
+      "label": "��日本🙂"
+    },
+    "failed": 1,
+    "passed": 26
+  },
+  "green": {
+    "passed": 27,
+    "failed": 0,
+    "durationSeconds": 1.97
+  },
+  "fix": "Collect raw pipe chunks under the existing 8 MiB byte cap; join and decode once before JSON parsing."
+}

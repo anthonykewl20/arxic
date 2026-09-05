@@ -1,0 +1,33 @@
+{
+  "purpose": "Reproduce and repair the PR CI npm 10 standalone reference-app install failure; repeat the packed human-flow gate with the exact CI runtime.",
+  "node": "22.22.0",
+  "npm": "10.9.4",
+  "arxicVersion": "0.1.0",
+  "red": {
+    "stage": "reference-app npm install",
+    "error": "Cannot read properties of null (reading 'edgesOut')",
+    "result": "failed",
+    "reproductions": "Original fixture, ESLint peer alignment alone, and direct Vite pin alone all failed."
+  },
+  "fix": "Fixture ESLint 9.x matches Next plugin peers. Vite 7.3.6 is direct and npm-overridden so the nested Vitest dependency uses the workspace-tested version; peer checks remain enabled.",
+  "green": {
+    "result": "pass",
+    "totalMs": 123646,
+    "modelRequests": 16,
+    "checks": [
+      "native PHP parse",
+      "bundle SBOM",
+      "real login-page to home",
+      "three clean verifier passes",
+      "independent relocated replay",
+      "wrong credentials fail without raw traces",
+      "unreachable target blocks without changing prior bundle"
+    ]
+  },
+  "visualInspection": {
+    "agentViewedScreenshots": 3,
+    "observed": "Main landmark fully masked with plain surrounding background. Semantic pass/fail comes from independent executed assertions and receipts, not masked pixels.",
+    "humanSignOff": "not performed"
+  },
+  "timelineInspection": "All three sanitized ZIPs independently checked with adjacent sanitization provenance; 78 retained actions each."
+}

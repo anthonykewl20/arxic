@@ -104,6 +104,87 @@ describe('hostCliConfigFromEnv', () => {
 });
 
 describe('createHostCliTransport (real subprocess)', () => {
+  it('preserves Unicode when stdout splits a multibyte character between pipe writes', async () => {
+    const payload = { label: 'é日本🙂' };
+    const transport = createHostCliTransport({
+      command: NODE,
+      args: [
+        '-e',
+        `
+        const bytes = Buffer.from(${JSON.stringify(JSON.stringify(payload))});
+        const split = bytes.indexOf(0xc3) + 1;
+        process.stdout.write(bytes.subarray(0, split));
+        setTimeout(() => process.stdout.write(bytes.subarray(split)), 100);
+      `,
+      ],
+    });
+    const result = await transport({
+      baseUrl: 'unused',
+      bearerToken: 'unused',
+      model: 'test-model-v1',
+      messages: [{ role: 'user', content: 'hi' }],
+      schema: {},
+      schemaName: 'x',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error('expected ok');
+    expect(JSON.parse(result.raw.choices[0].message.content)).toEqual(payload);
+  });
+
+  it('bounds timeout even when a descendant retains the provider output pipe', async () => {
+    const transport = createHostCliTransport({
+      command: NODE,
+      args: [
+        '-e',
+        `require('node:child_process').spawn(process.execPath, ['-e', 'setTimeout(() => {}, 2500)'], { stdio: ['ignore', 1, 2] }); setInterval(() => {}, 1000);`,
+      ],
+    });
+    const started = Date.now();
+    const result = await transport({
+      baseUrl: 'unused',
+      bearerToken: 'unused',
+      model: 'test',
+      messages: [],
+      schema: {},
+      schemaName: 'x',
+      timeoutMs: 300,
+    });
+    expect(result.ok).toBe(false);
+    expect(Date.now() - started).toBeLessThan(1500);
+  });
+  it('refuses a provider response larger than the bounded output budget', async () => {
+    const transport = createHostCliTransport({
+      command: NODE,
+      args: ['-e', `process.stdout.write(JSON.stringify({ value: 'x'.repeat(9 * 1024 * 1024) }))`],
+    });
+    const result = await transport({
+      baseUrl: 'unused',
+      bearerToken: 'unused',
+      model: 'test',
+      messages: [],
+      schema: {},
+      schemaName: 'x',
+    });
+    expect(result.ok).toBe(false);
+  });
+
+  it('classifies a child closing its input pipe without an unhandled parent error', async () => {
+    const transport = createHostCliTransport({
+      command: NODE,
+      args: ['-e', 'process.stdin.destroy(); process.exit(1)'],
+    });
+    const result = await transport({
+      baseUrl: 'unused',
+      bearerToken: 'unused',
+      model: 'test-model',
+      messages: [{ role: 'user', content: 'large input '.repeat(200_000) }],
+      schema: {},
+      schemaName: 'x',
+      timeoutMs: 1000,
+    });
+    expect(result.ok).toBe(false);
+    expect(result.diagnostics[0].code).toBe('ARXIC-MODEL-PROVIDER-ERROR');
+  });
   it('returns a valid ClientResult for a bare-JSON echo script', async () => {
     const transport = createHostCliTransport(echoScript(validOutput()));
     const result = await transport({

@@ -11,6 +11,25 @@ import { ARXIC_PROMOTION_REDACTION_FAILED, assembleBundle, scanBundleForSensitiv
 import { stagedBundle } from './bundle-fixture';
 
 describe('bundle assembly and redaction gate', () => {
+  it('preserves an existing assembled bundle when replacement source bytes fail validation', async () => {
+    const stagedDirectory = await mkdtemp(join(tmpdir(), 'arxic-398-stage-'));
+    const outputDirectory = await mkdtemp(join(tmpdir(), 'arxic-398-output-'));
+    const bundle = await stagedAssemblyBundle(stagedDirectory);
+    await writeFile(join(outputDirectory, 'last-known-good'), 'prior approved bytes');
+    await writeFile(join(stagedDirectory, 'tests/workflow.spec.ts'), 'corrupted source');
+    await expect(
+      assembleBundle({
+        bundle,
+        stagedDirectory,
+        outputDirectory,
+        provenance: provenanceFor(bundle),
+      }),
+    ).rejects.toThrow();
+    expect(await readFile(join(outputDirectory, 'last-known-good'), 'utf8')).toBe(
+      'prior approved bytes',
+    );
+  });
+
   it('blocks real email addresses in text artifacts', async () => {
     const directory = await textBundle('account=user@real-company.com');
     const result = await scanBundleForSensitiveData(directory);

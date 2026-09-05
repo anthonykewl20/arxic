@@ -1,5 +1,6 @@
 export * from './attestation';
 export * from './attestation-policy';
+export { discoverTargetBuildDigest } from './service';
 export * from './mailpit-container';
 export { runPreflightAttestation, type PreflightTargetResult } from './preflight';
 export * from './worker-diagnostics';

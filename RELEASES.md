@@ -18,6 +18,13 @@ For the post-1.0 public-surface, support, and deprecation commitments, see
 `VERSION` is the source of truth for current version. `package.json` version
 must mirror `VERSION` exactly for each release.
 
+### Current release target (2026-09-05)
+
+The owner requested the first public npm release as **0.1.0** (refs #398).
+`VERSION`, the root manifest, and every app/package manifest now agree on 0.1.0.
+The older 0.1.1 preparation labels below are historical. No new tag or npm
+publication is performed by the release audit.
+
 ### Versioning correction (2026-08-14)
 
 - Owner directive: the production-release milestone is re-versioned 1.0.0 → 0.1.1 — this is not v1; the production line remains pre-1.0 `0.x`.
@@ -48,18 +55,19 @@ Git tags are the release history.
    the repository `NPM_TOKEN` secret with publish access to `arxic`. The release
    workflow fails closed if it is absent. Migrate to npm trusted publishing when
    npm supports this repository's GitHub Actions OIDC identity.
-8. Tag `vx.y.z` and push the tag. The tag workflow verifies it matches `VERSION`,
-   publishes `arxic` with npm provenance, then creates the GitHub Release.
-9. Complete the human [screenshot inspection gate](docs/release-gates/screenshot-inspection.md) for every retained promoted screenshot and record its sign-off.
+8. Complete the human [screenshot inspection gate](docs/release-gates/screenshot-inspection.md) for every retained promoted screenshot and record its sign-off **before tagging or publishing**.
+9. Tag `vx.y.z` and push the tag. Publication waits for the supported six-cell
+   OS/Node matrix, the packed human-flow gate, and the release checks. The workflow
+   checks the tag against `VERSION`, publishes with npm provenance, then creates
+   the GitHub Release.
 
 ## Maintainer release readiness
 
-- Release pipeline dry-run: passed 2026-08-15, run 31868969555.
-- Remaining owner steps, in order: run the human-flow E2E gate (automatic in
-  `release.yml`), configure the repository `NPM_TOKEN` secret, tag `v0.1.1` to
-  trigger the real npm publish and GitHub Release, then inspect each retained
-  promoted screenshot.
-- Tag-ordering decision: recorded above; the published `v0.2.0` remains in place.
+Use the [v0.1.0 audit report](docs/reviews/release-0.1.0-398.md) for current proof,
+limitations, and CI status. Historical dry runs do not approve a new release.
+The sequence is current-head checks and packed E2E → complete human screenshot
+census/sign-off → configure publishing credentials → tag `v0.1.0`.
+A workflow dispatch runs release validation without publishing.
 
 ## How to pick the next bump from changelog verbs
 

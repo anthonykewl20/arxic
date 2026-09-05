@@ -182,6 +182,7 @@ export type ProposalCompileInput = Readonly<{
   origin: string;
   /** Additive target policy origins for the compiled stage-10 network gate. */
   allowedOrigins?: readonly string[];
+  requiredVerificationRuns?: number;
   outputDirectory: string;
 }>;
 
@@ -409,6 +410,19 @@ export async function compileProposalCandidate(
       diagnostics: [...built.diagnostics],
     };
   }
+  const workflow =
+    input.requiredVerificationRuns === undefined
+      ? built.workflow
+      : {
+          ...built.workflow,
+          verification: {
+            ...built.workflow.verification,
+            requiredRuns: Math.max(
+              built.workflow.verification.requiredRuns,
+              input.requiredVerificationRuns,
+            ),
+          },
+        };
   try {
     const observations: EvidenceRef[] = [
       ...(sourceRef ? [sourceRef] : []),
@@ -417,9 +431,16 @@ export async function compileProposalCandidate(
     const bundle = await new PlaywrightCompiler({
       outputDirectory: input.outputDirectory,
       origin: input.origin,
+      entryUrl: new URL(form.route, input.origin).href,
       ...(input.allowedOrigins ? { allowedOrigins: input.allowedOrigins } : {}),
-    }).compile(built.workflow, observations);
-    return { compiled: true, plan: bundle.plan, workflow: built.workflow, stagedBundle: bundle };
+    }).compile(workflow, observations);
+    return {
+      compiled: true,
+      entryUrl: new URL(form.route, input.origin).href,
+      plan: bundle.plan,
+      workflow,
+      stagedBundle: bundle,
+    };
   } catch (error) {
     const diagnostic: Diagnostic =
       error instanceof Error && 'diagnostic' in error && isDiagnostic(error.diagnostic)

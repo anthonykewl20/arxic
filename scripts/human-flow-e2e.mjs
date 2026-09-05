@@ -20,7 +20,7 @@ const playwrightInstallCommand = [
   'chromium',
 ];
 
-export function createConfig({ origin, repository, revision }) {
+export function createConfig({ origin, repository, revision, requiredVerificationRuns = 2 }) {
   return `version: 1
 source:
   repository: ${JSON.stringify(repository)}
@@ -44,14 +44,14 @@ policy:
   maxRuntimeMinutes: 30
   mutation: leased-fixtures-only
   externalNetwork: deny
-  requiredVerificationRuns: 2
+  requiredVerificationRuns: ${requiredVerificationRuns}
   screenshots: transition-checkpoints
   trace: retain
   humanApproval: [destructive, external-side-effect]
 fixtures:
   personaProvisioner: app-seed-api
 models:
-  provider: configured-adapter
+  provider: gpt-4o-mini
   sourceRetention: disabled
 `;
 }
@@ -74,6 +74,11 @@ export function assertSuccessfulRun({ exitCode, output, run, bundle }) {
   }
   if (bundle?.manifest?.workflow?.status !== 'verified') {
     throw new Error('promoted bundle manifest must record a verified workflow');
+  }
+  if (
+    !bundle.workflow?.transitions?.some(({ from, to }) => from === 'login-page' && to === 'home')
+  ) {
+    throw new Error('Verified login did not reach the signed-in reference-app state');
   }
 }
 
@@ -125,6 +130,22 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
         env: cleanEnvironment(paths),
         timeout: 300_000,
       });
+      await command(
+        'node',
+        [
+          '-e',
+          `
+        const { createRequire } = require('node:module');
+        const req = createRequire(require.resolve('arxic/package.json'));
+        const Parser = req('tree-sitter');
+        const parser = new Parser();
+        parser.setLanguage(req('tree-sitter-php').php);
+        const tree = parser.parse('<?php function release_probe() { return 42; }');
+        if (tree.rootNode.hasError || tree.rootNode.type !== 'program') process.exit(1);
+      `,
+        ],
+        { cwd: paths.install, env: cleanEnvironment(paths), timeout: 30_000 },
+      );
     });
 
     const appPort = await freePort();
@@ -152,17 +173,27 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
         timeout: 240_000,
       });
       await mkdirp(join(cleanRoom, 'runtime'));
-      app = spawn('npm', ['run', 'start', '--', '-H', '127.0.0.1', '-p', String(appPort)], {
-        cwd: paths.app,
-        env: {
-          ...cleanEnvironment(paths),
-          ARXIC_TARGET_ORIGIN: origin,
-          ARXIC_ATTESTATION_NONCE: 'human-flow-attestation',
-          ARXIC_DB_PATH: join(cleanRoom, 'runtime', 'auth.db'),
+      app = spawn(
+        process.execPath,
+        [
+          join(paths.app, 'node_modules', 'next', 'dist', 'bin', 'next'),
+          'start',
+          '-H',
+          '127.0.0.1',
+          '-p',
+          String(appPort),
+        ],
+        {
+          cwd: paths.app,
+          env: {
+            ...cleanEnvironment(paths),
+            ARXIC_TARGET_ORIGIN: origin,
+            ARXIC_ATTESTATION_NONCE: 'human-flow-attestation',
+            ARXIC_DB_PATH: join(cleanRoom, 'runtime', 'auth.db'),
+          },
+          stdio: 'ignore',
         },
-        stdio: 'ignore',
-        shell: process.platform === 'win32',
-      });
+      );
       await waitForReady(origin, app);
       await resetAndSeed(origin, persona);
     });
@@ -173,7 +204,11 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
     });
 
     const configPath = join(paths.install, 'arxic.yaml');
-    await writeFile(configPath, createConfig({ origin, repository: paths.app, revision }), 'utf8');
+    await writeFile(
+      configPath,
+      createConfig({ origin, repository: paths.app, revision, requiredVerificationRuns: 3 }),
+      'utf8',
+    );
     const runId = `human-happy-${randomUUID()}`;
     const cli = join(
       paths.install,
@@ -203,11 +238,28 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
     const bundleDirectory = join(runRoot, 'promoted', `${runId}.bundle`);
     const happyRun = await readJson(join(happyDirectory, 'run.json'));
     const happyDiagnostics = await readDiagnostics(happyDirectory);
+    if (
+      happy.exitCode !== 0 ||
+      happyRun.outcome !== 'verified' ||
+      happyRun.status !== 'completed'
+    ) {
+      throw new Error(
+        `Packed CLI did not reach promotion: exit=${happy.exitCode}, status=${happyRun.status}, outcome=${happyRun.outcome}, diagnostics=${happyDiagnostics.map(({ code }) => code).join(',')}`,
+      );
+    }
     const promotedBundle = await readJson(promotedPath);
     await phase(timings, 'happy-assertions', async () => {
       assertSuccessfulRun({ ...happy, run: happyRun, bundle: promotedBundle });
       assertDiagnostics(happy.output);
       assertManifestSchema(promotedBundle.manifest);
+      if (
+        promotedBundle.manifest.verification.requiredRuns !== 3 ||
+        promotedBundle.manifest.verification.runs.length !== 3
+      ) {
+        throw new Error(
+          'Configured three clean verification passes were not retained in the bundle',
+        );
+      }
       await assertRunDirectory(happyDirectory, paths.app);
       await assertBundleDirectory(bundleDirectory, promotedBundle.manifest);
       if (modelRequests.length === 0)
@@ -223,6 +275,55 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
       if (!happyDiagnostics.every((diagnostic) => /^ARXIC-[A-Z0-9-]+$/u.test(diagnostic.code))) {
         throw new Error('happy diagnostics did not use frozen ARXIC codes');
       }
+    });
+
+    await phase(timings, 'independent-bundle-replay', async () => {
+      const replay = join(paths.install, 'standalone-replay');
+      await cp(bundleDirectory, replay, { recursive: true });
+      const timestamp = new Date().toISOString();
+      const policy = JSON.stringify(
+        canonicalize({
+          schemaVersion: 1,
+          id: 'release-398-standalone',
+          authority: {
+            kind: 'repository-policy',
+            reference: 'scripts/human-flow-e2e.mjs',
+            recordedAt: timestamp,
+          },
+          capture: {
+            mode: 'masked-page',
+            fullPage: true,
+            masks: [{ kind: 'role', role: 'main', exact: true }],
+          },
+        }),
+      );
+      const replayEnv = {
+        ...runEnvironment,
+        ARXIC_SCREENSHOT_PRIVACY_POLICY: policy,
+        ARXIC_SCREENSHOT_PRIVACY_POLICY_SHA256: createHash('sha256').update(policy).digest('hex'),
+        ARXIC_SCREENSHOT_CAPTURE_CORRELATION: randomUUID(),
+        ARXIC_SCREENSHOT_CAPTURED_AT: timestamp,
+      };
+      const runner = join(paths.install, 'node_modules', '@playwright', 'test', 'cli.js');
+      await resetAndSeed(origin, persona);
+      const good = await processResult(process.execPath, [runner, 'test', '--timeout=10000'], {
+        cwd: replay,
+        env: replayEnv,
+        timeout: 60_000,
+      });
+      if (good.exitCode !== 0 || !/1 passed/u.test(good.output))
+        throw new Error('Relocated bundle failed independent Playwright replay');
+      await resetAndSeed(origin, persona);
+      const bad = await processResult(process.execPath, [runner, 'test', '--timeout=10000'], {
+        cwd: replay,
+        env: { ...replayEnv, ARXIC_INPUT_PERSONA_PASSWORD: 'Incorrect398!' },
+        timeout: 60_000,
+      });
+      if (bad.exitCode !== 1 || !/1 failed/u.test(bad.output))
+        throw new Error('Wrong credentials did not fail independent replay');
+      const results = await filesUnder(join(replay, 'artifacts', 'test-results'));
+      if (results.some((path) => path.endsWith('.zip')))
+        throw new Error('Independent failed replay retained a raw trace');
     });
 
     let sad;
@@ -362,10 +463,7 @@ async function startModel(requests) {
           {
             message: {
               role: 'assistant',
-              content: JSON.stringify({
-                schemaVersion: 'arxic-stage4-inference-v1',
-                candidates: [{ id: 'authentication.login', intent: 'Submit login credentials' }],
-              }),
+              content: JSON.stringify(modelStubOutput(parsed.messages)),
             },
           },
         ],
@@ -383,6 +481,36 @@ async function startModel(requests) {
       server.closeAllConnections();
       await new Promise((done) => server.close(done));
     },
+  };
+}
+
+/** A model-boundary stub; proposals cite actual rows supplied by the packed CLI. */
+export function modelStubOutput(messages) {
+  const inventoryMessage = messages.find(
+    (message) => message.role === 'user' && message.content.includes('INVENTORY_DATA'),
+  );
+  const inventory = inventoryMessage?.content.match(
+    /INVENTORY_DATA[^\n]*\n([\s\S]*?)\nEND_INVENTORY_DATA/u,
+  )?.[1];
+  if (!inventory) throw new Error('Model stub did not receive the current inventory contract');
+  const row = JSON.parse(inventory).find((item) => item.path === '/login' && item.method === 'GET');
+  return {
+    schemaVersion: 'arxic-intent-proposal-v1',
+    proposals: row
+      ? [
+          {
+            domain: 'authentication',
+            intent: 'log in with credentials',
+            action: `perform ${row.method} ${row.path}`,
+            fromState: 'signed-out',
+            toState: 'signed-in',
+            persona: 'registered-user',
+            inventoryRowIds: [row.id],
+            evidenceRefIds: row.evidenceRefIds,
+            rationale: 'Reference-app login hypothesis grounded in the supplied inventory row',
+          },
+        ]
+      : [],
   };
 }
 
@@ -427,12 +555,21 @@ async function exportEvidence({
     await mkdirp(dirname(target));
     await cp(screenshot, target);
   }
+  const tracesDirectory = join(bundleDirectory, 'artifacts', 'traces');
+  for (const trace of await filesUnder(tracesDirectory)) {
+    if (!trace.endsWith('.zip')) continue;
+    const name = basename(trace);
+    const provenance = join(bundleDirectory, 'artifacts', 'reports', `${name}.sanitization.json`);
+    await mkdirp(join(evidenceDirectory, 'timelines'));
+    await cp(trace, join(evidenceDirectory, 'timelines', name));
+    await cp(provenance, join(evidenceDirectory, 'timelines', `${name}.sanitization.json`));
+  }
 }
 
 async function writeEvidenceSummary({ evidenceDirectory, modelRequests, outcome, promotedBundle }) {
   await writeFile(
     join(evidenceDirectory, 'summary.md'),
-    `# 0.1.1 human-flow E2E evidence\n\nThe packed CLI was installed into a temporary clean room, drove the independently installed synthetic reference app through a real local OpenAI-compatible HTTP endpoint and real Chromium, then completed a blocked unreachable-origin run without changing the prior promoted bundle. Screenshots contain only synthetic fixture data and retain their adjacent privacy attestations. No raw traces are retained.\n\n## Versions\n\n- Node: ${process.version}\n- Arxic bundle generator: ${promotedBundle.manifest.generator.id}@${promotedBundle.manifest.generator.version}\n- Playwright: 1.62.1\n\n## Pass/fail\n\n| Check | Result |\n| --- | --- |\n| Packed local run reaches verified promotion | pass |\n| Model stub receives a structured HTTP request | pass |\n| Promoted bundle validates and retains screenshots | pass |\n| Unreachable origin is blocked and preserves prior bundle | pass |\n\n## Timings\n\n${outcome.phases.map((item) => `- ${item.name}: ${item.durationMs} ms`).join('\n')}\n\n## Model endpoint proof\n\n` +
+    `# Packed CLI release E2E evidence\n\nThe packed CLI was installed into a temporary clean room, drove the independently installed reference app (fixture personas) through a controlled model-boundary HTTP stub and real Chromium, then completed a blocked unreachable-origin run without changing the prior promoted bundle. Screenshots use fixture data and capture-time masking, with adjacent privacy attestations. Automated inspection cannot discharge the human release sign-off. No fresh live-provider campaign is claimed. No raw traces are retained.\n\n## Versions\n\n- Node: ${process.version}\n- Arxic bundle generator: ${promotedBundle.manifest.generator.id}@${promotedBundle.manifest.generator.version}\n- Playwright: 1.62.1\n\n## Pass/fail\n\n| Check | Result |\n| --- | --- |\n| Packed local run reaches signed-in home with three clean verifier passes | pass |\n| Installed native PHP grammar parses real PHP and appears in the bundle SBOM | pass |\n| Relocated bundle passes independent Playwright replay | pass |\n| Wrong credentials fail replay without raw trace retention | pass |\n| Model stub receives a structured HTTP request | pass |\n| Promoted bundle validates and retains screenshots | pass |\n| Unreachable origin is blocked and preserves prior bundle | pass |\n\n## Timings\n\n${outcome.phases.map((item) => `- ${item.name}: ${item.durationMs} ms`).join('\n')}\n\n## Model endpoint proof\n\n` +
       '```json\n' +
       `${JSON.stringify(
         modelRequests.map(({ authorization, ...request }) => ({
@@ -444,6 +581,17 @@ async function writeEvidenceSummary({ evidenceDirectory, modelRequests, outcome,
       )}\n` +
       `\`\`\`\n\n## Final output\n\n\`\`\`text\n${formatVerdict(outcome)}\n\`\`\`\n`,
   );
+}
+
+function canonicalize(value) {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value && typeof value === 'object')
+    return Object.fromEntries(
+      Object.keys(value)
+        .sort()
+        .map((key) => [key, canonicalize(value[key])]),
+    );
+  return value;
 }
 
 function assertDiagnostics(output) {
@@ -522,6 +670,12 @@ async function assertBundleDirectory(directory, promotedManifest) {
   for (const screenshot of screenshots.filter((path) => path.endsWith('.png'))) {
     await stat(`${screenshot}.privacy.json`);
   }
+  const sbom = await readJson(join(directory, 'sbom.cdx.json'));
+  if (
+    sbom.bomFormat !== 'CycloneDX' ||
+    !sbom.components?.some(({ name }) => name === 'tree-sitter-php')
+  )
+    throw new Error('Bundle SBOM omits the installed PHP grammar');
   const checksums = await readFile(join(directory, 'checksums.sha256'), 'utf8');
   if (!checksums.includes('  manifest.json\n') || !checksums.includes('  workflow.json\n')) {
     throw new Error('assembled bundle checksums omit required bundle files');

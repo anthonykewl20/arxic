@@ -35,15 +35,39 @@ export function parseAttestation(input: unknown): TargetAttestation {
 export async function fetchAttestation(
   origin: string,
   timeoutMs = DEFAULT_ATTESTATION_TIMEOUT_MS,
+  attestationPath = '/.well-known/arxic-test-target.json',
 ): Promise<TargetAttestation> {
-  const endpoint = new URL('/.well-known/arxic-test-target.json', origin);
+  const endpoint = new URL(attestationPath, origin);
+  if (!attestationPath.startsWith('/') || endpoint.origin !== new URL(origin).origin) {
+    throw new Error('Attestation path must stay on the target origin');
+  }
   const response = await fetch(endpoint, {
     headers: { accept: 'application/json' },
     redirect: 'manual',
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) throw new Error(`Attestation endpoint returned HTTP ${response.status}`);
-  return parseAttestation(await response.json());
+  let payload: unknown;
+  try {
+    payload = await response.json();
+  } catch {
+    // JSON parser errors can include arbitrary bytes of the server response.
+    throw new Error('Attestation endpoint returned invalid JSON');
+  }
+  return parseAttestation(payload);
+}
+
+/** Non-authoritative discovery only; the handshake owns the attestation decision. */
+export async function discoverTargetBuildDigest(
+  origin: string,
+  attestationPath: string,
+): Promise<string | undefined> {
+  try {
+    return (await fetchAttestation(origin, DEFAULT_ATTESTATION_TIMEOUT_MS, attestationPath))
+      .buildDigest;
+  } catch {
+    return undefined;
+  }
 }
 
 export function validSignedReceipt(attestation: TargetAttestation, key: string): boolean {

@@ -43,7 +43,7 @@ jobs:
         run: |
           set -euo pipefail
           base="$(git merge-base origin/main HEAD)"
-          if git diff --name-only "$base" HEAD | grep -E '^(apps/worker/|packages/contracts/|packages/environment/|packages/source-ua-adapter/|packages/playwright-agent-adapter/|test-fixtures/|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|package\.json$|\.github/workflows/ci\.yml$|\.github/dependabot\.yml$)' > /dev/null; then
+          if git diff --name-only "$base" HEAD | grep -E '^(apps/worker/|packages/|schemas/|rulepacks/|patches/|test-fixtures/|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|package\.json$|\.github/workflows/ci\.yml$|\.github/dependabot\.yml$)' > /dev/null; then
             echo 'worker=true' >> "$GITHUB_OUTPUT"
           else
             echo 'worker=false' >> "$GITHUB_OUTPUT"
@@ -101,7 +101,7 @@ jobs:
         run: pnpm lint
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: pnpm typecheck && pnpm typecheck:packages
 
       - name: Format
         run: pnpm format:check
@@ -225,6 +225,19 @@ jobs:
       - name: Tarball smoke
         run: node scripts/tarball-smoke.mjs
 
+      - name: Install Chromium system dependencies for packed replay
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install-deps chromium
+
+      - name: Packed human-flow release regression
+        run: node scripts/human-flow-e2e.mjs --evidence-dir artifacts/human-flow
+
+      - name: Upload sanitized human-flow evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: packed-human-flow-evidence
+          path: artifacts/human-flow
+          retention-days: 14
+
       - name: License gate
         run: node scripts/license-gate.mjs
 
@@ -271,10 +284,9 @@ jobs:
         run: ARXIC_WORKER_IMAGE_REQUIRED=1 pnpm exec vitest run packages/environment/src/__tests__/worker-image.real-world.test.ts
 
   # The required branch-protection check `ci` (strict): green iff every gate
-  # job above is green. worker-image stays a conditional sibling exactly as in
-  # the monolithic shape — visible, but not the merge-blocking check.
+  # job above is green, including worker-image whenever relevant files changed.
   ci:
-    needs: [static, test, fixture-apps, package]
+    needs: [changes, static, test, fixture-apps, package, worker-image]
     # always() so the gate RUNS and reports red when a dependency failed;
     # a skipped gate would leave the required check pending forever.
     if: always()
@@ -287,13 +299,25 @@ jobs:
           TEST: ${{ needs.test.result }}
           FIXTURE_APPS: ${{ needs.fixture-apps.result }}
           PACKAGE: ${{ needs.package.result }}
+          CHANGES: ${{ needs.changes.result }}
+          WORKER_REQUIRED: ${{ needs.changes.outputs.worker }}
+          WORKER_IMAGE: ${{ needs.worker-image.result }}
         run: |
           set -euo pipefail
           echo "static=$STATIC test=$TEST fixture-apps=$FIXTURE_APPS package=$PACKAGE"
-          for result in "$STATIC" "$TEST" "$FIXTURE_APPS" "$PACKAGE"; do
+          for result in "$CHANGES" "$STATIC" "$TEST" "$FIXTURE_APPS" "$PACKAGE"; do
             if [ "$result" != "success" ]; then
               echo "::error::ci gate requires every gate job green; got static=$STATIC test=$TEST fixture-apps=$FIXTURE_APPS package=$PACKAGE"
               exit 1
             fi
           done
+          if [ "$WORKER_REQUIRED" = 'true' ]; then
+            if [ "$WORKER_IMAGE" != 'success' ]; then
+              echo "::error::Required worker image gate did not succeed: $WORKER_IMAGE"
+              exit 1
+            fi
+          elif [ "$WORKER_REQUIRED" != 'false' ]; then
+            echo '::error::Worker change detection did not produce a valid decision'
+            exit 1
+          fi
           echo "ci gate: every gate job green."

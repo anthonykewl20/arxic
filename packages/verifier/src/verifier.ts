@@ -61,6 +61,8 @@ import { extractRunFailureEvidence } from './failure-evidence';
 const require = createRequire(import.meta.url);
 
 export type PlaywrightVerifierOptions = {
+  /** Replay entry bound by the action to the inventoried form route. */
+  entryUrl?: string;
   outputDirectory: string;
   origin: string;
   artifactsDir: string;
@@ -98,6 +100,7 @@ export type PlaywrightVerifierOptions = {
 export class PlaywrightVerifier implements WorkflowVerifier {
   readonly #outputDirectory: string;
   readonly #origin: string;
+  readonly #entryUrl?: string;
   readonly #artifactsDirectory: string;
   readonly #allowedOrigins: readonly string[] | undefined;
   readonly #persona: VerificationPersona | undefined;
@@ -127,6 +130,7 @@ export class PlaywrightVerifier implements WorkflowVerifier {
 
   constructor(options: PlaywrightVerifierOptions) {
     this.#outputDirectory = options.outputDirectory;
+    this.#entryUrl = options.entryUrl;
     this.#origin = new URL(options.origin).href;
     this.#artifactsDirectory = options.artifactsDir;
     this.#allowedOrigins = options.allowedOrigins;
@@ -263,9 +267,14 @@ export class PlaywrightVerifier implements WorkflowVerifier {
       screenshotPolicy = serializeScreenshotPrivacyPolicy(this.#screenshotPrivacyPolicy);
       const runtime = Object.values(bundle.evidenceIndex).find((item) => item.kind === 'runtime');
       if (!runtime) throw new Error('Runtime evidence is required to bind the generated spec');
-      const expectedSpec = generateSpec(bundle.workflow, this.#origin, runtime.url, {
-        ...(this.#allowedOrigins ? { allowedOrigins: this.#allowedOrigins } : {}),
-      }).spec;
+      const expectedSpec = generateSpec(
+        bundle.workflow,
+        this.#origin,
+        this.#entryUrl ?? runtime.url,
+        {
+          ...(this.#allowedOrigins ? { allowedOrigins: this.#allowedOrigins } : {}),
+        },
+      ).spec;
       const expectedFixture = generateFixture(
         bundle.workflow,
         this.#allowedOrigins ? [...this.#allowedOrigins] : undefined,

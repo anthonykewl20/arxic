@@ -41,6 +41,24 @@ describe('terminal run reuse', () => {
     ['source revision', { revision: { ...baseline.revision, commit: 'b'.repeat(40) } }],
     ['origin', { origin: 'http://127.0.0.1:3211' }],
     ['policy', { maxUrls: 9 }],
+    ['expected build digest', { expectedBuildDigest: 'b'.repeat(64) }],
+    ['allowed origins', { allowedOrigins: ['http://127.0.0.1:3210', 'http://127.0.0.1:3211'] }],
+    [
+      'replay persona',
+      {
+        replayPersona: {
+          declaration: {
+            mode: 'per-pass-login',
+            login: {
+              route: '/login',
+              fields: [{ label: 'Email', inputRef: 'persona.email' }],
+              submit: { label: 'Login' },
+            },
+          },
+          persona: { email: 'new-persona@example.test', password: 'NewPersona1!' },
+        },
+      },
+    ],
     ['config/models', { config: { models: { inference: 'model-b' } } }],
   ] as const)('blocks when the reused %s changes', async (_field, changed) => {
     const checkpointer = new TerminalCheckpointer(terminalState());

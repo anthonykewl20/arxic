@@ -1,0 +1,78 @@
+{
+  "sourceCommit": "e046590",
+  "events": [
+    {
+      "type": "setup",
+      "description": "Fresh npm install, isolated reference app and sqlite, real Chromium; fixture credentials; controlled model boundary."
+    },
+    {
+      "type": "test_start",
+      "test": "login replay pass 1"
+    },
+    {
+      "type": "assertion",
+      "result": "passed",
+      "description": "Login form submission reaches signed-in home",
+      "timeline": "timelines/001-trace.zip",
+      "screenshot": "screenshots/001/001-step-1-login-page-home.png"
+    },
+    {
+      "type": "test_start",
+      "test": "login replay pass 2"
+    },
+    {
+      "type": "assertion",
+      "result": "passed",
+      "description": "Login form submission reaches signed-in home",
+      "timeline": "timelines/002-trace.zip",
+      "screenshot": "screenshots/002/001-step-1-login-page-home.png"
+    },
+    {
+      "type": "test_start",
+      "test": "login replay pass 3"
+    },
+    {
+      "type": "assertion",
+      "result": "passed",
+      "description": "Login form submission reaches signed-in home",
+      "timeline": "timelines/003-trace.zip",
+      "screenshot": "screenshots/003/001-step-1-login-page-home.png"
+    },
+    {
+      "type": "assertion",
+      "result": "passed",
+      "description": "Relocated bundle replays directly through Playwright"
+    },
+    {
+      "type": "assertion",
+      "result": "passed",
+      "description": "Wrong credentials fail; no raw failure trace is retained"
+    },
+    {
+      "type": "assertion",
+      "result": "passed",
+      "description": "Unreachable origin blocks and preserves prior bundle"
+    },
+    {
+      "type": "assertion",
+      "result": "untested",
+      "description": "Human release screenshot sign-off remains required"
+    },
+    {
+      "type": "test_start",
+      "test": "Live-provider reset-email workflow with Mailpit"
+    },
+    {
+      "type": "assertion",
+      "result": "passed",
+      "description": "Three verifier passes and four independently observed messages",
+      "evidence": "live-provider/summary.md"
+    },
+    {
+      "type": "assertion",
+      "result": "passed",
+      "description": "Missing Mailpit blocks all verifier passes and prevents promotion",
+      "evidence": "live-provider/missing-mailpit-diagnostics.jsonl"
+    }
+  ]
+}

@@ -211,4 +211,4 @@ Merges are strictly serialized, never concurrent: rebase onto `origin/main` → 
 
 ## 11. Release gates (standing)
 
-Beyond the per-slice gates in §7/§8, a release itself has a standing gate that no slice or CI run can discharge: every promoted release that retains screenshots requires a human visual inspection before tagging or publishing (an LLM cannot certify pixels secret-free). See [`docs/release-gates/screenshot-inspection.md`](./release-gates/screenshot-inspection.md) for the inspector procedure and sign-off format; `RELEASES.md`'s release checklist (step 9) is where this gate is executed.
+Beyond the per-slice gates in §7/§8, a release itself has a standing gate that no slice or CI run can discharge: every promoted release that retains screenshots requires a human visual inspection before tagging or publishing (an LLM cannot certify pixels secret-free). See [`docs/release-gates/screenshot-inspection.md`](./release-gates/screenshot-inspection.md) for the inspector procedure and sign-off format; `RELEASES.md`'s release checklist (step 8) is where this gate is executed.

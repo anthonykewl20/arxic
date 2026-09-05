@@ -123,7 +123,7 @@ describe('real M0 login vertical', () => {
       commit,
       appBuildDigest: 'a'.repeat(64),
       environment: { class: 'local-test', browser: 'chromium' },
-      generator: { id: '@arxic/m0-pipeline', version: '0.1.1' },
+      generator: { id: '@arxic/m0-pipeline', version: '0.1.0' },
       verification: { requiredRuns: 2 },
     });
     for (const artifact of promoted.artifacts) {
