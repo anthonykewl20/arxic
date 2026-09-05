@@ -1,3 +1,4 @@
+import { InventoryPanel, type InventoryPanelProps } from './inventory-panel';
 import { CampaignPanel, type CampaignPanelProps } from './campaign-panel';
 import { createRoot, type Root } from 'react-dom/client';
 import {
@@ -295,16 +296,22 @@ export function mountWorkspacePanel(
     section,
     state,
     campaign,
+    inventory,
   }: {
-    section: 'overview' | 'schedules' | 'admin' | 'campaigns';
+    section: 'overview' | 'schedules' | 'admin' | 'campaigns' | 'intents';
     state: State;
     campaign: CampaignPanelProps;
+    inventory: InventoryPanelProps;
   },
 ) {
   let root = roots.get(element);
   if (!root) {
     root = createRoot(element);
     roots.set(element, root);
+  }
+  if (section === 'intents') {
+    root.render(<InventoryPanel {...inventory} />);
+    return;
   }
   if (section === 'campaigns') {
     root.render(<CampaignPanel {...campaign} />);

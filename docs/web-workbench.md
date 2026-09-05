@@ -98,10 +98,12 @@ Catalogs have no built-in model IDs. Refresh explicitly or use the five-minute
 automatic refresh while the connection is in use. Failures show the last successful
 fetch time and leave stale models visibly identified. The **Models & accounts**
 screen uses React and shadcn/ui, with setup guidance and searchable catalogs.
-The navigation shell, overview, campaign history/details, schedules and administration
+The navigation shell, overview, intent inventory, workflow selection, campaign history/details, schedules and administration
 also use React/shadcn, with compact neutral styling and an expandable mobile menu.
-Escape closes that menu and returns focus to its toggle. Inventory, workflow
-selection, run details, model fields and image-review presentation still use the
+Escape closes that menu and returns focus to its toggle. Intent-ledger rows display
+their recorded line-anchored source references. New discoveries reset old workflow
+selections; mobile source rows stack their evidence fields. Run details, model
+fields and image-review presentation still use the
 existing dashboard renderer; the project form retains native dialog behavior.
 Their migration remains under #402.
 

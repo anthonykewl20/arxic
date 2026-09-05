@@ -236,3 +236,16 @@ presentation components consume server state without assigning verifier outcomes
 The project form is React-rendered with a native dialog and existing form actions.
 Inventory, selection, run details, model controls and image review remain explicit
 migration work. See the [browser proof](../evidence/WEB-402-SHADCN/summary.md).
+
+## 2026-09-06 inventory presentation and source evidence
+
+Intent inventory, source declarations and workflow selection now render through
+React/shadcn. Source inventory and intent-ledger rows are projected separately:
+ledger evidence references are nested under `evidence`, not at the source-row
+root. Mobile surface rows use labeled stacked fields so reference columns remain
+visible. Workflow and declaration components use distinct discovery-bound keys;
+a background discovery cannot retain old checked inputs or duplicate forms.
+Existing action handlers retain selection limits, requests and session protection.
+Persisted inventory/ledger fields remain typed views at the UI boundary; this
+change does not add a browser schema validator or union outcomes across runs.
+See [inventory browser proof](../evidence/WEB-402-INVENTORY-UI/summary.md).

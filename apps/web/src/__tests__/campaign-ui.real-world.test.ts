@@ -235,6 +235,57 @@ it('lets an administrator select and verify two real workflows with honest campa
       '04-workflow-result',
       'Campaign links to the selected child engine result and diagnostic evidence',
     );
+    await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+    await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    const loginSurface = page
+      .locator('#content .table')
+      .first()
+      .getByRole('row')
+      .filter({ hasText: 'GET /login' });
+    await expect.poll(() => loginSurface.textContent()).toContain('app/login/page.tsx');
+    await loginSurface.scrollIntoViewIfNeeded();
+    expect(
+      await loginSurface.locator('td').evaluateAll((cells) =>
+        cells.every((cell) => {
+          const box = cell.getBoundingClientRect();
+          return box.left >= 0 && box.right <= window.innerWidth;
+        }),
+      ),
+    ).toBe(true);
+    await capture(
+      '05-ledger-source-evidence',
+      'AI execution inventory retains line-anchored source evidence from its intent ledger',
+    );
+    const selectionForm = page.locator('[data-campaign-form]');
+    const priorDiscovery = await selectionForm.getAttribute('data-discovery');
+    const selectedProject = await selectionForm.getAttribute('data-project');
+    // A separate administrator/API run completes while this inventory stays open.
+    const rediscovery = await page.request.post(
+      `${app.origin}/api/projects/${selectedProject}/runs`,
+      {
+        headers: { origin: app.origin },
+        data: { mode: 'discovery' },
+      },
+    );
+    expect(rediscovery.status()).toBe(202);
+    await expect
+      .poll(
+        () => {
+          expect(errors).toEqual([]);
+          return selectionForm.getAttribute('data-discovery');
+        },
+        { timeout: 30_000 },
+      )
+      .not.toBe(priorDiscovery);
+    expect(await selectionForm.locator('input:checked').count()).toBe(0);
+    expect(
+      await selectionForm.getByRole('button', { name: 'Start selected campaign' }).isDisabled(),
+    ).toBe(true);
+    await selectionForm.scrollIntoViewIfNeeded();
+    await capture(
+      '06-new-discovery-selection',
+      'A new discovery resets old workflow selections while the inventory remains open',
+    );
     expect(errors).toEqual([]);
     if (evidence) {
       const bytes = JSON.stringify(timeline, null, 2);

@@ -8,7 +8,6 @@ import {
 mountWorkspaceShell(document.querySelector('#workspace-root'));
 const $ = (selector) => document.querySelector(selector);
 import { escape, pill, time } from './html.js';
-import { workflowSelection } from './campaigns.js';
 import { captureReviewForm, visualReviewResult, reviewDrafts } from './visual-review.js';
 import { modelControls, changeModelConnection, updateModelCatalogs } from './model-controls.js';
 const titles = {
@@ -119,71 +118,6 @@ function runTable(runs) {
 function projectSelect() {
   return `<select id="project-filter" aria-label="Filter by project"><option value="">All projects</option>${state.projects.map((item) => `<option value="${item.id}" ${selectedProject === item.id ? 'selected' : ''}>${escape(item.name)}</option>`).join('')}</select>`;
 }
-function frontendInventory(run) {
-  const inventory = run?.result?.frontend;
-  if (!inventory) return '';
-  const matches = inventory.rows.filter(
-    (row) =>
-      (!declarationKind || row.kind === declarationKind) &&
-      `${row.label} ${row.source.path}`.toLowerCase().includes(declarationSearch.toLowerCase()),
-  );
-  const page = Math.min(
-    declarationPages.get(run.id) ?? 0,
-    Math.max(0, Math.ceil(matches.length / 100) - 1),
-  );
-  declarationPages.set(run.id, page);
-  return `<section class="frontend-inventory"><div class="section-heading"><h2>Frontend declarations</h2><small>${inventory.rows.length} hypotheses · ${inventory.coverage.analyzedFiles}/${inventory.coverage.enumeratedFiles} files analyzed</small></div>
-  <div class="scope-note">Source declarations describe possible behavior. Runtime coverage is still missing for: ${inventory.coverage.unobservedDimensions.map(escape).join(', ')}. Git-ignored files are outside this scan. Source revision: <code>${escape(inventory.revision.commit)}</code>${inventory.revision.dirty ? ' · Uncommitted files excluded' : ''}.</div>
-  <div class="panel"><table class="table" data-frontend-rows><thead><tr><th>KIND</th><th>DECLARATION</th><th>SOURCE EVIDENCE</th></tr></thead><tbody>${
-    matches
-      .slice(page * 100, (page + 1) * 100)
-      .map(
-        (row) =>
-          `<tr><td data-label="KIND">${escape(row.kind)}<small>${escape(row.basis)} · hypothesized</small></td><td data-label="DECLARATION">${escape(row.label)}</td><td data-label="SOURCE EVIDENCE">${escape(row.source.path)}:${row.source.startLine}–${row.source.endLine}<small title="${escape(row.source.blobSha256)}">SHA-256 ${escape(row.source.blobSha256.slice(0, 12))}</small></td></tr>`,
-      )
-      .join('') || '<tr><td colspan="3">No declarations match these filters.</td></tr>'
-  }</tbody></table></div>
-  <div class="toolbar"><button class="secondary" data-declaration-page="${run.id}" data-direction="-1" ${page === 0 ? 'disabled' : ''}>Previous declarations</button><small>${matches.length ? page * 100 + 1 : 0}–${Math.min((page + 1) * 100, matches.length)} of ${matches.length}</small><button class="secondary" data-declaration-page="${run.id}" data-direction="1" ${(page + 1) * 100 >= matches.length ? 'disabled' : ''}>Next declarations</button><a href="/api/runs/${run.id}" target="_blank" rel="noopener">Complete inventory JSON</a></div>
-  <details data-detail-key="${run.id}-gaps"><summary>Coverage gaps</summary><p>${inventory.gaps.length} file gaps. First 100 shown; the complete JSON preserves every gap and per-file row count. Scan limits: ${inventory.coverage.fileLimit} eligible files, ${inventory.coverage.rowLimit} declarations.</p><ul>${inventory.gaps
-    .slice(0, 100)
-    .map((gap) => `<li>${escape(gap.path)} · ${escape(gap.reason)}</li>`)
-    .join('')}</ul></details></section>`;
-}
-function inventories() {
-  const latest = state.projects
-    .filter((item) => !selectedProject || item.id === selectedProject)
-    .map((item) => ({
-      item,
-      run: state.runs.find(
-        (run) => run.projectId === item.id && (run.result?.inventory || run.result?.ledger),
-      ),
-      discovery: state.runs.find((run) => run.projectId === item.id && run.result?.frontend),
-    }));
-  return `<div class="toolbar">${projectSelect()}<select id="declaration-kind" aria-label="Declaration kind"><option value="">All declarations</option>${['component', 'control', 'condition', 'state', 'action', 'requirement', 'test', 'configuration', 'feature-flag'].map((kind) => `<option ${kind === declarationKind ? 'selected' : ''}>${kind}</option>`).join('')}</select><form id="declaration-search"><input aria-label="Search declarations" name="query" value="${escape(declarationSearch)}" placeholder="Declaration or source file" maxlength="200" /><button class="secondary">Search</button></form></div><div class="scope-note">Source discovery inventories routes and frontend declarations with explicit gaps; it does not recover every business rule. AI E2E adds evidence-grounded proposals and replay outcomes. Unseen personas, states, flags, and pages remain uncovered.</div>${
-    latest
-      .map(({ item, run, discovery }) => {
-        if (!run)
-          return `<div class="empty"><h2>${escape(item.name)}</h2><p class="muted">No inventory yet.</p><button class="primary" data-start="discovery" data-project="${item.id}">Discover intents</button></div>`;
-        const rows = run.result.ledger?.rows ?? run.result.inventory?.rows ?? [];
-        return `<div class="section-heading"><h2>${escape(item.name)}</h2><small>${rows.length} known surfaces · ${escape(run.mode)} · ${escape(time(run.createdAt))}</small></div><div class="panel"><table class="table"><thead><tr><th>SURFACE</th><th>DOMAIN / INTENT</th><th>DISPOSITION</th><th>EVIDENCE / GAP</th></tr></thead><tbody>${rows
-          .map(
-            (row) =>
-              `<tr><td>${escape(row.method ?? row.surface?.method)} ${escape(row.path ?? row.surface?.path)}</td><td>${escape(row.domain)}${(row.intents ?? []).map((intent) => `<small>${escape(intent.intent)} · ${escape(intent.truthState)}</small>`).join('')}</td><td>${pill(row.truthState ?? 'hypothesized')}<small>${escape(row.disposition)}</small></td><td>${escape(row.reason ?? '')}${(
-                row.sourceRefs ?? []
-              )
-                .slice(0, 3)
-                .map((ref) => `<small>${escape(ref.path)}:${escape(ref.startLine)}</small>`)
-                .join(
-                  '',
-                )}${row.intents?.length === 0 ? '<small>No intent proposal for this surface.</small>' : ''}</td></tr>`,
-          )
-          .join(
-            '',
-          )}</tbody></table></div>${workflowSelection(item, discovery, workflowSelections, workflowPages)}${frontendInventory(discovery)}`;
-      })
-      .join('') || '<div class="empty"><h2>No connected projects</h2></div>'
-  }`;
-}
 function runDetail(run) {
   const result = run.result;
   const figure = (label, runId, file) =>
@@ -227,12 +161,22 @@ function render() {
     .forEach((button) => button.classList.toggle('active', button.dataset.nav === section));
   const providerRoot = $('#provider-panel-root');
   const workspacePanel = $('#workspace-panel-root');
-  if (['overview', 'schedules', 'admin', 'campaigns'].includes(section)) {
+  if (['overview', 'schedules', 'admin', 'campaigns', 'intents'].includes(section)) {
     if (providerRoot) unmountProviderPanel(providerRoot);
     if (!workspacePanel) $('#content').innerHTML = '<div id="workspace-panel-root"></div>';
     mountWorkspacePanel($('#workspace-panel-root'), {
       section,
       state,
+      inventory: {
+        projects: state.projects,
+        runs: state.runs,
+        projectId: selectedProject,
+        kind: declarationKind,
+        search: declarationSearch,
+        declarationPages,
+        selections: workflowSelections,
+        workflowPages,
+      },
       campaign: {
         campaigns: state.campaigns ?? [],
         selectedId: selectedCampaign,
@@ -254,7 +198,6 @@ function render() {
   }
   if (providerRoot) unmountProviderPanel(providerRoot);
   $('#content').innerHTML = {
-    intents: inventories,
     runs,
   }[section]();
   document.querySelectorAll('[data-detail-key]').forEach((element) => {

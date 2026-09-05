@@ -1,6 +1,7 @@
 @import url('/base.css');
 
 @media (max-width: 760px) {
+  .surface-inventory thead,
   .frontend-inventory .table thead,
   .run-list .table thead {
     position: absolute;
@@ -9,10 +10,12 @@
     overflow: hidden;
     clip-path: inset(50%);
   }
+  .surface-inventory tr,
   .frontend-inventory .table tr,
   .run-list .table tr {
     display: grid;
   }
+  .surface-inventory td,
   .frontend-inventory .table td,
   .run-list .table td {
     display: block;
@@ -20,6 +23,7 @@
     overflow-wrap: anywhere;
     padding: 10px 16px;
   }
+  .surface-inventory td::before,
   .frontend-inventory .table td::before,
   .run-list .table td::before {
     content: attr(data-label);
