@@ -45,7 +45,7 @@ supervisor uses this to prevent orphan providers and attachments on cancellation
 This capability does not authorize screenshot transmission or prove arbitrary
 pixels secret-free. Application actions must own consent, masking, permitted
 states and output grounding. Model findings remain hypotheses; this adapter does
-not promote truth states. Actual host model selection remains operator-configured.
+not promote truth states. Host `modelArgs` (environment: `ARXIC_MODEL_HOST_CLI_MODEL_ARGS`) can forward the exact selected ID through a separate `{model}` argument. Without it, the legacy agent selects its own model. Successful forwarding does not independently establish the underlying serving model.
 
 ## Run record
 

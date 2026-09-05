@@ -1,0 +1,14 @@
+[
+  {
+    "action": "Fresh Node/dependency/browser installation discovers real source, captures pixels and approves a baseline",
+    "result": "passed"
+  },
+  {
+    "action": "Graceful restart preserves projects/baselines and invalidates old sessions",
+    "result": "passed"
+  },
+  {
+    "action": "Forced server termination recovers interrupted work as blocked and preserves prior baseline",
+    "result": "passed"
+  }
+]

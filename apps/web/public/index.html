@@ -155,16 +155,16 @@
         <fieldset id="execution-fields" hidden disabled>
           <legend>AI execution</legend>
           <p class="muted">
-            Uses the model connection configured by your server operator. Secret references name
-            server environment variables; enter no passwords or API keys here.
+            Choose a provider connection and model. Secret references name server environment
+            variables; enter no passwords or API keys here.
           </p>
           <div class="form-grid">
-            <label>Model name<input name="exec_model" required placeholder="gpt-4o-mini" /></label>
+            <div id="execution-model-controls"></div>
             <label
               >Model secret reference<input
                 name="exec_modelSecretRef"
                 placeholder="ARXIC_SECRET_MODEL_KEY"
-              /><small>Blank uses the server's model credential.</small></label
+              /><small>Blank uses the selected provider's credential.</small></label
             >
             <label
               >Frameworks<input name="exec_frameworks" required placeholder="nextjs" /><small

@@ -50,6 +50,7 @@ it.each([
     const repo = await makeRepository('reference-auth-app');
     const state = await mkdtemp(join(tmpdir(), 'web-agent-state-'));
     let requests = 0;
+    const requestedModels: string[] = [];
     const model = createServer(async (req, res) => {
       if (req.headers.authorization !== 'Bearer web-agent-test-key') {
         res.statusCode = 401;
@@ -59,6 +60,7 @@ it.each([
       let body = '';
       for await (const chunk of req) body += chunk;
       const data = JSON.parse(body);
+      requestedModels.push(data.model);
       requests++;
       const requestedPaths: string[] = [];
       for (const message of data.messages) {
@@ -111,6 +113,27 @@ it.each([
     vi.stubEnv('ARXIC_MODEL_PROVIDER', 'http');
     vi.stubEnv('ARXIC_MODEL_BASE_URL', `http://127.0.0.1:${address.port}`);
     vi.stubEnv('ARXIC_MODEL_API_KEY', !guided ? 'web-agent-test-key' : '');
+    if (guided) {
+      vi.stubEnv('ARXIC_MODEL_BASE_URL', 'http://127.0.0.1:1');
+      vi.stubEnv(
+        'ARXIC_MODEL_CONNECTIONS',
+        JSON.stringify([
+          {
+            id: 'custom-provider',
+            label: 'Custom compatible provider',
+            transport: 'http',
+            baseUrl: `http://127.0.0.1:${address.port}`,
+            credentialRef: 'ARXIC_SECRET_WEB_MODEL',
+            models: [
+              {
+                id: 'vendor/custom-code:local',
+                prices: { promptPerMillion: 0.1, completionPerMillion: 0.2 },
+              },
+            ],
+          },
+        ]),
+      );
+    }
     vi.stubEnv('ARXIC_INPUT_PERSONA_EMAIL', !guided ? 'web-agent@example.test' : '');
     vi.stubEnv('ARXIC_INPUT_PERSONA_PASSWORD', !guided ? 'WebAgentTest9!' : '');
     const workbench = await Workbench.open(state, [repo.root]);
@@ -179,8 +202,8 @@ it.each([
             ? { configPath: 'arxic.yaml' }
             : {
                 execution: {
-                  model: 'gpt-4o-mini',
-                  modelSecretRef: 'ARXIC_SECRET_WEB_MODEL',
+                  model: 'vendor/custom-code:local',
+                  modelConnection: 'custom-provider',
                   frameworks: ['nextjs'],
                   domains: ['authentication'],
                   featureFlags: { passwordReset: true },
@@ -224,6 +247,7 @@ it.each([
           ).toEqual([child.workflowScope!.inventoryRowId]);
         }
         expect(new Set(requestedRows)).toEqual(new Set(campaignRowIds));
+        expect(new Set(requestedModels)).toEqual(new Set(['vendor/custom-code:local']));
         expect(requestedBatches.every((rows) => rows.length === 1)).toBe(true);
         expect(
           ((await (await fetch(mailpit!.api + '/api/v1/messages')).json()) as { total: number })
@@ -235,6 +259,7 @@ it.each([
       const run = workbench.enqueue(project.id, 'agent');
       await workbench.idle();
       const result = workbench.store.run(run.id)!.result!;
+      if (guided) expect(new Set(requestedModels)).toEqual(new Set(['vendor/custom-code:local']));
       if (mode === 'stale-selection') {
         expect(result).toMatchObject({
           outcome: 'blocked',

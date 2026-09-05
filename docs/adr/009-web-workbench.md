@@ -182,3 +182,20 @@ schema-validated proposed region, binds reproduction and administrator criteria,
 and rejects out-of-image rectangles. Bounds are not semantic proof. No findings
 means no hypotheses returned, not defect-free or complete coverage. Authenticated
 states and broader comparative evaluation remain under #402.
+
+## 2026-09-05 provider-agnostic model selection
+
+Guided projects and image reviews optionally persist a named model connection
+ID alongside the requested model ID. Connections are operator-owned environment
+configuration, not arbitrary browser-supplied endpoints or commands. The web
+service exposes only labels, transport and model suggestions; the action resolves
+one job's credentials and rates and clears inherited settings from other profiles.
+Unknown profiles and absent HTTP pricing block before provider contact.
+
+Both controls allow custom model IDs. The existing compatible HTTP transport
+passes the exact ID; named host profiles require explicit `{model}` forwarding
+through separate argv. Legacy server-default host behavior remains available with
+its selection limitation disclosed. Suggested models do not prove availability,
+image capability or underlying provider identity. Frozen engine contracts and
+truth-state rules are unchanged; this is additive web configuration and transport
+argument handling, not native support for all provider protocols.

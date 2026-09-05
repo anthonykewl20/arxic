@@ -1,8 +1,10 @@
 import type { ArxicConfig } from '../../worker/src/run-spec';
 import { validateConfig } from '../../cli/src/config/validate';
 import { HttpError } from './errors';
+import { modelEnvironment, validateConnection } from './model-connections';
 
 export type ExecutionSettings = {
+  modelConnection?: string;
   model: string;
   modelSecretRef: string;
   modelBudgetUsd: number;
@@ -83,6 +85,7 @@ export function validateExecution(
   if (value === undefined || value === null) return undefined;
   if (!origin) throw new HttpError(400, 'AI execution requires a running test app origin');
   const input = object(value, [
+    'modelConnection',
     'model',
     'modelSecretRef',
     'modelBudgetUsd',
@@ -139,6 +142,7 @@ export function validateExecution(
       'Feature flags must be named boolean declarations matching the deployment',
     );
   const settings: ExecutionSettings = {
+    modelConnection: validateConnection(input.modelConnection),
     model: string(input.model),
     modelSecretRef: secretRef(input.modelSecretRef),
     modelBudgetUsd: number(input.modelBudgetUsd, 0.025, 100, false),
@@ -241,9 +245,9 @@ export function executionEnvironment(
   };
   return {
     ...overrides,
+    ...modelEnvironment(settings.modelConnection, settings.model, settings.modelSecretRef, env),
     ...secretEnvironment(
       [
-        [settings.modelSecretRef, 'ARXIC_MODEL_API_KEY'],
         [settings.persona.emailRef, 'ARXIC_INPUT_PERSONA_EMAIL'],
         [settings.persona.passwordRef, 'ARXIC_INPUT_PERSONA_PASSWORD'],
         [settings.persona.newPasswordRef, 'ARXIC_INPUT_PERSONA_NEWPASSWORD'],

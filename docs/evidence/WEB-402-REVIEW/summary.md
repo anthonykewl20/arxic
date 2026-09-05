@@ -48,7 +48,8 @@ All **37 web tests in ten files pass** (209.42 s) before the final prompt/paddin
 correction. The two policy/cancellation tests and final browser journey pass after
 that correction. Sixteen policy/CLI tests, root/web type checks and lint pass.
 Full format: `All matched files use Prettier code style!`. Required current-head CI
-is pending at authoring.
+passed on `00e14a88528d1f017cf62f490a7a0280fae26bfe` in run 33972803187;
+PR #411 merged as `38bcabb13714d5b985b062e8fad96733c61e6a9b`.
 
 No raw trace, prompt, image base64, temporary attachment path or test credential
 is retained in JSON artifacts. Named PNGs and their capture-time privacy records

@@ -125,6 +125,31 @@ describe('configuredModel timeout', () => {
     return (model!.adapter as unknown as { options: { timeoutMs?: number } }).options.timeoutMs;
   }
 
+  it('accepts explicit custom-model rates and refuses malformed prices', () => {
+    const previous = process.env.ARXIC_MODEL_PRICES;
+    try {
+      withModelEnv(undefined, () => {
+        for (const value of [
+          'null',
+          '{}',
+          '{"promptPerMillion":-1,"completionPerMillion":1}',
+          '{"promptPerMillion":"1","completionPerMillion":1}',
+        ]) {
+          process.env.ARXIC_MODEL_PRICES = value;
+          expect(() => configuredModel(request)).toThrow('ARXIC_MODEL_PRICES');
+        }
+        process.env.ARXIC_MODEL_PRICES = '{"promptPerMillion":0,"completionPerMillion":0}';
+        expect(configuredModel(request)?.prices).toEqual({
+          promptPerMillion: 0,
+          completionPerMillion: 0,
+        });
+      });
+    } finally {
+      if (previous === undefined) delete process.env.ARXIC_MODEL_PRICES;
+      else process.env.ARXIC_MODEL_PRICES = previous;
+    }
+  });
+
   it('uses 30000ms when ARXIC_MODEL_TIMEOUT_MS is unset', () => {
     withModelEnv(undefined, () => expect(adapterTimeout()).toBe(30_000));
   });

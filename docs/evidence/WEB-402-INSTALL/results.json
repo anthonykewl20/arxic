@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "00e14a88528d1f017cf62f490a7a0280fae26bfe",
+  "node": "v22.22.0",
+  "freshDependencies": true,
+  "freshBrowserCache": true,
+  "checks": {
+    "initial": {
+      "version": "v0.0.200",
+      "sourceRows": 67,
+      "baselineHash": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    "gracefulRestart": {
+      "oldSessionStatus": 401,
+      "projects": 1,
+      "baselines": 1
+    },
+    "crashRecovery": {
+      "browserRequestObserved": true,
+      "runState": "blocked",
+      "baselines": 1
+    }
+  }
+}

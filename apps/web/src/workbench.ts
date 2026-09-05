@@ -8,7 +8,8 @@ import { allowedFolder, nextSlot, runMode, validateProject } from './projects';
 import { launchJob, stopProcess } from './process';
 import type { Campaign, Run, RunResult } from './types';
 import { compareCapture, digest } from './visual';
-import { executionEnvironment, secretRef, secretEnvironment } from './execution';
+import { executionEnvironment, secretRef } from './execution';
+import { modelEnvironment, validateConnection } from './model-connections';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
 import { campaignRows, campaignView } from './campaigns';
@@ -128,6 +129,7 @@ export class Workbench {
               'sha256',
               'inspectedAndAuthorized',
               'model',
+              'modelConnection',
               'budgetUsd',
               'acceptanceCriterion',
               'modelSecretRef',
@@ -160,6 +162,7 @@ export class Workbench {
         capture,
         inspectedAndAuthorizedAt: new Date().toISOString(),
         model: input.model,
+        modelConnection: validateConnection(input.modelConnection),
         modelSecretRef: secretRef(input.modelSecretRef),
         budgetUsd: input.budgetUsd,
         acceptanceCriterion: input.acceptanceCriterion.trim(),
@@ -352,8 +355,10 @@ export class Workbench {
           run.mode === 'agent' && run.project.execution
             ? executionEnvironment(run.project.execution, process.env)
             : run.mode === 'review'
-              ? secretEnvironment(
-                  [[run.visualReview!.modelSecretRef, 'ARXIC_MODEL_API_KEY']],
+              ? modelEnvironment(
+                  run.visualReview!.modelConnection,
+                  run.visualReview!.model,
+                  run.visualReview!.modelSecretRef,
                   process.env,
                 )
               : undefined;

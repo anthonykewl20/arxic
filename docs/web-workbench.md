@@ -87,10 +87,79 @@ blocked requests are reported. Use an isolated test deployment. This lane does
 not use the AI engine's fixture/attestation lifecycle and does not promote a
 verified workflow bundle.
 
+## Provider connections and model IDs
+
+Model IDs are provider-agnostic. The dashboard does not prescribe a GPT model or
+translate an ID into a different model. **Model provider** selects an operator-owned
+connection; **Model name** offers that connection's configured suggestions and
+accepts a custom ID. Screenshot review uses the same controls. Changing provider
+clears the model field so an old provider's ID is not selected accidentally.
+
+Set `ARXIC_MODEL_CONNECTIONS` to a JSON array before starting the server. For example:
+
+```json
+[
+  {
+    "id": "team-gateway",
+    "label": "Team model gateway",
+    "transport": "http",
+    "baseUrl": "https://models.example.test/v1",
+    "credentialRef": "ARXIC_SECRET_TEAM_MODEL",
+    "models": [
+      {
+        "id": "vendor/model-id",
+        "prices": { "promptPerMillion": 1, "completionPerMillion": 3 }
+      }
+    ]
+  },
+  {
+    "id": "coding-agent",
+    "label": "Local coding agent",
+    "transport": "host-cli",
+    "command": "/opt/arxic/agent-wrapper",
+    "args": ["run"],
+    "modelArgs": ["--model", "{model}"],
+    "imageArgs": ["--image", "{image}"],
+    "models": [{ "id": "provider/model-id" }]
+  }
+]
+```
+
+Replace the illustrative endpoint, IDs, rates and command with your installed
+provider's values. Rates are USD per million input/output tokens, supplied by the
+operator, not current price quotes. HTTP profiles require explicit per-model
+`prices`, or an explicitly configured `customModelPrices` object with the same
+keys for custom IDs. Missing rates block before provider contact. Local APIs still
+use the existing bearer-credential contract; configure their accepted credential.
+Host-agent costs remain operator-managed and are not inferred from zero token counts.
+
+The HTTP transport requires the existing compatible chat-completions structured
+output protocol (plus image content parts for review). This is not native support
+for every vendor's API. The host transport accepts any installed wrapper that
+reads the prompt on stdin and writes the JSON result on stdout. `modelArgs` is
+required for named host profiles: the separate literal `{model}` becomes the exact
+chosen ID, with no shell evaluation. Optional `imageArgs` similarly uses `{image}`.
+The provider can still reject an unavailable model; suggestions do not establish
+account access, image capability or semantic quality.
+
+Only profile ID, label, transport and suggested model IDs reach the dashboard.
+Endpoints, executable arguments and credential bindings remain operator-side;
+keys never enter project/run JSON. Jobs resolve only their selected connection,
+clear inherited settings from other connections and pass only selected secrets.
+Unknown/deleted profiles block; they never fall back to a different provider.
+
+**Server default** preserves the existing `ARXIC_MODEL_*` configuration. For its
+HTTP custom IDs, `ARXIC_MODEL_PRICES` can supply the same two numeric rate keys.
+For its host CLI, configure `ARXIC_MODEL_HOST_CLI_MODEL_ARGS` as a JSON array such
+as `["--model", "{model}"]`. Without it, the dashboard explicitly says the legacy
+agent chooses its own model; the field alone cannot establish model selection.
+File-configured jobs continue to use the server default connection.
+
 ## AI E2E configuration
 
 In Project settings, enable **Configure AI execution in this dashboard**. Enter
-an installed/available model name, frameworks and domain declarations. Set the
+a provider connection, an installed/available model ID, frameworks and domain declarations.
+Model suggestions come from the selected connection; custom IDs remain editable. Set the
 planning estimate, runtime/crawl limits and persona strategy. No configuration
 file is needed for this path; the dashboard snapshots validated engine
 configuration inside the run directory without editing the project.
@@ -105,7 +174,8 @@ Authenticated modes require email and password **reference names**, such as
 `ARXIC_SECRET_TEST_EMAIL` and `ARXIC_SECRET_TEST_PASSWORD`. Set their values in
 the server's environment or secret manager before starting Arxic. The optional
 model reference binds a selected `ARXIC_SECRET_...` value to that job's model
-credential; blank uses the operator's existing model credential. Raw credential
+credential; blank uses the selected connection's credential (or the existing
+server credential for **Server default**). Raw credential
 values and references to `ARXIC_ADMIN_TOKEN` are rejected. Only names are stored
 in project/run settings. Missing selected secrets block execution before launch.
 The guided child receives selected values in the engine's standard credential
@@ -199,7 +269,7 @@ AI-suggested check and model metadata. Out-of-image regions block the result.
 Valid coordinates do not prove a defect. Empty findings do not establish a
 defect-free page. Authenticated and broader state coverage remain under #402.
 
-One request uses the existing server model binding with no automatic retry.
+One request uses the selected provider connection with no automatic retry.
 HTTP estimates use the configured price table and a 20,000 input / 4,000 output
 token allowance, not a billing ceiling. Unknown prices block. Host usage remains
 operator-managed; the executable needs explicit image attachment arguments
@@ -269,3 +339,10 @@ Inspect retained pixels before exporting/sharing. The standing human screenshot
 inspection still applies before tagging or publishing a release. This workbench
 does not implement comprehensive authenticated visual state campaigns, multi-user roles, automatic project startup or notifications.
 Those remain explicit requirements in [#402](https://github.com/anthonykewl20/arxic/issues/402).
+
+[Clean source-install/recovery proof](evidence/WEB-402-INSTALL/summary.md) covers
+Node 22.22.0, a fresh dependency/browser installation, real reference discovery
+and pixels, session invalidation, and forced termination during browser navigation.
+[Provider/model proof](evidence/WEB-402-MODELS/summary.md) covers the configured
+connections and real installed-agent selection. These are scoped checks; the
+remaining [full product requirements](web-product-spec.md) stay open.

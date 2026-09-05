@@ -33,3 +33,8 @@ retained captures support inspected-image AI review with model/secret-reference/
 budget/criterion controls, proposed regions, reproduction and model provenance.
 Findings remain hypotheses. Authenticated checkpoints and comprehensive
 business-state exploration remain under #402.
+
+Provider/model controls use operator-owned named HTTP or host-agent connections,
+provider-specific suggestions and editable custom IDs. Selected credentials and
+explicit HTTP rates resolve per job; host profiles require model forwarding.
+See [provider setup](../../docs/web-workbench.md#provider-connections-and-model-ids).

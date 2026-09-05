@@ -172,3 +172,7 @@
 .review-finding h4 {
   margin-bottom: 10px;
 }
+[data-model-controls] {
+  display: grid;
+  gap: 12px;
+}

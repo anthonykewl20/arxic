@@ -17,6 +17,27 @@ import { adapterRequest, EXPECTED_SCHEMA_VERSION, validOutput } from './stub';
 
 const NODE = process.execPath;
 
+it('forwards the exact selected model as a separate argument to a real host process', async () => {
+  const transport = createHostCliTransport({
+    command: NODE,
+    args: ['-e', 'process.stdout.write(JSON.stringify({selected:process.argv.slice(1)}))', '--'],
+    modelArgs: ['--model', '{model}'],
+  });
+  const result = await transport({
+    model: 'vendor/custom:local',
+    messages: [],
+    bearerToken: 'unused',
+    baseUrl: 'host-cli://local',
+    schema: {},
+    schemaName: 'test',
+  });
+  expect(result.ok).toBe(true);
+  if (result.ok)
+    expect(JSON.parse(result.raw.choices[0]!.message.content)).toEqual({
+      selected: ['--model', 'vendor/custom:local'],
+    });
+});
+
 function echoScript(payload: unknown): HostCliTransportConfig {
   return {
     command: NODE,
@@ -64,6 +85,21 @@ describe('extractJsonPayload', () => {
 });
 
 describe('hostCliConfigFromEnv', () => {
+  it('validates explicit model forwarding without changing the legacy argument contract', () => {
+    expect(
+      hostCliConfigFromEnv({
+        ARXIC_MODEL_HOST_CLI: 'agent',
+        ARXIC_MODEL_HOST_CLI_MODEL_ARGS: '["--model","{model}"]',
+      }),
+    ).toEqual({ command: 'agent', modelArgs: ['--model', '{model}'] });
+    for (const value of ['--model {model}', '["--model"]', '[1,"{model}"]', '["prefix{model}"]'])
+      expect(() =>
+        hostCliConfigFromEnv({
+          ARXIC_MODEL_HOST_CLI: 'agent',
+          ARXIC_MODEL_HOST_CLI_MODEL_ARGS: value,
+        }),
+      ).toThrow();
+  });
   it('requires explicit per-image argument configuration without changing text-only argv', () => {
     expect(
       hostCliConfigFromEnv({
