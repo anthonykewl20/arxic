@@ -230,6 +230,18 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
         '04-review-submission-pending',
         'Review settings and submit stay disabled until the enqueue response completes',
       );
+      const pendingSource = await page.locator('[data-review-form]').getAttribute('data-run');
+      await page.getByRole('button', { name: 'Overview', exact: false }).click();
+      await page.locator(`[data-open-run="${pendingSource}"]`).click();
+      expect(await page.getByLabel('Review model', { exact: true }).isDisabled()).toBe(true);
+      expect(await page.getByRole('button', { name: 'Review these pixels' }).isDisabled()).toBe(
+        true,
+      );
+      await page.locator('.review-controls').scrollIntoViewIfNeeded();
+      await proof(
+        '08-pending-review-navigation',
+        'Returning to the source capture preserves pending state and prevents duplicate review submission',
+      );
     } finally {
       releaseReview();
     }
@@ -297,6 +309,29 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     await proof(
       '06-new-session-consent',
       'Signing out clears the unsent review draft and requires fresh screenshot consent',
+    );
+    await page
+      .getByLabel('Independent acceptance criterion', { exact: false })
+      .fill('Expired-session draft');
+    await page.getByLabel('I inspected this screenshot', { exact: false }).check();
+    await page.context().clearCookies();
+    await page.getByLabel('Administrator token').waitFor({ state: 'visible', timeout: 10_000 });
+    await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
+    await page.getByRole('button', { name: 'Open workbench' }).click();
+    await page.locator(`[data-open-run="${sourceRunId}"]`).click();
+    const reviewDetails = page.locator('.review-controls');
+    if (!(await reviewDetails.evaluate((element) => (element as HTMLDetailsElement).open)))
+      await page.getByText('Ask AI to review this screenshot', { exact: true }).click();
+    expect(
+      await page.getByLabel('Independent acceptance criterion', { exact: false }).inputValue(),
+    ).toBe('');
+    expect(await page.getByLabel('I inspected this screenshot', { exact: false }).isChecked()).toBe(
+      false,
+    );
+    await reviewDetails.scrollIntoViewIfNeeded();
+    await proof(
+      '07-expired-session-consent',
+      'An invalidated session clears unsent image consent before a new administrator session',
     );
     expect(errors).toEqual([]);
     if (evidence) {

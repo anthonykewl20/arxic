@@ -104,7 +104,9 @@ Escape closes that menu and returns focus to its toggle. Intent-ledger rows disp
 their recorded line-anchored source references. New discoveries reset old workflow
 selections; mobile source rows stack their evidence fields. Run details, capture
 comparisons, image review and model fields also use React/shadcn. Review settings
-stay disabled during submission, and logout clears unsent drafts and image consent.
+stay disabled during submission even after navigation. Campaign selections use the
+same pending guard. Logout and invalidated sessions clear unsent drafts and image
+consent; late responses cannot redirect a newly authenticated workspace.
 Project filtering hides details belonging to another project. The project form
 retains native dialog behavior and shared API actions.
 

@@ -9,6 +9,9 @@ import {
   updateModelCatalogs,
   reviewDrafts,
   reviewDraftKey,
+  clearPendingRequests,
+  beginPendingRequest,
+  campaignRequestKey,
 } from '/provider-ui.js';
 mountWorkspaceShell(document.querySelector('#workspace-root'));
 const $ = (selector) => document.querySelector(selector);
@@ -46,15 +49,43 @@ async function api(path, method = 'GET', body) {
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const data = await response.json();
+  if (epoch !== sessionEpoch)
+    throw new Error('Request completed in an earlier session. Refresh to view its status.');
   if (!response.ok) {
     if (response.status === 401 && epoch === sessionEpoch) {
       sessionEpoch++;
-      $('#app').hidden = true;
-      $('#login').hidden = false;
+      clearSession();
     }
     throw new Error(data.error ?? 'Request failed');
   }
   return data;
+}
+function clearSession() {
+  state = { projects: [], runs: [], audit: [], baselines: [] };
+  selectedRun = '';
+  selectedProject = '';
+  selectedCampaign = '';
+  editing = '';
+  declarationKind = '';
+  declarationSearch = '';
+  workflowPages.clear();
+  campaignPages.clear();
+  declarationPages.clear();
+  const workspacePanel = $('#workspace-panel-root');
+  const providerPanel = $('#provider-panel-root');
+  if (workspacePanel) unmountWorkspacePanel(workspacePanel);
+  if (providerPanel) unmountProviderPanel(providerPanel);
+  unmountProjectModelControls($('#execution-model-controls'));
+  reviewDrafts.clear();
+  clearPendingRequests();
+  workflowSelections.clear();
+  updateModelCatalogs([]);
+  $('#project-dialog').close();
+  $('#project-form').reset();
+  toggleExecution();
+  $('#content').replaceChildren();
+  $('#app').hidden = true;
+  $('#login').hidden = false;
 }
 function notice(message) {
   $('#notice').textContent = message;
@@ -258,22 +289,7 @@ $('#logout').addEventListener('click', async () => {
   signingOut = true;
   try {
     await api('/session', 'DELETE', {});
-    state = { projects: [], runs: [], audit: [], baselines: [] };
-    selectedRun = '';
-    selectedProject = '';
-    const workspacePanel = $('#workspace-panel-root');
-    const providerPanel = $('#provider-panel-root');
-    if (workspacePanel) unmountWorkspacePanel(workspacePanel);
-    if (providerPanel) unmountProviderPanel(providerPanel);
-    unmountProjectModelControls($('#execution-model-controls'));
-    reviewDrafts.clear();
-    workflowSelections.clear();
-    updateModelCatalogs([]);
-    $('#project-form').reset();
-    toggleExecution();
-    $('#content').replaceChildren();
-    $('#app').hidden = true;
-    $('#login').hidden = false;
+    clearSession();
   } catch (error) {
     notice(error.message);
   } finally {
@@ -397,8 +413,10 @@ document.addEventListener('submit', async (event) => {
   const form = event.target;
   if (!form.dataset.campaignForm) return;
   event.preventDefault();
-  const button = form.querySelector('button[type="submit"]');
-  button.disabled = true;
+  const release = beginPendingRequest(
+    campaignRequestKey(form.dataset.project, form.dataset.discovery),
+  );
+  if (!release) return;
   try {
     const campaign = await api(`/projects/${form.dataset.project}/campaigns`, 'POST', {
       discoveryRunId: form.dataset.discovery,
@@ -406,10 +424,12 @@ document.addEventListener('submit', async (event) => {
     });
     selectedCampaign = campaign.id;
     section = 'campaigns';
+    render();
     await refresh();
   } catch (error) {
     notice(error.message);
-    button.disabled = false;
+  } finally {
+    release();
   }
 });
 document.addEventListener('click', async (event) => {

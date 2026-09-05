@@ -14,6 +14,8 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### Added
 
+- Preserve pending review/campaign submissions across navigation with atomic duplicate guards. Invalidated sessions clear drafts, image consent and selection state; late responses cannot redirect a new administrator session (refs #402).
+
 - React/shadcn run lists, capture comparison, image-review forms and shared provider-driven model fields. Keep review settings disabled during submission, clear unsent drafts/consent on logout and hide selected run details when they do not match the project filter (refs #402).
 
 - React/shadcn intent inventory, source declarations and workflow selection. Restore line-anchored source references for AI intent-ledger rows, stack mobile surface evidence fields and reset selected checkboxes when a new discovery arrives during polling (refs #402).

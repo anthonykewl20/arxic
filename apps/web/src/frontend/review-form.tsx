@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
+import { beginPendingRequest, usePendingRequest } from './pending-requests';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { ModelControls, type RefreshModels } from './model-controls';
@@ -46,9 +47,8 @@ export function ReviewForm({
         open: false,
       },
   );
-  const [pending, setPending] = useState(false);
+  const pending = usePendingRequest(key);
   const [error, setError] = useState('');
-  const submitting = useRef(false);
   const change = (patch: Partial<ReviewDraft>) =>
     setDraft((previous) => {
       const next = { ...previous, ...patch };
@@ -71,9 +71,9 @@ export function ReviewForm({
         aria-busy={pending}
         onSubmit={async (event) => {
           event.preventDefault();
-          if (submitting.current || !draft.inspectedAndAuthorized) return;
-          submitting.current = true;
-          setPending(true);
+          if (!draft.inspectedAndAuthorized) return;
+          const release = beginPendingRequest(key);
+          if (!release) return;
           setError('');
           try {
             await onReview({
@@ -90,8 +90,7 @@ export function ReviewForm({
           } catch (failure) {
             setError(failure instanceof Error ? failure.message : 'Could not submit this review.');
           } finally {
-            submitting.current = false;
-            setPending(false);
+            release();
           }
         }}
       >

@@ -262,3 +262,14 @@ and clears unsent review drafts. Run details honor the selected project filter.
 Server policy and deterministic truth-state assignment remain unchanged.
 
 See [run/review browser proof](../evidence/WEB-402-RUN-REVIEW/summary.md).
+
+## 2026-09-06 dashboard session and request state
+
+A shared pending-request registry uses per-request tokens so presentation remounts
+cannot re-enable duplicate review or campaign submissions. Clearing a session
+invalidates these tokens; an old completion cannot release a newer request with
+the same key. The action layer applies session-epoch validation to all API responses
+before callers can navigate or mutate current dashboard state. Explicit logout
+and unauthorized responses share one cleanup path for drafts, consent, selections,
+model metadata and mounted project controls. Already accepted server jobs continue
+to be retained; rejecting a stale browser response does not cancel a server job.
