@@ -30,7 +30,7 @@ Yes, at integration: next owner-defined patch increment for the newly documented
 - Actual real-engine test: `apps/web/src/compact-visual/real-world.test.ts`.
 - Numerical tests: `scripts/visual-slm/test_train.py` and native Rust tests, executed by `toolchain.test.ts` in CI.
 - Retained proof: `docs/evidence/VISUAL-SLM/summary.md` (prepared after final code capture).
-- Local checks: eight changed-area tests including the existing visual-review UI test; typecheck and full lint passed; license gate rejected zero packages. Current-head CI is pending.
+- Local checks: eight changed-area tests including the existing visual-review UI test; typecheck and full lint passed; license gate rejected zero packages. The final model-failure fallback test additionally passed (14.01 s) after a red-first fix preserving hard findings. Current-head CI is pending.
 - Full-repo format check is rerun after this note. Report its actual last line with the final checks.
 - Deferred: full corpus/quality gates, automatic candidate localization, richer scene/label schemas, deployed service/activation/rollback, actual target VM and human screenshot release inspection. This is not whole-spec completion or permission for GLM handoff.
 

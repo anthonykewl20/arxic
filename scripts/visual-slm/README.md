@@ -10,7 +10,7 @@ This is a runnable **development experiment**, not a production visual oracle or
 - Shared pixel comparison and exactly 96 image/geometry features for explicitly supplied regions.
 - CPU-only logistic and 8,486-parameter MLP training, independent numerical-gradient checks, masked labels and calibration/test separation.
 - Crate-free Rust inference with bounded binary input, shape/finite-value checks, immutable hash-checked model bytes and Python/native score parity.
-- Shadow JSON reports that preserve hard checks, abstain on missing evidence/unsupported heads and cannot report overall pass.
+- Shadow JSON reports that preserve hard checks even when model loading/inference fails, abstain on missing evidence/unsupported heads and cannot report overall pass.
 - A real Chromium workflow capturing Next, Express and Arxic, and an evaluator retaining failures and support counts.
 
 Implementation is in [apps/web/src/compact-visual](../../apps/web/src/compact-visual). Browser capture and provider transport are not reimplemented. The shared image comparison is [visual-pixels.ts](../../apps/web/src/visual-pixels.ts), also used by the existing web visual comparison. No dashboard model switch or automatic baseline/model promotion is added.
