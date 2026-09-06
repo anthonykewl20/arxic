@@ -9,7 +9,7 @@ The dashboard displays `v0.0.200`; the CLI displays the same label and canonical
 
 A tarball built from this revision includes `arxic web`, compiled jobs and prebuilt
 React/CSS assets. Install the tarball with `npm install -g /absolute/path/arxic-0.0.200.tgz`,
-install Chromium using `npx --yes --package=playwright@1.62.1 playwright install chromium`,
+install the selected browsers using `npx --yes --package=playwright@1.62.1 playwright install chromium firefox webkit`,
 and configure the same administrator token and workspace roots shown below before
 running `arxic web`. Startup needs Node 22.22 or newer and the package's native
 SQLite/image dependencies; it does not need the Arxic source checkout, pnpm, tsx or Vite.
@@ -102,9 +102,9 @@ runtime route/state/action outcome and viewport coverage remains unobserved.
 
 Stable visual captures require two consecutive identical PNG captures and matching
 bounded numeric layout observations immediately before/after the final capture. Locale
-`en-US`, timezone UTC, light color scheme, scale 1, reduced motion and browser
-version are controlled. Baselines bind the target, path, viewport, masks,
-platform, browser and capture policy. Keep the execution environment consistent;
+`en-US`, timezone UTC, selected light/dark color scheme, scale 1, reduced motion and browser
+version are controlled. **Capture environments** selects Chromium, Firefox and/or WebKit and light and/or dark. Every selected pair runs at every configured viewport; older projects default to Chromium/light. Install the matching Playwright browsers and system dependencies on the server (see [Playwright browser setup](https://playwright.dev/docs/browsers)). WebKit is Playwright’s engine build, not a claim of real-device Safari coverage. Baselines bind the target, path, viewport, masks,
+platform, browser engine/version, color scheme and capture policy. The legacy Chromium/light spec identity is preserved; another environment cannot reuse its baseline. Keep the execution environment consistent;
 a changed environment requires its own reviewed baseline. The pixel comparator
 uses Pixelmatch's 0.1 per-pixel threshold and reports every differing pixel beyond
 that threshold. It does not silently accept a percentage of changed pixels.
@@ -406,7 +406,7 @@ The authenticated retention API is `GET /api/retention`, `POST /api/retention`
 
 Install the same checkout and dependencies on a dedicated host under a service
 account, with project folders mounted and readable there. On Linux, install
-Chromium system dependencies with the documented Playwright setup for your OS.
+system dependencies for every selected browser with the documented Playwright setup for your OS.
 Use a service manager to keep the installed `arxic web` command running (or `pnpm web` for a source checkout) and provide:
 
 | Variable                  | Purpose                                                            |
@@ -592,3 +592,29 @@ retry. The server checks original visual PNG and assessment hashes through bound
 regular-file reads; symlinks and changed bytes are refused. Workflow image/provenance
 reads share those mechanics. This does not add separate hashes for legacy visual
 difference images or visual privacy sidecars.
+
+## Browser/theme capture matrix
+
+The dashboard accepts distinct selections of one to three browser engines and one
+or both color schemes. The saved project and each run snapshot retain the selection.
+Each capture identifies its environment, and **Visual environments** lists every
+attempted browser/theme pair, its capture count, blocked reason and omitted pages.
+Observed findings are tagged with their environment. An unavailable engine or failed
+cell keeps the aggregate run blocked while successful independent captures remain
+available; it never becomes an implicit pass. Fix the prerequisite and rerun before
+baseline approval.
+
+The 600-checkpoint budget is shared across the entire matrix, not reset per browser.
+Pages are bounded equally per environment/viewport and truncation remains visible.
+Each environment establishes its own authorized sign-in and memory-only session;
+the same origin/mutation/mask policies apply to every browser. Authenticated workflow
+exploration beyond the configured redirect-based sign-in is still a separate gap.
+
+The application-owned capture helper removes only validated sRGB intent and
+full-precision sBIT markers emitted by WebKit. Encoded pixel chunks are unchanged;
+retained files still pass the strict IHDR/IDAT/IEND-only PNG validator. Text metadata,
+malformed markers and all other unexpected chunks remain rejected.
+
+Locale, direction, DPR, zoom, forced colors, OS/device behavior and arbitrary
+interactive-state matrices are not configurable by this slice. Native engine
+comparison does not make pixel differences into semantic defect proof.

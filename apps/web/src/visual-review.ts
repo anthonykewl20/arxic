@@ -37,7 +37,9 @@ export async function reviewImage(
 ) {
   if (
     !/^[a-f0-9-]{36}$/u.test(scope.sourceRunId) ||
-    !/^checkpoint-\d+\.png$/u.test(scope.capture.file)
+    !/^(?:(?:chromium|firefox|webkit)-(?:light|dark)-)?checkpoint-\d+\.png$/u.test(
+      scope.capture.file,
+    )
   )
     throw new HttpError(409, 'Capture integrity check failed');
   const file = join(runsDirectory, scope.sourceRunId, scope.capture.file);

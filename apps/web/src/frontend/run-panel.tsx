@@ -223,6 +223,11 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             <ul>
               {result.findings.map((item, index) => (
                 <li key={`${item.path}:${item.kind}:${index}`}>
+                  {item.environment && (
+                    <>
+                      {item.environment.browser} · {item.environment.colorScheme} ·{' '}
+                    </>
+                  )}
                   {item.path} · {item.kind}: {item.count}
                 </li>
               ))}
@@ -239,6 +244,32 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
         )}
       </div>
       <WorkflowCheckpoints run={run} />
+      {result?.visualEnvironments && (
+        <section aria-label="Visual environments">
+          <h3>Visual environments</h3>
+          <p className="muted">
+            Only the environments below were attempted. Other browsers, themes, locales and
+            interaction states remain uncovered.
+          </p>
+          <ul>
+            {result.visualEnvironments.map((cell) => (
+              <li key={`${cell.browser}-${cell.colorScheme}`}>
+                <strong>
+                  {cell.browser} · {cell.colorScheme}
+                </strong>{' '}
+                <Status value={cell.outcome} /> · {cell.captures} captures
+                {cell.omittedPages ? (
+                  <p>
+                    {cell.omittedPages} pages omitted by the shared capture budget. Coverage is
+                    incomplete.
+                  </p>
+                ) : null}
+                {cell.reason && <p>{cell.reason}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {(result?.captures ?? []).map((capture) => {
         const approved = state.baselines.some(
           (item) => item.run_id === run.id && item.capture_id === capture.id,
@@ -253,6 +284,10 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                     {capture.viewport.width} × {capture.viewport.height}
                   </span>
                 </h3>
+                <p>
+                  {capture.environment?.browser ?? 'chromium'} ·{' '}
+                  {capture.environment?.colorScheme ?? 'light'}
+                </p>
                 <small>
                   Comparison at capture time:{' '}
                   {capture.status === 'needs-baseline' ? (

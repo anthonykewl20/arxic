@@ -131,3 +131,10 @@ The retained projection contains bounded integer codes, with legacy unknown-kind
 coverage and strict screenshot binding. It does not retain semantic names or produce
 replay selectors, and it does not expand the set of hard visual predicates. Real
 reference-app flows and the dashboard's own declared controls are the test inputs.
+
+Browser/theme visual coverage now supports explicit Chromium/Firefox/WebKit ×
+light/dark × configured viewport selections (refs #439). Per-environment outcomes,
+shared-budget omissions and independent baselines prevent an absent cell from
+becoming a pass. Real browser, authenticated reference-app and dashboard proofs
+cover the named matrix. DPR/zoom/locale/OS/device and broad interaction-state
+coverage remain release gaps; #402 stays open.

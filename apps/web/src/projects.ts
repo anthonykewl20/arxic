@@ -56,6 +56,8 @@ export async function validateProject(
     'origin',
     'paths',
     'viewports',
+    'browsers',
+    'colorSchemes',
     'masks',
     'captureConsent',
     'pageMode',
@@ -118,6 +120,26 @@ export async function validateProject(
     )
   )
     throw new HttpError(400, 'Use 1–200 relative page paths without query strings or fragments');
+  const selection = (key: string, choices: readonly string[], fallback: string[]) => {
+    const value = input[key] === undefined ? fallback : input[key];
+    if (
+      !Array.isArray(value) ||
+      !value.length ||
+      value.length > choices.length ||
+      value.some((item) => typeof item !== 'string' || !choices.includes(item)) ||
+      new Set(value).size !== value.length
+    )
+      throw new HttpError(400, `Choose distinct supported visual ${key}`);
+    return choices.filter((item) => value.includes(item));
+  };
+  const browsers = selection(
+    'browsers',
+    ['chromium', 'firefox', 'webkit'],
+    ['chromium'],
+  ) as NonNullable<Project['browsers']>;
+  const colorSchemes = selection('colorSchemes', ['light', 'dark'], ['light']) as NonNullable<
+    Project['colorSchemes']
+  >;
   const masks = strings('masks', [], 20);
   const viewports = input.viewports ?? [
     { width: 1440, height: 900 },
@@ -221,6 +243,8 @@ export async function validateProject(
     origin,
     paths,
     viewports,
+    browsers,
+    colorSchemes,
     masks,
     captureConsent: input.captureConsent === true,
     pageMode: input.pageMode === 'discover' ? 'discover' : 'manual',

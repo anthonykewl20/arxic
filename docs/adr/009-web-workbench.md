@@ -394,3 +394,25 @@ Proof uses actual reference-app captures in both themes, narrow/wide dashboard
 layouts, and actual dashboard native/declared controls. Historical metadata is an
 explicit response-format boundary supplement over unchanged real capture geometry
 and pixels. The installed-browser packaging gate runs these assertions too.
+
+### 2026-09-07 — explicit visual environment matrix (refs #439)
+
+Project admission accepts bounded, distinct browser and color-scheme selections;
+legacy projects default to Chromium/light. Capture orchestration expands the
+browser/theme × viewport matrix, divides the 600-checkpoint budget across it and
+keeps each environment’s failure visible. Per-environment authentication uses its
+own browser/session. The existing capture mechanics, privacy masks, read-only
+network policy, stable scene checks and hard assessment predicates apply unchanged.
+Baselines bind engine and theme; legacy Chromium/light spec identity is preserved.
+
+Browser-generated sRGB and full-precision sBIT PNG markers are validated and removed
+only in the application-owned viewport capture helper. No encoded pixel chunk is
+changed. The strict retained validator still rejects ancillary chunks. This is not
+a change to verifier attestation or generated screenshot policy.
+
+Real reference-app tests exercise all three engines and both themes, independent
+baseline histories, a dark-only regression, authenticated Next.js capture and
+explicit missing-engine boundary failure. Dashboard journeys configure and inspect
+the matrix in both themes and four widths; installed-package CI runs those GUI
+journeys. DPR/zoom/locale/direction/forced-color and arbitrary workflow-state
+coverage remain open. Engine WebKit is not real-device Safari certification.

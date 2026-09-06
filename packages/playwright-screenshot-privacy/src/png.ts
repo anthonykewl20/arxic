@@ -131,3 +131,47 @@ function crc32(bytes: Uint8Array): number {
 function invalid(message: string): never {
   throw new ScreenshotPrivacyError('ARXIC-SCREENSHOT-PNG-INVALID', message);
 }
+
+/** Browser capture normalization only: remove validated sRGB intent and full-precision sBIT markers.
+ * Pixel chunks remain byte-identical; every other ancillary chunk is still rejected.
+ */
+export function normalizeBrowserPng(input: Buffer): Buffer {
+  if (input.length > maximumBytes || !input.subarray(0, 8).equals(signature))
+    invalid('PNG browser capture is outside its bounds');
+  let offset = 8;
+  let count = 0;
+  const markers = new Set<string>();
+  let sawData = false;
+  const chunks = [input.subarray(0, 8)];
+  while (offset < input.length) {
+    if (++count > maximumChunks || offset + 12 > input.length)
+      invalid('PNG browser chunk inventory is invalid');
+    const length = input.readUInt32BE(offset);
+    const end = offset + length + 12;
+    if (end > input.length) invalid('PNG browser chunk is truncated');
+    const type = input.toString('ascii', offset + 4, offset + 8);
+    if (type === 'sRGB' || type === 'sBIT') {
+      const data = input.subarray(offset + 8, offset + 8 + length);
+      const channels = input[25] === 6 ? 4 : input[25] === 2 ? 3 : 0;
+      const valid =
+        type === 'sRGB'
+          ? length === 1 && data[0] <= 3
+          : channels > 0 && length === channels && data.every((value) => value === 8);
+      if (
+        markers.has(type) ||
+        count === 1 ||
+        sawData ||
+        !valid ||
+        crc32(input.subarray(offset + 4, offset + 8 + length)) !==
+          input.readUInt32BE(offset + 8 + length)
+      )
+        invalid('PNG browser color marker is invalid');
+      markers.add(type);
+    } else chunks.push(input.subarray(offset, end));
+    if (type === 'IDAT') sawData = true;
+    offset = end;
+  }
+  const normalized = Buffer.concat(chunks);
+  inspectPng(normalized);
+  return normalized;
+}

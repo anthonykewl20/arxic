@@ -1,3 +1,7 @@
+export type VisualEnvironment = {
+  browser: 'chromium' | 'firefox' | 'webkit';
+  colorScheme: 'light' | 'dark';
+};
 export type RunMode = 'discovery' | 'visual' | 'agent' | 'review';
 /** Form sign-in performed once per visual run; secrets are ARXIC_SECRET_ server variables. */
 export type VisualLogin = {
@@ -14,6 +18,8 @@ export type Project = {
   folder: string;
   origin: string;
   paths: string[];
+  browsers?: VisualEnvironment['browser'][];
+  colorSchemes?: VisualEnvironment['colorScheme'][];
   viewports: Array<{ width: number; height: number }>;
   masks: string[];
   captureConsent: boolean;
@@ -34,6 +40,7 @@ export type Project = {
   createdAt: string;
 };
 export type Capture = {
+  environment?: VisualEnvironment;
   id: string;
   path: string;
   viewport: { width: number; height: number };
@@ -53,6 +60,14 @@ export type Capture = {
   assessmentSha256?: string;
 };
 export type RunResult = {
+  visualEnvironments?: Array<
+    VisualEnvironment & {
+      outcome: 'observed' | 'blocked';
+      captures: number;
+      omittedPages?: number;
+      reason?: string;
+    }
+  >;
   workflowCaptures?: import('./workflow-captures').WorkflowCapture[];
   workflowCaptureGap?: string;
   review?: import('./visual-review').VisualReviewResult;
@@ -66,7 +81,7 @@ export type RunResult = {
   captures?: Capture[];
   /** Paths found by crawling the signed-in app during AI discovery, in discovery order. */
   discoveredPaths?: string[];
-  findings?: Array<{ path: string; kind: string; count: number }>;
+  findings?: Array<{ path: string; kind: string; count: number; environment?: VisualEnvironment }>;
   ledger?: unknown;
   engineRun?: unknown;
 };

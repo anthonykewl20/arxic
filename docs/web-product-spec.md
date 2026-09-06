@@ -101,7 +101,7 @@ never assign `verified` or decide that a visual difference is an accepted change
 | Project configuration      | Folder, target, visual settings, cron; guided provider/model/persona/secret-reference/budget/deployment settings or engine config path                            | Remaining worker controls, storage quotas, richer fixture setup and safe runtime onboarding            |
 | Source discovery           | Route/domain inventory plus JS/TS/JSX/TSX frontend declarations and Markdown/text requirements; line/hash provenance, filtering and explicit file/runtime gaps    | Semantic intent synthesis, richer framework support and source-to-runtime campaign mapping             |
 | AI-assisted E2E            | Guided on-demand campaigns: one serialized engine run per selected source row, full denominator, per-workflow verifier outcomes and restart/cancellation controls | Broader state/persona/flag campaigns, recurring campaigns and independent business acceptance criteria |
-| Visual regression          | Stable viewport captures, redirect sign-in, explicitly approved workflow checkpoint gallery, baseline approval, pixel differences and scoped text contrast        | General authenticated workflow/state coverage, responsive matrices and reviewed baseline lifecycle     |
+| Visual regression          | Browser/theme/viewport capture matrix, redirect sign-in, approved workflow checkpoint gallery, independent baselines, pixel differences and scoped text contrast  | General workflow/state, locale/zoom/OS/device coverage and independent business acceptance             |
 | Frontend findings          | Deterministic layout/error heuristics plus inspected-image AI hypotheses with bounded regions, reproduction, independent criterion/gap and model provenance       | Broader semantic evaluation, authenticated/state coverage and independent confirmation                 |
 | Scheduling                 | Durable serialized UTC cron; pause/resume; missed-slot coalescing                                                                                                 | Campaign/worker coordination, notifications and budget policies                                        |
 | Administration             | Single admin sessions, folder allow-list, audit events, cancellation, protected baseline deletion                                                                 | Role model if multi-user is required; secrets management and operator controls                         |
@@ -137,3 +137,10 @@ Captured-element inspection includes a bounded type filter alongside point/numbe
 selection (refs #437). Older captures remain inspectable with unknown type coverage.
 This browsing aid does not supply semantic names, replay locators or a complete
 accessibility tree, and cannot change deterministic visual verdicts.
+
+Browser/theme visual coverage now supports explicit Chromium/Firefox/WebKit ×
+light/dark × configured viewport selections (refs #439). Per-environment outcomes,
+shared-budget omissions and independent baselines prevent an absent cell from
+becoming a pass. Real browser, authenticated reference-app and dashboard proofs
+cover the named matrix. DPR/zoom/locale/OS/device and broad interaction-state
+coverage remain release gaps; #402 stays open.
