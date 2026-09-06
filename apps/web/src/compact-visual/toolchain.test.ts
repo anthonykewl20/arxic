@@ -16,6 +16,11 @@ it('runs independent numerical gradients and actual native malformed-artifact te
       { timeout: 30000 },
     );
     await execute(
+      process.env.ARXIC_VISUAL_PYTHON ?? 'python3',
+      [join(root, 'scripts/visual-slm/test_ablate.py')],
+      { timeout: 30000 },
+    );
+    await execute(
       process.env.ARXIC_VISUAL_RUSTC ?? 'rustc',
       ['--test', join(root, 'scripts/visual-slm/native.rs'), '-o', join(directory, 'tests')],
       { timeout: 60000 },

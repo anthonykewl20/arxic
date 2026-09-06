@@ -1,6 +1,15 @@
 # VISUAL-SLM-423 — staged doc updates (charter §10.2)
 
-Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted)
+Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration, not implementation)
+
+## Increment 2 — 2026-09-06/07: deterministic failure analysis (refs #423)
+
+- `scripts/visual-slm/ablate.py` + `test_ablate.py` (red-first; the test caught a real missingness-encoding defect in the first mask): feature-lane ablation tool wired into `toolchain.test.ts`.
+- Fresh `cli.ts demo` reproduced the 0/4 held-out miss **byte-identically** (dataset sha `259ca3df…`, all scores/thresholds/parity equal) — the failure is deterministic.
+- Four ablations attributed the miss: image lane alone has no signal; geometry-only still fails; **clip-fraction-only transfers perfectly (4/4, 0 FP)**; current-geometry-only ranks correctly within every app with large margins yet still misses through the Express-calibrated absolute threshold. Causes: single-app training/calibration (primary), per-app geometry fingerprints, linear-baseline underfit at this scale. No threshold loosened; deterministic check stays preferable for this criterion.
+- The original Arxic holdout is now development data; future generalization claims need ≥5 app families and a fresh untouched holdout (WS2 corpus).
+- Evidence: `docs/evidence/VISUAL-SLM/failure-analysis/` (summary.md, analysis.json, five training reports).
+- Docs: spec §17 dated addendum (owner directive: GLM Flash continues implementation; teacher gate unchanged), ADR-010 consequence paragraph, scripts README ablate section.
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
@@ -17,7 +26,7 @@ Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quali
 ## 3. `CHANGELOG.md` — entry under `## [Unreleased]` → `### added`
 
 ```text
-- VISUAL-SLM-423 experimental compact visual-review CLI (refs #423): bounded evidence/features, CPU logistic/MLP training, native parity and hypothesis-only reports; real three-app clipping corpus retains failed learned generalization and explicit promotion/resource gaps. Codex owns implementation; GLM teaching remains deferred.
+- VISUAL-SLM-423 experimental compact visual-review CLI (refs #423): bounded evidence/features, CPU logistic/MLP training, native parity and hypothesis-only reports; real three-app clipping corpus retains failed learned generalization and explicit promotion/resource gaps. Added feature-lane ablation tooling and a deterministic failure analysis attributing the held-out miss to single-application training/calibration plus per-application geometry fingerprints (spec §17 addendum records the owner directive that GLM Flash continues implementation; teacher gate unchanged).
 ```
 
 ## 4. `VERSION` bump required?
