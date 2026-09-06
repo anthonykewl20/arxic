@@ -296,7 +296,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Install target and dashboard browser dependencies
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
       - name: Installed dashboard journeys
         run: node scripts/human-flow-e2e.mjs --dashboard-only --evidence-dir artifacts/dashboard
         env:
