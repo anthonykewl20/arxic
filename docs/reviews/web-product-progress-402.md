@@ -138,3 +138,12 @@ shared-budget omissions and independent baselines prevent an absent cell from
 becoming a pass. Real browser, authenticated reference-app and dashboard proofs
 cover the named matrix. DPR/zoom/locale/OS/device and broad interaction-state
 coverage remain release gaps; #402 stays open.
+
+### Capture gallery navigation (refs #441)
+
+Run captures have combined path/environment/viewport/comparison filters, explicit
+matching counts and six-capture pagination. Original evidence and baseline actions
+retain their identity; environment coverage is never filtered. Real reference-app
+matrix journeys test no matches, keyboard paging, polling, run changes and retained
+baseline comparisons. This expands dashboard usability, not the oracle's detector
+or state coverage. Proof and final CI are recorded in the WEB-441-GALLERY note.

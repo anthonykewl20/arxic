@@ -98,3 +98,13 @@ See [retention setup and limits](../../docs/web-workbench.md#schedules-and-histo
 Capture results label the comparison at capture time separately from current
 baseline approval. Historical image references and results remain unchanged after
 approval or replacement; unavailable baseline/difference images explain why.
+
+## Find captures in a run
+
+**Captured pages** combines path search with browser, theme, viewport and historical
+comparison filters. The matching/total count stays explicit and **Clear capture
+filters** restores the complete list. Each page renders at most six captures;
+keyboard pagination returns focus to the gallery heading. Selections survive polling
+and reset when changing runs. Legacy captures use the documented Chromium/light
+default. Filtering never changes run coverage, comparison history, approval targets
+or image/measurement identities. The environment outcomes remain outside the filters.
