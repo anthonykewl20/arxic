@@ -110,44 +110,72 @@ export async function reviewCase(
   binary: string,
 ) {
   const extracted = await extractCase(root, casePath);
-  const model = validateModel(JSON.parse((await boundedRead(root, modelPath, 65536)).toString()));
-  const artifact = await boundedRead(root, model.artifact.path, 35000);
-  if (sha256(artifact) !== model.artifact.sha256) throw new Error('model-hash-mismatch');
-  const scores = extracted.regions.length
-    ? await nativeScores(
-        binary,
-        artifact,
-        extracted.regions.map((r) => r.values),
-      )
-    : [];
-  const predictions = extracted.regions.flatMap((region, row) =>
-    HEADS.map((head, index) => {
-      const threshold = model.thresholds[index];
-      const eligible =
-        region.usable && region.eligible[index] && model.supported[index] && threshold !== null;
-      return {
-        regionId: region.id,
-        head,
-        score: eligible ? scores[row]![index] : null,
-        decision: eligible && scores[row]![index]! >= threshold! ? 'hypothesis' : 'abstain',
-        reason: !region.usable
-          ? 'masked-region'
-          : !region.eligible[index]
-            ? 'missing-applicability'
-            : !model.supported[index]
-              ? 'unsupported-training-head'
-              : threshold === null
-                ? 'uncalibrated-head'
-                : 'experimental-score',
-      };
-    }),
-  );
-  return {
-    caseId: extracted.caseId,
-    manifestSha256: extracted.manifestSha256,
-    modelSha256: model.artifact.sha256,
-    changedPixels: extracted.changedPixels,
-    coverage: extracted.coverage,
-    ...fuseShadow(extracted.hardChecks, predictions),
-  };
+  try {
+    const model = validateModel(JSON.parse((await boundedRead(root, modelPath, 65536)).toString()));
+    const artifact = await boundedRead(root, model.artifact.path, 35000);
+    if (sha256(artifact) !== model.artifact.sha256) throw new Error('model-hash-mismatch');
+    const scores = extracted.regions.length
+      ? await nativeScores(
+          binary,
+          artifact,
+          extracted.regions.map((r) => r.values),
+        )
+      : [];
+    const predictions = extracted.regions.flatMap((region, row) =>
+      HEADS.map((head, index) => {
+        const threshold = model.thresholds[index];
+        const eligible =
+          region.usable && region.eligible[index] && model.supported[index] && threshold !== null;
+        return {
+          regionId: region.id,
+          head,
+          score: eligible ? scores[row]![index] : null,
+          decision: eligible && scores[row]![index]! >= threshold! ? 'hypothesis' : 'abstain',
+          reason: !region.usable
+            ? 'masked-region'
+            : !region.eligible[index]
+              ? 'missing-applicability'
+              : !model.supported[index]
+                ? 'unsupported-training-head'
+                : threshold === null
+                  ? 'uncalibrated-head'
+                  : 'experimental-score',
+        };
+      }),
+    );
+    return {
+      caseId: extracted.caseId,
+      manifestSha256: extracted.manifestSha256,
+      modelSha256: model.artifact.sha256,
+      modelStatus: 'observed',
+      diagnostic: null as string | null,
+      changedPixels: extracted.changedPixels,
+      coverage: extracted.coverage,
+      ...fuseShadow(extracted.hardChecks, predictions),
+    };
+  } catch (error) {
+    const allowed = new Set([
+      'invalid-model',
+      'model-hash-mismatch',
+      'native-inference-failed',
+      'invalid-features',
+      'invalid-scores',
+      'unsafe-path',
+      'file-bound',
+    ]);
+    const diagnostic =
+      error instanceof Error && allowed.has(error.message)
+        ? error.message
+        : 'model-unavailable-or-invalid';
+    return {
+      caseId: extracted.caseId,
+      manifestSha256: extracted.manifestSha256,
+      modelSha256: null,
+      modelStatus: 'blocked',
+      diagnostic,
+      changedPixels: extracted.changedPixels,
+      coverage: extracted.coverage,
+      ...fuseShadow(extracted.hardChecks, []),
+    };
+  }
 }

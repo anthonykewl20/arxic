@@ -35,9 +35,15 @@ it('rejects altered real screenshots then trains and compares actual native infe
       report.reviews.filter((r) => r.hardChecks.some((h) => h.verdict === 'fail')),
     ).toHaveLength(3);
     await writeFile(join(directory, 'training/mlp.bin'), Buffer.from('altered weights'));
-    await expect(
-      reviewCase(directory, corpus.cases[0]!.manifest, 'mlp-model.json', '/does-not-exist'),
-    ).rejects.toThrow('model-hash-mismatch');
+    const blocked = await reviewCase(
+      directory,
+      corpus.cases[1]!.manifest,
+      'mlp-model.json',
+      '/does-not-exist',
+    );
+    expect(blocked.modelStatus).toBe('blocked');
+    expect(blocked.diagnostic).toBe('model-hash-mismatch');
+    expect(blocked.hardChecks.some((c) => c.verdict === 'fail')).toBe(true);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
