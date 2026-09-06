@@ -66,7 +66,8 @@ console.log(
       case: caseName,
       processPerJob: true,
       coldMs: times[0],
-      p50Ms: (times[Math.floor((times.length - 1) / 2)] + times[Math.ceil((times.length - 1) / 2)]) / 2,
+      p50Ms:
+        (times[Math.floor((times.length - 1) / 2)] + times[Math.ceil((times.length - 1) / 2)]) / 2,
       p95Ms: times[Math.floor((times.length - 1) * 0.95)],
       memoryPeakBytes: Number(cgroup('memory.peak')),
       memoryMax: cgroup('memory.max'),
