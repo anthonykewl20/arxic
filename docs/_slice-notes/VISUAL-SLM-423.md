@@ -1,6 +1,13 @@
 # VISUAL-SLM-423 — staged doc updates (charter §10.2)
 
-Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked)
+Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked; analysis-envelope resource qualification green with explicit scope)
+
+## Increment 5 — 2026-09-06/07: analysis-envelope resource qualification at the corpus-v2 head (refs #423)
+
+- New probes: `intake_probe.mts` (queue mechanics under cgroup), `max_input_probe.mts` (valid case at the exact 2,097,152-pixel intake ceiling through the real review path), `gen_timing_dataset.py` + `test_timing_dataset.py` (deterministic 10,000-row synthetic timing set; valid rows, timing-only, never corpus data; wired into `toolchain.test.ts`). `analysis_probe.mjs` case name parameterized.
+- Retained [resources-v2 evidence](../evidence/VISUAL-SLM/resources-v2/summary.md): constrained containers (256 MiB/1 CPU/no network/64 pids, same image digests as v1 — registry stopped serving digest refs, tags verified locally to those digests, disclosed). Zero OOM everywhere: native kernel p95 1.28 ms / 25.5 MiB; analysis path p95 1.41 s / 105.0 MiB; real-corpus training (179 rows, both models) 9.29 s / 24.1 MiB; 10,000-row timing training 169.5 s total (MLP ≈ 16 s/epoch → ≈ 8 min at 30 epochs, vs the spec ≤ 30-min target) / 87.7 MiB; queue backpressure + idempotence + deadline open-fail 67.4 MiB; max accepted input 1.46 s / 149.6 MiB.
+- Bound enforcement proved live against the probe's own inputs: 2048×2048 rejected (`image-bound`, 4.19 M pixels > ceiling) and a sharp `pHYs` chunk rejected by the screenshot-privacy inspector.
+- Scope unchanged and explicit: analysis-only envelope; no browser/server/OS; no real-VPS claim; warm/cold split, sustained 1,000-job load, OOM-floor sweep and free-reserve admission coupling remain open.
 
 ## Increment 4 — 2026-09-06/07: bounded product-path services — intake, journal recovery, retention, atomic activation (refs #423)
 

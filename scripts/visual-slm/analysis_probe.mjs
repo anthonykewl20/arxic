@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 
+const caseName = process.argv[2] ?? 'arxic-800-clipped.json';
 const times = [];
 for (let i = 0; i < 10; i++) {
   const started = performance.now();
@@ -13,7 +14,7 @@ for (let i = 0; i < 10; i++) {
       '/repo/apps/web/src/compact-visual/cli.ts',
       'review',
       '/data',
-      'arxic-800-clipped.json',
+      caseName,
       'mlp-model.json',
       '/data/visual-native',
     ],
@@ -39,7 +40,7 @@ console.log(
     {
       scope: 'PNG-evidence-to-native-shadow-report plus Node driver; no browser/server/OS',
       jobs: times.length,
-      viewport: [800, 800],
+      case: caseName,
       processPerJob: true,
       p50Ms: (times[4] + times[5]) / 2,
       p95Ms: times[9],
