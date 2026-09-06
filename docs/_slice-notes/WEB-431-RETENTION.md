@@ -1,6 +1,6 @@
 # WEB-431-RETENTION — staged doc updates (charter §10.2)
 
-Issue: #431 · PR: linked from issue #431 · Disposition: local validation in progress; completion requires current-head CI-gated merge.
+Issue: #431 · PR: linked from issue #431 · Disposition: local validation passed; completion requires current-head CI-gated merge.
 
 ## 1. `docs/SYNC.md` — tracker row
 
@@ -36,11 +36,14 @@ merge order. No worktree SYNC/CHANGELOG/VERSION edits.
 - `retention.test.ts`, `retention-recovery.test.ts`, `retention-http.test.ts`:
   supplementary policy, HTTP auth/origin, 251-record bounded-history and partial
   recovery boundaries. These do not substitute for real capture proof.
-- Initial complete retention run: 6 tests / 4 files passed in 31.97 s; a later
-  partial-recovery regression is recorded separately. Full web suite and final
-  evidence/current-head CI are pending at this note's initial revision.
-- Typecheck/lint pass before the partial-recovery refinement; license gate has
-  808 packages, 806 allowed, 2 established exceptions and 0 rejected.
+- Full web suite: 93 tests / 27 files passed in 454.61 s; final committed retention
+  suite: 7 tests / 5 files passed in 34.30 s at `8c9304c`. Separate partial-recovery
+  red/green: zero instead of one reproduced, then passed in 4.18 s.
+- [Retained proof](../evidence/WEB-431-RETENTION/summary.md): 10 agent-viewed masked
+  PNGs and two independently hash-checked sanitized timelines. All ten audit points
+  have zero axe violations/incomplete checks and zero horizontal overflow.
+- Typecheck/lint pass; license gate has 808 packages, 806 allowed, 2 established
+  exceptions and 0 rejected. Full-repo format is rerun after the final note.
 - No raw traces, human screenshot sign-off or full browser/state/role matrix claim.
 
 ## 6. Sad paths proved
@@ -58,3 +61,8 @@ merge order. No worktree SYNC/CHANGELOG/VERSION edits.
 Red-first failures: missing retention action, missing HTTP endpoint, missing panel,
 missing pending-recovery feedback and partial recovery reporting zero instead of
 one. No assertion was loosened. These are scoped behavior checks; #402 stays open.
+
+Known follow-up from screenshot inspection: the historical baseline source view
+shows `Needs-Baseline` / `Awaiting a reviewed baseline` beside its later
+`Approved Baseline` badge. This wording ambiguity needs a separate dashboard
+regression; retained image bytes are correct. Current-head PR CI remains pending.

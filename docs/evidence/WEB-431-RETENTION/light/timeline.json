@@ -1,0 +1,47 @@
+[
+  {
+    "action": "Unavailable retention settings offer retry and no cleanup action",
+    "result": "passed",
+    "screenshot": "01-unavailable.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Preview identifies the expired real run and requires explicit deletion consent",
+    "result": "passed",
+    "screenshot": "02-mobile-preview.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Storage failure shows the pending authorized deletion and recovery instructions",
+    "result": "passed",
+    "screenshot": "03-cleanup-failed.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Cleanup removes one expired run and preserves protected/recent evidence",
+    "result": "passed",
+    "screenshot": "04-cleaned.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Approved real screenshot remains accessible after retention",
+    "result": "passed",
+    "screenshot": "05-baseline.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]
