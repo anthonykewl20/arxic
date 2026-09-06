@@ -336,3 +336,20 @@ bytes under an explicit original-name mapping. Requests reject altered or nonreg
 files. Export failures remain explicit evidence gaps while retaining the deterministic
 engine verdict. This gallery has no baseline approval action and makes no complete
 visual-audit claim. Frozen workflow truth contracts remain unchanged.
+
+## 2026-09-07: opt-in evidence retention (refs #431)
+
+A persisted administrator policy controls age/newest retention and is disabled
+by default. The action layer validates explicit deletion consent, streams whole
+history eligibility and applies bounded cleanup only while execution is idle.
+A single reference projection serves manual deletion and retention, protecting
+current/historical baseline evidence, review sources and campaign sources/children.
+SQLite mechanics live in the retention repository; eligibility and failure
+classification remain actions.
+
+Deletion persists an intent before removing files and then deletes the run record
+and intent in one database transaction. Failed filesystem cleanup stays visible;
+startup resumes authorized intents before any jobs execute. A later policy disable
+stops new selection but does not revoke already authorized deletion. The dashboard
+previews bounded candidate details with complete counts and explains this recovery
+boundary. Disk quotas, SQLite compaction and campaign removal are outside this slice.

@@ -347,10 +347,33 @@ Interrupted running jobs become blocked at restart; queued jobs resume. There is
 no automatic retry of potentially mutating workflows.
 
 Test runs searches all stored SQLite history by project name or run ID, with project, type and status filters and 25-row pages. Section, selected run and search filters persist in the URL for refresh, Back and shared bookmarks. Deleted-run bookmarks return to history with an explanation. Full records remain accessible through the authenticated run endpoint. The application
-does not yet implement automatic retention or a disk quota. Monitor storage.
-An administrator can cancel active jobs and delete terminal run artifacts;
-approved baselines are protected from deletion. Back up the stopped instance's
-entire state directory (including SQLite WAL/SHM if present), not just PNG files.
+supports opt-in retention under **Administration → Evidence retention**. It is disabled
+by default. Set an age limit (1–3650 days) and the newest terminal runs to retain
+per project (1–1000), preview the whole history, then explicitly authorize deletion
+and save. Preview shows total eligibility, protection counts and the next bounded
+batch; it does not delete anything. Unsaved changes disable **Clean up now**.
+
+Enabled retention checks about once a minute while the queue is idle. Each cleanup
+removes at most 50 newly eligible runs. Active runs, current and historical baseline
+references, review sources, campaign discovery sources/children and the configured
+newest runs remain protected. Evidence still referenced by a campaign will not age
+out; campaign removal remains separate work. Manual run deletion uses the same
+reference protections and also waits for an idle queue.
+
+Policy and last cleanup outcome persist in SQLite. Filesystem failure leaves a
+visible failure and durable deletion intent; **Clean up now** retries after storage
+is repaired. Authorized deletions resume at startup, even if the policy was later
+disabled. Recovery must finish before jobs start. Disabling stops new automatic
+deletions; it cannot undo an already authorized deletion. A failed recovery refuses
+startup rather than claiming success. No disk quota or SQLite file compaction is
+implemented. Monitor free space and back up the stopped instance's entire state
+directory (including SQLite WAL/SHM if present), not just PNG files.
+
+The authenticated retention API is `GET /api/retention`, `POST /api/retention`
+(save), `POST /api/retention/preview` (read-only preview), and
+`POST /api/retention/cleanup` (apply saved policy; body `{}`). Policy bodies contain
+`enabled`, `maxAgeDays`, `keepLatest`; saving an enabled policy also requires
+`confirmDeletion: true`. Invalid/extra fields and cross-origin mutations are refused.
 
 ## Server deployment
 
