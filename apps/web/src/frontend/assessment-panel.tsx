@@ -1,3 +1,5 @@
+import { ElementInspector } from './element-inspector';
+import { parseElementScene, type ElementScene } from '../element-scene';
 import { useEffect, useRef, useState } from 'react';
 import type { Capture } from '../types';
 import type { VisualAssessment, VisualCheck } from '../visual-oracle';
@@ -12,8 +14,9 @@ export function AssessmentPanel({
 }: {
   runId: string;
   file?: string;
-  capture?: Pick<Capture, 'file' | 'viewport'>;
+  capture?: Pick<Capture, 'file' | 'viewport' | 'sha256' | 'status'>;
 }) {
+  const [scene, setScene] = useState<ElementScene>();
   const [report, setReport] = useState<VisualAssessment>();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
@@ -56,6 +59,7 @@ export function AssessmentPanel({
       )
         throw new Error('Measurement report format is unsupported.');
       setReport(value.assessment);
+      setScene(capture ? parseElementScene(value, capture) : undefined);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Measurement report unavailable.');
     } finally {
@@ -87,6 +91,19 @@ export function AssessmentPanel({
           <p className="scope-note">
             A pass applies only to the named predicate. Unverified checks require further evidence.
           </p>
+          {capture && !scene && (
+            <Button variant="outline" disabled={pending} onClick={() => void load()}>
+              Retry element measurements
+            </Button>
+          )}
+          {capture && (
+            <ElementInspector
+              scene={scene}
+              capture={capture}
+              runId={runId}
+              checks={report.checks}
+            />
+          )}
           {selected?.region && capture && (
             <figure>
               <figcaption>

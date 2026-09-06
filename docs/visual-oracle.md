@@ -232,3 +232,16 @@ Each applicable result includes observed ratio, threshold, delta, measurement ID
 and a viewport-space region. The dashboard can locate that region on the retained
 masked image. Screenshot/assessment hashes and stable before/after observations
 remain required. Hard numeric failures survive unavailable model/vision checks.
+
+### Captured element inspection
+
+The dashboard projects the numeric element boxes from a screenshot-bound scene
+for point selection, keyboard ID search, pagination and parent navigation. Scene
+validation checks the image binding, viewport, finite/bounded geometry, scan limit,
+unique preorder IDs and parent ordering. Unsupported/unstable scenes remain
+unavailable. Overlapping boxes are ordered by area and then descending preorder ID;
+this ordering is not a paint or hit-testing claim. Text-paint IDs remain a separate
+namespace; the inspector associates checks only by region intersection. No new
+hard, suspect or vision verdict is assigned by selection. Original image retrieval
+uses bounded regular-file reads with the recorded SHA-256 before any outline is
+shown. See [the operator guide](web-workbench.md#inspect-captured-elements).

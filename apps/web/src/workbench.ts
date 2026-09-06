@@ -1,3 +1,4 @@
+import { readEvidenceFile } from './evidence-files';
 import { readWorkflowArtifact } from './workflow-captures';
 import { hostname } from 'node:os';
 import { randomUUID } from 'node:crypto';
@@ -512,12 +513,21 @@ export class Workbench {
       };
     }
     if (!files.has(filename)) throw new HttpError(404, 'Artifact not found');
-    const bytes = await readFile(join(this.directory, 'runs', runId, filename));
+    const path = join(this.directory, 'runs', runId, filename);
+    const image = run?.result?.captures?.find((capture) => capture.file === filename);
     const assessment = run?.result?.captures?.find(
       (capture) => capture.assessmentFile === filename,
     );
-    if (assessment && digest(bytes) !== assessment.assessmentSha256)
-      throw new HttpError(409, 'Assessment integrity check failed');
+    let bytes: Buffer;
+    if (image || assessment) {
+      const evidence = await readEvidenceFile(
+        path,
+        image ? image.sha256 : assessment!.assessmentSha256!,
+        image ? 16 * 1024 * 1024 : 4 * 1024 * 1024,
+      );
+      if (!evidence.ok) throw new HttpError(409, 'Capture evidence integrity check failed');
+      bytes = evidence.bytes;
+    } else bytes = await readFile(path);
     return {
       bytes,
       type: filename.endsWith('.png')

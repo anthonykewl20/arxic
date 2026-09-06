@@ -70,9 +70,9 @@ No tag or release has been published for this expanded web product.
 
 Issue #402 remains in progress. The remaining feature/proof rows above and the
 [human screenshot-inspection gate](../release-gates/screenshot-inspection.md) must
-be satisfied before public release. The next implementation work is recurring
-selected campaigns and their state/persona/flag scope, followed by authenticated
-visual checkpoints and runtime/retention/server-distribution work.
+be satisfied before public release. Selected campaigns and explicitly configured authenticated checkpoint galleries
+are implemented. Remaining work includes broader state/persona/flag coverage,
+runtime/retention/server-distribution proof and the human release gate.
 
 ## Dashboard production audit (2026-09-06)
 
@@ -92,3 +92,14 @@ are unavailable with retry feedback. This closes the authenticated checkpoint
 visibility gap for explicitly configured workflows, not general state exploration,
 optical/heuristic completeness or the full cross-browser matrix. Evidence and CI
 results are recorded in the WEB-427-CHECKPOINTS slice note.
+
+### Captured element inspector (refs #429)
+
+The dashboard now binds numeric element inspection to the retained screenshot:
+point picking, keyboard ID search, pagination, parent navigation and existing
+measurement references. Malformed/unstable/unbound geometry remains unavailable;
+changed or symlinked original PNGs are refused. The desktop topbar scrolls normally
+to avoid obscuring report actions. Check details use a keyboard-accessible disclosure
+and search feedback stays above the input. [Proof](../evidence/WEB-429-ELEMENTS/summary.md)
+records exact real-app geometry comparisons, light/dark desktop/mobile journeys and
+remaining coverage. This is not semantic locator discovery or full heuristic certification.

@@ -1,3 +1,4 @@
+import { inspectCapturedElements } from './element-inspector-proof';
 import sharp from 'sharp';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
@@ -164,8 +165,48 @@ it.each(['light', 'dark'] as const)(
       await page.getByText('Measured checks and coverage', { exact: true }).click();
       await page.getByRole('button', { name: 'Retry measurements' }).waitFor();
       await page.unroute('**/*.assessment.json');
+      await page.route('**/*.assessment.json', async (route) => {
+        const response = await route.fetch();
+        const report = await response.json();
+        report.scene.nodes.push(report.scene.nodes[0]);
+        await route.fulfill({ response, json: report });
+      });
       await page.getByRole('button', { name: 'Retry measurements' }).click();
+      await page
+        .getByText(
+          'Element geometry is unavailable, unstable, or outside the supported bounds. Run a fresh visual capture to inspect elements.',
+          { exact: true },
+        )
+        .waitFor();
+      expect(
+        await page.getByRole('button', { name: 'Inspect captured elements', exact: true }).count(),
+      ).toBe(0);
+      await capture(
+        '14-invalid-element-geometry',
+        'Duplicate captured element IDs disable inspection',
+      );
+      await page.unroute('**/*.assessment.json');
+      await page.route('**/*.assessment.json', async (route) => {
+        const response = await route.fetch();
+        const report = await response.json();
+        report.assessment.screenshotSha256 = '0'.repeat(64);
+        await route.fulfill({ response, json: report });
+      });
+      await page.getByRole('button', { name: 'Retry element measurements' }).click();
+      await expect
+        .poll(() => page.getByRole('button', { name: 'Retry element measurements' }).isEnabled())
+        .toBe(true);
+      expect(
+        await page.getByRole('button', { name: 'Inspect captured elements', exact: true }).count(),
+      ).toBe(0);
+      await capture(
+        '15-unbound-element-geometry',
+        'Mismatched screenshot binding disables inspection',
+      );
+      await page.unroute('**/*.assessment.json');
+      await page.getByRole('button', { name: 'Retry element measurements' }).click();
       await page.getByText('document-horizontal-overflow', { exact: true }).waitFor();
+      await inspectCapturedElements(page, target.origin, theme);
       await page.route('**/artifacts/checkpoint-1.png', (route) =>
         route.fulfill({ status: 503, body: 'Unavailable' }),
       );

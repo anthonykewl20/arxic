@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
@@ -137,7 +137,21 @@ it('blocks unapproved capture, then detects a real frontend regression without r
   expect(wb.store.baseline(project.id, capture.specHash)?.run_id).toBe(first.id);
   const timeline = await readFile(join(state, 'runs', third.id, 'timeline.json'), 'utf8');
   expect(timeline).not.toContain('cookie');
-  await writeFile(join(state, 'runs', third.id, result.captures![0].file), 'tampered image');
+  const imagePath = join(state, 'runs', third.id, result.captures![0].file);
+  const imageBytes = (await wb.artifact(third.id, result.captures![0].file)).bytes;
+  const backup = join(state, 'same-image.png');
+  await writeFile(backup, imageBytes);
+  await rm(imagePath);
+  await symlink(backup, imagePath);
+  await expect(wb.artifact(third.id, result.captures![0].file)).rejects.toThrow('integrity');
+  await rm(imagePath);
+  await writeFile(imagePath, 'tampered image');
+  expect(
+    await wb.artifact(third.id, result.captures![0].file).then(
+      () => 200,
+      (error) => error.status,
+    ),
+  ).toBe(409);
   await expect(wb.approveBaseline(third.id, result.captures![0].id)).rejects.toThrow('integrity');
   expect(wb.store.baseline(project.id, capture.specHash)?.run_id).toBe(first.id);
   await wb.saveProject(

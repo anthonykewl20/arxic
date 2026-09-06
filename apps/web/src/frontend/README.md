@@ -25,3 +25,10 @@ The measurement inspector shows solid-paint contrast ratios and unverified appli
 selectors or script. `workflow-checkpoints.tsx` renders authenticated workflow
 checkpoint copies with explicit loading/error/retry states, full-size links and
 privacy provenance. These images have no visual baseline approval control.
+
+`element-inspector.tsx` displays the validated, screenshot-bound numeric projection
+from `element-scene.ts`. It maps responsive preview coordinates to the original CSS
+viewport and provides keyboard search/list/parent alternatives. Geometry selection
+does not alter solver verdicts or infer paint order. Image errors disable picking;
+malformed/unstable scenes remain unavailable. The desktop topbar scrolls with the
+page so it cannot cover actions during report inspection.
