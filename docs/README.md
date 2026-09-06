@@ -25,6 +25,8 @@ See the [release policy](./RELEASE_POLICY.md) and
 
 ## Other documentation
 
+- [Compact visual-model specification](./visual-small-model-spec.md) — proposed Arxic-owned model, CPU training, small-VPS constraints and deferred GLM teaching; no deployment or training claim.
+
 - [Release policy](./RELEASE_POLICY.md) — public-surface, support, and
   deprecation commitments.
 - [Screenshot inspection release gate](./release-gates/screenshot-inspection.md)

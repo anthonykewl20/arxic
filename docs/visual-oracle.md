@@ -3,6 +3,8 @@
 Owner direction: 2026-09-06. Tracker: [#402](https://github.com/anthonykewl20/arxic/issues/402).
 This specifies the target product, not a claim that the implementation already covers it.
 
+The [compact visual-model proposal](./visual-small-model-spec.md) specifies a narrow CPU-trained assistant for six defect families under a small-VPS resource target. It preserves this contract's hard-check authority and coverage gaps; it does not replace the full taxonomy or establish implemented model coverage. Codex builds and evaluates the foundation before optional GLM teaching.
+
 ## Product boundary
 
 Discover the product, exercise reachable states, capture pictures and read-only

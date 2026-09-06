@@ -19,6 +19,8 @@ boundary. Dashboard version labels use `v0.0.200`; canonical package versions ar
 
 The [full visual-auditor contract](docs/visual-oracle.md) defines the requested discovery, state, geometry, typography, accessibility, heuristic and platform scope. Visual captures now retain numeric layout assessments with explicit unverified families; this is the evidence foundation, not complete visual-audit coverage.
 
+The proposed [compact visual-model specification](docs/visual-small-model-spec.md) defines CPU training, a 512 MiB analysis target, and measured quality/resource gates. Codex builds the working foundation before any optional GLM teaching. This is a specification, not an implemented or trained detector.
+
 The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
 Test runs now searches all stored history with project/type/status filters and bookmarkable URLs. Capture details expose numeric measurements and explicit coverage gaps. The dashboard includes responsive themes, keyboard navigation and [real-browser UX audit evidence](docs/evidence/WEB-402-DASHBOARD-UX/summary.md). Continuous unmasked video is unavailable; masked screenshots and sanitized action timelines provide recording evidence.
