@@ -22,8 +22,12 @@ it.each(['light', 'dark'] as const)(
     const target = await bootFixtureApp(root, vulnerableAuthApp, 'capture-gallery');
     let changed = false;
     // Controlled regression of the real reference response, not a synthetic UI oracle.
-    const proxy = createServer(async (_req, res) => {
-      const html = await (await fetch(target.origin)).text();
+    const proxy = createServer(async (req, res) => {
+      const upstream = await fetch(
+        req.url === '/missing' ? `${target.origin}/missing` : target.origin,
+      );
+      const html = await upstream.text();
+      res.statusCode = upstream.status;
       res.setHeader('Content-Type', 'text/html');
       res.end(
         html.replace(
@@ -278,6 +282,57 @@ it.each(['light', 'dark'] as const)(
       await page.getByText('12 matching captures of 12', { exact: true }).waitFor();
       expect(await page.getByLabel('Capture browser', { exact: true }).inputValue()).toBe('');
       expect((await readRun(first.id)).result).toEqual(first.result);
+      const blockedProjectResponse = await page.request.post(`${app.origin}/api/projects`, {
+        headers: { origin: app.origin },
+        data: {
+          name: 'Missing-page gallery',
+          folder: root,
+          origin: project.origin,
+          captureConsent: true,
+          browsers: ['chromium', 'firefox', 'webkit'],
+          colorSchemes: ['light', 'dark'],
+          paths: ['/', '/missing'],
+          viewports: [{ width: 800, height: 600 }],
+        },
+      });
+      expect(blockedProjectResponse.status()).toBe(201);
+      const blockedProject = await blockedProjectResponse.json();
+      const blockedResponse = await page.request.post(
+        `${app.origin}/api/projects/${blockedProject.id}/runs`,
+        {
+          headers: { origin: app.origin },
+          data: { mode: 'visual' },
+        },
+      );
+      expect(blockedResponse.status()).toBe(202);
+      const blockedId = (await blockedResponse.json()).id;
+      await expect
+        .poll(async () => (await readRun(blockedId)).state, { timeout: 90000 })
+        .toBe('blocked');
+      const blockedRun = await readRun(blockedId);
+      expect(blockedRun.result!.captures).toHaveLength(6);
+      expect(
+        blockedRun.result!.visualEnvironments!.every((cell) => cell.outcome === 'blocked'),
+      ).toBe(true);
+      await page.goto(`${app.origin}?view=runs&run=${blockedId}`);
+      await page.getByLabel('Search capture paths').fill('/missing');
+      await page.getByText('0 matching captures of 6', { exact: true }).waitFor();
+      const blockedCells = await page
+        .getByRole('region', { name: 'Visual environments', exact: true })
+        .locator('li')
+        .allTextContents();
+      expect(blockedCells).toHaveLength(6);
+      expect(blockedCells.every((text) => /blocked/i.test(text))).toBe(true);
+      expect(await page.locator('.capture').count()).toBe(0);
+      await audit(
+        '07-blocked',
+        'No-match filtering preserves all six real missing-page blocked outcomes',
+      );
+      await page.getByRole('button', { name: 'Clear capture filters', exact: true }).click();
+      expect(await page.locator('.capture').count()).toBe(6);
+      expect(
+        await page.getByRole('button', { name: 'Approve as baseline', exact: true }).count(),
+      ).toBe(0);
       expect(errors).toEqual([]);
       if (process.env.ARXIC_GALLERY_EVIDENCE_DIR) {
         await writeFile(
@@ -299,6 +354,10 @@ it.each(['light', 'dark'] as const)(
                 (c) => c.environment?.colorScheme === 'light' && c.status === 'unchanged',
               ).length,
               pageErrors: errors.length,
+              blockedEnvironments: blockedRun.result!.visualEnvironments!.filter(
+                (cell) => cell.outcome === 'blocked',
+              ).length,
+              preservedBlockedRunCaptures: blockedRun.result!.captures!.length,
             },
             null,
             2,

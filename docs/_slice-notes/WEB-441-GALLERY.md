@@ -45,3 +45,8 @@ Mobile keyboard navigation also reproduced a heading hidden beneath the 65px sti
 header. Token-based scroll clearance preserves visibility; the exact measured
 heading-versus-header inequality remains. A first 64px clearance was insufficient
 and was corrected without relaxing that assertion.
+
+A real reference-app 404 additionally proves filtering does not hide the six blocked
+environment outcomes. Clearing a no-match filter restores six preserved captures;
+blocked runs expose no baseline-approval action. This uses real engines and the
+reference server's missing-page response, not a simulated launch failure.
