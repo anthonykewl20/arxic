@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Close modal restores focus; forced colors reflow",
+    "result": "failed",
+    "screenshot": "390-forced-colors.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

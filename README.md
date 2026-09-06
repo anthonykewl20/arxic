@@ -9,7 +9,7 @@ Self-hosted frontend testing workbench for source-intent discovery, AI-assisted
 E2E, visual regression review, scheduled runs, and project administration.
 
 The web workbench includes real source scanning with frontend declarations and coverage gaps, an existing AI/replay
-engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, Chromium screenshot comparisons, on-demand selected-workflow campaigns and a management dashboard. The full
+engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, browser/theme screenshot comparisons, on-demand selected-workflow campaigns and a management dashboard. The full
 product remains in development: authenticated visual states and comprehensive
 frontend state/intent campaigns are tracked in [#402](https://github.com/anthonykewl20/arxic/issues/402).
 Contributor setup and CI native-build details are in [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -156,4 +156,4 @@ WebKit × light/dark × configured viewports, with environment-specific baseline
 explicit blocked environments and a shared capture budget. See the
 [dashboard setup and scope](docs/web-workbench.md#browsertheme-capture-matrix).
 
-Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](docs/web-workbench.md#dashboard-browser-verification) records engine provenance; expanded cross-browser validation is in progress in #443.
+Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](docs/web-workbench.md#dashboard-browser-verification) records engine provenance. [Dashboard proof](docs/evidence/WEB-443-BROWSERS/summary.md) documents the UX fixes, measured checks and remaining coverage boundaries; PR #444 tracks final installed CI acceptance.

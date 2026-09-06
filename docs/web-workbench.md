@@ -665,6 +665,4 @@ checks are marked unverified in timelines.
 Named masked screenshots and sanitized timelines record actual browser versions
 in adjacent provenance. Accessibility checks retain incomplete results. Desktop
 WebKit automation is not real-device Safari proof, and automated checks do not
-replace human visual/release inspection. Cross-browser validation for this
-expansion is in progress under issue #443; no blanket production-readiness claim
-is made.
+replace human visual/release inspection. The [retained dashboard proof](./evidence/WEB-443-BROWSERS/summary.md) documents source-picker stability, measurement reveal/retry, forced-color fixes and the 18-test installed contract. [PR #444 checks](https://github.com/anthonykewl20/arxic/pull/444/checks) track final installed acceptance. Incomplete contrast and transient-frame causality remain explicit gaps; no blanket production-readiness claim is made.

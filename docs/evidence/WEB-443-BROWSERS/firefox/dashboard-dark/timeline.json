@@ -1,0 +1,20 @@
+[
+  {
+    "action": "Real source scanner reported login surface and source evidence",
+    "result": "passed",
+    "screenshot": "03-intent-inventory.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Guided settings persist after save and fit the mobile dialog",
+    "result": "passed",
+    "screenshot": "12-mobile-guided-settings.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

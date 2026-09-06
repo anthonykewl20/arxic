@@ -109,4 +109,4 @@ and reset when changing runs. Legacy captures use the documented Chromium/light
 default. Filtering never changes run coverage, comparison history, approval targets
 or image/measurement identities. The environment outcomes remain outside the filters.
 
-Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](../../docs/web-workbench.md#dashboard-browser-verification) records engine provenance; expanded cross-browser validation is in progress in #443.
+Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](../../docs/web-workbench.md#dashboard-browser-verification) records engine provenance. [Dashboard proof](../../docs/evidence/WEB-443-BROWSERS/summary.md) documents the UX fixes, measured checks and remaining coverage boundaries; PR #444 tracks final installed CI acceptance.

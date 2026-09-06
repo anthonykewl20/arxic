@@ -1,0 +1,47 @@
+[
+  {
+    "action": "Navigate to overview at 1440px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-light-overview.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to providers at 320px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-dark-providers.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Open project wizard; Tab remains in modal",
+    "result": "passed",
+    "screenshot": "390-dark-project-dialog.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Close modal restores focus; forced colors reflow",
+    "result": "passed",
+    "screenshot": "390-forced-colors.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "401 search response returns to login without stale dashboard or script errors",
+    "result": "passed",
+    "screenshot": "expired-search-session.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

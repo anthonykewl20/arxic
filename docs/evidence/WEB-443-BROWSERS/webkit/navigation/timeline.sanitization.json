@@ -1,0 +1,13 @@
+{
+  "sha256": "7119d95e02573cee6147d7b91f962d5a4e283abd0d1d8eaf7331106c37edb07b",
+  "method": "allow-listed test annotations, viewport and result; no DOM/network/field payloads",
+  "rawTraceRetained": false,
+  "sourceCommit": "442b44721f78241fdcff6ca47db35187aa4eab0c",
+  "browser": {
+    "name": "webkit",
+    "version": "26.5"
+  },
+  "dirty": false,
+  "originalTimelineSha256": "cb8ce0fa1eeabece25c19f381cda2bc1344db3992e09d37d21924ae52aa44079",
+  "selection": "Exact original entries for the named retained screenshots; other original test points omitted. No actions or results rewritten."
+}

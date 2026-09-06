@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Picked bounds exactly match an independently measured real-app heading",
+    "result": "passed",
+    "screenshot": "03-picked-heading.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]
