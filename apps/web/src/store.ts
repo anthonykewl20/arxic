@@ -4,6 +4,9 @@ import { chmod, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Campaign, Project, Run, RunResult } from './types';
 
+const summaryProjection =
+  "json_remove(data, '$.result.inventory', '$.result.workflowRows', '$.result.frontend', '$.result.manifest', '$.result.ledger', '$.result.engineRun', '$.result.diagnostics')";
+
 export class Store {
   private constructor(readonly db: Database.Database) {}
   static async open(directory: string) {
@@ -30,8 +33,57 @@ export class Store {
   }
   summaries(): Array<Run & { hasInventory: boolean; hasLedger: boolean }> {
     return this.documents(
-      `SELECT json_set(json_remove(data, '$.result.inventory', '$.result.workflowRows', '$.result.frontend', '$.result.manifest', '$.result.ledger', '$.result.engineRun', '$.result.diagnostics'), '$.hasInventory', json_type(data, '$.result.inventory') IS NOT NULL, '$.hasLedger', json_type(data, '$.result.ledger') IS NOT NULL) AS data FROM runs ORDER BY rowid DESC LIMIT 200`,
+      `SELECT json_set(${summaryProjection}, '$.hasInventory', json_type(data, '$.result.inventory') IS NOT NULL, '$.hasLedger', json_type(data, '$.result.ledger') IS NOT NULL) AS data FROM runs ORDER BY rowid DESC LIMIT 200`,
     );
+  }
+  searchRuns(input: {
+    query: string;
+    project: string;
+    mode: string;
+    status: string;
+    limit: number;
+    offset: number;
+  }) {
+    const clauses: string[] = [];
+    const args: string[] = [];
+    if (input.project) {
+      clauses.push('project_id = ?');
+      args.push(input.project);
+    }
+    if (input.mode) {
+      clauses.push("json_extract(data, '$.mode') = ?");
+      args.push(input.mode);
+    }
+    if (input.status) {
+      clauses.push('state = ?');
+      args.push(input.status);
+    }
+    if (input.query) {
+      clauses.push(
+        "(instr(lower(json_extract(data, '$.project.name')), lower(?)) > 0 OR instr(lower(id), lower(?)) > 0)",
+      );
+      args.push(input.query, input.query);
+    }
+    const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    const total = (
+      this.db.prepare(`SELECT count(*) AS count FROM runs ${where}`).get(...args) as {
+        count: number;
+      }
+    ).count;
+    const offset = total
+      ? Math.min(input.offset, Math.floor((total - 1) / input.limit) * input.limit)
+      : 0;
+    const rows = this.db
+      .prepare(
+        `SELECT ${summaryProjection} AS data FROM runs ${where} ORDER BY rowid DESC LIMIT ? OFFSET ?`,
+      )
+      .all(...args, input.limit, offset) as Array<{ data: string }>;
+    return {
+      runs: rows.map((row) => JSON.parse(row.data) as Run),
+      total,
+      offset,
+      limit: input.limit,
+    };
   }
   project(id: string): Project | undefined {
     return this.document<Project>('SELECT data FROM projects WHERE id = ?', id);

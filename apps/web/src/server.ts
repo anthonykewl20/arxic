@@ -2,6 +2,7 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { frontendAssets } from './frontend-assets';
 import { providerSetup } from './provider-presets';
+import { searchRunHistory } from './run-history';
 import { Workbench } from './workbench';
 import { HttpError } from './errors';
 import { cloneRepository, detectProject, listFolders } from './workspace';
@@ -140,6 +141,12 @@ export async function startWorkbench(options: WorkbenchOptions) {
         providerSetup,
       });
     }
+    if (path === '/api/runs' && request.method === 'GET')
+      return json(
+        response,
+        200,
+        searchRunHistory(workbench.store, new URL(request.url ?? '/', origin).searchParams),
+      );
     const catalogRoute = /^\/api\/model-connections\/([a-z][a-z0-9-]{0,39})\/refresh$/u.exec(path);
     if ((catalogRoute || path === '/api/model-connections/refresh') && request.method === 'POST') {
       await refreshModelCatalog(catalogRoute?.[1] ?? '');

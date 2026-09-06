@@ -1,5 +1,5 @@
 import { sha256 as digest } from '@arxic/contracts';
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import sharp from 'sharp';
@@ -18,7 +18,7 @@ async function openContext(
   browser: Browser,
   project: Project,
   viewport: { width: number; height: number },
-  options: { storageState?: StorageState; allowMutations?: boolean; videoDirectory?: string },
+  options: { storageState?: StorageState; allowMutations?: boolean },
 ) {
   const context = await browser.newContext({
     viewport,
@@ -29,9 +29,6 @@ async function openContext(
     reducedMotion: 'reduce',
     serviceWorkers: 'block',
     ...(options.storageState ? { storageState: options.storageState } : {}),
-    ...(options.videoDirectory
-      ? { recordVideo: { dir: options.videoDirectory, size: viewport } }
-      : {}),
   });
   const counters = { denied: 0 };
   await context.route('**/*', async (route) => {
@@ -193,13 +190,17 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
       summary:
         'Set a target origin and confirm that screenshot capture is authorized for test data.',
     };
+  if (project.recordVideo)
+    return {
+      outcome: 'blocked',
+      summary:
+        'Unmasked video recording is unavailable. Turn off video to use masked screenshots and the sanitized action timeline.',
+    };
   const browser = await chromium.launch({ headless: true });
   const captures: Capture[] = [];
   const findings: NonNullable<RunResult['findings']> = [];
   let blocked = false;
   const timeline: Timeline = [];
-  const videoDirectory = join(directory, 'video');
-  if (project.recordVideo) await mkdir(videoDirectory, { recursive: true, mode: 0o700 });
   const writeTimeline = async () => {
     const bytes = JSON.stringify(timeline);
     await writeFile(join(directory, 'timeline.json'), bytes, { mode: 0o600 });
@@ -259,7 +260,6 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
       for (const path of paths) {
         const { context, counters } = await openContext(browser, project, viewport, {
           storageState,
-          videoDirectory: project.recordVideo ? videoDirectory : undefined,
         });
         let networkErrors = 0;
         let scriptErrors = 0;
@@ -339,6 +339,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
               platform: process.platform,
               policy: 'web-visual-v1-input-masks',
               authenticated: !!storageState,
+              login: project.login ?? null,
             }),
           );
           await writeFile(join(directory, file), bytes, { mode: 0o600 });
@@ -411,24 +412,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
             result: 'blocked',
           });
         } finally {
-          const video = page.video();
           await context.close();
-          if (video && captures.length) {
-            const capture = captures[captures.length - 1];
-            if (capture.path === path && !capture.videoFile) {
-              const file = `${capture.id}.webm`;
-              try {
-                await rename(await video.path(), join(directory, file));
-                capture.videoFile = file;
-                timeline.push({
-                  action: 'video-recorded-unmasked',
-                  checkpoint: captures.length - 1,
-                });
-              } catch {
-                findings.push({ path, kind: 'video-recording-failed', count: 1 });
-              }
-            }
-          }
         }
       }
     await writeTimeline();

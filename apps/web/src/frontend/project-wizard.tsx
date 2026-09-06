@@ -84,7 +84,7 @@ export function projectBody(values: FormData) {
   body.paused = values.has('paused');
   body.captureConsent = values.has('captureConsent');
   body.pageMode = values.get('pageMode') === 'discover' ? 'discover' : 'manual';
-  body.recordVideo = values.has('recordVideo');
+  body.recordVideo = false;
   body.maxPages = Number(values.get('maxPages') ?? 50);
   body.maxDepth = Number(values.get('maxDepth') ?? 3);
   if (values.has('loginEnabled'))
@@ -226,7 +226,7 @@ function SourceStep({
                 />
               </span>
             </Label>
-            <div className="picker" role="listbox" aria-label="Workspace folders">
+            <div className="picker" role="group" aria-label="Workspace folders">
               {folders === null ? (
                 <div className="picker-empty">Loading folders…</div>
               ) : folders.length === 0 ? (
@@ -239,8 +239,6 @@ function SourceStep({
                     type="button"
                     key={item.path}
                     className="picker-row"
-                    role="option"
-                    aria-selected={folder === item.path}
                     aria-pressed={folder === item.path}
                     onClick={() => setFolder(item.path)}
                   >
@@ -654,11 +652,10 @@ function SettingsStep({
               </Select>
             </Label>
             <Checkbox name="paused" defaultChecked={seed.paused} label="Pause scheduled runs" />
-            <Checkbox
-              name="recordVideo"
-              defaultChecked={seed.recordVideo}
-              label="Record a video of each capture session (WebM). Privacy masks do not apply to video; inspect before sharing."
-            />
+            <p className="muted">
+              Every visual run records named masked screenshots and a sanitized action timeline.
+              Continuous video is unavailable until capture-time redaction is supported.
+            </p>
           </div>
         </details>
         <Checkbox

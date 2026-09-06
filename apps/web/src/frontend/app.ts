@@ -1,3 +1,4 @@
+import { trapDialogTab } from './dialog-focus';
 /** Dashboard actions: session, polling, navigation, dialogs. Presentation lives in the React panels. */
 import { mountProviderPanel, unmountProviderPanel } from './provider-panel';
 import { mountWorkspaceShell } from './workspace-shell';
@@ -37,6 +38,10 @@ let section = 'overview';
 let selectedProject = '';
 let selectedRun = '';
 let selectedCampaign = '';
+let runSearch = '';
+let runModeFilter = '';
+let runStatusFilter = '';
+let runOffset = 0;
 const workflowSelections = new Map<string, Set<string>>();
 const workflowPages = new Map<string, number>();
 const campaignPages = new Map<string, number>();
@@ -61,6 +66,17 @@ function readLocation() {
   selectedProject = id('project');
   selectedRun = section === 'runs' ? id('run') : '';
   selectedCampaign = section === 'campaigns' ? id('campaign') : '';
+  runSearch = (params.get('query') ?? '').slice(0, 200);
+  runModeFilter = ['discovery', 'visual', 'agent', 'review'].includes(params.get('mode') ?? '')
+    ? params.get('mode')!
+    : '';
+  runStatusFilter = ['queued', 'running', 'completed', 'blocked', 'cancelled'].includes(
+    params.get('status') ?? '',
+  )
+    ? params.get('status')!
+    : '';
+  const offset = Number(params.get('offset') ?? 0);
+  runOffset = Number.isSafeInteger(offset) && offset >= 0 && offset <= 1_000_000 ? offset : 0;
 }
 function writeLocation() {
   const url = new URL(location.href);
@@ -68,17 +84,27 @@ function writeLocation() {
   url.hash = '';
   if (section !== 'overview') url.searchParams.set('view', section);
   if (selectedProject) url.searchParams.set('project', selectedProject);
-  if (section === 'runs' && selectedRun) url.searchParams.set('run', selectedRun);
-  if (section === 'campaigns' && selectedCampaign) url.searchParams.set('campaign', selectedCampaign);
+  if (section === 'runs') {
+    if (selectedRun) url.searchParams.set('run', selectedRun);
+    if (runSearch) url.searchParams.set('query', runSearch);
+    if (runModeFilter) url.searchParams.set('mode', runModeFilter);
+    if (runStatusFilter) url.searchParams.set('status', runStatusFilter);
+    if (runOffset) url.searchParams.set('offset', String(runOffset));
+  }
+  if (section === 'campaigns' && selectedCampaign)
+    url.searchParams.set('campaign', selectedCampaign);
   if (url.href !== location.href) history.pushState(null, '', url);
   document.title = `${titles[section]} · Arxic`;
 }
+projectDialog().addEventListener('keydown', trapDialogTab);
+agentDialog().addEventListener('keydown', trapDialogTab);
 readLocation();
 window.addEventListener('popstate', () => {
   readLocation();
-  void refresh().then(() => $('#page-title').focus()).catch((error) => notice(error.message));
+  void refresh()
+    .then(() => $('#page-title').focus())
+    .catch((error) => notice(error.message));
 });
-
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function api(path: string, method = 'GET', body?: unknown): Promise<any> {
@@ -96,7 +122,7 @@ async function api(path: string, method = 'GET', body?: unknown): Promise<any> {
       sessionEpoch++;
       clearSession();
     }
-    throw new Error(data.error ?? 'Request failed');
+    throw Object.assign(new Error(data.error ?? 'Request failed'), { status: response.status });
   }
   return data;
 }
@@ -113,6 +139,10 @@ function clearSession() {
   selectedRun = '';
   selectedProject = '';
   selectedCampaign = '';
+  runSearch = '';
+  runModeFilter = '';
+  runStatusFilter = '';
+  runOffset = 0;
   declarationKind = '';
   declarationSearch = '';
   workflowPages.clear();
@@ -146,6 +176,23 @@ async function refresh() {
   const sequence = ++refreshSequence;
   const snapshot = await api('/state');
   if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
+  if (section === 'runs') {
+    const params = new URLSearchParams({
+      query: runSearch,
+      mode: runModeFilter,
+      status: runStatusFilter,
+      project: selectedProject,
+      offset: String(runOffset),
+      limit: '25',
+    });
+    snapshot.runHistory = await api(`/runs?${params}`);
+    if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
+    runOffset = snapshot.runHistory.offset;
+    for (const run of snapshot.runHistory.runs) {
+      if (!snapshot.runs.some((item: { id: string }) => item.id === run.id))
+        snapshot.runs.push(run);
+    }
+  }
   const desired: string[] =
     section === 'intents'
       ? snapshot.projects
@@ -163,7 +210,17 @@ async function refresh() {
         : [];
   await Promise.all(
     desired.map(async (id) => {
-      const detail = await api(`/runs/${id}`);
+      let detail;
+      try {
+        detail = await api(`/runs/${id}`);
+      } catch (error) {
+        if ((error as { status?: number }).status === 404) {
+          if (selectedRun === id) selectedRun = '';
+          notice('This run is no longer available. Browse the remaining run history.');
+          return;
+        }
+        throw error;
+      }
       const index = snapshot.runs.findIndex((run: { id: string }) => run.id === id);
       if (index >= 0) snapshot.runs[index] = detail;
       else snapshot.runs.push(detail);
@@ -187,9 +244,24 @@ async function refresh() {
   if (agentDialog().open) renderAgentWizard();
   if (
     !projectDialog().open &&
-    !document.activeElement?.closest('#declaration-search, [data-review-form]')
+    !document.activeElement?.closest('#declaration-search, #run-search, [data-review-form]')
   )
     render();
+}
+async function refreshRunHistory() {
+  const epoch = sessionEpoch;
+  state.runHistoryLoading = true;
+  state.runHistoryError = '';
+  render();
+  try {
+    await refresh();
+  } catch (error) {
+    if (epoch !== sessionEpoch || signingOut) throw error;
+    state.runHistoryLoading = false;
+    state.runHistoryError = 'Run history could not be loaded. Retry or check your connection.';
+    render();
+    throw error;
+  }
 }
 function project(id: string) {
   return state.projects.find((item: { id: string }) => item.id === id);
@@ -199,14 +271,12 @@ function render() {
   $('#page-title').textContent = titles[section];
   $('#breadcrumb').textContent = titles[section];
   $('#page-description').textContent = descriptions[section];
-  document
-    .querySelectorAll<HTMLElement>('[data-nav]')
-    .forEach((button) => {
-      const active = button.dataset.nav === section;
-      button.classList.toggle('active', active);
-      if (active) button.setAttribute('aria-current', 'page');
-      else button.removeAttribute('aria-current');
-    });
+  document.querySelectorAll<HTMLElement>('[data-nav]').forEach((button) => {
+    const active = button.dataset.nav === section;
+    button.classList.toggle('active', active);
+    if (active) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
   const providerRoot = $('#provider-panel-root');
   const workspacePanel = $('#workspace-panel-root');
   if (['overview', 'schedules', 'admin', 'campaigns', 'intents', 'runs'].includes(section)) {
@@ -219,6 +289,19 @@ function render() {
         state,
         selectedId: selectedRun,
         projectId: selectedProject,
+        history: state.runHistory,
+        loading: state.runHistoryLoading,
+        error: state.runHistoryError,
+        onFilter: (kind: 'project' | 'mode' | 'status', value: string) => {
+          if (kind === 'project') selectedProject = value;
+          if (kind === 'mode') runModeFilter = value;
+          if (kind === 'status') runStatusFilter = value;
+          runOffset = 0;
+          void refreshRunHistory().catch((error) => notice(error.message));
+        },
+        search: runSearch,
+        mode: runModeFilter,
+        status: runStatusFilter,
         onRefresh: refreshModels,
         onReview: requestVisualReview,
       },
@@ -342,11 +425,21 @@ document.addEventListener('change', (event) => {
   }
   if (target.id === 'project-filter') {
     selectedProject = target.value;
-    render();
+    runOffset = 0;
+    if (section === 'runs') void refresh().catch((error) => notice(error.message));
+    else render();
   }
 });
 document.addEventListener('submit', (event) => {
   const form = event.target as HTMLFormElement;
+  if (form.id === 'run-search') {
+    event.preventDefault();
+    runSearch = String(new FormData(form).get('query') ?? '').trim();
+    runOffset = 0;
+    (document.activeElement as HTMLElement | null)?.blur();
+    void refreshRunHistory().catch((error) => notice(error.message));
+    return;
+  }
   if (form.id !== 'declaration-search') return;
   event.preventDefault();
   declarationSearch = String(new FormData(form).get('query') ?? '');
@@ -362,7 +455,7 @@ async function requestVisualReview(request: Record<string, unknown> & { sourceRu
   (document.activeElement as HTMLElement | null)?.blur();
   selectedRun = run.id;
   section = 'runs';
-      writeLocation();
+  writeLocation();
   state.runs = [run, ...state.runs.filter((item: { id: string }) => item.id !== run.id)];
   render();
   try {
@@ -386,7 +479,7 @@ document.addEventListener('submit', async (event) => {
     });
     selectedCampaign = campaign.id;
     section = 'campaigns';
-      writeLocation();
+    writeLocation();
     render();
     await refresh();
   } catch (error) {
@@ -399,6 +492,19 @@ document.addEventListener('click', async (event) => {
   const button = (event.target as Element).closest('button');
   if (!button || button.closest('dialog')) return;
   try {
+    if (button.hasAttribute('data-retry-run-history')) await refreshRunHistory();
+    if (button.hasAttribute('data-clear-run-filters')) {
+      runSearch = '';
+      runModeFilter = '';
+      runStatusFilter = '';
+      selectedProject = '';
+      runOffset = 0;
+      await refreshRunHistory();
+    }
+    if (button.dataset.runPage) {
+      runOffset = Math.max(0, runOffset + Number(button.dataset.runPage) * 25);
+      await refreshRunHistory();
+    }
     if (button.dataset.openCampaign) {
       selectedCampaign = button.dataset.openCampaign;
       section = 'campaigns';

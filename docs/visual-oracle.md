@@ -200,3 +200,5 @@ coverage and unverified checks alongside visual differences.
 No paid model inference, new video recording, complete scene/a11y tree,
 full-page capture, contrast/alignment/overlap solver, matrix execution or new
 AI fusion is claimed by the evidence foundation.
+
+The dashboard now exposes each retained numeric assessment under **Measured checks and coverage**, with expected predicates, measurement IDs, deltas, unverified gaps, JSON download and unavailable/retry handling. [Dashboard audit evidence](evidence/WEB-402-DASHBOARD-UX/summary.md) tests that presentation and its recovery path; it does not expand the foundation's detector coverage. Continuous unmasked video is refused, including legacy enabled configurations.

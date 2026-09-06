@@ -1,7 +1,8 @@
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
+import { dashboardProof } from './dashboard-proof';
 import { chromium } from 'playwright';
 import { expect, it } from 'vitest';
 import { startWorkbench } from '../server';
@@ -10,33 +11,149 @@ import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 it('keeps navigation reachable by URL, refresh, back and keyboard', async () => {
   const root = resolve(import.meta.dirname, '../../../..');
   const state = await mkdtemp(join(tmpdir(), 'dashboard-ux-'));
-  const app = await startWorkbench({ roots: [root], stateDirectory: state,
-    adminToken: 'dashboard-ux-test-token-32-characters', port: 0 });
-  const browser = await chromium.launch({headless:true});
-  const page = await browser.newPage({viewport:{width:1440,height:1000}});
+  const app = await startWorkbench({
+    roots: [root],
+    stateDirectory: state,
+    adminToken: 'dashboard-ux-test-token-32-characters',
+    port: 0,
+  });
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({
+    viewport: { width: 1440, height: 1000 },
+    reducedMotion: 'reduce',
+  });
+  const page = await context.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.name));
+  const proof = dashboardProof(page, process.env.ARXIC_UX_EVIDENCE_DIR);
   try {
     await page.goto(app.origin);
     await page.getByLabel('Administrator token').fill('dashboard-ux-test-token-32-characters');
-    await page.getByRole('button',{name:'Open workbench'}).click();
-    await page.getByRole('heading',{name:'Workspace overview'}).waitFor();
-    console.log('layout diagnostic', await page.evaluate(() => ({
-      bg: getComputedStyle(document.documentElement).backgroundColor,
-      font: getComputedStyle(document.documentElement).fontSize,
-      button: getComputedStyle(document.querySelector('#new-project')!).height,
-      dialogs: [...document.querySelectorAll('dialog')].map(d=>({open:d.open, modal:d.matches(':modal'),display:getComputedStyle(d).display})),
-    })));
-    const evidence=process.env.ARXIC_UX_EVIDENCE_DIR;
-    if(evidence){await mkdir(evidence,{recursive:true});await writeFile(join(evidence,'initial.png'),await captureMaskedViewport(page,{automaticMasks:['input[type="password"]'],requiredMasks:[]}));}
-    const pixels = await sharp(await captureMaskedViewport(page,{automaticMasks:['input[type="password"]'],requiredMasks:[]})).removeAlpha().raw().toBuffer();
-    expect([...pixels.subarray((900*1440+1400)*3,(900*1440+1400)*3+3)]).toEqual([255,255,255]);
+    await page.getByRole('button', { name: 'Open workbench' }).click();
+    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+    const pixels = await sharp(
+      await captureMaskedViewport(page, {
+        automaticMasks: ['input[type="password"]'],
+        requiredMasks: [],
+      }),
+    )
+      .removeAlpha()
+      .raw()
+      .toBuffer();
+    expect([...pixels.subarray((900 * 1440 + 1400) * 3, (900 * 1440 + 1400) * 3 + 3)]).toEqual([
+      255, 255, 255,
+    ]);
     expect((await page.locator('#new-project').boundingBox())!.height).toBeGreaterThanOrEqual(28);
-    await page.getByRole('button',{name:'Test runs',exact:true}).click();
-    await page.getByRole('heading',{name:'Test runs',exact:true}).waitFor();
+    await page.getByRole('radio', { name: 'Follow system theme' }).focus();
+    await page.keyboard.press('ArrowRight');
+    expect(
+      await page.getByRole('radio', { name: 'Light theme' }).getAttribute('aria-checked'),
+    ).toBe('true');
+    expect(
+      await page
+        .getByRole('radio', { name: 'Light theme' })
+        .evaluate((el) => el === document.activeElement),
+    ).toBe(true);
+    await page.getByRole('button', { name: 'Test runs', exact: true }).click();
+    await page.getByRole('heading', { name: 'Test runs', exact: true }).waitFor();
     expect(new URL(page.url()).searchParams.get('view')).toBe('runs');
     await page.reload();
-    await page.getByRole('heading',{name:'Test runs',exact:true}).waitFor();
-    await page.getByRole('button',{name:'Administration',exact:true}).click();
+    await page.getByRole('heading', { name: 'Test runs', exact: true }).waitFor();
+    await page.getByRole('button', { name: 'Administration', exact: true }).click();
     await page.goBack();
-    await page.getByRole('heading',{name:'Test runs',exact:true}).waitFor();
-  } finally { await browser.close();await app.close();await rm(state,{recursive:true,force:true}); }
-},60_000);
+    await page.getByRole('heading', { name: 'Test runs', exact: true }).waitFor();
+    await page.goto(app.origin + '?view=runs&run=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+    await page.getByRole('heading', { name: 'Test runs', exact: true }).waitFor({ timeout: 5000 });
+    expect(await page.locator('#notice').textContent()).toContain('no longer available');
+    const violations = [];
+    for (const width of [1440, 768, 390, 320]) {
+      await page.setViewportSize({ width, height: 1000 });
+      for (const theme of ['light', 'dark'] as const) {
+        if (width <= 760 && !(await page.getByRole('radiogroup', { name: 'Theme' }).isVisible()))
+          await page.locator('.mobile-nav-toggle').click();
+        await page
+          .getByRole('radio', { name: theme === 'light' ? 'Light theme' : 'Dark theme' })
+          .click();
+        for (const view of [
+          'overview',
+          'intents',
+          'runs',
+          'campaigns',
+          'schedules',
+          'providers',
+          'admin',
+        ]) {
+          if (!(await page.locator(`[data-nav="${view}"]`).isVisible()))
+            await page.locator('.mobile-nav-toggle').click();
+          await page.locator(`[data-nav="${view}"]`).click();
+          await page
+            .locator(`[data-nav="${view}"][aria-current="page"]`)
+            .waitFor({ state: 'attached' });
+          const result = await proof.audit(
+            `${width}-${theme}-${view}`,
+            `Navigate to ${view} at ${width}px in ${theme}; audit accessibility/reflow`,
+          );
+          violations.push(...result.details.map((v) => ({ width, theme, view, ...v })));
+          expect(result.overflow, `${width}/${theme}/${view} horizontal overflow`).toBe(0);
+        }
+      }
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.locator('#new-project').click();
+    const dialog = page.locator('dialog[open]');
+    await dialog.waitFor();
+    const bounds = (await dialog.boundingBox())!;
+    expect(
+      Math.abs(bounds.x - (390 - bounds.width) / 2),
+      'modal horizontal centering',
+    ).toBeLessThan(0.5);
+    expect(Math.abs(bounds.y - (844 - bounds.height) / 2), 'modal vertical centering').toBeLessThan(
+      0.5,
+    );
+    for (let i = 0; i < 15; i++) {
+      await page.keyboard.press('Tab');
+      expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+    }
+    const modalAudit = await proof.audit(
+      '390-dark-project-dialog',
+      'Open project wizard; Tab remains in modal',
+    );
+    violations.push(...modalAudit.details);
+    expect(modalAudit.overflow).toBe(0);
+    await page.keyboard.press('Escape');
+    expect(await dialog.count()).toBe(0);
+    expect(await page.locator('#new-project').evaluate((el) => el === document.activeElement)).toBe(
+      true,
+    );
+    await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
+    const forced = await proof.audit(
+      '390-forced-colors',
+      'Close modal restores focus; forced colors reflow',
+    );
+    violations.push(...forced.details);
+    expect(forced.overflow).toBe(0);
+    expect(violations).toEqual([]);
+    await page.locator('.mobile-nav-toggle').click();
+    await page.locator('[data-nav="runs"]').click();
+    await page.getByLabel('Search runs').waitFor();
+    await page.route('**/api/runs?**', (route) =>
+      route.fulfill({ status: 401, json: { error: 'Session expired' } }),
+    );
+    await page.getByLabel('Search runs').fill('expired-session');
+    await page.getByRole('button', { name: 'Search runs', exact: true }).click();
+    await page.getByLabel('Administrator token').waitFor();
+    expect(await page.locator('#app').isHidden()).toBe(true);
+    expect(errors).toEqual([]);
+    const expired = await proof.audit(
+      'expired-search-session',
+      '401 search response returns to login without stale dashboard or script errors',
+    );
+    expect(expired.details).toEqual([]);
+    expect(expired.overflow).toBe(0);
+  } finally {
+    await proof.finish();
+    await browser.close();
+    await app.close();
+    await rm(state, { recursive: true, force: true });
+  }
+}, 180_000);

@@ -12,7 +12,7 @@ export function ThemeSwitch() {
   const [theme, setTheme] = useState<Theme>(currentTheme);
   return (
     <div className="theme-switch" role="radiogroup" aria-label="Theme">
-      {options.map(({ value, label, icon: Icon }) => (
+      {options.map(({ value, label, icon: Icon }, index) => (
         <button
           type="button"
           key={value}
@@ -20,6 +20,20 @@ export function ThemeSwitch() {
           aria-checked={theme === value}
           aria-label={label}
           title={label}
+          tabIndex={theme === value ? 0 : -1}
+          onKeyDown={(event) => {
+            const delta = ['ArrowRight', 'ArrowDown'].includes(event.key)
+              ? 1
+              : ['ArrowLeft', 'ArrowUp'].includes(event.key)
+                ? -1
+                : 0;
+            if (!delta) return;
+            event.preventDefault();
+            const next = (index + delta + options.length) % options.length;
+            applyTheme(options[next]!.value);
+            setTheme(options[next]!.value);
+            (event.currentTarget.parentElement?.children[next] as HTMLButtonElement)?.focus();
+          }}
           onClick={() => {
             applyTheme(value);
             setTheme(value);

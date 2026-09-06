@@ -78,7 +78,9 @@ function WorkspaceShell() {
         </form>
       </section>
       <div id="app" className="shell" hidden>
-        <a className="skip-link" href="#main-content">Skip to main content</a>
+        <a className="skip-link" href="#main-content">
+          Skip to main content
+        </a>
         <aside
           className="sidebar"
           data-mobile-open={menuOpen}
@@ -146,11 +148,22 @@ function WorkspaceShell() {
               <span id="breadcrumb">Overview</span>
             </span>
             <div className="topbar-actions">
-              <Button id="connect-agent" variant="outline" size="sm">
+              <Button
+                id="connect-agent"
+                aria-label="Connect agent"
+                title="Connect agent"
+                variant="outline"
+                size="sm"
+              >
                 <Bot />
                 <span>Connect agent</span>
               </Button>
-              <Button id="new-project" size="sm">
+              <Button
+                id="new-project"
+                aria-label="Connect project"
+                title="Connect project"
+                size="sm"
+              >
                 <Plus />
                 <span>Connect project</span>
               </Button>
@@ -159,7 +172,9 @@ function WorkspaceShell() {
           <div className="page">
             <div id="notice" role="status" hidden></div>
             <div className="page-heading">
-              <h1 id="page-title" tabIndex={-1}>Workspace overview</h1>
+              <h1 id="page-title" tabIndex={-1}>
+                Workspace overview
+              </h1>
               <p id="page-description" className="muted">
                 Manage projects, uncover gaps, and review what changed.
               </p>

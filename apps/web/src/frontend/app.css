@@ -1113,6 +1113,7 @@
 
   /* Dialog */
   dialog {
+    margin: auto;
     width: min(640px, calc(100% - 24px));
     max-height: min(90vh, 900px);
     padding: 0;
@@ -1627,5 +1628,116 @@
   }
 }
 
-.skip-link { position: fixed; left: 16px; top: 8px; z-index: 100; padding: 10px 16px; background: var(--surface); border: 2px solid var(--primary); transform: translateY(-150%); }
-.skip-link:focus { transform: translateY(0); }
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: 8px;
+  z-index: 100;
+  padding: 10px 16px;
+  background: var(--surface);
+  border: 2px solid var(--primary);
+  transform: translateY(-150%);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+#workspace-panel-root > .section,
+.run-detail {
+  margin-top: 24px;
+}
+#workspace-panel-root > .scope-note {
+  margin-top: 20px;
+}
+.search-form,
+.pagination {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pagination {
+  margin-block: 16px;
+}
+.pagination small {
+  margin-right: auto;
+}
+@media (max-width: 760px) {
+  .search-form {
+    width: 100%;
+  }
+  .search-form input {
+    flex: 1;
+    min-width: 0;
+  }
+  button,
+  [role='radio'],
+  select,
+  summary {
+    min-height: 44px;
+  }
+  input:not([type='checkbox']):not([type='radio']),
+  textarea {
+    font-size: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+  }
+  .animate-spin {
+    animation: none;
+  }
+}
+
+.measurement-report {
+  margin: 16px;
+}
+.measurement-checks {
+  list-style: none;
+  padding: 0;
+}
+.measurement-checks li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.measurement-checks small {
+  display: block;
+}
+
+p a,
+.scope-note a,
+.measurement-report > a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (forced-colors: active) {
+  :root,
+  :root[data-theme='dark'] {
+    --background: Canvas;
+    --surface: Canvas;
+    --surface-muted: Canvas;
+    --surface-hover: Canvas;
+    --surface-active: Canvas;
+    --foreground: CanvasText;
+    --foreground-secondary: CanvasText;
+    --foreground-muted: CanvasText;
+    --foreground-faint: CanvasText;
+    --foreground-placeholder: CanvasText;
+    --success: CanvasText;
+    --success-foreground: CanvasText;
+    --warning-foreground: CanvasText;
+    --danger: CanvasText;
+    --info: LinkText;
+    --primary: LinkText;
+    --primary-hover: LinkText;
+    --primary-foreground: Canvas;
+    --border: CanvasText;
+    --border-strong: CanvasText;
+    --border-subtle: CanvasText;
+  }
+}

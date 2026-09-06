@@ -28,24 +28,20 @@ preserve the full denominator and survive restart. Unsupported/unselected rows
 and uncompiled hypotheses remain visible. Recurring campaigns and broader state
 coverage remain tracked in #402.
 
-The visual lane compares anonymous viewports against approved pixels. Stable
+The visual lane compares configured viewports against approved pixels. Stable
 retained captures support inspected-image AI review with model/secret-reference/
 budget/criterion controls, proposed regions, reproduction and model provenance.
-Findings remain hypotheses. Authenticated checkpoints and comprehensive
-business-state exploration remain under #402.
+Findings remain hypotheses. Optional redirect-based sign-in keeps session state in memory; comprehensive business-state exploration remains under #402.
 
 **Connect project** is a two-step wizard: choose a workspace folder or a public
 GitHub URL (cloned server-side), then confirm detected settings. Pages are a
-manual list or AI discovery from the latest source discovery; session video is
-optional. **Connect agent** lists provider accounts with connection state, the
+manual list or bounded source/link discovery. Masked screenshots and sanitized action timelines are retained; continuous unmasked video is refused. **Connect agent** lists provider accounts with connection state, the
 server command to run and a verify step. The UI uses one token file with
 Light/Dark/System themes, one shadcn component set and one JS + one CSS bundle.
 
 Provider/model controls use operator-owned named HTTP or host-agent connections,
 provider-owned refreshing catalogs and editable custom IDs. Built-in connections
-support native account CLIs and compatible subscription/API endpoints. The
-Models & accounts screen uses React and shadcn/ui; other screens are still being
-migrated. Catalog failure timestamps remain visible. Selected credentials and
+support native account CLIs and compatible subscription/API endpoints. All seven dashboard sections use React and shadcn/ui. Catalog failure timestamps remain visible. Selected credentials and
 explicit HTTP rates resolve per job; host profiles require model forwarding.
 See [provider setup](../../docs/web-workbench.md#provider-connections-and-model-ids).
 
@@ -66,3 +62,5 @@ as the existing consecutive-PNG stability check. This does not establish atomic
 scene capture or complete DOM/a11y coverage. See the
 [full oracle contract](../../docs/visual-oracle.md) and
 [reference-app proof](../../docs/evidence/WEB-402-ORACLE/summary.md).
+
+Test runs searches all stored history with project/type/status filters and pagination. Navigation and run-search URLs survive refresh and Back. Capture details expose numeric checks and explicit unverified coverage with download/retry. The responsive, theme, keyboard and populated-flow audit is documented in [dashboard proof](../../docs/evidence/WEB-402-DASHBOARD-UX/summary.md).

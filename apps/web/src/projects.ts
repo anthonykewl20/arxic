@@ -141,6 +141,11 @@ export async function validateProject(
     throw new HttpError(400, 'Choose 1–3 viewports, width 320–1920 and height 320–1200');
   if (input.pageMode !== undefined && input.pageMode !== 'manual' && input.pageMode !== 'discover')
     throw new HttpError(400, 'Choose manual or discover page mode');
+  if (input.recordVideo === true)
+    throw new HttpError(
+      400,
+      'Unmasked video recording is unavailable. Named masked screenshots and the sanitized action timeline are recorded automatically.',
+    );
   for (const key of ['captureConsent', 'paused', 'recordVideo'])
     if (input[key] !== undefined && typeof input[key] !== 'boolean')
       throw new HttpError(400, `Invalid ${key}`);

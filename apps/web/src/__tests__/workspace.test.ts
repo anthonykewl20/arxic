@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, realpath, rm, writeFile, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFile } from 'node:child_process';
@@ -36,6 +36,22 @@ it('rejects clone URLs that are not public GitHub repositories, before touching 
     );
   await expect(cloneRepository('https://github.com/owner/repo', [])).rejects.toThrow(
     'No workspace root',
+  );
+});
+
+it('refuses clone folders that escape the workspace or already exist', async () => {
+  const root = await workspace();
+  const outside = await workspace();
+  await symlink(outside, join(root, 'arxic-clones'));
+  // Existing directory ensures the regression never reaches a network clone.
+  await mkdir(join(outside, 'repo'));
+  await expect(cloneRepository('https://github.com/owner/repo', [root])).rejects.toThrow(
+    'Clone directory escapes',
+  );
+  await rm(join(root, 'arxic-clones'));
+  await mkdir(join(root, 'arxic-clones', 'repo'), { recursive: true });
+  await expect(cloneRepository('https://github.com/owner/repo', [root])).rejects.toThrow(
+    'already exists',
   );
 });
 
@@ -106,6 +122,9 @@ it('validates page mode and video flags and merges discovered GET routes only', 
   await expect(
     validateProject({ name: 'x', folder: root, recordVideo: 'yes' }, [root]),
   ).rejects.toThrow('Invalid recordVideo');
+  await expect(
+    validateProject({ name: 'x', folder: root, recordVideo: true }, [root]),
+  ).rejects.toThrow('Unmasked video recording is unavailable');
   const project = await validateProject({ name: 'x', folder: root }, [root]);
   expect(project).toMatchObject({ pageMode: 'manual', recordVideo: false });
   const workbench = await Workbench.open(join(root, 'state'), [root]);

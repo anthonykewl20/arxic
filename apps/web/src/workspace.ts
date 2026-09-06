@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { access, mkdir, readdir, readFile, realpath, stat } from 'node:fs/promises';
+import { access, mkdir, readdir, readFile, realpath } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import { HttpError } from './errors';
 import { allowedFolder, inside } from './projects';
@@ -228,28 +228,19 @@ export async function cloneRepository(
     throw new HttpError(400, 'Invalid repository name');
   const root = roots[0];
   if (!root) throw new HttpError(400, 'No workspace root is configured');
-  const parent = join(root, 'arxic-clones');
+  const canonicalRoot = await realpath(root);
+  let parent = join(canonicalRoot, 'arxic-clones');
   await mkdir(parent, { recursive: true });
+  parent = await realpath(parent);
+  if (!inside(canonicalRoot, parent))
+    throw new HttpError(400, 'Clone directory escapes the workspace');
   const target = resolve(parent, repo);
   if (!inside(parent, target)) throw new HttpError(400, 'Invalid repository name');
-  if (await exists(target)) {
-    const actual = await realpath(target);
-    if (!(await stat(actual)).isDirectory() || !inside(root, actual))
-      throw new HttpError(400, 'Clone target is not a folder inside the workspace');
-    try {
-      await run('git', ['-C', actual, 'fetch', '--quiet', 'origin'], {
-        timeout: 120_000,
-        env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
-      });
-      await run('git', ['-C', actual, 'pull', '--quiet', '--ff-only'], {
-        timeout: 60_000,
-        env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
-      });
-    } catch {
-      /* keep the existing checkout when the update fails */
-    }
-    return { folder: actual };
-  }
+  if (await exists(target))
+    throw new HttpError(
+      409,
+      'Clone folder already exists. Connect the existing folder or choose another workspace.',
+    );
   try {
     await run(
       'git',
