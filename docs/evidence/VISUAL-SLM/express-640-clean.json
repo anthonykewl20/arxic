@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "express-640-clean",
+  "group": "express",
+  "revision": "d06c2f9263094378960d0a7d5d5324e4ba66fe53",
+  "consent": true,
+  "context": {
+    "width": 640,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit"
+  },
+  "before": {
+    "path": "express-640-clean-before.png",
+    "sha256": "23f1129f111e16a140d2433b9d2b0cd58cb710e96f146fd5168882702e22751a"
+  },
+  "current": {
+    "path": "express-640-clean-current.png",
+    "sha256": "23f1129f111e16a140d2433b9d2b0cd58cb710e96f146fd5168882702e22751a"
+  },
+  "beforePrivacy": {
+    "path": "express-640-clean-before.png.privacy.json",
+    "sha256": "3f12885524eb4af23997570e1625605c88239adc855ed556296f454c3746d41e"
+  },
+  "currentPrivacy": {
+    "path": "express-640-clean-current.png.privacy.json",
+    "sha256": "3f12885524eb4af23997570e1625605c88239adc855ed556296f454c3746d41e"
+  },
+  "scene": {
+    "path": "express-640-clean-scene.json",
+    "sha256": "31cdbad558aa8fda74ecd28fd024a968ab4f4e431a652c0fa2a0a45a5232df7d"
+  },
+  "timeline": {
+    "path": "express-640-clean-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "express-640-clean-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}

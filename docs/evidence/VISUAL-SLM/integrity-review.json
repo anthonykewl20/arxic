@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "d06c2f9263094378960d0a7d5d5324e4ba66fe53",
+  "caseManifests": 24,
+  "checkedReferences": 168,
+  "namedPngs": 48,
+  "uniquePngHashes": 24,
+  "cleanByteIdenticalPairs": 12,
+  "modelHashesChecked": 2,
+  "inspection": "24 unique before/current states reviewed in four contact sheets; Arxic 800 clean also inspected full size. No human inspection or arbitrary pixel secrecy certification."
+}

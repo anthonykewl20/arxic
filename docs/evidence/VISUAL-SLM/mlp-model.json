@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "featureSchema": "arxic-visual-features-v1",
+  "artifact": {
+    "path": "training/mlp.bin",
+    "sha256": "3a8675a05d98011228c6252c0e6b89a2cf5ac10def7dae2fc431de861bef8a13"
+  },
+  "thresholds": [
+    0.892112793897706,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "supported": [
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "experimental": true,
+  "datasetSha256": "259ca3df72ca375fd54a0dd584b67edff74a587c3794277812639f21dedf4fde"
+}
