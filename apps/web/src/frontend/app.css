@@ -1741,3 +1741,38 @@ p a,
     --border-subtle: CanvasText;
   }
 }
+
+.toolbar .search-form {
+  flex: 1 1 280px;
+  max-width: 420px;
+  flex-wrap: nowrap;
+}
+.toolbar .search-form input {
+  width: 0;
+  min-width: 0;
+  flex: 1;
+}
+.toolbar .search-form button {
+  flex-shrink: 0;
+}
+@media (forced-colors: active) {
+  button {
+    forced-color-adjust: none;
+    color: ButtonText !important;
+    background: ButtonFace !important;
+    border: 1px solid ButtonText !important;
+  }
+  button:disabled {
+    color: GrayText !important;
+    border-color: GrayText !important;
+    opacity: 1;
+  }
+  button:focus-visible {
+    outline: 2px solid Highlight !important;
+  }
+  button[aria-current='page'],
+  button[aria-checked='true'],
+  button[aria-pressed='true'] {
+    border: 2px solid Highlight !important;
+  }
+}

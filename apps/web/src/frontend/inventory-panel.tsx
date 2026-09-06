@@ -57,7 +57,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
             </option>
           ))}
         </select>
-        <form id="declaration-search">
+        <form id="declaration-search" className="search-form">
           <Input
             aria-label="Search declarations"
             name="query"

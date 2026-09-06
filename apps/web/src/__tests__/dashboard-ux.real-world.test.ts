@@ -89,6 +89,15 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
           await page
             .locator(`[data-nav="${view}"][aria-current="page"]`)
             .waitFor({ state: 'attached' });
+          if (view === 'runs' || view === 'intents') {
+            const form = page.locator(view === 'runs' ? '#run-search' : '#declaration-search');
+            const field = (await form.locator('input').boundingBox())!;
+            const submit = (await form.locator('button').boundingBox())!;
+            expect(
+              Math.abs(field.y + field.height / 2 - submit.y - submit.height / 2),
+              `${view} search control alignment at ${width}`,
+            ).toBeLessThan(0.5);
+          }
           const result = await proof.audit(
             `${width}-${theme}-${view}`,
             `Navigate to ${view} at ${width}px in ${theme}; audit accessibility/reflow`,
@@ -143,6 +152,27 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
     await page.getByRole('button', { name: 'Search runs', exact: true }).click();
     await page.getByLabel('Administrator token').waitFor();
     expect(await page.locator('#app').isHidden()).toBe(true);
+    const signIn = (await page.getByRole('button', { name: 'Open workbench' }).boundingBox())!;
+    const labelPixels = await sharp(
+      await captureMaskedViewport(page, {
+        automaticMasks: ['input[type="password"]'],
+        requiredMasks: [],
+      }),
+    )
+      .extract({
+        left: Math.ceil(signIn.x + 12),
+        top: Math.ceil(signIn.y + 8),
+        width: Math.floor(signIn.width - 24),
+        height: Math.floor(signIn.height - 16),
+      })
+      .removeAlpha()
+      .raw()
+      .toBuffer();
+    let ink = 0;
+    for (let i = 0; i < labelPixels.length; i += 3)
+      if (labelPixels[i]! < 50 && labelPixels[i + 1]! < 50 && labelPixels[i + 2]! < 50) ink++;
+    expect(ink, 'visible sign-in glyphs in Chromium forced-colors profile').toBeGreaterThan(20);
+
     expect(errors).toEqual([]);
     const expired = await proof.audit(
       'expired-search-session',
