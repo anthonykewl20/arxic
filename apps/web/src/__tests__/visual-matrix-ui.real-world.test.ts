@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it } from 'vitest';
 import {
   bootFixtureApp,
@@ -23,7 +23,7 @@ it.each(['light', 'dark'] as const)(
       adminToken: 'matrix-ui-test-administrator-token',
       port: 0,
     });
-    const browser = await chromium.launch();
+    const browser = await launchDashboardBrowser();
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
       colorScheme: theme,
@@ -76,7 +76,7 @@ it.each(['light', 'dark'] as const)(
       expect(await page.getByLabel('Firefox', { exact: true }).isChecked()).toBe(false);
       await page.keyboard.press('Space');
       for (const width of [320, 390, 768, 1440]) {
-        await page.setViewportSize({ width, height: 1000 });
+        await resizeDashboard(page, { width, height: 1000 });
         await page.getByLabel('Chromium', { exact: true }).scrollIntoViewIfNeeded();
         await audit(
           `01-matrix-settings-${width}`,
@@ -106,7 +106,7 @@ it.each(['light', 'dark'] as const)(
         '02-matrix-results',
         'Six actual browser/theme captures report independent environments and outcomes',
       );
-      await page.setViewportSize({ width: 390, height: 1000 });
+      await resizeDashboard(page, { width: 390, height: 1000 });
       await page
         .getByRole('region', { name: 'Visual environments', exact: true })
         .scrollIntoViewIfNeeded();
@@ -114,7 +114,7 @@ it.each(['light', 'dark'] as const)(
         '03-mobile-results',
         'Environment outcomes remain readable on a narrow dashboard',
       );
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await resizeDashboard(page, { width: 1440, height: 1000 });
       await page.getByRole('button', { name: 'Schedules', exact: true }).click();
       await page.getByRole('button', { name: 'Configure', exact: true }).click();
       for (const label of ['Chromium', 'Firefox', 'WebKit', 'Light', 'Dark'])

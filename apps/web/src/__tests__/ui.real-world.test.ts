@@ -2,10 +2,10 @@ import { inspectCapturedElements } from './element-inspector-proof';
 import { inspectLegacyElementKinds } from './element-kind-legacy-proof';
 import sharp from 'sharp';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it, vi } from 'vitest';
 import {
   bootFixtureApp,
@@ -42,7 +42,7 @@ it.each(['light', 'dark'] as const)(
       adminToken: 'test-administrator-token-32-characters',
       port: 0,
     });
-    const browser = await chromium.launch({ headless: true });
+    const browser = await launchDashboardBrowser({ headless: true });
     const context = await browser.newContext({
       reducedMotion: 'reduce',
       colorScheme: theme,
@@ -74,6 +74,7 @@ it.each(['light', 'dark'] as const)(
       expect(audit.details).toEqual([]);
       expect(audit.overflow).toBe(0);
     };
+    let releaseFolders = () => {};
     let releaseInitial!: () => void;
     let initialReady!: () => void;
     const initialHeld = new Promise<void>((done) => {
@@ -115,12 +116,59 @@ it.each(['light', 'dark'] as const)(
         '01-empty-workspace',
         'Invalid login refused; late anonymous response cannot hide authenticated workspace',
       );
+      let foldersReady!: () => void;
+      const foldersHeld = new Promise<void>((resolve) => {
+        foldersReady = resolve;
+      });
+      const foldersReleased = new Promise<void>((resolve) => {
+        releaseFolders = resolve;
+      });
+      await page.route(
+        '**/api/workspace/folders?**',
+        async (route) => {
+          const response = await route.fetch();
+          foldersReady();
+          await foldersReleased;
+          await route.fulfill({ response });
+        },
+        { times: 1 },
+      );
       await page.locator('#new-project').click();
+      await foldersHeld;
       await page.getByLabel('Project folder', { exact: true }).fill(tmpdir());
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
       await expect.poll(() => page.locator('#project-error').textContent()).toContain('outside');
       await page.getByLabel('Project folder', { exact: true }).fill(repo.root);
+      const continueBefore = (await page
+        .getByRole('button', { name: 'Continue', exact: true })
+        .boundingBox())!;
+      await capture(
+        '16-source-loading',
+        'Folder discovery shows a stable loading area before its real response',
+      );
+      releaseFolders();
+      await page.getByText('Loading folders…', { exact: true }).waitFor({ state: 'hidden' });
+      const continueAfter = (await page
+        .getByRole('button', { name: 'Continue', exact: true })
+        .boundingBox())!;
+      expect(
+        continueAfter.y,
+        'Folder results must not move Continue while the user is editing',
+      ).toBe(continueBefore.y);
+      await capture(
+        '17-source-ready',
+        'Folder results preserve the exact Continue position while editing',
+      );
+      if (process.env.ARXIC_WEB_EVIDENCE_DIR)
+        await writeFile(
+          join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme, 'source-layout.json'),
+          JSON.stringify({ before: continueBefore, after: continueAfter }, null, 2),
+        );
+      const detectedFolder = page.waitForResponse(
+        (response) => new URL(response.url()).pathname === '/api/workspace/detect',
+      );
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
+      expect((await detectedFolder).status()).toBe(200);
       await page.getByLabel('Project name', { exact: true }).fill('Reference frontend');
       await page.getByLabel('Running test app origin').fill(target.origin);
       await page.getByLabel('Viewport sizes').fill('800x600');
@@ -208,12 +256,12 @@ it.each(['light', 'dark'] as const)(
       await inspectLegacyElementKinds(page, theme);
       await page.getByText('document-horizontal-overflow', { exact: true }).waitFor();
       await inspectCapturedElements(page, target.origin, theme);
-      await page.route('**/artifacts/checkpoint-1.png', (route) =>
+      await page.route('**/artifacts/checkpoint-1.png?measurement=*', (route) =>
         route.fulfill({ status: 503, body: 'Unavailable' }),
       );
       await page.getByRole('button', { name: 'Locate measured text' }).first().click();
       await page.getByText('Captured image could not be loaded.', { exact: true }).waitFor();
-      await page.unroute('**/artifacts/checkpoint-1.png');
+      await page.unroute('**/artifacts/checkpoint-1.png?measurement=*');
       await page.getByRole('button', { name: 'Retry capture image' }).click();
       await page.getByRole('img', { name: 'Measured text region in captured viewport' }).waitFor();
       expect(
@@ -228,13 +276,42 @@ it.each(['light', 'dark'] as const)(
       await page.getByLabel('Measurement verdict').selectOption('unverified');
       expect(await page.locator('.measurement-checks > li').count()).toBeGreaterThan(0);
       await page.getByLabel('Measurement verdict').selectOption('all');
+      await page.locator('.measurement-checks > li').last().scrollIntoViewIfNeeded();
+      await page.getByRole('button', { name: 'Locate measured text' }).first().click();
+      await expect
+        .poll(async () => {
+          const box = await page
+            .getByRole('img', { name: 'Measured text region in captured viewport' })
+            .boundingBox();
+          const header = await page.locator('.topbar').boundingBox();
+          return (
+            !!box &&
+            !!header &&
+            box.y >= Math.max(0, header.y + header.height) &&
+            box.y + box.height <= 1000
+          );
+        })
+        .toBe(true);
       await capture(
         '10-measurement-report',
-        'Unavailable evidence stays an error; retry loads real numeric checks and unverified coverage',
+        'Retry loads real measurements; reselecting a check reveals the complete captured image',
       );
       const previewBounds = (await page
         .getByRole('img', { name: 'Measured text region in captured viewport' })
         .boundingBox())!;
+      if (process.env.ARXIC_WEB_EVIDENCE_DIR)
+        await writeFile(
+          join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme, 'measurement-layout.json'),
+          JSON.stringify(
+            {
+              previewBounds,
+              viewport: page.viewportSize(),
+              screenshot: '10-measurement-report.png',
+            },
+            null,
+            2,
+          ),
+        );
       const painted = await sharp(
         process.env.ARXIC_WEB_EVIDENCE_DIR
           ? await readFile(
@@ -261,7 +338,7 @@ it.each(['light', 'dark'] as const)(
         maskedInk,
         'the region preview must paint the actual masked reference-app image',
       ).toBeGreaterThan(100);
-      await page.setViewportSize({ width: 390, height: 844 });
+      await resizeDashboard(page, { width: 390, height: 844 });
       await page
         .getByRole('img', { name: 'Measured text region in captured viewport' })
         .scrollIntoViewIfNeeded();
@@ -269,7 +346,7 @@ it.each(['light', 'dark'] as const)(
         '14-mobile-measurement-region',
         'Measured screenshot region scales to mobile without losing the masked target image',
       );
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await resizeDashboard(page, { width: 1440, height: 1000 });
       await page.route('**/api/runs?**', (route) =>
         route.fulfill({ status: 503, json: { error: 'History unavailable' } }),
       );
@@ -371,7 +448,7 @@ it.each(['light', 'dark'] as const)(
         'ARXIC_SECRET_TEST_EMAIL',
       );
       expect(await page.getByLabel('Maximum run minutes', { exact: true }).inputValue()).toBe('5');
-      await page.setViewportSize({ width: 390, height: 844 });
+      await resizeDashboard(page, { width: 390, height: 844 });
       await page.getByLabel('Model name', { exact: true }).scrollIntoViewIfNeeded();
       expect(
         await page.locator('#project-dialog').evaluate((el) => el.scrollWidth <= el.clientWidth),
@@ -381,7 +458,7 @@ it.each(['light', 'dark'] as const)(
         'Guided settings persist after save and fit the mobile dialog',
       );
       await page.locator('#close-dialog').click();
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await resizeDashboard(page, { width: 1440, height: 1000 });
       await expect.poll(() => page.locator('#content').textContent()).toContain('09:00:00 UTC');
       await capture('05-schedule', 'Administrator enabled the persisted UTC cron schedule');
       await page.getByRole('button', { name: 'Administration', exact: true }).click();
@@ -392,7 +469,7 @@ it.each(['light', 'dark'] as const)(
         '06-administration',
         'Administration exposes root allow-list and immutable baseline approval audit event',
       );
-      await page.setViewportSize({ width: 390, height: 844 });
+      await resizeDashboard(page, { width: 390, height: 844 });
       await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
       await page.getByRole('button', { name: 'Overview', exact: false }).focus();
       await page.keyboard.press('Escape');
@@ -438,7 +515,7 @@ it.each(['light', 'dark'] as const)(
         '10-mobile-declarations',
         'Mobile search survives status polling and filters real source declarations',
       );
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await resizeDashboard(page, { width: 1440, height: 1000 });
       let releaseResponse!: () => void;
       let responseReady!: () => void;
       const held = new Promise<void>((done) => {
@@ -468,6 +545,7 @@ it.each(['light', 'dark'] as const)(
       );
       expect(errors).toEqual([]);
     } finally {
+      releaseFolders();
       await auditProof.finish();
       await historyProof.finish();
       vi.unstubAllEnvs();

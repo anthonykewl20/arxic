@@ -1,3 +1,4 @@
+import { settleDashboard } from './dashboard-browser';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -6,13 +7,16 @@ import type { Page } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 
-/** Only fixed test annotations and numeric audit results enter retained evidence. */
+/** Retain fixed annotations, numeric audits and bounded tag/class geometry; no field values. */
 export function dashboardProof(page: Page, directory: string | undefined) {
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   const dirty = !!execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
+  const browser = page.context().browser();
+  if (!browser) throw new Error('Dashboard proof requires an attached browser');
+  const browserIdentity = { name: browser.browserType().name(), version: browser.version() };
   const timeline: Array<{
     action: string;
-    result: 'passed' | 'failed';
+    result: 'passed' | 'failed' | 'unverified';
     screenshot: string;
     viewport: ReturnType<Page['viewportSize']>;
   }> = [];
@@ -24,12 +28,44 @@ export function dashboardProof(page: Page, directory: string | undefined) {
   }
   return {
     async audit(name: string, action: string) {
+      await settleDashboard(page);
       const report = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
         .analyze();
+      await settleDashboard(page);
       const overflow = await page.evaluate(() =>
         Math.max(0, document.documentElement.scrollWidth - innerWidth),
       );
+      const overflowNodes = overflow
+        ? await page.evaluate(() =>
+            [...document.querySelectorAll('body *')]
+              .flatMap((element) => {
+                const box = element.getBoundingClientRect();
+                const style = getComputedStyle(element);
+                if (
+                  !box.width ||
+                  !box.height ||
+                  style.visibility !== 'visible' ||
+                  box.right <= innerWidth
+                )
+                  return [];
+                return [
+                  {
+                    tag: element.tagName,
+                    classes: (element.getAttribute('class') ?? '').slice(0, 256),
+                    x: box.x,
+                    y: box.y,
+                    width: box.width,
+                    height: box.height,
+                    right: box.right,
+                    overflowX: style.overflowX,
+                    minWidth: style.minWidth,
+                  },
+                ];
+              })
+              .slice(0, 50),
+          )
+        : [];
       const safe = {
         violations: report.violations.map((v) => ({
           id: v.id,
@@ -38,10 +74,17 @@ export function dashboardProof(page: Page, directory: string | undefined) {
         })),
         incomplete: report.incomplete.map((v) => ({ id: v.id, count: v.nodes.length })),
         overflow,
+        overflowNodes,
       };
+      const verdict =
+        safe.violations.length || overflow
+          ? 'failed'
+          : safe.incomplete.length
+            ? 'unverified'
+            : 'passed';
       timeline.push({
         action,
-        result: !safe.violations.length && !overflow ? 'passed' : 'failed',
+        result: verdict,
         screenshot: `${name}.png`,
         viewport: page.viewportSize(),
       });
@@ -60,6 +103,7 @@ export function dashboardProof(page: Page, directory: string | undefined) {
               rawTraceRetained: false,
               humanInspection: 'not performed',
               sourceCommit,
+              browser: browserIdentity,
               dirty,
             },
             null,
@@ -70,6 +114,7 @@ export function dashboardProof(page: Page, directory: string | undefined) {
       }
       return {
         ...safe,
+        verdict,
         details: report.violations.map((v) => ({
           id: v.id,
           nodes: v.nodes.map((n) => ({ target: n.target, summary: n.failureSummary })),
@@ -88,6 +133,7 @@ export function dashboardProof(page: Page, directory: string | undefined) {
               'allow-listed test annotations, viewport and result; no DOM/network/field payloads',
             rawTraceRetained: false,
             sourceCommit,
+            browser: browserIdentity,
             dirty,
           },
           null,

@@ -2,14 +2,14 @@ import { createServer } from 'node:http';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it } from 'vitest';
 import {
   bootFixtureApp,
   stopApp,
   vulnerableAuthApp,
 } from '../../../../packages/real-world-testkit/src';
-import { startWorkbench } from '../server';
+import { startWorkbench } from './workbench-runtime';
 import { dashboardProof } from './dashboard-proof';
 
 it('shows a real low-contrast finding with its ratio, threshold and captured region', async () => {
@@ -23,7 +23,7 @@ it('shows a real low-contrast finding with its ratio, threshold and captured reg
     );
   });
   let app: Awaited<ReturnType<typeof startWorkbench>> | undefined;
-  let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
+  let browser: Awaited<ReturnType<typeof launchDashboardBrowser>> | undefined;
   let proof: ReturnType<typeof dashboardProof> | undefined;
   const state = await mkdtemp(join(tmpdir(), 'contrast-inspector-'));
   try {
@@ -36,7 +36,7 @@ it('shows a real low-contrast finding with its ratio, threshold and captured reg
       adminToken: 'contrast-inspector-test-token-32-characters',
     });
     const workbenchOrigin = app.origin;
-    browser = await chromium.launch({ headless: true });
+    browser = await launchDashboardBrowser({ headless: true });
     const context = await browser.newContext({
       viewport: { width: 1280, height: 1000 },
       reducedMotion: 'reduce',
@@ -93,7 +93,7 @@ it('shows a real low-contrast finding with its ratio, threshold and captured reg
     );
     expect(audit.details).toEqual([]);
     expect(audit.overflow).toBe(0);
-    await page.setViewportSize({ width: 390, height: 844 });
+    await resizeDashboard(page, { width: 390, height: 844 });
     await page
       .getByRole('img', { name: 'Measured text region in captured viewport' })
       .scrollIntoViewIfNeeded();
@@ -103,7 +103,7 @@ it('shows a real low-contrast finding with its ratio, threshold and captured reg
     );
     expect(mobile.details).toEqual([]);
     expect(mobile.overflow).toBe(0);
-    await page.setViewportSize({ width: 1280, height: 1000 });
+    await resizeDashboard(page, { width: 1280, height: 1000 });
     await page
       .getByText(
         'Measured ratio: 1.606:1 (display rounded) · Required: 3:1. Verdict uses the unrounded ratio.',

@@ -6,7 +6,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it, vi } from 'vitest';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import { MailpitContainer } from '../../../../packages/environment/src/mailpit-container';
@@ -88,7 +88,11 @@ it('lets an administrator select and verify two real workflows with honest campa
     adminToken: 'test-administrator-token-32-characters',
     port: 0,
   });
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchDashboardBrowser({ headless: true });
+  const browserIdentity = { name: browser.browserType().name(), version: browser.version() };
+  const dirty = !!(
+    await promisify(execFile)('git', ['status', '--porcelain'], { cwd: root })
+  ).stdout.trim();
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.name));
@@ -109,6 +113,8 @@ it('lets an administrator select and verify two real workflows with honest campa
         {
           sha256: createHash('sha256').update(bytes).digest('hex'),
           sourceCommit,
+          browser: browserIdentity,
+          dirty,
           policy: 'persona-free dashboard; password inputs masked',
           rawTraceRetained: false,
           humanInspection: 'not performed',
@@ -243,7 +249,7 @@ it('lets an administrator select and verify two real workflows with honest campa
       '02-verified-campaign',
       'Both selected workflows passed two real verifier replays; remaining source rows stay unselected',
     );
-    await page.setViewportSize({ width: 390, height: 844 });
+    await resizeDashboard(page, { width: 390, height: 844 });
     await detail.scrollIntoViewIfNeeded();
     expect(await page.locator('body').evaluate((el) => el.scrollWidth <= window.innerWidth)).toBe(
       true,
@@ -346,6 +352,8 @@ it('lets an administrator select and verify two real workflows with honest campa
           {
             sha256: createHash('sha256').update(bytes).digest('hex'),
             sourceCommit,
+            browser: browserIdentity,
+            dirty,
             method: 'allow-listed action names and assertion outcomes; no DOM/network payloads',
             rawTraceRetained: false,
           },

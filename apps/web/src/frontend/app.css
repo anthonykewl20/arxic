@@ -965,7 +965,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     overflow: hidden;
-    max-height: 240px;
+    height: min(240px, 25vh);
     overflow-y: auto;
   }
   .picker-row {
@@ -1757,9 +1757,9 @@ p a,
 @media (forced-colors: active) {
   button {
     forced-color-adjust: none;
-    color: ButtonText !important;
-    background: ButtonFace !important;
-    border: 1px solid ButtonText !important;
+    color: CanvasText !important;
+    background: Canvas !important;
+    border: 1px solid CanvasText !important;
   }
   button:disabled {
     color: GrayText !important;

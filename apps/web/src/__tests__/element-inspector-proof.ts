@@ -1,27 +1,51 @@
+import { resizeDashboard } from './dashboard-browser';
 import { join } from 'node:path';
-import type { Page } from 'playwright';
+import { chromium, firefox, webkit, type Page } from 'playwright';
+import type { Run } from '../types';
 import { expect } from 'vitest';
 import { dashboardProof } from './dashboard-proof';
 
 export async function inspectCapturedElements(page: Page, targetOrigin: string, theme: string) {
-  const target = await page.context().newPage();
-  await target.setViewportSize({ width: 800, height: 600 });
-  await target.goto(targetOrigin);
-  const expected = await target
-    .getByRole('heading', { name: 'Vulnerable Auth App', exact: true })
-    .evaluate((element) => {
-      const rect = element.getBoundingClientRect(),
-        parent = element.parentElement!.getBoundingClientRect();
-      return {
-        node: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
-        parent: { x: parent.x, y: parent.y, width: parent.width, height: parent.height },
-      };
-    });
-  const expectedButtons = await target.getByRole('button').count();
-  const expectedButton = (await target
-    .getByRole('button', { name: 'Login', exact: true })
-    .boundingBox())!;
-  await target.close();
+  const runId = new URL(page.url()).searchParams.get('run');
+  const response = await page.request.get(`${new URL(page.url()).origin}/api/runs/${runId}`);
+  expect(response.status()).toBe(200);
+  const run = (await response.json()) as Run;
+  const capture = run.result!.captures![0];
+  expect(capture.viewport).toEqual({ width: 800, height: 600 });
+  const environment = capture.environment ?? { browser: 'chromium', colorScheme: 'light' };
+  // The UI browser need not be the engine that produced the retained screenshot.
+  const { expected, expectedButtons, expectedButton } = await (async () => {
+    const targetBrowser = await { chromium, firefox, webkit }[environment.browser].launch();
+    try {
+      const target = await targetBrowser.newPage({
+        viewport: capture.viewport,
+        colorScheme: environment.colorScheme,
+        locale: 'en-US',
+        timezoneId: 'UTC',
+        deviceScaleFactor: 1,
+        reducedMotion: 'reduce',
+      });
+      await target.goto(targetOrigin);
+      const expected = await target
+        .getByRole('heading', { name: 'Vulnerable Auth App', exact: true })
+        .evaluate((element) => {
+          const rect = element.getBoundingClientRect(),
+            parent = element.parentElement!.getBoundingClientRect();
+          return {
+            node: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+            parent: { x: parent.x, y: parent.y, width: parent.width, height: parent.height },
+          };
+        });
+      const expectedButtons = await target.getByRole('button').count();
+      const expectedButton = (await target
+        .getByRole('button', { name: 'Login', exact: true })
+        .boundingBox())!;
+
+      return { expected, expectedButtons, expectedButton };
+    } finally {
+      await targetBrowser.close();
+    }
+  })();
   const proof = dashboardProof(
     page,
     process.env.ARXIC_ELEMENTS_EVIDENCE_DIR
@@ -81,7 +105,7 @@ export async function inspectCapturedElements(page: Page, targetOrigin: string, 
     expect(await panel.getByRole('button', { name: /^Inspect element / }).count()).toBe(1);
     await panel.getByLabel('Find element number').fill('');
     for (const width of [320, 390, 768, 1440]) {
-      await page.setViewportSize({ width, height: 1000 });
+      await resizeDashboard(page, { width, height: 1000 });
       await panel.getByLabel('Element type', { exact: true }).scrollIntoViewIfNeeded();
       await audit(
         `06-kind-filter-${width}`,
@@ -156,13 +180,13 @@ export async function inspectCapturedElements(page: Page, targetOrigin: string, 
       '04-parent',
       'Parent navigation matches independently measured reference-app bounds',
     );
-    await page.setViewportSize({ width: 390, height: 844 });
+    await resizeDashboard(page, { width: 390, height: 844 });
     await pickHeading();
     await panel
       .getByRole('region', { name: 'Selected element measurements' })
       .scrollIntoViewIfNeeded();
     await audit('05-mobile', 'Mobile screenshot picking maps to the same original CSS coordinates');
-    await page.setViewportSize({ width: 1440, height: 1000 });
+    await resizeDashboard(page, { width: 1440, height: 1000 });
     await page.getByRole('button', { name: 'Inspect captured elements', exact: true }).click();
   } finally {
     await page.unroute('**/artifacts/checkpoint-1.png?*');

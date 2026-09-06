@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Element type and number filters remain reachable without horizontal overflow",
+    "result": "passed",
+    "screenshot": "06-kind-filter-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  }
+]

@@ -14,6 +14,7 @@ const passing = {
   TEST: 'success',
   FIXTURE_APPS: 'success',
   PACKAGE: 'success',
+  DASHBOARD: 'success',
   CHANGES: 'success',
   WORKER_REQUIRED: 'true',
   WORKER_IMAGE: 'success',
@@ -56,4 +57,14 @@ it('release publication waits for every supported OS/Node cell', async () => {
   expect(release.jobs.release.needs).toContain('release-test');
   expect(release.jobs['release-test'].uses).toBe('./.github/workflows/release-test.yml');
   expect(matrix.on).toHaveProperty('workflow_call');
+});
+
+it.each(['failure', 'cancelled', 'skipped'])('rejects dashboard gate result %s', (result) => {
+  expect(gate.needs).toContain('dashboard');
+  expect(() =>
+    execFileSync('bash', ['-c', gateScript], {
+      env: { ...passing, DASHBOARD: result },
+      stdio: 'pipe',
+    }),
+  ).toThrow();
 });

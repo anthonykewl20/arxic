@@ -1,0 +1,29 @@
+[
+  {
+    "action": "Unmatched path retains run coverage and offers explicit filter reset",
+    "result": "passed",
+    "screenshot": "01-no-matches.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Mobile keyboard pagination keeps its focused heading below the sticky header",
+    "result": "passed",
+    "screenshot": "02-mobile-page.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "No-match filtering preserves all six real missing-page blocked outcomes",
+    "result": "passed",
+    "screenshot": "07-blocked.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

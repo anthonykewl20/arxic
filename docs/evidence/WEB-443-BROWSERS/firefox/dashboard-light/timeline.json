@@ -1,0 +1,38 @@
+[
+  {
+    "action": "Folder discovery shows a stable loading area before its real response",
+    "result": "unverified",
+    "screenshot": "16-source-loading.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Folder results preserve the exact Continue position while editing",
+    "result": "unverified",
+    "screenshot": "17-source-ready.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Retry loads real measurements; reselecting a check reveals the complete captured image",
+    "result": "passed",
+    "screenshot": "10-measurement-report.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Measured screenshot region scales to mobile without losing the masked target image",
+    "result": "passed",
+    "screenshot": "14-mobile-measurement-region.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

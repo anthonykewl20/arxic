@@ -634,3 +634,35 @@ capture was made. Measurements, source images and review forms still refer to th
 original capture. Older captures without environment metadata use Chromium/light,
 the legacy capture defaults. Filters are not persisted in bookmarks or across a
 full browser reload. Workflow checkpoint galleries are separate.
+
+## Dashboard browser verification
+
+Target capture engines and the browser running the dashboard are independent.
+`ARXIC_DASHBOARD_BROWSER=chromium|firefox|webkit` selects the real dashboard test
+driver; an absent value defaults to Chromium, and unsupported values fail rather
+than falling back. Element-inspector expected geometry is measured independently
+in the retained capture's engine and viewport.
+
+Run the installed dashboard contract with:
+
+```sh
+ARXIC_DASHBOARD_BROWSER=firefox node scripts/human-flow-e2e.mjs --dashboard-only --evidence-dir artifacts/dashboard-firefox
+```
+
+This packs and installs the public CLI in a temporary clean room, checks its web
+startup and executes the same dashboard journeys used by the full package gate.
+It reports `DASHBOARD-E2E`, keeping CLI workflow proof separate. The suite includes
+access refusal, project validation, run search, capture filters, element picking,
+keyboard navigation, provider refresh failures, review consent, baseline history,
+retention and campaign controls. It uses real reference apps and browser engines;
+provider-boundary stubs do not establish paid-model quality.
+
+Static audits wait for fonts and fixed animation-frame boundaries; they never
+wait for the finding predicate to pass. A deliberately widened real dashboard
+stylesheet guards against hiding persistent overflow. Incomplete accessibility
+checks are marked unverified in timelines.
+
+Named masked screenshots and sanitized timelines record actual browser versions
+in adjacent provenance. Accessibility checks retain incomplete results. Desktop
+WebKit automation is not real-device Safari proof, and automated checks do not
+replace human visual/release inspection. The [retained dashboard proof](./evidence/WEB-443-BROWSERS/summary.md) documents source-picker stability, measurement reveal/retry, forced-color fixes and the 18-test installed contract. [PR #444 checks](https://github.com/anthonykewl20/arxic/pull/444/checks) track final installed acceptance. Incomplete contrast and transient-frame causality remain explicit gaps; no blanket production-readiness claim is made.

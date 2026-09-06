@@ -1,0 +1,23 @@
+{
+  "mobileHeading": {
+    "x": 16,
+    "y": 80.4000015258789,
+    "width": 288,
+    "height": 19.5
+  },
+  "mobileStickyHeader": {
+    "x": 0,
+    "y": 0,
+    "width": 320,
+    "height": 65
+  },
+  "selectedImageSha256": "ca084e560ab4e5c2b97e540ef476e64ea325840460408165f0b02c9bded9a513",
+  "initialCaptures": 12,
+  "independentSpecs": 12,
+  "repeatedUnchanged": 12,
+  "regressedDark": 6,
+  "unchangedLight": 6,
+  "pageErrors": 0,
+  "blockedEnvironments": 6,
+  "preservedBlockedRunCaptures": 6
+}
