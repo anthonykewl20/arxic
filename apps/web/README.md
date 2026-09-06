@@ -81,3 +81,10 @@ do not imply complete state coverage or a full UI audit. See the
 Run-history errors are handled by the latest refresh, including background polls.
 A poll that supersedes a manual search cannot leave the loading indicator stuck;
 the history panel exposes Retry and hides stale results until recovery.
+
+Viewport measurements support screenshot picking, keyboard element-number search,
+pagination, parent navigation and preserved check references. Original visual PNGs
+and assessments use bounded, hash-checked regular-file retrieval. Invalid geometry
+or unavailable images disable inspection with recovery guidance. See the
+[element inspection guide](../../docs/web-workbench.md#inspect-captured-elements);
+capture-local numeric IDs do not establish semantic locators or full state coverage.

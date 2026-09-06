@@ -442,8 +442,7 @@
     background: var(--surface);
   }
   .topbar {
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 5;
     height: var(--topbar-height);
     display: flex;
@@ -1816,4 +1815,82 @@ p a,
 }
 .checkpoint-image {
   display: block;
+}
+
+.element-inspection {
+  margin-block: var(--space-4);
+}
+.element-inspector {
+  margin-top: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.element-inspector h3 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+.element-image-frame {
+  position: relative;
+  max-width: 800px;
+  border: 1px solid var(--border);
+}
+.element-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.element-image[hidden] {
+  display: none;
+}
+.element-picker {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+.element-picker:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.element-list {
+  display: grid;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+}
+.element-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+.element-list [aria-pressed='true'] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.element-details {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-muted);
+  border-radius: var(--radius-lg);
+  overflow-wrap: anywhere;
+}
+.element-details h4,
+.element-details h5 {
+  font-weight: 600;
+}
+.element-inspector a {
+  color: var(--primary);
+  text-underline-offset: 3px;
+}
+.element-inspector a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-md);
 }

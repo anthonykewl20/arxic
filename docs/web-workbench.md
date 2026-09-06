@@ -515,3 +515,29 @@ and human release inspection remain separate requirements.
 Run-history failures remain visible even when background polling supersedes a
 manual search. **Retry run history** reloads the selected filters after recovery;
 stale or signed-out responses cannot overwrite the current history result.
+
+## Inspect captured elements
+
+In **Test runs**, expand a viewport capture's **Measured checks and coverage**, then
+choose **Inspect captured elements**. Click a screenshot point to list overlapping
+measured boxes, smallest first. Use **Find element number** and the paginated
+buttons with the keyboard, or navigate to a retained parent. The selected outline
+and CSS bounds use the original capture coordinates even when the preview scales
+to a mobile screen. Checks overlapping the selected area retain their original
+verdicts and measurement references. **Show selected on screenshot** returns focus
+to the outline; **Open full-size element image** opens the original image.
+
+Element numbers are capture-local measurement IDs, not semantic names or replay
+selectors. The retained scene contains numeric geometry only; it deliberately
+excludes page text, field values and DOM attributes. A box intersecting a point
+does not prove paint order or clickability. Only viewport-intersecting boxes from
+the bounded scan are available; a truncated scan and missing parents remain
+explicit. Text-paint measurement IDs are separate from element IDs.
+
+Unstable, malformed, duplicate/cyclic, oversized or image-unbound geometry cannot
+be inspected. Retry element measurements after a retrieval problem, or run a fresh
+capture if evidence is unsupported. Image failure disables picking and offers a
+retry. The server checks original visual PNG and assessment hashes through bounded,
+regular-file reads; symlinks and changed bytes are refused. Workflow image/provenance
+reads share those mechanics. This does not add separate hashes for legacy visual
+difference images or visual privacy sidecars.

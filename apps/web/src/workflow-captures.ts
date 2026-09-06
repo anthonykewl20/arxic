@@ -1,4 +1,4 @@
-import { sha256 } from '@arxic/contracts';
+import { readEvidenceFile } from './evidence-files';
 import { writeFile } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import {
@@ -25,13 +25,13 @@ function invalid(): never {
   throw new HttpError(409, 'Workflow capture integrity check failed');
 }
 export async function readWorkflowArtifact(path: string, expectedHash: string): Promise<Buffer> {
-  const bytes = await readBoundedRegularFile(path, {
-    minimumBytes: 1,
-    maximumBytes: path.endsWith('.png') ? 16 * 1024 * 1024 : 64 * 1024,
-    onFailure: invalid,
-  });
-  if (sha256(bytes) !== expectedHash) invalid();
-  return bytes;
+  const result = await readEvidenceFile(
+    path,
+    expectedHash,
+    path.endsWith('.png') ? 16 * 1024 * 1024 : 64 * 1024,
+  );
+  if (!result.ok) invalid();
+  return result.bytes;
 }
 
 /** Export only independently attested images; the action decides whether a run is eligible. */
