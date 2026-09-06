@@ -61,3 +61,16 @@ Attached source proof is supplemented by the installed dashboard CI gate, not a
 local packed 439 run. DPR, zoom, locale, direction, forced colors, OS/device and
 arbitrary workflow-state matrices remain incomplete. WebKit is an engine build,
 not real-device Safari certification. #402 remains open.
+
+## Visual-review integration follow-up
+
+A real WebKit/dark matrix capture reproduced a downstream integrity rejection:
+the review service accepted only legacy checkpoint filenames. The validator now
+also accepts the closed Chromium/Firefox/WebKit and light/dark prefix enums;
+path traversal, unsupported browser/theme names and trailing path segments remain
+rejected before file access. Existing size, provenance and SHA-256 checks remain
+unchanged. The red case failed in 9.27 s; the complete review suite then passed
+**7 tests / 1 file in 29.48 s**, including the legacy path, actual matrix capture
+and four invalid-name cases. Its model HTTP boundary is controlled test input,
+not paid-model or human visual judgment. Capture rendering is unchanged, so the
+retained screenshot identities above remain applicable to their recorded commits.

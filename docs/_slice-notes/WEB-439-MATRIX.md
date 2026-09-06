@@ -50,4 +50,4 @@ shared globals; current package/dashboard version remains 0.0.200.
 Deferrals: DPR/zoom/locale/direction/forced-color/OS/real-device and arbitrary
 interaction-state matrices, full heuristic coverage, independent human usability
 and release inspection. WebKit engine evidence does not certify real-device Safari.
-No existing retained-PNG assertion was weakened. Globals remain staged for integration.
+Visual-review integration also accepts only the defined environment filename prefixes; a real WebKit/dark regression and four unsafe-name cases pass (7 review tests, 29.48 s). No existing retained-PNG assertion was weakened. Globals remain staged for integration.
