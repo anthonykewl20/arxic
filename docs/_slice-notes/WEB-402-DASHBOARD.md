@@ -26,7 +26,7 @@ Yes, user-observable capability and fixes. Integrator must fold this note and WE
 
 ## 5. Evidence and gates
 
-[Dashboard audit](../evidence/WEB-402-DASHBOARD-UX/summary.md). Current-head static/format/license gates and required PR CI are pending; final counts and links will be updated before completion.
+[Dashboard audit](../evidence/WEB-402-DASHBOARD-UX/summary.md). The full web suite passed 62 tests / 18 files at d08c84a; image-review refinements passed four focused browser tests at 30bf534. Lint, root/package typechecks and the license gate pass. Final pagination-semantics proof passed three browser tests at 1c48fc6. The 89 retained audit checkpoints have zero violations, incomplete entries or overflow. Full-repo format output: `All matched files use Prettier code style!`. Required PR CI is pending.
 
 ## 6. Sad paths
 
