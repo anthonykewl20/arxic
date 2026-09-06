@@ -2,6 +2,14 @@
 
 Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked; analysis-envelope resource qualification green with explicit scope; gated activation lifecycle proven on real trained artifacts)
 
+## Increment 7 — 2026-09-06/07: scene-measurement v2 — hit-test + overflow evidence, first second-head result (refs #423)
+
+- `measure()` records real hit-test fractions (5×5 `elementFromPoint` grid, spec §8.1 features 10–11) and document-scrollport overflow (12–13) instead of nulls; scenes carry a second deterministic hard check; dataset rows label clipping + overflow from independent per-head oracles; new layout-neutral `overflow-x` variant.
+- Browser finding (live-probed): Chromium includes transformed boxes in scrollable overflow (800 px viewport → 3481 px scrollWidth), so clip mutations clamp the scrollport (`overflow: clip`) to keep the two defect classes separable.
+- Two-head 5-family corpus: 195 admitted / 5 honest skips — all four directus `overflow-x` cases refused by the overflow oracle (its SPA shell never surfaces the injected width as document overflow; recorded as a coverage gap, never mislabeled).
+- koel holdout: **overflow head 4/4 recall, 0 FP across 36 negatives** (first second-head result; wide Wilson bounds with 4 positives); clipping 16/20 / 0 FP — an honest regression vs the clip-only feature set's 20/20, un-attributed (future ablate.py work), no threshold loosened.
+- Evidence: `docs/evidence/VISUAL-SLM/corpus-twohead/`.
+
 ## Increment 6 — 2026-09-06/07: end-to-end gated model activation on real trained artifacts (refs #423)
 
 - `model-store.ts` + `model-store.test.ts` (red-first) + CLI `activate`/`rollback` verbs: `activateTrainedModel` verifies the manifest→dataset→artifact sha256 bindings, derives the model kind from the artifact header (not caller claims), gates activation on an **independent parity fixture** — the native kernel against the trainer's exported Python scores for the first dataset rows, never recomputed by this path — then stages content-addressed bytes and flips the atomic pointer.

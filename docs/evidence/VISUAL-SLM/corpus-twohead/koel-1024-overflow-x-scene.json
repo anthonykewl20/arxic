@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "beforeSha256": "cb3be6ce57afbdc6c25547fbfdc05b7233d042eab49a21f82dc021cb8b865d64",
+  "currentSha256": "d7b3473f7cc17df61def724be19168bf29dbc05399951eb5402ae76455f49c2a",
+  "sanitized": true,
+  "stable": true,
+  "regions": [
+    {
+      "id": "viewport",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 1024,
+        "height": 800
+      },
+      "before": {
+        "box": {
+          "x": 391.75,
+          "y": 431.375,
+          "width": 240.5,
+          "height": 34.5
+        },
+        "clip": 1,
+        "hit": 1,
+        "overflowX": 0,
+        "overflowY": 0
+      },
+      "current": {
+        "box": {
+          "x": 391.75,
+          "y": 431.375,
+          "width": 240.5,
+          "height": 34.5
+        },
+        "clip": 1,
+        "hit": 1,
+        "overflowX": 1,
+        "overflowY": 0
+      },
+      "eligible": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "criterion": "required-submit-inside-viewport"
+    }
+  ],
+  "hardChecks": [
+    {
+      "id": "viewport-clip",
+      "head": "clipping",
+      "verdict": "pass",
+      "region": "viewport"
+    },
+    {
+      "id": "scrollport-overflow",
+      "head": "overflow",
+      "verdict": "fail",
+      "region": "viewport"
+    }
+  ]
+}
