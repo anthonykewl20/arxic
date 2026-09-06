@@ -1,6 +1,6 @@
 import { deflateSync } from 'node:zlib';
 import { describe, expect, test } from 'vitest';
-import { inspectPng } from './index';
+import { inspectPng, normalizeBrowserPng } from './index';
 
 describe('bounded Playwright PNG validation', () => {
   test.each([
@@ -122,3 +122,44 @@ function crc32(bytes: Uint8Array): number {
   }
   return (crc ^ 0xffffffff) >>> 0;
 }
+
+describe('browser PNG normalization', () => {
+  test.each([
+    ['private text', chunk('tEXt', Buffer.from('private'))],
+    ['invalid intent', chunk('sRGB', Buffer.from([4]))],
+    ['reduced precision', chunk('sBIT', Buffer.from([7, 8, 8]))],
+    ['wrong channels', chunk('sBIT', Buffer.from([8, 8, 8, 8]))],
+    ['bad CRC', mutate(chunk('sRGB', Buffer.from([0])), 12)],
+  ])('still rejects %s', (_name, marker) => {
+    expect(() => normalizeBrowserPng(png([chunk('IHDR', ihdr()), marker, idat(), iend()]))).toThrow(
+      /ARXIC-SCREENSHOT-PNG/,
+    );
+  });
+  test('only removes bounded rendering metadata without changing encoded pixels', () => {
+    const input = png([
+      chunk('IHDR', ihdr()),
+      chunk('sRGB', Buffer.from([0])),
+      chunk('sBIT', Buffer.from([8, 8, 8])),
+      idat(),
+      iend(),
+    ]);
+    expect(() => inspectPng(input)).toThrow('not permitted');
+    expect(normalizeBrowserPng(input)).toEqual(validPng());
+    expect(() =>
+      normalizeBrowserPng(
+        png([chunk('IHDR', ihdr()), idat(), chunk('sRGB', Buffer.from([0])), iend()]),
+      ),
+    ).toThrow();
+    expect(() =>
+      normalizeBrowserPng(
+        png([
+          chunk('IHDR', ihdr()),
+          chunk('sRGB', Buffer.from([0])),
+          chunk('sRGB', Buffer.from([0])),
+          idat(),
+          iend(),
+        ]),
+      ),
+    ).toThrow();
+  });
+});

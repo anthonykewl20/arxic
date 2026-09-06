@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { inspectPng } from './png';
+import { normalizeBrowserPng } from './png';
 import { ScreenshotPrivacyError } from './standalone-runtime';
 
 /** Capture mechanics for trusted application-owned viewport checks, not verifier attestation. */
@@ -24,6 +24,5 @@ export async function captureMaskedViewport(
     mask: [...input.automaticMasks.map((selector) => page.locator(selector)), ...required],
     timeout: 15_000,
   });
-  inspectPng(bytes);
-  return bytes;
+  return normalizeBrowserPng(bytes);
 }

@@ -28,7 +28,7 @@ preserve the full denominator and survive restart. Unsupported/unselected rows
 and uncompiled hypotheses remain visible. Recurring campaigns and broader state
 coverage remain tracked in #402.
 
-The visual lane compares configured viewports against approved pixels. Stable
+The visual lane compares configured browser/theme/viewport combinations against independently approved baselines. Chromium, Firefox and WebKit with light/dark are selectable; missing engines remain blocked. Older projects use Chromium/light. Stable
 retained captures support inspected-image AI review with model/secret-reference/
 budget/criterion controls, proposed regions, reproduction and model provenance.
 Findings remain hypotheses. Optional redirect-based sign-in keeps session state in memory; comprehensive business-state exploration remains under #402.
@@ -51,7 +51,7 @@ not establish the complete paid-provider or visual-defect matrix.
 
 ## Layout assessment artifacts
 
-Each new viewport capture retains `checkpoint-N.assessment.json`, identified by
+Each new viewport capture retains an assessment JSON named for its checkpoint (environment-prefixed for multi-environment runs), identified by
 `assessmentFile` and `assessmentSha256` in the run API. Fetch it through the
 authenticated `/api/runs/<run-id>/artifacts/<assessmentFile>` endpoint. The
 artifact contains a bounded numeric-only layout projection and per-check verdicts

@@ -74,6 +74,12 @@ export function projectBody(values: FormData) {
       values.get(key) ?? '',
     ]),
   );
+  body.browsers = values.has('visualMatrixConfigured') ? values.getAll('browsers') : ['chromium'];
+  body.colorSchemes = values.has('visualMatrixConfigured')
+    ? values.getAll('colorSchemes')
+    : ['light'];
+  if (!(body.browsers as unknown[]).length || !(body.colorSchemes as unknown[]).length)
+    throw new Error('Choose at least one browser and one color scheme');
   body.paths = lines(values.get('paths'));
   body.masks = lines(values.get('masks'));
   body.viewports = String(values.get('viewports') ?? '')
@@ -333,6 +339,8 @@ function SettingsStep({
     origin: detection?.origin ?? '',
     paths: detection?.paths ?? ['/'],
     masks: [],
+    browsers: ['chromium'] as NonNullable<Project['browsers']>,
+    colorSchemes: ['light'] as NonNullable<Project['colorSchemes']>,
     viewports: [
       { width: 1440, height: 900 },
       { width: 390, height: 844 },
@@ -528,6 +536,47 @@ function SettingsStep({
             </small>
           </Label>
         </div>
+        <fieldset className="form-stack">
+          <legend>Capture environments</legend>
+          <input type="hidden" name="visualMatrixConfigured" value="true" />
+          <p className="muted">
+            Each browser and color scheme is captured at every viewport. Baselines are kept
+            separate. Browsers must be installed on the server; unavailable environments are
+            reported as blocked.
+          </p>
+          <fieldset>
+            <legend>Browsers</legend>
+            <div className="chip-list">
+              {(['chromium', 'firefox', 'webkit'] as const).map((browser) => (
+                <Checkbox
+                  key={browser}
+                  name="browsers"
+                  value={browser}
+                  label={{ chromium: 'Chromium', firefox: 'Firefox', webkit: 'WebKit' }[browser]}
+                  defaultChecked={(seed.browsers ?? ['chromium']).includes(browser)}
+                />
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Color schemes</legend>
+            <div className="chip-list">
+              {(['light', 'dark'] as const).map((scheme) => (
+                <Checkbox
+                  key={scheme}
+                  name="colorSchemes"
+                  value={scheme}
+                  label={scheme === 'light' ? 'Light' : 'Dark'}
+                  defaultChecked={(seed.colorSchemes ?? ['light']).includes(scheme)}
+                />
+              ))}
+            </div>
+          </fieldset>
+          <small>
+            Up to 600 checkpoints per run across the matrix. Omitted pages and failed environments
+            stay visible in the results.
+          </small>
+        </fieldset>
         <div className="form-stack">
           <span className="text-xs font-medium text-secondary-foreground">Viewports</span>
           <div className="chip-list" role="group" aria-label="Viewport presets">
@@ -566,9 +615,9 @@ function SettingsStep({
           <fieldset id="login-fields" hidden={!loginEnabled} disabled={!loginEnabled}>
             <legend>Test account sign-in</legend>
             <p className="muted">
-              One form sign-in per run with a test account. Secret references name ARXIC_SECRET_
-              variables on the server; the session lives in memory for the run only. Fields are
-              found by label, then by input type.
+              One form sign-in per browser/theme environment with a test account. Secret references
+              name ARXIC_SECRET_ variables on the server; the session lives in memory for the run
+              only. Fields are found by label, then by input type.
             </p>
             <div className="form-grid">
               <Label>

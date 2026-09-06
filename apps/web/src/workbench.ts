@@ -1,3 +1,4 @@
+import { planVisualMatrix } from './visual-matrix';
 import { Retention } from './retention';
 import { readEvidenceFile } from './evidence-files';
 import { readWorkflowArtifact } from './workflow-captures';
@@ -20,7 +21,8 @@ export function loginEnvironment(login: NonNullable<Project['login']>, env: Node
 /** Five minutes plus a per-capture allowance; crawl, sign-in and stability retries need headroom. */
 export function visualRuntimeLimit(project: Project) {
   const pages = project.pageMode === 'discover' ? project.maxPages : project.paths.length;
-  const captures = Math.min(600, pages * project.viewports.length);
+  const { environments, pageBudget } = planVisualMatrix(project);
+  const captures = Math.min(pages, pageBudget) * project.viewports.length * environments.length;
   return Math.min(60 * 60_000, 5 * 60_000 + captures * 6_000);
 }
 import { compareCapture, digest } from './visual';

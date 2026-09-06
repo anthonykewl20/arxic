@@ -1,31 +1,48 @@
+import { planVisualMatrix } from './visual-matrix';
 import { sha256 as digest } from '@arxic/contracts';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
+import {
+  chromium,
+  firefox,
+  webkit,
+  type Browser,
+  type BrowserContext,
+  type Page,
+} from 'playwright';
 import sharp from 'sharp';
 import pixelmatch from 'pixelmatch';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
-import type { Capture, Project, Run, RunResult } from './types';
+import type { Capture, Project, Run, RunResult, VisualEnvironment } from './types';
 import { collectVisualScene, assessVisualScene } from './visual-oracle';
 
 export { digest };
 
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
-type Timeline = Array<{ action: string; checkpoint: number; result?: string }>;
+type Timeline = Array<{
+  action: string;
+  checkpoint: number;
+  result?: string;
+  environment?: VisualEnvironment;
+}>;
 
 /** Same-origin only; mutations are denied except during the sign-in submission. */
 async function openContext(
   browser: Browser,
   project: Project,
   viewport: { width: number; height: number },
-  options: { storageState?: StorageState; allowMutations?: boolean },
+  options: {
+    storageState?: StorageState;
+    allowMutations?: boolean;
+    colorScheme?: VisualEnvironment['colorScheme'];
+  },
 ) {
   const context = await browser.newContext({
     viewport,
     deviceScaleFactor: 1,
     locale: 'en-US',
     timezoneId: 'UTC',
-    colorScheme: 'light',
+    colorScheme: options.colorScheme ?? 'light',
     reducedMotion: 'reduce',
     serviceWorkers: 'block',
     ...(options.storageState ? { storageState: options.storageState } : {}),
@@ -54,8 +71,12 @@ async function crawl(
   project: Project,
   storageState: StorageState | undefined,
   timeline: Timeline,
+  environment: VisualEnvironment,
 ): Promise<string[]> {
-  const { context } = await openContext(browser, project, project.viewports[0], { storageState });
+  const { context } = await openContext(browser, project, project.viewports[0], {
+    storageState,
+    colorScheme: environment.colorScheme,
+  });
   const page = await context.newPage();
   page.setDefaultTimeout(15_000);
   const seen = new Set(project.paths);
@@ -121,10 +142,12 @@ async function signIn(
   project: Project,
   credentials: { email: string; password: string },
   timeline: Timeline,
+  environment: VisualEnvironment,
 ): Promise<{ state: StorageState } | { reason: string }> {
   const login = project.login!;
   const { context } = await openContext(browser, project, project.viewports[0], {
     allowMutations: true,
+    colorScheme: environment.colorScheme,
   });
   const page = await context.newPage();
   page.setDefaultTimeout(15_000);
@@ -182,7 +205,13 @@ async function signIn(
   }
 }
 
-export async function captureVisual(run: Run, directory: string): Promise<RunResult> {
+async function captureEnvironment(
+  run: Run,
+  directory: string,
+  environment: VisualEnvironment,
+  pageBudget: number,
+  prefix: string,
+): Promise<RunResult> {
   const project = run.project;
   if (!project.origin || !project.captureConsent)
     return {
@@ -196,16 +225,18 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
       summary:
         'Unmasked video recording is unavailable. Turn off video to use masked screenshots and the sanitized action timeline.',
     };
-  const browser = await chromium.launch({ headless: true });
+  const browser = await { chromium, firefox, webkit }[environment.browser].launch({
+    headless: true,
+  });
   const captures: Capture[] = [];
   const findings: NonNullable<RunResult['findings']> = [];
   let blocked = false;
   const timeline: Timeline = [];
   const writeTimeline = async () => {
     const bytes = JSON.stringify(timeline);
-    await writeFile(join(directory, 'timeline.json'), bytes, { mode: 0o600 });
+    await writeFile(join(directory, `${prefix}timeline.json`), bytes, { mode: 0o600 });
     await writeFile(
-      join(directory, 'timeline.sanitization.json'),
+      join(directory, `${prefix}timeline.sanitization.json`),
       JSON.stringify({
         schemaVersion: 1,
         sha256: digest(bytes),
@@ -231,7 +262,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
           findings: [{ path: project.login.loginPath, kind: 'login-secrets-missing', count: 1 }],
         };
       }
-      const outcome = await signIn(browser, project, { email, password }, timeline);
+      const outcome = await signIn(browser, project, { email, password }, timeline, environment);
       if ('reason' in outcome) {
         timeline.push({ action: 'sign-in-form', checkpoint: 0, result: 'failed' });
         await writeTimeline();
@@ -244,10 +275,10 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
       storageState = outcome.state;
     }
     if (project.pageMode === 'discover') {
-      discoveredPaths = await crawl(browser, project, storageState, timeline);
+      discoveredPaths = await crawl(browser, project, storageState, timeline, environment);
       paths = [...new Set([...project.paths, ...discoveredPaths])].slice(0, project.maxPages);
     }
-    const budget = Math.max(1, Math.floor(600 / project.viewports.length));
+    const budget = pageBudget;
     if (paths.length > budget) {
       findings.push({
         path: '*',
@@ -260,6 +291,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
       for (const path of paths) {
         const { context, counters } = await openContext(browser, project, viewport, {
           storageState,
+          colorScheme: environment.colorScheme,
         });
         let networkErrors = 0;
         let scriptErrors = 0;
@@ -336,7 +368,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
             previous = bytes;
             await new Promise((resolve) => setTimeout(resolve, 150));
           }
-          const id = `checkpoint-${checkpoint + 1}`;
+          const id = `${prefix}checkpoint-${checkpoint + 1}`;
           const file = `${id}.png`;
           const specHash = digest(
             JSON.stringify({
@@ -345,6 +377,9 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
               viewport,
               masks: project.masks,
               browser: browser.version(),
+              ...(environment.browser === 'chromium' && environment.colorScheme === 'light'
+                ? {}
+                : { environment }),
               platform: process.platform,
               policy: 'web-visual-v1-input-masks',
               authenticated: !!storageState,
@@ -358,6 +393,8 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
               schemaVersion: 1,
               screenshotSha256: digest(bytes),
               captureMode: 'viewport-input-masked',
+              pngNormalization:
+                'validated-sRGB-and-full-precision-sBIT-removed-pixel-chunks-unchanged',
               authenticated: !!storageState,
               automaticMasks: ['input', 'textarea', '[contenteditable="true"]'],
               additionalMasks: project.masks,
@@ -391,6 +428,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
             profile: 'arxic-layout-text-evidence-v2',
             checkpoint: id,
             browserVersion: browser.version(),
+            environment,
             scene,
             assessment,
           });
@@ -405,6 +443,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
             sha256: digest(bytes),
             specHash,
             browserVersion: browser.version(),
+            environment,
             status: stable ? 'needs-baseline' : 'unstable',
             ...(storageState ? { authenticated: true } : {}),
           });
@@ -445,6 +484,85 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
   } finally {
     await browser.close();
   }
+}
+
+/** Expand the declared matrix; each environment is independent and failure stays visible. */
+export async function captureVisual(run: Run, directory: string): Promise<RunResult> {
+  const { environments, pageBudget } = planVisualMatrix(run.project);
+  const captures: Capture[] = [];
+  const findings: NonNullable<RunResult['findings']> = [];
+  const visualEnvironments: NonNullable<RunResult['visualEnvironments']> = [];
+  const discoveredPaths = new Set<string>();
+  const timeline: Timeline = [];
+  let singleSummary = '';
+  for (const environment of environments) {
+    const prefix =
+      environments.length === 1 ? '' : `${environment.browser}-${environment.colorScheme}-`;
+    let result: RunResult;
+    try {
+      result = await captureEnvironment(run, directory, environment, pageBudget, prefix);
+      if (run.project.origin && run.project.captureConsent && !run.project.recordVideo) {
+        const steps = JSON.parse(
+          await readFile(join(directory, `${prefix}timeline.json`), 'utf8'),
+        ) as Timeline;
+        timeline.push(...steps.map((step) => ({ ...step, environment })));
+      }
+    } catch {
+      result = {
+        outcome: 'blocked',
+        summary:
+          'Environment could not start or complete. Check the installed Playwright browser and system dependencies.',
+      };
+      timeline.push({
+        action: 'environment-refused',
+        checkpoint: 0,
+        result: 'blocked',
+        environment,
+      });
+    }
+    singleSummary = result.summary;
+    captures.push(...(result.captures ?? []));
+    findings.push(
+      ...(result.findings ?? []).map((finding) =>
+        environments.length > 1 ? { ...finding, environment } : finding,
+      ),
+    );
+    for (const path of result.discoveredPaths ?? []) discoveredPaths.add(path);
+    const omittedPages = (result.findings ?? [])
+      .filter((f) => f.kind === 'capture-budget-truncated-pages')
+      .reduce((sum, f) => sum + f.count, 0);
+    visualEnvironments.push({
+      ...environment,
+      outcome: result.outcome === 'blocked' ? 'blocked' : 'observed',
+      captures: result.captures?.length ?? 0,
+      ...(omittedPages ? { omittedPages } : {}),
+      ...(result.outcome === 'blocked' ? { reason: result.summary } : {}),
+    });
+  }
+  const bytes = JSON.stringify(timeline);
+  await writeFile(join(directory, 'timeline.json'), bytes, { mode: 0o600 });
+  await writeFile(
+    join(directory, 'timeline.sanitization.json'),
+    JSON.stringify({
+      schemaVersion: 1,
+      sha256: digest(bytes),
+      method:
+        'allow-listed action, ordinal and bounded environment fields; no DOM/network/credential payloads',
+      rawTraceRetained: false,
+    }),
+    { mode: 0o600 },
+  );
+  return {
+    outcome: visualEnvironments.some((cell) => cell.outcome === 'blocked') ? 'blocked' : 'observed',
+    summary:
+      environments.length === 1
+        ? singleSummary
+        : `${captures.length} viewport checkpoints captured across ${environments.length} browser/theme environments. Visual baseline review is separate from business-logic verification.`,
+    captures,
+    findings,
+    visualEnvironments,
+    ...(discoveredPaths.size ? { discoveredPaths: [...discoveredPaths] } : {}),
+  };
 }
 
 export async function compareCapture(

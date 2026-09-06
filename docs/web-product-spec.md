@@ -137,3 +137,10 @@ Captured-element inspection includes a bounded type filter alongside point/numbe
 selection (refs #437). Older captures remain inspectable with unknown type coverage.
 This browsing aid does not supply semantic names, replay locators or a complete
 accessibility tree, and cannot change deterministic visual verdicts.
+
+Browser/theme visual coverage now supports explicit Chromium/Firefox/WebKit ×
+light/dark × configured viewport selections (refs #439). Per-environment outcomes,
+shared-budget omissions and independent baselines prevent an absent cell from
+becoming a pass. Real browser, authenticated reference-app and dashboard proofs
+cover the named matrix. DPR/zoom/locale/OS/device and broad interaction-state
+coverage remain release gaps; #402 stays open.

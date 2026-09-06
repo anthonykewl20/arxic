@@ -157,12 +157,12 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-playwright-matrix-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-playwright-chromium-
+            ${{ runner.os }}-playwright-matrix-
 
-      - name: Install Playwright Chromium
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
+      - name: Install Playwright browser matrix
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
 
       # Same fallback Mailpit the monolithic Test step had. The suite leaves
       # ARXIC_MAILPIT_* unset, so tests provision their own per-run
@@ -247,8 +247,8 @@ jobs:
       - name: Tarball smoke
         run: node scripts/tarball-smoke.mjs
 
-      - name: Install Chromium system dependencies for packed replay
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install-deps chromium
+      - name: Install browser system dependencies for packed replay
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install-deps chromium firefox webkit
 
       - name: Packed CLI and dashboard release regression
         run: node scripts/human-flow-e2e.mjs --evidence-dir artifacts/human-flow
