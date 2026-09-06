@@ -119,7 +119,7 @@ export function RunPanel(props: RunPanelProps) {
         />
       )}
       {history && !props.loading && !props.error && (
-        <div className="pagination" aria-label="Run history pages">
+        <div className="pagination" role="navigation" aria-label="Run history pages">
           <small role="status">
             {history.total
               ? `${history.offset + 1}–${Math.min(history.offset + history.runs.length, history.total)} of ${history.total}`

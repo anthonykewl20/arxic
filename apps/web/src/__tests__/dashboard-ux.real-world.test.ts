@@ -102,6 +102,9 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
             `${width}-${theme}-${view}`,
             `Navigate to ${view} at ${width}px in ${theme}; audit accessibility/reflow`,
           );
+          expect(result.incomplete.filter((check) => check.id === 'aria-prohibited-attr')).toEqual(
+            [],
+          );
           violations.push(...result.details.map((v) => ({ width, theme, view, ...v })));
           expect(result.overflow, `${width}/${theme}/${view} horizontal overflow`).toBe(0);
         }
