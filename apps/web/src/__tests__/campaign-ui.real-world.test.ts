@@ -124,8 +124,9 @@ it('lets an administrator select and verify two real workflows with honest campa
     await page.getByRole('button', { name: 'Open workbench' }).click();
     await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
     await page.locator('#new-project').click();
-    await page.getByLabel('Project name', { exact: true }).fill('Campaign reference');
     await page.getByLabel('Project folder', { exact: true }).fill(repo.root);
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByLabel('Project name', { exact: true }).fill('Campaign reference');
     await page.getByLabel('Running test app origin').fill(target.origin);
     await page.getByRole('button', { name: 'Save project' }).click();
     await page.getByRole('button', { name: 'Discover intents', exact: true }).click();

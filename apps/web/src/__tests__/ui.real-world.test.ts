@@ -117,13 +117,15 @@ it('lets a real browser register a folder, discover source intent, run visual ch
       'Invalid login refused; late anonymous response cannot hide authenticated workspace',
     );
     await page.locator('#new-project').click();
-    await page.getByLabel('Project name', { exact: true }).fill('Reference frontend');
     await page.getByLabel('Project folder', { exact: true }).fill(tmpdir());
-    await page.getByRole('button', { name: 'Save project' }).click();
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await expect.poll(() => page.locator('#project-error').textContent()).toContain('outside');
     await page.getByLabel('Project folder', { exact: true }).fill(repo.root);
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByLabel('Project name', { exact: true }).fill('Reference frontend');
     await page.getByLabel('Running test app origin').fill(target.origin);
     await page.getByLabel('Viewport sizes').fill('800x600');
+    await page.locator('#project-form summary', { hasText: 'Advanced' }).click();
     await page.getByLabel('Schedule (UTC cron)').fill('0 9 * * *');
     await page.getByLabel('I authorize screenshot capture', { exact: false }).check();
     await page.getByRole('button', { name: 'Save project' }).click();

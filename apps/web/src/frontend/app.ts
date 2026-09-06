@@ -1,21 +1,19 @@
-import {
-  mountProviderPanel,
-  unmountProviderPanel,
-  mountWorkspaceShell,
-  mountWorkspacePanel,
-  unmountWorkspacePanel,
-  mountProjectModelControls,
-  unmountProjectModelControls,
-  updateModelCatalogs,
-  reviewDrafts,
-  reviewDraftKey,
-  clearPendingRequests,
-  beginPendingRequest,
-  campaignRequestKey,
-} from '/provider-ui.js';
-mountWorkspaceShell(document.querySelector('#workspace-root'));
-const $ = (selector) => document.querySelector(selector);
-const titles = {
+/** Dashboard actions: session, polling, navigation, dialogs. Presentation lives in the React panels. */
+import { mountProviderPanel, unmountProviderPanel } from './provider-panel';
+import { mountWorkspaceShell } from './workspace-shell';
+import { mountWorkspacePanel, unmountWorkspacePanel } from './workspace-panels';
+import { mountProjectWizard, unmountProjectWizard } from './project-wizard';
+import { mountAgentWizard, unmountAgentWizard } from './agent-wizard';
+import { updateModelCatalogs } from './model-controls';
+import { reviewDrafts, reviewDraftKey } from './review-form';
+import { clearPendingRequests, beginPendingRequest, campaignRequestKey } from './pending-requests';
+import { initTheme } from './theme';
+
+initTheme();
+mountWorkspaceShell(document.querySelector('#workspace-root')!);
+const $ = <T extends Element = HTMLElement>(selector: string) =>
+  document.querySelector(selector) as T;
+const titles: Record<string, string> = {
   overview: 'Workspace overview',
   intents: 'Intent inventory',
   runs: 'Test runs',
@@ -24,24 +22,66 @@ const titles = {
   admin: 'Administration',
   providers: 'Models & accounts',
 };
-let state = { projects: [], runs: [], audit: [], baselines: [] };
+const descriptions: Record<string, string> = {
+  overview: 'Manage projects, uncover gaps, and review what changed.',
+  intents: 'Source evidence, AI proposals, and the coverage still missing.',
+  runs: 'Inspect outcomes, compare captures, and review evidence.',
+  campaigns: 'Follow selected workflows and keep uncovered surfaces visible.',
+  schedules: 'Keep testing with recurring, controlled runs.',
+  admin: 'Manage instance access, execution scope, and review activity.',
+  providers: 'Connect subscriptions and APIs. Discover models directly from your providers.',
+};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let state: any = { projects: [], runs: [], audit: [], baselines: [] };
 let section = 'overview';
 let selectedProject = '';
 let selectedRun = '';
 let selectedCampaign = '';
-const workflowSelections = new Map();
-const workflowPages = new Map();
-const campaignPages = new Map();
-let editing = '';
-let noticeTimer;
+const workflowSelections = new Map<string, Set<string>>();
+const workflowPages = new Map<string, number>();
+const campaignPages = new Map<string, number>();
+let noticeTimer: ReturnType<typeof setTimeout>;
 let sessionEpoch = 0;
 let refreshSequence = 0;
 let signingOut = false;
 let declarationKind = '';
 let declarationSearch = '';
-const declarationPages = new Map();
+const declarationPages = new Map<string, number>();
+const projectDialog = () => $<HTMLDialogElement>('#project-dialog');
+const agentDialog = () => $<HTMLDialogElement>('#agent-dialog');
 
-async function api(path, method = 'GET', body) {
+function readLocation() {
+  const params = new URL(location.href).searchParams;
+  const view = params.get('view') ?? 'overview';
+  section = Object.hasOwn(titles, view) ? view : 'overview';
+  const id = (name: string) => {
+    const value = params.get(name) ?? '';
+    return /^[a-f0-9-]{36}$/u.test(value) ? value : '';
+  };
+  selectedProject = id('project');
+  selectedRun = section === 'runs' ? id('run') : '';
+  selectedCampaign = section === 'campaigns' ? id('campaign') : '';
+}
+function writeLocation() {
+  const url = new URL(location.href);
+  url.search = '';
+  url.hash = '';
+  if (section !== 'overview') url.searchParams.set('view', section);
+  if (selectedProject) url.searchParams.set('project', selectedProject);
+  if (section === 'runs' && selectedRun) url.searchParams.set('run', selectedRun);
+  if (section === 'campaigns' && selectedCampaign) url.searchParams.set('campaign', selectedCampaign);
+  if (url.href !== location.href) history.pushState(null, '', url);
+  document.title = `${titles[section]} · Arxic`;
+}
+readLocation();
+window.addEventListener('popstate', () => {
+  readLocation();
+  void refresh().then(() => $('#page-title').focus()).catch((error) => notice(error.message));
+});
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function api(path: string, method = 'GET', body?: unknown): Promise<any> {
   const epoch = sessionEpoch;
   const response = await fetch(`/api${path}`, {
     method,
@@ -60,12 +100,19 @@ async function api(path, method = 'GET', body) {
   }
   return data;
 }
+function closeProjectDialog() {
+  projectDialog().close();
+  unmountProjectWizard($('#project-wizard-root'));
+}
+function closeAgentDialog() {
+  agentDialog().close();
+  unmountAgentWizard($('#agent-wizard-root'));
+}
 function clearSession() {
   state = { projects: [], runs: [], audit: [], baselines: [] };
   selectedRun = '';
   selectedProject = '';
   selectedCampaign = '';
-  editing = '';
   declarationKind = '';
   declarationSearch = '';
   workflowPages.clear();
@@ -75,19 +122,17 @@ function clearSession() {
   const providerPanel = $('#provider-panel-root');
   if (workspacePanel) unmountWorkspacePanel(workspacePanel);
   if (providerPanel) unmountProviderPanel(providerPanel);
-  unmountProjectModelControls($('#execution-model-controls'));
   reviewDrafts.clear();
   clearPendingRequests();
   workflowSelections.clear();
   updateModelCatalogs([]);
-  $('#project-dialog').close();
-  $('#project-form').reset();
-  toggleExecution();
+  closeProjectDialog();
+  closeAgentDialog();
   $('#content').replaceChildren();
   $('#app').hidden = true;
   $('#login').hidden = false;
 }
-function notice(message) {
+function notice(message: string) {
   $('#notice').textContent = message;
   $('#notice').hidden = false;
   clearTimeout(noticeTimer);
@@ -101,12 +146,15 @@ async function refresh() {
   const sequence = ++refreshSequence;
   const snapshot = await api('/state');
   if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
-  const desired =
+  const desired: string[] =
     section === 'intents'
       ? snapshot.projects
-          .flatMap((item) =>
+          .flatMap((item: { id: string }) =>
             ['hasInventory', 'hasLedger'].map(
-              (key) => snapshot.runs.find((run) => run.projectId === item.id && run[key])?.id,
+              (key) =>
+                snapshot.runs.find(
+                  (run: Record<string, unknown>) => run.projectId === item.id && run[key],
+                )?.id,
             ),
           )
           .filter(Boolean)
@@ -116,14 +164,16 @@ async function refresh() {
   await Promise.all(
     desired.map(async (id) => {
       const detail = await api(`/runs/${id}`);
-      const index = snapshot.runs.findIndex((run) => run.id === id);
+      const index = snapshot.runs.findIndex((run: { id: string }) => run.id === id);
       if (index >= 0) snapshot.runs[index] = detail;
       else snapshot.runs.push(detail);
     }),
   );
   if (section === 'campaigns' && selectedCampaign) {
     const detail = await api(`/campaigns/${selectedCampaign}`);
-    const index = snapshot.campaigns.findIndex((item) => item.id === selectedCampaign);
+    const index = snapshot.campaigns.findIndex(
+      (item: { id: string }) => item.id === selectedCampaign,
+    );
     if (index >= 0) snapshot.campaigns[index] = detail;
     else snapshot.campaigns.push(detail);
   }
@@ -134,37 +184,36 @@ async function refresh() {
   $('#login').hidden = true;
   $('#version').textContent = state.versionLabel;
   if (state.queueError) notice(state.queueError);
+  if (agentDialog().open) renderAgentWizard();
   if (
-    !$('#project-dialog').open &&
+    !projectDialog().open &&
     !document.activeElement?.closest('#declaration-search, [data-review-form]')
   )
     render();
 }
-function project(id) {
-  return state.projects.find((item) => item.id === id);
+function project(id: string) {
+  return state.projects.find((item: { id: string }) => item.id === id);
 }
 function render() {
+  writeLocation();
   $('#page-title').textContent = titles[section];
   $('#breadcrumb').textContent = titles[section];
-  $('#page-description').textContent = {
-    overview: 'Manage projects, uncover gaps, and review what changed.',
-    intents: 'Source evidence, AI proposals, and the coverage still missing.',
-    runs: 'Inspect outcomes, compare captures, and review evidence.',
-    campaigns: 'Follow selected workflows and keep uncovered surfaces visible.',
-    schedules: 'Keep testing with recurring, controlled runs.',
-    admin: 'Manage instance access, execution scope, and review activity.',
-    providers: 'Connect subscriptions and APIs. Discover models directly from your providers.',
-  }[section];
+  $('#page-description').textContent = descriptions[section];
   document
-    .querySelectorAll('[data-nav]')
-    .forEach((button) => button.classList.toggle('active', button.dataset.nav === section));
+    .querySelectorAll<HTMLElement>('[data-nav]')
+    .forEach((button) => {
+      const active = button.dataset.nav === section;
+      button.classList.toggle('active', active);
+      if (active) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    });
   const providerRoot = $('#provider-panel-root');
   const workspacePanel = $('#workspace-panel-root');
   if (['overview', 'schedules', 'admin', 'campaigns', 'intents', 'runs'].includes(section)) {
     if (providerRoot) unmountProviderPanel(providerRoot);
     if (!workspacePanel) $('#content').innerHTML = '<div id="workspace-panel-root"></div>';
     mountWorkspacePanel($('#workspace-panel-root'), {
-      section,
+      section: section as 'overview',
       state,
       runPanel: {
         state,
@@ -204,84 +253,57 @@ function render() {
   }
   if (providerRoot) unmountProviderPanel(providerRoot);
 }
-function toggleExecution() {
-  const form = $('#project-form');
-  const enabled = form.elements.namedItem('guided').checked;
-  $('#execution-fields').hidden = !enabled;
-  $('#execution-fields').disabled = !enabled;
-  form.elements.namedItem('configPath').disabled = enabled;
-}
-const executionNumbers = ['modelBudgetUsd', 'maxRuntimeMinutes', 'maxUrls', 'maxDepth'];
-const executionLists = ['frameworks', 'domains', 'languages'];
-const splitList = (value) =>
-  String(value)
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean);
 function editProject(id = '') {
-  editing = id;
-  const item = project(id) ?? {
-    paths: ['/'],
-    masks: [],
-    viewports: [
-      { width: 1440, height: 900 },
-      { width: 390, height: 844 },
-    ],
-    paused: true,
-    scheduleMode: 'discovery',
-  };
-  const form = $('#project-form');
-  form.reset();
-  mountProjectModelControls(
-    $('#execution-model-controls'),
-    {
-      modelConnection: item.execution?.modelConnection ?? '',
-      model: item.execution?.model ?? '',
+  mountProjectWizard($('#project-wizard-root'), {
+    project: project(id),
+    api,
+    onRefreshModels: refreshModels,
+    onClose: closeProjectDialog,
+    onSaved: async () => {
+      closeProjectDialog();
+      await refresh();
+      notice('Project settings saved.');
     },
-    refreshModels,
-  );
-  if (item.execution) void refreshModels(item.execution.modelConnection ?? '');
-  for (const key of ['name', 'folder', 'origin', 'configPath', 'cron', 'scheduleMode'])
-    form.elements.namedItem(key).value = item[key] ?? '';
-  form.elements.namedItem('paths').value = item.paths.join('\n');
-  form.elements.namedItem('masks').value = item.masks.join('\n');
-  form.elements.namedItem('viewports').value = item.viewports
-    .map((view) => `${view.width}x${view.height}`)
-    .join(', ');
-  form.elements.namedItem('paused').checked = item.paused;
-  form.elements.namedItem('captureConsent').checked = item.captureConsent;
-  form.elements.namedItem('guided').checked = !!item.execution;
-  if (item.execution) {
-    for (const [key, value] of Object.entries(item.execution)) {
-      if (key === 'model' || key === 'modelConnection') continue;
-      if (key === 'persona') {
-        for (const [field, text] of Object.entries(value))
-          form.elements.namedItem(`persona_${field}`).value = text;
-      } else if (key === 'featureFlags') {
-        form.elements.namedItem('exec_featureFlags').value = Object.entries(value)
-          .map(([flag, enabled]) => `${flag}=${enabled}`)
-          .join('\n');
-      } else
-        form.elements.namedItem(`exec_${key}`).value = Array.isArray(value)
-          ? value.join(', ')
-          : value;
-    }
-  }
-  toggleExecution();
-  $('#dialog-title').textContent = editing ? 'Project settings' : 'Connect a project';
-  $('#project-error').textContent = '';
-  $('#project-dialog').showModal();
+  });
+  if (!projectDialog().open) projectDialog().showModal();
 }
+function renderAgentWizard() {
+  mountAgentWizard($('#agent-wizard-root'), {
+    connections: state.modelConnections ?? [],
+    setup: state.providerSetup ?? [],
+    onRefresh: refreshModels,
+    onClose: closeAgentDialog,
+    onOpenProviders: () => {
+      closeAgentDialog();
+      section = 'providers';
+      writeLocation();
+      void refresh().catch((error) => notice(error.message));
+    },
+  });
+}
+function connectAgent() {
+  renderAgentWizard();
+  if (!agentDialog().open) agentDialog().showModal();
+}
+for (const dialog of [projectDialog(), agentDialog()])
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    if (dialog.id === 'project-dialog') closeProjectDialog();
+    else closeAgentDialog();
+  });
 $('#login-form').addEventListener('submit', async (event) => {
   event.preventDefault();
+  const form = event.target as HTMLFormElement;
   sessionEpoch++;
   try {
-    await api('/session', 'POST', { token: event.target.elements.token.value });
-    event.target.reset();
+    await api('/session', 'POST', {
+      token: (form.elements.namedItem('token') as HTMLInputElement).value,
+    });
+    form.reset();
     $('#login-error').textContent = '';
     await refresh();
   } catch (error) {
-    $('#login-error').textContent = error.message;
+    $('#login-error').textContent = (error as Error).message;
   }
 });
 $('#logout').addEventListener('click', async () => {
@@ -291,154 +313,96 @@ $('#logout').addEventListener('click', async () => {
     await api('/session', 'DELETE', {});
     clearSession();
   } catch (error) {
-    notice(error.message);
+    notice((error as Error).message);
   } finally {
     signingOut = false;
   }
 });
 $('#new-project').addEventListener('click', () => editProject());
-$('#project-form').elements.namedItem('guided').addEventListener('change', toggleExecution);
-$('#close-dialog').addEventListener('click', () => $('#project-dialog').close());
-$('#project-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const values = new FormData(event.target);
-  const body = Object.fromEntries(
-    ['name', 'folder', 'origin', 'configPath', 'cron', 'scheduleMode'].map((key) => [
-      key,
-      values.get(key),
-    ]),
-  );
-  body.paths = String(values.get('paths'))
-    .split('\n')
-    .map((value) => value.trim())
-    .filter(Boolean);
-  body.masks = String(values.get('masks'))
-    .split('\n')
-    .map((value) => value.trim())
-    .filter(Boolean);
-  body.viewports = String(values.get('viewports'))
-    .split(',')
-    .map((value) => {
-      const [width, height] = value.trim().split('x').map(Number);
-      return { width, height };
-    });
-  body.paused = values.has('paused');
-  body.captureConsent = values.has('captureConsent');
-  try {
-    if (values.has('guided')) {
-      body.configPath = '';
-      body.execution = { persona: {} };
-      for (const [name, value] of values) {
-        if (name.startsWith('persona_')) body.execution.persona[name.slice(8)] = value;
-        if (!name.startsWith('exec_')) continue;
-        const key = name.slice(5);
-        if (key === 'featureFlags') {
-          const flags = String(value)
-            .split('\n')
-            .map((line) => line.trim())
-            .filter(Boolean)
-            .map((line) => {
-              const match = /^([A-Za-z][A-Za-z0-9_.-]{0,99})=(true|false)$/u.exec(line);
-              if (!match) throw new Error('Use name=true or name=false for each feature flag');
-              return [match[1], match[2] === 'true'];
-            });
-          if (new Set(flags.map(([key]) => key)).size !== flags.length)
-            throw new Error('Feature flag names must be unique');
-          body.execution.featureFlags = Object.fromEntries(flags);
-        } else
-          body.execution[key] = executionNumbers.includes(key)
-            ? Number(value)
-            : executionLists.includes(key)
-              ? splitList(value)
-              : value;
-      }
-    }
-    await api(`/projects${editing ? `/${editing}` : ''}`, editing ? 'PUT' : 'POST', body);
-    $('#project-dialog').close();
-    await refresh();
-    notice('Project settings saved.');
-  } catch (error) {
-    $('#project-error').textContent = error.message;
-  }
-});
+$('#connect-agent').addEventListener('click', () => connectAgent());
 document.addEventListener('change', (event) => {
-  if (event.target.dataset.workflowRow) {
-    const id = event.target.dataset.discovery;
-    const selected = workflowSelections.get(id) ?? new Set();
-    if (event.target.checked && selected.size >= 20) {
-      event.target.checked = false;
+  const target = event.target as HTMLInputElement;
+  if (target.dataset.workflowRow) {
+    const id = target.dataset.discovery!;
+    const selected = workflowSelections.get(id) ?? new Set<string>();
+    if (target.checked && selected.size >= 20) {
+      target.checked = false;
       notice('Choose at most 20 workflows per campaign.');
       return;
     }
-    if (event.target.checked) selected.add(event.target.value);
-    else selected.delete(event.target.value);
+    if (target.checked) selected.add(target.value);
+    else selected.delete(target.value);
     workflowSelections.set(id, selected);
     render();
   }
-  if (event.target.id === 'declaration-kind') {
-    declarationKind = event.target.value;
+  if (target.id === 'declaration-kind') {
+    declarationKind = target.value;
     declarationPages.clear();
     render();
   }
-  if (event.target.id === 'project-filter') {
-    selectedProject = event.target.value;
+  if (target.id === 'project-filter') {
+    selectedProject = target.value;
     render();
   }
 });
 document.addEventListener('submit', (event) => {
-  if (event.target.id !== 'declaration-search') return;
+  const form = event.target as HTMLFormElement;
+  if (form.id !== 'declaration-search') return;
   event.preventDefault();
-  declarationSearch = new FormData(event.target).get('query');
+  declarationSearch = String(new FormData(form).get('query') ?? '');
   declarationPages.clear();
   render();
 });
-async function requestVisualReview(request) {
+async function requestVisualReview(request: Record<string, unknown> & { sourceRunId: string }) {
   const epoch = sessionEpoch;
   const { sourceRunId, ...body } = request;
   const run = await api(`/runs/${sourceRunId}/reviews`, 'POST', body);
   if (epoch !== sessionEpoch || signingOut) return;
-  reviewDrafts.delete(reviewDraftKey(sourceRunId, body.captureId, body.sha256));
-  document.activeElement?.blur();
+  reviewDrafts.delete(reviewDraftKey(sourceRunId, body.captureId as string, body.sha256 as string));
+  (document.activeElement as HTMLElement | null)?.blur();
   selectedRun = run.id;
   section = 'runs';
-  state.runs = [run, ...state.runs.filter((item) => item.id !== run.id)];
+      writeLocation();
+  state.runs = [run, ...state.runs.filter((item: { id: string }) => item.id !== run.id)];
   render();
   try {
     await refresh();
   } catch (error) {
-    notice(error.message);
+    notice((error as Error).message);
   }
 }
 document.addEventListener('submit', async (event) => {
-  const form = event.target;
+  const form = event.target as HTMLFormElement;
   if (!form.dataset.campaignForm) return;
   event.preventDefault();
   const release = beginPendingRequest(
-    campaignRequestKey(form.dataset.project, form.dataset.discovery),
+    campaignRequestKey(form.dataset.project!, form.dataset.discovery!),
   );
   if (!release) return;
   try {
     const campaign = await api(`/projects/${form.dataset.project}/campaigns`, 'POST', {
       discoveryRunId: form.dataset.discovery,
-      inventoryRowIds: [...(workflowSelections.get(form.dataset.discovery) ?? [])],
+      inventoryRowIds: [...(workflowSelections.get(form.dataset.discovery!) ?? [])],
     });
     selectedCampaign = campaign.id;
     section = 'campaigns';
+      writeLocation();
     render();
     await refresh();
   } catch (error) {
-    notice(error.message);
+    notice((error as Error).message);
   } finally {
     release();
   }
 });
 document.addEventListener('click', async (event) => {
-  const button = event.target.closest('button');
-  if (!button) return;
+  const button = (event.target as Element).closest('button');
+  if (!button || button.closest('dialog')) return;
   try {
     if (button.dataset.openCampaign) {
       selectedCampaign = button.dataset.openCampaign;
       section = 'campaigns';
+      writeLocation();
       await refresh();
     }
     if (button.dataset.cancelCampaign) {
@@ -448,7 +412,7 @@ document.addEventListener('click', async (event) => {
     }
     if (button.dataset.workflowPage || button.dataset.campaignPage) {
       const pages = button.dataset.workflowPage ? workflowPages : campaignPages;
-      const id = button.dataset.workflowPage ?? button.dataset.campaignPage;
+      const id = (button.dataset.workflowPage ?? button.dataset.campaignPage)!;
       pages.set(id, Math.max(0, (pages.get(id) ?? 0) + Number(button.dataset.direction)));
       render();
     }
@@ -461,10 +425,13 @@ document.addEventListener('click', async (event) => {
       render();
     }
     if (button.dataset.nav || button.dataset.go) {
-      section = button.dataset.nav ?? button.dataset.go;
+      section = (button.dataset.nav ?? button.dataset.go)!;
+      writeLocation();
       await refresh();
+      $('#page-title').focus();
     }
     if (button.hasAttribute('data-add')) editProject();
+    if (button.hasAttribute('data-connect-agent')) connectAgent();
     if (button.dataset.edit) editProject(button.dataset.edit);
     if (button.dataset.start) {
       button.disabled = true;
@@ -473,11 +440,13 @@ document.addEventListener('click', async (event) => {
       });
       selectedRun = run.id;
       section = 'runs';
+      writeLocation();
       await refresh();
     }
     if (button.dataset.openRun) {
       selectedRun = button.dataset.openRun;
       section = 'runs';
+      writeLocation();
       await refresh();
       $('.run-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -503,20 +472,23 @@ document.addEventListener('click', async (event) => {
       notice('Baseline approved. Future comparisons use these captured pixels.');
     }
   } catch (error) {
-    notice(error.message);
+    notice((error as Error).message);
   } finally {
     button.disabled = false;
   }
 });
 void refresh().catch(() => {});
 setInterval(() => {
-  if (!$('#app').hidden && !$('#project-dialog').open)
+  if (!$('#app').hidden && !projectDialog().open)
     void refresh().catch((error) => notice(error.message));
 }, 2500);
 
-async function refreshModels(id) {
+async function refreshModels(id: string) {
   const epoch = sessionEpoch;
-  if (state.modelConnections?.find((item) => item.id === id)?.catalog.status === 'unavailable')
+  if (
+    state.modelConnections?.find((item: { id: string }) => item.id === id)?.catalog.status ===
+    'unavailable'
+  )
     return;
   try {
     const result = await api(
@@ -528,15 +500,17 @@ async function refreshModels(id) {
     state.modelConnections = result.modelConnections;
     updateModelCatalogs(state.modelConnections);
     if (section === 'providers') render();
+    if (agentDialog().open) renderAgentWizard();
   } catch (error) {
-    notice(error.message);
+    notice((error as Error).message);
   }
 }
-
 setInterval(() => {
   if (document.hidden || $('#app').hidden) return;
   const selected = new Set(
-    [...document.querySelectorAll('[data-model-connection]')].map((select) => select.value),
+    [...document.querySelectorAll<HTMLSelectElement>('[data-model-connection]')].map(
+      (select) => select.value,
+    ),
   );
   for (const id of selected) void refreshModels(id);
 }, 5 * 60_000);

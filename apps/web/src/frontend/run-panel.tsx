@@ -1,4 +1,4 @@
-import { Button } from './components/ui/button';
+import { Button } from './components';
 import { RunTable, Status } from './run-table';
 import { ReviewForm, reviewDraftKey, type ReviewRequest } from './review-form';
 import { time } from './display';
@@ -43,7 +43,7 @@ function CaptureFigure({ label, runId, file }: { label: string; runId?: string; 
       <figcaption>{label}</figcaption>
       {file ? (
         <a href={url} target="_blank" rel="noopener">
-          <img alt={label} src={url} />
+          <img alt={label} src={url} loading="lazy" decoding="async" />
         </a>
       ) : (
         <div className="placeholder">Awaiting a reviewed baseline</div>
@@ -135,6 +135,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                 </h3>
                 <small>
                   <Status value={capture.status} />{' '}
+                  {capture.authenticated && <Status value="signed in" />}{' '}
                   {capture.changedPixels !== undefined && (
                     <>
                       {capture.changedPixels.toLocaleString()} changed pixels
@@ -167,6 +168,16 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
               />
               <CaptureFigure label="Current capture" runId={run.id} file={capture.file} />
               <CaptureFigure label="Pixel difference" runId={run.id} file={capture.diffFile} />
+              {capture.videoFile && (
+                <figure>
+                  <video
+                    controls
+                    preload="metadata"
+                    src={`/api/runs/${run.id}/artifacts/${encodeURIComponent(capture.videoFile)}`}
+                  />
+                  <figcaption>Session video · unmasked, inspect before sharing</figcaption>
+                </figure>
+              )}
             </div>
             {run.state === 'completed' && capture.status !== 'unstable' && (
               <ReviewForm

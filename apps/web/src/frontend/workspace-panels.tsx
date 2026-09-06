@@ -4,139 +4,133 @@ import { time } from './display';
 import { InventoryPanel, type InventoryPanelProps } from './inventory-panel';
 import { CampaignPanel, type CampaignPanelProps } from './campaign-panel';
 import { createRoot, type Root } from 'react-dom/client';
-import {
-  FolderGit2,
-  ArrowUpRight,
-  Play,
-  ScanSearch,
-  Clock3,
-  Activity,
-  ScanLine,
-  ShieldCheck,
-  FolderLock,
-} from 'lucide-react';
-import { Button } from './components/ui/button';
-import { Card, CardContent } from './components/ui/card';
+import { FolderGit2, ArrowUpRight, Clock3, ShieldCheck, FolderLock, Plus } from 'lucide-react';
+import { Button, Card, CardContent, StatusDot, toneOf } from './components';
 import type { Workbench } from '../workbench';
 
 type State = ReturnType<Workbench['state']>;
+function projectHealth(state: State, id: string) {
+  const runs = state.runs.filter((run) => run.projectId === id);
+  const latest = runs[0];
+  if (!latest) return { tone: 'neutral' as const, label: 'No runs yet' };
+  if (['queued', 'running'].includes(latest.state))
+    return { tone: 'info' as const, label: latest.state === 'queued' ? 'Queued' : 'Running' };
+  const outcome = latest.result?.outcome ?? latest.state;
+  const changed = latest.result?.captures?.some((capture) => capture.status === 'changed');
+  if (changed) return { tone: 'warning' as const, label: 'Visual changes' };
+  return { tone: toneOf(outcome), label: outcome.charAt(0).toUpperCase() + outcome.slice(1) };
+}
 function Overview({ state }: { state: State }) {
   const stats = [
-    {
-      label: 'Connected projects',
-      value: state.projects.length,
-      caption: 'Folders on this instance',
-      icon: FolderGit2,
-    },
+    { label: 'Projects', value: state.projects.length, caption: 'Connected on this instance' },
     {
       label: 'Active runs',
       value: state.runs.filter((run) => ['queued', 'running'].includes(run.state)).length,
       caption: 'Queued and running',
-      icon: Activity,
     },
     {
-      label: 'Runs with visual changes',
+      label: 'Visual changes',
       value: state.runs.filter((run) =>
         run.result?.captures?.some((capture) => capture.status === 'changed'),
       ).length,
       caption: 'In the latest 200 runs',
-      icon: ScanLine,
     },
     {
       label: 'Active schedules',
       value: state.projects.filter((item) => item.cron && !item.paused).length,
       caption: 'UTC · server must be running',
-      icon: Clock3,
     },
   ];
+  const columns = 'minmax(0, 2fr) minmax(0, 2fr) 120px 110px 270px';
   return (
     <>
       <div className="stats">
-        {stats.map(({ label, value, caption, icon: Icon }) => (
+        {stats.map(({ label, value, caption }) => (
           <Card className="stat" key={label}>
-            <div className="stat-top">
-              <span className="stat-label">{label}</span>
-              <Icon size={15} />
-            </div>
+            <span className="stat-label">{label}</span>
             <strong>{value}</strong>
             <small>{caption}</small>
           </Card>
         ))}
       </div>
-      <div className="section-heading">
-        <h2>Your projects</h2>
-        <small>{state.projects.length} connected</small>
-      </div>
-      {state.projects.length ? (
-        <div className="project-grid">
-          {state.projects.map((item) => (
-            <Card className="card project-card" key={item.id}>
-              <div className="card-top">
-                <div className="project-icon" aria-hidden="true">
-                  <FolderGit2 size={18} />
+      <div className="section">
+        <div className="section-heading">
+          <h2>Projects</h2>
+          <small>{state.projects.length} connected</small>
+        </div>
+        {state.projects.length ? (
+          <div className="panel list project-grid" style={{ display: 'flex' }}>
+            <div className="list-row list-head" style={{ gridTemplateColumns: columns }}>
+              <span>Name</span>
+              <span>Source</span>
+              <span>Status</span>
+              <span>Schedule</span>
+              <span />
+            </div>
+            {state.projects.map((item) => {
+              const health = projectHealth(state, item.id);
+              return (
+                <div className="list-row" key={item.id} style={{ gridTemplateColumns: columns }}>
+                  <div className="list-name">
+                    <FolderGit2 size={16} aria-hidden="true" />
+                    <h3>{item.name}</h3>
+                    <Button variant="ghost" size="sm" className="text-button" data-edit={item.id}>
+                      Settings
+                    </Button>
+                  </div>
+                  <span className="folder">{item.folder}</span>
+                  <StatusDot tone={health.tone}>{health.label}</StatusDot>
+                  <span className="muted text-xs">
+                    {item.cron && !item.paused ? `${item.cron} UTC` : 'On demand'}
+                  </span>
+                  <div className="list-actions">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-start="discovery"
+                      data-project={item.id}
+                    >
+                      Discover intents
+                    </Button>
+                    <Button variant="outline" size="sm" data-start="visual" data-project={item.id}>
+                      Visual test
+                    </Button>
+                    <Button variant="outline" size="sm" data-start="agent" data-project={item.id}>
+                      AI E2E
+                    </Button>
+                  </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-button" data-edit={item.id}>
-                  Settings <ArrowUpRight />
-                </Button>
-              </div>
-              <h3>{item.name}</h3>
-              <p className="folder">{item.folder}</p>
-              <div className="card-info">
-                <span>{item.origin || 'Source discovery only'}</span>
-                <span>{item.cron && !item.paused ? 'Scheduled' : 'On demand'}</span>
-              </div>
-              <div className="card-actions">
-                <Button className="primary" data-start="discovery" data-project={item.id}>
-                  <ScanSearch />
-                  Discover intents
-                </Button>
-                <Button
-                  variant="outline"
-                  className="secondary"
-                  data-start="visual"
-                  data-project={item.id}
-                >
-                  <ScanLine />
-                  Visual test
-                </Button>
-                <Button
-                  variant="outline"
-                  className="secondary"
-                  data-start="agent"
-                  data-project={item.id}
-                >
-                  <Play />
-                  AI E2E
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="empty">
-          <FolderGit2 size={28} />
-          <h2>Connect your first frontend</h2>
-          <p className="muted">
-            Point Arxic at a project folder to inventory source evidence. Then connect a running
-            test app to inspect visual changes and replay behavior.
-          </p>
-          <Button className="primary" data-add>
-            Add project
-          </Button>
-        </div>
-      )}
+              );
+            })}
+          </div>
+        ) : (
+          <div className="empty">
+            <FolderGit2 size={24} aria-hidden="true" />
+            <h2>Connect your first project</h2>
+            <p className="muted">
+              Pick a folder on this server or paste a GitHub URL. Arxic inventories the source
+              first; add a running test app later for visual and AI runs.
+            </p>
+            <Button data-add>
+              <Plus /> Connect project
+            </Button>
+          </div>
+        )}
+      </div>
       <div className="scope-note">
         <strong>Coverage with context.</strong> Discovered surfaces are hypotheses until runtime
         evidence supports them. A matching screenshot does not prove business correctness. Blocked
         and unsupported areas stay visible.
       </div>
-      <div className="section-heading">
-        <h2>Recent activity</h2>
-        <Button variant="ghost" className="text-button" data-go="runs">
-          All test runs <ArrowUpRight />
-        </Button>
+      <div className="section">
+        <div className="section-heading">
+          <h2>Recent runs</h2>
+          <Button variant="ghost" size="sm" className="text-button" data-go="runs">
+            All test runs <ArrowUpRight />
+          </Button>
+        </div>
+        <RunTable runs={state.runs.slice(0, 6)} />
       </div>
-      <RunTable runs={state.runs.slice(0, 6)} />
     </>
   );
 }
@@ -148,25 +142,27 @@ function Schedules({ state }: { state: State }) {
         one run after restart. Jobs run one at a time; no catch-up burst.
       </div>
       {state.projects.length ? (
-        state.projects.map((item) => (
-          <Card className="card" key={item.id}>
-            <div className="card-top">
-              <div>
-                <h3>{item.name}</h3>
-                <p className="muted">
-                  {item.cron || 'No schedule configured'} · {item.scheduleMode}
-                </p>
-                <small>Next due: {item.paused ? 'Paused' : time(item.nextRunAt)}</small>
+        <div className="section">
+          {state.projects.map((item) => (
+            <Card className="card" key={item.id}>
+              <div className="card-top">
+                <div>
+                  <h3>{item.name}</h3>
+                  <p className="muted">
+                    {item.cron || 'No schedule configured'} · {item.scheduleMode}
+                  </p>
+                  <small>Next due: {item.paused ? 'Paused' : time(item.nextRunAt)}</small>
+                </div>
+                <div>
+                  <Status value={item.paused || !item.cron ? 'paused' : 'active'} />{' '}
+                  <Button variant="outline" size="sm" data-edit={item.id}>
+                    Configure
+                  </Button>
+                </div>
               </div>
-              <div>
-                <Status value={item.paused || !item.cron ? 'paused' : 'active'} />{' '}
-                <Button variant="outline" className="secondary" data-edit={item.id}>
-                  Configure
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ))
+            </Card>
+          ))}
+        </div>
       ) : (
         <div className="empty">
           <Clock3 size={25} />
@@ -207,7 +203,7 @@ function Administration({ state }: { state: State }) {
           </p>
         </Card>
       </div>
-      <div className="section-heading">
+      <div className="section-heading mt-6">
         <h2>Administrator activity</h2>
         <small>Latest 100 events</small>
       </div>

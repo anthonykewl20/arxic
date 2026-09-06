@@ -1,4 +1,13 @@
 export type RunMode = 'discovery' | 'visual' | 'agent' | 'review';
+/** Form sign-in performed once per visual run; secrets are ARXIC_SECRET_ server variables. */
+export type VisualLogin = {
+  loginPath: string;
+  emailRef: string;
+  passwordRef: string;
+  emailLabel: string;
+  passwordLabel: string;
+  submitLabel: string;
+};
 export type Project = {
   id: string;
   name: string;
@@ -8,6 +17,14 @@ export type Project = {
   viewports: Array<{ width: number; height: number }>;
   masks: string[];
   captureConsent: boolean;
+  /** manual: only `paths`; discover: merge GET routes from the latest source discovery. */
+  pageMode: 'manual' | 'discover';
+  /** Record a WebM video of each capture session; privacy masks do not apply to video frames. */
+  recordVideo: boolean;
+  /** Crawl budget for AI discovery: pages captured and link depth followed from configured paths. */
+  maxPages: number;
+  maxDepth: number;
+  login?: VisualLogin;
   configPath: string;
   execution?: import('./execution').ExecutionSettings;
   cron: string;
@@ -30,6 +47,8 @@ export type Capture = {
   baselineRunId?: string;
   baselineFile?: string;
   diffFile?: string;
+  videoFile?: string;
+  authenticated?: boolean;
 };
 export type RunResult = {
   review?: import('./visual-review').VisualReviewResult;
@@ -41,6 +60,8 @@ export type RunResult = {
   manifest?: unknown;
   diagnostics?: unknown;
   captures?: Capture[];
+  /** Paths found by crawling the signed-in app during AI discovery, in discovery order. */
+  discoveredPaths?: string[];
   findings?: Array<{ path: string; kind: string; count: number }>;
   ledger?: unknown;
   engineRun?: unknown;

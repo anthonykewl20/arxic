@@ -1,6 +1,5 @@
 import { Activity, ArrowUpRight } from 'lucide-react';
-import { Button } from './components/ui/button';
-import { Badge } from './components/ui/badge';
+import { Button, Badge } from './components';
 import type { Run } from '../types';
 import { time } from './display';
 export function Status({ value }: { value: string }) {

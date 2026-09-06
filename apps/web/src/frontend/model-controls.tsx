@@ -3,8 +3,7 @@ import { useState, useSyncExternalStore } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { RefreshCw } from 'lucide-react';
-import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
+import { Button, Input } from './components';
 import type { modelConnections } from '../model-connections';
 
 export type ModelConnection = ReturnType<typeof modelConnections>[number];

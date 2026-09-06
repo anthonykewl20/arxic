@@ -48,6 +48,15 @@ export const subscriptionPresets = () => [
     models: [],
   },
   {
+    id: 'glm-coding',
+    label: 'GLM Coding / Token Plan',
+    transport: 'http' as const,
+    billing: 'subscription' as const,
+    baseUrl: 'https://api.z.ai/api/coding/paas/v4',
+    credentialRef: 'ARXIC_SECRET_GLM_CODING_KEY',
+    models: [],
+  },
+  {
     id: 'openrouter',
     label: 'OpenRouter API',
     transport: 'http' as const,
@@ -102,6 +111,14 @@ export const providerSetup = [
     url: 'https://opencode.ai/docs/go/',
     detail:
       'Connect Go in OpenCode and select an opencode-go/model ID. Its native adapter handles the different protocols used by Go models.',
+  },
+  {
+    id: 'glm-coding',
+    name: 'GLM Coding / Token Plan',
+    method: 'Z.AI plan API key',
+    url: 'https://docs.z.ai/devpack/tool/others',
+    detail:
+      'Use the Z.AI Coding Plan endpoint with the plan API key from your Z.AI account. Set ARXIC_SECRET_GLM_CODING_KEY on the server; the plan endpoint is separate from the pay-as-you-go API.',
   },
   {
     id: 'openrouter',

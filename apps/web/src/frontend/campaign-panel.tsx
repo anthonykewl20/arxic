@@ -1,6 +1,6 @@
-import { Button } from './components/ui/button';
-import { Card } from './components/ui/card';
-import { Badge } from './components/ui/badge';
+import { Button } from './components';
+import { Card } from './components';
+import { Badge } from './components';
 import type { Workbench } from '../workbench';
 
 type CampaignView = ReturnType<Workbench['campaign']>;

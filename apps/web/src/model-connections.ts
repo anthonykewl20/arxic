@@ -215,6 +215,7 @@ export function modelConnections(env: NodeJS.ProcessEnv = process.env) {
           },
       modelSelection:
         env.ARXIC_MODEL_PROVIDER !== 'host-cli' || !!env.ARXIC_MODEL_HOST_CLI_MODEL_ARGS,
+      secret: 'none' as 'configured' | 'missing' | 'none',
     },
     ...connections(env).map((connection) => {
       const { id, label, transport, billing } = connection;
@@ -227,6 +228,12 @@ export function modelConnections(env: NodeJS.ProcessEnv = process.env) {
         catalog: catalogStatus(key),
         modelSelection: true,
         billing: billing ?? (transport === 'host-cli' ? 'operator-managed' : 'api'),
+        /** Server secret state only; the variable name and value never reach the browser. */
+        secret: connection.credentialRef
+          ? env[connection.credentialRef]
+            ? ('configured' as const)
+            : ('missing' as const)
+          : ('none' as const),
       };
     }),
   ];

@@ -34,6 +34,13 @@ budget/criterion controls, proposed regions, reproduction and model provenance.
 Findings remain hypotheses. Authenticated checkpoints and comprehensive
 business-state exploration remain under #402.
 
+**Connect project** is a two-step wizard: choose a workspace folder or a public
+GitHub URL (cloned server-side), then confirm detected settings. Pages are a
+manual list or AI discovery from the latest source discovery; session video is
+optional. **Connect agent** lists provider accounts with connection state, the
+server command to run and a verify step. The UI uses one token file with
+Light/Dark/System themes, one shadcn component set and one JS + one CSS bundle.
+
 Provider/model controls use operator-owned named HTTP or host-agent connections,
 provider-owned refreshing catalogs and editable custom IDs. Built-in connections
 support native account CLIs and compatible subscription/API endpoints. The

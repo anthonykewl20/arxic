@@ -1,13 +1,188 @@
 import { sha256 as digest } from '@arxic/contracts';
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { chromium } from 'playwright';
+import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import sharp from 'sharp';
 import pixelmatch from 'pixelmatch';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
-import type { Capture, Run, RunResult } from './types';
+import type { Capture, Project, Run, RunResult } from './types';
 
 export { digest };
+
+type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
+type Timeline = Array<{ action: string; checkpoint: number; result?: string }>;
+
+/** Same-origin only; mutations are denied except during the sign-in submission. */
+async function openContext(
+  browser: Browser,
+  project: Project,
+  viewport: { width: number; height: number },
+  options: { storageState?: StorageState; allowMutations?: boolean; videoDirectory?: string },
+) {
+  const context = await browser.newContext({
+    viewport,
+    deviceScaleFactor: 1,
+    locale: 'en-US',
+    timezoneId: 'UTC',
+    colorScheme: 'light',
+    reducedMotion: 'reduce',
+    serviceWorkers: 'block',
+    ...(options.storageState ? { storageState: options.storageState } : {}),
+    ...(options.videoDirectory
+      ? { recordVideo: { dir: options.videoDirectory, size: viewport } }
+      : {}),
+  });
+  const counters = { denied: 0 };
+  await context.route('**/*', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (
+      url.origin !== project.origin ||
+      (!options.allowMutations && !['GET', 'HEAD'].includes(request.method()))
+    ) {
+      counters.denied++;
+      await route.abort();
+    } else await route.continue();
+  });
+  await context.routeWebSocket(/.*/, (socket) => socket.close());
+  return { context, counters };
+}
+
+const excludedPath =
+  /(^|\/)(logout|log-out|signout|sign-out|signoff|api)(\/|$)|\.(png|jpe?g|gif|svg|webp|ico|css|js|map|pdf|zip|xml|txt|woff2?)$/iu;
+/** Follow same-origin links from the configured paths, GET only, breadth-first, within the budget. */
+async function crawl(
+  browser: Browser,
+  project: Project,
+  storageState: StorageState | undefined,
+  timeline: Timeline,
+): Promise<string[]> {
+  const { context } = await openContext(browser, project, project.viewports[0], { storageState });
+  const page = await context.newPage();
+  page.setDefaultTimeout(15_000);
+  const seen = new Set(project.paths);
+  const found: string[] = [];
+  const queue = project.paths.map((path) => ({ path, depth: 0 }));
+  const loginPath = project.login?.loginPath;
+  let visited = 0;
+  try {
+    while (queue.length && seen.size < project.maxPages) {
+      const { path, depth } = queue.shift()!;
+      if (depth >= project.maxDepth) continue;
+      visited++;
+      let links: string[] = [];
+      try {
+        const response = await page.goto(`${project.origin}${path}`, {
+          waitUntil: 'load',
+          timeout: 20_000,
+        });
+        const landed = new URL(page.url());
+        if (!response?.ok() || landed.origin !== project.origin) continue;
+        if (loginPath && path !== loginPath && landed.pathname.startsWith(loginPath)) continue;
+        await page.waitForTimeout(300);
+        links = await page.evaluate(() =>
+          [...document.querySelectorAll('a[href]')].map(
+            (anchor) => (anchor as HTMLAnchorElement).href,
+          ),
+        );
+      } catch {
+        continue;
+      }
+      for (const href of links) {
+        let url: URL;
+        try {
+          url = new URL(href);
+        } catch {
+          continue;
+        }
+        if (url.origin !== project.origin) continue;
+        const candidate = url.pathname.replace(/\/+$/u, '') || '/';
+        if (seen.has(candidate) || excludedPath.test(candidate) || /[\s\\]/u.test(candidate))
+          continue;
+        if (loginPath && candidate.startsWith(loginPath)) continue;
+        seen.add(candidate);
+        found.push(candidate);
+        queue.push({ path: candidate, depth: depth + 1 });
+        if (seen.size >= project.maxPages) break;
+      }
+    }
+  } finally {
+    await context.close();
+  }
+  timeline.push({
+    action: 'crawl-same-origin-links',
+    checkpoint: 0,
+    result: `${visited} visited, ${found.length} found`,
+  });
+  return found;
+}
+
+/** One form sign-in per run. Fields resolve by label, then by input type; values never enter the timeline. */
+async function signIn(
+  browser: Browser,
+  project: Project,
+  credentials: { email: string; password: string },
+  timeline: Timeline,
+): Promise<{ state: StorageState } | { reason: string }> {
+  const login = project.login!;
+  const { context } = await openContext(browser, project, project.viewports[0], {
+    allowMutations: true,
+  });
+  const page = await context.newPage();
+  page.setDefaultTimeout(15_000);
+  try {
+    const response = await page.goto(`${project.origin}${login.loginPath}`, {
+      waitUntil: 'load',
+      timeout: 20_000,
+    });
+    if (!response?.ok())
+      return { reason: `Login page returned ${response?.status() ?? 'no response'}` };
+    const locate = async (labelled: ReturnType<Page['getByLabel']>, fallback: string) => {
+      const byLabel = labelled.locator('visible=true');
+      if ((await byLabel.count()) > 0) return { locator: byLabel.first(), how: 'label' };
+      const byType = page.locator(fallback).locator('visible=true');
+      if ((await byType.count()) > 0) return { locator: byType.first(), how: 'type' };
+      return null;
+    };
+    const email = await locate(
+      page.getByLabel(login.emailLabel, { exact: false }),
+      'input[type="email"], input[autocomplete="username"], input[name*="email" i], input[name*="user" i]',
+    );
+    const password = await locate(
+      page.getByLabel(login.passwordLabel, { exact: false }),
+      'input[type="password"]',
+    );
+    if (!email || !password)
+      return { reason: 'Email or password field not found on the login page' };
+    await email.locator.fill(credentials.email);
+    await password.locator.fill(credentials.password);
+    const submitByLabel = page.getByRole('button', { name: login.submitLabel, exact: false });
+    const submit =
+      (await submitByLabel.count()) > 0
+        ? submitByLabel.first()
+        : page.locator('button[type="submit"], input[type="submit"]').first();
+    if ((await submit.count()) === 0)
+      return { reason: 'Submit button not found on the login page' };
+    await submit.click();
+    await page
+      .waitForURL((url) => !url.pathname.startsWith(login.loginPath), { timeout: 20_000 })
+      .catch(() => undefined);
+    await page.waitForLoadState('load').catch(() => undefined);
+    const landed = new URL(page.url());
+    if (landed.origin !== project.origin || landed.pathname.startsWith(login.loginPath))
+      return { reason: 'Still on the login page after submitting; check the secrets and labels' };
+    timeline.push({
+      action: 'sign-in-form',
+      checkpoint: 0,
+      result: `fields by ${email.how}/${password.how}`,
+    });
+    return { state: await context.storageState() };
+  } catch (error) {
+    return { reason: error instanceof Error ? error.message.split('\n')[0] : 'Sign-in failed' };
+  } finally {
+    await context.close();
+  }
+}
 
 export async function captureVisual(run: Run, directory: string): Promise<RunResult> {
   const project = run.project;
@@ -21,31 +196,72 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
   const captures: Capture[] = [];
   const findings: NonNullable<RunResult['findings']> = [];
   let blocked = false;
-  const timeline: Array<{ action: string; checkpoint: number; result?: string }> = [];
+  const timeline: Timeline = [];
+  const videoDirectory = join(directory, 'video');
+  if (project.recordVideo) await mkdir(videoDirectory, { recursive: true, mode: 0o700 });
+  const writeTimeline = async () => {
+    const bytes = JSON.stringify(timeline);
+    await writeFile(join(directory, 'timeline.json'), bytes, { mode: 0o600 });
+    await writeFile(
+      join(directory, 'timeline.sanitization.json'),
+      JSON.stringify({
+        schemaVersion: 1,
+        sha256: digest(bytes),
+        method:
+          'allow-listed action and ordinal fields only; no DOM, network payloads, credentials or trace recording',
+        rawTraceRetained: false,
+      }),
+      { mode: 0o600 },
+    );
+  };
+  let storageState: StorageState | undefined;
+  let discoveredPaths: string[] | undefined;
+  let paths = project.paths;
   try {
+    if (project.login) {
+      const email = process.env[project.login.emailRef];
+      const password = process.env[project.login.passwordRef];
+      if (!email || !password) {
+        await writeTimeline();
+        return {
+          outcome: 'blocked',
+          summary: `Sign-in secrets ${project.login.emailRef} and ${project.login.passwordRef} must be set in the server environment.`,
+          findings: [{ path: project.login.loginPath, kind: 'login-secrets-missing', count: 1 }],
+        };
+      }
+      const outcome = await signIn(browser, project, { email, password }, timeline);
+      if ('reason' in outcome) {
+        timeline.push({ action: 'sign-in-form', checkpoint: 0, result: 'failed' });
+        await writeTimeline();
+        return {
+          outcome: 'blocked',
+          summary: `Sign-in failed: ${outcome.reason}`,
+          findings: [{ path: project.login.loginPath, kind: 'login-failed', count: 1 }],
+        };
+      }
+      storageState = outcome.state;
+    }
+    if (project.pageMode === 'discover') {
+      discoveredPaths = await crawl(browser, project, storageState, timeline);
+      paths = [...new Set([...project.paths, ...discoveredPaths])].slice(0, project.maxPages);
+    }
+    const budget = Math.max(1, Math.floor(600 / project.viewports.length));
+    if (paths.length > budget) {
+      findings.push({
+        path: '*',
+        kind: 'capture-budget-truncated-pages',
+        count: paths.length - budget,
+      });
+      paths = paths.slice(0, budget);
+    }
     for (const viewport of project.viewports)
-      for (const path of project.paths) {
-        const context = await browser.newContext({
-          viewport,
-          deviceScaleFactor: 1,
-          locale: 'en-US',
-          timezoneId: 'UTC',
-          colorScheme: 'light',
-          reducedMotion: 'reduce',
-          serviceWorkers: 'block',
+      for (const path of paths) {
+        const { context, counters } = await openContext(browser, project, viewport, {
+          storageState,
+          videoDirectory: project.recordVideo ? videoDirectory : undefined,
         });
-        let denied = 0;
         let networkErrors = 0;
         let scriptErrors = 0;
-        await context.route('**/*', async (route) => {
-          const request = route.request();
-          const url = new URL(request.url());
-          if (url.origin !== project.origin || !['GET', 'HEAD'].includes(request.method())) {
-            denied++;
-            await route.abort();
-          } else await route.continue();
-        });
-        await context.routeWebSocket(/.*/, (socket) => socket.close());
         const page = await context.newPage();
         page.setDefaultTimeout(15_000);
         page.on('pageerror', () => {
@@ -63,6 +279,12 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
           });
           if (!response?.ok() || new URL(page.url()).origin !== project.origin)
             throw new Error('Target navigation failed');
+          if (
+            project.login &&
+            path !== project.login.loginPath &&
+            new URL(page.url()).pathname.startsWith(project.login.loginPath)
+          )
+            findings.push({ path, kind: 'redirected-to-login', count: 1 });
           await page.locator('body').waitFor({ state: 'visible' });
           await page.evaluate(() => document.fonts.ready.then(() => undefined));
           const defects = await page.evaluate(() => ({
@@ -114,6 +336,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
               browser: browser.version(),
               platform: process.platform,
               policy: 'web-visual-v1-input-masks',
+              authenticated: !!storageState,
             }),
           );
           await writeFile(join(directory, file), bytes, { mode: 0o600 });
@@ -123,6 +346,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
               schemaVersion: 1,
               screenshotSha256: digest(bytes),
               captureMode: 'viewport-input-masked',
+              authenticated: !!storageState,
               automaticMasks: ['input', 'textarea', '[contenteditable="true"]'],
               additionalMasks: project.masks,
               authority: {
@@ -144,13 +368,15 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
             specHash,
             browserVersion: browser.version(),
             status: stable ? 'needs-baseline' : 'unstable',
+            ...(storageState ? { authenticated: true } : {}),
           });
           timeline.push({
             action: 'capture-input-masked-viewport',
             checkpoint,
             result: stable ? 'stable' : 'unstable',
           });
-          if (denied) findings.push({ path, kind: 'blocked-network-requests', count: denied });
+          if (counters.denied)
+            findings.push({ path, kind: 'blocked-network-requests', count: counters.denied });
           if (networkErrors) findings.push({ path, kind: 'http-errors', count: networkErrors });
           if (scriptErrors) findings.push({ path, kind: 'script-errors', count: scriptErrors });
         } catch {
@@ -162,29 +388,37 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
             result: 'blocked',
           });
         } finally {
+          const video = page.video();
           await context.close();
+          if (video && captures.length) {
+            const capture = captures[captures.length - 1];
+            if (capture.path === path && !capture.videoFile) {
+              const file = `${capture.id}.webm`;
+              try {
+                await rename(await video.path(), join(directory, file));
+                capture.videoFile = file;
+                timeline.push({
+                  action: 'video-recorded-unmasked',
+                  checkpoint: captures.length - 1,
+                });
+              } catch {
+                findings.push({ path, kind: 'video-recording-failed', count: 1 });
+              }
+            }
+          }
         }
       }
-    const bytes = JSON.stringify(timeline);
-    await writeFile(join(directory, 'timeline.json'), bytes, { mode: 0o600 });
-    await writeFile(
-      join(directory, 'timeline.sanitization.json'),
-      JSON.stringify({
-        schemaVersion: 1,
-        sha256: digest(bytes),
-        method:
-          'allow-listed action and ordinal fields only; no DOM, network payloads, credentials or trace recording',
-        rawTraceRetained: false,
-      }),
-      { mode: 0o600 },
-    );
+    await writeTimeline();
     return {
       outcome:
         blocked || captures.some((capture) => capture.status === 'unstable')
           ? 'blocked'
           : 'observed',
-      summary: `${captures.length} viewport checkpoints captured. Visual baseline review is separate from business-logic verification.`,
+      summary: `${captures.length} viewport checkpoints captured across ${paths.length} pages${
+        storageState ? ' after sign-in' : ''
+      }${discoveredPaths ? `; crawl found ${discoveredPaths.length} additional pages` : ''}. Visual baseline review is separate from business-logic verification.`,
       captures,
+      ...(discoveredPaths ? { discoveredPaths } : {}),
       findings,
     };
   } finally {

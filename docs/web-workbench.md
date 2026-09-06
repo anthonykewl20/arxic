@@ -33,8 +33,19 @@ scoped evidence according to its model/source-retention configuration.
 
 ## First project
 
-1. Add a project with a name and an absolute **server-side** folder path. Symlink
-   escapes from the allow-list are rejected.
+1. Click **Connect project**. Choose a folder from the allowed roots (or type an
+   absolute **server-side** path), or paste a public `https://github.com/owner/repo`
+   URL; the server clones it into `<first root>/arxic-clones/<repo>` and reuses an
+   existing clone. Symlink escapes from the allow-list are rejected. The second
+   step shows what was detected (framework, TypeScript, git state, dev-server
+   origin, Next.js routes including route groups, `arxic.config.yaml`); every
+   value stays editable. Enter in the folder or URL field continues; Back keeps
+   the chosen source.
+   **Pages to screenshot** is a manual list or **AI discovery**, which merges the
+   static GET routes from the newest completed source discovery into your list
+   (up to 20) when a visual run is queued. Advanced settings hold masks, the
+   schedule, and an optional **session video** (WebM, unmasked; inspect before
+   sharing).
 2. Run **Discover intents**. This runs the actual source parser and shows its
    route/domain inventory, frontend declarations and evidence references. It is source discovery, not
    an assertion that all frontend business rules have been recovered.
@@ -86,6 +97,28 @@ service workers and WebSockets. Apps that need these may render incompletely;
 blocked requests are reported. Use an isolated test deployment. This lane does
 not use the AI engine's fixture/attestation lifecycle and does not promote a
 verified workflow bundle.
+
+## Connect an AI agent
+
+**Connect agent** in the top bar lists the built-in provider accounts with their
+state: connected (catalog fetched), server secret missing, needs attention, or not
+connected. The second step shows the command to run on the server as the Arxic
+user (for example `claude auth login` or `codex login --device-auth`), links the
+provider guide, and **Check now** refreshes that provider's catalog to verify the
+login. Secret variable names and values never reach the browser; the dashboard
+only reports whether the referenced `ARXIC_SECRET_` variable is set. Presets
+include Claude Pro/Max, Codex, OpenCode accounts, OpenCode Go, Kimi Coding,
+Grok via OpenClaw, GLM Coding / Token Plan (`ARXIC_SECRET_GLM_CODING_KEY`,
+`https://api.z.ai/api/coding/paas/v4`) and OpenRouter.
+
+## Theme and assets
+
+The theme switch in the sidebar offers Light, Dark and System; the choice is
+stored in the browser. All colours, type sizes, radii and spacing come from
+`apps/web/src/frontend/tokens.css`, and every screen composes the shadcn
+component set in `apps/web/src/frontend/components`. The server compiles one
+minified `app.js` and one `app.css`, referenced with a content hash and cached
+immutably; no CDN or external font is used.
 
 ## Provider connections and model IDs
 

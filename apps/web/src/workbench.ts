@@ -6,7 +6,20 @@ import { HttpError } from './errors';
 import { Store } from './store';
 import { allowedFolder, nextSlot, runMode, validateProject } from './projects';
 import { launchJob, stopProcess } from './process';
-import type { Campaign, Run, RunResult } from './types';
+import type { Campaign, Project, Run, RunResult } from './types';
+
+/** Only the two sign-in secrets reach the visual job; every other ARXIC_SECRET_ is stripped. */
+export function loginEnvironment(login: NonNullable<Project['login']>, env: NodeJS.ProcessEnv) {
+  const overrides: NodeJS.ProcessEnv = {};
+  for (const key of [login.emailRef, login.passwordRef]) if (env[key]) overrides[key] = env[key];
+  return overrides;
+}
+/** Five minutes plus a per-capture allowance; crawl, sign-in and stability retries need headroom. */
+export function visualRuntimeLimit(project: Project) {
+  const pages = project.pageMode === 'discover' ? project.maxPages : project.paths.length;
+  const captures = Math.min(600, pages * project.viewports.length);
+  return Math.min(60 * 60_000, 5 * 60_000 + captures * 6_000);
+}
 import { compareCapture, digest } from './visual';
 import { executionEnvironment, secretRef } from './execution';
 import { modelEnvironment, validateConnection } from './model-connections';
@@ -108,10 +121,37 @@ export class Workbench {
     this.requireQueueCapacity(1);
     const project = this.store.project(projectId);
     if (!project) throw new HttpError(404, 'Project not found');
-    const run = this.store.enqueue(project, runMode(mode))!;
+    const selected = runMode(mode);
+    const run = this.store.enqueue(
+      selected === 'visual' && project.pageMode === 'discover'
+        ? { ...project, paths: this.discoveredPaths(project) }
+        : project,
+      selected,
+    )!;
     this.store.audit('run.queued', run.id);
     this.kick();
     return run;
+  }
+  /** Static GET routes from the newest completed source discovery, merged with configured paths. */
+  discoveredPaths(project: Project): string[] {
+    const discovery = this.store
+      .runs()
+      .find(
+        (run) =>
+          run.projectId === project.id && run.mode === 'discovery' && run.state === 'completed',
+      );
+    const rows = discovery ? (this.store.run(discovery.id)?.result?.workflowRows ?? []) : [];
+    const found = rows
+      .filter((row) => row.method.toUpperCase() === 'GET')
+      .map((row) => row.path.trim())
+      .filter(
+        (path) =>
+          path.startsWith('/') &&
+          !path.startsWith('//') &&
+          !/[:{}*\\?#\s]/u.test(path) &&
+          !path.startsWith('/api/'),
+      );
+    return [...new Set([...project.paths, ...found])].slice(0, project.maxPages);
   }
   async enqueueVisualReview(runId: string, input: Record<string, unknown>) {
     return this.mutate(async () => {
@@ -361,7 +401,9 @@ export class Workbench {
                   run.visualReview!.modelSecretRef,
                   process.env,
                 )
-              : undefined;
+              : run.mode === 'visual' && run.project.login
+                ? loginEnvironment(run.project.login, process.env)
+                : undefined;
         this.active = launchJob(input, output, overrides);
         timeout = setTimeout(
           () => {
@@ -369,7 +411,9 @@ export class Workbench {
           },
           run.mode === 'agent'
             ? (run.project.execution?.maxRuntimeMinutes ?? 30) * 60_000
-            : 5 * 60_000,
+            : run.mode === 'visual'
+              ? visualRuntimeLimit(run.project)
+              : 5 * 60_000,
         );
         const code = await this.active.finished;
         if (code !== 0) throw new Error('Interrupted engine');
@@ -445,6 +489,7 @@ export class Workbench {
         capture.file,
         `${capture.file}.privacy.json`,
         ...(capture.diffFile ? [capture.diffFile] : []),
+        ...(capture.videoFile ? [capture.videoFile] : []),
       ]),
     );
     if (run?.result?.captures?.length) {
@@ -454,7 +499,11 @@ export class Workbench {
     if (!files.has(filename)) throw new HttpError(404, 'Artifact not found');
     return {
       bytes: await readFile(join(this.directory, 'runs', runId, filename)),
-      type: filename.endsWith('.png') ? 'image/png' : 'application/json; charset=utf-8',
+      type: filename.endsWith('.png')
+        ? 'image/png'
+        : filename.endsWith('.webm')
+          ? 'video/webm'
+          : 'application/json; charset=utf-8',
     };
   }
   async deleteRun(id: string) {
