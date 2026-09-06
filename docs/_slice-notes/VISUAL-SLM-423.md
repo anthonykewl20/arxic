@@ -2,6 +2,15 @@
 
 Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked)
 
+## Increment 4 — 2026-09-06/07: bounded product-path services — intake, journal recovery, retention, atomic activation (refs #423)
+
+- `intake.ts` (+5 tests): spec §13 bounded admission — one active + at most four queued metadata-only jobs, fifth submission → backpressure, admission validates the case manifest (bounded safe path + schema) before a slot is consumed, per-job 10 s analysis deadline with `deadline-exceeded` recorded and the queue kept serving; idempotent re-submission of a still-pending case returns its original id.
+- Journal persistence + recovery: append-only JSONL; a crash leaves interrupted jobs that re-enqueue on construction with their original ids and resume draining; torn final line tolerated and counted, mid-file corruption fails closed (`journal-corrupt`); recovery overflow above the queue bound is recorded `recovery-queue-overflow`, never silently dropped.
+- `retention.ts` (+3 tests): spool byte cap with oldest-first eviction, pinned evidence never reclaimed, `pinned-exceeds-cap` reported for caller backpressure; flat operator-owned spool, nothing outside it touched.
+- `activation.ts` (+3 tests): content-addressed artifacts, hash + caller validation gate, atomic pointer flip via write-tmp + rename, prior known-good kept in `previous.json`, rollback, torn `active.json.tmp` ignored, failed validation leaves the active model untouched.
+- CI defect found and fixed: `corpus.ts` had a local `createHash('sha256')` duplicate — the repo's canonical-implementation contract gate (contracts `canonical.test.ts`) fails the build for production SHA-256 outside `@arxic/contracts`; corpus.ts now imports the shared helper. Local lesson recorded: changed-area tests alone missed this gate; run the contracts suite (or wider) when adding production files.
+- Gates: compact-visual 24/24 local (real Chromium suites included), contracts 80/80, typecheck/lint clean.
+
 ## Increment 3 — 2026-09-06/07: five-family corpus v2 + tightened threshold calibration (refs #423)
 
 - `corpus.ts`/`corpus-capture.ts`/`train-runner.ts` (+ `corpus.test.ts`, `corpus-real-world.test.ts`, CLI `corpus` command): multi-family capture over the repo Next/Express fixtures, the real Arxic login and the permitted local koel/directus third-party clones (helper containers, ephemeral published ports), with graded partial clips and negative controls; seed-423 group allocation frozen before training (families never split; 3/1/1 for five families); labels from independent measured clip fractions (`evaluateOracle`, 0.12 graded tolerance); shared training mechanics extracted to `train-runner.ts` (native parity chunked to the 128-row kernel bound).

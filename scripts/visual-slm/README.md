@@ -13,7 +13,7 @@ This is a runnable **development experiment**, not a production visual oracle or
 - Shadow JSON reports that preserve hard checks even when model loading/inference fails, abstain on missing evidence/unsupported heads and cannot report overall pass.
 - A real Chromium workflow capturing Next, Express and Arxic, and an evaluator retaining failures and support counts.
 
-Implementation is in [apps/web/src/compact-visual](../../apps/web/src/compact-visual). Browser capture and provider transport are not reimplemented. The shared image comparison is [visual-pixels.ts](../../apps/web/src/visual-pixels.ts), also used by the existing web visual comparison. No dashboard model switch or automatic baseline/model promotion is added.
+Implementation is in [apps/web/src/compact-visual](../../apps/web/src/compact-visual). Browser capture and provider transport are not reimplemented. The shared image comparison is [visual-pixels.ts](../../apps/web/src/visual-pixels.ts), also used by the existing web visual comparison. No dashboard model switch or automatic baseline/model promotion is added. Product-path services: `intake.ts` (bounded admission: one active + four queued, backpressure, per-job deadline, crash-recoverable JSONL journal with idempotent re-submission), `retention.ts` (spool byte cap, oldest-first eviction, pinned evidence protected, unreclaimable pins reported) and `activation.ts` (content-addressed model staging, hash + validation gate, atomic activation, known-good rollback) implement the spec §13/§14 operating bounds as tested service blocks; they are not yet wired into a deployed server.
 
 ## Reproduce from the repository root
 

@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 
 /**
  * Deterministic corpus planning for the multi-family clipping corpus (refs #423).
@@ -95,8 +95,6 @@ export type FrozenPlan = CorpusPlan & {
   allocation: Allocation;
   frozenAllocationHash: string;
 };
-
-const sha256 = (value: string) => createHash('sha256').update(value).digest('hex');
 
 /**
  * Documented group allocation (frozen before training, spec §9): families sort
