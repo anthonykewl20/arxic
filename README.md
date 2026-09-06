@@ -130,3 +130,5 @@ Current scoped proof: [default-provider catalogs](docs/evidence/WEB-402-DEFAULT-
 and [clean source installation/recovery](docs/evidence/WEB-402-INSTALL/summary.md).
 
 Latest scoped visual evidence: [solid text contrast and dashboard region inspection](docs/evidence/WEB-402-CONTRAST/summary.md).
+
+Generated workflow replays wait for action-related network completion and stable page observations before assertions, screenshots and receipts. The same bounded settling service runs during exploration; see [the reset replay regression](docs/adr/009-web-workbench.md#2026-09-06-asynchronous-replay-completion).

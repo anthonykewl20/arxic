@@ -299,3 +299,18 @@ follow-ups; no deferred item weakens the two-app acceptance proof.
 - Serenity/JS Screenplay Task/Interaction/Question concepts: <https://github.com/serenity-js/serenity-js/tree/main/packages/core/src/screenplay>.
 - XState deterministic state-transition concepts: <https://github.com/statelyai/xstate/tree/main/packages/core/src>.
 - Stryker mutation-testing concepts: <https://github.com/stryker-mutator/stryker-js/tree/master/packages>.
+
+## 2026-09-06 evidence correction: settled sensitivity controls
+
+The #422 replay-completion investigation found that the existing valid-login
+`text:Email` regression could assert against the entry page before login finished.
+Email is absent from the actual signed-in page. The historical passing test alone
+therefore did not establish a post-action value tautology. The control-state and
+value-substitution operators in §7.1 remain unchanged.
+
+Generated replay now waits for the shared bounded action-settling service. The
+real reference-app regression uses deliberately rejected login credentials, where
+Email is present before and after the action, and preserves the exact original
+insensitive-assertion expectations. A separate successful-login case requires an
+unusable-control result for that stale marker. All 15 verifier real-world tests
+pass after this scenario correction. See the [causal evidence and limits](../evidence/WEB-422-REPLAY/summary.md).

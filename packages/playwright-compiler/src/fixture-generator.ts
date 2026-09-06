@@ -74,6 +74,7 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
     "import { test as base, expect } from '@playwright/test';",
     'import {',
     '  installTransitionReceiptListeners,',
+    '  runAndSettleAction,',
     '  withReceiptAttribution,',
     '  writeTransitionReceipts,',
     "} from './transition-receipts';",
@@ -110,7 +111,7 @@ export function generateFixture(workflow: Workflow, approvedOrigins: string[] = 
     // #307/F-E8: every contained action is also an attribution window —
     // requests SENT while the awaited operation races are workflow-attributed.
     "  return withReceiptAttribution(page, 'action', () =>",
-    '    Promise.race([operation(), state.violation]),',
+    '    Promise.race([runAndSettleAction(page, operation, 30_000), state.violation]),',
     '  );',
     '}',
     '',
