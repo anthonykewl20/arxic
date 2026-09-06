@@ -18,3 +18,5 @@ catalogs with Models & accounts; unavailable wrappers explain their discovery li
 See `LICENSE.shadcn` for the upstream license. The visual direction uses neutral
 surfaces, compact navigation, consistent spacing and restrained color inspired by
 [Linear's design reset](https://linear.app/now/a-design-reset).
+
+The measurement inspector shows solid-paint contrast ratios and unverified applicability, with search/verdict filters and viewport-scaled region overlays on loaded, masked capture images. Image-load failures have explicit retry; the full-size artifact remains available. Display rounding never affects the server verdict.

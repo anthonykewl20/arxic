@@ -21,7 +21,7 @@ The [full visual-auditor contract](docs/visual-oracle.md) defines the requested 
 
 The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
-Test runs now searches all stored history with project/type/status filters and bookmarkable URLs. Capture details expose numeric measurements and explicit coverage gaps. The dashboard includes responsive themes, keyboard navigation and [real-browser UX audit evidence](docs/evidence/WEB-402-DASHBOARD-UX/summary.md). Continuous unmasked video is unavailable; masked screenshots and sanitized action timelines provide recording evidence.
+Test runs now searches all stored history with project/type/status filters and bookmarkable URLs. Capture details expose numeric measurements, solid-paint text contrast, screenshot regions and explicit coverage gaps. The dashboard includes responsive themes, keyboard navigation and [real-browser UX audit evidence](docs/evidence/WEB-402-DASHBOARD-UX/summary.md). Continuous unmasked video is unavailable; masked screenshots and sanitized action timelines provide recording evidence.
 
 The dashboard uses React/shadcn for its navigation shell, overview, intent inventory, workflow selection, campaigns, run/capture review, model fields, schedules, administration and **Models & accounts** screen with provider-owned model discovery (including configured default HTTP connections), native subscription-account bridges and [provider connections and custom model IDs](docs/web-workbench.md#provider-connections-and-model-ids) for guided AI execution and inspected-image review. Review and campaign submissions stay pending across navigation; session invalidation clears unsent consent and selections.
 
@@ -128,3 +128,5 @@ MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE`.
 
 Current scoped proof: [default-provider catalogs](docs/evidence/WEB-402-DEFAULT-CATALOG/summary.md), [session and pending-request protection](docs/evidence/WEB-402-SESSIONS/summary.md), [React run and review controls](docs/evidence/WEB-402-RUN-REVIEW/summary.md), [subscription accounts and dynamic catalogs](docs/evidence/WEB-402-SUBSCRIPTIONS/summary.md), [provider/model controls](docs/evidence/WEB-402-MODELS/summary.md)
 and [clean source installation/recovery](docs/evidence/WEB-402-INSTALL/summary.md).
+
+Latest scoped visual evidence: [solid text contrast and dashboard region inspection](docs/evidence/WEB-402-CONTRAST/summary.md).

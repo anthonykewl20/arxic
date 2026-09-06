@@ -1,4 +1,6 @@
 import type { Page } from 'playwright';
+import { collectTextPaint } from './text-paint';
+import { assessTextContrast, validTextPaint, type TextPaint } from './text-contrast';
 
 /** Numeric-only projection: never retain DOM text, attributes, URLs or field values. */
 export type VisualScene = {
@@ -14,6 +16,7 @@ export type VisualScene = {
     height: number;
   }>;
   truncated: boolean;
+  textPaint?: TextPaint[];
 };
 export type VisualVerdict = 'pass' | 'fail' | 'unverified';
 export type VisualCheck = {
@@ -24,6 +27,9 @@ export type VisualCheck = {
   measurementIds: string[];
   reason: string;
   delta?: number;
+  region?: { x: number; y: number; width: number; height: number };
+  observed?: number;
+  threshold?: number;
 };
 export type VisualAssessment = {
   schemaVersion: 1;
@@ -34,7 +40,7 @@ export type VisualAssessment = {
 };
 
 /** Read-only layout observation. The limit bounds retained nodes and solver work. */
-export async function collectVisualScene(page: Page): Promise<VisualScene> {
+export async function collectVisualScene(page: Page, masks: string[] = []): Promise<VisualScene> {
   const scene = await page.evaluate(() => {
     const nodes: VisualScene['nodes'] = [];
     const ids = new Map<Element, number>();
@@ -81,6 +87,7 @@ export async function collectVisualScene(page: Page): Promise<VisualScene> {
     viewport: { width: scene.viewport.width, height: scene.viewport.height },
     documentWidth: scene.documentWidth,
     truncated: scene.truncated,
+    textPaint: await collectTextPaint(page, masks),
     nodes: scene.nodes.map(({ id, parent, x, y, width, height }) => ({
       id,
       parent,
@@ -103,6 +110,7 @@ function numericScene(scene: VisualScene): boolean {
     scene.viewport.width > 0 &&
     Number.isFinite(scene.viewport?.height) &&
     scene.viewport.height > 0 &&
+    (scene.textPaint === undefined || validTextPaint(scene.textPaint)) &&
     Array.isArray(scene.nodes) &&
     scene.nodes.length <= 2000 &&
     scene.nodes.every(
@@ -156,6 +164,7 @@ export function assessVisualScene(
       ...(valid ? { delta } : {}),
     },
   ];
+  if (scene.textPaint) checks.push(...assessTextContrast(scene.textPaint, valid));
   for (const gap of gaps)
     checks.push({
       id: gap,

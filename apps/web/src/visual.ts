@@ -312,14 +312,23 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
           let previous: Buffer | undefined;
           let bytes: Buffer = Buffer.alloc(0);
           let stable = false;
-          let scene = await collectVisualScene(page);
+          let scene = await collectVisualScene(page, [
+            'input,textarea,[contenteditable="true"]',
+            ...project.masks,
+          ]);
           for (let attempt = 0; attempt < 6; attempt++) {
-            const before = await collectVisualScene(page);
+            const before = await collectVisualScene(page, [
+              'input,textarea,[contenteditable="true"]',
+              ...project.masks,
+            ]);
             bytes = await captureMaskedViewport(page, {
               automaticMasks: ['input,textarea,[contenteditable="true"]'],
               requiredMasks: project.masks,
             });
-            scene = await collectVisualScene(page);
+            scene = await collectVisualScene(page, [
+              'input,textarea,[contenteditable="true"]',
+              ...project.masks,
+            ]);
             if (previous?.equals(bytes) && JSON.stringify(before) === JSON.stringify(scene)) {
               stable = true;
               break;
@@ -373,8 +382,13 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
             )
           )
             findings.push({ path, kind: 'horizontal-overflow', count: 1 });
+          const contrastFailures = assessment.checks.filter(
+            (check) => check.id.startsWith('text-contrast-') && check.verdict === 'fail',
+          ).length;
+          if (contrastFailures)
+            findings.push({ path, kind: 'text-contrast', count: contrastFailures });
           const assessmentBytes = JSON.stringify({
-            profile: 'arxic-layout-evidence-v1',
+            profile: 'arxic-layout-text-evidence-v2',
             checkpoint: id,
             browserVersion: browser.version(),
             scene,
