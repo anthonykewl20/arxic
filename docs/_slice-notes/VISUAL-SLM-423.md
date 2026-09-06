@@ -1,6 +1,15 @@
 # VISUAL-SLM-423 — staged doc updates (charter §10.2)
 
-Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration, not implementation)
+Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked)
+
+## Increment 3 — 2026-09-06/07: five-family corpus v2 + tightened threshold calibration (refs #423)
+
+- `corpus.ts`/`corpus-capture.ts`/`train-runner.ts` (+ `corpus.test.ts`, `corpus-real-world.test.ts`, CLI `corpus` command): multi-family capture over the repo Next/Express fixtures, the real Arxic login and the permitted local koel/directus third-party clones (helper containers, ephemeral published ports), with graded partial clips and negative controls; seed-423 group allocation frozen before training (families never split; 3/1/1 for five families); labels from independent measured clip fractions (`evaluateOracle`, 0.12 graded tolerance); shared training mechanics extracted to `train-runner.ts` (native parity chunked to the 128-row kernel bound).
+- 179 cases admitted / 1 honest skip; train = express, directus, arxic · calibration = next · **test = koel (untouched)**.
+- Threshold policy tightened (red-first in `test_train.py`): `calibrate_thresholds` now selects the **highest** qualifying candidate (calibration precision ≥95 % / recall ≥90 % unchanged) instead of the lowest — the band-edge threshold let drifted koel 360 px negatives through (4 FP). Holdout after tightening: **20/20 recall, 0 FP, parity 1.65e-7**.
+- Gates honestly unmet: spec §12 uncertainty intervals fail on sample size (one test family, 36 cases: precision95 lower bound 0.839 < 0.90, FPR95 upper 0.194 > 0.10); incremental value undemonstrated (deterministic oracle is also 20/20 with 0 FP); corpus is between Smoke and Pilot stage (5 families / 179 regions vs the 10-family / 1 000-region pilot minimum). Promotion stays blocked.
+- Evidence: `docs/evidence/VISUAL-SLM/corpus-v2/` (summary, corpus manifest, full report, dataset provenance, training report, koel 360 px visual record + representative pairs for every family).
+- CI scope note: `corpus-real-world.test.ts` exercises the reduced fixture-only capture (next+express, 800 px, four variants) with allocation-freeze re-derivation and parity; koel/directus runs are dev-machine evidence (docker unavailable in the vitest shards).
 
 ## Increment 2 — 2026-09-06/07: deterministic failure analysis (refs #423)
 
@@ -26,7 +35,7 @@ Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quali
 ## 3. `CHANGELOG.md` — entry under `## [Unreleased]` → `### added`
 
 ```text
-- VISUAL-SLM-423 experimental compact visual-review CLI (refs #423): bounded evidence/features, CPU logistic/MLP training, native parity and hypothesis-only reports; real three-app clipping corpus retains failed learned generalization and explicit promotion/resource gaps. Added feature-lane ablation tooling and a deterministic failure analysis attributing the held-out miss to single-application training/calibration plus per-application geometry fingerprints (spec §17 addendum records the owner directive that GLM Flash continues implementation; teacher gate unchanged).
+- VISUAL-SLM-423 experimental compact visual-review CLI (refs #423): bounded evidence/features, CPU logistic/MLP training, native parity and hypothesis-only reports; real three-app clipping corpus retains failed learned generalization and explicit promotion/resource gaps. Added feature-lane ablation tooling and a deterministic failure analysis attributing the held-out miss to single-application training/calibration plus per-application geometry fingerprints, then a five-family corpus (repo fixtures + Arxic + local koel/directus clones) with frozen seed-423 group allocation and tightened highest-qualifying threshold calibration: untouched koel holdout 20/20 recall with 0 false positives while uncertainty/incremental-value gates keep promotion blocked. Spec 17 addendum records the owner directive that GLM Flash continues implementation; teacher gate unchanged.
 ```
 
 ## 4. `VERSION` bump required?

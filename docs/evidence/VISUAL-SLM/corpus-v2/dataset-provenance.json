@@ -1,0 +1,3409 @@
+{
+  "version": 1,
+  "datasetSha256": "349969cbc8706a76693d19eb3982acc80da4cebdfb731cbb1f0bc53d9a18bd55",
+  "corpusManifest": "corpus-v2.json",
+  "frozenAllocationHash": "9487ffb49b3f92d520ba9057596bf0571ca89de41b84a86d290afa812927e287",
+  "evidence": [
+    {
+      "id": "next-360-clean-viewport",
+      "manifest": "next-360-clean.json",
+      "manifestSha256": "8699bb567e7a5e070f72aac7e7377456bc83b9facee79b809e9737644acd1500",
+      "family": "next",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-full-viewport",
+      "manifest": "next-360-clip-full.json",
+      "manifestSha256": "352301c72887963264ed4d888a2c52659ab53084c7eac610fe986f865d16b8d5",
+      "family": "next",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-right-75-viewport",
+      "manifest": "next-360-clip-right-75.json",
+      "manifestSha256": "50516880453f81c911eaa95922be23fcf91b63f39c1af434fa4625d9cd8928a5",
+      "family": "next",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-right-50-viewport",
+      "manifest": "next-360-clip-right-50.json",
+      "manifestSha256": "ec7c7de1bf284efdfc8eaa2768dde2958b4fae9975ddd53f3edfe98af720909b",
+      "family": "next",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-right-25-viewport",
+      "manifest": "next-360-clip-right-25.json",
+      "manifestSha256": "35f31ce1a0e937849ec684f5e5d797282577b6d5239415665cb59d61cb1fb877",
+      "family": "next",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-bottom-50-viewport",
+      "manifest": "next-360-clip-bottom-50.json",
+      "manifestSha256": "593788014d9ee9c4128c9caa0abfa9fca2fad0b1c40f71911b1f093e7955b922",
+      "family": "next",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-content-change-viewport",
+      "manifest": "next-360-content-change.json",
+      "manifestSha256": "2987994a995095734bb306ee45049295a2ac726181a4f6ca489e482cf1cab227",
+      "family": "next",
+      "variant": "content-change",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-overlay-adjacent-viewport",
+      "manifest": "next-360-overlay-adjacent.json",
+      "manifestSha256": "70f11d4cd6ab92aa09e8297327f3d7fd74abc3c27a2b2c3ab6a4712dca75469f",
+      "family": "next",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-style-tweak-viewport",
+      "manifest": "next-360-style-tweak.json",
+      "manifestSha256": "899740e7b511f0621a7b93096b4382304d1a667ad567ea4f148c84c6115cc07f",
+      "family": "next",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clean-viewport",
+      "manifest": "next-640-clean.json",
+      "manifestSha256": "df34db3b7ab358e1b06a574f64be0899cbe62ebc374e818932eeb8ca2407d73e",
+      "family": "next",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-full-viewport",
+      "manifest": "next-640-clip-full.json",
+      "manifestSha256": "27cf8d0c7ae6d4063514c648c7cc64813f84b3d40191e97ee4d56f923456d377",
+      "family": "next",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-right-75-viewport",
+      "manifest": "next-640-clip-right-75.json",
+      "manifestSha256": "463fd15831a961e182c7ced61c1279a63be835b70488edf972703dea2d1e8746",
+      "family": "next",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-right-50-viewport",
+      "manifest": "next-640-clip-right-50.json",
+      "manifestSha256": "f3cf588a4ff1c4c76a26cbc901589c8ba8f3d77ba1c2e791ab977c093cfb69ff",
+      "family": "next",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-right-25-viewport",
+      "manifest": "next-640-clip-right-25.json",
+      "manifestSha256": "55c37fb75e30fc3defdfdf480e529cbcbcd6a3e68bac74627670b5e768835c44",
+      "family": "next",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-bottom-50-viewport",
+      "manifest": "next-640-clip-bottom-50.json",
+      "manifestSha256": "6c588f820e5d2f30251226de524e3585d3eeaf0ee85a9b3e658fa1b6dd219a94",
+      "family": "next",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-content-change-viewport",
+      "manifest": "next-640-content-change.json",
+      "manifestSha256": "e61e8ebc8f38446c31f6ce54bc6db517ad0b5f2da6e165aa4ce7d277f844e98c",
+      "family": "next",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-overlay-adjacent-viewport",
+      "manifest": "next-640-overlay-adjacent.json",
+      "manifestSha256": "793d8f7b9d0d36e42271930bc9b8c19fea6d00f783f3f378cbba45f7c9384458",
+      "family": "next",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-style-tweak-viewport",
+      "manifest": "next-640-style-tweak.json",
+      "manifestSha256": "93a6e25b6d3b0e2176247fa0ec8de57716795b5bb20e11519b64da6b479321de",
+      "family": "next",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clean-viewport",
+      "manifest": "next-1024-clean.json",
+      "manifestSha256": "cfe7696b9e0355bf7fb9357cd47fa36cabc7292cf86e4ae2650eb8f5ccea0244",
+      "family": "next",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-full-viewport",
+      "manifest": "next-1024-clip-full.json",
+      "manifestSha256": "9972716a8c243df246bb112f236f992929a2b03e4f964cf689b10617da024c03",
+      "family": "next",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-right-75-viewport",
+      "manifest": "next-1024-clip-right-75.json",
+      "manifestSha256": "9b8bc0673d49f2b72e8457700cf466b67e79e836234741b3cde6053203290fdf",
+      "family": "next",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-right-50-viewport",
+      "manifest": "next-1024-clip-right-50.json",
+      "manifestSha256": "1cd231e9a80920f31128d084240c1817ef4180dd518db41bf9e5c251f182da36",
+      "family": "next",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-right-25-viewport",
+      "manifest": "next-1024-clip-right-25.json",
+      "manifestSha256": "e3cbd510257857ead558a6a7b9756bea2233940caf80a7ce4af0fa339d0b5bd1",
+      "family": "next",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-bottom-50-viewport",
+      "manifest": "next-1024-clip-bottom-50.json",
+      "manifestSha256": "3704b4042f9d7236e3ed75ad2460c00a9bd7a0ef7ae19df2f333a7898e754570",
+      "family": "next",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-content-change-viewport",
+      "manifest": "next-1024-content-change.json",
+      "manifestSha256": "f46f7333caf29f93a52a264fc081278e21ff5cc39cc4706cc50c147f6afa1a3f",
+      "family": "next",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-overlay-adjacent-viewport",
+      "manifest": "next-1024-overlay-adjacent.json",
+      "manifestSha256": "3f15a86f1fa9859446ddcec0a202b7bf3e8675310a26d5b728aca9b5ebbe2d87",
+      "family": "next",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-style-tweak-viewport",
+      "manifest": "next-1024-style-tweak.json",
+      "manifestSha256": "d3b2094f37d728629109d6d2f013af174139151d06ba2fd29e46824249d2f11a",
+      "family": "next",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clean-viewport",
+      "manifest": "next-1280-clean.json",
+      "manifestSha256": "6f4aeefc7e60e8e3d2d23b6636faf86fce3981f85e03897daee1e56e28ee4e34",
+      "family": "next",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-full-viewport",
+      "manifest": "next-1280-clip-full.json",
+      "manifestSha256": "d897076ac04e400362079916e20fda03ec65501198c1e3520ac0b513825812ca",
+      "family": "next",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-right-75-viewport",
+      "manifest": "next-1280-clip-right-75.json",
+      "manifestSha256": "4c366873b6ebfb832a8461ffce96009a15f3aad37f4e25596e91a9571b6d9e05",
+      "family": "next",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-right-50-viewport",
+      "manifest": "next-1280-clip-right-50.json",
+      "manifestSha256": "361b6a873ca4efba55b4b5b3ebb9462476c307c5cfc11a81e3873b6d46c17c2b",
+      "family": "next",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-right-25-viewport",
+      "manifest": "next-1280-clip-right-25.json",
+      "manifestSha256": "746e453db577eba20ce292251bfccad0b45f8c4a877cea382edcf67ef5c079f3",
+      "family": "next",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-bottom-50-viewport",
+      "manifest": "next-1280-clip-bottom-50.json",
+      "manifestSha256": "21f10dcf66c84b4ab1dcc3a348efd1fc0802731bdc639289f0aef11fa958ba23",
+      "family": "next",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-content-change-viewport",
+      "manifest": "next-1280-content-change.json",
+      "manifestSha256": "17cecaf8b10a68901e02fe0ed67d69b6de47a38627db2919c894eb259fc51bc6",
+      "family": "next",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-overlay-adjacent-viewport",
+      "manifest": "next-1280-overlay-adjacent.json",
+      "manifestSha256": "c1c3072de80ea0cd8bf0dc52a2ca07e5089dd92e014071c052116358141448a4",
+      "family": "next",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-style-tweak-viewport",
+      "manifest": "next-1280-style-tweak.json",
+      "manifestSha256": "529a50d19ebbc7955cb780623dfa6c203c24f65b3e87bd7ff527449b5b752e88",
+      "family": "next",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clean-viewport",
+      "manifest": "express-360-clean.json",
+      "manifestSha256": "e683931dc53aa83cf75cf1ec23223f84f18a685e7a6038a1c123284894da0f29",
+      "family": "express",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-full-viewport",
+      "manifest": "express-360-clip-full.json",
+      "manifestSha256": "52c7a983b6d0c4bfe702ffb6c433b1469fc0439851a03234e0394aab49e31fc3",
+      "family": "express",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-right-75-viewport",
+      "manifest": "express-360-clip-right-75.json",
+      "manifestSha256": "f2d29b9ccbee345bfa3cb51331cada22f9c7a76d9ab293353e98b505d05216e1",
+      "family": "express",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-right-50-viewport",
+      "manifest": "express-360-clip-right-50.json",
+      "manifestSha256": "004edf30db49d41f5519e12702c34c96fce4bd01835e8d17602efca97ac342d9",
+      "family": "express",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-right-25-viewport",
+      "manifest": "express-360-clip-right-25.json",
+      "manifestSha256": "90278ace31c90e89cdbb609c0a4b778628c1d72d58f5b6459e9a7562acccfa4c",
+      "family": "express",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-bottom-50-viewport",
+      "manifest": "express-360-clip-bottom-50.json",
+      "manifestSha256": "ffc19d1a4eb08161a4c09b76e7c5b0b40bca9c531ba8e0e77a0de6f1eb11da7e",
+      "family": "express",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-content-change-viewport",
+      "manifest": "express-360-content-change.json",
+      "manifestSha256": "ff55f9a9fe0afea0d202e2e5705999f87307882908b241d1766c8bb306406520",
+      "family": "express",
+      "variant": "content-change",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-overlay-adjacent-viewport",
+      "manifest": "express-360-overlay-adjacent.json",
+      "manifestSha256": "835657719739a9d81de526c5c5588f62423992fa7ce7d73feaac6544cd52a3e4",
+      "family": "express",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-style-tweak-viewport",
+      "manifest": "express-360-style-tweak.json",
+      "manifestSha256": "209d1ee8526276542ddcd95b39b176c24554838b63cf6571adf5b1e26e9942de",
+      "family": "express",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clean-viewport",
+      "manifest": "express-640-clean.json",
+      "manifestSha256": "1bc45912e486dc120ec6414196557914026a63802587878ccf87336e49e540b4",
+      "family": "express",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-full-viewport",
+      "manifest": "express-640-clip-full.json",
+      "manifestSha256": "4a9ced21f127c0b9aeac8f925f26ae489f3dd8f58c45ac00a91cfafe6d73bce2",
+      "family": "express",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-right-75-viewport",
+      "manifest": "express-640-clip-right-75.json",
+      "manifestSha256": "4b332d41cc9f5b987e0cccb67cff7e2d7576df98e200c3e54724230f10a1cf41",
+      "family": "express",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-right-50-viewport",
+      "manifest": "express-640-clip-right-50.json",
+      "manifestSha256": "2b84f8f3da4310c992c5f25338b59da2c3c8c1b4b38cb2af41c6020529248ff1",
+      "family": "express",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-right-25-viewport",
+      "manifest": "express-640-clip-right-25.json",
+      "manifestSha256": "1d09657fd94b409db56a595a47abb4962976b93c38a56e912d79abca2bc5ec17",
+      "family": "express",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-bottom-50-viewport",
+      "manifest": "express-640-clip-bottom-50.json",
+      "manifestSha256": "121bc8b329426cf62a3476812ee752a1e241ba907675482b0bcb07f9a847f86d",
+      "family": "express",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-content-change-viewport",
+      "manifest": "express-640-content-change.json",
+      "manifestSha256": "25c9ee529ecb265151d56377c0f5f964a13a5fd096a451aecdff5538d753fbd4",
+      "family": "express",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-overlay-adjacent-viewport",
+      "manifest": "express-640-overlay-adjacent.json",
+      "manifestSha256": "54a422b6d7958186a2f8ef9043d270e12c5b10fcc70330b4a601179ca173c436",
+      "family": "express",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-style-tweak-viewport",
+      "manifest": "express-640-style-tweak.json",
+      "manifestSha256": "29ec0f14ddffede8e765183e2e8611c8a1ed87636d59a1ce7cc7e43f5ce60ce4",
+      "family": "express",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clean-viewport",
+      "manifest": "express-1024-clean.json",
+      "manifestSha256": "c04bd606c8bae96dbe358af376bb27ba0e3a9a4e831f3a1a96cc91323e4eadc6",
+      "family": "express",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-full-viewport",
+      "manifest": "express-1024-clip-full.json",
+      "manifestSha256": "89caff6a3a88a4b5a4e4b4b9206563cc96f14a92b6f39b505568420fdbad1b5c",
+      "family": "express",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-right-75-viewport",
+      "manifest": "express-1024-clip-right-75.json",
+      "manifestSha256": "844d49a7d1008e0381bcabab93dc8df9d0a9c7aa0e4ed8c48fb6ab99ec1bb171",
+      "family": "express",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-right-50-viewport",
+      "manifest": "express-1024-clip-right-50.json",
+      "manifestSha256": "8702cc2007c1575b3b63dc268e845260c1895547b66d359d9b43ec042c8f835c",
+      "family": "express",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-right-25-viewport",
+      "manifest": "express-1024-clip-right-25.json",
+      "manifestSha256": "222b1d73da43e3f4d26c3b6a6baf672269fea00fc135122ea876951b6d4fc5ed",
+      "family": "express",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-bottom-50-viewport",
+      "manifest": "express-1024-clip-bottom-50.json",
+      "manifestSha256": "d9fa38cbfa3a2692d10d199e419cdc387c041581de6a34c46388d81d9b5c2386",
+      "family": "express",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-content-change-viewport",
+      "manifest": "express-1024-content-change.json",
+      "manifestSha256": "379df6d35fb6b4e9a1fdba9756b19e8d58752fd7971cff579f8023cb3462d69b",
+      "family": "express",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-overlay-adjacent-viewport",
+      "manifest": "express-1024-overlay-adjacent.json",
+      "manifestSha256": "ac4f31efdc320fafe316bf8e8005ab2a0a7b95e3ed3780955ab563dbfc795431",
+      "family": "express",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-style-tweak-viewport",
+      "manifest": "express-1024-style-tweak.json",
+      "manifestSha256": "0fad024fbb7edb55dab3da26e8ce22c7d5e7bd807b32ec8aa4368eeb7865d550",
+      "family": "express",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clean-viewport",
+      "manifest": "express-1280-clean.json",
+      "manifestSha256": "0f47d594dfcfbd21247c04a479f1be4ce2aa40f681bda7df98b959871bc484ba",
+      "family": "express",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-full-viewport",
+      "manifest": "express-1280-clip-full.json",
+      "manifestSha256": "24bc88677ca74a7a86a5d2c6b66b1706b3791fd5b054c896419f5ebe1bac35ad",
+      "family": "express",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-right-75-viewport",
+      "manifest": "express-1280-clip-right-75.json",
+      "manifestSha256": "a947713362e7b4b90e016ec5868023a317a2e4e3613a2b7eb7de4ae728d87a3d",
+      "family": "express",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-right-50-viewport",
+      "manifest": "express-1280-clip-right-50.json",
+      "manifestSha256": "6885a112bdb6647f8334c10547b3fd847b72323cd0967d033a257a6c1bb55213",
+      "family": "express",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-right-25-viewport",
+      "manifest": "express-1280-clip-right-25.json",
+      "manifestSha256": "e23c0395872a222fcc10459df2548791034760b1a61332dd32d7f38a853b5aad",
+      "family": "express",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-bottom-50-viewport",
+      "manifest": "express-1280-clip-bottom-50.json",
+      "manifestSha256": "016331ea2af9c672c2a154e7e80061513a8e72f7f7a30acbe4f7e5cc2c4907fe",
+      "family": "express",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-content-change-viewport",
+      "manifest": "express-1280-content-change.json",
+      "manifestSha256": "3ff3bdb1b2084d166e60ab5f2b132f0eca4e253014b96c94eecc1430546df64b",
+      "family": "express",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-overlay-adjacent-viewport",
+      "manifest": "express-1280-overlay-adjacent.json",
+      "manifestSha256": "8e3d496eb7db552f1dd0d477abc25eba4b4e70ebfcd50e5f9bbfd768a61bf096",
+      "family": "express",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-style-tweak-viewport",
+      "manifest": "express-1280-style-tweak.json",
+      "manifestSha256": "daf57a73e6ccd96e0479ad338a8b1d9e0f12ca47394a257a2c6851ecda5aaa5c",
+      "family": "express",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clean-viewport",
+      "manifest": "arxic-360-clean.json",
+      "manifestSha256": "de9e401b207ff3ebc597ff14775874b024321c35b1171e02f9a9d8a342b4383d",
+      "family": "arxic",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-full-viewport",
+      "manifest": "arxic-360-clip-full.json",
+      "manifestSha256": "21a347920d363d76ce161be3d7d9c919c5f9e951b2dd5de3b0706a7dce015a45",
+      "family": "arxic",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-right-75-viewport",
+      "manifest": "arxic-360-clip-right-75.json",
+      "manifestSha256": "ec625374cc1573341dc2d8b73f8f1aed48656533b6421fc46f5ee6c2765dcbf1",
+      "family": "arxic",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-right-50-viewport",
+      "manifest": "arxic-360-clip-right-50.json",
+      "manifestSha256": "d02e306a4a1c6418a0d5d03f01e4769f22ec1bf585f9e5c61c4cc2b55498d5df",
+      "family": "arxic",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-right-25-viewport",
+      "manifest": "arxic-360-clip-right-25.json",
+      "manifestSha256": "9e8878182f9dec0685f2b74f88ca6a6d5e47c1a7bfddb87915c8f9bdb6ec33ea",
+      "family": "arxic",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-bottom-50-viewport",
+      "manifest": "arxic-360-clip-bottom-50.json",
+      "manifestSha256": "8bf44284f3878f834761448f61de1f7adc5929fe75652482074c4f2b5f4a5ac4",
+      "family": "arxic",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-overlay-adjacent-viewport",
+      "manifest": "arxic-360-overlay-adjacent.json",
+      "manifestSha256": "6304cf941207087c4c77267a8c9bf62f2bef528ef6dd15f914749202f98b2fd4",
+      "family": "arxic",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-style-tweak-viewport",
+      "manifest": "arxic-360-style-tweak.json",
+      "manifestSha256": "53dfb2f70ba2b94a9e0ee58412cc663be35d940552b5863010693ecab3bcaf01",
+      "family": "arxic",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clean-viewport",
+      "manifest": "arxic-640-clean.json",
+      "manifestSha256": "fb4670c9d6384cd009705f00b1e1073ee21d3273e426caa3d93915f05874ff13",
+      "family": "arxic",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-full-viewport",
+      "manifest": "arxic-640-clip-full.json",
+      "manifestSha256": "292fd1c54f34a69a4706572333a8dd451fe26c4a99c913f8d9c79933c3d139a0",
+      "family": "arxic",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-right-75-viewport",
+      "manifest": "arxic-640-clip-right-75.json",
+      "manifestSha256": "1e26b9360e4c8b93c8937c02d2105b97c9ad38e40bc6e883f32a8ee40c195ee1",
+      "family": "arxic",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-right-50-viewport",
+      "manifest": "arxic-640-clip-right-50.json",
+      "manifestSha256": "4605e6b54dfdcd00bfffc6d16785cbf76c939ccee8ace0cc7e711789dd66af25",
+      "family": "arxic",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-right-25-viewport",
+      "manifest": "arxic-640-clip-right-25.json",
+      "manifestSha256": "b76e87155e12c4dc0f4fdd944493ef8edbfe0e5767a0fc060d6416553a68d462",
+      "family": "arxic",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-bottom-50-viewport",
+      "manifest": "arxic-640-clip-bottom-50.json",
+      "manifestSha256": "10e5d01f3148193f02fe17f6b7dddb19763f39703adb1fc222898b3e32cb19f8",
+      "family": "arxic",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-content-change-viewport",
+      "manifest": "arxic-640-content-change.json",
+      "manifestSha256": "534de177da6668c84696bd219d71de77935576e8a8369ebd5e90c4bf052f86ba",
+      "family": "arxic",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-overlay-adjacent-viewport",
+      "manifest": "arxic-640-overlay-adjacent.json",
+      "manifestSha256": "6e6a3b68459566b16d81a34ec7b1d7f641b33a21c716937c6b4b81fb9cd97afd",
+      "family": "arxic",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-style-tweak-viewport",
+      "manifest": "arxic-640-style-tweak.json",
+      "manifestSha256": "12eb81135012f0ea3d79b3d9af256848a2a751a7da43d0ac0402b5aded34712f",
+      "family": "arxic",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clean-viewport",
+      "manifest": "arxic-1024-clean.json",
+      "manifestSha256": "3fa11b0c407a6e151a016cc670660b7bf3d9f7d47b09ee2d1f3106f218fadf43",
+      "family": "arxic",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-full-viewport",
+      "manifest": "arxic-1024-clip-full.json",
+      "manifestSha256": "8d0eb4feb228eeba23d6f0e9396a43da7610486bd8641681a09edc66cab276b7",
+      "family": "arxic",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-right-75-viewport",
+      "manifest": "arxic-1024-clip-right-75.json",
+      "manifestSha256": "af18f2cdb1cc54e41b9346882864eb4d8defe2c8e433d68b59f0d4b58721dac6",
+      "family": "arxic",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-right-50-viewport",
+      "manifest": "arxic-1024-clip-right-50.json",
+      "manifestSha256": "fdbd45c57fd097e33be091661efdfc82a95e5949475fb652ce90b5dc4e3a7b87",
+      "family": "arxic",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-right-25-viewport",
+      "manifest": "arxic-1024-clip-right-25.json",
+      "manifestSha256": "96c78b30687d99760decd151307b192c4bea62cbc8581a32075bd7606bfeee71",
+      "family": "arxic",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-bottom-50-viewport",
+      "manifest": "arxic-1024-clip-bottom-50.json",
+      "manifestSha256": "d6455ce7113f6a08abe32181c1c93b2ba9c9f223d561b32ab625445730fd4f00",
+      "family": "arxic",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-content-change-viewport",
+      "manifest": "arxic-1024-content-change.json",
+      "manifestSha256": "2b2b36b45e71c45a5bffe1093dc167e0f970ef6ca5eee8e7e495c19363c6130a",
+      "family": "arxic",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-overlay-adjacent-viewport",
+      "manifest": "arxic-1024-overlay-adjacent.json",
+      "manifestSha256": "cdaa57c0f29d3440cd9dcc58bc96823df9c7841d828511575c74d8e3a163e4ee",
+      "family": "arxic",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-style-tweak-viewport",
+      "manifest": "arxic-1024-style-tweak.json",
+      "manifestSha256": "50735d97bf9b864ce3988b1576b56e104424a811c1068dff3c3dfe210f1c6e93",
+      "family": "arxic",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clean-viewport",
+      "manifest": "arxic-1280-clean.json",
+      "manifestSha256": "924bd20d0d17425e1188813f69843ab417d456da625643100ef7e3d425bd8ab7",
+      "family": "arxic",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-full-viewport",
+      "manifest": "arxic-1280-clip-full.json",
+      "manifestSha256": "cb6cb08478c606b51cfa95777da9c82d0375b18166ecb66945e831d202ef6b84",
+      "family": "arxic",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-right-75-viewport",
+      "manifest": "arxic-1280-clip-right-75.json",
+      "manifestSha256": "496cb50586b739ea3b9debbef9feced43671d1425b96882f7ce58b8590e45e83",
+      "family": "arxic",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-right-50-viewport",
+      "manifest": "arxic-1280-clip-right-50.json",
+      "manifestSha256": "69bfbae9ddf2359b82742dd2255deb7e71bfebba429b3e984c4078a1b9b926fe",
+      "family": "arxic",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-right-25-viewport",
+      "manifest": "arxic-1280-clip-right-25.json",
+      "manifestSha256": "a5eaf09f8bffaba683131bec719c89b582296d45a9997ba364b4553859a8dec6",
+      "family": "arxic",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-bottom-50-viewport",
+      "manifest": "arxic-1280-clip-bottom-50.json",
+      "manifestSha256": "064660792261793cbe1981c1e0ad93bb3b865827aa56e4a2f623795e475e3ce8",
+      "family": "arxic",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-content-change-viewport",
+      "manifest": "arxic-1280-content-change.json",
+      "manifestSha256": "8c6e366e0c727da3d8345b37fc8f40f9cb52e53b2dbf378007febf57cd732feb",
+      "family": "arxic",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-overlay-adjacent-viewport",
+      "manifest": "arxic-1280-overlay-adjacent.json",
+      "manifestSha256": "7f00ee106cbed0ef02b6052051bbcc077a51f1d58a186f0b9295073c9cacc2da",
+      "family": "arxic",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-style-tweak-viewport",
+      "manifest": "arxic-1280-style-tweak.json",
+      "manifestSha256": "cfb031137c979b854ec68ae7022a80d05be8ad1e93e0b290719fb8d4f997e8f0",
+      "family": "arxic",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clean-viewport",
+      "manifest": "koel-360-clean.json",
+      "manifestSha256": "7fad89d95c31afb803e34aab88e6c067b3f62395a09a1517c89b6673b3609cd9",
+      "family": "koel",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-full-viewport",
+      "manifest": "koel-360-clip-full.json",
+      "manifestSha256": "42f165b967c3b4052b411bff89dc6dc5ddf32e19a6bd381fc9864e66d1b57ffc",
+      "family": "koel",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-right-75-viewport",
+      "manifest": "koel-360-clip-right-75.json",
+      "manifestSha256": "1971c8b01ffeb272d4d4a574db2b137e0909640849f8f06f2357b44b5c93e488",
+      "family": "koel",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-right-50-viewport",
+      "manifest": "koel-360-clip-right-50.json",
+      "manifestSha256": "ea8b4e1617406160b47585320b52dba8a24706b41d13dcf618423c7927a81995",
+      "family": "koel",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-right-25-viewport",
+      "manifest": "koel-360-clip-right-25.json",
+      "manifestSha256": "8063563628f95e7fbdc730f859b5fbbadf7482f67554f1a993c921dc88adfa4f",
+      "family": "koel",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-bottom-50-viewport",
+      "manifest": "koel-360-clip-bottom-50.json",
+      "manifestSha256": "10264314bfe9945738aed180e7fadfa38b3a5dacd4f433b9aa66c56a5fa30689",
+      "family": "koel",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-content-change-viewport",
+      "manifest": "koel-360-content-change.json",
+      "manifestSha256": "bf3d037bc3baa497aacfc7d44d7ae1ad524aa6d361d7092b5f67a6a94496bf95",
+      "family": "koel",
+      "variant": "content-change",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-overlay-adjacent-viewport",
+      "manifest": "koel-360-overlay-adjacent.json",
+      "manifestSha256": "aba300601a81b2519653bb6b598e14e8426ee681b635f8a603be401b5e622ce7",
+      "family": "koel",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-style-tweak-viewport",
+      "manifest": "koel-360-style-tweak.json",
+      "manifestSha256": "7bbb6f58e8d744a05956b14fe707d5f17747efe703abc8eb2d0f1a0770f8d218",
+      "family": "koel",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clean-viewport",
+      "manifest": "koel-640-clean.json",
+      "manifestSha256": "3fda892c51d19a4dc11b665fbe2b72e787bec50f20fef28244ca8121a5b7f1b2",
+      "family": "koel",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-full-viewport",
+      "manifest": "koel-640-clip-full.json",
+      "manifestSha256": "d6ee7b5288a3261e3f5732fbac15de9453332c543063d0c15c29de311e830b6e",
+      "family": "koel",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-right-75-viewport",
+      "manifest": "koel-640-clip-right-75.json",
+      "manifestSha256": "647a56fd1dc4c87e883597b0a559fb2230725fd5911b7eb43a33a848c29a64e8",
+      "family": "koel",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-right-50-viewport",
+      "manifest": "koel-640-clip-right-50.json",
+      "manifestSha256": "8078ef22f0f59c1517955fe2bc9e8d06cea7bed5b2e47d01456f4542c9a5610f",
+      "family": "koel",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-right-25-viewport",
+      "manifest": "koel-640-clip-right-25.json",
+      "manifestSha256": "d378abc176502acf67ed23e2b6a2870504aff7835c89caf05b3a6ed2f487bf14",
+      "family": "koel",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-bottom-50-viewport",
+      "manifest": "koel-640-clip-bottom-50.json",
+      "manifestSha256": "8498c13a145083426863739935f597749cc8d135cee8f07671bcc4765a95a008",
+      "family": "koel",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-content-change-viewport",
+      "manifest": "koel-640-content-change.json",
+      "manifestSha256": "41e039412ec0bf204a02d804bf7c6860f9ca0c8b0f617a754af2510b3bdb7dba",
+      "family": "koel",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-overlay-adjacent-viewport",
+      "manifest": "koel-640-overlay-adjacent.json",
+      "manifestSha256": "3aebea1eb17246c097e18849c624b3acdfd8914be3437008d0e88376a2c5327e",
+      "family": "koel",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-style-tweak-viewport",
+      "manifest": "koel-640-style-tweak.json",
+      "manifestSha256": "26cfe6e4488dca4bc555ec2c718f50aa8f42ca070b49366697ef482cb77b3287",
+      "family": "koel",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clean-viewport",
+      "manifest": "koel-1024-clean.json",
+      "manifestSha256": "cf394bf2547396787fa931854c894a49413d4d656611c76542a9f306c5a23c7c",
+      "family": "koel",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-full-viewport",
+      "manifest": "koel-1024-clip-full.json",
+      "manifestSha256": "f98bec9e5ab3c85a08145ae7c2631354de0fd84227b50eb838414678a8c1778b",
+      "family": "koel",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-right-75-viewport",
+      "manifest": "koel-1024-clip-right-75.json",
+      "manifestSha256": "1bf3a6d74eeb9f35981d22dfbb07a0e6dadffa2ce795c3b0f3c8cd252ddcd707",
+      "family": "koel",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-right-50-viewport",
+      "manifest": "koel-1024-clip-right-50.json",
+      "manifestSha256": "43c58bd8cb2e59ac7c99b3e36f6419ca59fbc6c1d15457cf8d3e49655833ff79",
+      "family": "koel",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-right-25-viewport",
+      "manifest": "koel-1024-clip-right-25.json",
+      "manifestSha256": "30a8d6a35ee6c03bb8b39fb760a5a41a88451681705dc1573f5079602a8b4ecc",
+      "family": "koel",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-bottom-50-viewport",
+      "manifest": "koel-1024-clip-bottom-50.json",
+      "manifestSha256": "b51328367d71dbb932d6850b08aec76434cfd55c0ecf6d30b0c6254fad5597c9",
+      "family": "koel",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-content-change-viewport",
+      "manifest": "koel-1024-content-change.json",
+      "manifestSha256": "10cf0daecb3642ef7760a5cd59ea09cb75fb3a85f311de76e6a7d1f54b27f777",
+      "family": "koel",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-overlay-adjacent-viewport",
+      "manifest": "koel-1024-overlay-adjacent.json",
+      "manifestSha256": "4d8ae33c52c9508298652826502ec4e047615d213806362933267274f5731a84",
+      "family": "koel",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-style-tweak-viewport",
+      "manifest": "koel-1024-style-tweak.json",
+      "manifestSha256": "260a84dfee049f37d71548740b3daa56b2f69a70a4f799fdec8c769d4aaf0f67",
+      "family": "koel",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clean-viewport",
+      "manifest": "koel-1280-clean.json",
+      "manifestSha256": "5a475186fbd3e96cf8aa872e6234817fff26e3b709d5b417779f9fd6780c4a4d",
+      "family": "koel",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-full-viewport",
+      "manifest": "koel-1280-clip-full.json",
+      "manifestSha256": "91ecfee9b8420ce9d5aad3510a01cfe1a42e3994966011a54e092321e1205e19",
+      "family": "koel",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-right-75-viewport",
+      "manifest": "koel-1280-clip-right-75.json",
+      "manifestSha256": "5b91a867d79e25d97f62899e6c6a0e467b91f01c9e62814a63be0aa8aa9e6802",
+      "family": "koel",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-right-50-viewport",
+      "manifest": "koel-1280-clip-right-50.json",
+      "manifestSha256": "581ae8d3196dda2fb43a91c02103964a801d28dcae312e7cee36550c451ef4dc",
+      "family": "koel",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-right-25-viewport",
+      "manifest": "koel-1280-clip-right-25.json",
+      "manifestSha256": "5c63cc2cadae49f72ff4a70b9b6f412cde29f2b580855e39272d0f7cab504ac6",
+      "family": "koel",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-bottom-50-viewport",
+      "manifest": "koel-1280-clip-bottom-50.json",
+      "manifestSha256": "07ce7daeb42c45f0997f441b0120ea2a72e50f45fa424a2805ade052680a02fc",
+      "family": "koel",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-content-change-viewport",
+      "manifest": "koel-1280-content-change.json",
+      "manifestSha256": "d89dad43151c778ad20ad5f2a81e0ad8ca68f1d494b827f69f7ba6c7612d5d95",
+      "family": "koel",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-overlay-adjacent-viewport",
+      "manifest": "koel-1280-overlay-adjacent.json",
+      "manifestSha256": "f96a36354d0e1f4819747965d64a3b4d9de542252cfd51b0b9b3f82216e4452e",
+      "family": "koel",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-style-tweak-viewport",
+      "manifest": "koel-1280-style-tweak.json",
+      "manifestSha256": "8c348446ba8982503612c49e1393c275c396e1a7d6c2bcd4055492eef45c30f0",
+      "family": "koel",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clean-viewport",
+      "manifest": "directus-360-clean.json",
+      "manifestSha256": "20ee780d99b223c218c32446d8ac6112075e936921c9833a449ead645cb3bf59",
+      "family": "directus",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-full-viewport",
+      "manifest": "directus-360-clip-full.json",
+      "manifestSha256": "196d0999875642d1af327709acd13b4b305333022a87bf2effb52aada64694a7",
+      "family": "directus",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-right-75-viewport",
+      "manifest": "directus-360-clip-right-75.json",
+      "manifestSha256": "add4f2cdfaf7948724463d41365adf3d7ecd8ec67a46cd4503a3ffd6e155a5ea",
+      "family": "directus",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-right-50-viewport",
+      "manifest": "directus-360-clip-right-50.json",
+      "manifestSha256": "f25e8dee5200f49e8fd70c70cb0f8823c15d6624013400d3a1c39911fc21d48c",
+      "family": "directus",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-right-25-viewport",
+      "manifest": "directus-360-clip-right-25.json",
+      "manifestSha256": "b36b0f24162b455892c86f1da9283f226b51c6a9517f5c2723f9e15cd1419afa",
+      "family": "directus",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-bottom-50-viewport",
+      "manifest": "directus-360-clip-bottom-50.json",
+      "manifestSha256": "3776832721aac00a164d1bddb440aa0927eebb85095ab6df3a220b8e2999a25b",
+      "family": "directus",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-content-change-viewport",
+      "manifest": "directus-360-content-change.json",
+      "manifestSha256": "1e8a6739d17d2170f3a5f480b3c706b374dba89ef4ec713ea49e33ddc17fc8f8",
+      "family": "directus",
+      "variant": "content-change",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-overlay-adjacent-viewport",
+      "manifest": "directus-360-overlay-adjacent.json",
+      "manifestSha256": "f2bd5681439611d2c53b39ba11714dae6d10fcf6b6ac66ed2f2757218106bb54",
+      "family": "directus",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-style-tweak-viewport",
+      "manifest": "directus-360-style-tweak.json",
+      "manifestSha256": "707ee92a7e83c5e1d65409943064e78449402a53f05cad2943a39e2e506d5ed7",
+      "family": "directus",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clean-viewport",
+      "manifest": "directus-640-clean.json",
+      "manifestSha256": "2e446fef7456e305581181996127e7341469916773c6353eeafb0c222270c69d",
+      "family": "directus",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-full-viewport",
+      "manifest": "directus-640-clip-full.json",
+      "manifestSha256": "1c9dd8b3e5a388d09758f940161970b0b983a226ee7fccea05fbf1ff572c0688",
+      "family": "directus",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-right-75-viewport",
+      "manifest": "directus-640-clip-right-75.json",
+      "manifestSha256": "420501a499b4489048a1d8dca724e715de5caf2cde85e0690520c26573396bd2",
+      "family": "directus",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-right-50-viewport",
+      "manifest": "directus-640-clip-right-50.json",
+      "manifestSha256": "928ef16147e79fd97a141108cf58ec969f6222f3b1621c66261a52408cde976f",
+      "family": "directus",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-right-25-viewport",
+      "manifest": "directus-640-clip-right-25.json",
+      "manifestSha256": "d7495932da9fcaf21d64b343f6c713595b28630e131c58c59833d004da304e34",
+      "family": "directus",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-bottom-50-viewport",
+      "manifest": "directus-640-clip-bottom-50.json",
+      "manifestSha256": "21191b198ba05944a52a469c35ef4aff20ca9bbfc55d3593eb5569c3cc85f187",
+      "family": "directus",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-content-change-viewport",
+      "manifest": "directus-640-content-change.json",
+      "manifestSha256": "45f907cbbd037a6fba1df31009ada9008ea2d164ff1a8299dd991c741988e031",
+      "family": "directus",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-overlay-adjacent-viewport",
+      "manifest": "directus-640-overlay-adjacent.json",
+      "manifestSha256": "a749ab984cbbca7b11f7bdfc3c92c0c6c26b74c5d029fd9a894eef54a06a5593",
+      "family": "directus",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-style-tweak-viewport",
+      "manifest": "directus-640-style-tweak.json",
+      "manifestSha256": "e5cc169aefd294c57a5986acc296ac11a0b26da75e99c4109bf8f0e9b838b7ec",
+      "family": "directus",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clean-viewport",
+      "manifest": "directus-1024-clean.json",
+      "manifestSha256": "52dbdb459c9d809e8a1a46f7c33844196fd81b10bd36bcd525c5df0138e17db3",
+      "family": "directus",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-full-viewport",
+      "manifest": "directus-1024-clip-full.json",
+      "manifestSha256": "f1206aca00600ee69b02bdd2ab922486e94a3e08b1aab336d4e25a23949a456f",
+      "family": "directus",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-right-75-viewport",
+      "manifest": "directus-1024-clip-right-75.json",
+      "manifestSha256": "879e2a83538423fdc3c771aecef72d480076c80ec3a3792721b91db36c4a3972",
+      "family": "directus",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-right-50-viewport",
+      "manifest": "directus-1024-clip-right-50.json",
+      "manifestSha256": "7a15cbe34a569dd8b5c3f4c05337b9a30c9cf70ae4b3a38638b459c5092a2910",
+      "family": "directus",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-right-25-viewport",
+      "manifest": "directus-1024-clip-right-25.json",
+      "manifestSha256": "027c53dff093394bdb4b29950164eb39d292f4e2f7aeec42fc47e44a9c70f728",
+      "family": "directus",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-bottom-50-viewport",
+      "manifest": "directus-1024-clip-bottom-50.json",
+      "manifestSha256": "90e226cb75c8a7953fb1d66d024e19a981fe81db755e07b5d0dbfdbcd76d37fb",
+      "family": "directus",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-content-change-viewport",
+      "manifest": "directus-1024-content-change.json",
+      "manifestSha256": "3073b2921d0cecb9158fcd4388bb88a407b72eb5a2296af15f7d284a79c5b2b4",
+      "family": "directus",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-overlay-adjacent-viewport",
+      "manifest": "directus-1024-overlay-adjacent.json",
+      "manifestSha256": "229b19d8943ffb05d47a8f238d1fbec8043042749267f7e43ff6d019c670f119",
+      "family": "directus",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-style-tweak-viewport",
+      "manifest": "directus-1024-style-tweak.json",
+      "manifestSha256": "e57e47b1ec590c4843f77e7fffe82e8dd7786113570f87b590ec708f79eb9311",
+      "family": "directus",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clean-viewport",
+      "manifest": "directus-1280-clean.json",
+      "manifestSha256": "5faff503c0d58e1da61d900d4af815ecef2b36386a9bd8c12e1e0f4c7a39361c",
+      "family": "directus",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-full-viewport",
+      "manifest": "directus-1280-clip-full.json",
+      "manifestSha256": "4d6d53dacec7f433f5d12f44d33e1c9c665fbbcb5fa0a9b393da81b9bcb5202f",
+      "family": "directus",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-right-75-viewport",
+      "manifest": "directus-1280-clip-right-75.json",
+      "manifestSha256": "bcdd317d7dae28d25d9c5d1c5a43c197d7ed0fccc0433bde527c02625473d771",
+      "family": "directus",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-right-50-viewport",
+      "manifest": "directus-1280-clip-right-50.json",
+      "manifestSha256": "87a6b330a549bea54441245cbfd16fe342ea4d722bf4894a287ba5fbe1d753a1",
+      "family": "directus",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-right-25-viewport",
+      "manifest": "directus-1280-clip-right-25.json",
+      "manifestSha256": "ad6ab054169113fb8e94229ef3b4f38b03860f73df6bb62741ded4c260513efd",
+      "family": "directus",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-bottom-50-viewport",
+      "manifest": "directus-1280-clip-bottom-50.json",
+      "manifestSha256": "b355b74efbcc0db0a0e3ce1dccf8a563c3b8a08177ffe3c1b0c7b60ad7548d3a",
+      "family": "directus",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-content-change-viewport",
+      "manifest": "directus-1280-content-change.json",
+      "manifestSha256": "1dc33ada43a3cb0de2c59f63cd34373875aa6470fcaa649859e6740140c36d44",
+      "family": "directus",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-overlay-adjacent-viewport",
+      "manifest": "directus-1280-overlay-adjacent.json",
+      "manifestSha256": "4c10676ae276248c5e33db7877510a3afa9108a032bd27a894a5d92249edb82b",
+      "family": "directus",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-style-tweak-viewport",
+      "manifest": "directus-1280-style-tweak.json",
+      "manifestSha256": "6ebe9354b29b239783dde78c4b82622f298ffbc4e6f9ff0bec9def370807ccd6",
+      "family": "directus",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    }
+  ]
+}

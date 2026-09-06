@@ -5,7 +5,9 @@ import { reviewCase } from './model';
 
 const [command, directory, ...args] = process.argv.slice(2);
 if (!directory)
-  throw new Error('Usage: cli.ts demo|capture|extract|review|train DIRECTORY [arguments]');
+  throw new Error(
+    'Usage: cli.ts demo|capture|extract|review|train|corpus DIRECTORY [families] [viewports] [variants]',
+  );
 const root = resolve(import.meta.dirname, '../../../..');
 const output = resolve(directory);
 if (command === 'capture') {
@@ -36,5 +38,29 @@ if (command === 'capture') {
     root,
     output,
     JSON.parse(await readFile(resolve(output, 'corpus.json'), 'utf8')),
+  );
+} else if (command === 'corpus') {
+  const { captureCorpusV2, trainCorpusV2 } = await import('./corpus-capture');
+  const families = (args[0] ?? 'next,express,arxic,koel,directus').split(',').filter(Boolean);
+  const viewports = (args[1] ?? '360,640,1024,1280').split(',').filter(Boolean).map(Number);
+  const variants = (args[2] ?? '').split(',').filter(Boolean);
+  const manifest = await captureCorpusV2(
+    root,
+    output,
+    families,
+    viewports,
+    variants.length ? variants : undefined,
+  );
+  const report = await trainCorpusV2(root, output, manifest);
+  console.log(
+    JSON.stringify({
+      rows: report.rows,
+      families: report.families,
+      allocation: report.allocation,
+      skipped: report.skipped.length,
+      parityMaximumError: report.parityMaximumError,
+      promotion: report.promotion,
+      report: 'corpus-report.json',
+    }),
   );
 } else throw new Error('invalid-command');

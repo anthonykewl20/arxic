@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { chromium, type Page, type Locator } from 'playwright';
@@ -14,19 +14,23 @@ import {
 } from '../../../../packages/real-world-testkit/src';
 import { startWorkbench } from '../server';
 import { extractCase } from './features';
-import { nativeScores, reviewCase, type ModelManifest } from './model';
+import { runTraining } from './train-runner';
 import type { Box, Measurement, Scene, VisualCase } from './evidence';
 
 const execute = promisify(execFile);
 type Entry = { manifest: string; split: 'train' | 'calibration' | 'test'; label: 0 | 1 };
 export type Corpus = { version: 1; cases: Entry[]; provenance: string };
-async function save(root: string, path: string, value: unknown) {
+export async function save(root: string, path: string, value: unknown) {
   const bytes = Buffer.isBuffer(value) ? value : Buffer.from(JSON.stringify(value, null, 2) + '\n');
   await writeFile(join(root, path), bytes, { mode: 0o600, flag: 'wx' });
   return { path, sha256: sha256(bytes) };
 }
 
-async function measure(button: Locator, width: number, height: number): Promise<Measurement> {
+export async function measure(
+  button: Locator,
+  width: number,
+  height: number,
+): Promise<Measurement> {
   const box = await button.boundingBox();
   if (!box || !box.width || !box.height) throw new Error('missing-control');
   // This smoke criterion names the viewport clip, not arbitrary ancestor paint.
@@ -41,7 +45,7 @@ async function measure(button: Locator, width: number, height: number): Promise<
     overflowY: null,
   };
 }
-async function maskBoxes(page: Page): Promise<Box[]> {
+export async function maskBoxes(page: Page): Promise<Box[]> {
   return page.locator('input, textarea, [contenteditable="true"]').evaluateAll((nodes) =>
     nodes
       .map((n) => {
@@ -295,55 +299,14 @@ export async function trainCorpus(root: string, output: string, corpus: Corpus, 
     datasetSha256: dataset.sha256,
     evidence,
   });
-  await execute(
-    process.env.ARXIC_VISUAL_PYTHON ?? 'python3',
-    [
-      join(root, 'scripts/visual-slm/train.py'),
-      join(output, 'dataset.json'),
-      join(output, 'training'),
-      '--epochs',
-      String(epochs),
-    ],
-    { timeout: 1800000, maxBuffer: 65536, env: { PATH: process.env.PATH, PYTHONHASHSEED: '423' } },
+  const { training, parityMaximumError, reviews } = await runTraining(
+    root,
+    output,
+    rows,
+    corpus.cases,
+    dataset.sha256,
+    epochs,
   );
-  const native = join(output, 'visual-native');
-  await execute(
-    process.env.ARXIC_VISUAL_RUSTC ?? 'rustc',
-    ['-O', join(root, 'scripts/visual-slm/native.rs'), '-o', native],
-    { timeout: 60000, maxBuffer: 65536 },
-  );
-  const training = JSON.parse(
-    await readFile(join(output, 'training/training-report.json'), 'utf8'),
-  );
-  let parityMaximumError = 0;
-  for (const kind of ['logistic', 'mlp']) {
-    const bytes = await readFile(join(output, `training/${kind}.bin`));
-    const result = await nativeScores(
-      native,
-      bytes,
-      rows.map((row) => row.features),
-    );
-    for (const [i, scores] of result.entries())
-      for (const [j, score] of scores.entries())
-        parityMaximumError = Math.max(
-          parityMaximumError,
-          Math.abs(score - training.models[kind].scores[rows[i]!.id][j]),
-        );
-    const model: ModelManifest = {
-      version: 1,
-      featureSchema: 'arxic-visual-features-v1',
-      artifact: { path: `training/${kind}.bin`, sha256: sha256(bytes) },
-      thresholds: training.models[kind].positiveThresholds,
-      supported: training.models[kind].training.supported,
-      experimental: true,
-      datasetSha256: dataset.sha256,
-    };
-    await save(output, `${kind}-model.json`, model);
-  }
-  if (parityMaximumError > 1e-5) throw new Error('native-parity-failed');
-  const reviews = [];
-  for (const entry of corpus.cases)
-    reviews.push(await reviewCase(output, entry.manifest, 'mlp-model.json', native));
   const report = {
     version: 1,
     rows: rows.length,

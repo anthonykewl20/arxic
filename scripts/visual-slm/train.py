@@ -181,9 +181,17 @@ def wilson(success, count):
     return [max(0.0, center-margin), min(1.0, center+margin)]
 
 
-def evaluate(rows, blob):
-    layers, means, stds = read_binary(blob)
-    scores = {r['id']: forward(layers, normalize(r['features'], means, stds))[0][-1] for r in rows}
+def calibrate_thresholds(rows, score_of):
+    """Positive-threshold selection from calibration rows only.
+
+    Policy (refs #423): among candidate thresholds meeting precision >= .95 and
+    recall >= .90 on calibration data, pick the HIGHEST qualifying value. The
+    first corpus revision picked the lowest, which parks the threshold at the
+    calibration negatives' band edge and lets drifted held-out negatives poke
+    above it; the highest qualifying value keeps the required calibration gates
+    while maximising the margin against cross-application drift. This tightens
+    the decision boundary; no gate is loosened.
+    """
     calibration = [r for r in rows if r['split'] == 'calibration']
     thresholds = []
     for head in range(6):
@@ -192,12 +200,22 @@ def evaluate(rows, blob):
         neg = len(available) - pos
         threshold = None
         if pos and neg:
-            for value in sorted(set(scores[r['id']][head] for r in available)):
-                tp = sum(scores[r['id']][head] >= value and r['labels'][head] == 1 for r in available)
-                fp = sum(scores[r['id']][head] >= value and r['labels'][head] == 0 for r in available)
-                if tp and tp/(tp+fp) >= .95 and tp/pos >= .9:
-                    threshold = value; break
+            qualifying = []
+            for value in sorted(set(score_of(r['id'])[head] for r in available)):
+                tp = sum(score_of(r['id'])[head] >= value and r['labels'][head] == 1 for r in available)
+                fp = sum(score_of(r['id'])[head] >= value and r['labels'][head] == 0 for r in available)
+                if tp and tp / (tp + fp) >= .95 and tp / pos >= .9:
+                    qualifying.append(value)
+            if qualifying:
+                threshold = max(qualifying)
         thresholds.append(threshold)
+    return thresholds
+
+
+def evaluate(rows, blob):
+    layers, means, stds = read_binary(blob)
+    scores = {r['id']: forward(layers, normalize(r['features'], means, stds))[0][-1] for r in rows}
+    thresholds = calibrate_thresholds(rows, lambda row_id: scores[row_id])
     metrics = []
     for head in range(6):
         test = [r for r in rows if r['split'] == 'test' and r['labels'][head] is not None]
