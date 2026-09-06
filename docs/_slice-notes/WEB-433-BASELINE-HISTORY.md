@@ -1,6 +1,6 @@
 # WEB-433-BASELINE-HISTORY — staged doc updates (charter §10.2)
 
-Issue: #433 · PR: linked from issue #433 · Disposition: local validation in progress; completion requires current-head CI-gated merge.
+Issue: #433 · PR: linked from issue #433 · Disposition: local validation passed; completion requires current-head CI-gated merge.
 
 ## 1. `docs/SYNC.md` — tracker row
 
@@ -32,8 +32,14 @@ No worktree SYNC/CHANGELOG/VERSION edits.
   approval via keyboard, failure/retry, three captures, replacement and history.
 - Independent literal API result snapshots and original PNG bytes must remain equal
   after approval/replacement. Historical comparison image references remain exact.
-- Initial light/dark journeys: 2 tests passed in 21.09 s. Expanded mobile proof,
-  regression suites and current-head CI are pending at this note's initial revision.
+- Regression suites: 7 tests / 4 files passed in 127.19 s, including the existing
+  dashboard/retention/visual flows. Final clean committed baseline-history run:
+  2 tests passed in 27.02 s at `3377b70`.
+- [Retained proof](../evidence/WEB-433-BASELINE-HISTORY/summary.md): 12 agent-viewed
+  masked PNGs and two independently hash-checked sanitized timelines. All twelve
+  audit points have zero axe violations/incomplete checks and zero overflow.
+- Typecheck/lint/license pass (808 packages, 0 rejected). Full-repository format
+  is rerun after this final note. Current-head PR CI remains pending.
 - No raw traces, human screenshot sign-off or full browser/state/heuristic claim.
 
 ## 6. Sad paths proved
