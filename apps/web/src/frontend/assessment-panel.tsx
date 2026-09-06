@@ -18,15 +18,17 @@ export function AssessmentPanel({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<VisualCheck>();
+  const [imageState, setImageState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [imageAttempt, setImageAttempt] = useState(0);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const preview = useRef<SVGSVGElement>(null);
   useEffect(() => {
-    if (selected) {
+    if (selected && imageState === 'ready') {
       preview.current?.focus();
       preview.current?.scrollIntoView({ block: 'nearest' });
     }
-  }, [selected]);
+  }, [selected, imageState]);
   if (!file)
     return (
       <p className="scope-note">
@@ -90,27 +92,66 @@ export function AssessmentPanel({
               <figcaption>
                 {selected.id} · {selected.verdict} · measured region
               </figcaption>
-              <svg
-                ref={preview}
-                tabIndex={-1}
-                role="img"
-                aria-label="Measured text region in captured viewport"
-                viewBox={`0 0 ${capture.viewport.width} ${capture.viewport.height}`}
-                style={{
-                  width: '100%',
-                  maxWidth: 800,
-                  display: 'block',
-                  border: '1px solid var(--border)',
-                }}
+              {imageState === 'loading' && <p role="status">Loading captured image…</p>}
+              {imageState === 'error' && (
+                <div>
+                  <p role="alert">Captured image could not be loaded.</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setImageState('loading');
+                      setImageAttempt((attempt) => attempt + 1);
+                    }}
+                  >
+                    Retry capture image
+                  </Button>
+                </div>
+              )}
+              <div
+                style={{ position: 'relative', maxWidth: 800, border: '1px solid var(--border)' }}
               >
-                <image
-                  href={`/api/runs/${runId}/artifacts/${encodeURIComponent(capture.file)}`}
+                <img
+                  key={imageAttempt}
+                  alt="Captured viewport for selected measurement"
+                  src={`/api/runs/${runId}/artifacts/${encodeURIComponent(capture.file)}`}
                   width={capture.viewport.width}
                   height={capture.viewport.height}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    display: imageState === 'ready' ? 'block' : 'none',
+                  }}
+                  onLoad={() => setImageState('ready')}
+                  onError={() => setImageState('error')}
                 />
-                <rect {...selected.region} fill="none" stroke="white" strokeWidth={5} />
-                <rect {...selected.region} fill="none" stroke="#b00020" strokeWidth={2} />
-              </svg>
+                {imageState === 'ready' && (
+                  <svg
+                    ref={preview}
+                    tabIndex={-1}
+                    role="img"
+                    aria-label="Measured text region in captured viewport"
+                    viewBox={`0 0 ${capture.viewport.width} ${capture.viewport.height}`}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <rect {...selected.region} fill="none" stroke="white" strokeWidth={5} />
+                    <rect {...selected.region} fill="none" stroke="#b00020" strokeWidth={2} />
+                  </svg>
+                )}
+              </div>
+              <a
+                className="inline-flex min-h-8 items-center px-1"
+                href={`/api/runs/${runId}/artifacts/${encodeURIComponent(capture.file)}`}
+                target="_blank"
+                rel="noopener"
+              >
+                Open full-size capture
+              </a>
             </figure>
           )}
           <div className="toolbar">

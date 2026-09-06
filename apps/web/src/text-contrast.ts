@@ -82,7 +82,7 @@ export function assessTextContrast(paints: TextPaint[], stable: boolean): Visual
     const observed = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
     return {
       id: `text-contrast-${paint.id}`,
-      region: { ...paint.box },
+      region: { x: paint.box.x, y: paint.box.y, width: paint.box.width, height: paint.box.height },
       kind: 'hard',
       verdict: applicable ? (observed < threshold ? 'fail' : 'pass') : 'unverified',
       expected: `Solid-paint text contrast >= ${threshold}:1 (WCAG 1.4.3 numeric threshold; scoped text profile, not whole-page certification).`,

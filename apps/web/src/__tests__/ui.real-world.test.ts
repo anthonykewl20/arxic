@@ -1,4 +1,6 @@
-import { mkdtemp, rm } from 'node:fs/promises';
+import sharp from 'sharp';
+import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
@@ -153,7 +155,13 @@ it.each(['light', 'dark'] as const)(
       await page.unroute('**/*.assessment.json');
       await page.getByRole('button', { name: 'Retry measurements' }).click();
       await page.getByText('document-horizontal-overflow', { exact: true }).waitFor();
+      await page.route('**/artifacts/checkpoint-1.png', (route) =>
+        route.fulfill({ status: 503, body: 'Unavailable' }),
+      );
       await page.getByRole('button', { name: 'Locate measured text' }).first().click();
+      await page.getByText('Captured image could not be loaded.', { exact: true }).waitFor();
+      await page.unroute('**/artifacts/checkpoint-1.png');
+      await page.getByRole('button', { name: 'Retry capture image' }).click();
       await page.getByRole('img', { name: 'Measured text region in captured viewport' }).waitFor();
       expect(
         await page
@@ -171,6 +179,44 @@ it.each(['light', 'dark'] as const)(
         '10-measurement-report',
         'Unavailable evidence stays an error; retry loads real numeric checks and unverified coverage',
       );
+      const previewBounds = (await page
+        .getByRole('img', { name: 'Measured text region in captured viewport' })
+        .boundingBox())!;
+      const painted = await sharp(
+        process.env.ARXIC_WEB_EVIDENCE_DIR
+          ? await readFile(
+              join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme, '10-measurement-report.png'),
+            )
+          : await captureMaskedViewport(page, {
+              automaticMasks: ['input[type="password"]'],
+              requiredMasks: [],
+            }),
+      )
+        .extract({
+          left: Math.ceil(previewBounds.x),
+          top: Math.ceil(previewBounds.y),
+          width: Math.floor(previewBounds.width),
+          height: Math.floor(previewBounds.height),
+        })
+        .removeAlpha()
+        .raw()
+        .toBuffer();
+      let maskedInk = 0;
+      for (let i = 0; i < painted.length; i += 3)
+        if (painted[i] === 255 && painted[i + 1] === 0 && painted[i + 2] === 255) maskedInk++;
+      expect(
+        maskedInk,
+        'the region preview must paint the actual masked reference-app image',
+      ).toBeGreaterThan(100);
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page
+        .getByRole('img', { name: 'Measured text region in captured viewport' })
+        .scrollIntoViewIfNeeded();
+      await capture(
+        '14-mobile-measurement-region',
+        'Measured screenshot region scales to mobile without losing the masked target image',
+      );
+      await page.setViewportSize({ width: 1440, height: 1000 });
       await page.route('**/api/runs?**', (route) =>
         route.fulfill({ status: 503, json: { error: 'History unavailable' } }),
       );
