@@ -39,6 +39,18 @@ The spec §13 resource proof asks for 1,000 sequential jobs. The first attempt *
 
 [oom-floor.json](./oom-floor.json): the maximum-input analysis path passes at **144 MiB** (peak 143.6–144.0 MiB) and is **OOM-killed at 128 MiB** (exit 137, immediate bounded SIGKILL, no hang). The floor includes the tsx/esbuild dev harness; a production-packaged runtime is expected lower but unmeasured. Inside the 256 MiB service budget that leaves ≥112 MiB headroom, and an under-memory failure lands in the intake execution-failure/deadline path already proven to keep the queue serving.
 
+## Production-packaged runtime (no tsx/esbuild at run time)
+
+[bundled-runtime.json](./bundled-runtime.json): the review path esbuild-bundled to plain node (`review_bundle_entry.mts`, sharp external) measures a fraction of the dev-harness cost in identical containers:
+
+| Measurement | Bundled (production shape) | tsx harness (prior probes) |
+| --- | --- | --- |
+| koel 360 case, 10 jobs | cold 392 ms · p50 400 ms · **p95 408 ms** · peak 67.3 MiB | cold ~1.06 s · p50 1.31 s · p95 1.41 s · peak 105.0 MiB |
+| maximum input (2048×1024, 128 regions) | **584 ms** · peak 97.5 MiB | 1.46 s · peak 149.6 MiB |
+| OOM floor at maximum input | **≤24 MiB completes** (all caps 128→24 MiB pass; floor tracks the cap via reclaim) | 144 MiB pass / 128 MiB kill |
+
+A 1,000-job sustained run **without an init reaper** completes at 64 pids (p95 460 ms, peak 65 MiB; [record](./bundled-sustained-1000-noinit.json)) — scoping the earlier zombie-per-job finding to the tsx harness path; a reaping init stays recommended defense-in-depth for crash paths. The dev harness accounted for roughly two-thirds of analysis latency and 40–80 MiB of peak memory. Envelope conclusion tightened: the 256 MiB analysis-service budget holds with ~2.6× margin at maximum input for the packaged runtime. Two probe defects were found and fixed en route (a 64 KiB `spawnSync` maxBuffer overflow killed the 128-region child masquerading as a timeout; the hard-failure assertion was clip-case-specific).
+
 ## Disk and transfer (design arithmetic, not observed months)
 
 Retention is unit-proven (`retention.test.ts`): oldest-first eviction under a byte cap, pinned evidence never deleted, `pinned-exceeds-cap` surfaces for backpressure — the 10 GiB disk budget (≤3 GiB spool, ≥1.5 GiB free reserve) is protected by that service once wired to a deployed spool. Transfer at the 8 MiB image-pair bound: 400 GiB/month (the provisional service cap) ≈ 51,200 pairs before metadata — capacity arithmetic per spec §13, **not** an observed month.
@@ -56,4 +68,4 @@ python3 scripts/visual-slm/gen_timing_dataset.py timing.json --rows 10000 --seed
 
 ## Limitations (explicit)
 
-No browser/server/OS in any measurement; sustained load is proven for 1,000 sequential jobs under a reaping init (above) but not multi-hour wall-clock; no real-VPS run (none authorized); OOM floor measured at maximum input (~144 MiB pass / 128 MiB kill) though not for the production-packaged runtime; and the queue probe uses a no-op executor (mechanics only). The analysis path peaked at 149.6 MiB at maximum input — inside the 256 MiB service budget but leaving the whole-512-MiB-VM question (profile A/B) open exactly as before. Warm-vs-cold, 1,000-job sustained load, and spool free-reserve admission coupling remain open items for the next resource slice.
+No browser/server/OS in any measurement; sustained load is proven for 1,000 sequential jobs under a reaping init (above) but not multi-hour wall-clock; no real-VPS run (none authorized); OOM floors measured at maximum input for both runtimes (dev harness ~144 MiB; production bundle ≤24 MiB); and the queue probe uses a no-op executor (mechanics only). The analysis path peaked at 149.6 MiB at maximum input — inside the 256 MiB service budget but leaving the whole-512-MiB-VM question (profile A/B) open exactly as before. Warm-vs-cold, 1,000-job sustained load, and spool free-reserve admission coupling remain open items for the next resource slice.

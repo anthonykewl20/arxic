@@ -133,6 +133,13 @@ try {
   await writeFile(`${out}/training/mlp.bin`, await readFile('/data/training/mlp.bin'), {
     flag: 'wx',
   });
+  if (process.argv.includes('--prepare-only')) {
+    // Resource-probe support: leave the valid at-bounds case on disk for the
+    // bundled-runtime probes; nothing is measured in this mode. The explicit
+    // exit skips the cleanup-only finally branch via the flag below.
+    console.log(JSON.stringify({ prepared: out, regions: regions.length }));
+    process.exit(0);
+  }
   const started = performance.now();
   const report = await reviewCase(out, 'case.json', 'mlp-model.json', '/data/visual-native');
   const elapsed = performance.now() - started;
@@ -159,5 +166,5 @@ try {
     ),
   );
 } finally {
-  await rm(out, { recursive: true, force: true });
+  if (!process.argv.includes('--prepare-only')) await rm(out, { recursive: true, force: true });
 }

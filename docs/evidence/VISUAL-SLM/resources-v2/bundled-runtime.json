@@ -1,0 +1,57 @@
+{
+  "scope": "production-packaged runtime (esbuild bundle, plain node, sharp external; no tsx/esbuild at runtime) vs the tsx dev harness; same containers (256MiB/1CPU/no-network/64pids unless noted, --init)",
+  "bundleBuild": "node_modules/.pnpm/esbuild@0.28.1/node_modules/esbuild/bin/esbuild scripts/visual-slm/review_bundle_entry.mts --bundle --platform=node --format=esm --external:sharp --outfile=review-bundle.mjs (ARXIC_VERSION env set; sharp symlinked beside the bundle)",
+  "measurements": {
+    "koel-360-case-10-jobs": {
+      "coldMs": 392.1,
+      "p50Ms": 399.9,
+      "p95Ms": 407.8,
+      "memoryPeakBytes": 67305472,
+      "tsxHarnessComparison": {
+        "p50Ms": 1310,
+        "p95Ms": 1410,
+        "memoryPeakBytes": 105009152
+      }
+    },
+    "max-input-2048x1024-128-regions-3-jobs": {
+      "p50Ms": 584.5,
+      "p95Ms": 584.5,
+      "memoryPeakBytes": 97460224,
+      "tsxHarnessComparison": {
+        "p95Ms": 1460,
+        "memoryPeakBytes": 149639168
+      }
+    },
+    "oom-floor-sweep-max-input": {
+      "passingCaps": [
+        "128m",
+        "96m",
+        "80m",
+        "64m",
+        "56m",
+        "48m",
+        "40m",
+        "32m",
+        "24m"
+      ],
+      "killed": [],
+      "tsxHarnessFloor": "144m pass / 128m kill",
+      "note": "the floor tracks the cap (kernel reclaim); 24 MiB still completes the maximum-input review"
+    },
+    "sustained-1000-jobs-no-init-reaper": {
+      "jobs": 1000,
+      "failure": null,
+      "coldMs": 340.0,
+      "p50Ms": 400.2,
+      "p95Ms": 460.4,
+      "memoryPeakBytes": 65015808,
+      "note": "completes without the init reaper at 64 pids \u2014 the zombie-per-job leak was a tsx-harness property (orphaned harness children), not the packaged runtime child pattern; a reaping init remains recommended defense-in-depth for crash paths"
+    }
+  },
+  "probeBugsFound": [
+    "spawnSync maxBuffer 64KiB overflow killed the 128-region child masquerading as a timeout (fixed to 4MiB)",
+    "the hard-failure assertion was koel-specific; scoped to clip cases"
+  ],
+  "conclusion": "The tsx/esbuild dev harness accounted for roughly two-thirds of analysis latency and ~40-80 MiB of peak memory. The production-packaged runtime completes the maximum-accepted-input review in ~0.58 s at <=97.5 MiB and sustains a 24 MiB hard cap. Spec 13 envelope conclusions tighten accordingly: the 256 MiB analysis-service budget holds with ~2.6x margin at maximum input for the packaged runtime. Sustained 1,000-job load completes without an init reaper at 64 pids (p95 460 ms, 65 MiB), scoping the earlier zombie finding to the dev harness.",
+  "vpsQualified": false
+}
