@@ -68,9 +68,10 @@ it.each(['light', 'dark'] as const)(
       return readRun(id);
     }
     async function audit(name: string, action: string) {
-      await page
-        .getByRole('heading', { name: 'Captured pages', exact: true })
-        .scrollIntoViewIfNeeded();
+      const frame = name.startsWith('02-')
+        ? page.getByRole('heading', { name: 'Captured pages', exact: true })
+        : page.getByRole('status').filter({ hasText: /^\d+ matching captures? of \d+$/ });
+      await frame.scrollIntoViewIfNeeded();
       const result = await proof.audit(name, action);
       expect(result.details).toEqual([]);
       expect(result.overflow).toBe(0);
