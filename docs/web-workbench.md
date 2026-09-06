@@ -618,3 +618,19 @@ malformed markers and all other unexpected chunks remain rejected.
 Locale, direction, DPR, zoom, forced colors, OS/device behavior and arbitrary
 interactive-state matrices are not configurable by this slice. Native engine
 comparison does not make pixel differences into semantic defect proof.
+
+## Find captures within a run
+
+Open **Test runs**, select a run, then use **Captured pages**. Search a path or
+combine **Capture browser**, **Capture theme**, **Capture viewport** and
+**Comparison at capture time**. The count reports matching captures out of the full
+run. **Next captures** and **Previous captures** show up to six at a time and return
+keyboard focus to the heading. Clear filters to recover from no matches.
+
+Filters survive periodic refresh but reset when you change runs. They only narrow
+the gallery: blocked environments and coverage omissions above remain visible.
+Current baseline approval is separate from the comparison result recorded when a
+capture was made. Measurements, source images and review forms still refer to the
+original capture. Older captures without environment metadata use Chromium/light,
+the legacy capture defaults. Filters are not persisted in bookmarks or across a
+full browser reload. Workflow checkpoint galleries are separate.

@@ -395,6 +395,7 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
           'apps/web/src/__tests__/restart.real-world.test.ts',
           'apps/web/src/__tests__/element-kinds.real-world.test.ts',
           'apps/web/src/__tests__/visual-matrix-ui.real-world.test.ts',
+          'apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts',
         ],
         {
           cwd: repositoryRoot,
@@ -405,6 +406,7 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
               ? {
                   ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
                   ARXIC_MATRIX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/matrix'),
+                  ARXIC_GALLERY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/gallery'),
                   ARXIC_ELEMENTS_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/elements'),
                   ARXIC_UX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/navigation'),
                   ARXIC_CAMPAIGN_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/campaign'),

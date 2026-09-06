@@ -1,0 +1,101 @@
+[
+  {
+    "action": "Unmatched path retains run coverage and offers explicit filter reset",
+    "result": "passed",
+    "screenshot": "01-no-matches.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Keyboard pagination bounds the gallery and restores focus to its heading",
+    "result": "passed",
+    "screenshot": "02-next-page.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Mobile keyboard pagination keeps its focused heading below the sticky header",
+    "result": "passed",
+    "screenshot": "02-mobile-page.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Combined capture filters keep original image, measurement and review targets",
+    "result": "passed",
+    "screenshot": "03-filtered-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Combined capture filters keep original image, measurement and review targets",
+    "result": "passed",
+    "screenshot": "03-filtered-390.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Combined capture filters keep original image, measurement and review targets",
+    "result": "passed",
+    "screenshot": "03-filtered-768.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Combined capture filters keep original image, measurement and review targets",
+    "result": "passed",
+    "screenshot": "03-filtered-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Filtered approval preserves historical comparison and targets the selected capture",
+    "result": "passed",
+    "screenshot": "04-approved.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "A new run resets gallery filters and compares unchanged captures with approved baselines",
+    "result": "passed",
+    "screenshot": "05-repeat.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Comparison filter finds a real dark-only regression without changing baseline history",
+    "result": "passed",
+    "screenshot": "06-regression.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "No-match filtering preserves all six real missing-page blocked outcomes",
+    "result": "passed",
+    "screenshot": "07-blocked.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]
