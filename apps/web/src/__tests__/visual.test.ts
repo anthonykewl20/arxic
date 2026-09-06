@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
@@ -9,6 +9,7 @@ import {
   vulnerableAuthApp,
 } from '../../../../packages/real-world-testkit/src';
 import { Workbench } from '../workbench';
+import { digest } from '../visual';
 
 const cleanups: Array<() => Promise<void>> = [];
 afterEach(async () => {
@@ -74,6 +75,55 @@ it('blocks unapproved capture, then detects a real frontend regression without r
   expect(result.captures?.[0]).toMatchObject({ status: 'changed', baselineRunId: first.id });
   expect(result.captures![0].changedPixels).toBeGreaterThan(100_000);
   expect(result.findings).toContainEqual({ path: '/', kind: 'horizontal-overflow', count: 1 });
+  const measured = result.captures![0] as typeof capture & {
+    assessmentFile: string;
+    assessmentSha256: string;
+  };
+  expect(measured.assessmentFile).toBe('checkpoint-1.assessment.json');
+  const artifact = await wb.artifact(third.id, measured.assessmentFile);
+  const report = JSON.parse(artifact.bytes.toString());
+  expect(report.assessment).toMatchObject({
+    screenshotSha256: measured.sha256,
+    verdict: 'fail',
+    coverage: { complete: false },
+  });
+  expect(report.assessment.checks).toContainEqual(
+    expect.objectContaining({
+      id: 'document-horizontal-overflow',
+      verdict: 'fail',
+      delta: 1008,
+    }),
+  );
+  expect(report.assessment.checks).toContainEqual(
+    expect.objectContaining({
+      id: 'contrast-painted-pairs',
+      verdict: 'unverified',
+    }),
+  );
+  expect(report.scene.nodes.length).toBeGreaterThan(0);
+  expect(digest(artifact.bytes)).toBe(measured.assessmentSha256);
+  const evidence = process.env.ARXIC_ORACLE_EVIDENCE_DIR;
+  if (evidence) {
+    for (const [label, runId] of [
+      ['baseline', first.id],
+      ['repeat', second.id],
+      ['overflow', third.id],
+    ]) {
+      const destination = join(evidence, label);
+      await mkdir(destination, { recursive: true });
+      for (const file of [
+        'checkpoint-1.png',
+        'checkpoint-1.png.privacy.json',
+        'checkpoint-1.assessment.json',
+        'timeline.json',
+        'timeline.sanitization.json',
+      ]) {
+        await writeFile(join(destination, file), (await wb.artifact(runId, file)).bytes);
+      }
+    }
+  }
+  await writeFile(join(state, 'runs', third.id, measured.assessmentFile), '{}');
+  await expect(wb.artifact(third.id, measured.assessmentFile)).rejects.toThrow('integrity');
   expect(wb.store.baseline(project.id, capture.specHash)?.run_id).toBe(first.id);
   const timeline = await readFile(join(state, 'runs', third.id, 'timeline.json'), 'utf8');
   expect(timeline).not.toContain('cookie');

@@ -289,3 +289,15 @@ the configured default catalog while retaining existing named-provider ordering.
 Execution pricing and entitlement policies are unchanged by metadata discovery.
 
 See [default-provider browser and live proof](../evidence/WEB-402-DEFAULT-CATALOG/summary.md).
+
+## 2026-09-06: measured visual evidence foundation
+
+The [visual-oracle contract](../visual-oracle.md) defines the owner-requested full
+auditor scope. New visual captures add a bounded numeric-only scene projection
+and hash-linked assessment artifact. Capture mechanics collect observations;
+the assessment action owns predicate classification independently of model
+output. The existing document-overflow check now uses this single assessment
+predicate. Unavailable detector families remain unverified and cannot establish
+a whole-audit pass. Engine truth states and frozen contracts are unchanged.
+The current screenshot-review model still emits separate hypotheses; full
+scene-bound model fusion and expanded capture matrices are future slices.

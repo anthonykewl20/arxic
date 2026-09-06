@@ -73,7 +73,8 @@ eligible analyzed files and 20,000 declarations. Git-ignored and configured
 source-policy exclusions are outside the manifest. Persona, flag value,
 runtime route/state/action outcome and viewport coverage remains unobserved.
 
-Stable visual captures require two consecutive identical PNG captures. Locale
+Stable visual captures require two consecutive identical PNG captures and matching
+bounded numeric layout observations immediately before/after the final capture. Locale
 `en-US`, timezone UTC, light color scheme, scale 1, reduced motion and browser
 version are controlled. Baselines bind the target, path, viewport, masks,
 platform, browser and capture policy. Keep the execution environment consistent;
@@ -427,3 +428,15 @@ prompt and output schema on stdin. Claude uses its native JSON-schema result
 control; Codex receives a private temporary output-schema file. Existing host
 wrappers keep text input unless explicitly configured. The final output still
 passes Arxic schema validation, including field-length limits.
+
+## Measured layout evidence
+
+New captures include `assessmentFile` and `assessmentSha256` in their run API
+record. Retrieve the JSON with the existing authenticated run-artifact endpoint.
+The assessment binds the screenshot hash to numeric viewport/document/node
+geometry and reports document-horizontal-overflow against the capture profile.
+A per-check pass does not pass the audit: unavailable contrast, alignment,
+clip/paint, a11y, state/matrix and vision families remain unverified. Existing
+AI reviews stay separate hypotheses. Old captures need a new run to acquire
+measurements. The [visual-oracle contract](visual-oracle.md) records the full
+requested capability scope, applicability corrections and remaining sequence.
