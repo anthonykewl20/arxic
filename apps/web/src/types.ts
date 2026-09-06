@@ -49,6 +49,8 @@ export type Capture = {
   diffFile?: string;
   videoFile?: string;
   authenticated?: boolean;
+  assessmentFile?: string;
+  assessmentSha256?: string;
 };
 export type RunResult = {
   review?: import('./visual-review').VisualReviewResult;

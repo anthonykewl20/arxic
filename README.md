@@ -17,6 +17,8 @@ See the [product specification](docs/web-product-spec.md) for the exact coverage
 boundary. Dashboard version labels use `v0.0.200`; canonical package versions are
 `0.0.200`.
 
+The [full visual-auditor contract](docs/visual-oracle.md) defines the requested discovery, state, geometry, typography, accessibility, heuristic and platform scope. Visual captures now retain numeric layout assessments with explicit unverified families; this is the evidence foundation, not complete visual-audit coverage.
+
 The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
 The dashboard uses React/shadcn for its navigation shell, overview, intent inventory, workflow selection, campaigns, run/capture review, model fields, schedules, administration and **Models & accounts** screen with provider-owned model discovery (including configured default HTTP connections), native subscription-account bridges and [provider connections and custom model IDs](docs/web-workbench.md#provider-connections-and-model-ids) for guided AI execution and inspected-image review. Review and campaign submissions stay pending across navigation; session invalidation clears unsent consent and selections.

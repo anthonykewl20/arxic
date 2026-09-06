@@ -52,3 +52,17 @@ See [provider setup](../../docs/web-workbench.md#provider-connections-and-model-
 [Subscription/catalog proof](../../docs/evidence/WEB-402-SUBSCRIPTIONS/summary.md)
 retains native account results, browser artifacts and failed probes. This does
 not establish the complete paid-provider or visual-defect matrix.
+
+## Layout assessment artifacts
+
+Each new viewport capture retains `checkpoint-N.assessment.json`, identified by
+`assessmentFile` and `assessmentSha256` in the run API. Fetch it through the
+authenticated `/api/runs/<run-id>/artifacts/<assessmentFile>` endpoint. The
+artifact contains a bounded numeric-only layout projection and per-check verdicts
+bound to the screenshot hash. Retrieval rejects altered assessment bytes.
+Document overflow is measured without AI; other detector families remain
+unverified. Before/after layout must match around the final screenshot as well
+as the existing consecutive-PNG stability check. This does not establish atomic
+scene capture or complete DOM/a11y coverage. See the
+[full oracle contract](../../docs/visual-oracle.md) and
+[reference-app proof](../../docs/evidence/WEB-402-ORACLE/summary.md).

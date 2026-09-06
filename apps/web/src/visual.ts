@@ -6,6 +6,7 @@ import sharp from 'sharp';
 import pixelmatch from 'pixelmatch';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import type { Capture, Project, Run, RunResult } from './types';
+import { collectVisualScene, assessVisualScene } from './visual-oracle';
 
 export { digest };
 
@@ -288,7 +289,6 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
           await page.locator('body').waitFor({ state: 'visible' });
           await page.evaluate(() => document.fonts.ready.then(() => undefined));
           const defects = await page.evaluate(() => ({
-            overflow: Number(document.documentElement.scrollWidth > window.innerWidth + 1),
             brokenImages: [...document.images].filter(
               (image) => image.complete && image.naturalWidth === 0 && image.getAttribute('src'),
             ).length,
@@ -305,7 +305,6 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
             ).length,
           }));
           for (const [kind, count] of [
-            ['horizontal-overflow', defects.overflow],
             ['broken-images', defects.brokenImages],
             ['unlabeled-inputs', defects.unlabeledInputs],
           ] as const)
@@ -313,12 +312,15 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
           let previous: Buffer | undefined;
           let bytes: Buffer = Buffer.alloc(0);
           let stable = false;
+          let scene = await collectVisualScene(page);
           for (let attempt = 0; attempt < 6; attempt++) {
+            const before = await collectVisualScene(page);
             bytes = await captureMaskedViewport(page, {
               automaticMasks: ['input,textarea,[contenteditable="true"]'],
               requiredMasks: project.masks,
             });
-            if (previous?.equals(bytes)) {
+            scene = await collectVisualScene(page);
+            if (previous?.equals(bytes) && JSON.stringify(before) === JSON.stringify(scene)) {
               stable = true;
               break;
             }
@@ -359,7 +361,28 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
             }),
             { mode: 0o600 },
           );
+          const assessmentFile = `${id}.assessment.json`;
+          const assessment = assessVisualScene(scene, {
+            screenshotSha256: digest(bytes),
+            stable,
+          });
+          if (
+            assessment.checks.some(
+              (check) => check.id === 'document-horizontal-overflow' && check.verdict === 'fail',
+            )
+          )
+            findings.push({ path, kind: 'horizontal-overflow', count: 1 });
+          const assessmentBytes = JSON.stringify({
+            profile: 'arxic-layout-evidence-v1',
+            checkpoint: id,
+            browserVersion: browser.version(),
+            scene,
+            assessment,
+          });
+          await writeFile(join(directory, assessmentFile), assessmentBytes, { mode: 0o600 });
           captures.push({
+            assessmentFile,
+            assessmentSha256: digest(assessmentBytes),
             id,
             path,
             viewport,

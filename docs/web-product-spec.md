@@ -19,6 +19,11 @@ assertions and deterministic replay decide functional outcomes. Visual review
 combines actual image comparison, observable layout/accessibility findings and
 AI interpretation grounded in the permitted screenshots.
 
+The 2026-09-06 [full visual-oracle contract](visual-oracle.md) extends this scope
+with the defect taxonomy, matrix, constrained model authority and measurement
+applicability rules. Its first delivered boundary is evidence-linked numeric
+layout capture; the broader detector/state/matrix requirements remain open.
+
 ## Core user journeys
 
 1. **Connect:** select a folder accessible to the Arxic host; identify repository,
