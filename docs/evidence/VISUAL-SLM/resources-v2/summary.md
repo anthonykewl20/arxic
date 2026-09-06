@@ -21,6 +21,20 @@ Containers: `python:3.12-slim` (local digest `sha256:78387bc3881b8273120a12ebe6c
 
 Bound enforcement proved live during probe construction: a first 2048×2048 pair was **rejected** by the evidence contract (`image-bound`: 4.19 M decoded pixels > the 2,097,152 ceiling) and a sharp-generated `pHYs` chunk was **rejected** by the screenshot-privacy PNG inspector — both sad paths fired against this probe's own inputs before the valid-at-ceiling run above.
 
+## Sustained sequential load — 1,000 jobs, and a real deployment finding
+
+The spec §13 resource proof asks for 1,000 sequential jobs. The first attempt **failed honestly** and the diagnosis is retained in full:
+
+| Arm | Configuration | Result |
+| --- | --- | --- |
+| [A](./sustained-load-a-pids64.json) | pids 64 | fails at job ~18–21 — `glib: Error creating thread` (sharp); zero OOM; 26/64 pids in use post-mortem |
+| A2 | pids 64, fresh container-local uid | identical failure — not the host-shared `nproc` limit |
+| [C](./sustained-load-c-pids64-bounded-threadpools.json) | pids 64, `UV_THREADPOOL_SIZE=2`, `VIPS_CONCURRENCY=1` | identical failure at job 21 — the `newosproc` **Go-runtime** message identifies esbuild (inside the tsx dev harness) as a thread consumer |
+| [B](./sustained-load-b-pids256.json) | pids 256 | fails at job 211 with **219/256 pids in use** — the cgroup had filled with zombies |
+| [D](./sustained-load-d-init-pids64.json) | **pids 64 + `--init` reaper** | **1,000/1,000 jobs complete: cold 1.06 s, p50 1.16 s, p95 1.22 s, peak 112.3 MiB, zero failures, zero OOM** |
+
+**Finding:** each process-per-job analysis run leaks ~one zombie (the orphaned native-kernel child reparents to the container's PID 1; Node as PID 1 never reaps adopted children). The failure point scales exactly with the pid budget (~1 job per pid). The fix is a deployment property, not code: **run the service under a reaping init** (`--init`/tini) — with one, the full 1,000-job sustained load fits in **64 pids and 256 MiB with flat memory**. Memory never leaked in any arm (peaks 103–112 MiB throughout). A production-packaged runtime (no tsx/esbuild per job) removes the dev-harness thread churn on top of that.
+
 ## Disk and transfer (design arithmetic, not observed months)
 
 Retention is unit-proven (`retention.test.ts`): oldest-first eviction under a byte cap, pinned evidence never deleted, `pinned-exceeds-cap` surfaces for backpressure — the 10 GiB disk budget (≤3 GiB spool, ≥1.5 GiB free reserve) is protected by that service once wired to a deployed spool. Transfer at the 8 MiB image-pair bound: 400 GiB/month (the provisional service cap) ≈ 51,200 pairs before metadata — capacity arithmetic per spec §13, **not** an observed month.
@@ -38,4 +52,4 @@ python3 scripts/visual-slm/gen_timing_dataset.py timing.json --rows 10000 --seed
 
 ## Limitations (explicit)
 
-No browser/server/OS in any measurement; no sustained multi-hour load, no cold-start-vs-warm split for the analysis path at this head, no real-VPS run (none authorized), no OOM-floor sweep, and the queue probe uses a no-op executor (mechanics only). The analysis path peaked at 149.6 MiB at maximum input — inside the 256 MiB service budget but leaving the whole-512-MiB-VM question (profile A/B) open exactly as before. Warm-vs-cold, 1,000-job sustained load, and spool free-reserve admission coupling remain open items for the next resource slice.
+No browser/server/OS in any measurement; sustained load is proven for 1,000 sequential jobs under a reaping init (above) but not multi-hour wall-clock; no real-VPS run (none authorized); no OOM-floor sweep (memory ceiling untested — only the 256 MiB budget verified); and the queue probe uses a no-op executor (mechanics only). The analysis path peaked at 149.6 MiB at maximum input — inside the 256 MiB service budget but leaving the whole-512-MiB-VM question (profile A/B) open exactly as before. Warm-vs-cold, 1,000-job sustained load, and spool free-reserve admission coupling remain open items for the next resource slice.

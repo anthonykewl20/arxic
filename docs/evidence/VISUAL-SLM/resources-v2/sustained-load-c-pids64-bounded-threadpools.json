@@ -1,0 +1,24 @@
+{
+  "scope": "PNG-evidence-to-native-shadow-report plus Node driver; no browser/server/OS",
+  "jobs": 21,
+  "requestedJobs": 1000,
+  "processPerJob": true,
+  "case": "koel-360-clip-full.json",
+  "failure": {
+    "jobsCompleted": 21,
+    "childStatus": 1,
+    "childSignal": null,
+    "stderr": [
+      "runtime: failed to create new OS thread (have 15 already; errno=11)",
+      "runtime: may need to increase max user processes (ulimit -u)",
+      "fatal error: newosproc"
+    ],
+    "pidsCurrent": "28",
+    "pidsMax": "64"
+  },
+  "memoryPeakBytes": 103870464,
+  "coldMs": 1148.8,
+  "p50Ms": 1266.6,
+  "p95Ms": 1414.6,
+  "note": "UV_THREADPOOL_SIZE=2 VIPS_CONCURRENCY=1; the Go-runtime message identifies esbuild inside the tsx dev harness as a thread consumer; recorded verbatim from the probe output at diagnosis time"
+}
