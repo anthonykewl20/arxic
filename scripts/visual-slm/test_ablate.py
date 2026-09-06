@@ -48,6 +48,14 @@ class AblationBoundary(unittest.TestCase):
         out = ablate.ablate_rows([row], 'clip-only')[0]
         self.assertEqual((out['id'], out['group'], out['split'], out['labels']), (row['id'], row['group'], row['split'], row['labels']))
 
+    def test_clipera_drops_hit_and_overflow_lanes(self):
+        source = sample_row()['features']
+        out = ablate.ablate_rows([sample_row()], 'clip-era')[0]['features']
+        for i in list(range(10, 16)) + list(range(26, 32)):
+            self.assertEqual(out[i], 0.0)
+        for i in list(range(0, 10)) + list(range(16, 26)) + list(range(32, 96)):
+            self.assertEqual(out[i], source[i])
+
     def test_masked_rows_still_satisfy_trainer_validation(self):
         for variant in ablate.VARIANTS:
             rows = [dict(sample_row(), id=variant), dict(sample_row(), id=variant + '-two', labels=[0, None, None, None, None, None])]

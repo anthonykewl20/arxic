@@ -25,6 +25,10 @@ VARIANTS = {
     'image': set(range(32, 96)),
     'clip-only': {9, 25},
     'current-geometry': set(range(4, 16)) | set(range(20, 32)),
+    # The feature set the clip-only corpus had before scene-measurement v2:
+    # box + clip lanes and the image lane, with hit/overflow missing (value 0
+    # and validity 0, the documented missingness encoding).
+    'clip-era': set(range(0, 10)) | set(range(16, 26)) | set(range(32, 96)),
 }
 
 

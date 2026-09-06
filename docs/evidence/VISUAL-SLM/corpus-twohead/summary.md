@@ -19,6 +19,12 @@ Date: 2026-09-06/07. Worktree `spike/visual-slm-423` @ `a28b226`. Predecessor: [
 
 The overflow head is the first learned signal on a second defect class, trained on real cross-family evidence and calibrated on a family it never saw in training. As always for this corpus: the deterministic scrollport predicate also catches all four (the measurement *is* the signal), so incremental value over the deterministic checks remains undemonstrated — the learned path's promise is heads and scenarios where deterministic predicates cannot be expressed, which is exactly what the remaining three heads require richer scene evidence for.
 
+## Ablation attributes the clipping regression
+
+`ablate.py` gained a `clip-era` variant (the pre-v2 feature set: box + clip lanes + image lane, hit/overflow lanes masked with value 0 and validity 0 — the documented missingness encoding). On the **same two-head corpus** the clip-era set scores **clipping 19/20 recall (0.95), 0 FP at threshold 0.6153** — recovering most of what the full lanes cost — while the overflow head collapses to 0/4 without its lanes (sanity: the head genuinely uses them). Retained: [clip-era-ablation-training-report.json](./clip-era-ablation-training-report.json).
+
+**Interpretation (hypothesis, not a decision):** at this data scale one shared 96-feature vector serves both heads worse than per-head feature subsets would; per-head masking is exactly what the ablation tool now supports, and a per-head-feature experiment is justified only with more families/data. The shipped configuration keeps the full feature set (no gate weakened); the trade-off is disclosed rather than tuned away.
+
 ## Reproduce
 
 ```bash
