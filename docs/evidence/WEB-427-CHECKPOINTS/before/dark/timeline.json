@@ -1,0 +1,38 @@
+[
+  {
+    "action": "Open real authenticated verifier checkpoints from test runs",
+    "result": "passed",
+    "screenshot": "01-checkpoints.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Changed image bytes refused; gallery explains unavailable evidence",
+    "result": "passed",
+    "screenshot": "02-changed-evidence.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Retry restores hash-checked image; mobile gallery has no horizontal overflow",
+    "result": "passed",
+    "screenshot": "03-mobile-checkpoints.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Saved semantic capture settings remain editable with keyboard navigation",
+    "result": "passed",
+    "screenshot": "04-capture-settings.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

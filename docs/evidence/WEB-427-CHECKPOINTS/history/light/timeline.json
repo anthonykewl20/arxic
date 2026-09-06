@@ -1,0 +1,20 @@
+[
+  {
+    "action": "Failed history request shows error instead of stale results",
+    "result": "passed",
+    "screenshot": "13-run-history-unavailable.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Approved baseline compared against fresh real Chromium capture with zero changed pixels",
+    "result": "passed",
+    "screenshot": "04-visual-comparison.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

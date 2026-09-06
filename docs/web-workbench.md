@@ -511,3 +511,7 @@ These images show states reached during the actual workflow, including authentic
 states when the verifier reached them. They are not visual baselines, a complete
 state inventory or an automatic UI/UX pass. Broader browser/locale/role/state matrices
 and human release inspection remain separate requirements.
+
+Run-history failures remain visible even when background polling supersedes a
+manual search. **Retry run history** reloads the selected filters after recovery;
+stale or signed-out responses cannot overwrite the current history result.

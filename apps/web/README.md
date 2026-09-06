@@ -77,3 +77,7 @@ Both image and provenance reads reject changed bytes. Missing/unvalidated eviden
 is explicitly unavailable. Workflow images are separate from visual baselines and
 do not imply complete state coverage or a full UI audit. See the
 [workflow checkpoint guide](../../docs/web-workbench.md#workflow-checkpoints).
+
+Run-history errors are handled by the latest refresh, including background polls.
+A poll that supersedes a manual search cannot leave the loading indicator stuck;
+the history panel exposes Retry and hides stale results until recovery.
