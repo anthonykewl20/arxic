@@ -320,3 +320,19 @@ A real selected-reset run exposed premature replay completion: pathname and head
 Generated replays now use the same bounded network/render settling service before assertions, screenshots and receipts. The service's constant package-owned source also keeps runtime bytes stable across source execution and bundling. It is emitted in the existing transition runtime, preserving independent source/hash verification and compile-policy boundaries. No model decides completion, no locator gate is widened, and engine truth contracts are unchanged.
 
 The regression preserves the original minimum-three-email assertion and additionally checks each accepted submission's inbox count (1, 2, 3) against real Next.js and isolated Mailpit. This establishes the delayed-request failure mechanism; the original historical request timing was not retained. Full #402 production scope remains separate.
+
+### 2026-09-06 — Explicit workflow checkpoint captures (refs #427)
+
+The app-local CLI/worker policy now accepts an optional `checkpointCapture`
+declaration using the existing screenshot privacy contract. CLI and worker share
+validation/policy construction; neither invents approval metadata from model output.
+Guided dashboard settings require operator capture consent and carry the declaration
+into the execution snapshot. File-config execution applies the same consent gate.
+
+A separate `workflowCaptures` result exposes only verifier-attested screenshots from
+a successful promoted run. Export revalidates the complete artifact set and bound
+source, confines reads to that run's engine directory, and copies image/provenance
+bytes under an explicit original-name mapping. Requests reject altered or nonregular
+files. Export failures remain explicit evidence gaps while retaining the deterministic
+engine verdict. This gallery has no baseline approval action and makes no complete
+visual-audit claim. Frozen workflow truth contracts remain unchanged.

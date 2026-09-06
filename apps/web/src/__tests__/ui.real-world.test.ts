@@ -54,10 +54,21 @@ it.each(['light', 'dark'] as const)(
         ? join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme)
         : undefined,
     );
+    const historyProof = dashboardProof(
+      page,
+      process.env.ARXIC_HISTORY_EVIDENCE_DIR
+        ? join(process.env.ARXIC_HISTORY_EVIDENCE_DIR, theme)
+        : undefined,
+    );
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.name));
     const capture = async (name: string, action: string) => {
-      const audit = await auditProof.audit(name, action);
+      const proof =
+        process.env.ARXIC_HISTORY_EVIDENCE_DIR &&
+        ['13-run-history-unavailable', '04-visual-comparison'].includes(name)
+          ? historyProof
+          : auditProof;
+      const audit = await proof.audit(name, action);
       expect(audit.details).toEqual([]);
       expect(audit.overflow).toBe(0);
     };
@@ -220,13 +231,31 @@ it.each(['light', 'dark'] as const)(
       await page.route('**/api/runs?**', (route) =>
         route.fulfill({ status: 503, json: { error: 'History unavailable' } }),
       );
+      // Reproduce the CI race: a manual search's slow state response is
+      // superseded by polling, whose history request then fails.
+      await page.waitForResponse((response) => new URL(response.url()).pathname === '/api/state');
       await page.getByLabel('Search runs').fill('no-matching-project');
+      let releaseSearch!: () => void;
+      const searchReleased = new Promise<void>((done) => {
+        releaseSearch = done;
+      });
+      let holdSearch = true;
+      await page.route('**/api/state', async (route) => {
+        const response = await route.fetch();
+        if (holdSearch) {
+          holdSearch = false;
+          await searchReleased;
+        } else releaseSearch();
+        await route.fulfill({ response });
+      });
       await page.getByRole('button', { name: 'Search runs', exact: true }).click();
       await page.getByRole('button', { name: 'Retry run history' }).waitFor();
       await capture(
         '13-run-history-unavailable',
         'Failed history request shows error instead of stale results',
       );
+      releaseSearch();
+      await page.unroute('**/api/state');
       await page.unroute('**/api/runs?**');
       await page.getByRole('button', { name: 'Retry run history' }).click();
       await page.getByRole('heading', { name: 'No matching runs' }).waitFor();
@@ -398,6 +427,7 @@ it.each(['light', 'dark'] as const)(
       expect(errors).toEqual([]);
     } finally {
       await auditProof.finish();
+      await historyProof.finish();
       vi.unstubAllEnvs();
       await browser.close();
       await app.close();

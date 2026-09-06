@@ -1,9 +1,14 @@
+import {
+  validateCheckpointCapture,
+  type CheckpointCapture,
+} from '../../worker/src/checkpoint-capture';
 import type { ArxicConfig } from '../../worker/src/run-spec';
 import { validateConfig } from '../../cli/src/config/validate';
 import { HttpError } from './errors';
 import { modelEnvironment, validateConnection } from './model-connections';
 
 export type ExecutionSettings = {
+  checkpointCapture?: CheckpointCapture;
   modelConnection?: string;
   model: string;
   modelSecretRef: string;
@@ -99,6 +104,7 @@ export function validateExecution(
     'maxDepth',
     'maxRuntimeMinutes',
     'persona',
+    'checkpointCapture',
   ]);
   const persona = object(input.persona ?? {}, [
     'mode',
@@ -141,7 +147,16 @@ export function validateExecution(
       400,
       'Feature flags must be named boolean declarations matching the deployment',
     );
+  let checkpointCapture: CheckpointCapture | undefined;
+  if ('checkpointCapture' in input) {
+    try {
+      checkpointCapture = validateCheckpointCapture(input.checkpointCapture);
+    } catch {
+      throw new HttpError(400, 'Choose a valid semantic workflow capture region and masks');
+    }
+  }
   const settings: ExecutionSettings = {
+    ...(checkpointCapture ? { checkpointCapture } : {}),
     modelConnection: validateConnection(input.modelConnection),
     model: string(input.model),
     modelSecretRef: secretRef(input.modelSecretRef),
@@ -201,6 +216,7 @@ export function executionConfig(
       externalNetwork: 'deny',
       requiredVerificationRuns: 2,
       screenshots: 'transition-checkpoints',
+      ...(settings.checkpointCapture ? { checkpointCapture: settings.checkpointCapture } : {}),
       trace: 'retain',
       humanApproval: ['destructive', 'external-side-effect'],
     },

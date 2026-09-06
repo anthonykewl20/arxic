@@ -1,3 +1,4 @@
+import { WorkflowCheckpoints } from './workflow-checkpoints';
 import { AssessmentPanel } from './assessment-panel';
 import type { RunHistoryPage } from '../run-history';
 import { Button, Input } from './components';
@@ -227,6 +228,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
           </details>
         )}
       </div>
+      <WorkflowCheckpoints run={run} />
       {(result?.captures ?? []).map((capture) => {
         const approved = state.baselines.some(
           (item) => item.run_id === run.id && item.capture_id === capture.id,

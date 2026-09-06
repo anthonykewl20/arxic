@@ -25,3 +25,9 @@ manually, run `docker buildx imagetools inspect node:22-slim`, confirm its
 top-level `Digest` is the multi-architecture index digest, update the
 Dockerfile, then run `bash apps/worker/build-and-verify.sh` to rebuild and
 prove the root, non-root, and no-egress toolchains.
+
+Workflow checkpoint capture uses the shared `checkpoint-capture` policy builder
+with the local CLI. An optional `config.policy.checkpointCapture` declaration is
+validated at the worker boundary and forwarded into the verifier. Malformed
+semantic regions/masks are refused. Without it, the existing `main` mask applies;
+see the [CLI declaration](../cli/README.md#workflow-checkpoint-privacy).

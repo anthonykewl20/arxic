@@ -20,3 +20,8 @@ surfaces, compact navigation, consistent spacing and restrained color inspired b
 [Linear's design reset](https://linear.app/now/a-design-reset).
 
 The measurement inspector shows solid-paint contrast ratios and unverified applicability, with search/verdict filters and viewport-scaled region overlays on loaded, masked capture images. Image-load failures have explicit retry; the full-size artifact remains available. Display rounding never affects the server verdict.
+
+`checkpoint-settings.tsx` edits guided semantic capture declarations without raw
+selectors or script. `workflow-checkpoints.tsx` renders authenticated workflow
+checkpoint copies with explicit loading/error/retry states, full-size links and
+privacy provenance. These images have no visual baseline approval control.

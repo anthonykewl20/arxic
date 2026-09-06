@@ -99,3 +99,22 @@ describe('worker security policy', () => {
     ).toEqual([]);
   });
 });
+
+it('refuses malformed checkpoint capture at the worker boundary', () => {
+  const value = spec({});
+  const result = validateWorkerSecurity({
+    ...value,
+    config: {
+      ...value.config,
+      policy: {
+        ...value.config.policy,
+        checkpointCapture: {
+          mode: 'approved-region',
+          region: { kind: 'css', selector: 'body' },
+          masks: [],
+        },
+      },
+    },
+  } as unknown as RunSpec);
+  expect(result.ok).toBe(false);
+});

@@ -210,6 +210,8 @@ export async function validateProject(
   }
   const cron = text('cron', '', 100);
   const execution = validateExecution(input.execution, folder, origin);
+  if (execution?.checkpointCapture && input.captureConsent !== true)
+    throw new HttpError(400, 'Workflow screenshots require capture consent');
   if (execution && configPath)
     throw new HttpError(400, 'Choose guided execution or a configuration file, not both');
   return {

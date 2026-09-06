@@ -39,3 +39,25 @@ The web workbench's native account profiles reuse this executor's model adapter.
 `ARXIC_MODEL_HOST_CLI_JSON_INPUT=1` enables a prompt/schema stdin envelope for native
 bridges, while ordinary wrappers retain text input. Named web connections resolve
 these settings per job. See [subscription and provider setup](../../docs/web-workbench.md#subscription-accounts-and-provider-catalogs).
+
+### Workflow checkpoint privacy
+
+`policy.checkpointCapture` optionally selects an explicit screenshot capture declaration:
+
+```yaml
+policy:
+  checkpointCapture:
+    mode: approved-region
+    region: { kind: role, role: heading, name: Reference Auth App, exact: true }
+    masks: []
+```
+
+This is an addition to the existing policy fields. The same privacy validator and
+runtime apply to local and worker execution. Regions must use an exact accessible
+role/name or field label and resolve uniquely at each checkpoint; CSS selectors
+and arbitrary script are refused. Use `masked-page` with `fullPage: true` and a
+nonempty semantic `masks` list to capture a page with required redactions. Missing or ambiguous regions fail the capture. Missing mask anchors use the
+existing broader landmark-mask fallback, recorded by the privacy runtime; if no
+bounded fallback exists, capture fails. With no declaration the conservative full-`main`
+mask remains. Choose approved test content; this setting is not a claim that
+arbitrary pixels are secret-free. Dashboard execution also requires capture consent.

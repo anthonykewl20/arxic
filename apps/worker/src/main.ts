@@ -1,3 +1,4 @@
+import { checkpointPrivacyPolicy } from './checkpoint-capture';
 import { execFileSync } from 'node:child_process';
 import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
@@ -16,10 +17,6 @@ import {
   type OrchestratorOptions,
   type RunState,
 } from '@arxic/orchestrator-langgraph';
-import {
-  serializeScreenshotPrivacyPolicy,
-  type ScreenshotPrivacyPolicy,
-} from '@arxic/playwright-screenshot-privacy';
 import {
   PlaywrightVerifier,
   resetAndSeedFixtures,
@@ -168,7 +165,11 @@ function pipelineOptions(
           : {}),
         artifactsDir: join(PIPELINE_WORK_ROOT, 'verification-artifacts'),
         ...(persona ? { persona } : {}),
-        screenshotPrivacyPolicy: cliScreenshotPolicy(spec.runId, now()),
+        screenshotPrivacyPolicy: checkpointPrivacyPolicy(
+          spec.config.policy.checkpointCapture,
+          spec.runId,
+          now(),
+        ),
         now,
       }).verify(compilation.stagedBundle, compilation.stagedBundle.workflow.verification);
       const artifacts = await transportArtifacts(verification.artifacts, spec);
@@ -364,23 +365,6 @@ async function transportArtifacts<T extends { path: string }>(
       return { ...artifact, path };
     }),
   );
-}
-
-function cliScreenshotPolicy(runId: string, recordedAt: string): ScreenshotPrivacyPolicy {
-  return serializeScreenshotPrivacyPolicy({
-    schemaVersion: 1,
-    id: `${runId}-cli-main-mask`,
-    authority: {
-      kind: 'repository-policy',
-      reference: 'arxic.yaml:policy.screenshots',
-      recordedAt,
-    },
-    capture: {
-      mode: 'masked-page',
-      fullPage: true,
-      masks: [{ kind: 'role', role: 'main', exact: true }],
-    },
-  }).policy;
 }
 
 function resolveCommit(repository: string, revision: string): string {

@@ -479,3 +479,39 @@ Each capture exposes **Measured checks and coverage**, the numeric report and it
 The dashboard audit uses real Chromium, axe checks, viewport overflow measurements, keyboard journeys and masked screenshots across seven sections, four widths and two themes. It supplements populated discovery/capture/baseline/schedule/session journeys. Automated accessibility checks do not certify every heuristic, assistive technology or browser. See the [dashboard UX evidence](evidence/WEB-402-DASHBOARD-UX/summary.md) for exact results and remaining production gates.
 
 Measured checks include scoped solid-paint text contrast. Each supported check shows its ratio/threshold and can locate the measured region in the masked capture. Gradients, images, ambiguous compositing, privacy masks and unavailable paint remain unverified; see the [profile and limitations](visual-oracle.md#solid-text-contrast-profile).
+
+## Workflow checkpoints
+
+In **Project settings → Configure AI execution in this dashboard**, enable
+**Show workflow screenshots in run results**. Choose **Only an approved region**,
+then its accessible role and exact name, or its field label. The region must be
+unique and present at every recorded checkpoint; an absent or ambiguous region
+blocks capture. Missing mask anchors use the existing broader landmark masking
+fallback; capture fails when no bounded fallback is available. Add privacy masks for sensitive content and authorize screenshot
+capture at the bottom of the settings form. For a larger view, **Page with required
+privacy masks** requires at least one mask. File-based execution supports the same
+`policy.checkpointCapture` declaration and also requires project capture consent.
+
+After a successful verifier run, open **Test runs → View run → Workflow
+checkpoints**. Each checkpoint shows its capture dimensions, time, privacy mode,
+full-size image and original provenance. The gallery validates the complete
+promoted screenshot artifact set, including bound runnable source, before copying
+images. Every image/provenance request checks its recorded hash using a bounded,
+regular-file read that rejects symlinks. Altered or unavailable files produce an
+explicit error; **Retry screenshot** rechecks the file. A failed export leaves an
+explicit evidence gap and does not rewrite the engine's workflow verdict.
+
+Gallery filenames are stable `checkpoint-NNN.png` copies. The unchanged provenance
+refers to the displayed **Original evidence file**; image bytes and hashes remain
+identical. The gallery does not export runnable source or raw traces. Only
+explicitly configured captures are exported; absent capture declarations retain
+the existing conservative `main` mask inside engine evidence.
+
+These images show states reached during the actual workflow, including authenticated
+states when the verifier reached them. They are not visual baselines, a complete
+state inventory or an automatic UI/UX pass. Broader browser/locale/role/state matrices
+and human release inspection remain separate requirements.
+
+Run-history failures remain visible even when background polling supersedes a
+manual search. **Retry run history** reloads the selected filters after recovery;
+stale or signed-out responses cannot overwrite the current history result.

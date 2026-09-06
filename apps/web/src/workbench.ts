@@ -1,3 +1,4 @@
+import { readWorkflowArtifact } from './workflow-captures';
 import { hostname } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, realpath, rm, unlink, writeFile } from 'node:fs/promises';
@@ -496,6 +497,19 @@ export class Workbench {
     if (run?.result?.captures?.length) {
       files.add('timeline.json');
       files.add('timeline.sanitization.json');
+    }
+    const checkpoint = run?.result?.workflowCaptures?.find(
+      (item) => item.file === filename || item.privacyFile === filename,
+    );
+    if (checkpoint) {
+      const bytes = await readWorkflowArtifact(
+        join(this.directory, 'runs', runId, filename),
+        checkpoint.file === filename ? checkpoint.sha256 : checkpoint.privacySha256,
+      );
+      return {
+        bytes,
+        type: checkpoint.file === filename ? 'image/png' : 'application/json; charset=utf-8',
+      };
     }
     if (!files.has(filename)) throw new HttpError(404, 'Artifact not found');
     const bytes = await readFile(join(this.directory, 'runs', runId, filename));
