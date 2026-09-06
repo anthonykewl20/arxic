@@ -445,6 +445,7 @@ export class Workbench {
         capture.file,
         `${capture.file}.privacy.json`,
         ...(capture.diffFile ? [capture.diffFile] : []),
+        ...(capture.assessmentFile ? [capture.assessmentFile] : []),
       ]),
     );
     if (run?.result?.captures?.length) {
@@ -452,8 +453,14 @@ export class Workbench {
       files.add('timeline.sanitization.json');
     }
     if (!files.has(filename)) throw new HttpError(404, 'Artifact not found');
+    const bytes = await readFile(join(this.directory, 'runs', runId, filename));
+    const assessment = run?.result?.captures?.find(
+      (capture) => capture.assessmentFile === filename,
+    );
+    if (assessment && digest(bytes) !== assessment.assessmentSha256)
+      throw new HttpError(409, 'Assessment integrity check failed');
     return {
-      bytes: await readFile(join(this.directory, 'runs', runId, filename)),
+      bytes,
       type: filename.endsWith('.png') ? 'image/png' : 'application/json; charset=utf-8',
     };
   }

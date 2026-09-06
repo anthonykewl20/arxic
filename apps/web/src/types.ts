@@ -30,6 +30,8 @@ export type Capture = {
   baselineRunId?: string;
   baselineFile?: string;
   diffFile?: string;
+  assessmentFile?: string;
+  assessmentSha256?: string;
 };
 export type RunResult = {
   review?: import('./visual-review').VisualReviewResult;
