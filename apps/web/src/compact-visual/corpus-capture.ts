@@ -22,6 +22,7 @@ import {
   VARIANT_REGISTRY,
   type FrozenPlan,
 } from './corpus';
+import { toTrainingLabels, validateVisualLabel, type VisualLabel } from './labels';
 import { maskBoxes, measure, save } from './workflow';
 import type { Box, Scene, VisualCase } from './evidence';
 
@@ -565,15 +566,38 @@ export async function trainCorpusV2(root: string, output: string, manifest: Corp
         overflowCheck.verdict !== (entry.overflowLabel ? 'fail' : 'pass')
       )
         throw new Error('label-evidence-conflict');
+      // Every corpus label flows through the VisualLabelV1 contract: the four
+      // states keep their meaning, the origin is the measured oracle, and only
+      // an adjudicated record can produce trainer labels.
+      const labelRecord = validateVisualLabel({
+        schemaVersion: 'arxic-visual-label-v1',
+        caseId: extracted.caseId,
+        regionId: region.id,
+        evidenceSha256: extracted.manifestSha256,
+        splitGroup: extracted.group,
+        labels: [
+          entry.label ? 'present' : 'absent',
+          'not_applicable',
+          'not_applicable',
+          entry.overflowLabel ? 'present' : 'absent',
+          'not_applicable',
+          'not_applicable',
+        ],
+        labelOrigin: 'deterministic_predicate',
+        adjudication: 'adjudicated',
+        criterion: region.criterion,
+        reviewer: null,
+      });
       rows.push({
         id: `${extracted.caseId}-${region.id}`,
         group: extracted.group,
         split: entry.split,
         features: region.values,
-        labels: [entry.label, null, null, entry.overflowLabel, null, null],
+        labels: toTrainingLabels(labelRecord),
       });
       evidence.push({
         id: `${extracted.caseId}-${region.id}`,
+        label: labelRecord satisfies VisualLabel,
         manifest: entry.manifest,
         manifestSha256: extracted.manifestSha256,
         family: entry.family,

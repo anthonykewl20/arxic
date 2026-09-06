@@ -2,6 +2,11 @@
 
 Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked; analysis-envelope resource qualification green with explicit scope; gated activation lifecycle proven on real trained artifacts)
 
+## Increment 10b — 2026-09-06/07: VisualLabelV1 provenance contract (spec §9/§14, refs #423)
+
+- `labels.ts` (+ red-first tests): the four-state label vocabulary (present/absent/unknown/not_applicable), separated origins (human_review/deterministic_predicate/teacher_proposal/controlled_regression), adjudication state, reviewer binding for human origins — and the safety property that **only adjudicated records map onto trainer labels** (`label-not-adjudicated`), so a teacher proposal can never silently become training data; teacher_proposal records are structurally pending.
+- The corpus training path now emits contract-valid label records into dataset-provenance and derives every trainer row through `toTrainingLabels`; the real-world CI test validates each emitted record and its mapping. Label origin for this corpus is `deterministic_predicate` (the measured oracle decides), with the mutation class still recorded separately.
+
 ## Increment 10 — 2026-09-06/07: production-packaged runtime probe (refs #423)
 
 - `review_bundle_entry.mts` + `analysis_probe_bundled.mjs` (+ `max_input_probe --prepare-only`): the review path bundled with esbuild (plain node, sharp external) and measured in the pinned containers — p95 408 ms / 67.3 MiB on the koel case and 584 ms / 97.5 MiB at maximum input, versus 1.41 s / 105 MiB and 1.46 s / 149.6 MiB through the tsx dev harness; OOM floor at maximum input ≤ 24 MiB (vs the 144 MiB harness floor). The 256 MiB service budget holds with ~2.6× margin at maximum input for the packaged runtime. Evidence: resources-v2/bundled-runtime.json + summary section.

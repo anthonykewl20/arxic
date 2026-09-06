@@ -75,6 +75,26 @@ it('captures a reduced multi-family corpus with a frozen allocation and trains w
           row.features.length === 96 && row.labels.length === 6,
       ),
     ).toBe(true);
+
+    // Every emitted label is a contract-valid VisualLabelV1 record whose
+    // adjudicated mapping matches the trainer row it produced.
+    const { validateVisualLabel, toTrainingLabels } = await import('./labels');
+    const provenance = JSON.parse(
+      await readFile(join(directory, 'dataset-provenance.json'), 'utf8'),
+    );
+    const labelById = new Map(
+      provenance.evidence.map((entry: { id: string; label: unknown }) => [
+        entry.id,
+        validateVisualLabel(entry.label),
+      ]),
+    );
+    expect(labelById.size).toBe(report.rows);
+    for (const row of dataset) {
+      const record = labelById.get(row.id)!;
+      expect(toTrainingLabels(record)).toEqual(row.labels);
+      expect(record.labelOrigin).toBe('deterministic_predicate');
+      expect(record.adjudication).toBe('adjudicated');
+    }
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
