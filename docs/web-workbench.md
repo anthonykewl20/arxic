@@ -406,7 +406,7 @@ The authenticated retention API is `GET /api/retention`, `POST /api/retention`
 
 Install the same checkout and dependencies on a dedicated host under a service
 account, with project folders mounted and readable there. On Linux, install
-Chromium system dependencies with the documented Playwright setup for your OS.
+system dependencies for every selected browser with the documented Playwright setup for your OS.
 Use a service manager to keep the installed `arxic web` command running (or `pnpm web` for a source checkout) and provide:
 
 | Variable                  | Purpose                                                            |

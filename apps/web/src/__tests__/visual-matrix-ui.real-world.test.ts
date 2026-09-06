@@ -60,6 +60,17 @@ it.each(['light', 'dark'] as const)(
         .toContain('Choose at least one browser and one color scheme');
       for (const label of ['Chromium', 'Firefox', 'WebKit', 'Dark'])
         await page.getByLabel(label, { exact: true }).check();
+      for (const label of ['Chromium', 'Firefox', 'WebKit', 'Light', 'Dark']) {
+        const target = await page.getByLabel(label, { exact: true }).locator('..').boundingBox();
+        expect(target?.height).toBeGreaterThanOrEqual(44);
+      }
+      await expect.poll(() => page.locator('#project-error').textContent()).toBe('');
+      const chromiumLabel = page.getByLabel('Chromium', { exact: true }).locator('..');
+      const hitBox = (await chromiumLabel.boundingBox())!;
+      await chromiumLabel.click({ position: { x: hitBox.width - 3, y: hitBox.height - 3 } });
+      expect(await page.getByLabel('Chromium', { exact: true }).isChecked()).toBe(false);
+      await page.getByLabel('Chromium', { exact: true }).check();
+
       await page.getByLabel('Firefox', { exact: true }).focus();
       await page.keyboard.press('Space');
       expect(await page.getByLabel('Firefox', { exact: true }).isChecked()).toBe(false);
@@ -96,6 +107,9 @@ it.each(['light', 'dark'] as const)(
         'Six actual browser/theme captures report independent environments and outcomes',
       );
       await page.setViewportSize({ width: 390, height: 1000 });
+      await page
+        .getByRole('region', { name: 'Visual environments', exact: true })
+        .scrollIntoViewIfNeeded();
       await audit(
         '03-mobile-results',
         'Environment outcomes remain readable on a narrow dashboard',

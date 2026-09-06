@@ -536,7 +536,16 @@ function SettingsStep({
             </small>
           </Label>
         </div>
-        <fieldset className="form-stack">
+        <fieldset
+          className="form-stack"
+          onChange={() => {
+            if (error === 'Choose at least one browser and one color scheme' && form.current) {
+              const values = new FormData(form.current);
+              if (values.getAll('browsers').length && values.getAll('colorSchemes').length)
+                setError('');
+            }
+          }}
+        >
           <legend>Capture environments</legend>
           <input type="hidden" name="visualMatrixConfigured" value="true" />
           <p className="muted">
@@ -550,6 +559,7 @@ function SettingsStep({
               {(['chromium', 'firefox', 'webkit'] as const).map((browser) => (
                 <Checkbox
                   key={browser}
+                  className="min-h-11 items-center px-2"
                   name="browsers"
                   value={browser}
                   label={{ chromium: 'Chromium', firefox: 'Firefox', webkit: 'WebKit' }[browser]}
@@ -564,6 +574,7 @@ function SettingsStep({
               {(['light', 'dark'] as const).map((scheme) => (
                 <Checkbox
                   key={scheme}
+                  className="min-h-11 items-center px-2"
                   name="colorSchemes"
                   value={scheme}
                   label={scheme === 'light' ? 'Light' : 'Dark'}
