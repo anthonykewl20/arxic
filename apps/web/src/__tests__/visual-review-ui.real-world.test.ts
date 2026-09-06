@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it, vi } from 'vitest';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import {
@@ -12,7 +12,7 @@ import {
   vulnerableAuthApp,
   stopApp,
 } from '../../../../packages/real-world-testkit/src';
-import { startWorkbench } from '../server';
+import { startWorkbench } from './workbench-runtime';
 
 it('lets an administrator inspect pixels, request a bounded AI review and inspect hypotheses on mobile', async () => {
   const root = resolve(import.meta.dirname, '../../../..');
@@ -104,9 +104,11 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     adminToken: 'test-administrator-token-32-characters',
     port: 0,
   });
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchDashboardBrowser({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const evidence = process.env.ARXIC_REVIEW_EVIDENCE_DIR;
+  const browserIdentity = { name: browser.browserType().name(), version: browser.version() };
+  const dirty = !!execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], {
     cwd: root,
     encoding: 'utf8',
@@ -126,6 +128,8 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
       JSON.stringify(
         {
           sourceCommit,
+          browser: browserIdentity,
+          dirty,
           sha256: createHash('sha256').update(bytes).digest('hex'),
           policy: 'anonymous reference-app/dashboard test data; password inputs masked',
           rawTraceRetained: false,
@@ -258,13 +262,13 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
       '02-grounded-hypothesis',
       'Proposed region overlays the exact retained capture with criterion and separate independent check',
     );
-    await page.setViewportSize({ width: 390, height: 844 });
+    await resizeDashboard(page, { width: 390, height: 844 });
     await page.locator('.visual-review-result').scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(
       true,
     );
     await proof('03-mobile-review', 'Review image and findings remain within the mobile viewport');
-    await page.setViewportSize({ width: 1440, height: 1000 });
+    await resizeDashboard(page, { width: 1440, height: 1000 });
     const otherProjectResponse = await page.request.post(`${app.origin}/api/projects`, {
       headers: { origin: app.origin },
       data: {
@@ -343,6 +347,8 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
         JSON.stringify(
           {
             sourceCommit,
+            browser: browserIdentity,
+            dirty,
             sha256: createHash('sha256').update(bytes).digest('hex'),
             method: 'allow-listed actions/assertion outcomes only; no raw DOM/network or traces',
             rawTraceRetained: false,

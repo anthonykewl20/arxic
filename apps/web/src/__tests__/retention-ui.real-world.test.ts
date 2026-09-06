@@ -1,7 +1,7 @@
 import { mkdtemp, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it } from 'vitest';
 import {
   bootFixtureApp,
@@ -9,7 +9,7 @@ import {
   vulnerableAuthApp,
 } from '../../../../packages/real-world-testkit/src';
 import { Workbench } from '../workbench';
-import { startWorkbench } from '../server';
+import { startWorkbench } from './workbench-runtime';
 import { dashboardProof } from './dashboard-proof';
 it.each(['light', 'dark'] as const)(
   'previews and cleans real expired evidence through the dashboard (%s)',
@@ -19,7 +19,7 @@ it.each(['light', 'dark'] as const)(
     const directory = await mkdtemp(join(tmpdir(), 'retention-ui-'));
     let wb = await Workbench.open(directory, [root]);
     let app: Awaited<ReturnType<typeof startWorkbench>> | undefined;
-    const browser = await chromium.launch({ headless: true });
+    const browser = await launchDashboardBrowser({ headless: true });
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
       colorScheme: theme,
@@ -106,7 +106,7 @@ it.each(['light', 'dark'] as const)(
       expect(await panel.getByRole('button', { name: 'Save retention policy' }).isEnabled()).toBe(
         false,
       );
-      await page.setViewportSize({ width: 390, height: 844 });
+      await resizeDashboard(page, { width: 390, height: 844 });
       await panel
         .getByLabel('I authorize automatic deletion under this policy')
         .scrollIntoViewIfNeeded();
@@ -117,7 +117,7 @@ it.each(['light', 'dark'] as const)(
       await panel.getByLabel('I authorize automatic deletion under this policy').check();
       await panel.getByRole('button', { name: 'Save retention policy' }).click();
       await panel.getByText('Retention policy saved.', { exact: true }).waitFor();
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await resizeDashboard(page, { width: 1440, height: 1000 });
       await rename(join(directory, 'runs'), join(directory, 'runs-backup'));
       await writeFile(join(directory, 'runs'), 'storage unavailable');
       await panel.getByRole('button', { name: 'Clean up now' }).click();

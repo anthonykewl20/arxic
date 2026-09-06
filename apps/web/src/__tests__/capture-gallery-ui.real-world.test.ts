@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it } from 'vitest';
 import {
   bootFixtureApp,
@@ -39,7 +39,7 @@ it.each(['light', 'dark'] as const)(
     await new Promise<void>((done) => proxy.listen(0, '127.0.0.1', done));
     const state = await mkdtemp(join(tmpdir(), 'capture-gallery-'));
     const wb = await Workbench.open(state, [root]);
-    const browser = await chromium.launch();
+    const browser = await launchDashboardBrowser();
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
       colorScheme: theme,
@@ -141,7 +141,7 @@ it.each(['light', 'dark'] as const)(
         '02-next-page',
         'Keyboard pagination bounds the gallery and restores focus to its heading',
       );
-      await page.setViewportSize({ width: 320, height: 1000 });
+      await resizeDashboard(page, { width: 320, height: 1000 });
       await page.getByRole('button', { name: 'Previous captures', exact: true }).focus();
       await page.keyboard.press('Enter');
       const focusedHeading = page.getByRole('heading', { name: 'Captured pages', exact: true });
@@ -152,7 +152,7 @@ it.each(['light', 'dark'] as const)(
         '02-mobile-page',
         'Mobile keyboard pagination keeps its focused heading below the sticky header',
       );
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await resizeDashboard(page, { width: 1440, height: 1000 });
 
       await page.getByLabel('Capture browser', { exact: true }).selectOption('webkit');
       await page.getByLabel('Capture theme', { exact: true }).selectOption('dark');
@@ -211,7 +211,7 @@ it.each(['light', 'dark'] as const)(
       await card.getByText('Ask AI to review this screenshot', { exact: true }).click();
       await card.getByText('Measured checks and coverage', { exact: false }).click();
       for (const width of [320, 390, 768, 1440]) {
-        await page.setViewportSize({ width, height: 1000 });
+        await resizeDashboard(page, { width, height: 1000 });
         await audit(
           `03-filtered-${width}`,
           'Combined capture filters keep original image, measurement and review targets',

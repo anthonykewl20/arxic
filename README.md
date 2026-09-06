@@ -155,3 +155,5 @@ Visual capture settings include a browser/theme matrix: Chromium, Firefox and
 WebKit × light/dark × configured viewports, with environment-specific baselines,
 explicit blocked environments and a shared capture budget. See the
 [dashboard setup and scope](docs/web-workbench.md#browsertheme-capture-matrix).
+
+Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](docs/web-workbench.md#dashboard-browser-verification) records engine provenance; expanded cross-browser validation is in progress in #443.

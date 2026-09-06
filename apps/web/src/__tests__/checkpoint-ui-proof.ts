@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { readFile, writeFile } from 'node:fs/promises';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect } from 'vitest';
 import { startWorkbench } from '../server';
 import { dashboardProof } from './dashboard-proof';
@@ -14,7 +14,7 @@ export async function checkpointUiProof(stateDirectory: string, root: string, ru
     port: 0,
     adminToken: 'checkpoint-proof-administrator-token-32',
   });
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchDashboardBrowser({ headless: true });
   try {
     for (const theme of ['light', 'dark'] as const) {
       const context = await browser.newContext({
@@ -87,13 +87,13 @@ export async function checkpointUiProof(stateDirectory: string, root: string, ru
         } finally {
           await writeFile(imagePath, original);
         }
-        await page.setViewportSize({ width: 390, height: 844 });
+        await resizeDashboard(page, { width: 390, height: 844 });
         await gallery.scrollIntoViewIfNeeded();
         await audit(
           '03-mobile-checkpoints',
           'Retry restores hash-checked image; mobile gallery has no horizontal overflow',
         );
-        await page.setViewportSize({ width: 1440, height: 1000 });
+        await resizeDashboard(page, { width: 1440, height: 1000 });
         await page.locator('[data-nav="overview"]').click();
         await page.locator(`[data-edit="${run.projectId}"]`).first().click();
         await page.getByLabel('Show workflow screenshots in run results').waitFor();

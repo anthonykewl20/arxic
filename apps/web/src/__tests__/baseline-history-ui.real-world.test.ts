@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it } from 'vitest';
 import {
   bootFixtureApp,
@@ -9,7 +9,7 @@ import {
   vulnerableAuthApp,
 } from '../../../../packages/real-world-testkit/src';
 import { Workbench } from '../workbench';
-import { startWorkbench } from '../server';
+import { startWorkbench } from './workbench-runtime';
 import type { Run } from '../types';
 import { dashboardProof } from './dashboard-proof';
 
@@ -21,7 +21,7 @@ it.each(['light', 'dark'] as const)(
     const directory = await mkdtemp(join(tmpdir(), 'baseline-history-'));
     const wb = await Workbench.open(directory, [root]);
     let app: Awaited<ReturnType<typeof startWorkbench>> | undefined;
-    const browser = await chromium.launch({ headless: true });
+    const browser = await launchDashboardBrowser({ headless: true });
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
       colorScheme: theme,
@@ -109,12 +109,12 @@ it.each(['light', 'dark'] as const)(
         '02-first-approved',
         'Current approval is distinct from the immutable absence of a prior baseline',
       );
-      await page.setViewportSize({ width: 390, height: 844 });
+      await resizeDashboard(page, { width: 390, height: 844 });
       await audit(
         '03-mobile-approved',
         'Mobile approval badge and historical comparison copy remain distinct and readable',
       );
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await resizeDashboard(page, { width: 1440, height: 1000 });
       const second = await nextRun(first.id);
       expect(second.result!.captures![0].baselineRunId).toBe(first.id);
       await page.getByRole('img', { name: 'Baseline used for this run', exact: true }).waitFor();
@@ -151,7 +151,7 @@ it.each(['light', 'dark'] as const)(
         `${app.origin}/api/runs/${first.id}/artifacts/${capture.file}`,
       );
       expect((await response.body()).equals(original)).toBe(true);
-      await page.setViewportSize({ width: 390, height: 844 });
+      await resizeDashboard(page, { width: 390, height: 844 });
       await audit(
         '06-mobile-history',
         'Mobile history distinguishes no prior baseline from current approval after replacement',

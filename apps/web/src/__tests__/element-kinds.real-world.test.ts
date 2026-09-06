@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser } from './dashboard-browser';
 import { expect, it } from 'vitest';
 import { collectVisualScene } from '../visual-oracle';
 import { startWorkbench } from './workbench-runtime';
@@ -16,7 +16,7 @@ it('collects native and declared kinds from real dashboard controls without reta
     adminToken: token,
     port: 0,
   });
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchDashboardBrowser({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
     reducedMotion: 'reduce',
@@ -33,11 +33,19 @@ it('collects native and declared kinds from real dashboard controls without reta
     await page.getByLabel('Administrator token').fill(token);
     await page.getByRole('button', { name: 'Open workbench' }).click();
     await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
-    const radio = (await page.getByRole('radio', { name: 'Follow system theme' }).boundingBox())!;
-    const button = (await page
+    const radio = await page
+      .getByRole('radio', { name: 'Follow system theme' })
+      .evaluate((element) => {
+        const { x, y, width, height } = element.getBoundingClientRect();
+        return { x, y, width, height };
+      });
+    const button = await page
       .getByRole('button', { name: 'Connect project', exact: true })
       .first()
-      .boundingBox())!;
+      .evaluate((element) => {
+        const { x, y, width, height } = element.getBoundingClientRect();
+        return { x, y, width, height };
+      });
     const scene = await collectVisualScene(page);
     expect(scene.kindSchemaVersion).toBe(1);
     const kindsAt = (box: typeof radio) =>

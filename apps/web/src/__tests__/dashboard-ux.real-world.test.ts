@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import sharp from 'sharp';
 import { dashboardProof } from './dashboard-proof';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it } from 'vitest';
 import { startWorkbench } from './workbench-runtime';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
@@ -17,7 +17,7 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
     adminToken: 'dashboard-ux-test-token-32-characters',
     port: 0,
   });
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchDashboardBrowser({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
     reducedMotion: 'reduce',
@@ -67,7 +67,7 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
     expect(await page.locator('#notice').textContent()).toContain('no longer available');
     const violations = [];
     for (const width of [1440, 768, 390, 320]) {
-      await page.setViewportSize({ width, height: 1000 });
+      await resizeDashboard(page, { width, height: 1000 });
       for (const theme of ['light', 'dark'] as const) {
         if (width <= 760 && !(await page.getByRole('radiogroup', { name: 'Theme' }).isVisible()))
           await page.locator('.mobile-nav-toggle').click();
@@ -110,7 +110,7 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
         }
       }
     }
-    await page.setViewportSize({ width: 390, height: 844 });
+    await resizeDashboard(page, { width: 390, height: 844 });
     await page.locator('#new-project').click();
     const dialog = page.locator('dialog[open]');
     await dialog.waitFor();

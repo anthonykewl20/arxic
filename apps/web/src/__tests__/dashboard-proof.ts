@@ -10,6 +10,9 @@ import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 export function dashboardProof(page: Page, directory: string | undefined) {
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   const dirty = !!execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
+  const browser = page.context().browser();
+  if (!browser) throw new Error('Dashboard proof requires an attached browser');
+  const browserIdentity = { name: browser.browserType().name(), version: browser.version() };
   const timeline: Array<{
     action: string;
     result: 'passed' | 'failed';
@@ -60,6 +63,7 @@ export function dashboardProof(page: Page, directory: string | undefined) {
               rawTraceRetained: false,
               humanInspection: 'not performed',
               sourceCommit,
+              browser: browserIdentity,
               dirty,
             },
             null,
@@ -88,6 +92,7 @@ export function dashboardProof(page: Page, directory: string | undefined) {
               'allow-listed test annotations, viewport and result; no DOM/network/field payloads',
             rawTraceRetained: false,
             sourceCommit,
+            browser: browserIdentity,
             dirty,
           },
           null,

@@ -97,7 +97,11 @@ export function assertBlockedRun({ exitCode, run, diagnostics, priorBundle, curr
   }
 }
 
-export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
+export async function runHumanFlow({
+  keep = false,
+  evidenceDirectory,
+  dashboardOnly = false,
+} = {}) {
   const timings = [];
   const startedAt = Date.now();
   const cleanRoom = await mkdtemp(join(tmpdir(), 'arxic-human-flow-'));
@@ -149,6 +153,27 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
         { cwd: paths.install, env: cleanEnvironment(paths), timeout: 30_000 },
       );
     });
+
+    if (dashboardOnly) {
+      await runInstalledDashboard(paths, timings, evidenceDirectory);
+      outcome = {
+        scope: 'dashboard',
+        ok: true,
+        cleanRoom: keep ? cleanRoom : undefined,
+        phases: timings,
+        totalMs: Date.now() - startedAt,
+      };
+      if (evidenceDirectory) {
+        await mkdirp(resolve(evidenceDirectory));
+        await writeFile(
+          resolve(evidenceDirectory, 'summary.md'),
+          '# Installed dashboard E2E evidence\n\nScope: dashboard journeys only. The CLI workflow and live-provider quality are not covered by this run. Browser identity is recorded in adjacent screenshot/timeline provenance. Human release inspection remains outstanding.\n\n```text\n' +
+            formatVerdict(outcome) +
+            '\n```\n',
+        );
+      }
+      return outcome;
+    }
 
     const appPort = await freePort();
     const origin = `http://127.0.0.1:${appPort}`;
@@ -371,52 +396,7 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
         }),
       );
     }
-    await phase(timings, 'packed-web-startup', () =>
-      command(
-        process.execPath,
-        [
-          join(repositoryRoot, 'scripts/web-distribution-e2e.mjs'),
-          join(paths.install, 'node_modules/arxic/dist/cli.js'),
-          paths.install,
-        ],
-        { cwd: repositoryRoot, env: cleanEnvironment(paths), timeout: 180_000 },
-      ),
-    );
-    await phase(timings, 'packed-web-browser', () =>
-      command(
-        'pnpm',
-        [
-          'exec',
-          'vitest',
-          'run',
-          'apps/web/src/__tests__/ui.real-world.test.ts',
-          'apps/web/src/__tests__/dashboard-ux.real-world.test.ts',
-          'apps/web/src/__tests__/campaign-ui.real-world.test.ts',
-          'apps/web/src/__tests__/restart.real-world.test.ts',
-          'apps/web/src/__tests__/element-kinds.real-world.test.ts',
-          'apps/web/src/__tests__/visual-matrix-ui.real-world.test.ts',
-          'apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts',
-        ],
-        {
-          cwd: repositoryRoot,
-          env: {
-            ...cleanEnvironment(paths),
-            ARXIC_TEST_INSTALLED_WEB_BIN: join(paths.install, 'node_modules/arxic/dist/cli.js'),
-            ...(evidenceDirectory
-              ? {
-                  ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
-                  ARXIC_MATRIX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/matrix'),
-                  ARXIC_GALLERY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/gallery'),
-                  ARXIC_ELEMENTS_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/elements'),
-                  ARXIC_UX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/navigation'),
-                  ARXIC_CAMPAIGN_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/campaign'),
-                }
-              : {}),
-          },
-          timeout: 480_000,
-        },
-      ),
-    );
+    await runInstalledDashboard(paths, timings, evidenceDirectory);
     outcome = {
       ok: true,
       cleanRoom: keep ? cleanRoom : undefined,
@@ -436,6 +416,7 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
   } catch (error) {
     outcome = {
       ok: false,
+      scope: dashboardOnly ? 'dashboard' : 'human-flow',
       cleanRoom: keep ? cleanRoom : undefined,
       phases: timings,
       totalMs: Date.now() - startedAt,
@@ -447,6 +428,68 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
     if (!keep) await rm(cleanRoom, { recursive: true, force: true });
     printVerdict(outcome ?? { ok: false, phases: timings, totalMs: Date.now() - startedAt });
   }
+}
+
+async function runInstalledDashboard(paths, timings, evidenceDirectory) {
+  await phase(timings, 'packed-web-startup', () =>
+    command(
+      process.execPath,
+      [
+        join(repositoryRoot, 'scripts/web-distribution-e2e.mjs'),
+        join(paths.install, 'node_modules/arxic/dist/cli.js'),
+        paths.install,
+      ],
+      { cwd: repositoryRoot, env: cleanEnvironment(paths), timeout: 180_000 },
+    ),
+  );
+  await phase(timings, 'packed-web-browser', () =>
+    command(
+      'pnpm',
+      [
+        'exec',
+        'vitest',
+        'run',
+        'apps/web/src/__tests__/ui.real-world.test.ts',
+        'apps/web/src/__tests__/dashboard-ux.real-world.test.ts',
+        'apps/web/src/__tests__/campaign-ui.real-world.test.ts',
+        'apps/web/src/__tests__/restart.real-world.test.ts',
+        'apps/web/src/__tests__/element-kinds.real-world.test.ts',
+        'apps/web/src/__tests__/visual-matrix-ui.real-world.test.ts',
+        'apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts',
+        'apps/web/src/__tests__/provider-ui.real-world.test.ts',
+        'apps/web/src/__tests__/visual-review-ui.real-world.test.ts',
+        'apps/web/src/__tests__/retention-ui.real-world.test.ts',
+        'apps/web/src/__tests__/baseline-history-ui.real-world.test.ts',
+        'apps/web/src/__tests__/contrast-ui.real-world.test.ts',
+      ],
+      {
+        cwd: repositoryRoot,
+        env: {
+          ...cleanEnvironment(paths),
+          ARXIC_TEST_INSTALLED_WEB_BIN: join(paths.install, 'node_modules/arxic/dist/cli.js'),
+          ...(evidenceDirectory
+            ? {
+                ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
+                ARXIC_MATRIX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/matrix'),
+                ARXIC_GALLERY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/gallery'),
+                ARXIC_ELEMENTS_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/elements'),
+                ARXIC_UX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/navigation'),
+                ARXIC_CAMPAIGN_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/campaign'),
+                ARXIC_PROVIDER_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/provider'),
+                ARXIC_REVIEW_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/review'),
+                ARXIC_RETENTION_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/retention'),
+                ARXIC_BASELINE_HISTORY_EVIDENCE_DIR: resolve(
+                  evidenceDirectory,
+                  'web/baseline-history',
+                ),
+                ARXIC_CONTRAST_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/contrast'),
+              }
+            : {}),
+        },
+        timeout: 900_000,
+      },
+    ),
+  );
 }
 
 function cleanEnvironment(paths) {
@@ -838,9 +881,9 @@ function printVerdict(outcome) {
   console.log(formatVerdict(outcome));
 }
 
-function formatVerdict(outcome) {
+export function formatVerdict(outcome) {
   return [
-    `HUMAN-FLOW-E2E ${outcome.ok ? 'PASS' : 'FAIL'}`,
+    `${outcome.scope === 'dashboard' ? 'DASHBOARD-E2E' : 'HUMAN-FLOW-E2E'} ${outcome.ok ? 'PASS' : 'FAIL'}`,
     ...outcome.phases.map((phase) => `phase=${phase.name} durationMs=${phase.durationMs}`),
     `totalMs=${outcome.totalMs}`,
     ...(outcome.modelRequests === undefined ? [] : [`modelRequests=${outcome.modelRequests}`]),
@@ -857,7 +900,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.error('--evidence-dir requires a path');
     process.exitCode = 2;
   } else {
-    runHumanFlow({ keep, evidenceDirectory }).catch(() => {
+    runHumanFlow({
+      keep,
+      evidenceDirectory,
+      dashboardOnly: process.argv.includes('--dashboard-only'),
+    }).catch(() => {
       process.exitCode = 1;
     });
   }

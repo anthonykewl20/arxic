@@ -130,7 +130,7 @@ export function AssessmentPanel({
                 <img
                   key={imageAttempt}
                   alt="Captured viewport for selected measurement"
-                  src={`/api/runs/${runId}/artifacts/${encodeURIComponent(capture.file)}`}
+                  src={`/api/runs/${runId}/artifacts/${encodeURIComponent(capture.file)}?measurement=${imageAttempt}`}
                   width={capture.viewport.width}
                   height={capture.viewport.height}
                   style={{

@@ -634,3 +634,32 @@ capture was made. Measurements, source images and review forms still refer to th
 original capture. Older captures without environment metadata use Chromium/light,
 the legacy capture defaults. Filters are not persisted in bookmarks or across a
 full browser reload. Workflow checkpoint galleries are separate.
+
+## Dashboard browser verification
+
+Target capture engines and the browser running the dashboard are independent.
+`ARXIC_DASHBOARD_BROWSER=chromium|firefox|webkit` selects the real dashboard test
+driver; an absent value defaults to Chromium, and unsupported values fail rather
+than falling back. Element-inspector expected geometry is measured independently
+in the retained capture's engine and viewport.
+
+Run the installed dashboard contract with:
+
+```sh
+ARXIC_DASHBOARD_BROWSER=firefox node scripts/human-flow-e2e.mjs --dashboard-only --evidence-dir artifacts/dashboard-firefox
+```
+
+This packs and installs the public CLI in a temporary clean room, checks its web
+startup and executes the same dashboard journeys used by the full package gate.
+It reports `DASHBOARD-E2E`, keeping CLI workflow proof separate. The suite includes
+access refusal, project validation, run search, capture filters, element picking,
+keyboard navigation, provider refresh failures, review consent, baseline history,
+retention and campaign controls. It uses real reference apps and browser engines;
+provider-boundary stubs do not establish paid-model quality.
+
+Named masked screenshots and sanitized timelines record actual browser versions
+in adjacent provenance. Accessibility checks retain incomplete results. Desktop
+WebKit automation is not real-device Safari proof, and automated checks do not
+replace human visual/release inspection. Cross-browser validation for this
+expansion is in progress under issue #443; no blanket production-readiness claim
+is made.
