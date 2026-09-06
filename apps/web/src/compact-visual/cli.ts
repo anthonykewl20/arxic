@@ -6,7 +6,7 @@ import { reviewCase } from './model';
 const [command, directory, ...args] = process.argv.slice(2);
 if (!directory)
   throw new Error(
-    'Usage: cli.ts demo|capture|extract|review|train|corpus DIRECTORY [families] [viewports] [variants]',
+    'Usage: cli.ts demo|capture|extract|review|train|corpus DIRECTORY [...] | activate DIRECTORY MODEL MODELS_DIR NATIVE [REPORT] | rollback MODELS_DIR',
   );
 const root = resolve(import.meta.dirname, '../../../..');
 const output = resolve(directory);
@@ -63,4 +63,19 @@ if (command === 'capture') {
       report: 'corpus-report.json',
     }),
   );
+} else if (command === 'activate' && args.length >= 3) {
+  const { activateTrainedModel } = await import('./model-store');
+  const pointer = await activateTrainedModel(
+    output,
+    args[0]!,
+    resolve(args[1]!),
+    resolve(args[2]!),
+    {
+      reportPath: args[3],
+    },
+  );
+  console.log(JSON.stringify(pointer));
+} else if (command === 'rollback' && args[0]) {
+  const { rollbackModel } = await import('./model-store');
+  console.log(JSON.stringify(await rollbackModel(resolve(args[0]))));
 } else throw new Error('invalid-command');

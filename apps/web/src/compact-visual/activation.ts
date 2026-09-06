@@ -19,7 +19,16 @@ const pointerPath = (modelsDir: string, name: string) => join(modelsDir, name);
 export async function stageArtifact(modelsDir: string, bytes: Buffer): Promise<string> {
   await mkdir(join(modelsDir, 'artifacts'), { recursive: true, mode: 0o700 });
   const digest = sha256(bytes);
-  await writeFile(join(modelsDir, 'artifacts', digest), bytes, { mode: 0o600, flag: 'wx' });
+  const target = join(modelsDir, 'artifacts', digest);
+  try {
+    await writeFile(target, bytes, { mode: 0o600, flag: 'wx' });
+  } catch (error) {
+    // Content-addressed staging is idempotent: identical bytes already staged
+    // are fine; anything else occupying the name is a conflict.
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+    if (sha256(await readFile(target)) !== digest)
+      throw new Error('stage-conflict', { cause: error });
+  }
   return digest;
 }
 
