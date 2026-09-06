@@ -30,7 +30,7 @@ it('blocks unapproved capture, then detects a real frontend regression without r
     res.end(
       html.replace(
         '</head>',
-        `<style>body { background: ${changed ? '#c00030' : '#ffffff'}; ${changed ? 'min-width: 1800px;' : ''} }</style></head>`,
+        `<style>body { background: ${changed ? '#c00030' : '#ffffff'}; ${changed ? 'min-width: 1800px;' : ''} } h1 { color: ${changed ? '#c00031' : '#000000'}; }</style></head>`,
       ),
     );
   });
@@ -58,6 +58,7 @@ it('blocks unapproved capture, then detects a real frontend regression without r
   const first = wb.enqueue(project.id, 'visual');
   await wb.idle();
   const capture = wb.store.run(first.id)!.result!.captures![0];
+  expect(capture, JSON.stringify(wb.store.run(first.id)!.result)).toBeDefined();
   expect(capture.status).toBe('needs-baseline');
   await wb.approveBaseline(first.id, capture.id);
   await expect(wb.deleteRun(first.id)).rejects.toThrow('approved baselines');
@@ -100,6 +101,15 @@ it('blocks unapproved capture, then detects a real frontend regression without r
       verdict: 'unverified',
     }),
   );
+  expect(report.assessment.checks).toContainEqual(
+    expect.objectContaining({
+      id: expect.stringMatching(/^text-contrast-/),
+      verdict: 'fail',
+      threshold: 3,
+    }),
+  );
+  expect(result.findings).toContainEqual(expect.objectContaining({ kind: 'text-contrast' }));
+  expect(JSON.stringify(report.scene)).not.toContain('Vulnerable Auth App');
   expect(report.scene.nodes.length).toBeGreaterThan(0);
   expect(digest(artifact.bytes)).toBe(measured.assessmentSha256);
   const evidence = process.env.ARXIC_ORACLE_EVIDENCE_DIR;

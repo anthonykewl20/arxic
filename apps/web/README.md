@@ -64,3 +64,5 @@ scene capture or complete DOM/a11y coverage. See the
 [reference-app proof](../../docs/evidence/WEB-402-ORACLE/summary.md).
 
 Test runs searches all stored history with project/type/status filters and pagination. Navigation and run-search URLs survive refresh and Back. Capture details expose numeric checks and explicit unverified coverage with download/retry. The responsive, theme, keyboard and populated-flow audit is documented in [dashboard proof](../../docs/evidence/WEB-402-DASHBOARD-UX/summary.md).
+
+Visual measurements now include solid-paint text contrast with numeric ratios and screenshot regions. Unsupported paint and privacy-masked text remain unverified; see the [contrast profile](../../docs/visual-oracle.md#solid-text-contrast-profile).

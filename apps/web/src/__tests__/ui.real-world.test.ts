@@ -153,6 +153,20 @@ it.each(['light', 'dark'] as const)(
       await page.unroute('**/*.assessment.json');
       await page.getByRole('button', { name: 'Retry measurements' }).click();
       await page.getByText('document-horizontal-overflow', { exact: true }).waitFor();
+      await page.getByRole('button', { name: 'Locate measured text' }).first().click();
+      await page.getByRole('img', { name: 'Measured text region in captured viewport' }).waitFor();
+      expect(
+        await page
+          .getByRole('img', { name: 'Measured text region in captured viewport' })
+          .getAttribute('viewBox'),
+      ).toBe('0 0 800 600');
+      await page.getByLabel('Find measurement').fill('absent-measurement-id');
+      await page.getByText('No checks match these filters.', { exact: true }).waitFor();
+      expect(await page.locator('.measurement-checks > li').count()).toBe(0);
+      await page.getByLabel('Find measurement').fill('');
+      await page.getByLabel('Measurement verdict').selectOption('unverified');
+      expect(await page.locator('.measurement-checks > li').count()).toBeGreaterThan(0);
+      await page.getByLabel('Measurement verdict').selectOption('all');
       await capture(
         '10-measurement-report',
         'Unavailable evidence stays an error; retry loads real numeric checks and unverified coverage',

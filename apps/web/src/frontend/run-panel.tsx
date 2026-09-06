@@ -291,6 +291,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
               key={capture.assessmentSha256 ?? capture.id}
               runId={run.id}
               file={capture.assessmentFile}
+              capture={capture}
             />
             {run.state === 'completed' && capture.status !== 'unstable' && (
               <ReviewForm

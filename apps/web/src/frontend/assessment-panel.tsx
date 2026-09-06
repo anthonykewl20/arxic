@@ -1,13 +1,32 @@
-import { useState } from 'react';
-import type { VisualAssessment } from '../visual-oracle';
+import { useEffect, useRef, useState } from 'react';
+import type { Capture } from '../types';
+import type { VisualAssessment, VisualCheck } from '../visual-oracle';
 import { Button } from './components';
 import { Status } from './run-table';
 
 /** Retrieve the hash-checked numeric report; the UI never changes solver verdicts. */
-export function AssessmentPanel({ runId, file }: { runId: string; file?: string }) {
+export function AssessmentPanel({
+  runId,
+  file,
+  capture,
+}: {
+  runId: string;
+  file?: string;
+  capture?: Pick<Capture, 'file' | 'viewport'>;
+}) {
   const [report, setReport] = useState<VisualAssessment>();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
+  const [selected, setSelected] = useState<VisualCheck>();
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const preview = useRef<SVGSVGElement>(null);
+  useEffect(() => {
+    if (selected) {
+      preview.current?.focus();
+      preview.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [selected]);
   if (!file)
     return (
       <p className="scope-note">
@@ -15,6 +34,12 @@ export function AssessmentPanel({ runId, file }: { runId: string; file?: string 
       </p>
     );
   const url = `/api/runs/${runId}/artifacts/${encodeURIComponent(file)}`;
+  const visibleChecks =
+    report?.checks.filter(
+      (check) =>
+        (filter === 'all' || check.verdict === filter) &&
+        `${check.id} ${check.reason}`.toLowerCase().includes(search.toLowerCase()),
+    ) ?? [];
   async function load() {
     setPending(true);
     setError('');
@@ -60,11 +85,69 @@ export function AssessmentPanel({ runId, file }: { runId: string; file?: string 
           <p className="scope-note">
             A pass applies only to the named predicate. Unverified checks require further evidence.
           </p>
+          {selected?.region && capture && (
+            <figure>
+              <figcaption>
+                {selected.id} · {selected.verdict} · measured region
+              </figcaption>
+              <svg
+                ref={preview}
+                tabIndex={-1}
+                role="img"
+                aria-label="Measured text region in captured viewport"
+                viewBox={`0 0 ${capture.viewport.width} ${capture.viewport.height}`}
+                style={{
+                  width: '100%',
+                  maxWidth: 800,
+                  display: 'block',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <image
+                  href={`/api/runs/${runId}/artifacts/${encodeURIComponent(capture.file)}`}
+                  width={capture.viewport.width}
+                  height={capture.viewport.height}
+                />
+                <rect {...selected.region} fill="none" stroke="white" strokeWidth={5} />
+                <rect {...selected.region} fill="none" stroke="#b00020" strokeWidth={2} />
+              </svg>
+            </figure>
+          )}
+          <div className="toolbar">
+            <input
+              aria-label="Find measurement"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Measurement ID or reason"
+            />
+            <select
+              aria-label="Measurement verdict"
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+            >
+              <option value="all">All checks</option>
+              <option value="fail">Failed checks</option>
+              <option value="unverified">Unverified checks</option>
+              <option value="pass">Passed checks</option>
+            </select>
+          </div>
+          {!visibleChecks.length && <p role="status">No checks match these filters.</p>}
           <ul className="measurement-checks">
-            {report.checks.map((check) => (
+            {visibleChecks.map((check) => (
               <li key={check.id}>
                 <strong>{check.id}</strong> <Status value={check.verdict} />
                 <p>{check.reason}</p>
+                {check.observed !== undefined && (
+                  <p>
+                    Measured ratio: {check.observed.toFixed(3)}:1 (display rounded) · Required:{' '}
+                    {check.threshold}:1. Verdict uses the unrounded ratio.
+                  </p>
+                )}
+                {check.region && capture && (
+                  <Button variant="outline" onClick={() => setSelected(check)}>
+                    Locate measured text
+                  </Button>
+                )}
                 <small>
                   Expected: {check.expected}
                   {check.delta !== undefined ? ` · Delta: ${check.delta}` : ''}
