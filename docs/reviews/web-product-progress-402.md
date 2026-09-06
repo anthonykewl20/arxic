@@ -113,3 +113,13 @@ layouts. Real Chromium captures exercise cleanup while preserving original basel
 bytes; the database-scale supplement covers history beyond the 200-row state view.
 No disk quota, campaign deletion or complete runtime management is claimed.
 Evidence and gate revisions are recorded in the WEB-431-RETENTION slice note.
+
+### Baseline history clarity (refs #433)
+
+Capture results distinguish comparison status at capture time from current baseline
+approval. Historical no-baseline and absent-difference states explain what happened
+in that run; the current approval badge identifies the selection for future runs.
+Real browser journeys cover approval failure/retry, replacement, revisiting history
+and exact preservation of prior results and image bytes. This addresses the wording
+ambiguity observed in #431's screenshots without changing comparison truth. Proof
+and CI revisions are recorded in the WEB-433-BASELINE-HISTORY slice note.

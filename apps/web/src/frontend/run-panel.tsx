@@ -145,7 +145,17 @@ export function RunPanel(props: RunPanelProps) {
     </>
   );
 }
-function CaptureFigure({ label, runId, file }: { label: string; runId?: string; file?: string }) {
+function CaptureFigure({
+  label,
+  runId,
+  file,
+  empty,
+}: {
+  label: string;
+  runId?: string;
+  file?: string;
+  empty: string;
+}) {
   const url = file ? `/api/runs/${runId}/artifacts/${encodeURIComponent(file)}` : '';
   return (
     <figure>
@@ -155,7 +165,7 @@ function CaptureFigure({ label, runId, file }: { label: string; runId?: string; 
           <img alt={label} src={url} loading="lazy" decoding="async" />
         </a>
       ) : (
-        <div className="placeholder">Awaiting a reviewed baseline</div>
+        <div className="placeholder">{empty}</div>
       )}
     </figure>
   );
@@ -244,7 +254,12 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                   </span>
                 </h3>
                 <small>
-                  <Status value={capture.status} />{' '}
+                  Comparison at capture time:{' '}
+                  {capture.status === 'needs-baseline' ? (
+                    'no prior baseline'
+                  ) : (
+                    <Status value={capture.status} />
+                  )}{' '}
                   {capture.authenticated && <Status value="signed in" />}{' '}
                   {capture.changedPixels !== undefined && (
                     <>
@@ -255,7 +270,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                 </small>
               </div>
               {approved ? (
-                <Status value="approved baseline" />
+                <Status value="current approved baseline" />
               ) : (
                 run.state === 'completed' &&
                 capture.status !== 'unstable' && (
@@ -272,12 +287,31 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             </div>
             <div className="compare">
               <CaptureFigure
-                label="Approved baseline"
+                label="Baseline used for this run"
                 runId={capture.baselineRunId}
                 file={capture.baselineFile}
+                empty={
+                  capture.status === 'needs-baseline'
+                    ? 'No baseline existed when this run was captured.'
+                    : 'Baseline image unavailable for this run.'
+                }
               />
-              <CaptureFigure label="Current capture" runId={run.id} file={capture.file} />
-              <CaptureFigure label="Pixel difference" runId={run.id} file={capture.diffFile} />
+              <CaptureFigure
+                label="Capture from this run"
+                runId={run.id}
+                file={capture.file}
+                empty="Capture image unavailable for this run."
+              />
+              <CaptureFigure
+                label="Pixel difference"
+                runId={run.id}
+                file={capture.diffFile}
+                empty={
+                  capture.status === 'needs-baseline'
+                    ? 'No comparison was made because this run had no prior baseline.'
+                    : 'Difference image unavailable for this run.'
+                }
+              />
               {capture.videoFile && (
                 <figure>
                   <video

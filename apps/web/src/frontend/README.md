@@ -38,3 +38,8 @@ and deletion consent. Controls remain disabled during requests; edits invalidate
 the preview and consent. Cleanup applies only the saved policy, and failures
 refresh durable recovery status without hiding the original error. Component
 unmount prevents late responses from changing a later session's presentation.
+
+`run-panel.tsx` distinguishes comparison-at-capture-time status from current
+baseline approval. Figure placeholders explain absent historical evidence rather
+than asking for approval after approval has already succeeded. This is presentation
+of existing records; it does not mutate comparison or approval policy.
