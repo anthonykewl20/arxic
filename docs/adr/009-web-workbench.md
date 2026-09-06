@@ -312,3 +312,11 @@ readiness and recoverable load failures. Capture identity and engine truth state
 remain unchanged. This is a scoped profile, not whole-page accessibility
 certification. See the [contrast contract](../visual-oracle.md#solid-text-contrast-profile)
 and [real reference-app and dashboard proof](../evidence/WEB-402-CONTRAST/summary.md).
+
+## 2026-09-06: asynchronous replay completion
+
+A real selected-reset run exposed premature replay completion: pathname and heading assertions could already hold while the submitted request was pending. Delaying only the first replay by 800 ms reproduced two emails despite two passing replay reports; the browser closed the delayed request before it reached the real app. Exploration already waited for completion.
+
+Generated replays now use the same bounded network/render settling service before assertions, screenshots and receipts. The service's constant package-owned source also keeps runtime bytes stable across source execution and bundling. It is emitted in the existing transition runtime, preserving independent source/hash verification and compile-policy boundaries. No model decides completion, no locator gate is widened, and engine truth contracts are unchanged.
+
+The regression preserves the original minimum-three-email assertion and additionally checks each accepted submission's inbox count (1, 2, 3) against real Next.js and isolated Mailpit. This establishes the delayed-request failure mechanism; the original historical request timing was not retained. Full #402 production scope remains separate.
