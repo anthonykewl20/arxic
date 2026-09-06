@@ -26,7 +26,7 @@ User-visible capability. Integrator folds WEB-402-ORACLE, WEB-402-DASHBOARD and 
 
 ## 5. Evidence and gates
 
-Real Chromium reference-app regression plus synthetic boundary cases and dashboard light/dark journeys. Final proof and CI links will be attached to the issue and PR. The first full web run passed 70/71; its unchanged reset-mail assertion failure is tracked in #422. Focused rerun passed but did not explain it. Screenshot inspection found one blank SVG preview; native image load/error/retry and painted-image guards now supplement DOM assertions. Final-head test/CI results are recorded in the attached audit and PR. No assertion tolerance was widened, and no human release inspection is claimed.
+Real Chromium reference-app regression plus synthetic boundary cases and dashboard light/dark journeys. The [scoped audit](../evidence/WEB-402-CONTRAST/summary.md) contains 38 final screenshots, one before image and six sanitized timelines. Final local web suite: 72/72 tests across 21 files; current-head CI is recorded in the PR. Full-repo format after this note: `All matched files use Prettier code style!`. The first full web run passed 70/71; its unchanged reset-mail assertion failure is tracked in #422. Focused rerun passed but did not explain it. Screenshot inspection found one blank SVG preview; native image load/error/retry and painted-image guards now supplement DOM assertions. Final-head test/CI results are recorded in the attached audit and PR. No assertion tolerance was widened, and no human release inspection is claimed.
 
 ## 6. Sad paths
 

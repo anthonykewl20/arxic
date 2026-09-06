@@ -301,3 +301,14 @@ predicate. Unavailable detector families remain unverified and cannot establish
 a whole-audit pass. Engine truth states and frozen contracts are unchanged.
 The current screenshot-review model still emits separate hypotheses; full
 scene-bound model fusion and expanded capture matrices are future slices.
+
+## 2026-09-06: solid text contrast and region inspection
+
+The numeric scene now includes a bounded, text-free solid-paint projection.
+Pure assessment predicates compare unrounded ratios against explicit thresholds;
+unsupported paint stays unverified. The dashboard searches measured checks and
+locates their numeric regions on the retained masked capture, with native image
+readiness and recoverable load failures. Capture identity and engine truth states
+remain unchanged. This is a scoped profile, not whole-page accessibility
+certification. See the [contrast contract](../visual-oracle.md#solid-text-contrast-profile)
+and [real reference-app and dashboard proof](../evidence/WEB-402-CONTRAST/summary.md).

@@ -1,0 +1,201 @@
+{
+  "sourceCommit": "fa6547d",
+  "screenshots": [
+    {
+      "file": "before/blank-preview.png",
+      "sha256": "abf5b89aa13650af9019e559dbc0b5462b45b6169b7b802497228ca922a11ba9",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "contrast/baseline/checkpoint-1.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "contrast/overflow/checkpoint-1.png",
+      "sha256": "2b8b9dc541b3f3c0964cfe4120d9c1c19e76ed40cce0387340a22920637710d0",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "contrast/repeat/checkpoint-1.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/01-empty-workspace.png",
+      "sha256": "1fad6042518e2a0aa96b253698991ad3450f4545ac129da56d2fe6f2c6334911",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/02-project-overview.png",
+      "sha256": "b4c4c0b49351f85e46d5da4b541b9b9d7a2bdb5ff61a7c05cd90fe87afd91686",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/03-intent-inventory.png",
+      "sha256": "6a74e6b6fa47045bd832992f51904e8d577b2b0c0cd0865920d61788f56a7e6a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/04-visual-comparison.png",
+      "sha256": "55962d707fc24d20fe81dd457f7390673a8c4d82e144b5420f24ad32ce55bb0b",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/05-schedule.png",
+      "sha256": "9dcebc6ae128f1ced35f62c6ec825ae9a8e2018c813d9b124dd9e0854305e9fb",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/06-administration.png",
+      "sha256": "7ba3730cfe1a29836200974ef649b41854758432e58e184021bf472a14192976",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/07-mobile-overview.png",
+      "sha256": "4b0fb39ae7037fb98be5780b411674617ed76c69ca176fbb5f3da748db991373",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/08-signed-out.png",
+      "sha256": "35b15bc012b5512e0982d40d7dc5eed5128b295fc565c9e9236e6c77a21554da",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/09-frontend-declarations.png",
+      "sha256": "e0bdd108cdd29fce9c88556f6a44e1aa7c3799601f70a14b5f8b09a71d328b6b",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/10-measurement-report.png",
+      "sha256": "5ef8ba81e04b678807b4f213d677695e1050525e48a88135ec64f8065e68b908",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/10-mobile-declarations.png",
+      "sha256": "7ec00fbd36fbf8d57667ff626b748295e7d9f65a9c25288270c4a3847e9ec18a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/11-guided-settings.png",
+      "sha256": "6f2208718eec7d0193d74ba39573bb78bcf6a6cdf35efc4fa12e1e488759e3db",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/12-mobile-guided-settings.png",
+      "sha256": "cb71bf6bb44c45e770e2d344b7b39efabf2254eeb63dadb21c7778adf2f47169",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/13-mobile-navigation.png",
+      "sha256": "efd76d372131e5d66dc073be63b685a3669aac8431e15ea460c05876531ea734",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/13-run-history-unavailable.png",
+      "sha256": "fb2991502872374c3c306c05b1c88a06448fbd9a7aa4f5cce9d6ec148c671916",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/dark/14-mobile-measurement-region.png",
+      "sha256": "3e7cf720b6bff8c4ac2298ddb6de754ae45afd522156c577724733ed63671b16",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/01-empty-workspace.png",
+      "sha256": "01d646e29e2f465c6c8516deaae86f1ac2a01a63c6af44cc92550ef3f0891a33",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/02-project-overview.png",
+      "sha256": "99f6a78d6cfe6465cdd0a50b6be347f2c7dec5fe33f276c54e81339c642ed0c3",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/03-intent-inventory.png",
+      "sha256": "35ce9f071f4b0be259feaa4ec67eeb8a100881a07218f09dedbf0796680b2b2c",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/04-visual-comparison.png",
+      "sha256": "0536905a152adf5b1fe5112cfcfb65af48ed217923912309a2484c18114e202c",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/05-schedule.png",
+      "sha256": "96d35a3f44a0ffbfa23b1e3d307069560ca88b331196367232bb0d9d0c71e21d",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/06-administration.png",
+      "sha256": "11baea064d7bbe94512b15eab85714fab004dac196f3d04f2988973334bd107e",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/07-mobile-overview.png",
+      "sha256": "600c7d656a5a931953969fa7ef9cf4fb3e2fc70f8f490d58be1c1d4f8e6777a5",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/08-signed-out.png",
+      "sha256": "062fec840945bac74fcc6bbf757eb1b378b0d6acf4507907f883f6e9ec7fd5fa",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/09-frontend-declarations.png",
+      "sha256": "76379fea1d24016dde5b7555113d25b7434b914986b7dad2e79c3c27eb8ccbf8",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/10-measurement-report.png",
+      "sha256": "a4efa9752c788eac605135a221f3c640d5498d7aaa5d4684263327b038c30bbb",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/10-mobile-declarations.png",
+      "sha256": "e7f6811f62b3153c9e7dc39d0b31b2e662819f64cd4fbbf4483b2a7e6962ed39",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/11-guided-settings.png",
+      "sha256": "b4803e7bd5a038f06c9f433eb98dd443885b2444f2d71190e44b9fcf35586ecd",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/12-mobile-guided-settings.png",
+      "sha256": "30893b77d0bd31f2596e0eed694b2a3cba183840763f6cfb032689d6b040ca6a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/13-mobile-navigation.png",
+      "sha256": "bfdaf9cc5f3d1c4159359d06661ad2d80124ac95415583a394eb6f8464f6549a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/13-run-history-unavailable.png",
+      "sha256": "12efff4778c2d931191810b76778ac261b573893c07c519c2608c0e69cff7ac3",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "dashboard/light/14-mobile-measurement-region.png",
+      "sha256": "49f910cac283c3ca4dc5e77a7e46c836780db665d5adfed5507fbda09f18f57d",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "inspector/01-failed-contrast.png",
+      "sha256": "b8edcf837b61b966bea6306ea092eaa2c138bdb67fa21e95c3e4a787115a7af6",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "inspector/02-mobile-failed-contrast.png",
+      "sha256": "0c60047457dbd047349afe61f422db7c5c6b3000dc001e67c5667438a782a1d7",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "inspector/03-contrast-ratio.png",
+      "sha256": "a25935efaee49e741a8c3d86048281004d59d704c3cfe36148e3a4864b241a0b",
+      "humanInspection": "not performed"
+    }
+  ],
+  "agentInspection": "contact sheets and selected full images; human inspection not performed"
+}
