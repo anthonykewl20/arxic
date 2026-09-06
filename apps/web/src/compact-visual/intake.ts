@@ -3,6 +3,7 @@ import { appendFile } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { boundedRead, validateCase } from './evidence';
+import { freeReserveOk } from './retention';
 
 /**
  * Bounded analysis intake (spec §13): one active comparison, at most four
@@ -25,7 +26,13 @@ export type IntakeJob = {
   submittedAt: number;
 };
 export type SubmitRejection =
-  'backpressure' | 'invalid-case' | 'unsafe-path' | 'file-bound' | 'journal-write-failed';
+  | 'backpressure'
+  | 'invalid-case'
+  | 'unsafe-path'
+  | 'file-bound'
+  | 'journal-write-failed'
+  | 'disk-reserve-breach'
+  | 'disk-reserve-unavailable';
 export type SubmitResult =
   { accepted: true; id: string } | { accepted: false; reason: SubmitRejection; id: null };
 
@@ -120,6 +127,8 @@ export function loadJournal(path: string): JournalState {
   return { history, interrupted, tornTailEntries };
 }
 
+type StatfsLike = (path: string) => Promise<{ bsize: number; bavail: number }>;
+
 export function createIntakeQueue(options: {
   root: string;
   execute: (job: IntakeJob) => Promise<unknown>;
@@ -127,6 +136,8 @@ export function createIntakeQueue(options: {
   maxQueued?: number;
   deadlineMs?: number;
   sleep?: (ms: number) => Promise<void>;
+  /** Spec §13: refuse admission before the spool free reserve is breached. */
+  freeReserve?: { path: string; minFreeBytes: number; statfs?: StatfsLike };
 }) {
   const maxQueued = options.maxQueued ?? 4;
   const deadlineMs = options.deadlineMs ?? 10_000;
@@ -243,6 +254,14 @@ export function createIntakeQueue(options: {
       // terminal returns its original id instead of double-admitting.
       const pending = [active, ...queued].find((job) => job?.casePath === request.casePath);
       if (pending) return { accepted: true, id: pending.id };
+      if (options.freeReserve) {
+        const reserve = await freeReserveOk(
+          options.freeReserve.path,
+          options.freeReserve.minFreeBytes,
+          options.freeReserve.statfs as Parameters<typeof freeReserveOk>[2],
+        );
+        if (!reserve.ok) return { accepted: false, reason: reserve.reason!, id: null };
+      }
       if (queued.length >= maxQueued) return { accepted: false, reason: 'backpressure', id: null };
       try {
         await admit(request.casePath);

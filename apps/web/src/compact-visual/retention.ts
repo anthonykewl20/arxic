@@ -1,4 +1,4 @@
-import { readdir, rm, stat } from 'node:fs/promises';
+import { readdir, rm, stat, statfs } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 /**
@@ -60,4 +60,36 @@ export async function enforceRetention(
     pinnedBytes,
     reason: total > options.byteCap ? 'pinned-exceeds-cap' : null,
   };
+}
+
+export type FreeReserveResult = {
+  ok: boolean;
+  availableBytes: number;
+  minFreeBytes: number;
+  reason: 'disk-reserve-breach' | 'disk-reserve-unavailable' | null;
+};
+
+/**
+ * Free-reserve gate (spec §13: "Refuse admission before breaching free
+ * reserve"): the spool filesystem must keep `minFreeBytes` available to
+ * unprivileged writers (bavail × bsize). A filesystem that cannot be stat'd
+ * fails closed — admission is refused, never guessed open.
+ */
+export async function freeReserveOk(
+  path: string,
+  minFreeBytes: number,
+  statfsImpl: typeof statfs = statfs,
+): Promise<FreeReserveResult> {
+  try {
+    const stats = await statfsImpl(path);
+    const availableBytes = stats.bavail * stats.bsize;
+    return {
+      ok: availableBytes >= minFreeBytes,
+      availableBytes,
+      minFreeBytes,
+      reason: availableBytes >= minFreeBytes ? null : 'disk-reserve-breach',
+    };
+  } catch {
+    return { ok: false, availableBytes: 0, minFreeBytes, reason: 'disk-reserve-unavailable' };
+  }
 }

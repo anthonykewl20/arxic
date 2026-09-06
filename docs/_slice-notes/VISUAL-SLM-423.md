@@ -2,6 +2,12 @@
 
 Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked; analysis-envelope resource qualification green with explicit scope; gated activation lifecycle proven on real trained artifacts)
 
+## Increment 9 — 2026-09-06/07: free-reserve admission coupling (spec §13, refs #423)
+
+- `retention.freeReserveOk(path, minFreeBytes, statfs?)`: bavail×bsize against the configured reserve; a filesystem that cannot be stat'd fails closed (`disk-reserve-unavailable`), never guessed open.
+- `createIntakeQueue` accepts `freeReserve` and refuses admission with `disk-reserve-breach` **before** a queue slot is consumed (spec §13: "Refuse admission before breaching free reserve"); backpressure and all prior sad paths unchanged.
+- Red-first (`free-reserve.test.ts`): breach refuses without consuming a slot, healthy reserve admits, stat failure fails closed, and a real-filesystem smoke asserts the primitive measures actual availability both ways.
+
 ## Increment 8 — 2026-09-06/07: cross-split duplicate audit (spec §9, refs #423)
 
 - `scripts/visual-slm/duplicate_audit.py` + red-first unit tests (wired into `toolchain.test.ts`): identical image hashes under more than one family fail the audit (leakage); a family seen in two splits fails (split integrity); within-family repeats are counted, not penalized; missing/malformed manifests fail closed.
