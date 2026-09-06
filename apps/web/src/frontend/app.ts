@@ -174,95 +174,97 @@ async function refresh() {
   if (signingOut) return;
   const epoch = sessionEpoch;
   const sequence = ++refreshSequence;
-  const snapshot = await api('/state');
-  if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
-  if (section === 'runs') {
-    const params = new URLSearchParams({
-      query: runSearch,
-      mode: runModeFilter,
-      status: runStatusFilter,
-      project: selectedProject,
-      offset: String(runOffset),
-      limit: '25',
-    });
-    snapshot.runHistory = await api(`/runs?${params}`);
-    if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
-    runOffset = snapshot.runHistory.offset;
-    for (const run of snapshot.runHistory.runs) {
-      if (!snapshot.runs.some((item: { id: string }) => item.id === run.id))
-        snapshot.runs.push(run);
-    }
-  }
-  const desired: string[] =
-    section === 'intents'
-      ? snapshot.projects
-          .flatMap((item: { id: string }) =>
-            ['hasInventory', 'hasLedger'].map(
-              (key) =>
-                snapshot.runs.find(
-                  (run: Record<string, unknown>) => run.projectId === item.id && run[key],
-                )?.id,
-            ),
-          )
-          .filter(Boolean)
-      : section === 'runs' && selectedRun
-        ? [selectedRun]
-        : [];
-  await Promise.all(
-    desired.map(async (id) => {
-      let detail;
-      try {
-        detail = await api(`/runs/${id}`);
-      } catch (error) {
-        if ((error as { status?: number }).status === 404) {
-          if (selectedRun === id) selectedRun = '';
-          notice('This run is no longer available. Browse the remaining run history.');
-          return;
-        }
-        throw error;
-      }
-      const index = snapshot.runs.findIndex((run: { id: string }) => run.id === id);
-      if (index >= 0) snapshot.runs[index] = detail;
-      else snapshot.runs.push(detail);
-    }),
-  );
-  if (section === 'campaigns' && selectedCampaign) {
-    const detail = await api(`/campaigns/${selectedCampaign}`);
-    const index = snapshot.campaigns.findIndex(
-      (item: { id: string }) => item.id === selectedCampaign,
-    );
-    if (index >= 0) snapshot.campaigns[index] = detail;
-    else snapshot.campaigns.push(detail);
-  }
-  if (epoch !== sessionEpoch || sequence !== refreshSequence || signingOut) return;
-  state = snapshot;
-  updateModelCatalogs(state.modelConnections ?? []);
-  $('#app').hidden = false;
-  $('#login').hidden = true;
-  $('#version').textContent = state.versionLabel;
-  if (state.queueError) notice(state.queueError);
-  if (agentDialog().open) renderAgentWizard();
-  if (
-    !projectDialog().open &&
-    !document.activeElement?.closest('#declaration-search, #run-search, [data-review-form]')
-  )
-    render();
-}
-async function refreshRunHistory() {
-  const epoch = sessionEpoch;
-  state.runHistoryLoading = true;
-  state.runHistoryError = '';
-  render();
   try {
-    await refresh();
+    const snapshot = await api('/state');
+    if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
+    if (section === 'runs') {
+      const params = new URLSearchParams({
+        query: runSearch,
+        mode: runModeFilter,
+        status: runStatusFilter,
+        project: selectedProject,
+        offset: String(runOffset),
+        limit: '25',
+      });
+      snapshot.runHistory = await api(`/runs?${params}`);
+      if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
+      runOffset = snapshot.runHistory.offset;
+      for (const run of snapshot.runHistory.runs) {
+        if (!snapshot.runs.some((item: { id: string }) => item.id === run.id))
+          snapshot.runs.push(run);
+      }
+    }
+    const desired: string[] =
+      section === 'intents'
+        ? snapshot.projects
+            .flatMap((item: { id: string }) =>
+              ['hasInventory', 'hasLedger'].map(
+                (key) =>
+                  snapshot.runs.find(
+                    (run: Record<string, unknown>) => run.projectId === item.id && run[key],
+                  )?.id,
+              ),
+            )
+            .filter(Boolean)
+        : section === 'runs' && selectedRun
+          ? [selectedRun]
+          : [];
+    await Promise.all(
+      desired.map(async (id) => {
+        let detail;
+        try {
+          detail = await api(`/runs/${id}`);
+        } catch (error) {
+          if ((error as { status?: number }).status === 404) {
+            if (selectedRun === id) selectedRun = '';
+            notice('This run is no longer available. Browse the remaining run history.');
+            return;
+          }
+          throw error;
+        }
+        const index = snapshot.runs.findIndex((run: { id: string }) => run.id === id);
+        if (index >= 0) snapshot.runs[index] = detail;
+        else snapshot.runs.push(detail);
+      }),
+    );
+    if (section === 'campaigns' && selectedCampaign) {
+      const detail = await api(`/campaigns/${selectedCampaign}`);
+      const index = snapshot.campaigns.findIndex(
+        (item: { id: string }) => item.id === selectedCampaign,
+      );
+      if (index >= 0) snapshot.campaigns[index] = detail;
+      else snapshot.campaigns.push(detail);
+    }
+    if (epoch !== sessionEpoch || sequence !== refreshSequence || signingOut) return;
+    state = snapshot;
+    updateModelCatalogs(state.modelConnections ?? []);
+    $('#app').hidden = false;
+    $('#login').hidden = true;
+    $('#version').textContent = state.versionLabel;
+    if (state.queueError) notice(state.queueError);
+    if (agentDialog().open) renderAgentWizard();
+    if (
+      !projectDialog().open &&
+      !document.activeElement?.closest('#declaration-search, #run-search, [data-review-form]')
+    )
+      render();
   } catch (error) {
-    if (epoch !== sessionEpoch || signingOut) throw error;
-    state.runHistoryLoading = false;
-    state.runHistoryError = 'Run history could not be loaded. Retry or check your connection.';
-    render();
+    if (epoch !== sessionEpoch || sequence !== refreshSequence || signingOut) return;
+    if (section === 'runs') {
+      state.runHistoryLoading = false;
+      state.runHistoryError = 'Run history could not be loaded. Retry or check your connection.';
+      render();
+    }
     throw error;
   }
 }
+async function refreshRunHistory() {
+  state.runHistoryLoading = true;
+  state.runHistoryError = '';
+  render();
+  await refresh();
+}
+
 function project(id: string) {
   return state.projects.find((item: { id: string }) => item.id === id);
 }

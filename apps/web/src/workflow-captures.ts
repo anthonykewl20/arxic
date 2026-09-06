@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 import { writeFile } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
 import {
@@ -21,7 +21,6 @@ export type WorkflowCapture = {
   mode: 'approved-region' | 'masked-page';
   capturedAt: string;
 };
-const hash = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
 function invalid(): never {
   throw new HttpError(409, 'Workflow capture integrity check failed');
 }
@@ -31,7 +30,7 @@ export async function readWorkflowArtifact(path: string, expectedHash: string): 
     maximumBytes: path.endsWith('.png') ? 16 * 1024 * 1024 : 64 * 1024,
     onFailure: invalid,
   });
-  if (hash(bytes) !== expectedHash) invalid();
+  if (sha256(bytes) !== expectedHash) invalid();
   return bytes;
 }
 
