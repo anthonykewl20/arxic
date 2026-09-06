@@ -64,3 +64,5 @@ Post-click exploration waits within the action budget for relevant document/fetc
 requests and a stable URL/accessibility observation. A pending action fails closed;
 a committed navigation retires fetch bodies belonging to the previous document.
 This bounded settling period does not prove that an application has no later work.
+
+Exploration and generated replays share the bounded post-action settling service. Its package-owned constant JavaScript source is compiled once for in-process use and emitted unchanged into portable replay runtime code. Caller/page data never supplies executable source. A real CLI-bundler test checks byte identity across source and minified builds; late/hanging HTTP responses exercise completion and timeout behavior.

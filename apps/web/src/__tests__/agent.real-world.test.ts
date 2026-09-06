@@ -1,3 +1,5 @@
+import { retainResetProof } from './reset-proof';
+import { resetDiagnostic } from './reset-diagnostic';
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -46,7 +48,22 @@ it.each([
     let campaignRowIds: string[] = [];
     const requestedBatches: string[][] = [];
     const requestedRows: string[] = [];
-    const target = await bootFixtureApp(root, referenceAuthApp, 'web-agent-reference');
+    const diagnostic =
+      mode === 'selected-reset' && mailpit ? await resetDiagnostic(mailpit.api) : undefined;
+    const target = await bootFixtureApp(
+      root,
+      diagnostic
+        ? {
+            ...referenceAuthApp,
+            start: (opts) => {
+              diagnostic.setUpstream(opts.origin);
+              return referenceAuthApp.start({ ...opts, origin: diagnostic.origin });
+            },
+          }
+        : referenceAuthApp,
+      'web-agent-reference',
+    );
+    if (diagnostic) target.origin = diagnostic.origin;
     const repo = await makeRepository('reference-auth-app');
     const state = await mkdtemp(join(tmpdir(), 'web-agent-state-'));
     let requests = 0;
@@ -310,11 +327,42 @@ it.each([
           ((await (await fetch(mailpit.api + '/api/v1/messages')).json()) as { total: number })
             .total,
         ).toBeGreaterThanOrEqual(3);
+      if (diagnostic) {
+        const events = await diagnostic.snapshot();
+        expect(events.filter((event) => event.path === '/forgot-password')).toEqual([
+          {
+            path: '/forgot-password',
+            submission: 1,
+            status: 200,
+            error: false,
+            accepted: true,
+            total: 1,
+          },
+          {
+            path: '/forgot-password',
+            submission: 2,
+            status: 200,
+            error: false,
+            accepted: true,
+            total: 2,
+          },
+          {
+            path: '/forgot-password',
+            submission: 3,
+            status: 200,
+            error: false,
+            accepted: true,
+            total: 3,
+          },
+        ]);
+      }
+      if (diagnostic) await retainResetProof(state, await diagnostic.snapshot());
       expect(JSON.stringify(result)).not.toContain('web-agent-test-key');
       expect(JSON.stringify(result)).not.toContain('WebAgentTest9!');
       await assertNoCredentials(state);
     } finally {
       await workbench.close();
+      await diagnostic?.close();
       await mailpit?.stop();
       vi.unstubAllEnvs();
       model.closeAllConnections();

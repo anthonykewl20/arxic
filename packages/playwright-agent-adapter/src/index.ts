@@ -8,3 +8,5 @@ export * from './protocol';
 
 export const PACKAGE_NAME = '@arxic/playwright-agent-adapter' as const;
 export const PLAYWRIGHT_VERSION = '1.62.1' as const;
+
+export { postActionSettleRuntimeSource } from './post-action-settle';

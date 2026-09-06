@@ -1,3 +1,5 @@
+import { postActionSettleRuntimeSource } from '@arxic/playwright-agent-adapter';
+
 /**
  * Source for the generated fixture-side receipt service. The verifier supplies
  * a fresh nonce and independently validates the resulting JSON after the
@@ -115,6 +117,7 @@ export function transitionReceiptRuntimeSource(): string {
     "  await writeFile(path, `${JSON.stringify(receipt)}\\n`, 'utf8');",
     '}',
     '',
+    postActionSettleRuntimeSource(),
   ].join('\n');
 }
 
