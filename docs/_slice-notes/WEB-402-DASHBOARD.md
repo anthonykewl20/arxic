@@ -1,6 +1,6 @@
 # WEB-402-DASHBOARD — staged doc updates
 
-Issue: #402 · PR: pending · Disposition: observed; wider production requirements remain open.
+Issue: #402 · PR: [#421](https://github.com/anthonykewl20/arxic/pull/421) · Disposition: observed; wider production requirements remain open.
 
 ## 1. SYNC tracker row
 
