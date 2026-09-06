@@ -1,5 +1,6 @@
 import { mkdtemp, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { createServer, request as proxyRequest } from 'node:http';
 import { join, resolve } from 'node:path';
 import { expect, it } from 'vitest';
 import {
@@ -20,6 +21,8 @@ it('recovers failed deletion across server restart without losing real captures 
     port: 0,
     adminToken: 'restart-public-seam-test-token-32-characters',
   };
+  let releaseTarget = () => {};
+  let proxy: ReturnType<typeof createServer> | undefined;
   let app = await startWorkbench(options);
   let cookie = '';
   async function request(path: string, method = 'GET', body?: unknown) {
@@ -93,8 +96,72 @@ it('recovers failed deletion across server restart without losing real captures 
       true,
     );
     expect((await capture(project.id)).result!.captures![0].status).toBe('unchanged');
-  } finally {
+    // Hold the real target at a network boundary so one run is interrupted and another queued.
+    const released = new Promise<void>((done) => {
+      releaseTarget = done;
+    });
+    proxy = createServer((incoming, outgoing) => {
+      void released.then(() => {
+        if (outgoing.destroyed) return;
+        const upstream = proxyRequest(
+          new URL(incoming.url ?? '/', target.origin),
+          {
+            method: incoming.method,
+            headers: { ...incoming.headers, host: new URL(target.origin).host },
+          },
+          (response) => {
+            outgoing.writeHead(response.statusCode ?? 502, response.headers);
+            response.pipe(outgoing);
+          },
+        );
+        upstream.on('error', () => outgoing.destroy());
+        incoming.pipe(upstream);
+      });
+    });
+    await new Promise<void>((done) => proxy!.listen(0, '127.0.0.1', done));
+    const proxyOrigin = `http://127.0.0.1:${(proxy.address() as { port: number }).port}`;
+    const slowProject = await (
+      await request('/api/projects', 'POST', {
+        name: 'Interrupted reference',
+        folder: project.folder,
+        origin: proxyOrigin,
+        captureConsent: true,
+        viewports: [{ width: 800, height: 600 }],
+      })
+    ).json();
+    const interrupted = await (
+      await request(`/api/projects/${slowProject.id}/runs`, 'POST', { mode: 'visual' })
+    ).json();
+    await expect
+      .poll(async () => (await (await request(`/api/runs/${interrupted.id}`)).json()).state)
+      .toBe('running');
+    const queued = await (
+      await request(`/api/projects/${project.id}/runs`, 'POST', { mode: 'visual' })
+    ).json();
+    expect(queued.state).toBe('queued');
     await app.close();
+    releaseTarget();
+    app = await startWorkbench(options);
+    await login();
+    expect(await (await request(`/api/runs/${interrupted.id}`)).json()).toMatchObject({
+      state: 'blocked',
+      result: { outcome: 'blocked' },
+    });
+    await expect
+      .poll(async () => (await (await request(`/api/runs/${queued.id}`)).json()).state, {
+        timeout: 30_000,
+      })
+      .toBe('completed');
+    expect((await (await request(`/api/runs/${queued.id}`)).json()).result.captures[0].status).toBe(
+      'unchanged',
+    );
+  } finally {
+    releaseTarget();
+    await app.close();
+    if (proxy) {
+      proxy.closeAllConnections();
+      await new Promise<void>((done) => proxy!.close(() => done()));
+    }
     await stopApp(target.child);
     await rm(directory, { recursive: true, force: true });
     await rm(target.runtimeDirectory, { recursive: true, force: true });
