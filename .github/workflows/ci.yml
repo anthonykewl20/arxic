@@ -225,7 +225,7 @@ jobs:
   # Packaging/compliance gates: packed-CLI smoke, license allowlist, SBOM.
   package:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
 
@@ -250,7 +250,7 @@ jobs:
       - name: Install Chromium system dependencies for packed replay
         run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install-deps chromium
 
-      - name: Packed human-flow release regression
+      - name: Packed CLI and dashboard release regression
         run: node scripts/human-flow-e2e.mjs --evidence-dir artifacts/human-flow
 
       - name: Upload sanitized human-flow evidence

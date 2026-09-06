@@ -7,7 +7,7 @@ const packageJson = JSON.parse(
 ) as { version: string };
 
 export default defineConfig({
-  entry: ['src/cli.ts'],
+  entry: { cli: 'src/entry.ts', 'web-job': '../web/src/job.ts' },
   format: ['esm'],
   platform: 'node',
   target: 'node22',
@@ -19,10 +19,8 @@ export default defineConfig({
   banner: {
     js: "#!/usr/bin/env node\nimport { createRequire as __arxicCreateRequire } from 'node:module'; const require = __arxicCreateRequire(import.meta.url); const __dirname = import.meta.dirname; const __filename = import.meta.filename;",
   },
-  footer: {
-    js: 'runCli(process.argv.slice(2)).then((result) => { process.exitCode = result.exitCode; });',
-  },
   define: {
+    __ARXIC_PACKAGED_WEB__: 'true',
     'process.env.ARXIC_VERSION': JSON.stringify(packageJson.version),
   },
   noExternal: [/^@arxic\//],

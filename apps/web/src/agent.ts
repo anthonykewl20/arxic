@@ -1,3 +1,4 @@
+import { rulepacksDirectory } from './runtime';
 import { collectWorkflowCaptures } from './workflow-captures';
 import { readFile, realpath, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -72,7 +73,7 @@ export async function runAgent(run: Run, directory: string): Promise<RunResult> 
     runId: run.id,
     executor: new LocalRunExecutor(),
     cwd: run.project.folder,
-    rulepacksDir: resolve(import.meta.dirname, '../../../rulepacks'),
+    rulepacksDir: rulepacksDirectory,
   });
   let engineRun: unknown;
   let ledger: unknown;

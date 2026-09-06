@@ -1,6 +1,6 @@
 import { fork, execFile, type ChildProcess } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
+import { jobFile, packagedWeb } from './runtime';
 import { dirname, join } from 'node:path';
 
 export async function stopProcess(child: ChildProcess): Promise<void> {
@@ -31,8 +31,8 @@ export function launchJob(input: string, result: string, overrides?: NodeJS.Proc
       else env[key] = value;
     }
   }
-  const child = fork(fileURLToPath(new URL('./job.ts', import.meta.url)), [input, result], {
-    execArgv: ['--import', require.resolve('tsx')],
+  const child = fork(jobFile, [input, result], {
+    execArgv: packagedWeb ? [] : ['--import', require.resolve('tsx')],
     detached: process.platform !== 'win32',
     stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
     env,

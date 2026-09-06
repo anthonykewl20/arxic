@@ -16,7 +16,7 @@ import {
   stopApp,
 } from '../../../../packages/real-world-testkit/src';
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
-import { startWorkbench } from '../server';
+import { startWorkbench } from './workbench-runtime';
 
 it('lets an administrator select and verify two real workflows with honest campaign coverage', async () => {
   const root = resolve(import.meta.dirname, '../../../..');

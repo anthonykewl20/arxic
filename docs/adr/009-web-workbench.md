@@ -353,3 +353,22 @@ startup resumes authorized intents before any jobs execute. A later policy disab
 stops new selection but does not revoke already authorized deletion. The dashboard
 previews bounded candidate details with complete counts and explains this recovery
 boundary. Disk quotas, SQLite compaction and campaign removal are outside this slice.
+
+## 2026-09-07: Installed web distribution (refs #435)
+
+The CLI package now exposes `arxic web`. Packaging compiles a separate web-job
+entrypoint and builds the React/Tailwind frontend once. Runtime startup reads a
+bounded manifest and checks hashes for the index, JS, CSS and compiled job before
+opening the state store or listener. The manifest detects incomplete/corrupt local
+installation; it is not a signed supply-chain attestation. Source execution retains
+its Vite builder behind a source-only dynamic import. Build-time runtime selection
+cannot be changed through an environment variable.
+
+The existing source dashboard E2E assertions can launch the installed public command
+outside the repository. The packaging gate reuses its clean install for startup,
+source discovery, visual baseline/element inspection, responsive navigation, real
+reference-app campaigns and restart/deletion-recovery assertions. Model proposals
+remain boundary stubs in campaign proof; source analysis, browser actions, compiler,
+verifier and Mailpit are real. Safe named screenshots and sanitized timelines are
+retained; no raw trace archive is exported. Release publication and human screenshot
+inspection remain separate gates.
