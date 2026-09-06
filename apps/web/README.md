@@ -94,3 +94,7 @@ explicit deletion consent, bounded idle cleanup and persisted recovery outcomes.
 Manual, automatic and restart deletion share reference protections. Policy/actions
 live in `retention.ts`; `retention-store.ts` supplies shared SQLite projections.
 See [retention setup and limits](../../docs/web-workbench.md#schedules-and-history).
+
+Capture results label the comparison at capture time separately from current
+baseline approval. Historical image references and results remain unchanged after
+approval or replacement; unavailable baseline/difference images explain why.

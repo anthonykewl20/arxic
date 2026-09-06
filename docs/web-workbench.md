@@ -90,6 +90,14 @@ a changed environment requires its own reviewed baseline. The pixel comparator
 uses Pixelmatch's 0.1 per-pixel threshold and reports every differing pixel beyond
 that threshold. It does not silently accept a percentage of changed pixels.
 
+The capture panel distinguishes **Comparison at capture time** from **current
+approved baseline**. **Baseline used for this run** shows the historical image
+used in that comparison. When no baseline existed, the panel says so and explains
+why there is no difference image. Approving or replacing a baseline changes future
+comparisons; it does not rewrite a prior run, invent a self-comparison, or change
+its retained pixels. A previously approved capture can be approved again after
+replacement, but only the current selection carries the approval badge.
+
 The read-only visual lane blocks cross-origin assets, non-GET/HEAD requests,
 service workers and WebSockets. Apps that need these may render incompletely;
 blocked requests are reported. Use an isolated test deployment. This lane does

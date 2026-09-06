@@ -144,3 +144,5 @@ parents, and inspect bounds and overlapping checks. Invalid or image-unbound
 evidence remains unavailable; numeric boxes are not semantic replay locators.
 
 The web dashboard also supports opt-in [evidence retention](docs/web-workbench.md#schedules-and-history): preview expired runs, preserve baseline/review/campaign references, and recover interrupted cleanup. It is disabled by default.
+
+Visual results distinguish the baseline used for a historical run from the currently approved baseline, preserving prior comparison evidence after approval changes.
