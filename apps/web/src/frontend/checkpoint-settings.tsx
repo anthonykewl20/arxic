@@ -73,7 +73,7 @@ export function CheckpointSettings({ initial }: { initial?: CheckpointCapture })
   );
   const hint = useId();
   return (
-    <div className="panel">
+    <div className="checkpoint-settings">
       <Checkbox
         name="checkpointEnabled"
         checked={enabled}

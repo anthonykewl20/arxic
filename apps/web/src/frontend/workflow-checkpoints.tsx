@@ -8,7 +8,7 @@ function CheckpointImage({ runId, capture }: { runId: string; capture: WorkflowC
   const [retry, setRetry] = useState(0);
   const url = `/api/runs/${runId}/artifacts/${encodeURIComponent(capture.file)}`;
   return (
-    <article className="capture">
+    <article className="checkpoint-card">
       <h4>
         {capture.id} · {capture.width} × {capture.height}
       </h4>
@@ -74,7 +74,7 @@ export function WorkflowCheckpoints({ run }: { run: Run }) {
   const gap = run.result?.workflowCaptureGap;
   if (!captures.length && !gap) return null;
   return (
-    <section aria-label="Workflow checkpoints" className="panel">
+    <section aria-label="Workflow checkpoints" className="panel workflow-checkpoints">
       <h3>Workflow checkpoints</h3>
       <p>
         Captured during verifier replays. These show workflow states; visual baseline comparison and

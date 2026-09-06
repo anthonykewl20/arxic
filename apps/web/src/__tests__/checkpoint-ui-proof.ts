@@ -46,6 +46,9 @@ export async function checkpointUiProof(stateDirectory: string, root: string, ru
         await page.locator(`[data-open-run="${run.id}"]`).click();
         const gallery = page.getByRole('region', { name: 'Workflow checkpoints' });
         await gallery.waitFor();
+        expect(
+          await gallery.evaluate((element) => parseFloat(getComputedStyle(element).paddingLeft)),
+        ).toBeGreaterThanOrEqual(16);
         await expect
           .poll(() =>
             gallery

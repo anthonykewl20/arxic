@@ -1784,3 +1784,36 @@ p a,
 .checkpoint-hash {
   overflow-wrap: anywhere;
 }
+.workflow-checkpoints,
+.checkpoint-settings {
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+.workflow-checkpoints {
+  margin-top: var(--space-4);
+  scroll-margin-top: calc(var(--topbar-height) + var(--space-4));
+}
+.workflow-checkpoints > h3 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+.checkpoint-card {
+  min-width: 0;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.checkpoint-card h4 {
+  font-weight: 600;
+}
+.checkpoint-card a {
+  color: var(--primary);
+  text-underline-offset: 3px;
+}
+.checkpoint-image {
+  display: block;
+}
