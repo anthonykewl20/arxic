@@ -29,7 +29,7 @@ unchanged at 0.0.200.
 ## 5. Evidence pointers
 
 Real Chromium dashboard journeys use actual Chromium/Firefox/WebKit captures from
-the reference application. Retained proof and final gates are recorded before merge.
+the reference application. [Retained proof](../evidence/WEB-441-GALLERY/summary.md) contains 22 agent-viewed masked PNGs, two hash-checked timelines and numeric measurements at clean commit 5341fea. Final proof passed 4 tests in 108.16 s; 22 audits have zero violations/incomplete checks/overflow. Current-head CI is recorded in the PR before merge.
 No human release inspection, paid-model quality or full heuristic certification.
 
 ## 6. Sad paths proved
