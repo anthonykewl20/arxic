@@ -657,6 +657,11 @@ keyboard navigation, provider refresh failures, review consent, baseline history
 retention and campaign controls. It uses real reference apps and browser engines;
 provider-boundary stubs do not establish paid-model quality.
 
+Static audits wait for fonts and fixed animation-frame boundaries; they never
+wait for the finding predicate to pass. A deliberately widened real dashboard
+stylesheet guards against hiding persistent overflow. Incomplete accessibility
+checks are marked unverified in timelines.
+
 Named masked screenshots and sanitized timelines record actual browser versions
 in adjacent provenance. Accessibility checks retain incomplete results. Desktop
 WebKit automation is not real-device Safari proof, and automated checks do not

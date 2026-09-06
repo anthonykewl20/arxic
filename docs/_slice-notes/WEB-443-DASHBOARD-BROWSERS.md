@@ -80,3 +80,21 @@ viewport before the unchanged pixel-ink check; no crop clamping is used.
 The fixed folder/measurement journey passed Firefox light in 63.16s (one focused
 case; dark excluded by the test-name filter). Named source-loading/source-ready
 proof points are included in the final evidence run. Web typecheck passes.
+
+Final Firefox proof at a3ef5fa passed both main journeys and the light gallery but
+reported a 42px document overflow at dark mobile pagination (3/4 cases passed,
+196.03s). The visible screenshot fit; the root cause of this transient was not
+established. Subsequent two-theme gallery diagnostics passed in 113.42s, repeated
+keyboard pagination in 124.26s, and repeated desktop/mobile resizing in 128.70s
+and 126.01s. Those passing reruns alone are not claimed as a CSS fix.
+
+Static audits now use a fixed font/readiness and animation-frame boundary before
+and after Axe, and pagination waits for the rendered page indicator. They never
+wait for an overflow predicate to pass. Bounded tag/class/box diagnostics are
+retained for future failures. A red-first real-page stylesheet guard proves a
+1000px login form still returns a failed verdict with 704px overflow after
+settling (two element/guard cases passed in 8.73s). The expanded installed contract
+now has 17 journeys plus this negative detector guard: 18 tests / 12 files.
+Incomplete Axe results are explicitly unverified in timelines; hard failures
+still take precedence. Transient-frame/motion causality is a remaining coverage
+boundary, not a blanket production-readiness claim.

@@ -145,6 +145,7 @@ it.each(['light', 'dark'] as const)(
       await resizeDashboard(page, { width: 320, height: 1000 });
       await page.getByRole('button', { name: 'Previous captures', exact: true }).focus();
       await page.keyboard.press('Enter');
+      await page.getByText('Page 1 of 2', { exact: false }).waitFor();
       const focusedHeading = page.getByRole('heading', { name: 'Captured pages', exact: true });
       const headingBox = (await focusedHeading.boundingBox())!;
       const stickyHeader = (await page.locator('.sidebar').boundingBox())!;
@@ -153,6 +154,21 @@ it.each(['light', 'dark'] as const)(
         '02-mobile-page',
         'Mobile keyboard pagination keeps its focused heading below the sticky header',
       );
+      for (let cycle = 1; cycle <= 3; cycle++) {
+        for (const [control, pageNumber] of [
+          ['Next captures', 2],
+          ['Previous captures', 1],
+        ] as const) {
+          await resizeDashboard(page, { width: pageNumber === 2 ? 1440 : 320, height: 1000 });
+          await page.getByRole('button', { name: control, exact: true }).focus();
+          await page.keyboard.press('Enter');
+          await page.getByText(`Page ${pageNumber} of 2`, { exact: false }).waitFor();
+          await audit(
+            `02-mobile-repeat-${cycle}-${pageNumber}`,
+            'Repeated mobile keyboard pagination preserves reflow',
+          );
+        }
+      }
       await resizeDashboard(page, { width: 1440, height: 1000 });
 
       await page.getByLabel('Capture browser', { exact: true }).selectOption('webkit');

@@ -19,6 +19,14 @@ export async function resizeDashboard(page: Page, size: { width: number; height:
     ({ width, height }) => innerWidth === width && innerHeight === height,
     size,
   );
+  await settleDashboard(page);
+}
+
+/** Fixed readiness boundary; never wait for a finding predicate to become passing. */
+export async function settleDashboard(page: Page) {
+  await page.waitForFunction(() => document.fonts.status === 'loaded', undefined, {
+    timeout: 5000,
+  });
   await page.evaluate(
     () =>
       new Promise<void>((resolve) =>

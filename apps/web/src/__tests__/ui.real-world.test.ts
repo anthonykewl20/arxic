@@ -2,7 +2,7 @@ import { inspectCapturedElements } from './element-inspector-proof';
 import { inspectLegacyElementKinds } from './element-kind-legacy-proof';
 import sharp from 'sharp';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
@@ -135,10 +135,6 @@ it.each(['light', 'dark'] as const)(
       );
       await page.locator('#new-project').click();
       await foldersHeld;
-      await capture(
-        '16-source-loading',
-        'Folder discovery shows a stable loading area before its real response',
-      );
       await page.getByLabel('Project folder', { exact: true }).fill(tmpdir());
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
       await expect.poll(() => page.locator('#project-error').textContent()).toContain('outside');
@@ -146,6 +142,10 @@ it.each(['light', 'dark'] as const)(
       const continueBefore = (await page
         .getByRole('button', { name: 'Continue', exact: true })
         .boundingBox())!;
+      await capture(
+        '16-source-loading',
+        'Folder discovery shows a stable loading area before its real response',
+      );
       releaseFolders();
       await page.getByText('Loading folders…', { exact: true }).waitFor({ state: 'hidden' });
       const continueAfter = (await page
@@ -159,6 +159,11 @@ it.each(['light', 'dark'] as const)(
         '17-source-ready',
         'Folder results preserve the exact Continue position while editing',
       );
+      if (process.env.ARXIC_WEB_EVIDENCE_DIR)
+        await writeFile(
+          join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme, 'source-layout.json'),
+          JSON.stringify({ before: continueBefore, after: continueAfter }, null, 2),
+        );
       const detectedFolder = page.waitForResponse(
         (response) => new URL(response.url()).pathname === '/api/workspace/detect',
       );
@@ -294,6 +299,19 @@ it.each(['light', 'dark'] as const)(
       const previewBounds = (await page
         .getByRole('img', { name: 'Measured text region in captured viewport' })
         .boundingBox())!;
+      if (process.env.ARXIC_WEB_EVIDENCE_DIR)
+        await writeFile(
+          join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme, 'measurement-layout.json'),
+          JSON.stringify(
+            {
+              previewBounds,
+              viewport: page.viewportSize(),
+              screenshot: '10-measurement-report.png',
+            },
+            null,
+            2,
+          ),
+        );
       const painted = await sharp(
         process.env.ARXIC_WEB_EVIDENCE_DIR
           ? await readFile(
