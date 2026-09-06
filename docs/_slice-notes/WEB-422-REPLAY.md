@@ -36,3 +36,7 @@ Real Next.js + isolated Mailpit + Chromium through discovery/compiler/verifier, 
 | Hanging asynchronous action                    | Bounded failure, no completed observation              | post-action-settle.real-world.test.ts                 |
 | Bundle transform changes function spelling     | Identical canonical runtime bytes                      | post-action-settle-portability.test.ts                |
 | Unsafe or mismatched retained trace/screenshot | Evidence export rejects or excludes artifact           | reset-proof.ts plus existing sanitizer/verifier tests |
+
+The [audit](../evidence/WEB-422-REPLAY/summary.md) retains two clean delayed-reset runs, two masked PNGs and four inspected sanitized timelines. The broad initial run passed 338/339 tests; its existing valid-login Email tautology depended on premature assertions. The rejected-login scenario keeps the exact original tautology expectations, while a new successful-login case rejects the stale marker. No matcher was broadened. Full-repo format after this note/evidence: `All matched files use Prettier code style!`.
+
+The corrected verifier file passes all 15 real-world tests (97.88 s). ADR-004 records the historical test-evidence correction; do not rewrite historical SYNC claims silently when integrating this note.

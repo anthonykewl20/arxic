@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import type { StagedBundle } from '@arxic/contracts';
 import {
   ARXIC_PROBE_INSENSITIVE_ASSERTION,
+  ARXIC_PROBE_HARNESS_UNUSABLE,
   PlaywrightCompiler,
   generateFixture,
   transitionReceiptRuntimeSource,
@@ -710,52 +711,78 @@ describe.sequential('playwright verifier real-world security proof', () => {
       );
     }, 240_000);
 
-    test('blocks a real value-tautology that survives the isolated control state', async () => {
-      if (!running) throw new Error('Reference auth app did not start');
-      const tautologyPersona = {
-        email: 'email-tautology@example.test',
-        password: 'TautologyProbe9!',
-      };
-      const tautologyWorkflow = loginWorkflow(referenceAuthApp, {
-        id: 'authentication.login.sensitivity.value-tautology',
-        title: 'Login value-tautology proof',
-      });
-      // app/login/page.tsx:17 renders the visible Email label unconditionally on /login.
-      tautologyWorkflow.transitions[0]!.assertions[0]!.intent = 'text:Email';
+    test.each(['rejected-login', 'successful-login'] as const)(
+      'rejects ineffective login assertions (%s)',
+      async (mode) => {
+        if (!running) throw new Error('Reference auth app did not start');
+        const tautologyPersona = {
+          email: 'email-tautology@example.test',
+          password: 'TautologyProbe9!',
+        };
+        const tautologyWorkflow = loginWorkflow(referenceAuthApp, {
+          id: 'authentication.login.sensitivity.value-tautology',
+          title: 'Login value-tautology proof',
+        });
+        // Email remains after a rejected login, but disappears after a successful one.
+        // The old valid-login case passed only by asserting before navigation finished.
+        tautologyWorkflow.transitions[0]!.assertions[0]!.intent = 'text:Email';
 
-      const result = await createSensitivityProbeAdapter({
-        parentDirectory: probeParent,
-        env: {
-          ARXIC_INPUT_PERSONA_EMAIL: tautologyPersona.email,
-          ARXIC_INPUT_PERSONA_PASSWORD: tautologyPersona.password,
-        },
-        resetAndSeed: async () => resetAndSeedFixtures(running!.origin, tautologyPersona),
-      })({
-        workflow: tautologyWorkflow,
-        origin: running.origin,
-        runtimeUrl: `${running.origin}${referenceAuthApp.login.loginRoute}`,
-      });
-
-      expect(result).toEqual({
-        killed: false,
-        probed: 2,
-        controlPassed: true,
-        diagnostics: [
-          {
-            code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
-            severity: 'blocked',
-            subject: tautologyWorkflow.id,
-            message:
-              'Assertion "text:Email" remained passing when the transition action was omitted (control-state tautology)',
+        const result = await createSensitivityProbeAdapter({
+          parentDirectory: probeParent,
+          env: {
+            ARXIC_INPUT_PERSONA_EMAIL: tautologyPersona.email,
+            ARXIC_INPUT_PERSONA_PASSWORD:
+              mode === 'rejected-login' ? 'DeliberatelyIncorrect9!' : tautologyPersona.password,
           },
-        ],
-      });
-      expect(result.diagnostics[0]?.message).not.toContain('value mutation');
-      expect(await readdir(probeParent)).toEqual([]);
-      console.info(
-        `Sensitivity value-tautology proof: ${JSON.stringify({ assertion: 'text:Email', controlPassed: result.controlPassed, valueMutationKilled: result.diagnostics.every(({ message }) => !message.includes('value mutation')), omissionMutationSurvived: result.diagnostics.some(({ message }) => message.includes('transition action was omitted')), killed: result.killed, chromium: true })}`,
-      );
-    }, 240_000);
+          resetAndSeed: async () => resetAndSeedFixtures(running!.origin, tautologyPersona),
+        })({
+          workflow: tautologyWorkflow,
+          origin: running.origin,
+          runtimeUrl: `${running.origin}${referenceAuthApp.login.loginRoute}`,
+        });
+
+        if (mode === 'successful-login') {
+          expect(result).toMatchObject({
+            killed: false,
+            probed: 0,
+            controlPassed: false,
+            diagnostics: [
+              {
+                code: ARXIC_PROBE_HARNESS_UNUSABLE,
+                severity: 'blocked',
+                subject: tautologyWorkflow.id,
+              },
+            ],
+          });
+          expect(result.diagnostics).toHaveLength(1);
+          expect(result.diagnostics[0]?.message).toContain(
+            'The unmutated sensitivity control did not pass',
+          );
+          expect(await readdir(probeParent)).toEqual([]);
+          return;
+        }
+        expect(result).toEqual({
+          killed: false,
+          probed: 2,
+          controlPassed: true,
+          diagnostics: [
+            {
+              code: ARXIC_PROBE_INSENSITIVE_ASSERTION,
+              severity: 'blocked',
+              subject: tautologyWorkflow.id,
+              message:
+                'Assertion "text:Email" remained passing when the transition action was omitted (control-state tautology)',
+            },
+          ],
+        });
+        expect(result.diagnostics[0]?.message).not.toContain('value mutation');
+        expect(await readdir(probeParent)).toEqual([]);
+        console.info(
+          `Sensitivity value-tautology proof: ${JSON.stringify({ assertion: 'text:Email', controlPassed: result.controlPassed, valueMutationKilled: result.diagnostics.every(({ message }) => !message.includes('value mutation')), omissionMutationSurvived: result.diagnostics.some(({ message }) => message.includes('transition action was omitted')), killed: result.killed, chromium: true })}`,
+        );
+      },
+      240_000,
+    );
   });
 });
 

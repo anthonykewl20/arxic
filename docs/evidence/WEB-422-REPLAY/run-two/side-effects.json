@@ -1,0 +1,76 @@
+{
+  "profile": "real-nextjs-delayed-first-replay",
+  "delayMs": 800,
+  "events": [
+    {
+      "path": "/__arxic/reset",
+      "status": 204,
+      "error": false,
+      "accepted": false,
+      "total": 0
+    },
+    {
+      "path": "/__arxic/seed",
+      "status": 201,
+      "error": false,
+      "accepted": false,
+      "total": 0
+    },
+    {
+      "path": "/forgot-password",
+      "submission": 1,
+      "status": 200,
+      "error": false,
+      "accepted": true,
+      "total": 1
+    },
+    {
+      "path": "/__arxic/reset",
+      "status": 204,
+      "error": false,
+      "accepted": false,
+      "total": 1
+    },
+    {
+      "path": "/__arxic/seed",
+      "status": 201,
+      "error": false,
+      "accepted": false,
+      "total": 1
+    },
+    {
+      "path": "/forgot-password",
+      "submission": 2,
+      "status": 200,
+      "error": false,
+      "accepted": true,
+      "total": 2
+    },
+    {
+      "path": "/__arxic/reset",
+      "status": 204,
+      "error": false,
+      "accepted": false,
+      "total": 2
+    },
+    {
+      "path": "/__arxic/seed",
+      "status": 201,
+      "error": false,
+      "accepted": false,
+      "total": 2
+    },
+    {
+      "path": "/forgot-password",
+      "submission": 3,
+      "status": 200,
+      "error": false,
+      "accepted": true,
+      "total": 3
+    }
+  ],
+  "screenshots": 1,
+  "timelines": 2,
+  "humanInspection": "not performed",
+  "rawTraceRetained": false
+}
