@@ -3,7 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import sharp from 'sharp';
-import pixelmatch from 'pixelmatch';
+import { comparePixels } from './visual-pixels';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import type { Capture, Project, Run, RunResult } from './types';
 import { collectVisualScene, assessVisualScene } from './visual-oracle';
@@ -449,10 +449,7 @@ export async function compareCapture(
   if (current.info.width !== baseline.info.width || current.info.height !== baseline.info.height)
     throw new Error('Baseline dimensions changed');
   const { width, height } = current.info;
-  const diff = Buffer.alloc(width * height * 4);
-  const changedPixels = pixelmatch(baseline.data, current.data, diff, width, height, {
-    threshold: 0.1,
-  });
+  const { diff, changedPixels } = comparePixels(baseline.data, current.data, width, height);
   await writeFile(
     outputPath,
     await sharp(diff, { raw: { width, height, channels: 4 } })

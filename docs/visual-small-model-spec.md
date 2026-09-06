@@ -1,8 +1,8 @@
 # Arxic compact visual reviewer — specification v0.1
 
-Status: **proposed implementation specification; Codex builds the foundation before any GLM handoff**. Date: 2026-09-06.
+Status: **implementation specification with an experimental subset now built; Codex builds the foundation before any GLM handoff**. Date: 2026-09-06.
 Tracker: [#423](https://github.com/anthonykewl20/arxic/issues/423), related product work [#402](https://github.com/anthonykewl20/arxic/issues/402).
-This is a design specification, not a trained model, deployment claim, accepted ADR, or replacement for the [full visual-auditor contract](./visual-oracle.md).
+This defines the full target; the experimental implementation below is not a deployment claim, accepted ADR, or replacement for the [full visual-auditor contract](./visual-oracle.md).
 
 ## 1. Objective and authority
 
@@ -123,7 +123,7 @@ Use a fixed-feature multilayer perceptron named `arxic-visual-mlp-v1`:
 
 There are **8,486 trainable parameters**: `(96×64+64) + (64×32+32) + (32×6+6)`. Float32 weights require 33,944 bytes before metadata; this arithmetic is not a process-memory benchmark. Activations, decoding, queues, allocator and OS memory must also be measured. No vocabulary, tokenizer, embedding model, autoregressive decoder or KV cache is required.
 
-The primary implementation uses Rust for validated artifact loading and native inference. Training uses pinned Python/NumPy on CPU with explicit backpropagation for this small topology, avoiding a full deep-learning runtime. This is an experiment choice subject to measured portability and maintainability review, not permission to duplicate Arxic services. A simpler per-class logistic-regression baseline uses the identical feature schema and split.
+The primary implementation uses Rust for validated artifact loading and native inference. The initial implementation uses Python standard-library CPU training with explicit backpropagation, float64 optimizer arithmetic and float32 export, avoiding NumPy and a full deep-learning runtime. This recorded deviation reduces setup dependencies; its runtime and parity still require measurement. This is an experiment choice subject to measured portability and maintainability review, not permission to duplicate Arxic services. A simpler per-class logistic-regression baseline uses the identical feature schema and split.
 
 Do not add quantization initially: the weights already occupy approximately 33.1 KiB. Quantization adds calibration and parity work and may impair accuracy. A later int8 variant must demonstrate an end-to-end benefit and pass the same quality gates; smaller weight bytes alone do not justify it.
 
@@ -203,7 +203,7 @@ Cache by evidence hashes + criterion + model identity + prompt/schema version. D
 
 Train only on extracted fixed-size features; do not decode PNGs or invoke teachers inside the optimizer loop. Streaming extraction is a separate measured phase. Store float32 features, label masks and IDs on disk with a dataset hash. A 100,000×96 float32 feature matrix is 38,400,000 bytes before labels/metadata; streaming/memory mapping must bound live batches.
 
-Reference recipe: seed 423; batch size 32; deterministic group-preserving sample order; He initialization for hidden ReLU layers; float32 parameters; Adam with learning rate 0.001, beta1 0.9, beta2 0.999, epsilon 1e-8; L2 coefficient 0.0001 on weights only; at most 30 epochs; early stopping after five epochs without improvement in masked calibration binary cross-entropy. No test-set access. Class weights derive only from training-label counts, cap at 10, and are recorded; a class without both labels is disabled. Normalize loss by participating weighted labels, and skip zero-label batches with explicit counts.
+Reference recipe: seed 423; batch size 32; deterministic group-preserving sample order; He initialization for hidden ReLU layers; float64 training parameters with float32 export; Adam with learning rate 0.001, beta1 0.9, beta2 0.999, epsilon 1e-8; L2 coefficient 0.0001 on weights only; at most 30 epochs; early stopping after five epochs without improvement in masked calibration binary cross-entropy. No test-set access. Class weights derive only from training-label counts, cap at 10, and are recorded; a class without both labels is disabled. Normalize loss by participating weighted labels, and skip zero-label batches with explicit counts.
 
 Use numerically stable BCE from logits. Independently finite-difference-check gradients on small numerical examples. Compare native predictions against Python reference outputs with fixed weights and independent expected fixtures; never compute the expected result with the production inference function. Proposed parity tolerance is absolute error ≤1e-5 per score on supported CPU builds. A parity failure blocks artifact promotion.
 
@@ -323,7 +323,9 @@ Each implementation PR needs issue opening/progress comments, an owned project w
 
 ## 17. Current evidence and GLM handoff package
 
-Current state: no trained student, teacher requests, resource benchmark, model-quality measurement or target VPS deployment. A temporary CPU Python runtime was installed during initial exploration; no pretrained model weights were downloaded. The current implementation scope is **specification only**.
+Current state: the [experimental CLI foundation](../scripts/visual-slm/README.md) implements bounded evidence/feature extraction, CPU logistic/MLP training, native inference/parity and shadow reports. A 24-case real-app smoke run across Next/Express/Arxic found a quality failure: the calibrated MLP missed all four Arxic clipped cases. Deterministic checks caught them; promotion remains blocked. Kernel and training cgroup probes are preliminary resource evidence, not full-service/VPS qualification. No GLM calls, trained-model promotion or target deployment occurred.
+
+Implementation boundaries: caller-supplied regions; only viewport-clipping labels; positive-only hypothesis/abstention; simpler smoke schemas; Python standard-library float64 training/float32 export; 1/1/1 app-group smoke split; no cluster-bootstrap/localization/chronological evaluation or deployed queue/activation/rollback. These are disclosed unfinished requirements, not relaxations of the full gates. The spec remains the target and the pre-teacher gate remains unmet.
 
 Useful existing seams/evidence, to recheck against the implementation checkout:
 

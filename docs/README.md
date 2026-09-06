@@ -25,7 +25,7 @@ See the [release policy](./RELEASE_POLICY.md) and
 
 ## Other documentation
 
-- [Compact visual-model specification](./visual-small-model-spec.md) — proposed Arxic-owned model, CPU training, small-VPS constraints and deferred GLM teaching; no deployment or training claim.
+- [Compact visual-model specification](./visual-small-model-spec.md) — Arxic-owned model target, CPU training, small-VPS constraints and deferred GLM teaching; the linked experimental CLI reports its initial quality failure and deployment gaps.
 
 - [Release policy](./RELEASE_POLICY.md) — public-surface, support, and
   deprecation commitments.

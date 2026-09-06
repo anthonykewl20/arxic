@@ -19,7 +19,7 @@ boundary. Dashboard version labels use `v0.0.200`; canonical package versions ar
 
 The [full visual-auditor contract](docs/visual-oracle.md) defines the requested discovery, state, geometry, typography, accessibility, heuristic and platform scope. Visual captures now retain numeric layout assessments with explicit unverified families; this is the evidence foundation, not complete visual-audit coverage.
 
-The proposed [compact visual-model specification](docs/visual-small-model-spec.md) defines CPU training, a 512 MiB analysis target, and measured quality/resource gates. Codex builds the working foundation before any optional GLM teaching. This is a specification, not an implemented or trained detector.
+The [compact visual-model experiment](scripts/visual-slm/README.md) now provides real-app evidence extraction, CPU training and native shadow inference under the [full specification](docs/visual-small-model-spec.md). Its initial learned detector failed the held-out app test; deterministic checks remain authoritative. A 512 MiB deployment is still an unproven target. Codex builds the foundation before any optional GLM teaching.
 
 The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
