@@ -27,6 +27,10 @@ The dashboard uses React/shadcn for its navigation shell, overview, intent inven
 
 ## Run the web app locally
 
+The built npm tarball also provides `arxic web` with prebuilt dashboard assets and
+compiled background jobs. See [installed server setup](docs/web-workbench.md#installed-server-command).
+The source-checkout commands are:
+
 ```bash
 pnpm install --frozen-lockfile
 pnpm --filter @arxic/web exec playwright install chromium

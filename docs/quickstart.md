@@ -27,6 +27,8 @@ tarball-equivalent commands used for this walkthrough are recorded in the slice
 note; until that release, `npx arxic@latest` returns npm's package-not-found
 response.
 
+The locally built tarball also includes `arxic web`; see [installed dashboard setup](web-workbench.md#installed-server-command).
+
 ## Prepare an attested local target
 
 Start a local test deployment of an application you may test. It must serve

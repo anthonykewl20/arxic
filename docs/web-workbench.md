@@ -5,6 +5,25 @@ engine and a new visual comparison lane. The [product specification](web-product
 lists what is implemented and what remains before the full web product release.
 The dashboard displays `v0.0.200`; the CLI displays the same label and canonical package metadata uses `0.0.200`.
 
+## Installed server command
+
+A tarball built from this revision includes `arxic web`, compiled jobs and prebuilt
+React/CSS assets. Install the tarball with `npm install -g /absolute/path/arxic-0.0.200.tgz`,
+install Chromium using `npx --yes --package=playwright@1.62.1 playwright install chromium`,
+and configure the same administrator token and workspace roots shown below before
+running `arxic web`. Startup needs Node 22.22 or newer and the package's native
+SQLite/image dependencies; it does not need the Arxic source checkout, pnpm, tsx or Vite.
+Source projects still need their own runtime dependencies and a running test target.
+This documents the locally built distribution; it does not announce an npm release.
+
+Startup validates the bundled frontend, index and job bytes before reporting its
+address. If it reports missing or invalid packaged assets, reinstall the package;
+do not bypass the manifest. Workspace roots must be a nonempty JSON array of absolute
+paths. A restart retains projects, run history, approved baselines and retention
+settings, resumes durable deletion intents, and invalidates browser sessions.
+Sign in again after restart. Interrupted execution remains explicitly blocked;
+queued work follows the existing serialized runner's recovery policy.
+
 ## Local setup
 
 Use a checkout of this repository with Node 22.22 or newer and its pinned pnpm.
@@ -388,7 +407,7 @@ The authenticated retention API is `GET /api/retention`, `POST /api/retention`
 Install the same checkout and dependencies on a dedicated host under a service
 account, with project folders mounted and readable there. On Linux, install
 Chromium system dependencies with the documented Playwright setup for your OS.
-Use a service manager to keep `pnpm web` running and provide:
+Use a service manager to keep the installed `arxic web` command running (or `pnpm web` for a source checkout) and provide:
 
 | Variable                  | Purpose                                                            |
 | ------------------------- | ------------------------------------------------------------------ |

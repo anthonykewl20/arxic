@@ -1,0 +1,15 @@
+HUMAN-FLOW-E2E PASS
+phase=clean-room-install durationMs=48335
+phase=user-app durationMs=25601
+phase=model-endpoint durationMs=2
+phase=packed-local-run durationMs=13467
+phase=happy-assertions durationMs=6
+phase=independent-bundle-replay durationMs=9172
+phase=sad-path durationMs=1182
+phase=sad-assertions durationMs=0
+phase=evidence-export durationMs=7
+phase=packed-web-startup durationMs=12175
+phase=packed-web-browser durationMs=159812
+totalMs=269770
+modelRequests=16
+cleanRoom=/tmp/arxic-human-flow-AGTtQ2

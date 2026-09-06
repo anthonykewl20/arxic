@@ -59,12 +59,24 @@ importers:
       '@playwright/test':
         specifier: 1.62.1
         version: 1.62.1
+      better-sqlite3:
+        specifier: 13.0.3
+        version: 13.0.3
       crawlee:
         specifier: 3.18.1
         version: 3.18.1(@types/node@26.4.0)(playwright@1.62.1)(supports-color@7.2.0)
+      cron-parser:
+        specifier: 5.10.0
+        version: 5.10.0
+      pixelmatch:
+        specifier: 7.2.0
+        version: 7.2.0
       playwright:
         specifier: 1.62.1
         version: 1.62.1
+      sharp:
+        specifier: 0.35.4
+        version: 0.35.4(@types/node@26.4.0)
       testcontainers:
         specifier: ^12.1.0
         version: 12.1.0(supports-color@7.2.0)

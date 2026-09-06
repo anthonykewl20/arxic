@@ -5,7 +5,7 @@ import sharp from 'sharp';
 import { dashboardProof } from './dashboard-proof';
 import { chromium } from 'playwright';
 import { expect, it } from 'vitest';
-import { startWorkbench } from '../server';
+import { startWorkbench } from './workbench-runtime';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 
 it('keeps navigation reachable by URL, refresh, back and keyboard', async () => {

@@ -6,7 +6,6 @@ import { searchRunHistory } from './run-history';
 import { Workbench } from './workbench';
 import { HttpError } from './errors';
 import { cloneRepository, detectProject, listFolders } from './workspace';
-import { readFile } from 'node:fs/promises';
 import { ARXIC_VERSION, ARXIC_VERSION_LABEL, sha256 } from '@arxic/contracts';
 import {
   modelConnections,
@@ -37,6 +36,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
       'Remote listening requires an explicit HTTPS public origin and TLS reverse proxy',
     );
   }
+  const frontend = await frontendAssets();
   const sessions = new Map<string, number>();
   const workbench = await Workbench.open(options.stateDirectory, options.roots);
   const attempts = new Map<string, { count: number; until: number }>();
@@ -62,10 +62,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
       throw new HttpError(403, 'Unrecognized host');
     const path = new URL(request.url ?? '/', origin).pathname;
     if (path === '/' && ['GET', 'HEAD'].includes(request.method ?? '')) {
-      const { version } = await frontendAssets();
-      const html = (
-        await readFile(new URL('../public/index.html', import.meta.url), 'utf8')
-      ).replaceAll('__ASSET_VERSION__', version);
+      const html = frontend.indexHtml.replaceAll('__ASSET_VERSION__', frontend.version);
       response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       response.end(html);
       return;

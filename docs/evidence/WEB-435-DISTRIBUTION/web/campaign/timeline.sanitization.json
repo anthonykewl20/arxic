@@ -1,0 +1,6 @@
+{
+  "sha256": "61c6f4cf379d443e43a1ed5499708f0baa0d207fe7a437a8fe3669c7a799bcda",
+  "sourceCommit": "1aba46e97ad939bd5c300d73d619f6d6b0779e01",
+  "method": "allow-listed action names and assertion outcomes; no DOM/network payloads",
+  "rawTraceRetained": false
+}

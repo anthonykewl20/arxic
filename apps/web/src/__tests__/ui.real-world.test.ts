@@ -12,7 +12,7 @@ import {
   vulnerableAuthApp,
 } from '../../../../packages/real-world-testkit/src';
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
-import { startWorkbench } from '../server';
+import { startWorkbench } from './workbench-runtime';
 import { dashboardProof } from './dashboard-proof';
 
 it.each(['light', 'dark'] as const)(

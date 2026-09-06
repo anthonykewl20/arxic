@@ -369,6 +369,46 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
         }),
       );
     }
+    await phase(timings, 'packed-web-startup', () =>
+      command(
+        process.execPath,
+        [
+          join(repositoryRoot, 'scripts/web-distribution-e2e.mjs'),
+          join(paths.install, 'node_modules/arxic/dist/cli.js'),
+          paths.install,
+        ],
+        { cwd: repositoryRoot, env: cleanEnvironment(paths), timeout: 180_000 },
+      ),
+    );
+    await phase(timings, 'packed-web-browser', () =>
+      command(
+        'pnpm',
+        [
+          'exec',
+          'vitest',
+          'run',
+          'apps/web/src/__tests__/ui.real-world.test.ts',
+          'apps/web/src/__tests__/dashboard-ux.real-world.test.ts',
+          'apps/web/src/__tests__/campaign-ui.real-world.test.ts',
+          'apps/web/src/__tests__/restart.real-world.test.ts',
+        ],
+        {
+          cwd: repositoryRoot,
+          env: {
+            ...cleanEnvironment(paths),
+            ARXIC_TEST_INSTALLED_WEB_BIN: join(paths.install, 'node_modules/arxic/dist/cli.js'),
+            ...(evidenceDirectory
+              ? {
+                  ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
+                  ARXIC_UX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/navigation'),
+                  ARXIC_CAMPAIGN_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/campaign'),
+                }
+              : {}),
+          },
+          timeout: 480_000,
+        },
+      ),
+    );
     outcome = {
       ok: true,
       cleanRoom: keep ? cleanRoom : undefined,

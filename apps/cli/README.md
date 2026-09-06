@@ -14,6 +14,18 @@ set `ARXIC_STATE_DIR` to override the `~/.arxic` state base.
 It runs the real pipeline in the sandbox and imports validated artifacts. See
 [worker deployment](https://github.com/anthonykewl20/arxic/blob/main/docs/operator/worker-deploy.md).
 
+## Web dashboard
+
+`arxic web` starts the token-authenticated local/server workbench. Set
+`ARXIC_ADMIN_TOKEN` (at least 32 characters), `ARXIC_WEB_ROOTS` (a nonempty JSON array
+of absolute allowed folders), and optionally `ARXIC_WEB_STATE_DIR`. Install Chromium
+with `npx --yes --package=playwright@1.62.1 playwright install chromium` for captures.
+The installed command uses bundled frontend assets and compiled jobs; it does not
+compile a source checkout at startup. Missing/corrupt assets refuse readiness.
+See the [server setup guide](https://github.com/anthonykewl20/arxic/blob/main/docs/web-workbench.md#installed-server-command)
+for persistent state, restart behavior, HTTPS proxy settings and runtime prerequisites.
+This command is included in locally built tarballs; publication is a separate release step.
+
 ## Stage-11 healing in 0.1.0
 
 Healing is not performed in the 0.1.0 pipeline. Each completed run records the
