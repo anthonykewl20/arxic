@@ -141,6 +141,18 @@ export async function startWorkbench(options: WorkbenchOptions) {
         providerSetup,
       });
     }
+    if (path === '/api/retention' && request.method === 'GET')
+      return json(response, 200, workbench.retentionState());
+    if (path === '/api/retention' && request.method === 'POST')
+      return json(response, 200, await workbench.saveRetention(await readJson(request)));
+    if (path === '/api/retention/preview' && request.method === 'POST')
+      return json(response, 200, workbench.previewRetention(await readJson(request)));
+    if (path === '/api/retention/cleanup' && request.method === 'POST') {
+      const input = await readJson(request);
+      if (Object.keys(input).length)
+        throw new HttpError(400, 'Cleanup uses the saved retention policy');
+      return json(response, 200, await workbench.cleanupRetention());
+    }
     if (path === '/api/runs' && request.method === 'GET')
       return json(
         response,

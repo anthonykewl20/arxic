@@ -15,7 +15,7 @@ The acceptance contract remains [the web product specification](../web-product-s
 | Deep frontend discovery        | Route/domain inventory, JS/TS/JSX/TSX declarations and documentation requirements with line/hash evidence, filters and explicit gaps.                                                                                                                                                                                                                                                                    | Semantic business-intent synthesis, more frameworks and source-to-runtime state mapping. Source declarations do not reveal every hidden requirement.                              |
 | AI functional campaigns        | Guided on-demand selection, one serialized engine run per selected source row, full denominator and deterministic per-workflow outcomes. Real Next/Mailpit workflows pass two verifier replays in retained tests.                                                                                                                                                                                        | Recurring selected campaigns, broader personas/flags/states and independent business acceptance criteria. Latest inventory/ledger views do not union all prior campaign outcomes. |
 | Real visual regression         | Stable path/viewport capture, optional redirect-based sign-in with in-memory session state, explicit baseline approval, numeric evidence and pixel differences; image-grounded AI hypotheses preserve model provenance.                                                                                                                                                                                  | General authenticated workflow/state exploration, target-browser matrices, broader detector evaluation and reviewed baseline lifecycle.                                           |
-| Scheduling/admin               | Durable UTC cron for individual runs, pause/resume, missed-slot coalescing, cancellation, root restrictions and audit history.                                                                                                                                                                                                                                                                           | Campaign/worker coordination, retention/runtime management and applicable notification policies.                                                                                  |
+| Scheduling/admin               | Durable UTC cron for individual runs, pause/resume, missed-slot coalescing, cancellation, root restrictions, audit history and opt-in protected evidence retention.                                                                                                                                                                                                                                      | Campaign/worker coordination, runtime management, storage quotas and applicable notification policies.                                                                            |
 | Session/submission correctness | Draft consent is discarded on logout or session loss; pending submissions survive navigation; late responses cannot mutate a new session. [Session proof](../evidence/WEB-402-SESSIONS/summary.md).                                                                                                                                                                                                      | Broader adversarial testing as new actions and account flows are introduced.                                                                                                      |
 
 ## Defects reproduced in the latest browser work
@@ -72,7 +72,7 @@ Issue #402 remains in progress. The remaining feature/proof rows above and the
 [human screenshot-inspection gate](../release-gates/screenshot-inspection.md) must
 be satisfied before public release. Selected campaigns and explicitly configured authenticated checkpoint galleries
 are implemented. Remaining work includes broader state/persona/flag coverage,
-runtime/retention/server-distribution proof and the human release gate.
+runtime/server-distribution proof and storage quotas and the human release gate.
 
 ## Dashboard production audit (2026-09-06)
 
@@ -103,3 +103,13 @@ to avoid obscuring report actions. Check details use a keyboard-accessible discl
 and search feedback stays above the input. [Proof](../evidence/WEB-429-ELEMENTS/summary.md)
 records exact real-app geometry comparisons, light/dark desktop/mobile journeys and
 remaining coverage. This is not semantic locator discovery or full heuristic certification.
+
+### Evidence retention (refs #431)
+
+Administration adds disabled-by-default age/newest retention, full-history previews,
+explicit consent, protected bounded deletion and restart recovery. The new dashboard
+flow covers settings/preview/storage failures and retry in light/dark and mobile
+layouts. Real Chromium captures exercise cleanup while preserving original baseline
+bytes; the database-scale supplement covers history beyond the 200-row state view.
+No disk quota, campaign deletion or complete runtime management is claimed.
+Evidence and gate revisions are recorded in the WEB-431-RETENTION slice note.

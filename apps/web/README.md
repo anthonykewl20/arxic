@@ -88,3 +88,9 @@ and assessments use bounded, hash-checked regular-file retrieval. Invalid geomet
 or unavailable images disable inspection with recovery guidance. See the
 [element inspection guide](../../docs/web-workbench.md#inspect-captured-elements);
 capture-local numeric IDs do not establish semantic locators or full state coverage.
+
+Administration includes opt-in evidence retention with whole-history previews,
+explicit deletion consent, bounded idle cleanup and persisted recovery outcomes.
+Manual, automatic and restart deletion share reference protections. Policy/actions
+live in `retention.ts`; `retention-store.ts` supplies shared SQLite projections.
+See [retention setup and limits](../../docs/web-workbench.md#schedules-and-history).

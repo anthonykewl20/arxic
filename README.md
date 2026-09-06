@@ -142,3 +142,5 @@ Visual checkpoints also support [captured-element inspection](docs/web-workbench
 pick a screenshot point or search capture-local element numbers, navigate measured
 parents, and inspect bounds and overlapping checks. Invalid or image-unbound
 evidence remains unavailable; numeric boxes are not semantic replay locators.
+
+The web dashboard also supports opt-in [evidence retention](docs/web-workbench.md#schedules-and-history): preview expired runs, preserve baseline/review/campaign references, and recover interrupted cleanup. It is disabled by default.

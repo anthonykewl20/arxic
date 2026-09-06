@@ -32,3 +32,9 @@ viewport and provides keyboard search/list/parent alternatives. Geometry selecti
 does not alter solver verdicts or infer paint order. Image errors disable picking;
 malformed/unstable scenes remain unavailable. The desktop topbar scrolls with the
 page so it cannot cover actions during report inspection.
+
+`retention-panel.tsx` owns the administrator's unsaved age/newest policy, preview
+and deletion consent. Controls remain disabled during requests; edits invalidate
+the preview and consent. Cleanup applies only the saved policy, and failures
+refresh durable recovery status without hiding the original error. Component
+unmount prevents late responses from changing a later session's presentation.
