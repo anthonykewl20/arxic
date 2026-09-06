@@ -1,6 +1,6 @@
-import { Button } from './components/ui/button';
-import { Badge } from './components/ui/badge';
-import { Input } from './components/ui/input';
+import { Button } from './components';
+import { Badge } from './components';
+import { Input } from './components';
 import { WorkflowSelection } from './workflow-selection';
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { IntentLedger } from '../../../../packages/intent/src/ledger';
@@ -57,7 +57,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
             </option>
           ))}
         </select>
-        <form id="declaration-search">
+        <form id="declaration-search" className="search-form">
           <Input
             aria-label="Search declarations"
             name="query"

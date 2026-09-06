@@ -1,0 +1,34 @@
+[
+  {
+    "action": "Missing guided settings prevented launch; two source rows selected and selection survived polling",
+    "result": "passed"
+  },
+  {
+    "action": "Selected workflows stay disabled across navigation until the real campaign enqueue response completes",
+    "result": "passed"
+  },
+  {
+    "action": "An earlier session campaign response cannot navigate the newly authenticated workspace",
+    "result": "passed"
+  },
+  {
+    "action": "Both selected workflows passed two real verifier replays; remaining source rows stay unselected",
+    "result": "passed"
+  },
+  {
+    "action": "Campaign coverage and per-workflow results fit a mobile viewport",
+    "result": "passed"
+  },
+  {
+    "action": "Campaign links to the selected child engine result and diagnostic evidence",
+    "result": "passed"
+  },
+  {
+    "action": "AI execution inventory retains line-anchored source evidence from its intent ledger",
+    "result": "passed"
+  },
+  {
+    "action": "A new discovery resets old workflow selections while the inventory remains open",
+    "result": "passed"
+  }
+]

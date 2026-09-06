@@ -1,4 +1,6 @@
-import { Button } from './components/ui/button';
+import { AssessmentPanel } from './assessment-panel';
+import type { RunHistoryPage } from '../run-history';
+import { Button, Input } from './components';
 import { RunTable, Status } from './run-table';
 import { ReviewForm, reviewDraftKey, type ReviewRequest } from './review-form';
 import { time } from './display';
@@ -10,18 +12,35 @@ export type RunPanelProps = {
   state: ReturnType<Workbench['state']>;
   selectedId: string;
   projectId: string;
+  history?: RunHistoryPage;
+  loading?: boolean;
+  error?: string;
+  onFilter?: (kind: 'project' | 'mode' | 'status', value: string) => void;
+  search?: string;
+  mode?: string;
+  status?: string;
   onRefresh: RefreshModels;
   onReview: (request: ReviewRequest) => Promise<void>;
 };
 export function RunPanel(props: RunPanelProps) {
   const { state, selectedId, projectId } = props;
+  const history = props.history;
+  const filtered = !!(props.search || props.mode || props.status || projectId);
   const chosen = state.runs.find(
     (run) => run.id === selectedId && (!projectId || run.projectId === projectId),
   );
   return (
     <>
       <div className="toolbar">
-        <select id="project-filter" aria-label="Filter by project" defaultValue={projectId}>
+        <select
+          id="project-filter"
+          aria-label="Filter by project"
+          value={projectId}
+          onChange={(event) => {
+            event.stopPropagation();
+            props.onFilter?.('project', event.currentTarget.value);
+          }}
+        >
           <option value="">All projects</option>
           {state.projects.map((project) => (
             <option key={project.id} value={project.id}>
@@ -29,10 +48,99 @@ export function RunPanel(props: RunPanelProps) {
             </option>
           ))}
         </select>
-        <small>Latest 200 runs. All results persist on this instance.</small>
+        <form id="run-search" key={props.search} className="search-form">
+          <Input
+            aria-label="Search runs"
+            name="query"
+            defaultValue={props.search}
+            placeholder="Project name or run ID"
+            maxLength={200}
+          />
+          <Button type="submit" variant="outline">
+            Search runs
+          </Button>
+        </form>
+        <select
+          id="run-mode"
+          aria-label="Run type"
+          value={props.mode ?? ''}
+          onChange={(event) => {
+            event.stopPropagation();
+            props.onFilter?.('mode', event.currentTarget.value);
+          }}
+        >
+          <option value="">All types</option>
+          <option value="discovery">Discovery</option>
+          <option value="visual">Visual</option>
+          <option value="agent">AI E2E</option>
+          <option value="review">AI visual review</option>
+        </select>
+        <select
+          id="run-status"
+          aria-label="Run status"
+          value={props.status ?? ''}
+          onChange={(event) => {
+            event.stopPropagation();
+            props.onFilter?.('status', event.currentTarget.value);
+          }}
+        >
+          <option value="">All statuses</option>
+          {['queued', 'running', 'completed', 'blocked', 'cancelled'].map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+        {filtered && (
+          <Button variant="ghost" data-clear-run-filters>
+            Clear run filters
+          </Button>
+        )}
       </div>
-      <RunTable runs={state.runs.filter((run) => !projectId || run.projectId === projectId)} />
-      {chosen && <RunDetail {...props} key={chosen.id} run={chosen} />}
+      {props.loading ? (
+        <p role="status">Loading runs…</p>
+      ) : props.error ? (
+        <div>
+          <p role="alert">{props.error}</p>
+          <Button variant="outline" data-retry-run-history>
+            Retry run history
+          </Button>
+        </div>
+      ) : history?.total === 0 && filtered ? (
+        <div className="empty" role="status">
+          <h2>No matching runs</h2>
+          <p>Try a project name, part of a run ID, or clear the filters.</p>
+        </div>
+      ) : (
+        <RunTable
+          runs={
+            history?.runs ?? state.runs.filter((run) => !projectId || run.projectId === projectId)
+          }
+        />
+      )}
+      {history && !props.loading && !props.error && (
+        <div className="pagination" role="navigation" aria-label="Run history pages">
+          <small role="status">
+            {history.total
+              ? `${history.offset + 1}–${Math.min(history.offset + history.runs.length, history.total)} of ${history.total}`
+              : '0'}{' '}
+            runs · All stored history
+          </small>
+          <Button variant="outline" data-run-page="-1" disabled={!history.offset}>
+            Previous runs
+          </Button>
+          <Button
+            variant="outline"
+            data-run-page="1"
+            disabled={history.offset + history.limit >= history.total}
+          >
+            Next runs
+          </Button>
+        </div>
+      )}
+      {chosen && !props.loading && !props.error && (
+        <RunDetail {...props} key={chosen.id} run={chosen} />
+      )}
     </>
   );
 }
@@ -43,7 +151,7 @@ function CaptureFigure({ label, runId, file }: { label: string; runId?: string; 
       <figcaption>{label}</figcaption>
       {file ? (
         <a href={url} target="_blank" rel="noopener">
-          <img alt={label} src={url} />
+          <img alt={label} src={url} loading="lazy" decoding="async" />
         </a>
       ) : (
         <div className="placeholder">Awaiting a reviewed baseline</div>
@@ -135,6 +243,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                 </h3>
                 <small>
                   <Status value={capture.status} />{' '}
+                  {capture.authenticated && <Status value="signed in" />}{' '}
                   {capture.changedPixels !== undefined && (
                     <>
                       {capture.changedPixels.toLocaleString()} changed pixels
@@ -167,7 +276,22 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
               />
               <CaptureFigure label="Current capture" runId={run.id} file={capture.file} />
               <CaptureFigure label="Pixel difference" runId={run.id} file={capture.diffFile} />
+              {capture.videoFile && (
+                <figure>
+                  <video
+                    controls
+                    preload="metadata"
+                    src={`/api/runs/${run.id}/artifacts/${encodeURIComponent(capture.videoFile)}`}
+                  />
+                  <figcaption>Session video · unmasked, inspect before sharing</figcaption>
+                </figure>
+              )}
             </div>
+            <AssessmentPanel
+              key={capture.assessmentSha256 ?? capture.id}
+              runId={run.id}
+              file={capture.assessmentFile}
+            />
             {run.state === 'completed' && capture.status !== 'unstable' && (
               <ReviewForm
                 key={reviewDraftKey(run.id, capture.id, capture.sha256)}

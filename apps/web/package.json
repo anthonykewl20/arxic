@@ -31,6 +31,7 @@
     "vite": "7.3.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@types/better-sqlite3": "9.6.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5"

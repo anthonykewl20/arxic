@@ -5,11 +5,12 @@ run/capture details, image review, model fields and Models & accounts use React,
 Vite compiles the local assets once per server process; the server serves only the
 bundled JavaScript and CSS. No browser CDN or external script is required.
 The shell owns mobile disclosure state, including Escape and focus restoration.
-The existing dashboard actions still own API requests, session-race protection,
-project form submission and polling. Review forms own draft state; shared pending-request tokens preserve submission state across navigation and reject duplicates. Session invalidation clears presentation state, while late responses cannot mutate a new session. Provider suggestions update independently
+`app.ts` owns API requests, session-race protection and polling; the project and
+agent wizards (`project-wizard.tsx`, `agent-wizard.tsx`) own their forms.
+`tokens.css` is the single source of colour, type, spacing and radius for light
+and dark; `components/index.ts` is the only import path for UI primitives. Review forms own draft state; shared pending-request tokens preserve submission state across navigation and reject duplicates. Session invalidation clears presentation state, while late responses cannot mutate a new session. Provider suggestions update independently
 from custom model inputs. Configured default HTTP connections share provider-driven
-catalogs with Models & accounts; unavailable wrappers explain their discovery limitation. The project form retains its native dialog and existing
-action handlers. Broader account-management and campaign controls remain under issue 402.
+catalogs with Models & accounts; unavailable wrappers explain their discovery limitation. Dialogs are native `<dialog>` elements. Broader account-management and campaign controls remain under issue 402.
 
 `components/ui/{button,card,badge,input}.tsx` are adapted from the MIT-licensed
 [shadcn/ui New York registry](https://ui.shadcn.com/docs/components), retrieved

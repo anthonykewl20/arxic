@@ -33,15 +33,23 @@ scoped evidence according to its model/source-retention configuration.
 
 ## First project
 
-1. Add a project with a name and an absolute **server-side** folder path. Symlink
-   escapes from the allow-list are rejected.
+1. Click **Connect project**. Choose a folder from the allowed roots (or type an
+   absolute **server-side** path), or paste a public `https://github.com/owner/repo`
+   URL; the server clones it into `<first root>/arxic-clones/<repo>` and refuses an
+   existing clone folder; connect that folder explicitly instead. Symlink escapes from the allow-list are rejected. The second
+   step shows what was detected (framework, TypeScript, git state, dev-server
+   origin, Next.js routes including route groups, `arxic.config.yaml`); every
+   value stays editable. Enter in the folder or URL field continues; Back keeps
+   the chosen source.
+   **Pages to screenshot** is a manual list or **AI discovery**, which merges the
+   static GET routes from the newest completed source discovery into your list
+   (up to the configured 200-page limit) when a visual run is queued. Advanced settings hold masks and the schedule. Named masked screenshots and a sanitized action timeline are recorded automatically. Continuous video is unavailable: new settings reject unmasked video and legacy enabled runs block before recording.
 2. Run **Discover intents**. This runs the actual source parser and shows its
    route/domain inventory, frontend declarations and evidence references. It is source discovery, not
    an assertion that all frontend business rules have been recovered.
 3. For visual runs, enter the already-running test app's HTTP(S) origin, checkpoint
    paths, and viewport sizes. The initial lane captures the visible viewport,
-   anonymously, at up to 20 paths × 3 viewports. It does not automatically scroll
-   the whole page, log in, submit forms or explore every component state.
+   at up to 200 paths × 3 viewports. Optional sign-in uses server secret references and a login form that redirects away from its login path; the resulting session stays in memory. It does not automatically scroll the whole page or explore every component state. Link discovery follows bounded same-origin GET pages; its limits and exclusions remain coverage gaps.
 4. Authorize test-data screenshot capture and declare any additional privacy
    masks. Inputs, textareas and editable fields are always masked. Each additional
    selector must match at each configured checkpoint; a missing/invalid mask
@@ -87,6 +95,28 @@ service workers and WebSockets. Apps that need these may render incompletely;
 blocked requests are reported. Use an isolated test deployment. This lane does
 not use the AI engine's fixture/attestation lifecycle and does not promote a
 verified workflow bundle.
+
+## Connect an AI agent
+
+**Connect agent** in the top bar lists the built-in provider accounts with their
+state: connected (catalog fetched), server secret missing, needs attention, or not
+connected. The second step shows the command to run on the server as the Arxic
+user (for example `claude auth login` or `codex login --device-auth`), links the
+provider guide, and **Check now** refreshes that provider's catalog to verify the
+login. Secret variable names and values never reach the browser; the dashboard
+only reports whether the referenced `ARXIC_SECRET_` variable is set. Presets
+include Claude Pro/Max, Codex, OpenCode accounts, OpenCode Go, Kimi Coding,
+Grok via OpenClaw, GLM Coding / Token Plan (`ARXIC_SECRET_GLM_CODING_KEY`,
+`https://api.z.ai/api/coding/paas/v4`) and OpenRouter.
+
+## Theme and assets
+
+The theme switch in the sidebar offers Light, Dark and System; the choice is
+stored in the browser. All colours, type sizes, radii and spacing come from
+`apps/web/src/frontend/tokens.css`, and every screen composes the shadcn
+component set in `apps/web/src/frontend/components`. The server compiles one
+minified `app.js` and one `app.css`, referenced with a content hash and cached
+immutably; no CDN or external font is used.
 
 ## Provider connections and model IDs
 
@@ -316,8 +346,7 @@ missed slots coalesce into one run, then the next future slot is scheduled.
 Interrupted running jobs become blocked at restart; queued jobs resume. There is
 no automatic retry of potentially mutating workflows.
 
-The dashboard displays the latest 200 runs; full records remain in SQLite and
-can be retrieved by ID through the authenticated run endpoint. The application
+Test runs searches all stored SQLite history by project name or run ID, with project, type and status filters and 25-row pages. Section, selected run and search filters persist in the URL for refresh, Back and shared bookmarks. Deleted-run bookmarks return to history with an explanation. Full records remain accessible through the authenticated run endpoint. The application
 does not yet implement automatic retention or a disk quota. Monitor storage.
 An administrator can cancel active jobs and delete terminal run artifacts;
 approved baselines are protected from deletion. Back up the stopped instance's
@@ -440,3 +469,11 @@ clip/paint, a11y, state/matrix and vision families remain unverified. Existing
 AI reviews stay separate hypotheses. Old captures need a new run to acquire
 measurements. The [visual-oracle contract](visual-oracle.md) records the full
 requested capability scope, applicability corrections and remaining sequence.
+
+## Dashboard navigation and audit
+
+The seven sections support Light/Dark/System themes, keyboard navigation, a skip link, current-section indication and mobile navigation. Theme radios support arrow keys; modal Tab traversal stays inside the dialog and Escape restores the opener. Search declarations by label or source file and choose **control** to narrow to source-declared elements. These are source hypotheses, not proof that an element is rendered in every state.
+
+Each capture exposes **Measured checks and coverage**, the numeric report and its JSON download. Failed evidence retrieval shows an error and Retry; it never becomes a pass. Unverified predicates and uncovered states remain explicit. The report is hash-checked by the server and the dashboard preserves its verdicts.
+
+The dashboard audit uses real Chromium, axe checks, viewport overflow measurements, keyboard journeys and masked screenshots across seven sections, four widths and two themes. It supplements populated discovery/capture/baseline/schedule/session journeys. Automated accessibility checks do not certify every heuristic, assistive technology or browser. See the [dashboard UX evidence](evidence/WEB-402-DASHBOARD-UX/summary.md) for exact results and remaining production gates.

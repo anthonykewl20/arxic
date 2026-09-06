@@ -126,6 +126,8 @@ it('refreshes provider-owned models in a real browser and preserves search and s
     );
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.locator('#new-project').click();
+    await page.getByLabel('Project folder', { exact: true }).fill(state);
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await page.getByLabel('Configure AI execution in this dashboard').check();
     const refreshDefault = page
       .locator('#project-dialog')

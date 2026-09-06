@@ -1,5 +1,5 @@
-import { Button } from './components/ui/button';
-import { Card } from './components/ui/card';
+import { Button } from './components';
+import { Card } from './components';
 import { campaignRequestKey, usePendingRequest } from './pending-requests';
 import type { Project, Run } from '../types';
 

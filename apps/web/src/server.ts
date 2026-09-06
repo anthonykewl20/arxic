@@ -2,8 +2,10 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { frontendAssets } from './frontend-assets';
 import { providerSetup } from './provider-presets';
+import { searchRunHistory } from './run-history';
 import { Workbench } from './workbench';
 import { HttpError } from './errors';
+import { cloneRepository, detectProject, listFolders } from './workspace';
 import { readFile } from 'node:fs/promises';
 import { ARXIC_VERSION, ARXIC_VERSION_LABEL, sha256 } from '@arxic/contracts';
 import {
@@ -59,30 +61,27 @@ export async function startWorkbench(options: WorkbenchOptions) {
     if (request.headers.host !== new URL(origin).host)
       throw new HttpError(403, 'Unrecognized host');
     const path = new URL(request.url ?? '/', origin).pathname;
-    const assets: Record<string, [string, string]> = {
-      '/': ['index.html', 'text/html'],
-      '/app.js': ['app.js', 'text/javascript'],
-      '/app.css': ['app.css', 'text/css'],
-      '/base.css': ['base.css', 'text/css'],
-    };
-    if (
-      ['/provider-ui.js', '/provider-ui.css'].includes(path) &&
-      ['GET', 'HEAD'].includes(request.method ?? '')
-    ) {
-      const bytes = (await frontendAssets()).get(path);
+    if (path === '/' && ['GET', 'HEAD'].includes(request.method ?? '')) {
+      const { version } = await frontendAssets();
+      const html = (
+        await readFile(new URL('../public/index.html', import.meta.url), 'utf8')
+      ).replaceAll('__ASSET_VERSION__', version);
+      response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      response.end(html);
+      return;
+    }
+    if (['/app.js', '/app.css'].includes(path) && ['GET', 'HEAD'].includes(request.method ?? '')) {
+      const { assets, version } = await frontendAssets();
+      const bytes = assets.get(path);
       if (!bytes) throw new HttpError(404, 'Frontend asset unavailable');
+      const versioned = new URL(request.url ?? '/', origin).searchParams.get('v') === version;
       response.writeHead(200, {
         'Content-Type': path.endsWith('.css')
           ? 'text/css; charset=utf-8'
           : 'text/javascript; charset=utf-8',
+        'Cache-Control': versioned ? 'public, max-age=31536000, immutable' : 'no-store',
       });
       response.end(bytes);
-      return;
-    }
-    const asset = assets[path];
-    if (asset && ['GET', 'HEAD'].includes(request.method ?? '')) {
-      response.writeHead(200, { 'Content-Type': `${asset[1]}; charset=utf-8` });
-      response.end(await readFile(new URL(`../public/${asset[0]}`, import.meta.url)));
       return;
     }
     if (!['GET', 'HEAD'].includes(request.method ?? '')) {
@@ -142,10 +141,31 @@ export async function startWorkbench(options: WorkbenchOptions) {
         providerSetup,
       });
     }
+    if (path === '/api/runs' && request.method === 'GET')
+      return json(
+        response,
+        200,
+        searchRunHistory(workbench.store, new URL(request.url ?? '/', origin).searchParams),
+      );
     const catalogRoute = /^\/api\/model-connections\/([a-z][a-z0-9-]{0,39})\/refresh$/u.exec(path);
     if ((catalogRoute || path === '/api/model-connections/refresh') && request.method === 'POST') {
       await refreshModelCatalog(catalogRoute?.[1] ?? '');
       return json(response, 200, { modelConnections: modelConnections() });
+    }
+    if (path === '/api/workspace/folders' && request.method === 'GET') {
+      const query = new URL(request.url ?? '/', origin).searchParams.get('query') ?? '';
+      if (query.length > 100) throw new HttpError(400, 'Query too long');
+      return json(response, 200, { folders: await listFolders(workbench.roots, query) });
+    }
+    if (path === '/api/workspace/detect' && request.method === 'POST') {
+      const body = await readJson(request);
+      if (typeof body.folder !== 'string') throw new HttpError(400, 'Folder required');
+      return json(response, 200, await detectProject(body.folder, workbench.roots));
+    }
+    if (path === '/api/workspace/clone' && request.method === 'POST') {
+      const folder = await cloneRepository((await readJson(request)).url, workbench.roots);
+      workbench.store.audit('workspace.cloned', folder.folder);
+      return json(response, 201, await detectProject(folder.folder, workbench.roots));
     }
     if (path === '/api/projects' && request.method === 'POST')
       return json(response, 201, await workbench.saveProject(await readJson(request)));

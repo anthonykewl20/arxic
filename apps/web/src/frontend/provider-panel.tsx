@@ -1,11 +1,7 @@
 import { useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { RefreshCw, Search, ArrowUpRight, Plug, Check, AlertCircle, Terminal } from 'lucide-react';
-import { Button } from './components/ui/button';
-import { Badge } from './components/ui/badge';
-import { Input } from './components/ui/input';
-import './styles.css';
-import './workspace.css';
+import { Button, Badge, Input } from './components';
 
 type Connection = {
   id: string;
@@ -217,15 +213,3 @@ export function unmountProviderPanel(element: Element) {
   roots.get(element)?.unmount();
   roots.delete(element);
 }
-
-export { mountWorkspaceShell } from './workspace-shell';
-
-export { mountWorkspacePanel, unmountWorkspacePanel } from './workspace-panels';
-
-export {
-  mountProjectModelControls,
-  unmountProjectModelControls,
-  updateModelCatalogs,
-} from './model-controls';
-export { reviewDrafts, reviewDraftKey } from './review-form';
-export { clearPendingRequests, beginPendingRequest, campaignRequestKey } from './pending-requests';

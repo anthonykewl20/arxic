@@ -153,10 +153,11 @@ it('lets an administrator inspect pixels, request a bounded AI review and inspec
     await page.getByRole('button', { name: 'Open workbench' }).click();
     await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
     await page.locator('#new-project').click();
-    await page.getByLabel('Project name', { exact: true }).fill('Image review reference');
     await page
       .getByLabel('Project folder', { exact: true })
       .fill(join(root, 'test-fixtures/vulnerable-auth-app'));
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByLabel('Project name', { exact: true }).fill('Image review reference');
     await page.getByLabel('Running test app origin').fill(target.origin);
     await page.getByLabel('Viewport sizes').fill('800x600');
     await page.getByLabel('I authorize screenshot capture', { exact: false }).check();

@@ -1,0 +1,601 @@
+{
+  "screenshots": [
+    {
+      "file": "authenticated/checkpoint-1.png",
+      "sha256": "555d028f16d8e44ea84ff360850706199ed3dc4faeb71d0ef16010018333017a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "before/01-empty-workspace.png",
+      "sha256": "90047a7fda5934cdfefcd2656fd00e41a2c1a7b7a0eb6036c9e7c2c4eb79102e",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "before/02-project-overview.png",
+      "sha256": "b9fb073f9372638f23c8519282753cf7f7b08ba8d45ae429125eaecfd7b7a5c0",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "before/03-intent-inventory.png",
+      "sha256": "9860ed23188cec55a7ab55e095d4734fc8cc4992bb197d11461694efc9a80f72",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "before/04-visual-comparison.png",
+      "sha256": "83b02991d51b6be31f6ea827c25f8ea571f8dd6434bd6c3dfe16a0028153b7a2",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "before/09-frontend-declarations.png",
+      "sha256": "d213ced7c6ea8eda899c6f49aa1de554795894682c6ca47580a3c2759a564d50",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "before/forced-colors-before.png",
+      "sha256": "f86fd33c6f78cbf2ab2ad3f28770a84b44e90831ab400fb0794ea2088ddaf70c",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "before/search-controls-before.png",
+      "sha256": "7378162a1827ed14887c0c424d32af0951e6171e38a177179fb55de4f17059ee",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "campaigns/01-selected-workflows.png",
+      "sha256": "8b388e45cf929c1e86c50ca875893d8fd189a463f0d3c2bdd61840b2c4a38cc4",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "campaigns/02-verified-campaign.png",
+      "sha256": "e1430592a857dd80a1fe0fc7d91c36ab918038abb6e1e71dd377452ac99e4249",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "campaigns/03-mobile-campaign.png",
+      "sha256": "e669308a057454a8e1050a37988af20ff545e908ac0b7e36a4c29383ad475540",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "campaigns/04-workflow-result.png",
+      "sha256": "3cc9d181ed7ec2cba69671b0d248a0f65a16fa9d39be713c298b2c33c61f2266",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "campaigns/05-ledger-source-evidence.png",
+      "sha256": "b904029b2f07df47f0bb4c8bcf8e8672129f652e8eb4d81df1fd01635b746368",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "campaigns/06-new-discovery-selection.png",
+      "sha256": "2feebb1938706622b22962c9760daafbb709d4cf39dd41e6a0152c81efcc6c8d",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "campaigns/07-pending-campaign-navigation.png",
+      "sha256": "c4f491aa652a497e117467ee1e8402c3c1b0d764ab86af420b59fdac9b863e24",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "campaigns/08-late-campaign-session.png",
+      "sha256": "280047297bd464c3a8f0fe03c57afb812d873a6e7f39b81d7a4423d35afbc581",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/01-empty-workspace.png",
+      "sha256": "1fad6042518e2a0aa96b253698991ad3450f4545ac129da56d2fe6f2c6334911",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/02-project-overview.png",
+      "sha256": "518a0e6c71d8aab86411cfa36aa0913b0052375f8eb86b731a029d33144774d5",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/03-intent-inventory.png",
+      "sha256": "6a74e6b6fa47045bd832992f51904e8d577b2b0c0cd0865920d61788f56a7e6a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/04-visual-comparison.png",
+      "sha256": "fb0c5c16c9fb9beccdb30cfef61a2f7e66c90f5f301f2fdcbd92f87bc4e102dc",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/05-schedule.png",
+      "sha256": "9dcebc6ae128f1ced35f62c6ec825ae9a8e2018c813d9b124dd9e0854305e9fb",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/06-administration.png",
+      "sha256": "2276d6b139a8ecc21d72432dc388b96e1b33fbdfa33a06ed6467e78a50d0f955",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/07-mobile-overview.png",
+      "sha256": "dfd80276acf043275cf958f0519cbcd06178d98dfbe237630df6ab157bfeede5",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/08-signed-out.png",
+      "sha256": "35b15bc012b5512e0982d40d7dc5eed5128b295fc565c9e9236e6c77a21554da",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/09-frontend-declarations.png",
+      "sha256": "e0bdd108cdd29fce9c88556f6a44e1aa7c3799601f70a14b5f8b09a71d328b6b",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/10-measurement-report.png",
+      "sha256": "c06277c2010581f1057e519ab3a57ee8ddd0113f2e71dae907493a544bc7f6a9",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/10-mobile-declarations.png",
+      "sha256": "7ec00fbd36fbf8d57667ff626b748295e7d9f65a9c25288270c4a3847e9ec18a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/11-guided-settings.png",
+      "sha256": "c723f4b4b09b3ab668e53578ea6b714a30428bbef85db248b312c937e0f1027b",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/12-mobile-guided-settings.png",
+      "sha256": "52e9938813f7850d493e855e9b867d97dd40f064f23ea49bd5cf96f907918a26",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/13-mobile-navigation.png",
+      "sha256": "efd76d372131e5d66dc073be63b685a3669aac8431e15ea460c05876531ea734",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/dark/13-run-history-unavailable.png",
+      "sha256": "fb2991502872374c3c306c05b1c88a06448fbd9a7aa4f5cce9d6ec148c671916",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/01-empty-workspace.png",
+      "sha256": "01d646e29e2f465c6c8516deaae86f1ac2a01a63c6af44cc92550ef3f0891a33",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/02-project-overview.png",
+      "sha256": "fac0581cedd9ad938558ef22bc757286209d89e0d23c50b6eea02829c97c5986",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/03-intent-inventory.png",
+      "sha256": "35ce9f071f4b0be259feaa4ec67eeb8a100881a07218f09dedbf0796680b2b2c",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/04-visual-comparison.png",
+      "sha256": "829ccdff4e8b48108e87bb18cfbbd58c080648ac8055921892ddfcf976ec8a62",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/05-schedule.png",
+      "sha256": "96d35a3f44a0ffbfa23b1e3d307069560ca88b331196367232bb0d9d0c71e21d",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/06-administration.png",
+      "sha256": "5c25c3f651f03cb811b6915425ac53d78679a559ea1c493b2c4ebeb35964b4b5",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/07-mobile-overview.png",
+      "sha256": "169654b3ba6b813679d58479067756a7f549dcca418befd7750d3d5babbaf26e",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/08-signed-out.png",
+      "sha256": "062fec840945bac74fcc6bbf757eb1b378b0d6acf4507907f883f6e9ec7fd5fa",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/09-frontend-declarations.png",
+      "sha256": "76379fea1d24016dde5b7555113d25b7434b914986b7dad2e79c3c27eb8ccbf8",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/10-measurement-report.png",
+      "sha256": "905db348d4ad47dcc153eacf7a2770c02cb3d48aa197663f2e66ab176cf6fdb0",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/10-mobile-declarations.png",
+      "sha256": "e7f6811f62b3153c9e7dc39d0b31b2e662819f64cd4fbbf4483b2a7e6962ed39",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/11-guided-settings.png",
+      "sha256": "867f7e8a4ba9250085912448345b665997d074237c9db7a21ccde8096d0ab0a4",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/12-mobile-guided-settings.png",
+      "sha256": "13593e1dc3994aa8cd8f0092e69e3d99c1e4cea11e3bdbfcac8f655f7ce03588",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/13-mobile-navigation.png",
+      "sha256": "bfdaf9cc5f3d1c4159359d06661ad2d80124ac95415583a394eb6f8464f6549a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "journey/light/13-run-history-unavailable.png",
+      "sha256": "0e8f67fecd0ea3a425e07c0b70dfded5442ebd77fde595e082a7ff0d853bb371",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-dark-admin.png",
+      "sha256": "cf7f58c5f173e005dd38904180a148fc80b515809f3d7284f7b3636e1c78eb73",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-dark-campaigns.png",
+      "sha256": "56a602bc4cb194d40a040964a87df0260142a68133f8ab737f1efd67414e5031",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-dark-intents.png",
+      "sha256": "71f15716f421e02c4d4b4af97302950a6a71ec013bebdcb49ed3222adf1104c4",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-dark-overview.png",
+      "sha256": "6248d0c704d705e59219f11602930f25926893def1284e656e5a25cfa5683012",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-dark-providers.png",
+      "sha256": "983b0aab98e41666c66ad4ec00777e815cb33a2d85977572b4c5d5316da66003",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-dark-runs.png",
+      "sha256": "b7aec106028588247d07b3c20026a6649fa5cf155ec0fe3ee8ca9310ead3319a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-dark-schedules.png",
+      "sha256": "56c7fcc7fcd250cf822a5adf75e15e4519eaf7f8abed8e04724cb11e2416cba8",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-light-admin.png",
+      "sha256": "7eb03f43557847796f1a61a0429b5acf4935abc9901f36459278852bf6cd725c",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-light-campaigns.png",
+      "sha256": "990382aa7296c7a16155d6d93f42b72790c2419e55687f0268379de790ff0ace",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-light-intents.png",
+      "sha256": "2d1e020894857c68bc0a9d42e2e18b8339be1b01bee27f5394f409c1a36b8631",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-light-overview.png",
+      "sha256": "f48cccc245e91fb6ee14e33b312a75d2d86363e1f73ba499bd6bcfde87e01292",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-light-providers.png",
+      "sha256": "35eec5165c162e39bbc74919dc2122682634e633f41169543e002b6b572b49da",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-light-runs.png",
+      "sha256": "e24baf11171be81930b03ac86d95da5a1d87cabc76bdf53d5236e723887d7622",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/1440-light-schedules.png",
+      "sha256": "f033125d62b6397f67039977f39d07a938ebc3d6278ea781f320454920b863ae",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-dark-admin.png",
+      "sha256": "3135be39b3da843d6ce5f0ed8dba73811bbb647a002e4ad57905938a4f6553e5",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-dark-campaigns.png",
+      "sha256": "71560c70cb702c9c0c5420a8d4f5d79c54b505755cd9b43481f3cd30b9e17d91",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-dark-intents.png",
+      "sha256": "106d6faa5456cff433e5fd764a0c2a71f95fc8c0618179ac39e7d8d21ba93049",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-dark-overview.png",
+      "sha256": "be62811da815a2545a611b4f0205d43c4241f63a13d755c3b6061816a64cf1f5",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-dark-providers.png",
+      "sha256": "2125a0e47259e983ab5eb15c5bc218788b47b6455333f140df736cb03479e00b",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-dark-runs.png",
+      "sha256": "e41b69bb280ab3ee1a482dec57692509600083ed938209bda559b32c02992b0f",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-dark-schedules.png",
+      "sha256": "4e67922e1bf893bac16dd76df5c2e2c6ad6e6672c8d1047f5353c0018bb7aba3",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-light-admin.png",
+      "sha256": "6be4115eecb04f7f62428222e9a8a81ac23dc7ff99a79c422e20e04113f5d426",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-light-campaigns.png",
+      "sha256": "fa1f6891c2ecd7b97bb9307d258791d25e1d1ec3b2c5cbd6aa71fd9e31082068",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-light-intents.png",
+      "sha256": "bca24286e35ef8e0724c495cd1cb001f16f85884497ed27b1b426cddcece1655",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-light-overview.png",
+      "sha256": "a0c162164be57f3ead543eeaccdd2e235690239f80e8dbca7375a7b127760b17",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-light-providers.png",
+      "sha256": "5bf2ed407de3c95b6abbd4afca0c8dfb61ad06832b46671200b7760057d6c7f6",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-light-runs.png",
+      "sha256": "e39dd1ae65d66136efe54c19694214806825205046de7c37cb6cad9ca42ee600",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/320-light-schedules.png",
+      "sha256": "c7959adcc16af60d9e282dfaebf532184eb0b263c2f47fa53535e7ee5c1b9759",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-dark-admin.png",
+      "sha256": "dbd908e61ddbf9387f3b8d6a0f230585b2f450a030a43a4dcbcedc64b7b331b2",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-dark-campaigns.png",
+      "sha256": "3d4ba178b58ec231b090a8ad64790eeaecbe62525d8878c33dba01b260a47657",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-dark-intents.png",
+      "sha256": "6f8adcb17b9dce1d216ba76c66cf0b96f4c38854e262391243f4c16b260d6698",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-dark-overview.png",
+      "sha256": "d21c746d903a2ef79901ee6b6df3b94cee5684d9e6b84f9cead5374f6a18847d",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-dark-project-dialog.png",
+      "sha256": "97cbceb91e1eaa9eb26dc50485632e731f660534dde4d416479825f2576f4b26",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-dark-providers.png",
+      "sha256": "7a82413fb5b892a27c9a29ef3bf76b15ce7bc7855f14f9adaa777dfe044f252e",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-dark-runs.png",
+      "sha256": "490f73496bb0cd88b9d9dbe74295d2501870931578a1d1b38a848fa6d437f017",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-dark-schedules.png",
+      "sha256": "faaff146ab3b6ace4692631d48ec2b0905327439b987c5fc63fa6faa6c3e2429",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-forced-colors.png",
+      "sha256": "0ffa0b714ebeeab4c8327f5dad01e0b9a5d0bd36ded3cd34f3305ae1de4b81c0",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-light-admin.png",
+      "sha256": "1723ea2f59081aeccaabe5289078031dc89a7912d26cfb36cfacec85d03a0b61",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-light-campaigns.png",
+      "sha256": "e90d02f0ab1b4c39115c4c11e36659b9518b9518ebad7a319a7d3a0ca239c260",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-light-intents.png",
+      "sha256": "5db34759844b604e4d7eecc54fa7408e1b5127b8bd650e69c700e7325ad9cf2d",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-light-overview.png",
+      "sha256": "65d5e43f3ad411dd711c32be02cdad4aa6775ce87e5dbd620a87089a4eb32ff7",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-light-providers.png",
+      "sha256": "720b59a0804c91a48d6b26f694e655b749abb3446fcaaac62031663e83c60c03",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-light-runs.png",
+      "sha256": "4af0fb3ed663dd2c85edd108ed2ee28474a1070657538e4fcb144134eba0f640",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/390-light-schedules.png",
+      "sha256": "9fc0b180e63eed578ece4e13ce5f51a76e0ec9ce146d48da236263fdfcd79a16",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-dark-admin.png",
+      "sha256": "2467c23fb0cff4957b286480cbbd3969b7b9fac5c5bc3cce024217167d7b254b",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-dark-campaigns.png",
+      "sha256": "fb68f9e428e346f16c107cb9929af29dba0f88c049da95bdee35ac92365df399",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-dark-intents.png",
+      "sha256": "bc9a1f986f61a183668cbf4a3d62d4878852d7bcd624aadd2361e16736529bc7",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-dark-overview.png",
+      "sha256": "44c8d4c4714697f5a876d3f8292ae202740f5d3c81cee93a09658e159ddd7fbe",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-dark-providers.png",
+      "sha256": "a132c83bf8114b699b9549aee4c9a5ac15686fb0b119f9e4bca61b9f05dc6822",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-dark-runs.png",
+      "sha256": "e56f0282b7659d6aaeccb6e9b47f50a60876fb8fb36a7e7fcd7c427da44eda9a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-dark-schedules.png",
+      "sha256": "2f87f0492692191a2470f874d91c72eab02bf559d7d33b19fd98b50c6382ce66",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-light-admin.png",
+      "sha256": "9129acd4ce4d55153feb9e34661e6e3a99b056da8c907740896d57bd215eea23",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-light-campaigns.png",
+      "sha256": "f5d4bff0eea984b4b6887c1f9639b302b4c62261c5a28990ad0131318f96afb3",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-light-intents.png",
+      "sha256": "3fceb72471dd63a0b836d2155002d92217958957b293a3eaf51522a5956eb944",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-light-overview.png",
+      "sha256": "2313978dbf943b833cd3ab93d7b61cda30bfc0c34d33861fb109f66cd4c1c56f",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-light-providers.png",
+      "sha256": "400b4112282c12068ca27f9973ddccfd5ebcfc122c7841934dd07f8c1e915b25",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-light-runs.png",
+      "sha256": "32f580af2c7294e52d9902ee927afd25b3393af743ce9ae242aa37afa03e8727",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/768-light-schedules.png",
+      "sha256": "1087eedce41af5c159f7c73c709a5dec3bc27b44585ccc8b8a17475d0573173e",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "matrix/expired-search-session.png",
+      "sha256": "e66ea89404df72cbb623d20f8b910396ff980d68b0faf4e49302a84f872bcd77",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "providers/01-provider-catalog.png",
+      "sha256": "cbcffe3eec8707fa68f5b7f63eedb5ee08b27a06f904cfcae83dfcbd5bca473c",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "providers/02-provider-stale.png",
+      "sha256": "836ca1258008ec092e420258cda24bdff9c3db682c8181670ff762e33ca66222",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "providers/03-provider-mobile.png",
+      "sha256": "c58dd940631e742451687fd67ca6afd33a60c00fd2e370a2095a53c47bd8a109",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "providers/04-default-provider-catalog.png",
+      "sha256": "0bf9afc3fb1eb1255ad9170f47efa6912766252587ddce56025f146d7aa7b2ef",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "providers/05-default-provider-stale.png",
+      "sha256": "81cd54f67901a79b661123e7e42fa99c96d68b01ef3249be6294842d3751c67b",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "providers/06-default-provider-management.png",
+      "sha256": "84e8fa7a766a2721aeb318bd4d64441b0bbc24b1aafc4f389d8c01f0a1dad98a",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "review/01-inspected-capture.png",
+      "sha256": "6a181fcf746ea9e5c5baf4db155e31ebbff9c13d880bcbf84af2df378d7210a2",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "review/02-grounded-hypothesis.png",
+      "sha256": "bd00ba08c884f5a954c788314d9ad5658c9df174146b13e3c5f3bc97cefb68b5",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "review/03-mobile-review.png",
+      "sha256": "c993c5a92fffb6a9a8c66ee5df6ea5dd848da596655bc83b682fccef9a29e075",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "review/04-review-submission-pending.png",
+      "sha256": "d5fd1896610d695f740c5fc745a00c3fa7fc1bc7b736ba354a25c86a4ed1426c",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "review/05-project-filter.png",
+      "sha256": "0d0776ed3774ab62481b98b467e2ad1df1336e5cf87217ebc05500435a7d2d64",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "review/06-new-session-consent.png",
+      "sha256": "2995f32572444c7ac34aab61d928661fa6108dcc7b135804c2c9031966349eb8",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "review/07-expired-session-consent.png",
+      "sha256": "94cd0f64ef5d8b2439c3127d05fadb1dbbd5a4ef9eab5ba6d1e39ee0243172af",
+      "humanInspection": "not performed"
+    },
+    {
+      "file": "review/08-pending-review-navigation.png",
+      "sha256": "7133491858bbc2c0c3728d35d84d48c8579498a099d84af10475ca4c1d0c450e",
+      "humanInspection": "not performed"
+    }
+  ],
+  "humanInspection": "not performed",
+  "automatedAuditIncompleteCheckpoints": {}
+}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { beginPendingRequest, usePendingRequest } from './pending-requests';
-import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
+import { Button } from './components';
+import { Input } from './components';
 import { ModelControls, type RefreshModels } from './model-controls';
 import type { Capture, Run } from '../types';
 
