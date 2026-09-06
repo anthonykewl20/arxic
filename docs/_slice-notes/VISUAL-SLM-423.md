@@ -1,6 +1,6 @@
 # VISUAL-SLM-423 — staged doc updates (charter §10.2)
 
-Issue: #423 · PR: pending · Disposition: hypothesized (specification only)
+Issue: #423 · PR: #424 (draft) · Disposition: hypothesized (specification only)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
