@@ -132,3 +132,8 @@ and [clean source installation/recovery](docs/evidence/WEB-402-INSTALL/summary.m
 Latest scoped visual evidence: [solid text contrast and dashboard region inspection](docs/evidence/WEB-402-CONTRAST/summary.md).
 
 Generated workflow replays wait for action-related network completion and stable page observations before assertions, screenshots and receipts. The same bounded settling service runs during exploration; see [the reset replay regression](docs/adr/009-web-workbench.md#2026-09-06-asynchronous-replay-completion).
+
+Guided AI E2E can expose approved workflow checkpoint screenshots in the dashboard,
+including states reached after authentication. Configure a semantic capture region
+and privacy masks with explicit consent, then inspect the hash-checked checkpoint
+gallery and provenance in Test runs. See the [workflow checkpoint guide](docs/web-workbench.md#workflow-checkpoints).

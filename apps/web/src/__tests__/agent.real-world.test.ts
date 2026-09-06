@@ -1,9 +1,10 @@
+import { checkpointUiProof } from './checkpoint-ui-proof';
 import { retainResetProof } from './reset-proof';
 import { resetDiagnostic } from './reset-diagnostic';
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -72,6 +73,11 @@ it.each([
       if (req.headers.authorization !== 'Bearer web-agent-test-key') {
         res.statusCode = 401;
         res.end();
+        return;
+      }
+      if (req.method === 'GET' && req.url?.endsWith('/models')) {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ data: [{ id: 'vendor/custom-code:local' }] }));
         return;
       }
       let body = '';
@@ -213,12 +219,27 @@ it.each([
       const project = await workbench.saveProject(
         {
           name: 'Agent reference',
+          captureConsent: mode === 'guided',
           folder: repo.root,
           origin: target.origin,
           ...(!guided
             ? { configPath: 'arxic.yaml' }
             : {
                 execution: {
+                  ...(mode === 'guided'
+                    ? {
+                        checkpointCapture: {
+                          mode: 'approved-region',
+                          region: {
+                            kind: 'role',
+                            role: 'heading',
+                            name: 'Reference Auth App',
+                            exact: true,
+                          },
+                          masks: [],
+                        },
+                      }
+                    : {}),
                   model: 'vendor/custom-code:local',
                   modelConnection: 'custom-provider',
                   frameworks: ['nextjs'],
@@ -291,6 +312,30 @@ it.each([
         outcome: 'verified',
         ledger: { verification: { outcome: 'verified', passedRuns: 2, runs: 2 } },
       });
+      if (mode === 'guided') {
+        expect(result.workflowCaptures?.length).toBeGreaterThan(0);
+        for (const capture of result.workflowCaptures ?? []) {
+          expect((await workbench.artifact(run.id, capture.file)).type).toBe('image/png');
+          expect(capture.mode).toBe('approved-region');
+          const privacy = await workbench.artifact(run.id, capture.privacyFile);
+          const original = privacy.bytes;
+          await writeFile(join(state, 'runs', run.id, capture.privacyFile), 'changed');
+          await expect(workbench.artifact(run.id, capture.privacyFile)).rejects.toThrow(
+            /integrity/,
+          );
+          await writeFile(join(state, 'runs', run.id, capture.privacyFile), original);
+          const imagePath = join(state, 'runs', run.id, capture.file);
+          const image = await readFile(imagePath);
+          const backup = join(state, 'runs', run.id, 'test-image-copy.png');
+          await writeFile(backup, image);
+          await rm(imagePath);
+          await symlink(backup, imagePath);
+          await expect(workbench.artifact(run.id, capture.file)).rejects.toThrow(/integrity/);
+          await rm(imagePath);
+          await writeFile(imagePath, image);
+          await rm(backup);
+        }
+      }
       expect(requests).toBeGreaterThan(0);
       const promoted = JSON.parse(
         await readFile(
@@ -360,6 +405,11 @@ it.each([
       expect(JSON.stringify(result)).not.toContain('web-agent-test-key');
       expect(JSON.stringify(result)).not.toContain('WebAgentTest9!');
       await assertNoCredentials(state);
+      if (mode === 'guided') {
+        const completed = workbench.store.run(run.id)!;
+        await workbench.close();
+        await checkpointUiProof(state, repo.root, completed);
+      }
     } finally {
       await workbench.close();
       await diagnostic?.close();

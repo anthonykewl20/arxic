@@ -1776,3 +1776,11 @@ p a,
     border: 2px solid Highlight !important;
   }
 }
+
+.checkpoint-image {
+  max-width: 100%;
+  height: auto;
+}
+.checkpoint-hash {
+  overflow-wrap: anywhere;
+}

@@ -1,3 +1,4 @@
+import { CheckpointSettings } from './checkpoint-settings';
 import { useEffect, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
@@ -117,6 +118,8 @@ export function projectBody(values: FormData) {
             ? splitList(value)
             : value;
     }
+    if (values.has('checkpointEnabled'))
+      execution.checkpointCapture = JSON.parse(String(values.get('checkpointCapture')));
     body.execution = execution;
   }
   return body;
@@ -666,6 +669,7 @@ function SettingsStep({
         />
         <fieldset id="execution-fields" hidden={!guided} disabled={!guided}>
           <legend>AI execution</legend>
+          <CheckpointSettings initial={seed.execution?.checkpointCapture} />
           <p className="muted">
             Choose a provider connection and model. Secret references name server environment
             variables; enter no passwords or API keys here.

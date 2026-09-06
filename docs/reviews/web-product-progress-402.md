@@ -81,3 +81,14 @@ visual checkpoints and runtime/retention/server-distribution work.
 The contrast slice adds a bounded solid-paint text profile and screenshot-region lookup, including unavailable-paint reasons and image-load retry. This expands numeric auditing but leaves compositing, broader interaction states and other oracle families open. A full-suite reset-email discrepancy is tracked in [#422](https://github.com/anthonykewl20/arxic/issues/422); a passing focused rerun does not resolve it.
 
 #422 follow-up reproduces the two-email discrepancy by delaying the first real replay submission. Generated replay now shares exploration's bounded action-settling service; the original count threshold remains and per-submission counts strengthen it. Current-head proof and CI are recorded in the issue/PR; full #402 readiness is not implied.
+
+### Workflow checkpoint gallery (refs #427)
+
+Explicit semantic workflow capture declarations now flow through guided dashboard
+settings and the local/worker verifier policy. Successful verifier runs can expose
+hash-checked checkpoint images and unchanged privacy provenance in Test runs.
+Capture consent, unique regions and required masks remain mandatory; changed files
+are unavailable with retry feedback. This closes the authenticated checkpoint
+visibility gap for explicitly configured workflows, not general state exploration,
+optical/heuristic completeness or the full cross-browser matrix. Evidence and CI
+results are recorded in the WEB-427-CHECKPOINTS slice note.

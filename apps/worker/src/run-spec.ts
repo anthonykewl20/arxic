@@ -1,3 +1,4 @@
+import type { ScreenshotPrivacyPolicy } from '../../../packages/playwright-screenshot-privacy/src';
 // CLI↔worker seam types — app-local, NOT frozen ADR §10 contracts.
 //
 // These types live in @arxic/worker (app-local). They MUST NOT be added to
@@ -113,6 +114,7 @@ export type ArxicConfig = Readonly<{
     externalNetwork: 'deny';
     requiredVerificationRuns: number;
     screenshots: string;
+    checkpointCapture?: ScreenshotPrivacyPolicy['capture'];
     trace: string;
     humanApproval: readonly string[];
   }>;

@@ -68,3 +68,12 @@ Test runs searches all stored history with project/type/status filters and pagin
 Visual measurements now include solid-paint text contrast with numeric ratios and screenshot regions. Unsupported paint and privacy-masked text remain unverified; see the [contrast profile](../../docs/visual-oracle.md#solid-text-contrast-profile).
 
 The selected-reset real-app regression delays the first replay submission and independently requires three successful submissions and inbox counts 1, 2, 3. This guards against a run finishing while an asynchronous action is still pending; provider responses remain controlled test-boundary data.
+
+Guided AI execution now supports **Show workflow screenshots in run results**:
+choose an exact semantic region (or a masked page), add sensitive-field masks and
+confirm capture consent. The run's **Workflow checkpoints** gallery shows exported
+verifier-attested images, dimensions, timestamps and original privacy provenance.
+Both image and provenance reads reject changed bytes. Missing/unvalidated evidence
+is explicitly unavailable. Workflow images are separate from visual baselines and
+do not imply complete state coverage or a full UI audit. See the
+[workflow checkpoint guide](../../docs/web-workbench.md#workflow-checkpoints).

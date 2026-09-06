@@ -1,3 +1,4 @@
+import { checkpointPrivacyPolicy } from '../../worker/src/checkpoint-capture';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { isAbsolute, join, relative, resolve } from 'node:path';
@@ -12,10 +13,6 @@ import {
   hostCliConfigFromEnv,
   createOpenClawTransport,
 } from '@arxic/model-adapter';
-import {
-  serializeScreenshotPrivacyPolicy,
-  type ScreenshotPrivacyPolicy,
-} from '@arxic/playwright-screenshot-privacy';
 import {
   FixtureResetError,
   PlaywrightVerifier,
@@ -154,7 +151,8 @@ function localPipelineOptions(
         ...(request.config.fixtures.replayPersona
           ? { replayPersona: request.config.fixtures.replayPersona }
           : {}),
-        screenshotPrivacyPolicy: cliScreenshotPolicy(
+        screenshotPrivacyPolicy: checkpointPrivacyPolicy(
+          request.config.policy.checkpointCapture,
           request.runId,
           request.now?.() ?? new Date().toISOString(),
         ),
@@ -551,23 +549,6 @@ function uncompiledVerification() {
     runs: [],
     gates: [{ gate: 'verify', passed: false }],
   };
-}
-
-function cliScreenshotPolicy(runId: string, recordedAt: string): ScreenshotPrivacyPolicy {
-  return serializeScreenshotPrivacyPolicy({
-    schemaVersion: 1,
-    id: `${runId}-cli-main-mask`,
-    authority: {
-      kind: 'repository-policy',
-      reference: 'arxic.yaml:policy.screenshots',
-      recordedAt,
-    },
-    capture: {
-      mode: 'masked-page',
-      fullPage: true,
-      masks: [{ kind: 'role', role: 'main', exact: true }],
-    },
-  }).policy;
 }
 
 function resolveCommit(repository: string, revision: string): string {

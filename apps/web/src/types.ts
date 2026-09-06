@@ -53,6 +53,8 @@ export type Capture = {
   assessmentSha256?: string;
 };
 export type RunResult = {
+  workflowCaptures?: import('./workflow-captures').WorkflowCapture[];
+  workflowCaptureGap?: string;
   review?: import('./visual-review').VisualReviewResult;
   outcome: 'hypothesized' | 'observed' | 'verified' | 'contradicted' | 'blocked';
   summary: string;
