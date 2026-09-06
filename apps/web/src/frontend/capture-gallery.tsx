@@ -64,7 +64,11 @@ export function CaptureGallery({
   if (!captures.length) return null;
   return (
     <section aria-label="Capture gallery" className="mt-6 space-y-4 border-t pt-4">
-      <h3 tabIndex={-1} ref={heading}>
+      <h3
+        tabIndex={-1}
+        ref={heading}
+        style={{ scrollMarginTop: 'calc(var(--topbar-height) + var(--space-8))' }}
+      >
         Captured pages
       </h3>
       <p className="muted">

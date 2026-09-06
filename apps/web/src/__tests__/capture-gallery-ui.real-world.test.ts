@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
@@ -136,6 +136,19 @@ it.each(['light', 'dark'] as const)(
         '02-next-page',
         'Keyboard pagination bounds the gallery and restores focus to its heading',
       );
+      await page.setViewportSize({ width: 320, height: 1000 });
+      await page.getByRole('button', { name: 'Previous captures', exact: true }).focus();
+      await page.keyboard.press('Enter');
+      const focusedHeading = page.getByRole('heading', { name: 'Captured pages', exact: true });
+      const headingBox = (await focusedHeading.boundingBox())!;
+      const stickyHeader = (await page.locator('.sidebar').boundingBox())!;
+      expect(headingBox.y).toBeGreaterThanOrEqual(stickyHeader.y + stickyHeader.height);
+      await audit(
+        '02-mobile-page',
+        'Mobile keyboard pagination keeps its focused heading below the sticky header',
+      );
+      await page.setViewportSize({ width: 1440, height: 1000 });
+
       await page.getByLabel('Capture browser', { exact: true }).selectOption('webkit');
       await page.getByLabel('Capture theme', { exact: true }).selectOption('dark');
       await page.getByLabel('Capture viewport', { exact: true }).selectOption('390x844');
@@ -265,6 +278,32 @@ it.each(['light', 'dark'] as const)(
       expect(await page.getByLabel('Capture browser', { exact: true }).inputValue()).toBe('');
       expect((await readRun(first.id)).result).toEqual(first.result);
       expect(errors).toEqual([]);
+      if (process.env.ARXIC_GALLERY_EVIDENCE_DIR) {
+        await writeFile(
+          join(process.env.ARXIC_GALLERY_EVIDENCE_DIR, theme, 'measurements.json'),
+          JSON.stringify(
+            {
+              mobileHeading: headingBox,
+              mobileStickyHeader: stickyHeader,
+              selectedImageSha256: selected.sha256,
+              initialCaptures: first.result!.captures!.length,
+              independentSpecs: new Set(first.result!.captures!.map((c) => c.specHash)).size,
+              repeatedUnchanged: repeat.result!.captures!.filter(
+                (c) => c.status === 'unchanged' && c.changedPixels === 0,
+              ).length,
+              regressedDark: regression.result!.captures!.filter(
+                (c) => c.environment?.colorScheme === 'dark' && c.status === 'changed',
+              ).length,
+              unchangedLight: regression.result!.captures!.filter(
+                (c) => c.environment?.colorScheme === 'light' && c.status === 'unchanged',
+              ).length,
+              pageErrors: errors.length,
+            },
+            null,
+            2,
+          ),
+        );
+      }
     } finally {
       await proof.finish();
       await browser.close();
