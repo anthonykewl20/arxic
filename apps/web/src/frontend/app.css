@@ -1894,3 +1894,10 @@ p a,
   align-items: center;
   min-height: var(--control-md);
 }
+
+.element-checks summary {
+  min-height: var(--control-md);
+  align-content: center;
+  cursor: pointer;
+  font-weight: 600;
+}

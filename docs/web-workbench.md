@@ -524,7 +524,8 @@ measured boxes, smallest first. Use **Find element number** and the paginated
 buttons with the keyboard, or navigate to a retained parent. The selected outline
 and CSS bounds use the original capture coordinates even when the preview scales
 to a mobile screen. Checks overlapping the selected area retain their original
-verdicts and measurement references. **Show selected on screenshot** returns focus
+verdicts and measurement references; expand **Checks overlapping this area** when
+you need the details. Search feedback appears above the input. **Show selected on screenshot** returns focus
 to the outline; **Open full-size element image** opens the original image.
 
 Element numbers are capture-local measurement IDs, not semantic names or replay

@@ -210,21 +210,38 @@ export function ElementInspector({
                   </p>
                 )}
               </div>
-              <h5>Checks overlapping this area</h5>
-              {!related.length ? (
-                <p>No checks reference this area. Selecting an element does not make it pass.</p>
-              ) : (
-                <ul>
-                  {related.map((check) => (
-                    <li key={check.id}>
-                      <strong>{check.id}</strong> <Status value={check.verdict} />
-                      <p>{check.reason}</p>
-                      <small>Measurement references: {check.measurementIds.join(', ')}</small>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <details className="element-checks" key={selected.id}>
+                <summary>Checks overlapping this area ({related.length})</summary>
+                {!related.length ? (
+                  <p>No checks reference this area. Selecting an element does not make it pass.</p>
+                ) : (
+                  <ul>
+                    {related.map((check) => (
+                      <li key={check.id}>
+                        <strong>{check.id}</strong> <Status value={check.verdict} />
+                        <p>{check.reason}</p>
+                        <small>Measurement references: {check.measurementIds.join(', ')}</small>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </details>
             </section>
+          )}
+          {imageState === 'ready' && (
+            <>
+              <p role="status">
+                {point
+                  ? `${candidates.length} elements at this point`
+                  : `${candidates.length} matching elements`}
+                {candidates.length > 0
+                  ? ` · ${page * pageSize + 1}–${Math.min((page + 1) * pageSize, candidates.length)} shown`
+                  : ''}
+              </p>
+              {!candidates.length && (
+                <p>No elements match. Clear the search or choose another point.</p>
+              )}
+            </>
           )}
           <div className="toolbar">
             <div className="field">
@@ -252,17 +269,6 @@ export function ElementInspector({
           </div>
           {imageState === 'ready' && (
             <>
-              <p role="status">
-                {point
-                  ? `${candidates.length} elements at this point`
-                  : `${candidates.length} matching elements`}
-                {candidates.length > 0
-                  ? ` · ${page * pageSize + 1}–${Math.min((page + 1) * pageSize, candidates.length)} shown`
-                  : ''}
-              </p>
-              {!candidates.length && (
-                <p>No elements match. Clear the search or choose another point.</p>
-              )}
               <ul className="element-list">
                 {visible.map((node) => (
                   <li key={node.id}>

@@ -64,6 +64,9 @@ export async function inspectCapturedElements(page: Page, targetOrigin: string, 
     await panel
       .getByText('No elements match. Clear the search or choose another point.', { exact: true })
       .waitFor();
+    await panel
+      .getByText('No elements match. Clear the search or choose another point.', { exact: true })
+      .scrollIntoViewIfNeeded();
     await audit('02-no-matches', 'Unknown element number has an explicit empty result');
     await panel.getByLabel('Find element number').fill('0');
     await panel.getByRole('button', { name: 'Inspect element 0', exact: true }).focus();
@@ -77,15 +80,26 @@ export async function inspectCapturedElements(page: Page, targetOrigin: string, 
     await panel.getByRole('button', { name: 'Previous elements', exact: true }).click();
     await panel.getByRole('button', { name: 'Inspect element 0', exact: true }).waitFor();
     await pickHeading();
-    await panel
-      .getByRole('region', { name: 'Selected element measurements' })
-      .scrollIntoViewIfNeeded();
+    const checkDetails = panel.locator('details.element-checks');
+    await checkDetails.locator('summary').waitFor();
+    expect(await checkDetails.getAttribute('open')).toBeNull();
+    await checkDetails.locator('summary').focus();
+    await page.keyboard.press('Enter');
+    await checkDetails
+      .getByText(/Measurement references:/)
+      .first()
+      .waitFor();
+    await page.keyboard.press('Enter');
+    expect(await checkDetails.getAttribute('open')).toBeNull();
+    await panel.getByRole('button', { name: 'Show selected on screenshot' }).click();
     await audit(
       '03-picked-heading',
       'Picked bounds exactly match an independently measured real-app heading',
     );
     await panel.getByRole('button', { name: /Inspect parent element/ }).click();
     await checkBox(expected.parent);
+    expect(await checkDetails.getAttribute('open')).toBeNull();
+    await panel.getByRole('button', { name: 'Show selected on screenshot' }).click();
     await audit(
       '04-parent',
       'Parent navigation matches independently measured reference-app bounds',
