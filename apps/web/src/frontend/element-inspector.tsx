@@ -2,7 +2,8 @@ import { useId, useRef, useState } from 'react';
 import type { Capture } from '../types';
 import { elementsAtPoint, type ElementScene } from '../element-scene';
 import type { VisualCheck } from '../visual-oracle';
-import { Button, Input, Label } from './components';
+import { Button, Input, Label, Select } from './components';
+import { elementKindLabels } from '../element-kinds';
 import { Status } from './run-table';
 const pageSize = 10;
 
@@ -21,6 +22,8 @@ export function ElementInspector({
   const [imageState, setImageState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
   const [query, setQuery] = useState('');
+  const [kind, setKind] = useState('all');
+  const kindId = useId();
   const [point, setPoint] = useState<{ x: number; y: number } | null>(null);
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<number>();
@@ -37,9 +40,14 @@ export function ElementInspector({
     );
   const selected =
     imageState === 'ready' ? scene.nodes.find((n) => n.id === selectedId) : undefined;
-  const candidates = point
-    ? elementsAtPoint(scene, point.x, point.y)
-    : scene.nodes.filter((n) => String(n.id).includes(query.trim()));
+  function matchesKind(node: ElementScene['nodes'][number]) {
+    return (
+      kind === 'all' || (kind === 'unknown' ? node.kind === undefined : node.kind === Number(kind))
+    );
+  }
+  const candidates = (point ? elementsAtPoint(scene, point.x, point.y) : scene.nodes).filter(
+    (n) => matchesKind(n) && String(n.id).includes(query.trim()),
+  );
   const visible = candidates.slice(page * pageSize, (page + 1) * pageSize);
   const parent = selected ? scene.nodes.find((n) => n.id === selected.parent) : undefined;
   const related = selected
@@ -55,6 +63,7 @@ export function ElementInspector({
   const url = `/api/runs/${runId}/artifacts/${encodeURIComponent(capture.file)}`;
   function clear() {
     setQuery('');
+    setKind('all');
     setPoint(null);
     setPage(0);
     setSelectedId(undefined);
@@ -62,6 +71,7 @@ export function ElementInspector({
   function chooseParent() {
     if (!parent || !scene) return;
     setQuery('');
+    setKind('all');
     setPoint(null);
     setPage(Math.floor(scene.nodes.indexOf(parent) / pageSize));
     setSelectedId(parent.id);
@@ -80,13 +90,21 @@ export function ElementInspector({
         <section id={panelId} className="element-inspector" aria-label="Captured elements">
           <h3>Captured elements</h3>
           <p id={hint}>
-            Choose a point in the screenshot, or find an element number below. Overlapping boxes are
-            listed smallest first; this does not establish which element is painted on top.
+            Filter by element type, choose a point in the screenshot, or find an element number
+            below. Overlapping boxes are listed smallest first; this does not establish which
+            element is painted on top.
           </p>
           <p className="scope-note">
             {scene.nodes.length} captured boxes · Current viewport only. Element numbers identify
-            numeric measurements, not replay locators. Text and field values are not retained.
+            numeric measurements, not replay locators. Types are browsing hints, not verified
+            accessibility roles. Text and field values are not retained.
           </p>
+          {scene.kindSchemaVersion !== 1 && (
+            <p className="scope-note">
+              Older capture: element types were not recorded. Screenshot picking and element-number
+              search are still available.
+            </p>
+          )}
           {scene.truncated && (
             <p role="status">
               Capture limit reached. Some elements were not measured; this is incomplete coverage.
@@ -148,7 +166,7 @@ export function ElementInspector({
                   const box = event.currentTarget.getBoundingClientRect();
                   const x = ((event.clientX - box.left) * scene.viewport.width) / box.width,
                     y = ((event.clientY - box.top) * scene.viewport.height) / box.height;
-                  const matches = elementsAtPoint(scene, x, y);
+                  const matches = elementsAtPoint(scene, x, y).filter(matchesKind);
                   setPoint({ x, y });
                   setQuery('');
                   setPage(0);
@@ -183,6 +201,9 @@ export function ElementInspector({
           {selected && (
             <section className="element-details" aria-label="Selected element measurements">
               <h4>Element {selected.id}</h4>
+              <p>
+                Type: {selected.kind === undefined ? 'Unknown' : elementKindLabels[selected.kind]}
+              </p>
               <p>
                 CSS bounds (rounded for display): x {selected.x.toFixed(2)}, y{' '}
                 {selected.y.toFixed(2)}, width {selected.width.toFixed(2)}, height{' '}
@@ -232,18 +253,39 @@ export function ElementInspector({
             <>
               <p role="status">
                 {point
-                  ? `${candidates.length} elements at this point`
-                  : `${candidates.length} matching elements`}
+                  ? `${candidates.length} ${candidates.length === 1 ? 'element' : 'elements'} at this point`
+                  : `${candidates.length} matching ${candidates.length === 1 ? 'element' : 'elements'}`}
                 {candidates.length > 0
                   ? ` · ${page * pageSize + 1}–${Math.min((page + 1) * pageSize, candidates.length)} shown`
                   : ''}
               </p>
               {!candidates.length && (
-                <p>No elements match. Clear the search or choose another point.</p>
+                <p>No elements match. Clear the filters or choose another point.</p>
               )}
             </>
           )}
           <div className="toolbar">
+            <div className="field">
+              <Label htmlFor={kindId}>Element type</Label>
+              <Select
+                id={kindId}
+                value={kind}
+                disabled={imageState !== 'ready'}
+                onChange={(event) => {
+                  setKind(event.target.value);
+                  setPage(0);
+                  setSelectedId(undefined);
+                }}
+              >
+                <option value="all">All element types</option>
+                {elementKindLabels.map((label, code) => (
+                  <option key={code} value={String(code)}>
+                    {label}
+                  </option>
+                ))}
+                <option value="unknown">Unknown (older capture)</option>
+              </Select>
+            </div>
             <div className="field">
               <Label htmlFor={searchId}>Find element number</Label>
               <Input
@@ -280,6 +322,7 @@ export function ElementInspector({
                       Inspect element {node.id}
                     </Button>
                     <span>
+                      {node.kind === undefined ? 'Unknown type' : elementKindLabels[node.kind]} ·{' '}
                       {node.width.toFixed(2)} × {node.height.toFixed(2)} CSS px
                     </span>
                   </li>

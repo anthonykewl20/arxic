@@ -57,3 +57,26 @@ it('rejects non-numeric browser output before it can become retained evidence', 
   } as unknown as Parameters<typeof collectVisualScene>[0];
   await expect(collectVisualScene(page)).rejects.toThrow('Invalid numeric scene evidence');
 });
+
+it('does not let invalid browsing metadata waive a measured hard failure', () => {
+  const report = assessVisualScene({ ...scene, kindSchemaVersion: 2 } as unknown as VisualScene, {
+    screenshotSha256: 'a'.repeat(64),
+    stable: true,
+  });
+  expect(report.checks[0]).toMatchObject({ verdict: 'fail', delta: 200 });
+  expect(report.verdict).toBe('fail');
+});
+
+it.each(['private-role', 10, -1, null])(
+  'refuses raw or invalid kind data from the browser boundary %j',
+  async (kind) => {
+    const page = {
+      evaluate: async () => ({
+        ...scene,
+        kindSchemaVersion: 1,
+        nodes: [{ id: 0, parent: null, x: 0, y: 0, width: 1, height: 1, kind }],
+      }),
+    } as unknown as Parameters<typeof collectVisualScene>[0];
+    await expect(collectVisualScene(page)).rejects.toThrow('Invalid element kind evidence');
+  },
+);

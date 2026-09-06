@@ -570,7 +570,7 @@ stale or signed-out responses cannot overwrite the current history result.
 
 In **Test runs**, expand a viewport capture's **Measured checks and coverage**, then
 choose **Inspect captured elements**. Click a screenshot point to list overlapping
-measured boxes, smallest first. Use **Find element number** and the paginated
+measured boxes, smallest first. Use **Element type** to find buttons, form fields, links, images, headings, tables, regions, lists or media. Combine a type with **Find element number** or a screenshot point. **Show all captured elements** clears all filters; parent navigation also clears filters so the parent remains visible. Use the paginated
 buttons with the keyboard, or navigate to a retained parent. The selected outline
 and CSS bounds use the original capture coordinates even when the preview scales
 to a mobile screen. Checks overlapping the selected area retain their original
@@ -579,8 +579,8 @@ you need the details. Search feedback appears above the input. **Show selected o
 to the outline; **Open full-size element image** opens the original image.
 
 Element numbers are capture-local measurement IDs, not semantic names or replay
-selectors. The retained scene contains numeric geometry only; it deliberately
-excludes page text, field values and DOM attributes. A box intersecting a point
+selectors. The retained scene contains numeric geometry plus a bounded type code; it deliberately
+excludes page text, field values and raw DOM attributes. Types are browsing hints derived from recognized declared roles or native elements, not verified accessibility semantics. Unclassified elements appear as **Other**. Older captures remain inspectable with **Unknown (older capture)** and an explicit note that types were not recorded. Invalid or unsupported type metadata cannot gain trusted inspection or waive a hard measurement failure. A box intersecting a point
 does not prove paint order or clickability. Only viewport-intersecting boxes from
 the bounded scan are available; a truncated scan and missing parents remain
 explicit. Text-paint measurement IDs are separate from element IDs.

@@ -77,3 +77,55 @@ it('uses half-open edges and deterministic preorder ties without claiming paint 
   expect(elementsAtPoint(parsed, 35, 25)).toEqual([]);
   expect(elementsAtPoint(parsed, 15, 35)).toEqual([]);
 });
+
+it.each([-1, 10, 1.5, 'button', null, undefined, { role: 'private-value' }])(
+  'rejects malformed versioned element-kind metadata %j',
+  (kind) => {
+    expect(
+      parseElementScene(
+        {
+          ...report,
+          scene: {
+            ...scene,
+            kindSchemaVersion: 1,
+            nodes: scene.nodes.map((node) => ({ ...node, kind })),
+          },
+        },
+        capture,
+      ),
+    ).toBeUndefined();
+  },
+);
+it('retains bounded kinds only in their supported version and keeps legacy captures numeric', () => {
+  const versioned = {
+    ...report,
+    scene: {
+      ...scene,
+      kindSchemaVersion: 1,
+      nodes: scene.nodes.map((node) => ({
+        ...node,
+        kind: 1,
+        role: 'private-role',
+        name: 'private-name',
+      })),
+    },
+  };
+  const parsed = parseElementScene(versioned, capture)!;
+  expect(parsed).toMatchObject({
+    kindSchemaVersion: 1,
+    nodes: scene.nodes.map((n) => ({ ...n, kind: 1 })),
+  });
+  expect(JSON.stringify(parsed)).not.toContain('private-');
+  expect(
+    parseElementScene(
+      { ...versioned, scene: { ...versioned.scene, kindSchemaVersion: 2 } },
+      capture,
+    ),
+  ).toBeUndefined();
+  expect(
+    parseElementScene(
+      { ...versioned, scene: { ...versioned.scene, kindSchemaVersion: undefined } },
+      capture,
+    )?.nodes,
+  ).toEqual(scene.nodes);
+});

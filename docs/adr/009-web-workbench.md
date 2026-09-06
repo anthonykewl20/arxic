@@ -372,3 +372,25 @@ remain boundary stubs in campaign proof; source analysis, browser actions, compi
 verifier and Mailpit are real. Safe named screenshots and sanitized timelines are
 retained; no raw trace archive is exported. Release publication and human screenshot
 inspection remain separate gates.
+
+## 2026-09-07: Bounded element-kind browsing (refs #437)
+
+VisualScene schema 1 gains the optional `kindSchemaVersion: 1` projection with
+per-node integer kind codes 0–9. The browser derives them from a fixed recognized-role
+lookup (precedence over native defaults) or native element type. Unknown strings
+never leave the browser; host validation/reprojection retains only the bounded code.
+The 2000-node budget and original numeric IDs remain unchanged. No raw roles, labels,
+field values, URLs or selectors are retained. This is an inspection hint, not an
+accessibility-role oracle or replay locator.
+
+The inspector requires supported versioned kinds when that projection is present;
+legacy numeric-only scenes remain valid with unknown kinds. Existing screenshot
+hash/viewport and numeric bounds checks remain mandatory. Browsing metadata does not
+participate in hard-solver validity, so it cannot waive a measured overflow failure.
+Type filters combine with number or point selection; filter changes reset selection
+and pagination, and parent navigation clears filters before revealing the parent.
+
+Proof uses actual reference-app captures in both themes, narrow/wide dashboard
+layouts, and actual dashboard native/declared controls. Historical metadata is an
+explicit response-format boundary supplement over unchanged real capture geometry
+and pixels. The installed-browser packaging gate runs these assertions too.

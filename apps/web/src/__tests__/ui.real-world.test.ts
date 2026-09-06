@@ -1,4 +1,5 @@
 import { inspectCapturedElements } from './element-inspector-proof';
+import { inspectLegacyElementKinds } from './element-kind-legacy-proof';
 import sharp from 'sharp';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
@@ -204,7 +205,7 @@ it.each(['light', 'dark'] as const)(
         'Mismatched screenshot binding disables inspection',
       );
       await page.unroute('**/*.assessment.json');
-      await page.getByRole('button', { name: 'Retry element measurements' }).click();
+      await inspectLegacyElementKinds(page, theme);
       await page.getByText('document-horizontal-overflow', { exact: true }).waitFor();
       await inspectCapturedElements(page, target.origin, theme);
       await page.route('**/artifacts/checkpoint-1.png', (route) =>
