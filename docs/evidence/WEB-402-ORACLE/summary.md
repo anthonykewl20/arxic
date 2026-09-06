@@ -51,6 +51,12 @@ ordinal checkpoint and fixed stability result. Scene nodes contain only the
 allow-listed numeric `id`, `parent`, `x`, `y`, `width`, `height` fields; no DOM
 text, attributes, URLs, field values, a11y names or raw trace ZIPs are retained.
 
+A follow-up browser-boundary test reproduced non-numeric data escaping the
+collector. The trusted host now rejects malformed numeric fields and rebuilds
+the allow-listed projection before retention. All five assessment/collector
+tests pass after that correction. This follow-up uses a fake of the external
+browser boundary; the real capture path is covered by the reference-app test.
+
 ## Limits
 
 No independent human inspection or release sign-off is claimed. No paid model

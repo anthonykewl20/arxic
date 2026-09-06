@@ -35,7 +35,7 @@ export type VisualAssessment = {
 
 /** Read-only layout observation. The limit bounds retained nodes and solver work. */
 export async function collectVisualScene(page: Page): Promise<VisualScene> {
-  return page.evaluate(() => {
+  const scene = await page.evaluate(() => {
     const nodes: VisualScene['nodes'] = [];
     const ids = new Map<Element, number>();
     const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT);
@@ -67,13 +67,55 @@ export async function collectVisualScene(page: Page): Promise<VisualScene> {
       element = walker.nextNode() as Element | null;
     }
     return {
-      schemaVersion: 1,
+      schemaVersion: 1 as const,
       viewport: { width: window.innerWidth, height: window.innerHeight },
       documentWidth: document.documentElement.scrollWidth,
       nodes,
       truncated: element !== null,
     };
   });
+  if (!numericScene(scene)) throw new Error('Invalid numeric scene evidence');
+  // Rebuild the projection on the trusted host; do not retain unexpected browser fields.
+  return {
+    schemaVersion: 1,
+    viewport: { width: scene.viewport.width, height: scene.viewport.height },
+    documentWidth: scene.documentWidth,
+    truncated: scene.truncated,
+    nodes: scene.nodes.map(({ id, parent, x, y, width, height }) => ({
+      id,
+      parent,
+      x,
+      y,
+      width,
+      height,
+    })),
+  };
+}
+
+function numericScene(scene: VisualScene): boolean {
+  return (
+    !!scene &&
+    scene.schemaVersion === 1 &&
+    typeof scene.truncated === 'boolean' &&
+    Number.isFinite(scene.documentWidth) &&
+    scene.documentWidth > 0 &&
+    Number.isFinite(scene.viewport?.width) &&
+    scene.viewport.width > 0 &&
+    Number.isFinite(scene.viewport?.height) &&
+    scene.viewport.height > 0 &&
+    Array.isArray(scene.nodes) &&
+    scene.nodes.length <= 2000 &&
+    scene.nodes.every(
+      (node) =>
+        !!node &&
+        Number.isInteger(node.id) &&
+        node.id >= 0 &&
+        (node.parent === null || (Number.isInteger(node.parent) && node.parent >= 0)) &&
+        [node.x, node.y, node.width, node.height].every(Number.isFinite) &&
+        node.width > 0 &&
+        node.height > 0,
+    )
+  );
 }
 
 /** Decision boundary: no model argument, exemptions, or model-assigned truth state. */
@@ -82,21 +124,7 @@ export function assessVisualScene(
   evidence: { screenshotSha256: string; stable: boolean },
 ): VisualAssessment {
   const valid =
-    evidence.stable &&
-    /^[a-f0-9]{64}$/u.test(evidence.screenshotSha256) &&
-    Number.isFinite(scene.documentWidth) &&
-    scene.documentWidth > 0 &&
-    Number.isFinite(scene.viewport.width) &&
-    scene.viewport.width > 0 &&
-    Number.isFinite(scene.viewport.height) &&
-    scene.viewport.height > 0 &&
-    scene.nodes.length <= 2000 &&
-    scene.nodes.every(
-      (node) =>
-        [node.id, node.x, node.y, node.width, node.height].every(Number.isFinite) &&
-        node.width > 0 &&
-        node.height > 0,
-    );
+    evidence.stable && /^[a-f0-9]{64}$/u.test(evidence.screenshotSha256) && numericScene(scene);
   const gaps = [
     'clip-chain-containment',
     'paint-occlusion',

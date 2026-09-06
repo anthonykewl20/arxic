@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { assessVisualScene, type VisualScene } from '../visual-oracle';
+import { collectVisualScene, assessVisualScene, type VisualScene } from '../visual-oracle';
 
 const scene: VisualScene = {
   schemaVersion: 1,
@@ -46,4 +46,14 @@ it('records a checked predicate pass without turning coverage gaps green', () =>
   expect(report.checks[0]).toMatchObject({ verdict: 'pass', delta: 0 });
   expect(report.verdict).toBe('unverified');
   expect(report.coverage.gaps).toContain('node-budget-exhausted');
+});
+
+it('rejects non-numeric browser output before it can become retained evidence', async () => {
+  const page = {
+    evaluate: async () => ({
+      ...scene,
+      nodes: [{ id: 0, parent: null, x: 'private-browser-value', y: 0, width: 1, height: 1 }],
+    }),
+  } as unknown as Parameters<typeof collectVisualScene>[0];
+  await expect(collectVisualScene(page)).rejects.toThrow('Invalid numeric scene evidence');
 });
