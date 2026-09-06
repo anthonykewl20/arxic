@@ -1,7 +1,7 @@
 import { build } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
-import { createHash } from 'node:crypto';
+import { sha256 } from '@arxic/contracts';
 
 export type FrontendBundle = {
   assets: Map<string, string | Uint8Array>;
@@ -35,18 +35,21 @@ export function frontendAssets() {
       },
     });
     const assets = new Map<string, string | Uint8Array>();
-    const hash = createHash('sha256');
+    const hashParts: Uint8Array[] = [];
     for (const output of Array.isArray(result) ? result : [result]) {
       if (!('output' in output)) throw new Error('Frontend build did not return assets');
       for (const item of output.output) {
         const body = item.type === 'chunk' ? item.code : item.source;
         assets.set(`/${item.fileName}`, body);
-        hash.update(item.fileName).update(body);
+        hashParts.push(
+          Buffer.from(item.fileName),
+          typeof body === 'string' ? Buffer.from(body) : body,
+        );
       }
     }
     if (!assets.has('/app.js') || !assets.has('/app.css'))
       throw new Error('Frontend build must produce app.js and app.css');
-    return { assets, version: hash.digest('hex').slice(0, 16) };
+    return { assets, version: sha256(Buffer.concat(hashParts)).slice(0, 16) };
   })().catch((error) => {
     bundle = undefined;
     throw error;

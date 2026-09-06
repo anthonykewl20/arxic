@@ -149,8 +149,13 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
     await page.locator('[data-nav="runs"]').click();
     await page.getByLabel('Search runs').waitFor();
     await page.route('**/api/runs?**', (route) =>
-      route.fulfill({ status: 401, json: { error: 'Session expired' } }),
+      new URL(route.request().url()).searchParams.get('query') === 'expired-session'
+        ? route.fulfill({ status: 401, json: { error: 'Session expired' } })
+        : route.continue(),
     );
+    // Background polling must remain authenticated until the explicit search is submitted.
+    await page.waitForResponse((response) => new URL(response.url()).pathname === '/api/runs');
+    expect(await page.getByLabel('Search runs').isVisible()).toBe(true);
     await page.getByLabel('Search runs').fill('expired-session');
     await page.getByRole('button', { name: 'Search runs', exact: true }).click();
     await page.getByLabel('Administrator token').waitFor();
