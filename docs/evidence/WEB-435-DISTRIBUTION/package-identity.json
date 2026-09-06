@@ -1,0 +1,19 @@
+{
+  "implementationCommit": "51ede447a96f6a01ff5119557143a54cd7427113",
+  "testCommit": "1aba46e97ad939bd5c300d73d619f6d6b0779e01",
+  "tarball": "arxic-0.0.200.tgz",
+  "tarballSha256": "f1156dc2f284e0b211f6371357392970a4ba08aeda327adde07f0cfb15c82c50",
+  "cliSha256": "1ae04b8f825be1c808e9d121ad18140e1247b05a75c7628fbd99bf0e332ae7af",
+  "assetsManifest": {
+    "version": "71faf196fef801e4",
+    "files": {
+      "app.js": "0e88e65ac3441368f4e352ad1e8dae75308cb77228a8559345a5d8562492e90d",
+      "app.css": "2b43360ead35efe487160c5ce73d1b90c926aae098dd6208d3654bf21286e469",
+      "index.html": "87beef5da5b045c2a7dc0d1520409ac79ae4f224d7236f39373f97a44f088057"
+    },
+    "jobSha256": "eb96b67bf881bf208e3dc58ac4ebd6bac423701f03a6f25ff2d0ec1c048edf5c"
+  },
+  "node": "24.18.0",
+  "testRuntime": "Chromium / Playwright 1.62.1",
+  "registryPublished": false
+}
