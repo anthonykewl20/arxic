@@ -493,6 +493,11 @@ document.addEventListener('submit', async (event) => {
 document.addEventListener('click', async (event) => {
   const button = (event.target as Element).closest('button');
   if (!button || button.closest('dialog')) return;
+  let disabledForRequest = false;
+  const disableForRequest = () => {
+    disabledForRequest = true;
+    button.disabled = true;
+  };
   try {
     if (button.hasAttribute('data-retry-run-history')) await refreshRunHistory();
     if (button.hasAttribute('data-clear-run-filters')) {
@@ -514,7 +519,7 @@ document.addEventListener('click', async (event) => {
       await refresh();
     }
     if (button.dataset.cancelCampaign) {
-      button.disabled = true;
+      disableForRequest();
       await api(`/campaigns/${button.dataset.cancelCampaign}/cancel`, 'POST', {});
       await refresh();
     }
@@ -542,7 +547,7 @@ document.addEventListener('click', async (event) => {
     if (button.hasAttribute('data-connect-agent')) connectAgent();
     if (button.dataset.edit) editProject(button.dataset.edit);
     if (button.dataset.start) {
-      button.disabled = true;
+      disableForRequest();
       const run = await api(`/projects/${button.dataset.project}/runs`, 'POST', {
         mode: button.dataset.start,
       });
@@ -572,7 +577,7 @@ document.addEventListener('click', async (event) => {
       await refresh();
     }
     if (button.dataset.approve) {
-      button.disabled = true;
+      disableForRequest();
       await api(`/runs/${button.dataset.run}/baselines`, 'POST', {
         captureId: button.dataset.approve,
       });
@@ -582,7 +587,7 @@ document.addEventListener('click', async (event) => {
   } catch (error) {
     notice((error as Error).message);
   } finally {
-    button.disabled = false;
+    if (disabledForRequest) button.disabled = false;
   }
 });
 void refresh().catch(() => {});

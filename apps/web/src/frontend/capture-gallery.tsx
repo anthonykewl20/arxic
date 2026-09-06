@@ -63,7 +63,7 @@ export function CaptureGallery({
   );
   if (!captures.length) return null;
   return (
-    <section aria-label="Capture gallery" className="space-y-4">
+    <section aria-label="Capture gallery" className="mt-6 space-y-4 border-t pt-4">
       <h3 tabIndex={-1} ref={heading}>
         Captured pages
       </h3>
@@ -107,7 +107,8 @@ export function CaptureGallery({
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <p role="status">
-          {selection.total} matching captures of {captures.length}
+          {selection.total} matching {selection.total === 1 ? 'capture' : 'captures'} of{' '}
+          {captures.length}
         </p>
         {filtered && (
           <Button
@@ -126,29 +127,31 @@ export function CaptureGallery({
         <p>No captures match these filters. Try another path or clear the capture filters.</p>
       ) : (
         <>
-          <nav aria-label="Capture pages" className="flex flex-wrap items-center gap-3">
-            <Button
-              className="min-h-11"
-              variant="outline"
-              disabled={selection.page === 0}
-              onClick={() => move(selection.page - 1)}
-            >
-              Previous captures
-            </Button>
-            <span>
-              Page {selection.page + 1} of {selection.pages} ·{' '}
-              {selection.page * capturePageSize + 1}–
-              {Math.min((selection.page + 1) * capturePageSize, selection.total)}
-            </span>
-            <Button
-              className="min-h-11"
-              variant="outline"
-              disabled={selection.page + 1 >= selection.pages}
-              onClick={() => move(selection.page + 1)}
-            >
-              Next captures
-            </Button>
-          </nav>
+          {selection.pages > 1 && (
+            <nav aria-label="Capture pages" className="flex flex-wrap items-center gap-3">
+              <Button
+                className="min-h-11"
+                variant="outline"
+                disabled={selection.page === 0}
+                onClick={() => move(selection.page - 1)}
+              >
+                Previous captures
+              </Button>
+              <span>
+                Page {selection.page + 1} of {selection.pages} ·{' '}
+                {selection.page * capturePageSize + 1}–
+                {Math.min((selection.page + 1) * capturePageSize, selection.total)}
+              </span>
+              <Button
+                className="min-h-11"
+                variant="outline"
+                disabled={selection.page + 1 >= selection.pages}
+                onClick={() => move(selection.page + 1)}
+              >
+                Next captures
+              </Button>
+            </nav>
+          )}
           {selection.items.map(children)}
         </>
       )}

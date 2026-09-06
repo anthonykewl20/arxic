@@ -38,5 +38,5 @@ Missing filters reproduced in a real browser before implementation. No-match
 feedback, combined filters, page clamping and legacy environment defaults are
 covered. Read-only selection preserves original capture objects; UI proof exercises
 run changes, polling and baseline history. Large-array paging is supplementary.
-No assertion was weakened. Filters do not persist across reload/bookmark navigation;
+Screenshot review also reproduced the global click handler re-enabling a React-owned last-page button. Request-owned disabled-state restoration fixes it; the exact last-page assertion remains. The test waits for the rendered capture after API completion instead of racing the 2.5-second dashboard poll. No numeric assertion was weakened. Filters do not persist across reload/bookmark navigation;
 workflow checkpoint galleries and broader oracle/state coverage remain separate.

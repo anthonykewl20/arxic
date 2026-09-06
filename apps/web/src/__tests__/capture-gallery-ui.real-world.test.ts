@@ -63,7 +63,8 @@ it.each(['light', 'dark'] as const)(
       await expect
         .poll(async () => (await readRun(id)).state, { timeout: 90000 })
         .toBe('completed');
-      await expect.poll(() => page.locator('.capture').count()).toBe(6);
+      await page.locator('.capture').first().waitFor();
+      expect(await page.locator('.capture').count()).toBe(6);
       return readRun(id);
     }
     async function audit(name: string, action: string) {
@@ -123,6 +124,9 @@ it.each(['light', 'dark'] as const)(
       await page.keyboard.press('Enter');
       await page.getByText('Page 2 of 2', { exact: false }).waitFor();
       expect(
+        await page.getByRole('button', { name: 'Next captures', exact: true }).isDisabled(),
+      ).toBe(true);
+      expect(
         await page
           .getByRole('heading', { name: 'Captured pages', exact: true })
           .evaluate((el) => el === document.activeElement),
@@ -140,7 +144,7 @@ it.each(['light', 'dark'] as const)(
         .selectOption('needs-baseline');
       const search = page.getByLabel('Search capture paths');
       await search.fill('/');
-      await page.getByText('1 matching captures of 12', { exact: true }).waitFor();
+      await page.getByText('1 matching capture of 12', { exact: true }).waitFor();
       await page.waitForResponse(
         (response) => response.url().endsWith('/api/state') && response.ok(),
       );
@@ -239,7 +243,7 @@ it.each(['light', 'dark'] as const)(
       expect(await page.locator('.capture').count()).toBe(6);
       await page.getByLabel('Capture browser', { exact: true }).selectOption('firefox');
       await page.getByLabel('Capture viewport', { exact: true }).selectOption('800x600');
-      await page.getByText('1 matching captures of 12', { exact: true }).waitFor();
+      await page.getByText('1 matching capture of 12', { exact: true }).waitFor();
       const expected = regression.result!.captures!.find(
         (c) =>
           c.environment?.browser === 'firefox' &&
