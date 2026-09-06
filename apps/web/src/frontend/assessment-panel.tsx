@@ -26,11 +26,12 @@ export function AssessmentPanel({
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const preview = useRef<SVGSVGElement>(null);
+  function revealPreview() {
+    preview.current?.focus({ preventScroll: true });
+    preview.current?.parentElement?.scrollIntoView({ block: 'center' });
+  }
   useEffect(() => {
-    if (selected && imageState === 'ready') {
-      preview.current?.focus();
-      preview.current?.scrollIntoView({ block: 'nearest' });
-    }
+    if (selected && imageState === 'ready') revealPreview();
   }, [selected, imageState]);
   if (!file)
     return (
@@ -202,7 +203,13 @@ export function AssessmentPanel({
                   </p>
                 )}
                 {check.region && capture && (
-                  <Button variant="outline" onClick={() => setSelected(check)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSelected(check);
+                      if (selected?.id === check.id && imageState === 'ready') revealPreview();
+                    }}
+                  >
                     Locate measured text
                   </Button>
                 )}

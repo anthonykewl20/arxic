@@ -108,6 +108,7 @@ it.each(['light', 'dark'] as const)(
       await page.goto(app.origin);
       await page.getByLabel('Administrator token').fill('capture-gallery-test-administrator-token');
       await page.getByRole('button', { name: 'Open workbench' }).click();
+      await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
       await page.goto(`${app.origin}?view=runs&run=${first.id}`);
       await page.getByLabel('Search capture paths').fill('/missing');
       await page.getByText('0 matching captures of 12', { exact: true }).waitFor();

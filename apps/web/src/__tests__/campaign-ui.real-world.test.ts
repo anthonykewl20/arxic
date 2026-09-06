@@ -89,6 +89,10 @@ it('lets an administrator select and verify two real workflows with honest campa
     port: 0,
   });
   const browser = await launchDashboardBrowser({ headless: true });
+  const browserIdentity = { name: browser.browserType().name(), version: browser.version() };
+  const dirty = !!(
+    await promisify(execFile)('git', ['status', '--porcelain'], { cwd: root })
+  ).stdout.trim();
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.name));
@@ -109,6 +113,8 @@ it('lets an administrator select and verify two real workflows with honest campa
         {
           sha256: createHash('sha256').update(bytes).digest('hex'),
           sourceCommit,
+          browser: browserIdentity,
+          dirty,
           policy: 'persona-free dashboard; password inputs masked',
           rawTraceRetained: false,
           humanInspection: 'not performed',
@@ -346,6 +352,8 @@ it('lets an administrator select and verify two real workflows with honest campa
           {
             sha256: createHash('sha256').update(bytes).digest('hex'),
             sourceCommit,
+            browser: browserIdentity,
+            dirty,
             method: 'allow-listed action names and assertion outcomes; no DOM/network payloads',
             rawTraceRetained: false,
           },

@@ -74,6 +74,7 @@ it.each(['light', 'dark'] as const)(
       expect(audit.details).toEqual([]);
       expect(audit.overflow).toBe(0);
     };
+    let releaseFolders = () => {};
     let releaseInitial!: () => void;
     let initialReady!: () => void;
     const initialHeld = new Promise<void>((done) => {
@@ -115,12 +116,54 @@ it.each(['light', 'dark'] as const)(
         '01-empty-workspace',
         'Invalid login refused; late anonymous response cannot hide authenticated workspace',
       );
+      let foldersReady!: () => void;
+      const foldersHeld = new Promise<void>((resolve) => {
+        foldersReady = resolve;
+      });
+      const foldersReleased = new Promise<void>((resolve) => {
+        releaseFolders = resolve;
+      });
+      await page.route(
+        '**/api/workspace/folders?**',
+        async (route) => {
+          const response = await route.fetch();
+          foldersReady();
+          await foldersReleased;
+          await route.fulfill({ response });
+        },
+        { times: 1 },
+      );
       await page.locator('#new-project').click();
+      await foldersHeld;
+      await capture(
+        '16-source-loading',
+        'Folder discovery shows a stable loading area before its real response',
+      );
       await page.getByLabel('Project folder', { exact: true }).fill(tmpdir());
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
       await expect.poll(() => page.locator('#project-error').textContent()).toContain('outside');
       await page.getByLabel('Project folder', { exact: true }).fill(repo.root);
+      const continueBefore = (await page
+        .getByRole('button', { name: 'Continue', exact: true })
+        .boundingBox())!;
+      releaseFolders();
+      await page.getByText('Loading folders…', { exact: true }).waitFor({ state: 'hidden' });
+      const continueAfter = (await page
+        .getByRole('button', { name: 'Continue', exact: true })
+        .boundingBox())!;
+      expect(
+        continueAfter.y,
+        'Folder results must not move Continue while the user is editing',
+      ).toBe(continueBefore.y);
+      await capture(
+        '17-source-ready',
+        'Folder results preserve the exact Continue position while editing',
+      );
+      const detectedFolder = page.waitForResponse(
+        (response) => new URL(response.url()).pathname === '/api/workspace/detect',
+      );
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
+      expect((await detectedFolder).status()).toBe(200);
       await page.getByLabel('Project name', { exact: true }).fill('Reference frontend');
       await page.getByLabel('Running test app origin').fill(target.origin);
       await page.getByLabel('Viewport sizes').fill('800x600');
@@ -228,9 +271,25 @@ it.each(['light', 'dark'] as const)(
       await page.getByLabel('Measurement verdict').selectOption('unverified');
       expect(await page.locator('.measurement-checks > li').count()).toBeGreaterThan(0);
       await page.getByLabel('Measurement verdict').selectOption('all');
+      await page.locator('.measurement-checks > li').last().scrollIntoViewIfNeeded();
+      await page.getByRole('button', { name: 'Locate measured text' }).first().click();
+      await expect
+        .poll(async () => {
+          const box = await page
+            .getByRole('img', { name: 'Measured text region in captured viewport' })
+            .boundingBox();
+          const header = await page.locator('.topbar').boundingBox();
+          return (
+            !!box &&
+            !!header &&
+            box.y >= Math.max(0, header.y + header.height) &&
+            box.y + box.height <= 1000
+          );
+        })
+        .toBe(true);
       await capture(
         '10-measurement-report',
-        'Unavailable evidence stays an error; retry loads real numeric checks and unverified coverage',
+        'Retry loads real measurements; reselecting a check reveals the complete captured image',
       );
       const previewBounds = (await page
         .getByRole('img', { name: 'Measured text region in captured viewport' })
@@ -468,6 +527,7 @@ it.each(['light', 'dark'] as const)(
       );
       expect(errors).toEqual([]);
     } finally {
+      releaseFolders();
       await auditProof.finish();
       await historyProof.finish();
       vi.unstubAllEnvs();

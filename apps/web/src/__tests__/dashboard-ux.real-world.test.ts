@@ -176,10 +176,15 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
       .removeAlpha()
       .raw()
       .toBuffer();
-    let ink = 0;
-    for (let i = 0; i < labelPixels.length; i += 3)
-      if (labelPixels[i]! < 50 && labelPixels[i + 1]! < 50 && labelPixels[i + 2]! < 50) ink++;
-    expect(ink, 'visible sign-in glyphs in Chromium forced-colors profile').toBeGreaterThan(20);
+    let darkInk = 0,
+      lightInk = 0;
+    for (let i = 0; i < labelPixels.length; i += 3) {
+      if (labelPixels[i]! < 50 && labelPixels[i + 1]! < 50 && labelPixels[i + 2]! < 50) darkInk++;
+      if (labelPixels[i]! > 205 && labelPixels[i + 1]! > 205 && labelPixels[i + 2]! > 205)
+        lightInk++;
+    }
+    expect(darkInk, 'dark sign-in paint in forced-colors profile').toBeGreaterThan(20);
+    expect(lightInk, 'light sign-in paint in forced-colors profile').toBeGreaterThan(20);
 
     expect(errors).toEqual([]);
     const expired = await proof.audit(
