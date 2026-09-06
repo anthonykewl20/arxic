@@ -7,6 +7,8 @@ import type { Page } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 
+export type DashboardNumericCheck = { id: string; passed: boolean; values: Record<string, number> };
+
 /** Retain fixed annotations, numeric audits and bounded tag/class geometry; no field values. */
 export function dashboardProof(page: Page, directory: string | undefined) {
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
@@ -27,7 +29,7 @@ export function dashboardProof(page: Page, directory: string | undefined) {
     await writeFile(join(directory, name), bytes);
   }
   return {
-    async audit(name: string, action: string) {
+    async audit(name: string, action: string, checks: DashboardNumericCheck[] = []) {
       await settleDashboard(page);
       const report = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
@@ -75,9 +77,10 @@ export function dashboardProof(page: Page, directory: string | undefined) {
         incomplete: report.incomplete.map((v) => ({ id: v.id, count: v.nodes.length })),
         overflow,
         overflowNodes,
+        ...(checks.length ? { checks } : {}),
       };
       const verdict =
-        safe.violations.length || overflow
+        safe.violations.length || overflow || checks.some((check) => !check.passed)
           ? 'failed'
           : safe.incomplete.length
             ? 'unverified'

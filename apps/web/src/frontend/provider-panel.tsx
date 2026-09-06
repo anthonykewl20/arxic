@@ -164,7 +164,12 @@ function ProviderPanel({ connections, setup, onRefresh }: Props) {
                 onChange={(event) => setQuery(event.target.value)}
               />
             </div>
-            <div className="provider-model-list">
+            <div
+              className="provider-model-list"
+              role="region"
+              aria-label="Provider model catalog"
+              tabIndex={0}
+            >
               {active.models
                 .filter((id) => id.toLowerCase().includes(query.toLowerCase()))
                 .map((id) => (

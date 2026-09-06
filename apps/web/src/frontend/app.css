@@ -300,6 +300,7 @@
     position: sticky;
     top: 0;
     height: 100vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
@@ -309,13 +310,15 @@
   }
   .sidebar-head {
     display: flex;
+    flex-wrap: wrap;
+    flex-shrink: 0;
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-1) var(--space-2);
   }
   .sidebar-head .brand {
-    flex: 1;
-    min-width: 0;
+    flex: 1 0 auto;
+    min-width: max-content;
   }
   .version-tag {
     font-size: 10px;
@@ -327,6 +330,7 @@
   }
   .sidebar nav {
     display: flex;
+    flex-shrink: 0;
     flex-direction: column;
     gap: 2px;
   }
@@ -335,18 +339,21 @@
     align-items: center;
     justify-content: flex-start;
     gap: 10px;
-    height: var(--control-md);
-    padding: 0 10px;
+    min-height: var(--control-md);
+    height: auto;
+    padding: 6px 10px;
     border-radius: var(--radius-md);
     border: 0;
     background: transparent;
     color: var(--foreground-muted);
     font-size: var(--text-md);
     font-weight: 450;
+    overflow-wrap: anywhere;
     text-align: left;
     width: 100%;
   }
   .nav-item svg {
+    flex-shrink: 0;
     width: 16px;
     height: 16px;
   }
@@ -361,8 +368,10 @@
   }
   .sidebar-bottom {
     margin-top: auto;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    justify-content: space-between;
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-2) 0;
@@ -444,11 +453,13 @@
   .topbar {
     position: relative;
     z-index: 5;
-    height: var(--topbar-height);
+    min-height: var(--topbar-height);
+    height: auto;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-2);
-    padding: 0 var(--space-8);
+    padding: 4px var(--space-8);
     background: var(--surface);
     border-bottom: 1px solid var(--border-subtle);
     font-size: var(--text-sm);
@@ -456,6 +467,9 @@
   }
   .topbar .crumb {
     display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+    overflow-wrap: anywhere;
     align-items: center;
     gap: var(--space-2);
     min-width: 0;
@@ -464,6 +478,7 @@
     color: var(--foreground);
   }
   .topbar-actions {
+    flex-shrink: 0;
     margin-left: auto;
     display: flex;
     gap: var(--space-2);
@@ -821,12 +836,18 @@
     margin: 0;
   }
   .audit-list li {
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
     padding: 12px 0;
     border-top: 1px solid var(--border-subtle);
     font-size: var(--text-sm);
     display: flex;
     justify-content: space-between;
     gap: var(--space-3);
+  }
+  .audit-list li > * {
+    min-width: 0;
+    max-width: 100%;
   }
   .audit-list li:first-child {
     border-top: 0;
@@ -1500,12 +1521,14 @@
     padding: var(--space-3) 0 4px;
   }
   .nav-item {
-    height: 40px;
+    min-height: 40px;
+    height: auto;
   }
   .topbar {
     position: static;
-    height: 44px;
-    padding: 0 var(--space-4);
+    min-height: 44px;
+    height: auto;
+    padding: 4px var(--space-4);
   }
   .topbar-actions button span {
     display: none;
