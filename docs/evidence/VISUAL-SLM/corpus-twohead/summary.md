@@ -19,6 +19,10 @@ Date: 2026-09-06/07. Worktree `spike/visual-slm-423` @ `a28b226`. Predecessor: [
 
 The overflow head is the first learned signal on a second defect class, trained on real cross-family evidence and calibrated on a family it never saw in training. As always for this corpus: the deterministic scrollport predicate also catches all four (the measurement *is* the signal), so incremental value over the deterministic checks remains undemonstrated — the learned path's promise is heads and scenarios where deterministic predicates cannot be expressed, which is exactly what the remaining three heads require richer scene evidence for.
 
+## Duplicate audit (spec §9 cross-split boundary check)
+
+[duplicate-audit.json](./duplicate-audit.json): 390 image references over 197 unique hashes — **zero cross-group duplicates and zero family-in-multiple-splits violations**; 167 within-family repeats (clean pairs reusing captures inside one family, expected and counted). The 179-case predecessor corpus audits clean the same way. Leakage safety is machine-checked (`scripts/visual-slm/duplicate_audit.py`, red-first unit tests), no longer assumed.
+
 ## Ablation attributes the clipping regression
 
 `ablate.py` gained a `clip-era` variant (the pre-v2 feature set: box + clip lanes + image lane, hit/overflow lanes masked with value 0 and validity 0 — the documented missingness encoding). On the **same two-head corpus** the clip-era set scores **clipping 19/20 recall (0.95), 0 FP at threshold 0.6153** — recovering most of what the full lanes cost — while the overflow head collapses to 0/4 without its lanes (sanity: the head genuinely uses them). Retained: [clip-era-ablation-training-report.json](./clip-era-ablation-training-report.json).

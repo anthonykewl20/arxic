@@ -2,6 +2,11 @@
 
 Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked; analysis-envelope resource qualification green with explicit scope; gated activation lifecycle proven on real trained artifacts)
 
+## Increment 8 — 2026-09-06/07: cross-split duplicate audit (spec §9, refs #423)
+
+- `scripts/visual-slm/duplicate_audit.py` + red-first unit tests (wired into `toolchain.test.ts`): identical image hashes under more than one family fail the audit (leakage); a family seen in two splits fails (split integrity); within-family repeats are counted, not penalized; missing/malformed manifests fail closed.
+- Real corpora audited: two-head 195-case corpus — 390 references / 197 unique hashes, **zero cross-group duplicates, zero split violations**, 167 within-family repeats; the 179-case predecessor audits clean identically (206 unique / 358 refs). Retained as [duplicate-audit.json](../evidence/VISUAL-SLM/corpus-twohead/duplicate-audit.json).
+
 ## Increment 7 — 2026-09-06/07: scene-measurement v2 — hit-test + overflow evidence, first second-head result (refs #423)
 
 - `measure()` records real hit-test fractions (5×5 `elementFromPoint` grid, spec §8.1 features 10–11) and document-scrollport overflow (12–13) instead of nulls; scenes carry a second deterministic hard check; dataset rows label clipping + overflow from independent per-head oracles; new layout-neutral `overflow-x` variant.
