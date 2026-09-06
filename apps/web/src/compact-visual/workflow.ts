@@ -37,12 +37,37 @@ export async function measure(
   const area =
     Math.max(0, Math.min(box.x + box.width, width) - Math.max(box.x, 0)) *
     Math.max(0, Math.min(box.y + box.height, height) - Math.max(box.y, 0));
+  // Real hit-test evidence (spec §8.1 features 10–11): a deterministic 5×5
+  // sample grid inside the control's box; a sample counts when the topmost
+  // element at that point is the control or its descendant. Real scrollport
+  // overflow (features 12–13) on the declared document scrollport.
+  const evidence = await button.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    let hit = 0;
+    const samples = 5 * 5;
+    for (let row = 0; row < 5; row++)
+      for (let col = 0; col < 5; col++) {
+        const x = rect.left + ((col + 0.5) * rect.width) / 5;
+        const y = rect.top + ((row + 0.5) * rect.height) / 5;
+        const top = document.elementFromPoint(x, y);
+        if (top && (top === node || node.contains(top))) hit++;
+      }
+    const scroller = document.scrollingElement as HTMLElement | null;
+    const overflowX = scroller
+      ? Math.max(0, scroller.scrollWidth - scroller.clientWidth) / Math.max(1, scroller.clientWidth)
+      : null;
+    const overflowY = scroller
+      ? Math.max(0, scroller.scrollHeight - scroller.clientHeight) /
+        Math.max(1, scroller.clientHeight)
+      : null;
+    return { hit: hit / samples, overflowX, overflowY };
+  });
   return {
     box,
     clip: area / (box.width * box.height),
-    hit: null,
-    overflowX: null,
-    overflowY: null,
+    hit: evidence.hit,
+    overflowX: evidence.overflowX,
+    overflowY: evidence.overflowY,
   };
 }
 export async function maskBoxes(page: Page): Promise<Box[]> {

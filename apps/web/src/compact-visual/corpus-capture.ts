@@ -15,7 +15,13 @@ import {
 import { startWorkbench } from '../server';
 import { extractCase } from './features';
 import { runTraining, type TrainingRow } from './train-runner';
-import { evaluateOracle, validateCorpusPlan, VARIANT_REGISTRY, type FrozenPlan } from './corpus';
+import {
+  evaluateOracle,
+  evaluateOverflowOracle,
+  validateCorpusPlan,
+  VARIANT_REGISTRY,
+  type FrozenPlan,
+} from './corpus';
 import { maskBoxes, measure, save } from './workflow';
 import type { Box, Scene, VisualCase } from './evidence';
 
@@ -33,8 +39,10 @@ export type CorpusV2Manifest = {
     variant: string;
     viewport: number;
     label: 0 | 1;
+    overflowLabel: 0 | 1;
     labelOrigin: string;
     measuredClip: number;
+    measuredOverflowX: number;
   }[];
   provenance: string;
 };
@@ -217,6 +225,16 @@ export async function startFamily(root: string, family: string): Promise<Started
   throw new Error('unknown-family');
 }
 
+/** Clamp the document scrollport so transformed controls do not surface as
+ * scrollport overflow: the clipping criterion isolates reachability, not
+ * scrollable overflow (the overflow-x variant covers that head). */
+async function clampScrollport(page: Page) {
+  await page.evaluate(() => {
+    (document.documentElement as HTMLElement).style.overflow = 'clip';
+    (document.body as HTMLElement).style.overflow = 'clip';
+  });
+}
+
 async function applyVariant(
   button: Locator,
   page: Page,
@@ -230,6 +248,11 @@ async function applyVariant(
     await button.evaluate((node) => {
       (node as HTMLElement).style.transform = 'translateX(3000px)';
     });
+    // Chromium includes transformed boxes in scrollable overflow: without
+    // clamping, the translated control would also overflow the scrollport and
+    // the two defect heads would be inseparable. Clamping represents the real
+    // "unreachable control without scroll access" clipping class.
+    await clampScrollport(page);
     return;
   }
   if (variant.clipKeep !== undefined) {
@@ -245,6 +268,7 @@ async function applyVariant(
         (node as HTMLElement).style.transform = `translateY(${translate}px)`;
       }, translate);
     }
+    await clampScrollport(page);
     return;
   }
   if (variantId === 'content-change') {
@@ -253,6 +277,19 @@ async function applyVariant(
     await page.evaluate(() => {
       const text = document.querySelector<HTMLElement>('h1, h2, p');
       if (text) text.textContent = text.textContent === 'Continue' ? 'Proceed' : 'Continue';
+    });
+    return;
+  }
+  if (variantId === 'overflow-x') {
+    // Layout-neutral overflow regression: a transparent 1px-tall absolutely
+    // positioned element doubles the document scrollport width without moving
+    // any visible control or input geometry.
+    await page.evaluate(() => {
+      const wide = document.createElement('div');
+      wide.setAttribute('data-visual-corpus', 'overflow-x');
+      wide.style.cssText =
+        'position:absolute;left:0;top:0;width:200vw;height:1px;pointer-events:none;';
+      document.body.appendChild(wide);
     });
     return;
   }
@@ -374,12 +411,19 @@ export async function captureCorpusV2(
                 continue;
               }
               const oracle = evaluateOracle(variantId, currentMeasurement.clip!);
-              if (!oracle.ok) {
+              const overflowOracle = evaluateOverflowOracle(
+                variantId,
+                currentMeasurement.overflowX ?? 0,
+                currentMeasurement.overflowY ?? 0,
+              );
+              if (!oracle.ok || !overflowOracle.ok) {
                 manifest.skipped.push({
                   family,
                   viewport: width,
                   variant: variantId,
-                  reason: oracle.reason ?? 'controlled-oracle-failed',
+                  reason: !oracle.ok
+                    ? (oracle.reason ?? 'controlled-oracle-failed')
+                    : (overflowOracle.reason ?? 'overflow-oracle-failed'),
                 });
                 continue;
               }
@@ -425,6 +469,12 @@ export async function captureCorpusV2(
                     verdict: oracle.verdict,
                     region: 'viewport',
                   },
+                  {
+                    id: 'scrollport-overflow',
+                    head: 'overflow',
+                    verdict: overflowOracle.verdict,
+                    region: 'viewport',
+                  },
                 ],
               };
               const scene = await save(output, `${id}-scene.json`, sceneValue);
@@ -432,7 +482,9 @@ export async function captureCorpusV2(
                 version: 1,
                 actions: [
                   'capture-before',
-                  ...(VARIANT_REGISTRY[variantId]!.label ? ['apply-controlled-regression'] : []),
+                  ...(VARIANT_REGISTRY[variantId]!.labels.some((value) => value === 1)
+                    ? ['apply-controlled-regression']
+                    : []),
                   'capture-current',
                   'measure',
                   'assert-pass',
@@ -472,9 +524,11 @@ export async function captureCorpusV2(
                 split,
                 variant: variantId,
                 viewport: width,
-                label: VARIANT_REGISTRY[variantId]!.label,
+                label: VARIANT_REGISTRY[variantId]!.labels[0] as 0 | 1,
+                overflowLabel: VARIANT_REGISTRY[variantId]!.labels[3] as 0 | 1,
                 labelOrigin: VARIANT_REGISTRY[variantId]!.labelOrigin,
                 measuredClip: currentMeasurement.clip!,
+                measuredOverflowX: currentMeasurement.overflowX ?? 0,
               });
             } finally {
               await context.close();
@@ -500,10 +554,15 @@ export async function trainCorpusV2(root: string, output: string, manifest: Corp
       const oracle = extracted.hardChecks.find(
         (h) => h.region === region.id && h.head === 'clipping',
       );
+      const overflowCheck = extracted.hardChecks.find(
+        (h) => h.region === region.id && h.head === 'overflow',
+      );
       if (
         region.criterion !== 'required-submit-inside-viewport' ||
         !oracle ||
-        oracle.verdict !== (entry.label ? 'fail' : 'pass')
+        oracle.verdict !== (entry.label ? 'fail' : 'pass') ||
+        !overflowCheck ||
+        overflowCheck.verdict !== (entry.overflowLabel ? 'fail' : 'pass')
       )
         throw new Error('label-evidence-conflict');
       rows.push({
@@ -511,7 +570,7 @@ export async function trainCorpusV2(root: string, output: string, manifest: Corp
         group: extracted.group,
         split: entry.split,
         features: region.values,
-        labels: [entry.label, null, null, null, null, null],
+        labels: [entry.label, null, null, entry.overflowLabel, null, null],
       });
       evidence.push({
         id: `${extracted.caseId}-${region.id}`,
@@ -521,6 +580,7 @@ export async function trainCorpusV2(root: string, output: string, manifest: Corp
         variant: entry.variant,
         viewport: entry.viewport,
         measuredClip: entry.measuredClip,
+        measuredOverflowX: entry.measuredOverflowX,
         labelOrigin: entry.labelOrigin,
         criterion: region.criterion,
         hardChecks: extracted.hardChecks,

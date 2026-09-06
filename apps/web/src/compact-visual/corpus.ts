@@ -1,17 +1,19 @@
 import { sha256 } from '@arxic/contracts';
 
 /**
- * Deterministic corpus planning for the multi-family clipping corpus (refs #423).
- * Pure module: no browser, docker or filesystem access — the capture mechanics
- * live in corpus-capture.ts. The allocation is frozen here before any labels are
- * consumed for training or model selection (spec §9: 60/20/20 by application
- * family, seed 423, explicit group-count rounding only).
+ * Deterministic corpus planning for the multi-family clipping/overflow corpus
+ * (refs #423). Pure module: no browser, docker or filesystem access — the
+ * capture mechanics live in corpus-capture.ts. The allocation is frozen here
+ * before any labels are consumed for training or model selection (spec §9:
+ * 60/20/20 by application family, seed 423, explicit group-count rounding
+ * only).
  */
 export type Variant = {
   id: string;
-  label: 0 | 1;
+  /** Per-head controlled labels: index 0 = clipping, index 3 = overflow; null = not addressed. */
+  labels: (0 | 1 | null)[];
   labelOrigin: 'controlled-regression' | 'controlled-negative';
-  /** Whether the mutation moves the required control (regressions do; negatives must not). */
+  /** Whether the mutation moves the required control (clipping regressions do; negatives must not). */
   moveControl: boolean;
   /** Visible fraction of the control retained for graded clips (1 = fully off-screen). */
   clipKeep?: number;
@@ -19,11 +21,19 @@ export type Variant = {
   clipFull?: boolean;
 };
 
+const CLIP_NEGATIVE: (0 | 1 | null)[] = [0, null, null, 0, null, null];
+const clip = (label: 0 | 1) => [label, null, null, 0, null, null] as (0 | 1 | null)[];
+
 export const VARIANT_REGISTRY: Record<string, Variant> = {
-  clean: { id: 'clean', label: 0, labelOrigin: 'controlled-negative', moveControl: false },
+  clean: {
+    id: 'clean',
+    labels: CLIP_NEGATIVE,
+    labelOrigin: 'controlled-negative',
+    moveControl: false,
+  },
   'clip-full': {
     id: 'clip-full',
-    label: 1,
+    labels: clip(1),
     labelOrigin: 'controlled-regression',
     moveControl: true,
     clipFull: true,
@@ -31,7 +41,7 @@ export const VARIANT_REGISTRY: Record<string, Variant> = {
   },
   'clip-right-75': {
     id: 'clip-right-75',
-    label: 1,
+    labels: clip(1),
     labelOrigin: 'controlled-regression',
     moveControl: true,
     clipKeep: 0.75,
@@ -39,7 +49,7 @@ export const VARIANT_REGISTRY: Record<string, Variant> = {
   },
   'clip-right-50': {
     id: 'clip-right-50',
-    label: 1,
+    labels: clip(1),
     labelOrigin: 'controlled-regression',
     moveControl: true,
     clipKeep: 0.5,
@@ -47,7 +57,7 @@ export const VARIANT_REGISTRY: Record<string, Variant> = {
   },
   'clip-right-25': {
     id: 'clip-right-25',
-    label: 1,
+    labels: clip(1),
     labelOrigin: 'controlled-regression',
     moveControl: true,
     clipKeep: 0.25,
@@ -55,27 +65,35 @@ export const VARIANT_REGISTRY: Record<string, Variant> = {
   },
   'clip-bottom-50': {
     id: 'clip-bottom-50',
-    label: 1,
+    labels: clip(1),
     labelOrigin: 'controlled-regression',
     moveControl: true,
     clipKeep: 0.5,
     clipDirection: 'down',
   },
+  'overflow-x': {
+    id: 'overflow-x',
+    // Layout-neutral overflow regression: the required control stays put while
+    // the document scrollport overflows horizontally; clipping stays negative.
+    labels: [0, null, null, 1, null, null],
+    labelOrigin: 'controlled-regression',
+    moveControl: false,
+  },
   'content-change': {
     id: 'content-change',
-    label: 0,
+    labels: CLIP_NEGATIVE,
     labelOrigin: 'controlled-negative',
     moveControl: false,
   },
   'overlay-adjacent': {
     id: 'overlay-adjacent',
-    label: 0,
+    labels: CLIP_NEGATIVE,
     labelOrigin: 'controlled-negative',
     moveControl: false,
   },
   'style-tweak': {
     id: 'style-tweak',
-    label: 0,
+    labels: CLIP_NEGATIVE,
     labelOrigin: 'controlled-negative',
     moveControl: false,
   },
@@ -163,9 +181,29 @@ export function evaluateOracle(variantId: string, clip: number): OracleOutcome {
   if (!variant) throw new Error('unknown-variant');
   const failed = clip < 1;
   const verdict = failed ? 'fail' : 'pass';
-  if (failed !== (variant.label === 1))
+  if (failed !== (variant.labels[0] === 1))
     return { verdict, ok: false, reason: 'controlled-oracle-failed' };
   if (variant.clipKeep !== undefined && Math.abs(clip - variant.clipKeep) > GRADED_CLIP_TOLERANCE)
     return { verdict, ok: false, reason: 'graded-clip-tolerance' };
+  return { verdict, ok: true };
+}
+
+/**
+ * Independent oracle for the scrollport-overflow criterion: any measured
+ * overflow on the declared scrollport (spec §8.1 features 12–13) is the defect
+ * signal; the mutation intent never decides. A measurement that contradicts
+ * the variant's overflow direction skips the case rather than mislabeling it.
+ */
+export function evaluateOverflowOracle(
+  variantId: string,
+  overflowX: number,
+  overflowY: number,
+): OracleOutcome {
+  const variant = VARIANT_REGISTRY[variantId];
+  if (!variant) throw new Error('unknown-variant');
+  const failed = overflowX > 0 || overflowY > 0;
+  const verdict = failed ? 'fail' : 'pass';
+  if (failed !== (variant.labels[3] === 1))
+    return { verdict, ok: false, reason: 'overflow-oracle-failed' };
   return { verdict, ok: true };
 }

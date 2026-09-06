@@ -10,10 +10,19 @@ it('captures a reduced multi-family corpus with a frozen allocation and trains w
   const root = resolve(import.meta.dirname, '../../../..');
   const directory = await mkdtemp(join(tmpdir(), 'visual-corpus-live-'));
   try {
-    const variants = ['clean', 'clip-full', 'clip-right-50', 'content-change'];
+    const variants = ['clean', 'clip-full', 'clip-right-50', 'content-change', 'overflow-x'];
     const manifest = await captureCorpusV2(root, directory, ['next', 'express'], [800], variants);
-    expect(manifest.cases).toHaveLength(8);
+    expect(manifest.cases).toHaveLength(10);
     expect(manifest.skipped).toHaveLength(0);
+    // The overflow regression really overflowed its scrollport; negatives did not.
+    const overflowCase = manifest.cases.find((c) => c.variant === 'overflow-x')!;
+    expect(overflowCase.measuredOverflowX).toBeGreaterThan(0.5);
+    expect(overflowCase.overflowLabel).toBe(1);
+    expect(
+      manifest.cases
+        .filter((c) => c.variant !== 'overflow-x')
+        .every((c) => c.measuredOverflowX === 0),
+    ).toBe(true);
 
     // The captured allocation must equal an independently re-derived freeze of
     // the same plan (deterministic sha256 order, seed 423, families together).
@@ -42,10 +51,14 @@ it('captures a reduced multi-family corpus with a frozen allocation and trains w
       );
       // Direction comes from the independent measurement, never the intent.
       expect(entry.measuredClip < 1).toBe(entry.label === 1);
+      expect(entry.measuredOverflowX > 0 === (entry.overflowLabel === 1)).toBe(true);
     }
 
     const report = await trainCorpusV2(root, directory, manifest);
-    expect(report.rows).toBe(8);
+    expect(report.rows).toBe(10);
+    // Both labeled heads trained and calibrated on this reduced corpus.
+    expect(report.training.models.mlp.training.supported[3]).toBe(true);
+    expect(report.training.models.mlp.positiveThresholds[3]).not.toBeNull();
     expect(report.parityMaximumError).toBeLessThanOrEqual(1e-5);
     expect(report.promotion).toBe('blocked-experimental-model');
     expect(report.reviews.every((r) => r.overallPass === false)).toBe(true);

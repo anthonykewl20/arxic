@@ -3,6 +3,7 @@ import { expect, it } from 'vitest';
 import {
   allocateSplits,
   evaluateOracle,
+  evaluateOverflowOracle,
   validateCorpusPlan,
   VARIANT_IDS,
   VARIANT_REGISTRY,
@@ -51,20 +52,44 @@ it('rejects corpus plans that cannot be split or carry unknown variants', () => 
   ).toThrow('duplicate-family');
 });
 
-it('keeps every variant registry entry internally consistent', () => {
+it('keeps every variant registry entry internally consistent across heads', () => {
   for (const id of VARIANT_IDS) {
     const variant = VARIANT_REGISTRY[id];
     expect(variant.id).toBe(id);
-    expect([0, 1]).toContain(variant.label);
+    expect(variant.labels).toHaveLength(6);
+    // The clipping head and the overflow head are the two labeled heads.
+    expect([0, 1]).toContain(variant.labels[0]);
+    expect([0, 1]).toContain(variant.labels[3]);
+    expect(variant.labels.slice(1, 3)).toEqual([null, null]);
+    expect(variant.labels.slice(4)).toEqual([null, null]);
     expect(variant.labelOrigin).toMatch(/^controlled-(regression|negative)$/);
-    // A regression variant must move the required control; a negative must not.
-    expect(Boolean(variant.moveControl)).toBe(variant.label === 1);
+    // A clipping regression must move the required control; a negative must not.
+    expect(Boolean(variant.moveControl)).toBe(variant.labels[0] === 1);
   }
-  // The registry carries at least one graded partial clip and at least three negatives.
+  // Graded partial clips, negatives, and at least one overflow regression exist.
   expect(VARIANT_IDS.filter((id) => id.startsWith('clip-')).length).toBeGreaterThanOrEqual(4);
   expect(
-    VARIANT_IDS.filter((id) => VARIANT_REGISTRY[id].label === 0).length,
+    VARIANT_IDS.filter((id) => VARIANT_REGISTRY[id].labels[0] === 0).length,
   ).toBeGreaterThanOrEqual(4);
+  expect(
+    VARIANT_IDS.filter((id) => VARIANT_REGISTRY[id].labels[3] === 1).length,
+  ).toBeGreaterThanOrEqual(1);
+});
+
+it('classifies measured scrollport overflow against the overflow oracle independently', () => {
+  expect(evaluateOverflowOracle('clean', 0, 0)).toEqual({ verdict: 'pass', ok: true });
+  expect(evaluateOverflowOracle('overflow-x', 0.9, 0)).toEqual({ verdict: 'fail', ok: true });
+  expect(evaluateOverflowOracle('overflow-x', 0, 0.4)).toEqual({ verdict: 'fail', ok: true });
+  expect(evaluateOverflowOracle('overflow-x', 0, 0)).toEqual({
+    verdict: 'pass',
+    ok: false,
+    reason: 'overflow-oracle-failed',
+  });
+  expect(evaluateOverflowOracle('clean', 0.5, 0)).toEqual({
+    verdict: 'fail',
+    ok: false,
+    reason: 'overflow-oracle-failed',
+  });
 });
 
 it('binds the frozen allocation into the manifest hash before any training', () => {
