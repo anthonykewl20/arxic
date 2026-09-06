@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Historical numeric-only evidence remains inspectable with unknown type coverage",
+    "result": "passed",
+    "screenshot": "01-legacy-types.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

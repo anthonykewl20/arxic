@@ -123,3 +123,11 @@ Real browser journeys cover approval failure/retry, replacement, revisiting hist
 and exact preservation of prior results and image bytes. This addresses the wording
 ambiguity observed in #431's screenshots without changing comparison truth. Proof
 and CI revisions are recorded in the WEB-433-BASELINE-HISTORY slice note.
+
+## Captured-element browsing (refs #437)
+
+Type filtering supplements screenshot picking and capture-local number search.
+The retained projection contains bounded integer codes, with legacy unknown-kind
+coverage and strict screenshot binding. It does not retain semantic names or produce
+replay selectors, and it does not expand the set of hard visual predicates. Real
+reference-app flows and the dashboard's own declared controls are the test inputs.

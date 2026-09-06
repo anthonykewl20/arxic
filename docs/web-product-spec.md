@@ -132,3 +132,8 @@ configure SSO, or send external notifications. These are implementation
 boundaries, not claims that the broader product direction has been completed.
 
 The opt-in retention implementation is documented in the [history guide](web-workbench.md#schedules-and-history): preview, explicit authorization, bounded idle cleanup, reference protection and durable deletion recovery. This does not supply a disk quota or campaign deletion.
+
+Captured-element inspection includes a bounded type filter alongside point/number
+selection (refs #437). Older captures remain inspectable with unknown type coverage.
+This browsing aid does not supply semantic names, replay locators or a complete
+accessibility tree, and cannot change deterministic visual verdicts.

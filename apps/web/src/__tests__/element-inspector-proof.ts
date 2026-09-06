@@ -17,6 +17,10 @@ export async function inspectCapturedElements(page: Page, targetOrigin: string, 
         parent: { x: parent.x, y: parent.y, width: parent.width, height: parent.height },
       };
     });
+  const expectedButtons = await target.getByRole('button').count();
+  const expectedButton = (await target
+    .getByRole('button', { name: 'Login', exact: true })
+    .boundingBox())!;
   await target.close();
   const proof = dashboardProof(
     page,
@@ -60,12 +64,59 @@ export async function inspectCapturedElements(page: Page, targetOrigin: string, 
     await page.unroute('**/artifacts/checkpoint-1.png?*');
     await panel.getByRole('button', { name: 'Retry element image' }).click();
     await image.waitFor();
+    await panel.getByLabel('Element type', { exact: true }).selectOption('1');
+    expect(await panel.getByRole('button', { name: /^Inspect element / }).count()).toBe(
+      expectedButtons,
+    );
+    expect(await panel.getByRole('status').textContent()).toContain(
+      `${expectedButtons} matching elements`,
+    );
+    const firstButton = panel.getByRole('button', { name: /^Inspect element / }).first();
+    await firstButton.focus();
+    await page.keyboard.press('Enter');
+    await checkBox(expectedButton);
+    await panel.getByText('Type: Button', { exact: true }).waitFor();
+    const firstId = (await firstButton.textContent())!.match(/\d+/u)![0];
+    await panel.getByLabel('Find element number').fill(firstId);
+    expect(await panel.getByRole('button', { name: /^Inspect element / }).count()).toBe(1);
+    await panel.getByLabel('Find element number').fill('');
+    for (const width of [320, 390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await panel.getByLabel('Element type', { exact: true }).scrollIntoViewIfNeeded();
+      await audit(
+        `06-kind-filter-${width}`,
+        'Element type and number filters remain reachable without horizontal overflow',
+      );
+    }
+    const scaled = (await image.boundingBox())!;
+    await image.click({
+      position: {
+        x: ((expectedButton.x + expectedButton.width / 2) * scaled.width) / 800,
+        y: ((expectedButton.y + expectedButton.height / 2) * scaled.height) / 600,
+      },
+    });
+    await checkBox(expectedButton);
+    expect(await panel.getByRole('button', { name: /^Inspect element / }).count()).toBe(1);
+    await panel.getByRole('button', { name: 'Show selected on screenshot' }).click();
+    await audit(
+      '07-type-and-point',
+      'Type and screenshot-point filters select the independently measured real Login button',
+    );
+    await panel.getByRole('button', { name: /Inspect parent element/ }).click();
+    expect(await panel.getByLabel('Element type', { exact: true }).inputValue()).toBe('all');
+    await panel.getByLabel('Element type', { exact: true }).selectOption('1');
+    await panel.getByLabel('Element type', { exact: true }).focus();
+    await page.keyboard.press('ArrowUp');
+    expect(await panel.getByLabel('Element type', { exact: true }).inputValue()).toBe('0');
+    await page.keyboard.press('ArrowDown');
+    expect(await panel.getByLabel('Element type', { exact: true }).inputValue()).toBe('1');
+    await panel.getByRole('button', { name: 'Show all captured elements', exact: true }).click();
     await panel.getByLabel('Find element number').fill('999999');
     await panel
-      .getByText('No elements match. Clear the search or choose another point.', { exact: true })
+      .getByText('No elements match. Clear the filters or choose another point.', { exact: true })
       .waitFor();
     await panel
-      .getByText('No elements match. Clear the search or choose another point.', { exact: true })
+      .getByText('No elements match. Clear the filters or choose another point.', { exact: true })
       .scrollIntoViewIfNeeded();
     await audit('02-no-matches', 'Unknown element number has an explicit empty result');
     await panel.getByLabel('Find element number').fill('0');
@@ -97,6 +148,7 @@ export async function inspectCapturedElements(page: Page, targetOrigin: string, 
       'Picked bounds exactly match an independently measured real-app heading',
     );
     await panel.getByRole('button', { name: /Inspect parent element/ }).click();
+    expect(await panel.getByLabel('Element type', { exact: true }).inputValue()).toBe('all');
     await checkBox(expected.parent);
     expect(await checkDetails.getAttribute('open')).toBeNull();
     await panel.getByRole('button', { name: 'Show selected on screenshot' }).click();

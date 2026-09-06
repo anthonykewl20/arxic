@@ -143,7 +143,7 @@ and privacy masks with explicit consent, then inspect the hash-checked checkpoin
 gallery and provenance in Test runs. See the [workflow checkpoint guide](docs/web-workbench.md#workflow-checkpoints).
 
 Visual checkpoints also support [captured-element inspection](docs/web-workbench.md#inspect-captured-elements):
-pick a screenshot point or search capture-local element numbers, navigate measured
+filter by element type, pick a screenshot point or search capture-local element numbers, navigate measured
 parents, and inspect bounds and overlapping checks. Invalid or image-unbound
 evidence remains unavailable; numeric boxes are not semantic replay locators.
 
