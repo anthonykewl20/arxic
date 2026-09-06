@@ -1,0 +1,7 @@
+{
+  "sha256": "ec987062a57b092a888c6c01510d30d840607a1d80a883ff32572bfb5d13b385",
+  "method": "allow-listed test annotations, viewport and result; no DOM/network/field payloads",
+  "rawTraceRetained": false,
+  "sourceCommit": "68a4968c3486a8a4cb40135e49db469fe07836d8",
+  "dirty": false
+}

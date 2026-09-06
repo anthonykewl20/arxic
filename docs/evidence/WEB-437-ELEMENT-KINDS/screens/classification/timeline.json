@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Actual dashboard native button and declared radio have bounded browsing kinds",
+    "result": "passed",
+    "screenshot": "01-native-and-declared-kinds.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]
