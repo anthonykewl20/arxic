@@ -1,6 +1,13 @@
 # VISUAL-SLM-423 — staged doc updates (charter §10.2)
 
-Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked; analysis-envelope resource qualification green with explicit scope)
+Issue: #423 · PR: #424 · Disposition: mixed (working experiment; learned quality contradicted; failure root-caused to data coverage/calibration; five-family corpus clears the holdout point-gates while uncertainty/incremental-value gates keep promotion blocked; analysis-envelope resource qualification green with explicit scope; gated activation lifecycle proven on real trained artifacts)
+
+## Increment 6 — 2026-09-06/07: end-to-end gated model activation on real trained artifacts (refs #423)
+
+- `model-store.ts` + `model-store.test.ts` (red-first) + CLI `activate`/`rollback` verbs: `activateTrainedModel` verifies the manifest→dataset→artifact sha256 bindings, derives the model kind from the artifact header (not caller claims), gates activation on an **independent parity fixture** — the native kernel against the trainer's exported Python scores for the first dataset rows, never recomputed by this path — then stages content-addressed bytes and flips the atomic pointer.
+- `stageArtifact` is idempotent for identical bytes and refuses foreign content under a digest name (`stage-conflict`).
+- The lifecycle test trains two genuinely different models through the real Python trainer and proves: tampered artifact → `artifact-hash-mismatch`; corrupted parity expectations → `validation-failed`; both leave the active model untouched; a second activation keeps the known-good previous pointer; rollback restores; identical re-staging is idempotent.
+- Process note: this increment initially pushed without its slice-note entry — caught and corrected in the follow-up doc commit; superseded-push run cancellation means each push must wait for the previous head's CI.
 
 ## Increment 5 — 2026-09-06/07: analysis-envelope resource qualification at the corpus-v2 head (refs #423)
 

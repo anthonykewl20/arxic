@@ -4,8 +4,17 @@ import { readFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 
 const caseName = process.argv[2] ?? 'arxic-800-clipped.json';
+const jobs = Number(process.argv[3] ?? 10);
 const times = [];
-for (let i = 0; i < 10; i++) {
+const cgroup = (file) => {
+  try {
+    return readFileSync(`/sys/fs/cgroup/${file}`, 'utf8').trim();
+  } catch {
+    return null;
+  }
+};
+let failure = null;
+for (let i = 0; i < jobs; i++) {
   const started = performance.now();
   const child = spawnSync(
     process.execPath,
@@ -26,24 +35,39 @@ for (let i = 0; i < 10; i++) {
       env: { PATH: process.env.PATH, TSX_DISABLE_CACHE: '1' },
     },
   );
-  if (child.status !== 0)
-    throw new Error(`analysis-process-failed:${child.status}:${child.stderr}`);
+  if (child.status !== 0) {
+    // Sustained-load failures are findings, not crashes: retain where the
+    // ceiling hit and the cgroup state at that moment.
+    failure = {
+      jobsCompleted: times.length,
+      childStatus: child.status,
+      childSignal: child.signal,
+      stderr: (child.stderr ?? '').split('\n').slice(0, 6),
+      pidsCurrent: cgroup('pids.current'),
+      pidsMax: cgroup('pids.max'),
+    };
+    break;
+  }
   const report = JSON.parse(child.stdout);
-  if (report.overallPass !== false || !report.hardChecks.some((c) => c.verdict === 'fail'))
-    throw new Error('hard-failure-lost');
+  if (report.overallPass !== false || !report.hardChecks.some((c) => c.verdict === 'fail')) {
+    failure = { jobsCompleted: times.length, reason: 'hard-failure-lost' };
+    break;
+  }
   times.push(performance.now() - started);
 }
-const cgroup = (file) => readFileSync(`/sys/fs/cgroup/${file}`, 'utf8').trim();
 times.sort((a, b) => a - b);
 console.log(
   JSON.stringify(
     {
       scope: 'PNG-evidence-to-native-shadow-report plus Node driver; no browser/server/OS',
       jobs: times.length,
+      requestedJobs: jobs,
+      failure,
       case: caseName,
       processPerJob: true,
-      p50Ms: (times[4] + times[5]) / 2,
-      p95Ms: times[9],
+      coldMs: times[0],
+      p50Ms: (times[Math.floor((times.length - 1) / 2)] + times[Math.ceil((times.length - 1) / 2)]) / 2,
+      p95Ms: times[Math.floor((times.length - 1) * 0.95)],
       memoryPeakBytes: Number(cgroup('memory.peak')),
       memoryMax: cgroup('memory.max'),
       swapMax: cgroup('memory.swap.max'),

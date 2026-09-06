@@ -1,6 +1,6 @@
 # Deferred GLM teacher brief — after the Arxic foundation works
 
-Status: **future teacher brief; not sent and not ready for transmission**. Codex owns implementation. Specification: [visual-small-model-spec.md](./visual-small-model-spec.md), version 0.1, 2026-09-06. Tracker: [#423](https://github.com/anthonykewl20/arxic/issues/423).
+Status: **future teacher brief; not sent and not ready for transmission**. Addendum 2026-09-06: the owner directive recorded in [spec §17](./visual-small-model-spec.md) assigns continuing *implementation* engineering to GLM Flash; this brief still governs only the possible later *teacher* role, which remains gated and unsent. Specification: [visual-small-model-spec.md](./visual-small-model-spec.md), version 0.1, 2026-09-06. Tracker: [#423](https://github.com/anthonykewl20/arxic/issues/423).
 
 ## Timing and ownership
 
