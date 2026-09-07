@@ -316,6 +316,7 @@ function render() {
         declarationPages,
         selections: workflowSelections,
         workflowPages,
+        outcomes: state.outcomes ?? {},
       },
       campaign: {
         campaigns: state.campaigns ?? [],
