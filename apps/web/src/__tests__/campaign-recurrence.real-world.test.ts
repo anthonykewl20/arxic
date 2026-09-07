@@ -51,13 +51,14 @@ it('re-fires a recurring campaign at its next cron slot as a fresh execution wit
     inventoryRowIds: [ROW],
     cron: '*/1 * * * *',
   });
+  // Capture the slot before the real engine run: the Workbench's own background
+  // tick may legitimately fire it while this test idles, and must stay the
+  // only firing for that slot either way.
+  const due = new Date(wb.store.campaign(first.id)!.nextFireAt!);
   await wb.idle();
   expect(first.runIds.length).toBeGreaterThan(0);
   const originalRunIds = [...first.runIds];
 
-  const due = new Date(
-    wb.store.campaign(first.id)!.nextFireAt ?? 'missing nextFireAt',
-  );
   // A second tick at the same instant must coalesce: one firing per slot.
   wb.tick(due);
   wb.tick(due);
