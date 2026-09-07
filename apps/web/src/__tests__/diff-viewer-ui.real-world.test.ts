@@ -4,9 +4,12 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { launchDashboardBrowser } from './dashboard-browser';
 import { expect, it } from 'vitest';
-import { bootFixtureApp, stopApp, vulnerableAuthApp } from '../../../../packages/real-world-testkit/src';
+import {
+  bootFixtureApp,
+  stopApp,
+  vulnerableAuthApp,
+} from '../../../../packages/real-world-testkit/src';
 import { Workbench } from '../workbench';
-import type { Run } from '../types';
 import { startWorkbench } from './workbench-runtime';
 
 it('compares a changed capture through swipe and overlay view modes in a real browser', async () => {
@@ -45,18 +48,23 @@ it('compares a changed capture through swipe and overlay view modes in a real br
       viewports: [{ width: 480, height: 600 }],
       paths: ['/'],
     });
-    const first = wb.enqueue(project.id, 'visual')!;
+    const first = wb.enqueue(project.id, 'visual');
+    if (!first) throw new Error('first visual run was not queued');
     await wb.idle();
-    const firstRun = wb.store.run(first.id)!;
-    const baselineCapture = firstRun.result!.captures[0]!;
+    const firstRun = wb.store.run(first.id);
+    const baselineCapture = firstRun?.result?.captures?.[0];
+    if (!baselineCapture) throw new Error('first visual run produced no captures');
     await wb.approveBaseline(first.id, baselineCapture.id);
 
     changed = true;
-    const second = wb.enqueue(project.id, 'visual')!;
+    const second = wb.enqueue(project.id, 'visual');
+    if (!second) throw new Error('second visual run was not queued');
     await wb.idle();
-    const secondRun = wb.store.run(second.id)!;
-    expect(secondRun.result!.captures[0]!.status).toBe('changed');
-    expect(secondRun.result!.captures[0]!.diffFile).toBeTruthy();
+    const secondRun = wb.store.run(second.id);
+    if (!secondRun) throw new Error('second visual run is missing');
+    const compared = secondRun.result?.captures?.[0];
+    expect(compared?.status).toBe('changed');
+    expect(compared?.diffFile).toBeTruthy();
     await wb.close();
 
     app = await startWorkbench({
@@ -74,9 +82,7 @@ it('compares a changed capture through swipe and overlay view modes in a real br
 
     const viewer = page.getByRole('region', { name: 'Visual comparison', exact: true });
     await viewer.waitFor();
-    await expect
-      .poll(async () => (errors.length ? errors.join('; ') : true))
-      .toBe(true);
+    await expect.poll(async () => (errors.length ? errors.join('; ') : true)).toBe(true);
 
     // Swipe mode: the baseline/current pair becomes one interactive pane with a divider.
     await viewer.getByRole('button', { name: 'Swipe', exact: true }).click();
@@ -90,14 +96,20 @@ it('compares a changed capture through swipe and overlay view modes in a real br
     await page.keyboard.press('ArrowRight');
     await expect.poll(() => divider.getAttribute('aria-valuenow')).toBe('55');
     const pane = viewer.locator('.diff-swipe');
-    const before = await pane.locator('img').nth(1).evaluate((img) => img.getAttribute('style'));
-    const box = (await divider.boundingBox())!;
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const before = await pane
+      .locator('img')
+      .nth(1)
+      .evaluate((img) => img.getAttribute('style'));
+    const box = (await pane.boundingBox())!;
+    await page.mouse.move(box.x + box.width * 0.6, box.y + box.height / 2);
     await page.mouse.down();
-    await page.mouse.move(box.x - 80, box.y + box.height / 2, { steps: 8 });
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2, { steps: 8 });
     await page.mouse.up();
-    await expect.poll(() => divider.getAttribute('aria-valuenow')).toBe('15');
-    const after = await pane.locator('img').nth(1).evaluate((img) => img.getAttribute('style'));
+    await expect.poll(() => divider.getAttribute('aria-valuenow')).toBe('20');
+    const after = await pane
+      .locator('img')
+      .nth(1)
+      .evaluate((img) => img.getAttribute('style'));
     expect(after).not.toBe(before);
 
     // Overlay mode: onion-skin opacity over the same pair.
@@ -106,15 +118,18 @@ it('compares a changed capture through swipe and overlay view modes in a real br
     await opacity.fill('30');
     await expect
       .poll(() =>
-        viewer.locator('.diff-overlay img').nth(1).evaluate((img) => img.style.opacity),
+        viewer
+          .locator('.diff-overlay img')
+          .nth(1)
+          .evaluate((img) => img.style.opacity),
       )
       .toBe('0.3');
 
     // Side-by-side keeps both full images and the pixel difference reachable.
     await viewer.getByRole('button', { name: 'Side by side', exact: true }).click();
-    expect(
-      await viewer.getByRole('img', { name: 'Baseline used for this run' }).isVisible(),
-    ).toBe(true);
+    expect(await viewer.getByRole('img', { name: 'Baseline used for this run' }).isVisible()).toBe(
+      true,
+    );
     expect(await viewer.getByRole('img', { name: 'Capture from this run' }).isVisible()).toBe(true);
     expect(await viewer.getByRole('img', { name: 'Pixel difference' }).isVisible()).toBe(true);
 
@@ -130,7 +145,7 @@ it('compares a changed capture through swipe and overlay view modes in a real br
     await browser.close();
     if (app) await app.close();
     else await wb.close();
-    await stopApp(target);
+    await stopApp(target.child);
     await new Promise<void>((resolve) => proxy.close(() => resolve()));
     await rm(state, { recursive: true, force: true });
   }
