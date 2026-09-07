@@ -109,7 +109,11 @@ function CampaignDetail({
                 </strong>
                 <small>
                   {run
-                    ? `${run.state} · ${run.outcome ?? 'awaiting execution'}`
+                    ? `${run.state} · ${run.outcome ?? 'awaiting execution'}${
+                        run.history
+                          ? ` · ${run.history.verified} verified of ${run.history.executions} executions on this surface`
+                          : ''
+                      }`
                     : row.inventoryRowId
                       ? 'unselected'
                       : row.disposition}

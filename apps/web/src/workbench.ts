@@ -36,8 +36,12 @@ import {
 import { SecretStore } from './secret-store';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
-import { campaignRows, campaignView } from './campaigns';
+import { campaignRows, campaignView, rowHistoryOf } from './campaigns';
 import { reviewImage, type VisualReviewScope } from './visual-review';
+
+/** Single source of truth for the workflow-scope drift refusal (throw site, run record, schedule stop). */
+const sourceDriftRefusal =
+  'Source changed since campaign discovery; commit changes and start a new campaign';
 
 export class Workbench {
   private maintenance = false;
@@ -432,6 +436,7 @@ export class Workbench {
     return campaignView(
       campaign,
       campaign.runIds.map((runId) => this.store.run(runId)),
+      (inventoryRowId) => rowHistoryOf(this.store.rowRuns(campaign.projectId, inventoryRowId)),
     );
   }
   async cancelCampaign(id: string) {
@@ -491,7 +496,9 @@ export class Workbench {
           this.store.audit('campaign.schedule-stopped', source.id);
           continue;
         }
-        const rows = source.rows.filter((row) => row.inventoryRowId);
+        // Recurring fires re-execute the campaign's selected rows only — unselected
+        // discovery rows stay out of the slot's cost and queue capacity.
+        const rows = source.rows.filter((row) => row.inventoryRowId && row.runId);
         // Deferred, not dropped: the slot stays due and retries on the next tick.
         if (this.store.activeCount() + rows.length > 20) continue;
         const fired: Campaign = {
@@ -557,10 +564,7 @@ export class Workbench {
         if (run.workflowScope) {
           const current = await sourceRevision(run.project.folder);
           if (current.dirty || current.commit !== run.workflowScope.sourceCommit)
-            throw new HttpError(
-              409,
-              'Source changed since campaign discovery; commit changes and start a new campaign',
-            );
+            throw new HttpError(409, sourceDriftRefusal);
         }
         const directory = join(this.directory, 'runs', run.id);
         await mkdir(directory, { recursive: true, mode: 0o700 });
@@ -641,8 +645,21 @@ export class Workbench {
         });
       }
       if (this.store.run(run.id)?.state !== 'cancelled') this.store.finish(run, result);
+      if (run.workflowScope && result.summary === sourceDriftRefusal)
+        this.stopDriftedSchedules(run.projectId, run.workflowScope.sourceCommit);
       this.runningId = null;
     }
+  }
+  /** A refused workflow-scope run proves the pinned discovery is stale: recurring schedules on that commit stop firing. */
+  private stopDriftedSchedules(projectId: string, sourceCommit: string) {
+    this.store.db.transaction(() => {
+      for (const source of this.store.campaigns()) {
+        if (!source.cron || source.cancelledAt || !source.nextFireAt) continue;
+        if (source.projectId !== projectId || source.sourceCommit !== sourceCommit) continue;
+        this.store.saveCampaign({ ...source, nextFireAt: null });
+        this.store.audit('campaign.schedule-drift-stopped', source.id);
+      }
+    })();
   }
   async idle() {
     await this.pending;
