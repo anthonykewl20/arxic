@@ -119,8 +119,10 @@ it('flushes case-start evidence before a real running test process is interrupte
       },
     );
     const exited = new Promise((resolveExit) => child.once('exit', resolveExit));
+    // The window is startup latency, not the property: a contended machine can
+    // take well over 10s to cold-start the vitest child before it emits anything.
     await expect
-      .poll(async () => readFile(output, 'utf8').catch(() => ''), { timeout: 10000 })
+      .poll(async () => readFile(output, 'utf8').catch(() => ''), { timeout: 60000 })
       .toContain('case-start');
     // Exercise a delayed controller beyond the old child's five-second completion.
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 5500));
