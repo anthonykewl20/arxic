@@ -28,7 +28,7 @@ in this worktree.
 
 ## 5. Evidence pointers
 
-[Retained evidence](../evidence/WEB-445-READABILITY/summary.md) includes 27
+[Retained evidence](../evidence/WEB-445-READABILITY/summary.md) includes 30
 agent-viewed masked PNGs and exact sanitized timeline excerpts with original and
 selected hashes. All 378 original PNGs and 18 timeline hashes matched. Each
 engine passed all six source cases, with no unexpected numeric failures,
@@ -40,6 +40,12 @@ a canaried font override. Production headings, section rows and picker metadata
 now wrap; the wizard waits for populated rows and captures scrolled metadata.
 Clean Chromium at `429123b` passed six cases in 119.50s (130 PNGs / six timelines).
 The font override was removed; CI failures and diagnostic provenance are retained.
+The second installed CI passed Chromium and all shards but failed Firefox on
+a 1/65536px text-edge discrepancy and WebKit on an unresolved baseline-history
+Fetch API error. The precision comparison and safe error diagnostics are updated. A canaried
+Firefox probe reproduced the exact CI delta and passed the bounded comparison
+(41.80s). Normal Firefox readability passed five cases (143.31s), and local
+WebKit baseline history passed both cases (27.63s); its CI cause is unresolved.
 Current-head installed CI remains required before completion; source proof does
 not discharge it. The PR records the final full-repository format result after
 this note and the evidence summary were written.
@@ -55,7 +61,10 @@ this note and the evidence summary were written.
 | Model catalog overflows vertically     | Keyboard focus and End/Home recovery required  | Enlarged-text journeys             |
 | Contained navigation splits a word     | Failed whole-word finding                      | Desktop and open mobile navigation |
 
-No numeric epsilon or accessibility threshold was widened. Provider picker titles
+The text-edge assertion was explicitly widened from zero to 1/65536 CSS pixel
+after Firefox reported that exact discrepancy; raw values remain in evidence.
+Four independent 1/64-pixel edge-spill cases and the real clipped-control guard
+remain failing predicates. Accessibility thresholds are unchanged. Provider picker titles
 have a recovery exception backed by exact full-heading activation checks; this
 corrects an ellipsis false positive explicitly. DOM Range metrics are not optical
 or glyph correctness. Native zoom, arbitrary input-text clipping, full

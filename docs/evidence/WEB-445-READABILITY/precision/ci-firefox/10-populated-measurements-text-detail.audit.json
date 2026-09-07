@@ -1,0 +1,20 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "focused-text-containment",
+      "passed": false,
+      "values": {
+        "x": 256,
+        "y": 458.5,
+        "width": 359.01666259765625,
+        "height": 21,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    }
+  ]
+}

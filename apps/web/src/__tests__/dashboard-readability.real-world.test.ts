@@ -6,7 +6,7 @@ import type { Locator } from 'playwright';
 import { startWorkbench } from './workbench-runtime';
 import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { dashboardProof, type DashboardNumericCheck } from './dashboard-proof';
-import { applyTextProfile, measureControlText } from './dashboard-readability';
+import { applyTextProfile, measureControlText, textEdgeResolution } from './dashboard-readability';
 import {
   bootFixtureApp,
   stopApp,
@@ -153,6 +153,7 @@ it.each(
           id: `text-${index}-containment`,
           passed: measured.fits,
           values: {
+            edgeResolution: textEdgeResolution,
             x: measured.box.x,
             y: measured.box.y,
             width: measured.box.width,
@@ -197,6 +198,7 @@ it.each(
               id: 'focused-text-containment',
               passed: detail.fits,
               values: {
+                edgeResolution: textEdgeResolution,
                 x: detail.box.x,
                 y: detail.box.y,
                 width: detail.box.width,

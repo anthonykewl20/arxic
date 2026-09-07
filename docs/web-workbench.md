@@ -695,6 +695,9 @@ capture. Provider titles may truncate in the picker only because
 activation exposes the exact full heading, which is separately measured.
 
 Numeric findings are retained beside screenshots and sanitized action timelines.
+DOM Range containment uses an explicit 1/65536 CSS pixel edge resolution; raw
+spill measurements remain in the evidence. This widens the former zero-tolerance
+comparison after a Firefox precision discrepancy; 1/64-pixel edge spills still fail.
 DOM Range rectangles do not establish optical or glyph-level correctness.
 Incomplete accessibility checks remain unverified. These cases do not certify
 all heuristics, arbitrary form-input clipping, native zoom, every locale/persona

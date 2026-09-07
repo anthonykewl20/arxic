@@ -158,8 +158,10 @@ login control guards the numeric detector. Sidebar rows, text buttons, run
 headings and mobile activity/header groups now accommodate enlarged content.
 All six source cases passed in Chromium, Firefox and WebKit; the
 [retained evidence](../evidence/WEB-445-READABILITY/summary.md) records exact hashes,
-negative guards and corrected screenshots. PR #446 records required installed CI
-acceptance. This is not a completed release or human visual sign-off. Native browser zoom,
+negative guards and corrected screenshots. The second installed CI passed Chromium and all four shards but failed Firefox
+on a 1/65536px text-edge difference and WebKit on a baseline-history Fetch API
+error. The text oracle now declares that measurement resolution; the WebKit cause
+is unresolved and safe diagnostics are added. PR #446 still requires green CI. This is not a completed release or human visual sign-off. Native browser zoom,
 full locale/persona/state coverage and incomplete accessibility checks remain gaps.
 
 The first installed #445 run exposed font-dependent title/activity overflow and

@@ -51,7 +51,7 @@ export async function applyTextProfile(page: Page, profile: string) {
 
 /** Read-only line rectangles for an explicitly named text control, not an optical/glyph oracle. */
 export async function measureControlText(control: Locator, recoveredTextSelector?: string) {
-  return control.evaluate((element, recoveredSelector) => {
+  const measured = await control.evaluate((element, recoveredSelector) => {
     const rect = element.getBoundingClientRect();
     const box = {
       x: rect.x,
@@ -79,18 +79,26 @@ export async function measureControlText(control: Locator, recoveredTextSelector
           height: line.height,
         });
     }
-    return {
-      box,
-      lines,
-      fits:
-        lines.length > 0 &&
-        lines.every(
-          (line) =>
-            line.x >= box.x &&
-            line.y >= box.y &&
-            line.right <= box.right &&
-            line.bottom <= box.bottom,
-        ),
-    };
+    return { box, lines };
   }, recoveredTextSelector);
+  return { ...measured, fits: textFitsBox(measured.box, measured.lines) };
+}
+
+type TextRect = { x: number; y: number; right: number; bottom: number };
+
+/** Explicit measurement resolution, not a visual alignment budget. Raw edges stay in evidence. */
+export const textEdgeResolution = 1 / 65536;
+
+export function textFitsBox(box: TextRect, lines: TextRect[]) {
+  return (
+    [box, ...lines].every((rect) => Object.values(rect).every(Number.isFinite)) &&
+    lines.length > 0 &&
+    lines.every(
+      (line) =>
+        line.x >= box.x - textEdgeResolution &&
+        line.y >= box.y - textEdgeResolution &&
+        line.right <= box.right + textEdgeResolution &&
+        line.bottom <= box.bottom + textEdgeResolution,
+    )
+  );
 }

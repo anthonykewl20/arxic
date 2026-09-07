@@ -42,8 +42,8 @@ DOM Range line rectangles measure containment, not optical centering or glyph
 correctness. Provider picker titles have an explicit recovery exception: actual GUI
 activation must reveal the exact full heading, independently measured on mobile.
 This corrects an ellipsis false positive without changing numeric tolerances.
-Incomplete accessibility checks remain unverified. No assertion tolerance was
-widened to resolve a failure.
+Incomplete accessibility checks remain unverified. These original runs used zero
+edge tolerance; the later precision correction below explicitly changes that comparison.
 
 Earlier diagnostic runs exposed test-harness mistakes: inline styles were blocked
 by CSP, fixture cleanup used wrong API shapes, and saving from Providers did not
@@ -158,3 +158,57 @@ Supplemental inspected captures:
 The complete retained selection is 27 inspected PNGs and 22 exact sanitized
 timeline excerpts. This includes historical failures, diagnostic overrides and
 normal-font corrections; it is not a set of 27 passing test points.
+
+## Second installed CI failure and explicit measurement precision
+
+CI [34071728564](https://github.com/anthonykewl20/arxic/actions/runs/34071728564)
+on PR head `3b6550b` passed static, fixture apps, packed Chromium and all four test
+shards (2,090 passed, two existing worker-only skips). Installed Firefox failed
+spacing/light and spacing/dark at the populated run heading: raw right-edge spill
+`0.0000152587890625` CSS pixels, with no document overflow or Axe violation.
+The scrolled screenshot shows the complete heading. Installed WebKit separately
+failed baseline-history/light on a Fetch API page error; its cause is unresolved.
+The overall CI gate failed; these results do not establish completion.
+
+**Assertion change:** text containment now allows `1 / 65536` CSS pixel at each
+edge. This is an explicit widening of the former zero tolerance, not a product CSS
+fix. Raw spill values remain unchanged in audit JSON and each control records the
+resolution. Mozilla's [DOMRect conversion](https://searchfox.org/firefox-main/source/dom/base/DOMRect.cpp)
+rounds layout coordinates at this resolution. The retained CI discrepancy equals
+one such unit; this supports a bounded precision budget, not a claim that every
+future small discrepancy has the same cause. A golden case from the CI numbers
+failed before the change; independent 1/64-pixel spills on all four edges still
+fail. Missing text and non-finite edge measurements also fail. The real clipped
+login control remains a separate negative browser test.
+
+Three local WebKit diagnostics (original navigation, a held authenticated refresh,
+and twelve navigation attempts at state-response boundaries) did not reproduce
+the CI Fetch API error. No navigation workaround or error suppression was added.
+Baseline-history now reports closed stage/error/endpoint categories without URLs,
+credentials, response bodies or raw stacks, and records page-error counts alongside
+its screenshots. Its final no-page-error assertion remains in force. A subsequent
+installed run is required to investigate the CI-only behavior.
+
+
+The final local precision probe reproduced the **same** Firefox width
+`359.01666259765625` and right spill `0.0000152587890625` using the canaried
+DejaVu Sans response override. The bounded predicate passed while preserving the
+raw difference; the complete real spacing/light journey passed in 41.80s. The
+font override and extra diagnostic screenshot step were then removed.
+The screenshot scrolls the heading into view; its accompanying diagnostic audit
+preserves coordinates measured before that scroll. Normal-font Firefox passed all
+five readability cases (143.31s), including the failing clipped-control predicate;
+WebKit passed both instrumented baseline-history cases locally (27.63s). These
+runs used uncommitted edits on `3b6550b`, recorded as dirty, and are not clean-head
+installed acceptance. Their 83 PNG and seven timeline hashes matched. Six
+numerical cases passed, including rejection of non-finite measurements.
+[Precision results](./precision-results.json) retain the exact limits and scope.
+
+| Evidence | Result |
+| --- | --- |
+| [CI Firefox heading](./precision/ci-firefox/10-populated-measurements-text-detail.png) | Complete painted text; zero-tolerance predicate failed on one resolution unit |
+| [Local canaried Firefox heading](./precision/font-firefox/10b-run-heading.png) | Same raw discrepancy retained; bounded comparison passes |
+| [Instrumented WebKit mobile history](./precision/webkit-baseline/06-mobile-history.png) | Local history case passes with zero page errors; CI cause still unresolved |
+
+The complete retained selection now contains 30 agent-inspected masked PNGs and
+25 exact timeline excerpts. Human inspection and release approval remain owed.

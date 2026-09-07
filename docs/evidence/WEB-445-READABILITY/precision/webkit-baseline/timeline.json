@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Mobile history distinguishes no prior baseline from current approval after replacement",
+    "result": "passed",
+    "screenshot": "06-mobile-history.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

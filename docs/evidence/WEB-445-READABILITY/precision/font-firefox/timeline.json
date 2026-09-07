@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Canaried wider-font heading with raw precision measurements",
+    "result": "passed",
+    "screenshot": "10b-run-heading.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]
