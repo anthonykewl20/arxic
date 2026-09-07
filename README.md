@@ -166,7 +166,7 @@ Dashboard validation follow-up: source CI 34075361763 retained five of six requi
 
 Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
 
-Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
+Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract.
 
 A [real WebKit navigation diagnostic](docs/evidence/WEB-447-NAVIGATION/summary.md) records native/driver events and adversarial failure cases for #447; it does not suppress production errors.
 
@@ -177,4 +177,6 @@ values. These optional declarations name built-in capabilities; they do not load
 plugins, supply credentials, or establish fixture readiness. Omission and the
 existing per-pass login declaration retain their behavior (refs #452).
 
-Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery and native baseline repeatability pass local reference-app checks. High-density Chromium uses full Chromium headless with an explicit renderer identity; final installed CI remains required. This is not full production-readiness proof.
+Native 1×/2×/3× capture selection and density filtering merged in PR #455 after required CI 34091854414 passed. High-density Chromium uses full Chromium headless with an explicit renderer identity. That acceptance covers the scoped source and installed browser journeys; it is not full production-readiness proof.
+
+Capture ordinals are reserved per attempted checkpoint, so a failed evidence destination does not block later healthy pages by reusing its filename. [Storage-failure proof](docs/evidence/WEB-458-WRITE-ISOLATION/summary.md) retains real red/green results and manual recovery with the original blocked snapshot unchanged. Installed acceptance includes sixteen dashboard files; #458 remains pending its final-head gate.

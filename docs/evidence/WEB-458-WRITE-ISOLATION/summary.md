@@ -1,0 +1,15 @@
+# Evidence-write failure isolation — #458
+
+In progress, base `aa661279`, dirty implementation. This is a separately reproduced storage-boundary defect; it does not explain #448's original intermittent five-of-six event.
+
+The real workbench originally numbered a PNG using the number of successful captures. A directory at `checkpoint-2.png` causes a real EISDIR write failure. The next healthy page reused that destination and failed too. All three real engines fail the red assertion: only `/` survives rather than `/` and `/after-fault` (3 cases, 12.47 s). The proxy serves actual vulnerable-auth-app HTML at three permitted paths. No internal Arxic module, browser or filesystem operation is mocked.
+
+Each attempted checkpoint now reserves its own ordinal. The failed middle page remains an evidence-write finding; the first and third captures survive as checkpoints 1 and 3, and aggregate coverage remains blocked. Successful complete-run numbering and path/environment baseline keys are unchanged. No automatic retry, privacy waiver or error-string classifier is introduced. Capture action orchestration owns this sequencing decision.
+
+Three real engine cases pass (11.10 s). The affected capture-failure dashboard and baseline regression suite also passes with the engine test (5 cases / 3 files, 46.67 s). The later stronger server-path test seeds an actual durable queued job and filesystem fault before starting the source or installed server; the server executes the first failed capture, not a separate source-only runner. Source-server proof passes all three target engines (3 cases, 35.46 s) through the Chromium dashboard. It includes 1440/320 diagnostic screenshots, manual Run again after repairing the filesystem boundary, three recovered captures and an unchanged original blocked result. Agent inspection includes the 320-pixel storage diagnostic, with no overflow or axe violations in that checkpoint.
+
+The test is included in all installed dashboard acceptance modes: sixteen files, split exhaustively into two required eight-file non-Chromium partitions. Its new real-browser case uses the repository's standard 120-second budget. Initial test-driver probes incorrectly used a standalone page unsupported by axe, then hit the default 5-second unit-test deadline; both harness issues were corrected, with no old test deadline or assertion relaxed. The installed-selection contract failed before the new case was added, then all 17 helper tests / 3 files passed (2.40 s).
+
+The same three-target server/recovery journey also passes through Firefox dashboard (3 cases, 38.13 s) and WebKit dashboard (3 cases, 37.35 s). That is nine real local GUI cases across the three dashboard engines, with all three target engines in each run. These runs use the light dashboard theme; broader theme/state combinations are not established.
+
+Remaining: final-head installed proof and CI, broader theme/state execution, documentation integration and full #402. No independent human inspection or production-readiness verdict is claimed. Screenshots are capture-masked and adjacent provenance is retained unchanged; no raw traces are included.

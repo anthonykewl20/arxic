@@ -310,8 +310,11 @@ async function captureEnvironment(
       });
       paths = paths.slice(0, budget);
     }
+    // Reserve identity per attempted checkpoint; a failed write must not poison the next page.
+    let nextCheckpoint = 0;
     for (const viewport of project.viewports)
       for (const path of paths) {
+        const checkpoint = nextCheckpoint++;
         const { context, counters } = await openContext(browser, project, viewport, {
           storageState,
           colorScheme: environment.colorScheme,
@@ -329,7 +332,6 @@ async function captureEnvironment(
         });
         let failurePhase: CaptureFailurePhase = 'navigation';
         try {
-          const checkpoint = captures.length;
           timeline.push({ action: 'navigate', checkpoint });
           const response = await page.goto(`${project.origin}${path}`, {
             waitUntil: 'load',
@@ -502,7 +504,7 @@ async function captureEnvironment(
           });
           timeline.push({
             action: 'capture-refused',
-            checkpoint: captures.length,
+            checkpoint,
             result: 'blocked',
           });
         } finally {

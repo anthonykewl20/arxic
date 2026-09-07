@@ -1,0 +1,28 @@
+{
+  "sourceCommit": "aa661279c24f34a2f96be9309f2a0dd208a4b1e5",
+  "dirty": true,
+  "browser": "webkit",
+  "outcome": "blocked",
+  "captures": [
+    {
+      "id": "checkpoint-1",
+      "path": "/",
+      "file": "checkpoint-1.png"
+    }
+  ],
+  "failures": [
+    {
+      "path": "/write-fault",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "evidence-write"
+    },
+    {
+      "path": "/after-fault",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "evidence-write"
+    }
+  ],
+  "rawTraceRetained": false
+}

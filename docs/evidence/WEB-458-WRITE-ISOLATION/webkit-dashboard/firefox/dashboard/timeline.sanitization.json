@@ -1,0 +1,11 @@
+{
+  "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405",
+  "method": "allow-listed test annotations, viewport and result; no DOM/network/field payloads",
+  "rawTraceRetained": false,
+  "sourceCommit": "aa661279c24f34a2f96be9309f2a0dd208a4b1e5",
+  "browser": {
+    "name": "webkit",
+    "version": "26.5"
+  },
+  "dirty": true
+}

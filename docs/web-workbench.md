@@ -737,7 +737,7 @@ An AI image-dimension refusal now tells you to choose a smaller viewport or lowe
 ### Installed-dashboard CI scope and interruption evidence
 
 The packaged Chromium release flow and an ordinary `--dashboard-only` run execute
-all fifteen declared dashboard files. Firefox/WebKit CI assigns those same files
+all sixteen declared dashboard files. Firefox/WebKit CI assigns those same files
 to two required partitions (`--dashboard-shard 1` and `--dashboard-shard 2`); both
 must pass for each browser. A partition is not whole-browser acceptance. Selection
 contracts guard exhaustive, disjoint membership and reject sharding the full CLI
@@ -758,3 +758,5 @@ The original installed Firefox failure is retained in the
 
 The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a historical light Firefox journey failure. Subsequent exact-head CI 34091854414 passed all required installed browser cases before PR #455 merged; local reruns alone did not waive the earlier failure.
 Project-dialog footer actions use a 44-pixel minimum height. In settings, the explanatory text precedes Back and Save, keeping navigation and submission on one row on narrow screens. [Retained red evidence](evidence/WEB-456-FOOTER/action-row/summary.md) documents the original 114-pixel action-row separation and 32-pixel tablet targets. This layout fix does not convert unresolved footer contrast checks into passes.
+
+Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among sixteen required dashboard files.

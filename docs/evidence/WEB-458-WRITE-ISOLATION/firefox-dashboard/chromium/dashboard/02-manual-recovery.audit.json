@@ -1,0 +1,16 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "recovered-capture-count",
+      "passed": true,
+      "values": {
+        "actual": 3,
+        "expected": 3
+      }
+    }
+  ]
+}

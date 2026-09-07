@@ -1,0 +1,27 @@
+{
+  "sourceCommit": "aa661279c24f34a2f96be9309f2a0dd208a4b1e5",
+  "dirty": true,
+  "browser": "chromium",
+  "outcome": "blocked",
+  "captures": [
+    {
+      "id": "checkpoint-1",
+      "path": "/",
+      "file": "checkpoint-1.png"
+    },
+    {
+      "id": "checkpoint-3",
+      "path": "/after-fault",
+      "file": "checkpoint-3.png"
+    }
+  ],
+  "failures": [
+    {
+      "path": "/write-fault",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "evidence-write"
+    }
+  ],
+  "rawTraceRetained": false
+}
