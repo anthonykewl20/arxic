@@ -120,3 +120,5 @@ Dashboard validation follow-up: source CI 34075361763 retained five of six requi
 Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
 
 Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
+
+The [WebKit navigation investigation](../../docs/evidence/WEB-447-NAVIGATION/summary.md) provides an explicit probe command; no production error waiver is enabled.

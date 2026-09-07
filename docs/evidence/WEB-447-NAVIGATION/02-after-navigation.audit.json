@@ -1,0 +1,22 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "fetch-diagnostic-reproduced",
+      "passed": true,
+      "values": {
+        "count": 4
+      }
+    },
+    {
+      "id": "native-error-observation",
+      "passed": true,
+      "values": {
+        "count": 0
+      }
+    }
+  ]
+}

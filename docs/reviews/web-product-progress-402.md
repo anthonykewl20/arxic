@@ -158,24 +158,19 @@ login control guards the numeric detector. Sidebar rows, text buttons, run
 headings and mobile activity/header groups now accommodate enlarged content.
 All six source cases passed in Chromium, Firefox and WebKit; the
 [retained evidence](../evidence/WEB-445-READABILITY/summary.md) records exact hashes,
-negative guards and corrected screenshots. The second installed CI passed Chromium and all four shards but failed Firefox
-on a 1/65536px text-edge difference and WebKit on a baseline-history Fetch API
-error. The text oracle now declares that measurement resolution; the WebKit cause
-is unresolved and safe diagnostics are added. PR #446 still requires green CI. This is not a completed release or human visual sign-off. Native browser zoom,
-full locale/persona/state coverage and incomplete accessibility checks remain gaps.
+negative guards and corrected screenshots. PR #446 merged as `94a9aa93` after
+required CI 34076797886 passed on `8176dd4e`: 2,096 shard tests and all three
+installed dashboard engines. The retained installed evidence contains 879 PNGs
+and 78 sanitized timelines with matching hashes. Incomplete accessibility reports
+remain unverified; native browser zoom, full locale/persona/state coverage and
+human release inspection remain gaps.
 
-The first installed #445 run exposed font-dependent title/activity overflow and
-folder metadata clipping after local source passes. Both were reproduced and
-corrected; the retained proof distinguishes failed CI, temporary font probes and
-committed normal-font validation. Current-head installed CI remains mandatory.
-
-The precision revision `2b1a835` passed required CI 34073809235 (2,096 shard tests,
-all three installed dashboard engines; 867 PNG and 78 timeline hashes matched).
-A subsequent deterministic login defect was then exposed: bookmarked run selection
-was lost during session cleanup. `d6ff592` restores the requested URL after sign-in;
-ten real source cases passed across Chromium, Firefox and WebKit, including
-stale-response/draft/consent checks. The current login/evidence head still requires
-CI. Generic WebKit early-reload error classification remains tracked in #447.
+Earlier installed runs exposed font-dependent clipping, a 1/65536 CSS-pixel
+Firefox measurement difference and a lost bookmarked run after sign-in. The
+merged change corrects layout and login restoration, declares measurement
+resolution and retains deliberate clipping guards. These earlier failures and
+probes remain in the evidence history. Generic WebKit navigation-error
+classification is still under investigation in #447; no error exemption ships.
 
 Dashboard validation follow-up: source CI 34075361763 retained five of six required healthy-page gallery captures. Per-cell failure evidence is now retained; the original cause remains tracked in [#448](https://github.com/anthonykewl20/arxic/issues/448), and a later local pass does not discharge it.
 
