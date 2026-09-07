@@ -1,0 +1,19 @@
+      Tests  3 passed (3)
+   Start at  01:16:03
+   Duration  25.28s (transform 1.06s, setup 0ms, import 2.69s, tests 22.49s, environment 0ms)
+
+WEB-402-RECURRING-DRIFT — gate evidence (2026-09-08)
+
+Red (before fix, new journey only): 1 failed | 2 skipped —
+  expect(stopped.nextFireAt).toBeNull() failed: schedule stayed armed at
+  2026-09-07T17:12:00.000Z after its fired run was refused for source drift.
+Green (after fix): apps/web/src/__tests__/campaign-recurrence.real-world.test.ts
+  Test Files  1 passed (1)
+       Tests  3 passed (3)   (repeated; second run above)
+Regression breadth (same worktree, all green):
+  campaigns.real-world.test.ts + workspace.test.ts      -> 5 passed (5)
+  campaigns.test.ts + campaign-ui.real-world + workflow-captures -> 10 passed (10)
+Gates: apps/web typecheck exit 0 · pnpm lint clean ·
+pnpm format:check last line: "All matched files use Prettier code style!"
+Boundary: push/merge to GitHub returned HTTP 403 this shift (owner revoked
+runner write access); branch staged locally, PR pending access restoration.

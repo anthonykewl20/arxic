@@ -39,6 +39,10 @@ import { sourceRevision } from './source';
 import { campaignRows, campaignView } from './campaigns';
 import { reviewImage, type VisualReviewScope } from './visual-review';
 
+/** Single source of truth for the workflow-scope drift refusal (throw site, run record, schedule stop). */
+const sourceDriftRefusal =
+  'Source changed since campaign discovery; commit changes and start a new campaign';
+
 export class Workbench {
   private maintenance = false;
   private runningId: string | null = null;
@@ -557,10 +561,7 @@ export class Workbench {
         if (run.workflowScope) {
           const current = await sourceRevision(run.project.folder);
           if (current.dirty || current.commit !== run.workflowScope.sourceCommit)
-            throw new HttpError(
-              409,
-              'Source changed since campaign discovery; commit changes and start a new campaign',
-            );
+            throw new HttpError(409, sourceDriftRefusal);
         }
         const directory = join(this.directory, 'runs', run.id);
         await mkdir(directory, { recursive: true, mode: 0o700 });
@@ -641,8 +642,21 @@ export class Workbench {
         });
       }
       if (this.store.run(run.id)?.state !== 'cancelled') this.store.finish(run, result);
+      if (run.workflowScope && result.summary === sourceDriftRefusal)
+        this.stopDriftedSchedules(run.projectId, run.workflowScope.sourceCommit);
       this.runningId = null;
     }
+  }
+  /** A refused workflow-scope run proves the pinned discovery is stale: recurring schedules on that commit stop firing. */
+  private stopDriftedSchedules(projectId: string, sourceCommit: string) {
+    this.store.db.transaction(() => {
+      for (const source of this.store.campaigns()) {
+        if (!source.cron || source.cancelledAt || !source.nextFireAt) continue;
+        if (source.projectId !== projectId || source.sourceCommit !== sourceCommit) continue;
+        this.store.saveCampaign({ ...source, nextFireAt: null });
+        this.store.audit('campaign.schedule-drift-stopped', source.id);
+      }
+    })();
   }
   async idle() {
     await this.pending;

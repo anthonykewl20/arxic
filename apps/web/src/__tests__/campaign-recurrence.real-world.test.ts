@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
@@ -29,7 +29,7 @@ async function openCampaignWorkbench() {
   });
   const discovery = wb.enqueue(project.id, 'discovery');
   await wb.idle();
-  return { wb, project, discovery };
+  return { wb, project, discovery, repo };
 }
 
 it('rejects a non-five-field campaign recurrence cron before any campaign child is inserted', async () => {
@@ -73,4 +73,37 @@ it('re-fires a recurring campaign at its next cron slot as a fresh execution wit
   expect(fired.runIds).not.toEqual(originalRunIds);
   expect(wb.store.campaign(first.id)!.runIds).toEqual(originalRunIds);
   await wb.idle();
+}, 120_000);
+
+it('stops the recurring schedule when a fired run is refused for source drift', async () => {
+  const { wb, project, discovery, repo } = await openCampaignWorkbench();
+  const first = await wb.enqueueCampaign(project.id, {
+    discoveryRunId: discovery.id,
+    inventoryRowIds: [ROW],
+    cron: '*/1 * * * *',
+  });
+  await wb.idle();
+
+  // The source moves past the campaign's discovery binding (any dirty state
+  // makes the existing workflow-scope guard refuse the run).
+  await writeFile(join(repo.root, 'drift.txt'), 'dirty after discovery');
+
+  wb.tick(new Date(wb.store.campaign(first.id)!.nextFireAt!));
+  await wb.idle();
+  const firedRun = wb.store
+    .campaigns()
+    .find((item) => item.id !== first.id && item.projectId === project.id)!
+    .runIds.map((runId) => wb.store.run(runId)!)[0];
+  expect(firedRun.result?.summary).toContain('Source changed since campaign discovery');
+
+  // The schedule stops with an audited diagnostic instead of firing again.
+  const stopped = wb.store.campaign(first.id)!;
+  expect(stopped.nextFireAt).toBeNull();
+  expect(
+    wb.store.auditLog().some((entry) => entry.action === 'campaign.schedule-drift-stopped'),
+  ).toBe(true);
+
+  // No further slot fires after the stop.
+  wb.tick(new Date(Date.now() + 3_600_000));
+  expect(wb.store.campaigns().filter((item) => item.projectId === project.id)).toHaveLength(2);
 }, 120_000);
