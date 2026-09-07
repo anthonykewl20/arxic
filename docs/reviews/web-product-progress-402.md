@@ -156,6 +156,8 @@ It covers narrow navigation, run measurements, Administration, provider-name
 recovery and keyboard scrolling of the model catalog. A deliberately clipped
 login control guards the numeric detector. Sidebar rows, text buttons, run
 headings and mobile activity/header groups now accommodate enlarged content.
-The source/installed multi-engine acceptance is still in progress under #445;
-this is not a completed release or human visual sign-off. Native browser zoom,
+All six source cases passed in Chromium, Firefox and WebKit; the
+[retained evidence](../evidence/WEB-445-READABILITY/summary.md) records exact hashes,
+negative guards and corrected screenshots. PR #446 records required installed CI
+acceptance. This is not a completed release or human visual sign-off. Native browser zoom,
 full locale/persona/state coverage and incomplete accessibility checks remain gaps.

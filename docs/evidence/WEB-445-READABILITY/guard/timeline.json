@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Deliberately clipped login label must fail its independent text containment check",
+    "result": "failed",
+    "screenshot": "clipped-button-guard.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

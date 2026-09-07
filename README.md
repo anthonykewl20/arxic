@@ -156,6 +156,8 @@ WebKit × light/dark × configured viewports, with environment-specific baseline
 explicit blocked environments and a shared capture budget. See the
 [dashboard setup and scope](docs/web-workbench.md#browsertheme-capture-matrix).
 
-Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](docs/web-workbench.md#dashboard-browser-verification) records engine provenance. [Dashboard proof](docs/evidence/WEB-443-BROWSERS/summary.md) documents the UX fixes, measured checks and remaining coverage boundaries; PR #444 tracks final installed CI acceptance.
+Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](docs/web-workbench.md#dashboard-browser-verification) records engine provenance. [Dashboard proof](docs/evidence/WEB-443-BROWSERS/summary.md) documents the UX fixes, measured checks and remaining coverage boundaries; PR #444 passed installed CI and is merged.
 
 Dashboard readability checks exercise user text spacing and 200% mounted text enlargement across real discovery and capture journeys. Navigation and text buttons grow with content; narrow headers wrap, and the model catalog supports keyboard scrolling. See [readability scope](docs/web-workbench.md#dashboard-readability-verification) for exact checks and limits.
+
+[Readability evidence](docs/evidence/WEB-445-READABILITY/summary.md) retains the three-engine source results, measured defects, corrected screenshots and explicit limits. PR #446 records installed CI acceptance.

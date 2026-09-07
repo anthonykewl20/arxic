@@ -1,0 +1,100 @@
+{
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "count": 2
+    }
+  ],
+  "overflow": 12,
+  "overflowNodes": [
+    {
+      "tag": "SPAN",
+      "classes": "",
+      "x": 168.84375,
+      "y": 68.5,
+      "width": 163.359375,
+      "height": 36,
+      "right": 332.203125,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    },
+    {
+      "tag": "SMALL",
+      "classes": "",
+      "x": 225.359375,
+      "y": 4273.890625,
+      "width": 103.125,
+      "height": 228,
+      "right": 328.484375,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    }
+  ],
+  "checks": [
+    {
+      "id": "user-text-profile-applied",
+      "passed": true,
+      "values": {
+        "originalSize": 14,
+        "actualSize": 28
+      }
+    },
+    {
+      "id": "button-1-text-containment",
+      "passed": true,
+      "values": {
+        "x": 12,
+        "y": 11,
+        "width": 148.09375,
+        "height": 42,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "button-17-text-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 3387.890625,
+        "width": 242.9375,
+        "height": 49,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "button-18-text-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 3452.890625,
+        "width": 246,
+        "height": 86,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "button-19-text-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 3554.890625,
+        "width": 195.609375,
+        "height": 49,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    }
+  ]
+}

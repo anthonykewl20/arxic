@@ -1,0 +1,11 @@
+[
+  {
+    "action": "text-200 user text profile preserves action labels",
+    "result": "failed",
+    "screenshot": "04-desktop-overview.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

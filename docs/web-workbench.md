@@ -665,7 +665,7 @@ checks are marked unverified in timelines.
 Named masked screenshots and sanitized timelines record actual browser versions
 in adjacent provenance. Accessibility checks retain incomplete results. Desktop
 WebKit automation is not real-device Safari proof, and automated checks do not
-replace human visual/release inspection. The [retained dashboard proof](./evidence/WEB-443-BROWSERS/summary.md) documents source-picker stability, measurement reveal/retry, forced-color fixes and the 18-test installed contract. [PR #444 checks](https://github.com/anthonykewl20/arxic/pull/444/checks) track final installed acceptance. Incomplete contrast and transient-frame causality remain explicit gaps; no blanket production-readiness claim is made.
+replace human visual/release inspection. The [retained dashboard proof](./evidence/WEB-443-BROWSERS/summary.md) documents source-picker stability, measurement reveal/retry, forced-color fixes and the 18-test installed contract. [PR #444 checks](https://github.com/anthonykewl20/arxic/pull/444/checks) passed installed acceptance before merge. Incomplete contrast and transient-frame causality remain explicit gaps; no blanket production-readiness claim is made.
 
 ## Dashboard readability verification
 
@@ -696,4 +696,6 @@ Numeric findings are retained beside screenshots and sanitized action timelines.
 DOM Range rectangles do not establish optical or glyph-level correctness.
 Incomplete accessibility checks remain unverified. These cases do not certify
 all heuristics, arbitrary form-input clipping, native zoom, every locale/persona
-or transient animation frame. Current acceptance remains tracked in issue #445.
+or transient animation frame. [Retained readability evidence](./evidence/WEB-445-READABILITY/summary.md) records
+all three source-engine passes and the before/after findings. PR #446 records
+required installed CI acceptance; issue #445 requires that pass before closure.

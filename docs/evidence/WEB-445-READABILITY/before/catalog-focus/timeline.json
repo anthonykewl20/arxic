@@ -1,0 +1,11 @@
+[
+  {
+    "action": "text-200: control text containment; provider names checked by activation",
+    "result": "failed",
+    "screenshot": "15-mobile-providers.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  }
+]
