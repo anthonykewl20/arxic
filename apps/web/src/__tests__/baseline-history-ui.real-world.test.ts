@@ -110,12 +110,58 @@ it.each(['light', 'dark'] as const)(
       });
       stage = 'navigate-first';
       await page.goto(`${app.origin}?view=runs&run=${first.id}`);
-      await page.getByLabel('Administrator token').fill('baseline-history-proof-token-at-least-32');
-      stage = 'login';
-      await page.getByRole('button', { name: 'Open workbench' }).click();
-      stage = 'navigate-first';
-      await page.goto(`${app.origin}?view=runs&run=${first.id}`);
-      await page.getByRole('button', { name: 'Approve as baseline', exact: true }).waitFor();
+      // Complete sign-in before testing reload; a click alone does not establish the session UI.
+      // Repeated real sessions stay below the server sign-in rate limit.
+      for (let attempt = 0; attempt < 18; attempt++) {
+        stage = 'login-reload';
+        await page
+          .getByLabel('Administrator token')
+          .fill('baseline-history-proof-token-at-least-32');
+        const authenticated = page.waitForResponse(
+          (response) => new URL(response.url()).pathname === '/api/session',
+        );
+        await page.getByRole('button', { name: 'Open workbench' }).click();
+        const response = await authenticated;
+        if (attempt === 0) {
+          await page.getByRole('button', { name: 'View result', exact: true }).first().waitFor();
+          const requestedRun = new URL(page.url()).searchParams.get('run') === first.id;
+          const detailVisible = await page
+            .getByRole('button', { name: 'Approve as baseline', exact: true })
+            .isVisible();
+          await proof.audit(
+            '00-bookmarked-run',
+            'Successful sign-in opens the requested run without a second navigation',
+            [
+              {
+                id: 'requested-run-after-login',
+                passed: requestedRun && detailVisible,
+                values: {
+                  requestedRun: Number(requestedRun),
+                  detailVisible: Number(detailVisible),
+                },
+              },
+            ],
+          );
+          expect({ requestedRun, detailVisible }).toEqual({
+            requestedRun: true,
+            detailVisible: true,
+          });
+        }
+        await page.getByRole('button', { name: 'Approve as baseline', exact: true }).waitFor();
+        await page.goto(`${app.origin}?view=runs&run=${first.id}`);
+        expect(response.status()).toBe(200);
+        await page.getByRole('button', { name: 'Approve as baseline', exact: true }).waitFor();
+        if (attempt < 17) {
+          await context.clearCookies();
+          await page.reload();
+          await page.getByLabel('Administrator token').waitFor();
+        }
+      }
+      await audit(
+        '00-login-reload',
+        'Repeated real login and reload preserves the completed run without page errors',
+      );
+      expect(errors).toEqual([]);
       await page.route('**/baselines', (route) =>
         route.fulfill({ status: 503, json: { error: 'Baseline approval unavailable' } }),
       );
