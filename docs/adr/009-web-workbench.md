@@ -416,3 +416,27 @@ explicit missing-engine boundary failure. Dashboard journeys configure and inspe
 the matrix in both themes and four widths; installed-package CI runs those GUI
 journeys. DPR/zoom/locale/direction/forced-color and arbitrary workflow-state
 coverage remain open. Engine WebKit is not real-device Safari certification.
+
+### 2026-09-07 — native pixel density and run-local authentication (refs #454)
+
+The matrix additionally accepts native 1×/2×/3× density with a shared 600-checkpoint
+budget and a 16-megapixel per-capture admission bound. Missing density preserves
+legacy 1× identities. Screenshot pixels retain native resolution; scene boxes and
+point selection remain CSS coordinates. AI overlays use image dimensions, and the
+unchanged model image bound produces an actionable refusal when exceeded.
+
+Native Chromium 2×/3× uses Playwright's full Chromium headless channel after real
+reference-app probes reproduced two shell text rasters across fresh captures. The
+renderer is explicit in environment/baseline identity; an unavailable full browser
+blocks the cell rather than falling back. This does not assert cross-OS parity.
+
+Superseding the prior per-environment sign-in bootstrap, each browser family signs
+in once through the real form per run. Its result remains in memory for that run
+only; later cells record explicit reuse. This avoids matrix expansion exhausting
+the target's login rate limit. A fresh invalid-credential run must block every
+cell with zero captures, even after a successful run. No session state is persisted.
+Capture contexts and their privacy/read-only guards remain independent. This is
+authenticated capture coverage, not independent login-state coverage in every cell.
+
+[Local proof](../evidence/WEB-454-DENSITY/followup.md) retains red and green evidence;
+required exact-head CI and installed acceptance remain pending for PR #455.
