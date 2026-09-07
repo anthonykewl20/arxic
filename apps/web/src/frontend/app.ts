@@ -323,6 +323,7 @@ function render() {
         projectId: selectedProject,
         pages: campaignPages,
       },
+      admin: { onChanged: refresh },
     });
     return;
   }

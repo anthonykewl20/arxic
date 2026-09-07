@@ -50,6 +50,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
       "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
     );
     void handle(request, response).catch((error: unknown) => {
+      if (!(error instanceof HttpError)) console.error(error);
       if (!response.headersSent)
         json(response, error instanceof HttpError ? error.status : 500, {
           error: error instanceof HttpError ? error.message : 'Request could not be completed',
@@ -176,6 +177,10 @@ export async function startWorkbench(options: WorkbenchOptions) {
       workbench.store.audit('workspace.cloned', folder.folder);
       return json(response, 201, await detectProject(folder.folder, workbench.roots));
     }
+    if (path === '/api/roots' && request.method === 'POST')
+      return json(response, 201, await workbench.addWorkspaceRoot(await readJson(request)));
+    if (path === '/api/roots' && request.method === 'DELETE')
+      return json(response, 200, await workbench.removeWorkspaceRoot(await readJson(request)));
     if (path === '/api/projects' && request.method === 'POST')
       return json(response, 201, await workbench.saveProject(await readJson(request)));
     const projectRoute = /^\/api\/projects\/([a-f0-9-]+)$/u.exec(path);
