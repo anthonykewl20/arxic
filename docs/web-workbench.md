@@ -714,3 +714,8 @@ the login fix is not a claim that every outgoing-document error is resolved.
 Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
 
 Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
+
+Imported AI execution configurations are subject to the same managed fixture
+provider validation when the CLI loads them for execution. Unsupported provider
+names are refused at that boundary. Built-in provider declarations
+do not add inbox/OTP setup controls to the dashboard (refs #452).

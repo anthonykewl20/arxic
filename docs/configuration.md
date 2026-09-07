@@ -133,9 +133,15 @@ for a changed request. Standalone replay trace defaults are described in the
 
 ## `fixtures`
 
-All fixture fields are optional strings. If present, `inbox`, `otp`, and
-`personaProvisioner` must be strings; an empty string is accepted by the
-configuration validator.
+Provider declarations are optional. When present, `inbox` accepts
+`captured-mail-sink`, `otp` accepts `test-otp`, and `personaProvisioner` accepts
+`app-seed-api` or `boot-seeded-admin`. Unknown names, empty strings and malformed
+values are refused by CLI validation and worker policy before execution. These
+names identify managed strategies; they do not load arbitrary adapters or prove
+that fixture prerequisites are ready. `boot-seeded-admin` preserves the existing
+pre-seeded third-party account strategy; endpoint-less replay still needs the
+`replayPersona` declaration below. Omitting it retains the existing runtime refusal
+rather than bypassing login/reset requirements (refs #452).
 
 ### `replayPersona` — per-pass login for endpoint-less targets (#288)
 

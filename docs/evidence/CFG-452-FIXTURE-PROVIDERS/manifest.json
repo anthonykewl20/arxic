@@ -1,0 +1,42 @@
+{
+  "sourceBase": "bacc2da1c91e042b8c2f9843e6657ee4c287ea5a",
+  "dirty": true,
+  "selection": "Only original summary/count/timing lines from local test logs; implementation and test file bindings are repository-relative.",
+  "files": [
+    {
+      "path": "docs/evidence/CFG-452-FIXTURE-PROVIDERS/compatibility.txt",
+      "sha256": "b78cd0bfc4fc2bcf77c7207fa61dea8b1e11f92e50424ceb27c4ec8bf2bfac07"
+    },
+    {
+      "path": "docs/evidence/CFG-452-FIXTURE-PROVIDERS/red.txt",
+      "sha256": "aaaac5259d04a8e8e5e9f01ef4bf935adb41cf569b11108eb6f94b932bb4fd80"
+    },
+    {
+      "path": "docs/evidence/CFG-452-FIXTURE-PROVIDERS/validation.txt",
+      "sha256": "3423af2b7aa0153b3ede8637a217cb607036f24015a9350329a4f53069b32e5b"
+    },
+    {
+      "path": "docs/evidence/CFG-452-FIXTURE-PROVIDERS/initial-source/fixture-providers.ts.txt",
+      "sha256": "9a2e1bdeedd9356cc6c2198764f717f3d8125ecec6c21fb572407e1948b9e6f2",
+      "originalPath": "apps/worker/src/fixture-providers.ts"
+    },
+    {
+      "path": "apps/worker/src/worker-policy.ts",
+      "sha256": "77947f7b14e7b2a6973837b7bf09b99a1ef5b151730dbb59c1afac2239fe7f91"
+    },
+    {
+      "path": "apps/cli/src/config/validate.ts",
+      "sha256": "0a24b276c06bcb317d9b81b82ea08af9d9566ac49d8fd38c7ec13151db4e3d91"
+    },
+    {
+      "path": "docs/evidence/CFG-452-FIXTURE-PROVIDERS/initial-source/fixture-providers.test.ts.txt",
+      "sha256": "b6cc84bb2d286ef4c3c0caf62ef18bd16daabdb5cc7b0684eca2c59c12b8ba2c",
+      "originalPath": "apps/cli/src/__tests__/fixture-providers.test.ts"
+    },
+    {
+      "path": "apps/cli/src/__tests__/fixture-providers.real-world.test.ts",
+      "sha256": "d5857d1327e7962f5ac53d1d4e5897af13f03bdfaf7fdba446a45c8363a75e13"
+    }
+  ],
+  "initialReviewCommit": "feadc4520eb6412473b689fed211128c07b553ac"
+}

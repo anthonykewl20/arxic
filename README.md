@@ -169,3 +169,10 @@ Capture failures now carry a bounded failed-operation diagnostic and grouped bro
 Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
 
 A [real WebKit navigation diagnostic](docs/evidence/WEB-447-NAVIGATION/summary.md) records native/driver events and adversarial failure cases for #447; it does not suppress production errors.
+
+Managed fixture declarations accept only `captured-mail-sink` (inbox), `test-otp`
+(OTP), and `app-seed-api` or `boot-seeded-admin` (persona strategy). CLI validation and worker policy
+refuse unknown or malformed names before execution, without echoing supplied
+values. These optional declarations name built-in capabilities; they do not load
+plugins, supply credentials, or establish fixture readiness. Omission and the
+existing per-pass login declaration retain their behavior (refs #452).
