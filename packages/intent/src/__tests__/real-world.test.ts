@@ -28,10 +28,10 @@ const { version: authDomainPackVersion } = JSON.parse(
 ) as { version: string };
 const loginCapability: AuthCapabilityId = 'authentication.login';
 // Oracle identity includes the auth-domain-pack release version; exact pins
-// updated for the owner-requested 0.0.300 target (refs #402).
+// updated for the owner-requested 0.0.301 target (refs #402).
 const pinnedCanonicalSha256: Readonly<Record<string, string>> = {
-  'reference-auth-app': 'e49e6660922df9f94c2b75ac99b93559d6dca8758fc10c0f45912f5aec8a5e70',
-  'vulnerable-auth-app': 'a6d8caa2bfa252f72fd2aeeeccf3e3038d23b38e5c6586f8529daf15d844916f',
+  'reference-auth-app': '9cb2ea6d5895befa3a4df7caf92a184c0a8f4f9376394618614c93c64fc393c9',
+  'vulnerable-auth-app': 'ba125fabbc61a44edb8efac17b2f457deca23ab8fe3576aeb48b0e2f4d0a6ce9',
 };
 
 function loginOracle() {

@@ -10,6 +10,10 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ## [Unreleased]
 
+- Retain every completed capture when an environment-level failure strikes mid-matrix: a failed environment timeline write classifies as `timeline-write-failed` with an attributed cell reason instead of discarding that environment's captures; the run-level read-back no longer discards a faulty environment; context/page creation failures record a per-page `environment` phase. The original five-of-six CI capture loss is explained by this class and any recurrence self-identifies (refs #448).
+
+- Classify WebKit fetch-load driver diagnostics as outgoing-document evidence only under exact corroboration (message shape, known endpoint, teardown marker, no same-endpoint request failure, no native exception); active failures and thrown look-alikes stay hard errors on every engine. Make the journey's post-refusal retry click deterministic by retrying while the refusal is still routed (refs #447).
+
 - Make filtered source declarations directly reachable by keyboard and pointer, including explicit zero-result navigation, visible mobile heading clearance and wrapped revision hashes. Render every declaration of historical inventories whose persisted identities duplicate by keying rows on immutable inventory position, without rewriting saved evidence or requiring rediscovery (refs #462).
 
 - Add bounded literal HTML/EJS control, action and state-attribute discovery without executing template code. Preserve explicit parser/template/runtime gaps and committed source provenance. Distinguish repeated same-line declaration identities so fresh dashboard inventories filter without stale rows. Add the real reference-page/dashboard journey to all installed acceptance modes (17 files) (refs #460).
