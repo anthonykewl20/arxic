@@ -1,6 +1,6 @@
 # WEB-456-FOOTER — staged doc updates (in progress)
 
-Issue: #456 · PR: not opened · Disposition: mobile action row and tablet target-size defects reproduced; fixes under validation; contrast remains unverified.
+Issue: #456 · PR: #457 · Disposition: mobile action row and tablet target-size defects reproduced; fixes under validation; contrast remains unverified.
 
 ## 1. `docs/SYNC.md` — tracker row
 
@@ -42,4 +42,4 @@ Yes: the follow-up groups settings actions and makes dialog-footer actions at le
 | Add opaque footer background                             | Does not resolve uncertainty   | Retained failed probe; change removed                          |
 | Treat visible text as proof of full contrast conformance | Unsupported                    | Computed pair and sampled line visibility have explicit limits |
 
-Do not mark this slice complete or claim full WCAG/UX conformance. #402 remains open. The native-density parent PR #455 must be resolved before integration.
+Do not mark this slice complete or claim full WCAG/UX conformance. #402 remains open. Parent PR #455 merged as `aa661279` after required CI passed. This branch transplants only the footer changes onto that base; exact-head PR #457 acceptance remains pending.
