@@ -1,6 +1,6 @@
 # WEB-458-WRITE-ISOLATION — staged doc updates
 
-Issue: #458 · PR: pending · Disposition: real storage fault reproduced and locally corrected; installed acceptance pending.
+Issue: #458 · PR: #459 · Disposition: real storage fault reproduced and locally corrected; installed acceptance pending.
 
 ## 1. `docs/SYNC.md` — tracker row
 
@@ -40,3 +40,5 @@ Yes, user-observable partial-result preservation. The integrator selects the syn
 | Omit new test from installed acceptance      | Selection contract fails                                             | Red then green helper test             |
 
 No threshold or existing assertion is weakened. Broader failure phases, teardown recovery, the original #448 cause, full #402 and human release inspection remain unresolved.
+
+PR #459 is based on merged footer PR #457 (`ec26b186`). Rebase conflicts affected only appended documentation, whose current acceptance records and both feature descriptions were preserved. Required final-head CI remains pending.
