@@ -311,7 +311,9 @@ export class Workbench {
     const rows = toProposalConsumerInventory(discovery.result.inventory as DomainInventory).rows;
     const selected = input.inventoryRowIds;
     if (
-      Object.keys(input).some((key) => !['discoveryRunId', 'inventoryRowIds'].includes(key)) ||
+      Object.keys(input).some(
+        (key) => !['discoveryRunId', 'inventoryRowIds', 'cron'].includes(key),
+      ) ||
       !Array.isArray(selected) ||
       !selected.length ||
       selected.length > 20 ||
@@ -322,6 +324,12 @@ export class Workbench {
         400,
         'Campaign selection must contain 1–20 unique discovered source rows',
       );
+    if (input.cron !== undefined && typeof input.cron !== 'string')
+      throw new HttpError(400, 'Campaign recurrence cron must be a string');
+    const cron = input.cron as string | undefined;
+    const nextFireAt = cron === undefined ? undefined : nextSlot(cron);
+    if (cron !== undefined && !nextFireAt)
+      throw new HttpError(400, 'Use a five-field cron expression in UTC');
     if (this.store.activeCount() + selected.length > 20)
       throw new HttpError(429, 'Insufficient queue capacity for the whole campaign');
     const project = this.store.project(projectId);
@@ -346,6 +354,7 @@ export class Workbench {
       createdAt: new Date().toISOString(),
       runIds: [],
       rows: campaignRows(discovery.result.inventory as DomainInventory),
+      ...(nextFireAt && cron ? { cron, nextFireAt } : {}),
     };
     this.store.db.transaction(() => {
       this.requireQueueCapacity(selected.length);
@@ -425,6 +434,52 @@ export class Workbench {
         this.store.enqueue(project, project.scheduleMode, `${project.id}:${project.nextRunAt}`);
         this.store.saveProject({ ...project, nextRunAt: nextSlot(project.cron, now) });
         this.store.audit('schedule.enqueued', project.id);
+      }
+      for (const source of this.store.campaigns()) {
+        if (
+          !source.cron ||
+          source.cancelledAt ||
+          !source.nextFireAt ||
+          new Date(source.nextFireAt) > now
+        )
+          continue;
+        const scheduledProject = this.store.project(source.projectId);
+        if (
+          !scheduledProject?.execution ||
+          !this.store.run(source.discoveryRunId) ||
+          !source.rows.some((row) => row.inventoryRowId)
+        ) {
+          this.store.saveCampaign({ ...source, nextFireAt: null });
+          this.store.audit('campaign.schedule-stopped', source.id);
+          continue;
+        }
+        const rows = source.rows.filter((row) => row.inventoryRowId);
+        // Deferred, not dropped: the slot stays due and retries on the next tick.
+        if (this.store.activeCount() + rows.length > 20) continue;
+        const fired: Campaign = {
+          id: randomUUID(),
+          projectId: source.projectId,
+          projectName: source.projectName,
+          discoveryRunId: source.discoveryRunId,
+          sourceCommit: source.sourceCommit,
+          createdAt: now.toISOString(),
+          runIds: [],
+          rows: source.rows.map((row) => ({ ...row, runId: undefined })),
+        };
+        for (const row of rows) {
+          const run = this.store.enqueue(scheduledProject, 'agent')!;
+          run.workflowScope = {
+            campaignId: fired.id,
+            inventoryRowId: row.inventoryRowId!,
+            sourceCommit: source.sourceCommit,
+          };
+          this.store.saveRun(run);
+          fired.runIds.push(run.id);
+          fired.rows.find((item) => item.inventoryRowId === row.inventoryRowId)!.runId = run.id;
+        }
+        this.store.saveCampaign({ ...source, nextFireAt: nextSlot(source.cron, now) });
+        this.store.saveCampaign(fired);
+        this.store.audit('campaign.scheduled', fired.id);
       }
     })();
     this.kick();

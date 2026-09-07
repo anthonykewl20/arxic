@@ -1,0 +1,18 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/recurring-campaigns-402
+
+ ✓ apps/web/src/__tests__/campaign-recurrence.real-world.test.ts (2 tests) 29039ms
+   ✓ rejects a non-five-field campaign recurrence cron before any campaign child is inserted  1226ms
+   ✓ re-fires a recurring campaign at its next cron slot as a fresh execution with its own denominator  27811ms
+ ✓ apps/web/src/__tests__/campaigns.test.ts (7 tests) 4179ms
+   ✓ refuses invalid selected rows and reserves the whole campaign queue atomically  615ms
+   ✓ refuses changed source and missing guided execution before any campaign child is inserted  633ms
+   ✓ persists a complete campaign, cancels its children and protects its evidence after restart  655ms
+   ✓ blocks queued campaign work after source changes during a server restart  713ms
+   ✓ cannot delete discovery evidence while a campaign is being created  1466ms
+
+ Test Files  2 passed (2)
+      Tests  9 passed (9)
+   Start at  22:14:19
+   Duration  39.72s (transform 2.34s, setup 0ms, import 6.24s, tests 33.22s, environment 0ms)
+

@@ -116,6 +116,9 @@ export type Campaign = {
   sourceCommit: string;
   createdAt: string;
   cancelledAt?: string;
+  /** Five-field UTC cron; when set, each slot re-executes the selected rows into a fresh campaign. */
+  cron?: string;
+  nextFireAt?: string | null;
   runIds: string[];
   rows: Array<{
     key: string;
