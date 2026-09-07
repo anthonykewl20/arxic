@@ -1,0 +1,18 @@
+{
+  "01-ready.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
+  "01-ready.png": "4fec2a3907911134a0cf68fe5498131035900ab209076c476353094be1d0e020",
+  "01-ready.png.privacy.json": "71f01481c7836149a9480826f3dc5acd24bdaf2954ea73dcc56352856e7d72b3",
+  "02-after-navigation.audit.json": "78bec86835159f46967e9fe57b6a63931b6218241bfc6ece0833bc1ece182fb0",
+  "02-after-navigation.png": "4fec2a3907911134a0cf68fe5498131035900ab209076c476353094be1d0e020",
+  "02-after-navigation.png.privacy.json": "71f01481c7836149a9480826f3dc5acd24bdaf2954ea73dcc56352856e7d72b3",
+  "03-active-fetch-failure.audit.json": "175a3abc5eb94ecfa50390263faf0056de586f1eed5c266506bc0c05c5ef4907",
+  "03-active-fetch-failure.png": "77d5c7e50c803d7f84843228c0bc38a279ded0570792c0778ad363c55a821dbf",
+  "03-active-fetch-failure.png.privacy.json": "657ffc69485b7d44d9bd5f1bd58b83cc911520d19aee31b912700911e18831dd",
+  "04-thrown-lookalike.audit.json": "70009b20a632f434e10d63d95d614662b792dec79964bbf6bebcb14f5df93163",
+  "04-thrown-lookalike.png": "77d5c7e50c803d7f84843228c0bc38a279ded0570792c0778ad363c55a821dbf",
+  "04-thrown-lookalike.png.privacy.json": "657ffc69485b7d44d9bd5f1bd58b83cc911520d19aee31b912700911e18831dd",
+  "navigation-events.json": "fe1cee677d8322b760f01317d731c992e720a38ed483e310e1f2220af1065b9e",
+  "navigation-events.sanitization.json": "d30f5f967161eb8fa122b102faca805cd58abfd4832e203ee392b6dfd812cd77",
+  "timeline.json": "3a40b928d9bd75df883b49f53a9036c116b319f7ea1134348aecbf8739532852",
+  "timeline.sanitization.json": "50c9a81a767881313a0d8eb7986590fe9a883dfcc14e4c899346f6dfed156d51"
+}
