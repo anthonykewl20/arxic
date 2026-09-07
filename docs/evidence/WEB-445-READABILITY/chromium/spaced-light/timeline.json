@@ -1,0 +1,11 @@
+[
+  {
+    "action": "spacing: control text containment; provider names checked by activation",
+    "result": "passed",
+    "screenshot": "09-populated-inventory.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Open project wizard; Tab remains in modal",
+    "result": "passed",
+    "screenshot": "390-dark-project-dialog.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

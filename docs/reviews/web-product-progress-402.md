@@ -147,3 +147,34 @@ retain their identity; environment coverage is never filtered. Real reference-ap
 matrix journeys test no matches, keyboard paging, polling, run changes and retained
 baseline comparisons. This expands dashboard usability, not the oracle's detector
 or state coverage. Proof and final CI are recorded in the WEB-441-GALLERY note.
+
+## Dashboard readability follow-up (#445)
+
+The dashboard contract adds real reference-project discovery and capture journeys
+under user text spacing and 200% mounted HTML text enlargement, in light/dark.
+It covers narrow navigation, run measurements, Administration, provider-name
+recovery and keyboard scrolling of the model catalog. A deliberately clipped
+login control guards the numeric detector. Sidebar rows, text buttons, run
+headings and mobile activity/header groups now accommodate enlarged content.
+All six source cases passed in Chromium, Firefox and WebKit; the
+[retained evidence](../evidence/WEB-445-READABILITY/summary.md) records exact hashes,
+negative guards and corrected screenshots. The second installed CI passed Chromium and all four shards but failed Firefox
+on a 1/65536px text-edge difference and WebKit on a baseline-history Fetch API
+error. The text oracle now declares that measurement resolution; the WebKit cause
+is unresolved and safe diagnostics are added. PR #446 still requires green CI. This is not a completed release or human visual sign-off. Native browser zoom,
+full locale/persona/state coverage and incomplete accessibility checks remain gaps.
+
+The first installed #445 run exposed font-dependent title/activity overflow and
+folder metadata clipping after local source passes. Both were reproduced and
+corrected; the retained proof distinguishes failed CI, temporary font probes and
+committed normal-font validation. Current-head installed CI remains mandatory.
+
+The precision revision `2b1a835` passed required CI 34073809235 (2,096 shard tests,
+all three installed dashboard engines; 867 PNG and 78 timeline hashes matched).
+A subsequent deterministic login defect was then exposed: bookmarked run selection
+was lost during session cleanup. `d6ff592` restores the requested URL after sign-in;
+ten real source cases passed across Chromium, Firefox and WebKit, including
+stale-response/draft/consent checks. The current login/evidence head still requires
+CI. Generic WebKit early-reload error classification remains tracked in #447.
+
+Dashboard validation follow-up: source CI 34075361763 retained five of six required healthy-page gallery captures. Per-cell failure evidence is now retained; the original cause remains tracked in [#448](https://github.com/anthonykewl20/arxic/issues/448), and a later local pass does not discharge it.

@@ -1,0 +1,325 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "user-text-profile-applied",
+      "passed": true,
+      "values": {
+        "originalSize": 14,
+        "actualSize": 14,
+        "letterSpacing": 1.68
+      }
+    },
+    {
+      "id": "text-3-containment",
+      "passed": true,
+      "values": {
+        "x": 18,
+        "y": 20,
+        "width": 115.4375,
+        "height": 24,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-5-containment",
+      "passed": true,
+      "values": {
+        "x": 10,
+        "y": 64,
+        "width": 203,
+        "height": 32,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-6-containment",
+      "passed": true,
+      "values": {
+        "x": 10,
+        "y": 98,
+        "width": 203,
+        "height": 32,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-7-containment",
+      "passed": true,
+      "values": {
+        "x": 10,
+        "y": 132,
+        "width": 203,
+        "height": 32,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-8-containment",
+      "passed": true,
+      "values": {
+        "x": 10,
+        "y": 166,
+        "width": 203,
+        "height": 32,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-9-containment",
+      "passed": true,
+      "values": {
+        "x": 10,
+        "y": 200,
+        "width": 203,
+        "height": 32,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-10-containment",
+      "passed": true,
+      "values": {
+        "x": 10,
+        "y": 234,
+        "width": 203,
+        "height": 32,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-11-containment",
+      "passed": true,
+      "values": {
+        "x": 10,
+        "y": 268,
+        "width": 203,
+        "height": 32,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-12-containment",
+      "passed": true,
+      "values": {
+        "x": 18,
+        "y": 925,
+        "width": 95.84375,
+        "height": 18,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-13-containment",
+      "passed": true,
+      "values": {
+        "x": 129.421875,
+        "y": 920,
+        "width": 75.578125,
+        "height": 28,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-17-containment",
+      "passed": true,
+      "values": {
+        "x": 1107.9375,
+        "y": 9.5,
+        "width": 142.25,
+        "height": 28,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-18-containment",
+      "passed": true,
+      "values": {
+        "x": 1258.1875,
+        "y": 9.5,
+        "width": 149.8125,
+        "height": 28,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-19-containment",
+      "passed": true,
+      "values": {
+        "x": 256,
+        "y": 144,
+        "width": 1056,
+        "height": 30,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-20-containment",
+      "passed": true,
+      "values": {
+        "x": 256,
+        "y": 395.5,
+        "width": 68.859375,
+        "height": 21,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-21-containment",
+      "passed": true,
+      "values": {
+        "x": 299,
+        "y": 492.25,
+        "width": 119.5625,
+        "height": 58.5,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-22-containment",
+      "passed": true,
+      "values": {
+        "x": 428.5625,
+        "y": 507.5,
+        "width": 73.4375,
+        "height": 28,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-23-containment",
+      "passed": true,
+      "values": {
+        "x": 1066.15625,
+        "y": 490.5,
+        "width": 129.734375,
+        "height": 28,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-24-containment",
+      "passed": true,
+      "values": {
+        "x": 1201.890625,
+        "y": 490.5,
+        "width": 93.109375,
+        "height": 28,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-25-containment",
+      "passed": true,
+      "values": {
+        "x": 1229.53125,
+        "y": 524.5,
+        "width": 65.46875,
+        "height": 28,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-26-containment",
+      "passed": true,
+      "values": {
+        "x": 256,
+        "y": 671,
+        "width": 101.8125,
+        "height": 21,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-27-containment",
+      "passed": true,
+      "values": {
+        "x": 1184.921875,
+        "y": 667.5,
+        "width": 127.078125,
+        "height": 28,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-28-containment",
+      "passed": true,
+      "values": {
+        "x": 733.609375,
+        "y": 780.5,
+        "width": 100.765625,
+        "height": 21,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    }
+  ]
+}

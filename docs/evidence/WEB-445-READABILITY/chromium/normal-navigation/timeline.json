@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Navigate to overview at 1440px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-light-overview.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

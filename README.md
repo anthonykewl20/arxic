@@ -156,4 +156,10 @@ WebKit × light/dark × configured viewports, with environment-specific baseline
 explicit blocked environments and a shared capture budget. See the
 [dashboard setup and scope](docs/web-workbench.md#browsertheme-capture-matrix).
 
-Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](docs/web-workbench.md#dashboard-browser-verification) records engine provenance. [Dashboard proof](docs/evidence/WEB-443-BROWSERS/summary.md) documents the UX fixes, measured checks and remaining coverage boundaries; PR #444 tracks final installed CI acceptance.
+Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](docs/web-workbench.md#dashboard-browser-verification) records engine provenance. [Dashboard proof](docs/evidence/WEB-443-BROWSERS/summary.md) documents the UX fixes, measured checks and remaining coverage boundaries; PR #444 passed installed CI and is merged.
+
+Dashboard readability checks exercise user text spacing and 200% mounted text enlargement across real discovery and capture journeys. Navigation and text buttons grow with content; headings and folder metadata wrap across system fonts, and the model catalog supports keyboard scrolling. See [readability scope](docs/web-workbench.md#dashboard-readability-verification) for exact checks and limits.
+
+[Readability evidence](docs/evidence/WEB-445-READABILITY/summary.md) retains the three-engine source results, measured defects, corrected screenshots and explicit limits. Successful sign-in preserves bookmarked run selection while clearing unsent session drafts and consent. PR #446 tracks required installed CI and the explicit 1/65536 CSS pixel text measurement resolution; general early-reload diagnostics remain in #447. Full release acceptance is pending.
+
+Dashboard validation follow-up: source CI 34075361763 retained five of six required healthy-page gallery captures. Per-cell failure evidence is now retained; the original cause remains tracked in [#448](https://github.com/anthonykewl20/arxic/issues/448), and a later local pass does not discharge it.

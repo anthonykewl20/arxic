@@ -1,0 +1,11 @@
+{
+  "purpose": "Reproduce the CI text metrics using an explicit local font; not the production font configuration.",
+  "stylesheetMatch": "URL pathname /app.css (including versioned query URLs)",
+  "appendedCss": ":root { --font-sans: \"DejaVu Sans\", sans-serif !important; }",
+  "canary": "Computed html font-family contains DejaVu Sans before profile/capture",
+  "profile": "200% mounted HTML text, light theme",
+  "cssSha256": "a3a46c8887777cff79039b4350416f0251d6d6cee119c63f3cf381e8e28d5eeb",
+  "productionImplementationCommit": "429123b",
+  "temporaryOverrideRemoved": true,
+  "knownBadProbe": "Initial **/app.css glob missed the versioned stylesheet and is not font-reproduction proof."
+}

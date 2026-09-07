@@ -34,11 +34,36 @@ it.each(['light', 'dark'] as const)(
         ? join(process.env.ARXIC_BASELINE_HISTORY_EVIDENCE_DIR, theme)
         : undefined,
     );
-    const errors: string[] = [];
-    page.on('pageerror', (error) => errors.push(error.name));
+    let stage = 'setup';
+    const errors: Array<{ stage: string; kind: string; endpoint: string }> = [];
+    // Closed categories only: browser errors can contain credentials, URLs or response data.
+    const endpoint = (value: string) =>
+      ['/api/state', '/api/session', '/api/runs', '/api/baselines'].find((path) =>
+        value.includes(path),
+      ) ?? 'other';
+    page.on('pageerror', (error) => {
+      const text = `${error.name}: ${error.message}`;
+      const diagnostic = {
+        stage,
+        kind: text.startsWith('Fetch API cannot load') ? 'fetch-load' : 'other-page-error',
+        endpoint: endpoint(text),
+      };
+      errors.push(diagnostic);
+      console.info('Baseline history page error', diagnostic);
+    });
+    page.on('requestfailed', (request) => {
+      console.info('Baseline history failed request', {
+        stage,
+        endpoint: endpoint(new URL(request.url()).pathname),
+        kind: request.failure()?.errorText.includes('cancel') ? 'cancelled' : 'other-failure',
+      });
+    });
     async function audit(name: string, action: string) {
       await page.locator('.capture-head').scrollIntoViewIfNeeded();
-      const result = await proof.audit(name, action);
+      stage = name;
+      const result = await proof.audit(name, action, [
+        { id: 'no-page-errors', passed: errors.length === 0, values: { count: errors.length } },
+      ]);
       expect(result.details).toEqual([]);
       expect(result.overflow).toBe(0);
     }
@@ -53,6 +78,7 @@ it.each(['light', 'dark'] as const)(
       await page.keyboard.press('Enter');
     }
     async function nextRun(previous: string) {
+      stage = 'run-again';
       await page.getByRole('button', { name: 'Run again', exact: true }).click();
       await expect.poll(() => new URL(page.url()).searchParams.get('run')).not.toBe(previous);
       const id = new URL(page.url()).searchParams.get('run')!;
@@ -82,11 +108,60 @@ it.each(['light', 'dark'] as const)(
         port: 0,
         adminToken: 'baseline-history-proof-token-at-least-32',
       });
+      stage = 'navigate-first';
       await page.goto(`${app.origin}?view=runs&run=${first.id}`);
-      await page.getByLabel('Administrator token').fill('baseline-history-proof-token-at-least-32');
-      await page.getByRole('button', { name: 'Open workbench' }).click();
-      await page.goto(`${app.origin}?view=runs&run=${first.id}`);
-      await page.getByRole('button', { name: 'Approve as baseline', exact: true }).waitFor();
+      // Complete sign-in before testing reload; a click alone does not establish the session UI.
+      // Repeated real sessions stay below the server sign-in rate limit.
+      for (let attempt = 0; attempt < 18; attempt++) {
+        stage = 'login-reload';
+        await page
+          .getByLabel('Administrator token')
+          .fill('baseline-history-proof-token-at-least-32');
+        const authenticated = page.waitForResponse(
+          (response) => new URL(response.url()).pathname === '/api/session',
+        );
+        await page.getByRole('button', { name: 'Open workbench' }).click();
+        const response = await authenticated;
+        if (attempt === 0) {
+          await page.getByRole('button', { name: 'View result', exact: true }).first().waitFor();
+          const requestedRun = new URL(page.url()).searchParams.get('run') === first.id;
+          const detailVisible = await page
+            .getByRole('button', { name: 'Approve as baseline', exact: true })
+            .isVisible();
+          await proof.audit(
+            '00-bookmarked-run',
+            'Successful sign-in opens the requested run without a second navigation',
+            [
+              {
+                id: 'requested-run-after-login',
+                passed: requestedRun && detailVisible,
+                values: {
+                  requestedRun: Number(requestedRun),
+                  detailVisible: Number(detailVisible),
+                },
+              },
+            ],
+          );
+          expect({ requestedRun, detailVisible }).toEqual({
+            requestedRun: true,
+            detailVisible: true,
+          });
+        }
+        await page.getByRole('button', { name: 'Approve as baseline', exact: true }).waitFor();
+        await page.goto(`${app.origin}?view=runs&run=${first.id}`);
+        expect(response.status()).toBe(200);
+        await page.getByRole('button', { name: 'Approve as baseline', exact: true }).waitFor();
+        if (attempt < 17) {
+          await context.clearCookies();
+          await page.reload();
+          await page.getByLabel('Administrator token').waitFor();
+        }
+      }
+      await audit(
+        '00-login-reload',
+        'Repeated real login and reload preserves the completed run without page errors',
+      );
+      expect(errors).toEqual([]);
       await page.route('**/baselines', (route) =>
         route.fulfill({ status: 503, json: { error: 'Baseline approval unavailable' } }),
       );
@@ -123,6 +198,7 @@ it.each(['light', 'dark'] as const)(
       await page.getByText('current approved baseline', { exact: true }).waitFor();
       const third = await nextRun(second.id);
       expect(third.result!.captures![0].baselineRunId).toBe(second.id);
+      stage = 'navigate-second';
       await page.goto(`${app.origin}?view=runs&run=${second.id}`);
       await page.getByText('current approved baseline', { exact: true }).waitFor();
       expect((await readRun(second.id)).result).toEqual(second.result);
@@ -140,6 +216,7 @@ it.each(['light', 'dark'] as const)(
         '05-replaced',
         'Replacement changes future comparisons without rewriting the prior comparison',
       );
+      stage = 'navigate-first';
       await page.goto(`${app.origin}?view=runs&run=${first.id}`);
       await page.getByRole('button', { name: 'Approve as baseline', exact: true }).waitFor();
       await page

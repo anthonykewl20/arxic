@@ -1,0 +1,85 @@
+{
+  "baseCommit": "3b6550bc6879b09c1b023c0c479305b90547130e",
+  "dirty": true,
+  "sourceRuns": [
+    {
+      "browser": "firefox",
+      "suite": "readability",
+      "passed": 5,
+      "seconds": 143.31,
+      "inventory": {
+        "pngs": 71,
+        "timelines": 5,
+        "incompleteReports": 28,
+        "violationReports": 0,
+        "overflows": [],
+        "failedNumericChecks": [
+          {
+            "path": "guard/clipped-button-guard.audit.json",
+            "id": "login-label-containment"
+          }
+        ],
+        "browsers": {
+          "{\"name\": \"firefox\", \"version\": \"153.0\"}": 71
+        },
+        "commits": {
+          "3b6550bc6879b09c1b023c0c479305b90547130e": 71
+        },
+        "dirty": {
+          "True": 71
+        }
+      }
+    },
+    {
+      "browser": "webkit",
+      "suite": "baseline-history",
+      "passed": 2,
+      "seconds": 27.63,
+      "inventory": {
+        "pngs": 12,
+        "timelines": 2,
+        "incompleteReports": 0,
+        "violationReports": 0,
+        "overflows": [],
+        "failedNumericChecks": [],
+        "browsers": {
+          "{\"name\": \"webkit\", \"version\": \"26.5\"}": 12
+        },
+        "commits": {
+          "3b6550bc6879b09c1b023c0c479305b90547130e": 12
+        },
+        "dirty": {
+          "True": 12
+        }
+      }
+    }
+  ],
+  "numericCases": {
+    "red": {
+      "passed": 5,
+      "failed": 1
+    },
+    "green": {
+      "passed": 6,
+      "failed": 0
+    },
+    "edgeResolutionCssPx": 1.52587890625e-05,
+    "independentRejectedSpillCssPx": 0.015625
+  },
+  "fontDiagnostic": {
+    "browser": "firefox",
+    "profile": "spacing",
+    "theme": "light",
+    "passed": 1,
+    "notSelected": 4,
+    "seconds": 41.8,
+    "appendedCss": ":root { --font-sans: \"DejaVu Sans\", sans-serif !important; }",
+    "canary": "Computed html font-family contains DejaVu Sans",
+    "rawSpillRightCssPx": 1.52587890625e-05,
+    "temporaryOverrideRemoved": true,
+    "screenshotNote": "Heading scrolled into view after measurements; audit retains the pre-scroll coordinates.",
+    "initialNonmatchingTestFilter": "Selected no tests; not counted as proof."
+  },
+  "webkitCause": "unresolved; local passes do not discharge the installed CI failure",
+  "rawTraceRetained": false
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "action": "spacing: control text containment; provider names checked by activation",
+    "result": "passed",
+    "screenshot": "16-mobile-provider-name-recovery.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  }
+]

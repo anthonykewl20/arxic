@@ -386,6 +386,8 @@ $('#login-form').addEventListener('submit', async (event) => {
     });
     form.reset();
     $('#login-error').textContent = '';
+    // Session cleanup clears in-memory selection; the requested URL remains the entry point.
+    readLocation();
     await refresh();
   } catch (error) {
     $('#login-error').textContent = (error as Error).message;

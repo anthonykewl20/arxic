@@ -1,0 +1,16 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "requested-run-after-login",
+      "passed": true,
+      "values": {
+        "requestedRun": 1,
+        "detailVisible": 1
+      }
+    }
+  ]
+}

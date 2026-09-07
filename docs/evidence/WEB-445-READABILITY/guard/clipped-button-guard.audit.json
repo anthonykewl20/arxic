@@ -1,0 +1,16 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "login-label-containment",
+      "passed": false,
+      "values": {
+        "controlHeight": 10,
+        "lineHeight": 16
+      }
+    }
+  ]
+}

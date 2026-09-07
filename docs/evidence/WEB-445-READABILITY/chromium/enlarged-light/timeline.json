@@ -1,0 +1,29 @@
+[
+  {
+    "action": "text-200: control text containment; provider names checked by activation",
+    "result": "passed",
+    "screenshot": "04-desktop-overview.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "text-200: control text containment; provider names checked by activation",
+    "result": "passed",
+    "screenshot": "14-mobile-administration.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "text-200: control text containment; provider names checked by activation",
+    "result": "unverified",
+    "screenshot": "15b-keyboard-model-scroll.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  }
+]
