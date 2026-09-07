@@ -33,7 +33,7 @@ semantic regions/masks are refused. Without it, the existing `main` mask applies
 see the [CLI declaration](../cli/README.md#workflow-checkpoint-privacy).
 
 Managed fixture declarations accept only `captured-mail-sink` (inbox), `test-otp`
-(OTP), and `app-seed-api` (persona provisioner). CLI validation and worker policy
+(OTP), and `app-seed-api` or `boot-seeded-admin` (persona strategy). CLI validation and worker policy
 refuse unknown or malformed names before execution, without echoing supplied
 values. These optional declarations name built-in capabilities; they do not load
 plugins, supply credentials, or establish fixture readiness. Omission and the

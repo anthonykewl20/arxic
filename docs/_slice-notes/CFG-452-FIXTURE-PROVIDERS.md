@@ -35,3 +35,11 @@ Yes: user-visible configuration rejection; integrator applies the next patch. No
 
 Omitted providers and canonical declarations retain their behavior. This does not
 complete GUI fixture management or #402. No assertion was loosened.
+
+CI follow-up: first review `feadc452` rejected documented `boot-seeded-admin` and
+failed all three real third-party replay cases. They reproduced locally; the
+allowlist now preserves that strategy and 76 tests pass with unchanged replay
+assertions and fixture settings. The accepted set was expanded for this documented
+compatibility case. The configuration guide now states the closed supported names
+and rejects empty strings. Original proof is retained; current-head CI is still
+required (PR #453).

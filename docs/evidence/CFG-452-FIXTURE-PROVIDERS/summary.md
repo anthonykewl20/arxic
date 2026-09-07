@@ -32,3 +32,23 @@ canonical execution behavior. Current-head CI remains required before integratio
 
 Runtime fixture availability, arbitrary adapter loading, inbox/OTP dashboard setup
 and the remaining #402 scope are not established by these tests.
+
+## CI compatibility correction
+
+CI 34081701160 on `feadc452` failed three third-party replay cases because the
+allowlist omitted `boot-seeded-admin`, already documented in the quickstart and
+configuration guide. This was a production compatibility regression, not a flake.
+The unchanged real suite reproduced all three failures locally in 10.33 seconds;
+a focused declared-strategy case also failed. Restoring that one documented
+strategy makes 76 tests/five files pass in 37.95 seconds, including successful
+per-pass login, denied second-origin replay and undeclared endpoint-less refusal.
+No replay assertion or fixture configuration was changed. The closed accepted
+set was expanded to include the omitted documented strategy; arbitrary names
+still fail. The configuration guide's obsolete empty-string acceptance claim
+was also corrected.
+
+The initial manifest retains its original hashes; the two superseded source files
+are archived from initial review `feadc452`. The follow-up manifest binds current
+source and the selected original red/green summary lines. All earlier proof is
+historical, not evidence that the first head passed full CI. New final-head CI is
+required before integration.

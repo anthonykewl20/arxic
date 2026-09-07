@@ -1,0 +1,26 @@
+{
+  "sourceBase": "feadc4520eb6412473b689fed211128c07b553ac",
+  "dirty": true,
+  "files": [
+    {
+      "path": "docs/evidence/CFG-452-FIXTURE-PROVIDERS/third-party-red.txt",
+      "sha256": "f4ca6aba0328b266f18cbd44d1b42fabc7c8c3921148f38cca12e77949ad3a5f"
+    },
+    {
+      "path": "docs/evidence/CFG-452-FIXTURE-PROVIDERS/boot-seeded-red.txt",
+      "sha256": "627d55d9554c4489b4deabfec7a0914d3fc293ca5fa191cc09e1145264f11213"
+    },
+    {
+      "path": "docs/evidence/CFG-452-FIXTURE-PROVIDERS/compatibility-fix.txt",
+      "sha256": "0a4e341934cb442a94e621cdb580e9d01b89330e4c2ccde4b1b653aa6ceb587a"
+    },
+    {
+      "path": "apps/worker/src/fixture-providers.ts",
+      "sha256": "4ebd5170ffbc6aca2cb8337fd07554129d72b7bf6aeb839b6663f3725232a95e"
+    },
+    {
+      "path": "apps/cli/src/__tests__/fixture-providers.test.ts",
+      "sha256": "de0dc0bc21005aad812dbfd3d843da81dddc8f1873e544e09b90f86513c602e4"
+    }
+  ]
+}

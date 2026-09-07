@@ -38,7 +38,7 @@ it.each(['inbox', 'otp', 'personaProvisioner'] as const)(
 );
 
 it('retains documented and omitted provider declarations', () => {
-  for (const fixtures of [VALID_CONFIG.fixtures, {}, { personaProvisioner: 'boot-seeded-admin' }]) {
+  for (const fixtures of [VALID_CONFIG.fixtures, {}]) {
     const config = { ...VALID_CONFIG, fixtures };
     expect(validateConfig(config)).toEqual({ ok: true, value: config });
     expect(validateWorkerSecurity({ runId: 'fixture-provider-test', config })).toEqual({
