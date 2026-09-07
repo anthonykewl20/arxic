@@ -757,3 +757,4 @@ The original installed Firefox failure is retained in the
 [failed CI record](evidence/WEB-454-DENSITY/ci-34086989767/summary.md).
 
 The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a recorded light Firefox journey failure until a subsequent exact-head gate passes; local reruns do not waive it.
+Project-dialog footer actions use a 44-pixel minimum height. In settings, the explanatory text precedes Back and Save, keeping navigation and submission on one row on narrow screens. [Retained red evidence](evidence/WEB-456-FOOTER/action-row/summary.md) documents the original 114-pixel action-row separation and 32-pixel tablet targets. This layout fix does not convert unresolved footer contrast checks into passes.

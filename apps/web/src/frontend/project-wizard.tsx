@@ -981,14 +981,14 @@ function SettingsStep({
         </p>
       </DialogBody>
       <DialogFooter>
+        <small>
+          Discovery reports known scope and gaps; source alone cannot prove complete coverage.
+        </small>
         {onBack ? (
           <Button type="button" variant="outline" onClick={onBack}>
             Back
           </Button>
         ) : null}
-        <small>
-          Discovery reports known scope and gaps; source alone cannot prove complete coverage.
-        </small>
         <Button type="submit" disabled={saving}>
           {saving ? 'Saving…' : 'Save project'}
         </Button>

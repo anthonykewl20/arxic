@@ -1,0 +1,19 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "dialog-footer-visible-lines",
+      "passed": true,
+      "values": {
+        "actionRowDelta": 0,
+        "smallestActionHeight": 44,
+        "lines": 2,
+        "clipped": 0,
+        "occluded": 0
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # WEB-456-FOOTER — staged doc updates (in progress)
 
-Issue: #456 · PR: not opened · Disposition: observed geometry; contrast remains unverified.
+Issue: #456 · PR: not opened · Disposition: mobile action row and tablet target-size defects reproduced; fixes under validation; contrast remains unverified.
 
 ## 1. `docs/SYNC.md` — tracker row
 
@@ -11,7 +11,7 @@ Issue: #456 · PR: not opened · Disposition: observed geometry; contrast remain
 ## 2. `docs/SYNC.md` — session-log row
 
 ```
-| 2026-09-07 | **#456 (WEB-456-FOOTER), in progress.** Investigate six unresolved dialog-footer contrast checks. Opaque background does not resolve them and is not shipped. Add independent rendered-line containment and native hit-test evidence; local Chromium journeys pass, contrast remains explicitly unverified. Other engines and CI remain pending. |
+| 2026-09-07 | **#456 (WEB-456-FOOTER), in progress.** Investigate six unresolved dialog-footer contrast checks. Opaque background does not resolve them and is not shipped. Add independent rendered-line containment and native hit-test evidence; initial three-engine geometry passes; mobile action separation and tablet target size are reproduced and corrected. Revised browser checks and CI remain pending; contrast stays unverified. |
 ```
 
 ## 3. `CHANGELOG.md` — entry under `## [Unreleased]` → `### Internal`
@@ -19,17 +19,19 @@ Issue: #456 · PR: not opened · Disposition: observed geometry; contrast remain
 Stage only after required acceptance:
 
 ```
-- WEB-456-FOOTER (refs #456): strengthen project-dialog footer visibility evidence with rendered-line and native hit-test checks; retain unresolved automated contrast results and the failed background experiment without a waiver.
+- WEB-456-FOOTER (refs #456): keep Back and Save together in project settings and make dialog-footer actions at least 44 pixels tall. Strengthen line-containment and hit-test evidence; retain unresolved contrast results without a waiver.
 ```
 
 ## 4. `VERSION` bump required?
 
-No production behavior changes are proposed. This is test evidence and audit classification; integration handles the shared release bookkeeping.
+Yes: the follow-up groups settings actions and makes dialog-footer actions at least 44 pixels tall. Integration handles the synchronized version; this worktree does not edit shared metadata.
 
 ## 5. Evidence pointers
 
+- [Action-row and target-size red proof](../evidence/WEB-456-FOOTER/action-row/summary.md): 114-pixel row drift at 320 and 32-pixel action heights at 768, both themes; assertions remain strict.
 - [Investigation record](../evidence/WEB-456-FOOTER/summary.md), failed probes, masked PNGs and timelines.
-- `apps/web/src/__tests__/visual-density-ui.real-world.test.ts`: real dashboard and reference app. Two Chromium light/dark cases pass locally; Firefox/WebKit, installed proof and exact-head CI remain pending.
+- `apps/web/src/__tests__/visual-density-ui.real-world.test.ts`: real dashboard and reference app. Revised light/dark cases pass locally in Chromium (33.18 s), Firefox (46.44 s), and WebKit (35.92 s); installed proof and exact-head CI remain pending.
+- Broader Chromium navigation/modal-focus/forced-colors/session-expiry audit passes (1 case, 35.36 s), retained in the action-row evidence.
 - All pre-existing assertions remain. The experimental zero-incomplete expectation was explicitly withdrawn; no opaque CSS workaround ships.
 
 ## 6. Sad paths proved
