@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/inventory-navigation
+
+
+ Test Files  2 passed (2)
+      Tests  3 passed (3)
+   Start at  16:08:15
+   Duration  113.48s (transform 1.04s, setup 0ms, import 863ms, tests 112.42s, environment 0ms)
+

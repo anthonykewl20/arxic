@@ -156,13 +156,66 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
       ],
     );
     await expect.poll(() => page.locator('[data-frontend-rows] tbody tr').count()).toBe(13);
+    await page.getByLabel('Search declarations').fill('missing-source-element');
+    await page
+      .locator('#declaration-search')
+      .getByRole('button', { name: 'Search', exact: true })
+      .click();
+    await page
+      .getByRole('link', {
+        name: '0 matching declarations · Express template discovery',
+        exact: true,
+      })
+      .click();
+    await page.getByText('No declarations match these filters.', { exact: true }).waitFor();
+    await proof.audit(
+      'empty-result-navigation',
+      'A search without matches still reaches an explicit empty result',
+    );
+    await page.getByLabel('Search declarations').fill('src/views/index.ejs');
+    await page
+      .locator('#declaration-search')
+      .getByRole('button', { name: 'Search', exact: true })
+      .click();
     await page.getByText('Coverage gaps', { exact: true }).click();
     await page.getByText('template-expressions-not-evaluated', { exact: false }).waitFor();
-    for (const width of [1440, 390]) {
+    for (const width of [1440, 320]) {
       await resizeDashboard(page, { width, height: 1000 });
-      await page
-        .getByRole('heading', { name: 'Frontend declarations', exact: true })
-        .scrollIntoViewIfNeeded();
+      const jump = page.getByRole('link', {
+        name: '13 matching declarations · Express template discovery',
+        exact: true,
+      });
+      if (width === 1440) {
+        await page.getByLabel('Search declarations').click();
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
+        expect(await jump.evaluate((node) => node === document.activeElement)).toBe(true);
+        await page.keyboard.press('Enter');
+      } else await jump.click();
+      await settleDashboard(page);
+      const heading = page.getByRole('heading', { name: 'Frontend declarations', exact: true });
+      const position = await heading.boundingBox();
+      const focused = await heading.evaluate((node) => node === document.activeElement);
+      await proof.audit(
+        `navigation-${width}`,
+        'Activate declaration results and focus the visible heading',
+        [
+          {
+            id: 'visible-focused-heading',
+            passed:
+              focused && !!position && position.y >= 64 && position.y + position.height < 1000,
+            values: {
+              focused: focused ? 1 : 0,
+              top: position?.y ?? -1,
+              bottom: position ? position.y + position.height : -1,
+            },
+          },
+        ],
+      );
+      expect(position).not.toBeNull();
+      expect(position!.y).toBeGreaterThanOrEqual(64);
+      expect(position!.y + position!.height).toBeLessThan(1000);
+      expect(await heading.evaluate((node) => node === document.activeElement)).toBe(true);
       const audit = await proof.audit(
         `01-source-controls-${width}`,
         'Find all thirteen literal EJS controls while template runtime coverage remains a gap',

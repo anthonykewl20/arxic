@@ -1991,3 +1991,11 @@ p a,
 .capture-diagnostic > p {
   margin-block: 0.25rem;
 }
+
+.declaration-heading {
+  scroll-margin-top: calc(var(--topbar-height) + var(--space-8));
+}
+
+.frontend-inventory .scope-note code {
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,22 @@
+{
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "count": 1
+    }
+  ],
+  "overflow": 3,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "visible-focused-heading",
+      "passed": true,
+      "values": {
+        "focused": 1,
+        "top": 64.375,
+        "bottom": 85.375
+      }
+    }
+  ]
+}
