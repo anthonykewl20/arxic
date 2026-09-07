@@ -23,11 +23,24 @@ export class Store {
       CREATE TABLE IF NOT EXISTS baselines (project_id TEXT NOT NULL, spec TEXT NOT NULL, run_id TEXT NOT NULL, capture_id TEXT NOT NULL, PRIMARY KEY(project_id, spec));
       CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY, at TEXT NOT NULL, action TEXT NOT NULL, subject TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS campaigns (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS instance_settings (key TEXT PRIMARY KEY, data TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS run_state ON runs(state);`);
     return new Store(db);
   }
   projects(): Project[] {
     return this.documents<Project>('SELECT data FROM projects ORDER BY rowid DESC');
+  }
+  setting<T>(key: string): T | undefined {
+    const row = this.db.prepare('SELECT data FROM instance_settings WHERE key = ?').get(key) as
+      { data: string } | undefined;
+    return row ? (JSON.parse(row.data) as T) : undefined;
+  }
+  saveSetting(key: string, value: unknown) {
+    this.db
+      .prepare(
+        'INSERT INTO instance_settings VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET data=excluded.data',
+      )
+      .run(key, JSON.stringify(value));
   }
   runs(): Run[] {
     return this.documents<Run>('SELECT data FROM runs ORDER BY rowid DESC LIMIT 200');
