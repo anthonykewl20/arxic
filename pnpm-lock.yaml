@@ -713,6 +713,9 @@ importers:
       '@arxic/fs-safe':
         specifier: workspace:*
         version: link:../fs-safe
+      parse5:
+        specifier: 7.3.0
+        version: 7.3.0
       tree-sitter:
         specifier: ^0.25.1
         version: 0.25.1

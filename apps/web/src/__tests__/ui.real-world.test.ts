@@ -200,7 +200,7 @@ it.each(['light', 'dark'] as const)(
       await page.getByText('Coverage gaps', { exact: true }).click();
       await expect
         .poll(() => page.locator('#content').textContent())
-        .toContain('unsupported-framework');
+        .toContain('template-expressions-not-evaluated');
       await capture(
         '03-intent-inventory',
         'Real source scanner reported login surface and source evidence',

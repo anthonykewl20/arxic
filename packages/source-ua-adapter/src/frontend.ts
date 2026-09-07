@@ -1,3 +1,5 @@
+import { readLiteralTemplate } from './frontend-template';
+import { frontendControlTags, frontendStateAttributes } from './frontend-controls';
 import { fileURLToPath } from 'node:url';
 import { realpath } from 'node:fs/promises';
 import { sha256 } from '@arxic/contracts';
@@ -61,9 +63,10 @@ export async function collectFrontendInventory(
     const gap = (reason: string) => gaps.push({ path: file.path, reason });
     const docs = /\.(?:md|mdx|txt)$/iu.test(file.path);
     const code = ['typescript', 'javascript'].includes(file.language);
+    const template = /\.(?:html?|ejs)$/iu.test(file.path);
     if (!index.revision.commit) gap('missing-revision');
     else if (file.reason && file.reason !== 'unsupported-language') gap(file.reason);
-    else if (!code && !docs)
+    else if (!code && !docs && !template)
       gap(
         /\.(?:vue|svelte|ejs|html|hbs|blade\.php)$/iu.test(file.path)
           ? 'unsupported-framework'
@@ -78,6 +81,7 @@ export async function collectFrontendInventory(
         analyzedFiles++;
         const text = read.bytes.toString('utf8');
         let bounded = false;
+        const occurrences = new Map<string, number>();
         const add = (
           kind: FrontendKind,
           label: string,
@@ -97,8 +101,13 @@ export async function collectFrontendInventory(
             commit: index.revision.commit!,
           };
           const short = label.replace(/\s+/gu, ' ').trim().slice(0, 200);
+          const identity = JSON.stringify([source, kind, short]);
+          const occurrence = occurrences.get(identity) ?? 0;
+          occurrences.set(identity, occurrence + 1);
+          // Same-line syntax nodes can share a label and range. Preserve each
+          // declaration without assigning duplicate evidence or rendering IDs.
           rows.push({
-            id: sha256(JSON.stringify([source, kind, short])),
+            id: sha256(occurrence ? JSON.stringify([identity, occurrence]) : identity),
             kind,
             label: short,
             truthState: 'hypothesized',
@@ -123,6 +132,21 @@ export async function collectFrontendInventory(
           }
           gap('documentation-declarations-not-acceptance-proof');
           if (file.path.endsWith('.mdx')) gap('mdx-components-not-parsed');
+        } else if (template) {
+          const literal = readLiteralTemplate(text, /\.ejs$/iu.test(file.path));
+          const reasons = {
+            malformedTemplate: 'malformed-template',
+            parseError: 'html-parse-error',
+            templateCode: 'template-expressions-not-evaluated',
+            script: 'embedded-script-not-analyzed',
+            foreign: 'foreign-markup-not-analyzed',
+            inert: 'inert-template-not-runtime-proof',
+            event: 'event-attribute-not-analyzed',
+            budget: 'template-node-budget',
+          } as const;
+          for (const flag of Object.keys(reasons) as Array<keyof typeof reasons>)
+            if (literal.flags[flag]) gap(reasons[flag]);
+          for (const row of literal.rows) add(row.kind, row.label, row.startLine, row.endLine);
         } else {
           const parsed = parser.parse(
             file.path,
@@ -189,19 +213,7 @@ function extractFrontend(
     if (['jsx_opening_element', 'jsx_self_closing_element'].includes(node.type)) {
       const tag = named('name') ?? 'fragment';
       if (/^[A-Z]/u.test(tag)) emit('component', tag);
-      if (
-        [
-          'button',
-          'input',
-          'textarea',
-          'select',
-          'a',
-          'form',
-          'dialog',
-          'details',
-          'summary',
-        ].includes(tag)
-      ) {
+      if (frontendControlTags.has(tag)) {
         const attributes = node.namedChildren.filter((child) => child.type === 'jsx_attribute');
         const names = attributes
           .map((attribute) => attribute.namedChildren[0]?.text)
@@ -212,8 +224,7 @@ function extractFrontend(
     if (node.type === 'jsx_attribute') {
       const name = node.namedChildren[0]?.text ?? '';
       if (/^on[A-Z]|^(?:action|formAction)$/u.test(name)) emit('action', name);
-      if (['disabled', 'hidden', 'aria-expanded', 'aria-busy', 'aria-invalid'].includes(name))
-        emit('state', name);
+      if (frontendStateAttributes.has(name)) emit('state', name);
     }
     if (['function_declaration', 'class_declaration', 'variable_declarator'].includes(node.type)) {
       const name = named('name');
