@@ -31,18 +31,24 @@ function ViewerFigure({
 
 /**
  * Interactive baseline/current comparison for one capture, after the review
- * workspaces of BackstopJS (scrubber) and Argos (swipe/onion blend): the static
- * three-pane grid becomes one pane with Side by side, Swipe and Overlay modes.
- * Local view state only — approval and coverage stay on the run card actions.
+ * workspaces of BackstopJS (scrubber) and Argos (swipe/onion blend, changed
+ * regions): the static three-pane grid becomes one pane with Side by side,
+ * Swipe and Overlay modes, plus an overlay of changed-region boxes that can be
+ * walked from the keyboard. Local view state only — approval and coverage stay
+ * on the run card actions.
  */
 export function DiffViewer({ capture, runId }: { capture: Capture; runId: string }) {
   const [mode, setMode] = useState<'side-by-side' | 'swipe' | 'overlay'>('side-by-side');
   const [position, setPosition] = useState(50);
   const [opacity, setOpacity] = useState(50);
+  const [showRegions, setShowRegions] = useState(false);
+  const [activeRegion, setActiveRegion] = useState<number | null>(null);
+  const [imageSize, setImageSize] = useState<{ width: number; height: number } | null>(null);
   const id = useId();
   const pane = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
   const comparable = !!capture.baselineRunId && !!capture.baselineFile && !!capture.file;
+  const regions = capture.diffRegions ?? [];
   const baselineSrc =
     capture.baselineFile && capture.baselineRunId
       ? artifact(capture.baselineRunId, capture.baselineFile)
@@ -54,13 +60,64 @@ export function DiffViewer({ capture, runId }: { capture: Capture; runId: string
     if (!box?.width) return;
     setPosition(Math.max(0, Math.min(100, ((clientX - box.left) / box.width) * 100)));
   };
+  const stepRegion = (direction: 1 | -1) => {
+    if (!regions.length) return;
+    setShowRegions(true);
+    setActiveRegion((old) => {
+      if (old === null) return direction === 1 ? 0 : regions.length - 1;
+      return (old + direction + regions.length) % regions.length;
+    });
+  };
+  const regionStyle = (region: { x: number; y: number; width: number; height: number }) =>
+    imageSize
+      ? {
+          left: `${(region.x / imageSize.width) * 100}%`,
+          top: `${(region.y / imageSize.height) * 100}%`,
+          width: `${(region.width / imageSize.width) * 100}%`,
+          height: `${(region.height / imageSize.height) * 100}%`,
+        }
+      : undefined;
+  const regionLayer = (className: string) =>
+    showRegions &&
+    imageSize &&
+    regions.length > 0 && (
+      <div className={className}>
+        {regions.map((region, index) => (
+          <div
+            key={index}
+            className={`diff-region ${activeRegion === index ? 'is-active' : ''}`}
+            style={regionStyle(region)}
+            {...(activeRegion === index ? { 'aria-current': 'true' } : {})}
+            ref={
+              activeRegion === index
+                ? (element) => element?.scrollIntoView({ block: 'nearest' })
+                : undefined
+            }
+          />
+        ))}
+      </div>
+    );
   const modes: Array<{ value: 'side-by-side' | 'swipe' | 'overlay'; label: string }> = [
     { value: 'side-by-side', label: 'Side by side' },
     { value: 'swipe', label: 'Swipe' },
     { value: 'overlay', label: 'Overlay' },
   ];
   return (
-    <section className="diff-viewer" aria-label="Visual comparison" data-mode={mode}>
+    <section
+      className="diff-viewer"
+      aria-label="Visual comparison"
+      data-mode={mode}
+      tabIndex={-1}
+      onKeyDown={(event) => {
+        const target = event.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+        if (event.key === '1' && comparable) setMode('side-by-side');
+        else if (event.key === '2' && comparable) setMode('swipe');
+        else if (event.key === '3' && comparable) setMode('overlay');
+        else if (event.key === 'n') stepRegion(1);
+        else if (event.key === 'p') stepRegion(-1);
+      }}
+    >
       {comparable && (
         <div className="diff-modes" role="group" aria-label="Comparison view">
           {modes.map((item) => (
@@ -68,12 +125,39 @@ export function DiffViewer({ capture, runId }: { capture: Capture; runId: string
               key={item.value}
               type="button"
               aria-pressed={mode === item.value}
-              disabled={!comparable && item.value !== 'side-by-side'}
               onClick={() => setMode(item.value)}
             >
               {item.label}
             </button>
           ))}
+          {regions.length > 0 && (
+            <>
+              <span className="diff-region-count">
+                {regions.length} change {regions.length === 1 ? 'region' : 'regions'}
+              </span>
+              <button
+                type="button"
+                aria-pressed={showRegions}
+                onClick={() => {
+                  setShowRegions((old) => !old);
+                  setActiveRegion(null);
+                }}
+              >
+                Changes
+              </button>
+              <button type="button" onClick={() => stepRegion(1)}>
+                Next change
+              </button>
+              <button type="button" onClick={() => stepRegion(-1)}>
+                Previous change
+              </button>
+              {activeRegion !== null && (
+                <span className="diff-region-counter">
+                  {activeRegion + 1} / {regions.length}
+                </span>
+              )}
+            </>
+          )}
         </div>
       )}
       {!comparable ? (
@@ -98,7 +182,26 @@ export function DiffViewer({ capture, runId }: { capture: Capture; runId: string
       ) : mode === 'side-by-side' ? (
         <div className="compare">
           <ViewerFigure label="Baseline used for this run" src={baselineSrc} />
-          <ViewerFigure label="Capture from this run" src={currentSrc} />
+          <figure>
+            <figcaption>Capture from this run</figcaption>
+            <div className="diff-image-frame">
+              <a href={currentSrc} target="_blank" rel="noopener">
+                <img
+                  alt="Capture from this run"
+                  src={currentSrc}
+                  loading="lazy"
+                  decoding="async"
+                  onLoad={(event) =>
+                    setImageSize({
+                      width: event.currentTarget.naturalWidth,
+                      height: event.currentTarget.naturalHeight,
+                    })
+                  }
+                />
+              </a>
+              {regionLayer('diff-regions')}
+            </div>
+          </figure>
           <ViewerFigure
             label="Pixel difference"
             src={diffSrc}
@@ -137,7 +240,14 @@ export function DiffViewer({ capture, runId }: { capture: Capture; runId: string
             draggable={false}
             decoding="async"
             style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+            onLoad={(event) =>
+              setImageSize({
+                width: event.currentTarget.naturalWidth,
+                height: event.currentTarget.naturalHeight,
+              })
+            }
           />
+          {regionLayer('diff-regions')}
           <div
             className="diff-divider"
             role="slider"
@@ -169,7 +279,14 @@ export function DiffViewer({ capture, runId }: { capture: Capture; runId: string
             draggable={false}
             decoding="async"
             style={{ opacity: opacity / 100 }}
+            onLoad={(event) =>
+              setImageSize({
+                width: event.currentTarget.naturalWidth,
+                height: event.currentTarget.naturalHeight,
+              })
+            }
           />
+          {regionLayer('diff-regions')}
           <label htmlFor={`${id}-opacity`}>
             Overlay opacity
             <input

@@ -1,0 +1,9 @@
+# WEB-402-CHANGED-REGIONS — final local gates (2026-09-08)
+
+## changed-regions.test.ts (unit pins)
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+
+## changed-regions-ui.real-world.test.ts
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
