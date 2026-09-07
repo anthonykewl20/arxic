@@ -1,0 +1,533 @@
+[
+  {
+    "action": "Navigate to overview at 1440px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-light-overview.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to intents at 1440px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-light-intents.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to runs at 1440px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-light-runs.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to campaigns at 1440px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-light-campaigns.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to schedules at 1440px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-light-schedules.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to providers at 1440px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-light-providers.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to admin at 1440px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-light-admin.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to overview at 1440px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-dark-overview.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to intents at 1440px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-dark-intents.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to runs at 1440px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-dark-runs.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to campaigns at 1440px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-dark-campaigns.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to schedules at 1440px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-dark-schedules.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to providers at 1440px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-dark-providers.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to admin at 1440px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "1440-dark-admin.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to overview at 768px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-light-overview.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to intents at 768px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-light-intents.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to runs at 768px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-light-runs.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to campaigns at 768px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-light-campaigns.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to schedules at 768px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-light-schedules.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to providers at 768px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-light-providers.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to admin at 768px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-light-admin.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to overview at 768px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-dark-overview.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to intents at 768px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-dark-intents.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to runs at 768px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-dark-runs.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to campaigns at 768px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-dark-campaigns.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to schedules at 768px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-dark-schedules.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to providers at 768px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-dark-providers.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to admin at 768px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "768-dark-admin.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to overview at 390px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-light-overview.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to intents at 390px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-light-intents.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to runs at 390px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-light-runs.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to campaigns at 390px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-light-campaigns.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to schedules at 390px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-light-schedules.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to providers at 390px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-light-providers.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to admin at 390px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-light-admin.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to overview at 390px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-dark-overview.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to intents at 390px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-dark-intents.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to runs at 390px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-dark-runs.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to campaigns at 390px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-dark-campaigns.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to schedules at 390px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-dark-schedules.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to providers at 390px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-dark-providers.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to admin at 390px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "390-dark-admin.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to overview at 320px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-light-overview.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to intents at 320px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-light-intents.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to runs at 320px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-light-runs.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to campaigns at 320px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-light-campaigns.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to schedules at 320px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-light-schedules.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to providers at 320px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-light-providers.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to admin at 320px in light; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-light-admin.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to overview at 320px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-dark-overview.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to intents at 320px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-dark-intents.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to runs at 320px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-dark-runs.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to campaigns at 320px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-dark-campaigns.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to schedules at 320px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-dark-schedules.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to providers at 320px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-dark-providers.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Navigate to admin at 320px in dark; audit accessibility/reflow",
+    "result": "passed",
+    "screenshot": "320-dark-admin.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Open project wizard; Tab remains in modal",
+    "result": "passed",
+    "screenshot": "390-dark-project-dialog.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Close modal restores focus; forced colors reflow",
+    "result": "passed",
+    "screenshot": "390-forced-colors.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "401 search response returns to login without stale dashboard or script errors",
+    "result": "passed",
+    "screenshot": "expired-search-session.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

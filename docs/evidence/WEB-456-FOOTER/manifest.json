@@ -1,0 +1,399 @@
+{
+  "base": "71dc7dc2269bf712715952aaf6f9f231004e6f2f",
+  "dirty": true,
+  "scope": "diagnostic and local Chromium geometry; no contrast waiver",
+  "files": [
+    {
+      "path": "chromium/dark/01-matrix-settings-1440.audit.json",
+      "sha256": "e7213b7696aafff88a9cf17370c2d4e0751d34a5ed0cc99882c4cbbeecf8496b"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-1440.png",
+      "sha256": "cf3c8dace651ce9477bfbb3917a2134ff85e88f4ef6f8aee27030048aae3ac8b"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-1440.png.privacy.json",
+      "sha256": "74551b259499d041bfe79aa035ffd13b4cf8ae87be81e86d237faa47bf93cea2"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-320.audit.json",
+      "sha256": "3aa69dc68cd73437c0e3d247041a92deba6a6230ae1dd7a193ec3d5229187d60"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-320.png",
+      "sha256": "bb9a8fd000464c6da38cc56f307d42bd1710a28533454c24db15fde92d8ddf0b"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-320.png.privacy.json",
+      "sha256": "81b4ccc14b7480f85a67d8e09c2e42f7e1d7e61c1bcf040a752459e832a04a17"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-390.audit.json",
+      "sha256": "c427dd434436a3950c610d60add75738952a91cc9ad6a09339e95f43bbc7d723"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-390.png",
+      "sha256": "ec9cf07437164dc90d517d2e3dcd0ec6db6234bf1ec651e2629d2b8871ea75c3"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-390.png.privacy.json",
+      "sha256": "e91bae785f4e0e69c2bc1f239a987403316ccadcc664f7eb51f39931d2ece936"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-768.audit.json",
+      "sha256": "c427dd434436a3950c610d60add75738952a91cc9ad6a09339e95f43bbc7d723"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-768.png",
+      "sha256": "3695d3ba52c243d7ed365fcda39c096c8a91ae7f4d50744aefc6c59f8610d569"
+    },
+    {
+      "path": "chromium/dark/01-matrix-settings-768.png.privacy.json",
+      "sha256": "fbfa0d2919a9fd23fc0e3a415fff2ba43bdf0463c5ca9caeaae782d2d7712379"
+    },
+    {
+      "path": "chromium/dark/01b-pixel-limit.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/dark/01b-pixel-limit.png",
+      "sha256": "e926fcbeabfa792aaa64aae9f54a580d0a2e6f973c016733830d36a42e485e1f"
+    },
+    {
+      "path": "chromium/dark/01b-pixel-limit.png.privacy.json",
+      "sha256": "eacb080f4f421b674d44e1ba093ad2440d14e03c1f3918c9e4922635961948f6"
+    },
+    {
+      "path": "chromium/dark/02-matrix-results.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/dark/02-matrix-results.png",
+      "sha256": "76b5a75b3c812b1f15b3fe07c47aedf4018af8c7c376cd995f6c73ac102fd683"
+    },
+    {
+      "path": "chromium/dark/02-matrix-results.png.privacy.json",
+      "sha256": "448d78515229ad2bd016d65832aa48c29e7e64e2aa3b17c5ce5c805e45509c34"
+    },
+    {
+      "path": "chromium/dark/02a-density-filter.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/dark/02a-density-filter.png",
+      "sha256": "213270a3558a6d2c0d333e4e59cdb468a3ba24d5315b273890ad436554c0a2a9"
+    },
+    {
+      "path": "chromium/dark/02a-density-filter.png.privacy.json",
+      "sha256": "4a6f6877e271cb53559ff76e20256ef7fe8c6cf2c8ee370375f2298e698b0ca6"
+    },
+    {
+      "path": "chromium/dark/02b-native-element-1440.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/dark/02b-native-element-1440.png",
+      "sha256": "81a6cbff004f70170e130586c391ee8688508c11ee99c8047e5d7011772d79fe"
+    },
+    {
+      "path": "chromium/dark/02b-native-element-1440.png.privacy.json",
+      "sha256": "74c597e3cbec34ee94ef9f7802b92f39510cb4ca81585b4450c0991e22ab2c65"
+    },
+    {
+      "path": "chromium/dark/02b-native-element-320.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/dark/02b-native-element-320.png",
+      "sha256": "89c0ce9766262390554662fa2fc18beee4a61918fcd1bc89f98b0e83e1e5b40b"
+    },
+    {
+      "path": "chromium/dark/02b-native-element-320.png.privacy.json",
+      "sha256": "c7b1bf9d6ce9e85ce09825b7a22db27b8c78e7be7c249bb2d027bdf1442cde32"
+    },
+    {
+      "path": "chromium/dark/02c-review-image-limit.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/dark/02c-review-image-limit.png",
+      "sha256": "75c18a6a0d1af0d730eb0398e081e4585f11f09e0b7763637ba94883e0d4a9af"
+    },
+    {
+      "path": "chromium/dark/02c-review-image-limit.png.privacy.json",
+      "sha256": "d246bf8bb7e2d63c58be7c39b93d705459ff9a917c62becd98c25512490f6cd2"
+    },
+    {
+      "path": "chromium/dark/03-mobile-results.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/dark/03-mobile-results.png",
+      "sha256": "9476884a79705b7fcee9043985e6e1211453f1a56e70337524fda2a973ade1e2"
+    },
+    {
+      "path": "chromium/dark/03-mobile-results.png.privacy.json",
+      "sha256": "07946c0ce6c5164e164a0c4d66f749cf2b6251c55ba06810fe4902c8581f17f8"
+    },
+    {
+      "path": "chromium/dark/04-restored-settings.audit.json",
+      "sha256": "49cf137ecd0565a9dbed64cbc3bda6e7a26adbce959e5c81084c915542ac06da"
+    },
+    {
+      "path": "chromium/dark/04-restored-settings.png",
+      "sha256": "f4441dea2bf802427ff2fb425dc7789463e5f2700014e95b5e1e79f65f5b6232"
+    },
+    {
+      "path": "chromium/dark/04-restored-settings.png.privacy.json",
+      "sha256": "00f5b4bff3062c4abe022026e75e9ce5486b6f1cf70dde8e966c71f061f31c34"
+    },
+    {
+      "path": "chromium/dark/timeline.json",
+      "sha256": "da8d8be11ad1a8ad832364825d0b048a9ccf28b5520699fa3f0fecccd17ec41f"
+    },
+    {
+      "path": "chromium/dark/timeline.sanitization.json",
+      "sha256": "db3c8b1203b186b9ee9bca876cf041abcb62f25f21ae5db8d3aeb376e32cb03a"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-1440.audit.json",
+      "sha256": "e7213b7696aafff88a9cf17370c2d4e0751d34a5ed0cc99882c4cbbeecf8496b"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-1440.png",
+      "sha256": "574bec26adccdfe679be73bf79a4f898e03de7419425562c93b89996ecbe04bb"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-1440.png.privacy.json",
+      "sha256": "f8d21eb7b2e3895c6377fe42f54809477e859c75288b8e3b9c5171086fe4b789"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-320.audit.json",
+      "sha256": "3aa69dc68cd73437c0e3d247041a92deba6a6230ae1dd7a193ec3d5229187d60"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-320.png",
+      "sha256": "dcd4fbcc3184941d9802e5dd88b62eb6f0fc3fa809a1c2b1d5b0249282b5d68c"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-320.png.privacy.json",
+      "sha256": "98f914c0a3492feb0a7781e7c2bc12807b51d95e5ec82b0a225eeb09e2913f86"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-390.audit.json",
+      "sha256": "c427dd434436a3950c610d60add75738952a91cc9ad6a09339e95f43bbc7d723"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-390.png",
+      "sha256": "a1c74d97e52e618456ca5255dfed7edc0e0846378cd1c8da29d2ae466bd40a0d"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-390.png.privacy.json",
+      "sha256": "3bfd636f857a4254fe0031e2e0b39aedc79ce800fdcfaebc1d8d5b490a537e1e"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-768.audit.json",
+      "sha256": "c427dd434436a3950c610d60add75738952a91cc9ad6a09339e95f43bbc7d723"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-768.png",
+      "sha256": "50d21fc860c9bf9bce114f9416daa465a4cded53f113c9b48226d2f8c2a0031a"
+    },
+    {
+      "path": "chromium/light/01-matrix-settings-768.png.privacy.json",
+      "sha256": "fcf0ee1596939d775c1363e0fdacfaee7ec0134697a4e1434a46db0fed49435a"
+    },
+    {
+      "path": "chromium/light/01b-pixel-limit.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/light/01b-pixel-limit.png",
+      "sha256": "f8a0db38b8deca422228558c2396ef930eab54390fa4901ac1bb3bf313cf8426"
+    },
+    {
+      "path": "chromium/light/01b-pixel-limit.png.privacy.json",
+      "sha256": "0f681481b0d902ac7b8de9964e44dd3e8e082e03e65dc0e65c962635961b3118"
+    },
+    {
+      "path": "chromium/light/02-matrix-results.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/light/02-matrix-results.png",
+      "sha256": "e1edef178dec9763dc145756835d163c54e145ab4f8ee2c23a877f76225af860"
+    },
+    {
+      "path": "chromium/light/02-matrix-results.png.privacy.json",
+      "sha256": "d359eb8c85c49ef432a8cfee41e1db60dee2c69bb0ad9cd449c2d83c37a7147f"
+    },
+    {
+      "path": "chromium/light/02a-density-filter.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/light/02a-density-filter.png",
+      "sha256": "c915a071d713f831288dbbaa604c8f81288964e5a8954001572616169dd8dfea"
+    },
+    {
+      "path": "chromium/light/02a-density-filter.png.privacy.json",
+      "sha256": "543c1b3ea6aa0f31599f492a366a413c5b9349c6ad9789dd0ba89716ce106870"
+    },
+    {
+      "path": "chromium/light/02b-native-element-1440.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/light/02b-native-element-1440.png",
+      "sha256": "84203b950c02276116c56113def3d9da8b40a75058c04f07ec3a48fb893de1df"
+    },
+    {
+      "path": "chromium/light/02b-native-element-1440.png.privacy.json",
+      "sha256": "a88834a025a38092f438ff0ea778ac1c92717c174879a7ccd1ada936fa9cc6c4"
+    },
+    {
+      "path": "chromium/light/02b-native-element-320.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/light/02b-native-element-320.png",
+      "sha256": "398c9fd27d07ba7575f0f6f1c54bb9c712dbd0e4bce919b16a055784951aa687"
+    },
+    {
+      "path": "chromium/light/02b-native-element-320.png.privacy.json",
+      "sha256": "8a7260d21421465bfbac1cbbf3ec6180f06abe197c8ff5c54c79e945c09ebfaa"
+    },
+    {
+      "path": "chromium/light/02c-review-image-limit.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/light/02c-review-image-limit.png",
+      "sha256": "402e44b01bc31776e7940c40d0523ff96f7b4cf1194fd1be18f609ebac859478"
+    },
+    {
+      "path": "chromium/light/02c-review-image-limit.png.privacy.json",
+      "sha256": "8fb5a1b7fad57553e5963a347af3d64503e4fa2896bfef8d6dc4725847bdecb3"
+    },
+    {
+      "path": "chromium/light/03-mobile-results.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/light/03-mobile-results.png",
+      "sha256": "d3ec0844b98589f9996355f9d1a7c5980bbd9f7312b94db160bcb3b1188447b5"
+    },
+    {
+      "path": "chromium/light/03-mobile-results.png.privacy.json",
+      "sha256": "2638b4f707f80d9d22495b3335d80756f7a69826c1a81efc97e489679c6ef673"
+    },
+    {
+      "path": "chromium/light/04-restored-settings.audit.json",
+      "sha256": "49cf137ecd0565a9dbed64cbc3bda6e7a26adbce959e5c81084c915542ac06da"
+    },
+    {
+      "path": "chromium/light/04-restored-settings.png",
+      "sha256": "e471fc04beadbb03169116f4faa3d39c2be3c4a1f77072e604a3b26184d57559"
+    },
+    {
+      "path": "chromium/light/04-restored-settings.png.privacy.json",
+      "sha256": "c10491d0a337c2d229ed408ccdb95ad0277b12b94058176644d56b73e5769556"
+    },
+    {
+      "path": "chromium/light/timeline.json",
+      "sha256": "da8d8be11ad1a8ad832364825d0b048a9ccf28b5520699fa3f0fecccd17ec41f"
+    },
+    {
+      "path": "chromium/light/timeline.sanitization.json",
+      "sha256": "db3c8b1203b186b9ee9bca876cf041abcb62f25f21ae5db8d3aeb376e32cb03a"
+    },
+    {
+      "path": "incomplete-nodes.jsonl",
+      "sha256": "354d3469c083fa4bfd3cb0d1ba022a672eaa7c63410922860ef08187e3d604e8"
+    },
+    {
+      "path": "light-computed-paint.jsonl",
+      "sha256": "36bf7b77da36676804401f4a8b4c6dab1357e786af3f30b196639f4ed7d51d5a"
+    },
+    {
+      "path": "opaque-probe/dark/01-matrix-settings-320.audit.json",
+      "sha256": "3aa69dc68cd73437c0e3d247041a92deba6a6230ae1dd7a193ec3d5229187d60"
+    },
+    {
+      "path": "opaque-probe/dark/01-matrix-settings-320.png",
+      "sha256": "3638dff723570c193be007b263ca3d8df1ab496cc17763895dce3cf044c76991"
+    },
+    {
+      "path": "opaque-probe/dark/01-matrix-settings-320.png.privacy.json",
+      "sha256": "55604abe4298967a1748f6a85cb62006db21a06d72ec529c0a786fb69332e776"
+    },
+    {
+      "path": "opaque-probe/dark/timeline.json",
+      "sha256": "ecea9810cc7fb90280f60abd7a4959acc478284f43a23def5da7a9c125482385"
+    },
+    {
+      "path": "opaque-probe/dark/timeline.sanitization.json",
+      "sha256": "7958ed1830c3f932c8124ae39b3870d62e59ee491580740867da228429816323"
+    },
+    {
+      "path": "opaque-probe/light/01-matrix-settings-320.audit.json",
+      "sha256": "3aa69dc68cd73437c0e3d247041a92deba6a6230ae1dd7a193ec3d5229187d60"
+    },
+    {
+      "path": "opaque-probe/light/01-matrix-settings-320.png",
+      "sha256": "492a5605659854c02990f6518692d9e77f36a602c029c923388d8723644313af"
+    },
+    {
+      "path": "opaque-probe/light/01-matrix-settings-320.png.privacy.json",
+      "sha256": "176f59c9d05e9d7da9487647450a21f52f616169d24abe0572dffb99fcceb40e"
+    },
+    {
+      "path": "opaque-probe/light/timeline.json",
+      "sha256": "ecea9810cc7fb90280f60abd7a4959acc478284f43a23def5da7a9c125482385"
+    },
+    {
+      "path": "opaque-probe/light/timeline.sanitization.json",
+      "sha256": "7958ed1830c3f932c8124ae39b3870d62e59ee491580740867da228429816323"
+    },
+    {
+      "path": "red/dark/01-matrix-settings-320.audit.json",
+      "sha256": "49cf137ecd0565a9dbed64cbc3bda6e7a26adbce959e5c81084c915542ac06da"
+    },
+    {
+      "path": "red/dark/01-matrix-settings-320.png",
+      "sha256": "bb9a8fd000464c6da38cc56f307d42bd1710a28533454c24db15fde92d8ddf0b"
+    },
+    {
+      "path": "red/dark/01-matrix-settings-320.png.privacy.json",
+      "sha256": "81b4ccc14b7480f85a67d8e09c2e42f7e1d7e61c1bcf040a752459e832a04a17"
+    },
+    {
+      "path": "red/dark/timeline.json",
+      "sha256": "ecea9810cc7fb90280f60abd7a4959acc478284f43a23def5da7a9c125482385"
+    },
+    {
+      "path": "red/dark/timeline.sanitization.json",
+      "sha256": "7958ed1830c3f932c8124ae39b3870d62e59ee491580740867da228429816323"
+    },
+    {
+      "path": "red/light/01-matrix-settings-320.audit.json",
+      "sha256": "49cf137ecd0565a9dbed64cbc3bda6e7a26adbce959e5c81084c915542ac06da"
+    },
+    {
+      "path": "red/light/01-matrix-settings-320.png",
+      "sha256": "dcd4fbcc3184941d9802e5dd88b62eb6f0fc3fa809a1c2b1d5b0249282b5d68c"
+    },
+    {
+      "path": "red/light/01-matrix-settings-320.png.privacy.json",
+      "sha256": "98f914c0a3492feb0a7781e7c2bc12807b51d95e5ec82b0a225eeb09e2913f86"
+    },
+    {
+      "path": "red/light/timeline.json",
+      "sha256": "ecea9810cc7fb90280f60abd7a4959acc478284f43a23def5da7a9c125482385"
+    },
+    {
+      "path": "red/light/timeline.sanitization.json",
+      "sha256": "7958ed1830c3f932c8124ae39b3870d62e59ee491580740867da228429816323"
+    }
+  ]
+}

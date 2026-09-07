@@ -742,7 +742,7 @@ to two required partitions (`--dashboard-shard 1` and `--dashboard-shard 2`); bo
 must pass for each browser. A partition is not whole-browser acceptance. Selection
 contracts guard exhaustive, disjoint membership and reject sharding the full CLI
 release flow. Each command retains its 900-second limit, each job its 25-minute
-limit, and all individual test timeouts/assertions remain unchanged. There are now
+limit, and all individual Vitest case deadlines/assertions remain unchanged. There are now
 two jobs' worth of execution capacity per non-Chromium browser.
 
 Each run writes `web/dashboard-progress.jsonl` incrementally, with module basename,
@@ -756,4 +756,5 @@ later success cannot retroactively fill a failed run's evidence.
 The original installed Firefox failure is retained in the
 [failed CI record](evidence/WEB-454-DENSITY/ci-34086989767/summary.md).
 
-The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a recorded light Firefox journey failure until a subsequent exact-head gate passes; local reruns do not waive it.
+The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a historical light Firefox journey failure. Subsequent exact-head CI 34091854414 passed all required installed browser cases before PR #455 merged; local reruns alone did not waive the earlier failure.
+Project-dialog footer actions use a 44-pixel minimum height. In settings, the explanatory text precedes Back and Save, keeping navigation and submission on one row on narrow screens. [Retained red evidence](evidence/WEB-456-FOOTER/action-row/summary.md) documents the original 114-pixel action-row separation and 32-pixel tablet targets. This layout fix does not convert unresolved footer contrast checks into passes.
