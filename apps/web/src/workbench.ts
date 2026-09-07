@@ -261,8 +261,8 @@ export class Workbench {
     const rows = toProposalConsumerInventory(discovery.result.inventory as DomainInventory).rows;
     const selected = input.inventoryRowIds;
     if (
-      Object.keys(input).some((key) =>
-        !['discoveryRunId', 'inventoryRowIds', 'cron'].includes(key),
+      Object.keys(input).some(
+        (key) => !['discoveryRunId', 'inventoryRowIds', 'cron'].includes(key),
       ) ||
       !Array.isArray(selected) ||
       !selected.length ||
