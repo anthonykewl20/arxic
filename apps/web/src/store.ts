@@ -32,8 +32,7 @@ export class Store {
   }
   setting<T>(key: string): T | undefined {
     const row = this.db.prepare('SELECT data FROM settings WHERE key = ?').get(key) as
-      | { data: string }
-      | undefined;
+      { data: string } | undefined;
     return row ? (JSON.parse(row.data) as T) : undefined;
   }
   saveSetting(key: string, value: unknown) {

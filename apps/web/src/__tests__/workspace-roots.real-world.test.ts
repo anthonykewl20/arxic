@@ -85,7 +85,9 @@ it('adds a workspace root at runtime, connects a project under it, and persists 
   expect(await refused.text()).toContain('Administration');
 
   expect((await create('POST', { path: outside })).status).toBe(201);
-  const state = (await (await fetch(`${app.origin}/api/state`, { headers: { cookie } })).json()) as {
+  const state = (await (
+    await fetch(`${app.origin}/api/state`, { headers: { cookie } })
+  ).json()) as {
     roots: string[];
   };
   expect(state.roots).toContain(outside);

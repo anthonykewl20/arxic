@@ -50,9 +50,9 @@ export class Workbench {
     private readonly retention: Retention,
   ) {
     this.store.recover();
-    const deltas =
-      this.store.setting<{ added: string[]; removed: string[] }>('workspace.roots') ??
-      { added: [], removed: [] };
+    const deltas = this.store.setting<{ added: string[]; removed: string[] }>(
+      'workspace.roots',
+    ) ?? { added: [], removed: [] };
     this.roots = [
       ...startupRoots.filter((root) => !deltas.removed.includes(root)),
       ...deltas.added,
@@ -73,9 +73,9 @@ export class Workbench {
     const resolved = await this.requestedRoot(input);
     if (this.roots.some((root) => inside(root, resolved) || inside(resolved, root)))
       throw new HttpError(409, 'Workspace root overlaps a configured root');
-    const deltas =
-      this.store.setting<{ added: string[]; removed: string[] }>('workspace.roots') ??
-      { added: [], removed: [] };
+    const deltas = this.store.setting<{ added: string[]; removed: string[] }>(
+      'workspace.roots',
+    ) ?? { added: [], removed: [] };
     deltas.added = [...deltas.added.filter((root) => root !== resolved), resolved];
     deltas.removed = deltas.removed.filter((root) => root !== resolved);
     this.store.saveSetting('workspace.roots', deltas);
@@ -92,9 +92,9 @@ export class Workbench {
       .find((project) => project.folder === resolved || inside(resolved, project.folder));
     if (dependent)
       throw new HttpError(409, `Project ${dependent.name} still uses this workspace root`);
-    const deltas =
-      this.store.setting<{ added: string[]; removed: string[] }>('workspace.roots') ??
-      { added: [], removed: [] };
+    const deltas = this.store.setting<{ added: string[]; removed: string[] }>(
+      'workspace.roots',
+    ) ?? { added: [], removed: [] };
     deltas.removed = [...deltas.removed.filter((root) => root !== resolved), resolved];
     deltas.added = deltas.added.filter((root) => root !== resolved);
     this.store.saveSetting('workspace.roots', deltas);

@@ -182,9 +182,7 @@ async function rootsRequest(method: 'POST' | 'DELETE', path: string) {
   });
   const body = (await response.json().catch(() => ({}))) as { error?: unknown };
   if (!response.ok)
-    throw new Error(
-      typeof body.error === 'string' ? body.error : 'Workspace root request failed',
-    );
+    throw new Error(typeof body.error === 'string' ? body.error : 'Workspace root request failed');
 }
 function WorkspaceRoots({ state, onChanged }: { state: State; onChanged?: () => Promise<void> }) {
   const [path, setPath] = useState('');
@@ -216,10 +214,7 @@ function WorkspaceRoots({ state, onChanged }: { state: State; onChanged?: () => 
             className="text-button"
             disabled={busy}
             onClick={() => {
-              void apply(
-                () => rootsRequest('DELETE', root),
-                'Workspace root removed',
-              );
+              void apply(() => rootsRequest('DELETE', root), 'Workspace root removed');
             }}
           >
             Remove
