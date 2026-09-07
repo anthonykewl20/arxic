@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Healthy sibling captures remain visible beside each blocked navigation cell",
+    "result": "failed",
+    "screenshot": "01-navigation-refusal.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

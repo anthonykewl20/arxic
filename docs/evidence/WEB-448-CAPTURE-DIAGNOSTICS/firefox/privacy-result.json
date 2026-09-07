@@ -1,0 +1,111 @@
+{
+  "outcome": "blocked",
+  "summary": "0 viewport checkpoints captured across 6 browser/theme environments. Visual baseline review is separate from business-logic verification.",
+  "captures": [],
+  "findings": [
+    {
+      "path": "/",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "privacy-capture",
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "light"
+      }
+    },
+    {
+      "path": "/",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "privacy-capture",
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "dark"
+      }
+    },
+    {
+      "path": "/",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "privacy-capture",
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "light"
+      }
+    },
+    {
+      "path": "/",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "privacy-capture",
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "dark"
+      }
+    },
+    {
+      "path": "/",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "privacy-capture",
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "light"
+      }
+    },
+    {
+      "path": "/",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "privacy-capture",
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "dark"
+      }
+    }
+  ],
+  "visualEnvironments": [
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "0 viewport checkpoints captured across 1 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "dark",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "0 viewport checkpoints captured across 1 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "0 viewport checkpoints captured across 1 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "dark",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "0 viewport checkpoints captured across 1 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "0 viewport checkpoints captured across 1 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "dark",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "0 viewport checkpoints captured across 1 pages. Visual baseline review is separate from business-logic verification."
+    }
+  ]
+}

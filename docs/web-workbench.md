@@ -710,3 +710,5 @@ its data. A bookmarked run therefore opens directly after login. Real browser
 checks require that detail before reload and retain session draft/consent cleanup
 checks. The general WebKit early-reload diagnostic is separately tracked in #447;
 the login fix is not a claim that every outgoing-document error is resolved.
+
+Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.

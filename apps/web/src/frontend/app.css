@@ -1971,3 +1971,18 @@ p a,
   padding: var(--space-3) 0;
   overflow-wrap: anywhere;
 }
+
+/* Group the affected surface separately from its recovery instruction. */
+.capture-diagnostic {
+  padding-block: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.capture-diagnostic:last-child {
+  border-bottom: 0;
+}
+.capture-diagnostic > span {
+  font-weight: 600;
+}
+.capture-diagnostic > p {
+  margin-block: 0.25rem;
+}

@@ -81,7 +81,13 @@ export type RunResult = {
   captures?: Capture[];
   /** Paths found by crawling the signed-in app during AI discovery, in discovery order. */
   discoveredPaths?: string[];
-  findings?: Array<{ path: string; kind: string; count: number; environment?: VisualEnvironment }>;
+  findings?: Array<{
+    path: string;
+    kind: string;
+    count: number;
+    environment?: VisualEnvironment;
+    failurePhase?: CaptureFailurePhase;
+  }>;
   ledger?: unknown;
   engineRun?: unknown;
 };
@@ -116,3 +122,7 @@ export type Campaign = {
     runId?: string;
   }>;
 };
+
+/** Last attempted capture operation; never inferred from raw exception text. */
+export type CaptureFailurePhase =
+  'navigation' | 'readiness' | 'measurement' | 'privacy-capture' | 'evidence-write';

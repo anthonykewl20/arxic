@@ -1,3 +1,4 @@
+import { captureFailureMessage } from './capture-failure';
 import { CaptureGallery } from './capture-gallery';
 import { WorkflowCheckpoints } from './workflow-checkpoints';
 import { AssessmentPanel } from './assessment-panel';
@@ -220,16 +221,35 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
         </div>
         {!!result?.findings?.length && (
           <div className="findings">
-            <h3>Observed frontend findings</h3>
+            <h3>Findings and capture diagnostics</h3>
             <ul>
               {result.findings.map((item, index) => (
-                <li key={`${item.path}:${item.kind}:${index}`}>
-                  {item.environment && (
+                <li
+                  key={`${item.path}:${item.kind}:${index}`}
+                  className={item.failurePhase ? 'capture-diagnostic' : undefined}
+                >
+                  <span>
+                    {item.environment && (
+                      <>
+                        {item.environment.browser} · {item.environment.colorScheme} ·{' '}
+                      </>
+                    )}
+                    {item.path}
+                    {!item.failurePhase && (
+                      <>
+                        {' '}
+                        · {item.kind}: {item.count}
+                      </>
+                    )}
+                  </span>
+                  {item.failurePhase && (
                     <>
-                      {item.environment.browser} · {item.environment.colorScheme} ·{' '}
+                      <p>{captureFailureMessage(item.failurePhase)}</p>
+                      <small>
+                        {item.count} failed checkpoint{item.count === 1 ? '' : 's'}
+                      </small>
                     </>
                   )}
-                  {item.path} · {item.kind}: {item.count}
                 </li>
               ))}
             </ul>
