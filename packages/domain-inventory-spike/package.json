@@ -1,6 +1,6 @@
 {
   "name": "@arxic/domain-inventory",
-  "version": "0.0.300",
+  "version": "0.0.301",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
