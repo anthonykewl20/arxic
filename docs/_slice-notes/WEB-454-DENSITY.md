@@ -1,6 +1,6 @@
 # WEB-454-DENSITY — staged doc updates (in progress)
 
-Issue: #454 · PR: not opened · Disposition: scoped local checks pass after reproducing/fixing native shell drift; required final-head CI remains pending.
+Issue: #454 · PR: #455 · Disposition: scoped local checks pass after reproducing/fixing native shell drift; required final-head CI remains pending.
 
 ## 1. `docs/SYNC.md` — tracker row
 
@@ -49,4 +49,4 @@ Yes, user-observable functionality. Integrator selects the next synchronized ver
 
 Eighteen authenticated Next.js cells pass with the target rate limits unchanged; a later bad-credential run produces zero captures across all eighteen cells. The original failure was two Firefox dark cells exhausting the ten-per-minute login bucket.
 
-Remaining: full installed engine proof after all edits, complete attached evidence and exact-head CI; broader locale/zoom/state/role/heuristic matrices and full #402 are not complete. Experimental font-size checks, hinting flags, paint-order and GPU-off probes did not establish a fix and are not shipped. A larger plain-capture control disproved the earlier collector-only hypothesis; full Chromium produced one hash across 32 fresh probes. No assertions were loosened; the inspector's missing-details click was a test-flow correction.
+Remaining: full installed engine proof after all edits, installed evidence and exact-head CI; broader locale/zoom/state/role/heuristic matrices and full #402 are not complete. Experimental font-size checks, hinting flags, paint-order and GPU-off probes did not establish a fix and are not shipped. A larger plain-capture control disproved the earlier collector-only hypothesis; full Chromium produced one hash across 32 fresh probes. No assertions were loosened; the inspector's missing-details click was a test-flow correction.
