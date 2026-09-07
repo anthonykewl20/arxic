@@ -1,0 +1,24 @@
+{"name":"01-matrix-settings-320","checks":[{"id":"color-contrast","nodes":[{"target":[".dialog-footer > small"],"checks":[{"id":"color-contrast","message":"Element's background color could not be determined because it partially overlaps other elements"}]}]}]}
+{"name":"01-matrix-settings-390","checks":[{"id":"color-contrast","nodes":[{"target":[".dialog-footer > small"],"checks":[{"id":"color-contrast","message":"Element's background color could not be determined because it partially overlaps other elements"}]}]}]}
+{"name":"01-matrix-settings-768","checks":[{"id":"color-contrast","nodes":[{"target":[".dialog-footer > small"],"checks":[{"id":"color-contrast","message":"Element's background color could not be determined because it partially overlaps other elements"}]}]}]}
+{"name":"01-matrix-settings-1440","checks":[]}
+{"name":"01b-pixel-limit","checks":[]}
+{"name":"02a-density-filter","checks":[]}
+{"name":"02b-native-element-320","checks":[]}
+{"name":"02b-native-element-1440","checks":[]}
+{"name":"02c-review-image-limit","checks":[]}
+{"name":"02-matrix-results","checks":[]}
+{"name":"03-mobile-results","checks":[]}
+{"name":"04-restored-settings","checks":[]}
+{"name":"01-matrix-settings-320","checks":[{"id":"color-contrast","nodes":[{"target":[".dialog-footer > small"],"checks":[{"id":"color-contrast","message":"Element's background color could not be determined because it partially overlaps other elements"}]}]}]}
+{"name":"01-matrix-settings-390","checks":[{"id":"color-contrast","nodes":[{"target":[".dialog-footer > small"],"checks":[{"id":"color-contrast","message":"Element's background color could not be determined because it partially overlaps other elements"}]}]}]}
+{"name":"01-matrix-settings-768","checks":[{"id":"color-contrast","nodes":[{"target":[".dialog-footer > small"],"checks":[{"id":"color-contrast","message":"Element's background color could not be determined because it partially overlaps other elements"}]}]}]}
+{"name":"01-matrix-settings-1440","checks":[]}
+{"name":"01b-pixel-limit","checks":[]}
+{"name":"02a-density-filter","checks":[]}
+{"name":"02b-native-element-320","checks":[]}
+{"name":"02b-native-element-1440","checks":[]}
+{"name":"02c-review-image-limit","checks":[]}
+{"name":"02-matrix-results","checks":[]}
+{"name":"03-mobile-results","checks":[]}
+{"name":"04-restored-settings","checks":[]}

@@ -1,0 +1,11 @@
+# Project-dialog footer audit investigation — #456
+
+Status: in progress. No production style change or contrast waiver is proposed. Source base `71dc7dc2`; real dashboard/Express reference app, local Chromium 151. Named capture-masked PNGs, adjacent provenance and sanitized timelines are retained. No raw traces or credential payloads are included. Independent human inspection has not occurred.
+
+The original density proof retained six axe color-contrast incomplete checks, at 320/390/768 CSS pixels in light and dark. A focused diagnostic identifies `.dialog-footer > small`; axe reports that differing overlapping elements prevent it from determining the background. That is an unresolved result, not proof of failing contrast. The light-mode computed pair, rgb(101,101,112) over the opaque white native dialog, yields 5.755343820467951:1. This CSS pair alone does not resolve every painted layer.
+
+The `red/` captures retain the experimental stricter assertion `incomplete == []` failing in both themes. An opaque footer background still fails that assertion (`opaque-probe/`) and was removed. A separate attempt to inspect an unavailable axe internal API failed as a diagnostic harness error and was removed. No production CSS change is retained.
+
+**Expectation change:** the new experimental zero-incomplete assertion was withdrawn. Existing violation, overflow and functional assertions were not widened. The original incomplete contrast results remain unverified in the timeline. New independent Range line bounds and native hit-test checks assert that every footer line is inside its footer and no sampled line center is occluded. They do not convert contrast uncertainty to pass or prove all painted glyphs unobscured.
+
+The Chromium light/dark journeys pass with those added checks at 320/390/768/1440 (two cases, 33.59 s). They also exercise project validation, keyboard selection, save, density filtering and review error recovery. `chromium/` retains these records; the manifest binds the diagnostic artifacts. An unused test-helper return was subsequently removed without changing assertions. Firefox/WebKit runs, final-head CI, final artifact inspection and completion bookkeeping are still owed. #402 remains open.

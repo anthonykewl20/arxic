@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Pixel-density selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  }
+]
