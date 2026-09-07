@@ -1,0 +1,17 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "dialog-footer-visible-lines",
+      "passed": true,
+      "values": {
+        "lines": 2,
+        "clipped": 0,
+        "occluded": 0
+      }
+    }
+  ]
+}

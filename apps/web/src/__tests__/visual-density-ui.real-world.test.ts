@@ -10,7 +10,7 @@ import {
   vulnerableAuthApp,
 } from '../../../../packages/real-world-testkit/src';
 import { startWorkbench } from './workbench-runtime';
-import { dashboardProof } from './dashboard-proof';
+import { dashboardProof, type DashboardNumericCheck } from './dashboard-proof';
 
 it.each(['light', 'dark'] as const)(
   'configures and inspects a real pixel density matrix from the dashboard (%s)',
@@ -37,8 +37,8 @@ it.each(['light', 'dark'] as const)(
         ? join(process.env.ARXIC_DENSITY_UI_EVIDENCE_DIR, theme)
         : undefined,
     );
-    const audit = async (name: string, action: string) => {
-      const result = await proof.audit(name, action);
+    const audit = async (name: string, action: string, checks: DashboardNumericCheck[] = []) => {
+      const result = await proof.audit(name, action, checks);
       expect(result.details).toEqual([]);
       expect(result.overflow).toBe(0);
     };
@@ -72,10 +72,44 @@ it.each(['light', 'dark'] as const)(
       for (const width of [320, 390, 768, 1440]) {
         await resizeDashboard(page, { width, height: 1000 });
         await page.getByLabel('3× extra sharp', { exact: true }).scrollIntoViewIfNeeded();
+        const footerMetrics = await page.locator('.dialog-footer').evaluate((footer) => {
+          const text = footer.querySelector('small')!;
+          const bounds = footer.getBoundingClientRect();
+          const range = document.createRange();
+          range.selectNodeContents(text);
+          const lines = [...range.getClientRects()].filter((r) => r.width > 0 && r.height > 0);
+          return {
+            lines: lines.length,
+            clipped: lines.filter(
+              (r) =>
+                r.left < bounds.left ||
+                r.right > bounds.right ||
+                r.top < bounds.top ||
+                r.bottom > bounds.bottom,
+            ).length,
+            occluded: lines.filter(
+              (r) =>
+                !text.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)),
+            ).length,
+          };
+        });
         await audit(
           `01-matrix-settings-${width}`,
           'Pixel-density selection retains labels, keyboard focus and responsive layout',
+          [
+            {
+              id: 'dialog-footer-visible-lines',
+              passed:
+                footerMetrics.lines > 0 &&
+                footerMetrics.clipped === 0 &&
+                footerMetrics.occluded === 0,
+              values: footerMetrics,
+            },
+          ],
         );
+        expect(footerMetrics.lines).toBeGreaterThan(0);
+        expect(footerMetrics.clipped).toBe(0);
+        expect(footerMetrics.occluded).toBe(0);
       }
       await page.getByLabel('Viewport sizes').fill('1920x1200');
       await page.getByRole('button', { name: 'Save project' }).click();
