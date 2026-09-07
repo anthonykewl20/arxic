@@ -34,8 +34,8 @@ const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, '../../../..');
 let commit = '';
 // The oracle identity includes the auth-domain-pack release version. Re-pinned
-// for the owner's 0.0.200 release target (refs #402); comparison remains exact.
-const pinnedCanonicalSha256 = '67eb670181352b154477f22a8f6fbd5cb476af1cb05c329639e0e04ea9fdb402';
+// for the owner's 0.0.300 release target (refs #402); comparison remains exact.
+const pinnedCanonicalSha256 = 'eea48348084e8d371d0fe4caafcd5328bd101c4d18c2032b5dc4de84fbba3486';
 const { version: authDomainPackVersion } = JSON.parse(
   readFileSync(resolve(root, 'packages/auth-domain-pack/package.json'), 'utf8'),
 ) as { version: string };

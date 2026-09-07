@@ -10,6 +10,50 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ## [Unreleased]
 
+- Make filtered source declarations directly reachable by keyboard and pointer, including explicit zero-result navigation, visible mobile heading clearance and wrapped revision hashes. Render every declaration of historical inventories whose persisted identities duplicate by keying rows on immutable inventory position, without rewriting saved evidence or requiring rediscovery (refs #462).
+
+- Add bounded literal HTML/EJS control, action and state-attribute discovery without executing template code. Preserve explicit parser/template/runtime gaps and committed source provenance. Distinguish repeated same-line declaration identities so fresh dashboard inventories filter without stale rows. Add the real reference-page/dashboard journey to all installed acceptance modes (17 files) (refs #460).
+
+- Reserve capture filenames per attempted checkpoint so one evidence-write failure cannot reuse its blocked destination for later healthy pages. Preserve blocked coverage and explicit diagnostics; exercise manual recovery with immutable prior results (refs #458).
+
+- Keep Back and Save together in project settings and make dialog-footer actions at least 44 pixels tall. Strengthen line-containment and hit-test evidence; retain unresolved contrast results without a waiver (refs #456).
+
+- Add native pixel-density matrices, independent baseline identities and capture filters. Keep element measurements in CSS pixels and AI finding overlays in image pixels. Refuse oversized captures and bring project validation errors into view. Native Chromium uses the full headless renderer with explicit baseline identity after reproducing a shell-only raster defect. AI image-size refusals offer actionable recovery. Reuse real sign-in state within each browser family of a run to avoid matrix-driven login-rate limiting; discard it between runs (refs #454).
+
+- Reject unsupported fixture-provider declarations at CLI and worker boundaries with field-specific diagnostics that omit supplied values (refs #452).
+
+- Explain failed capture operations beside the affected browser/theme/page, with grouped recovery guidance on desktop/mobile. Keep historical results compatible and all privacy/blocked outcomes intact (refs #448).
+
+- Add an explicit real WebKit navigation diagnostic with sanitized event evidence and native exception/adversarial request guards (refs #447). Existing no-error gates remain unchanged.
+
+- Grow dashboard navigation and text buttons with their text; adapt mobile navigation column counts; wrap run headings, breadcrumbs, activity rows and folder metadata across system fonts; make the model catalog keyboard-scrollable. Successful sign-in preserves bookmarked run selection while clearing unsent drafts and screenshot consent (refs #445).
+
+- Fix source folder loading no longer moving Continue; selecting an already-selected measurement reveals its full preview; image retry requests fresh bytes; forced-color buttons use readable system colors. Add explicit dashboard browser selection, shared installed dashboard CI across Chromium/Firefox/WebKit, browser provenance, a persistent-overflow negative guard and incomplete accessibility verdicts (refs #443).
+
+- Find captures within a run using combined browser/theme/viewport/comparison filters, matching counts and keyboard-accessible pagination while preserving evidence and baseline history (refs #441).
+
+- Add dashboard-configured browser/theme visual matrices with independent baseline identities, environment-specific outcomes/findings and shared-budget omissions. Support actual WebKit viewport PNGs by removing validated fixed color markers without changing encoded pixels or loosening retained PNG validation (refs #439).
+
+- Find captured buttons, fields, headings and other bounded types alongside number/point filters. Preserve legacy numeric inspection, reject malformed type metadata and keep hard geometry verdicts independent of browsing hints. Extend real and installed dashboard browser gates (refs #437).
+
+- Add installed `arxic web` with prebuilt dashboard and compiled isolated jobs; validate asset/job integrity and absolute roots before readiness. Extend the clean-install gate through real dashboard discovery, visual/baseline/element inspection, functional campaigns and restart/deletion/queued-run recovery. Source development remains available. No registry release performed (refs #435).
+
+- Distinguish a capture's historical comparison from current baseline approval, including explicit reasons for absent baseline/difference images. Approval and replacement preserve previous results and image references while updating future comparisons (refs #433).
+
+- Manage evidence retention in Administration with disabled-by-default policy, protected whole-history previews, explicit consent, bounded idle cleanup and persistent recovery outcomes. Manual, automatic and restart deletion share baseline/review/campaign protection. Failed cleanup exposes retry guidance and preserves durable intent without claiming success (refs #431).
+
+- Inspect captured numeric element boxes by screenshot point or keyboard ID search, navigate retained parents, and review overlapping measurement checks. Reject malformed/unbound geometry and changed or symlinked original image evidence; recover from unavailable images/reports. Keep solver verdicts and incomplete coverage explicit (refs #429).
+
+- Expose explicitly approved workflow checkpoint captures in Test runs, with guided semantic region/mask settings, capture consent, original privacy provenance, image integrity checks and loading/error/retry feedback. Local and worker execution share the existing privacy policy validator. Workflow images remain separate from visual baselines and complete audit verdicts (refs #427).
+
+- Fix generated replay to wait for asynchronous actions before assertions, screenshots and receipts. Share the bounded exploration service and canonical runtime bytes; delayed real reset submissions must produce inbox counts 1, 2, 3, without weakening the original assertion (refs #422).
+
+- Add solid-paint text contrast measurements, numeric ratio/threshold evidence, verdict/search filters and screenshot region lookup. Preserve unknown paint, privacy masks and budget stops as unverified; no model can waive numeric failures (refs #402).
+
+- Integrate the local dashboard rewrite and correct observed navigation, retrieval, keyboard, responsive, contrast, clone-boundary and recording-privacy defects with real-browser dashboard journeys and reference-app capture proof (refs #402).
+
+- Add numeric layout assessment artifacts with screenshot binding, stability checks, deterministic document-overflow measurements, tamper rejection and explicit unverified families to visual captures (refs #402).
+
 - Add bounded, hash-checked PNG delivery to HTTP and explicitly configured host model transports, with metadata-only records and temporary attachment cleanup (refs #402).
 
 ### Added
