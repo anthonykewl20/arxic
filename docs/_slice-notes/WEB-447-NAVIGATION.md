@@ -1,6 +1,6 @@
 # WEB-447-NAVIGATION — staged investigation updates
 
-Issue: #447 · PR: pending · Disposition: observed; investigation open
+Issue: #447 · PR: #449 · Disposition: observed; investigation open
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
@@ -20,8 +20,9 @@ No: diagnostic-only; no user-visible runtime change.
 
 ## 5. Evidence pointers
 
-- [Proof](../evidence/WEB-447-NAVIGATION/summary.md): one real probe passed in12.54s, four inspected masked PNGs and hash-bound sanitized timeline/event records.
+- [Proof](../evidence/WEB-447-NAVIGATION/summary.md): one real probe passed in 12.54 s, four inspected masked PNGs and hash-bound sanitized timeline/event records.
 - Command/config: `scripts/navigation-probe.config.ts`; excluded from default test discovery because a non-reproducing run is inconclusive.
+- Typecheck and lint passed; full-repository format after the note ended `All matched files use Prettier code style!`.
 - Current-head CI remains required; this is not completed investigation work.
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
