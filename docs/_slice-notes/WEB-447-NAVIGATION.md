@@ -1,6 +1,6 @@
 # WEB-447-NAVIGATION — staged investigation updates
 
-Issue: #447 · PR: #449 · Disposition: observed; investigation open
+Issue: #447 · Review: replacement for #449, linked on the issue · Disposition: observed; investigation open
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
@@ -37,3 +37,8 @@ No: diagnostic-only; no user-visible runtime change.
 No production error filter or lifecycle cancellation is shipped. Native event
 absence alone cannot classify an error as harmless. Document/request identity,
 early-login and back/forward cases remain open under #447.
+
+The replacement branch is based on merged capture recovery `bacc2da1`. README
+conflicts retain both recovery and diagnostic documentation. The probe and its
+retained evidence are byte-identical to the original review; the progress review
+also records the completed #446 gates. No published history was rewritten.
