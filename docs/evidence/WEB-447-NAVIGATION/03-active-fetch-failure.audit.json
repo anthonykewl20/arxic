@@ -1,0 +1,15 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "active-fetch-error-observed",
+      "passed": true,
+      "values": {
+        "count": 1
+      }
+    }
+  ]
+}
