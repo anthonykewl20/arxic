@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Scroll the failing text control into view for pixel corroboration",
+    "result": "failed",
+    "screenshot": "03-source-wizard-text-detail.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

@@ -161,3 +161,8 @@ All six source cases passed in Chromium, Firefox and WebKit; the
 negative guards and corrected screenshots. PR #446 records required installed CI
 acceptance. This is not a completed release or human visual sign-off. Native browser zoom,
 full locale/persona/state coverage and incomplete accessibility checks remain gaps.
+
+The first installed #445 run exposed font-dependent title/activity overflow and
+folder metadata clipping after local source passes. Both were reproduced and
+corrected; the retained proof distinguishes failed CI, temporary font probes and
+committed normal-font validation. Current-head installed CI remains mandatory.

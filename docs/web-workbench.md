@@ -689,7 +689,9 @@ failed numeric finding even when the accessibility engine finds no violation.
 Navigation rows and text buttons use content height with minimum target sizes.
 The desktop sidebar scales with enlarged text and mobile navigation reduces its
 column count when needed; run headings, breadcrumbs and
-activity rows wrap. Provider titles may truncate in the picker only because
+activity rows wrap. Headings and folder metadata also wrap under wider system
+fonts; the wizard audits populated folder rows and retains a scrolled metadata
+capture. Provider titles may truncate in the picker only because
 activation exposes the exact full heading, which is separately measured.
 
 Numeric findings are retained beside screenshots and sanitized action timelines.

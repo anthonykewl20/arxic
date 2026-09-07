@@ -1,0 +1,184 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "user-text-profile-applied",
+      "passed": true,
+      "values": {
+        "originalSize": 14,
+        "actualSize": 28
+      }
+    },
+    {
+      "id": "text-3-containment",
+      "passed": true,
+      "values": {
+        "x": 12,
+        "y": 11,
+        "width": 143.88333129882812,
+        "height": 42,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-19-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 222,
+        "width": 288,
+        "height": 104,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-20-containment",
+      "passed": true,
+      "values": {
+        "x": 33,
+        "y": 628.7999877929688,
+        "width": 254,
+        "height": 84,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-21-containment",
+      "passed": true,
+      "values": {
+        "x": 33,
+        "y": 1624.199951171875,
+        "width": 254,
+        "height": 84,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-22-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 2148.39990234375,
+        "width": 246,
+        "height": 84,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-23-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 2872,
+        "width": 246,
+        "height": 108,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-24-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 2996,
+        "width": 246,
+        "height": 114,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-25-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 3126,
+        "width": 246,
+        "height": 114,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-26-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 3706,
+        "width": 246,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-27-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 3810,
+        "width": 246,
+        "height": 86,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-28-containment",
+      "passed": true,
+      "values": {
+        "x": 37,
+        "y": 3912,
+        "width": 202.9499969482422,
+        "height": 49,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-29-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 4006,
+        "width": 288,
+        "height": 84,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    }
+  ]
+}

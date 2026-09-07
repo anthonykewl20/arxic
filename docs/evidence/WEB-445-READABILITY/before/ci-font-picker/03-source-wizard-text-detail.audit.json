@@ -1,0 +1,25 @@
+{
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "count": 3
+    }
+  ],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "focused-text-containment",
+      "passed": false,
+      "values": {
+        "x": 49,
+        "y": 400.203125,
+        "width": 292,
+        "height": 55,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    }
+  ]
+}

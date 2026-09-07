@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "429123bf38a011151fee57ad375defdf8eac154f",
+  "dirty": false,
+  "browser": {
+    "name": "chromium",
+    "version": "151.0.7922.34"
+  },
+  "passedTests": 6,
+  "files": 2,
+  "durationSeconds": 119.5,
+  "pngs": 130,
+  "timelines": 6,
+  "incompleteReports": 28,
+  "numericChecks": 1834,
+  "failedNumericChecks": [
+    [
+      "readability/guard/clipped-button-guard.audit.json",
+      "login-label-containment"
+    ]
+  ]
+}

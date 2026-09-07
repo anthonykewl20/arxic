@@ -1,8 +1,10 @@
 # Dashboard readability evidence — WEB-445
 
-Refs #445, PR #446 and parent #402. Implementation source:
-`9bc52fdd8aebd39e9203c49b7da565b9a287a198`. Final source screenshots record a clean
-checkout and the actual browser engine/version. Installed CI acceptance is pending.
+Refs #445, PR #446 and parent #402. The original full three-engine source
+campaign ran at `9bc52fdd8aebd39e9203c49b7da565b9a287a198`. Installed CI then
+exposed additional font-dependent defects; the corrective implementation is
+`429123bf38a011151fee57ad375defdf8eac154f`. Current-head installed acceptance
+remains required. Each screenshot retains its actual source/dirty/browser metadata.
 
 The real workbench journeys connect a vulnerable-auth reference project, discover
 its source, run the visual engine, select measured elements and use Administration
@@ -53,9 +55,9 @@ The scope does not establish native zoom, arbitrary input-text clipping, all
 locales/personas/states, every heuristic, transient animation-frame causality or
 paid-provider quality. Full release readiness remains under #402.
 
-## Source results
+## Original three-engine source results (before the CI font corrections)
 
-All six cases passed on each engine at the source commit above: the negative
+All six cases passed on each engine at `9bc52fd`: the negative
 guard, spacing/light, spacing/dark, enlarged/light, enlarged/dark and normal
 navigation. No case was skipped in these final runs.
 
@@ -106,3 +108,53 @@ locally; the final format result is recorded in the PR after all documentation.
 Issue #402 remains open. No release, deployment, human sign-off or full heuristic
 certification is asserted. Historical focused runs used name filters for diagnosis;
 their excluded cases are not counted as passes.
+
+## CI font failures and corrections
+
+Installed CI [34070174127](https://github.com/anthonykewl20/arxic/actions/runs/34070174127)
+failed at PR head `395c78e` (merge checkout `e66da90d1a898fb1a25f208fede7b27833b34b8e`).
+Shard 2 had two readability failures; all three installed dashboard jobs also
+failed. Their pass requirements were not waived. Retained CI metadata includes
+`dirty: true`; it is preserved rather than rewritten as a clean checkout claim.
+
+Enlarged Administration had 27px document overflow: its H1 text extended 43.45px
+beyond its box, and the activity heading's SMALL element also exceeded the
+viewport. The title is visibly cut in the retained CI screenshot. A local
+DejaVu Sans response override reproduced the exact measurements. Headings now
+wrap within their available width and section-heading children can wrap onto
+another row. At 200% on a narrow screen, a long heading may span lines.
+
+WebKit also caught a populated folder row whose metadata exceeded its button by
+43.603515625px. Its screenshot visibly cuts “no package.json”. The row and metadata
+now wrap. The source-wizard audit waits for real folder rows and scrolls a
+no-package row into a dedicated capture, preventing a loading state from masking
+this data-dependent defect.
+
+The diagnostic font override is **not** the production font configuration. The
+[diagnostic record](./font-diagnostic.json) gives the exact CSS, computed-font
+canary and production CSS hash. The first glob-only probe missed the versioned
+stylesheet and is not font-reproduction proof. Corrected Firefox red/green runs
+were 34.78s / 38.32s; the WebKit picker red and final scrolled proof were 8.51s /
+32.70s. These were focused cases, not whole-suite passes. The temporary font
+override was removed before committing the production fix.
+
+After the corrections, clean Chromium at `429123b` passed all six normal-font
+readability/navigation cases in 119.50s. All 130 PNGs and six timelines matched
+their hashes. There were no accessibility violations, document overflow or
+unexpected numeric failures; 28 incomplete reports remain unverified.
+[Current source results](./font-source-results.json) preserve the 1,834 numeric
+checks and expected negative guard. Required installed CI must still pass on
+the final PR head.
+
+Supplemental inspected captures:
+
+- [CI Administration clipping](./before/ci-font-administration/14-mobile-administration.png)
+- [CI folder metadata clipping](./before/ci-font-picker/03-source-wizard-text-detail.png)
+- [Corrected Administration under the diagnostic font](./fallback/firefox/14-mobile-administration.png)
+- [Corrected folder metadata under the diagnostic font](./fallback/webkit/03b-folder-metadata.png)
+- [Committed normal-font folder metadata](./font-final/chromium/03b-folder-metadata.png)
+- [Committed normal-font Administration](./font-final/chromium/14-mobile-administration.png)
+
+The complete retained selection is 27 inspected PNGs and 22 exact sanitized
+timeline excerpts. This includes historical failures, diagnostic overrides and
+normal-font corrections; it is not a set of 27 passing test points.
