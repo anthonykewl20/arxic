@@ -1,0 +1,11 @@
+{
+  "sha256": "4451db9f28689d660c75a2f4e3ec914eda8cbd61d92764ca7e47afb2720608e3",
+  "method": "allow-listed test annotations, viewport and result; no DOM/network/field payloads",
+  "rawTraceRetained": false,
+  "sourceCommit": "91c61b77f25614fc371be4683e7512555cea62ee",
+  "browser": {
+    "name": "chromium",
+    "version": "151.0.7922.34"
+  },
+  "dirty": true
+}

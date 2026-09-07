@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/capture-loss-448
+
+ ✓ apps/web/src/__tests__/capture-partial-loss.real-world.test.ts (1 test) 7676ms
+   ✓ retains completed captures and classifies the loss when an environment timeline write fails  7674ms
+
+ Green: chromium 7.68 s; firefox 11.68 s; webkit 7.98 s (green-firefox/,
+ green-webkit/). Both healthy captures retained; loss classified
+ timeline-write-failed @ evidence-write on the firefox cell; chromium cell
+ observed with its capture; run outcome blocked with the attributed reason.

@@ -727,7 +727,7 @@ engine, and non-reproducing WebKit proof rounds fail as inconclusive. The main
 journey asserts this classified hard list; [retained proof](./evidence/WEB-447-NAVIGATION/summary.md)
 records the three-engine evidence and the deterministic reproduction.
 
-Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
+Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof. The original five-of-six CI capture loss is root-caused to the environment-level partial-result-discard class and fixed: a failed environment timeline write now retains that environment's completed captures with a `timeline-write-failed` finding and attributed cell reason, the run-level read-back no longer discards a faulty environment, and mid-matrix context/page failures record a per-page `environment` phase ([proof](./evidence/WEB-448-CAPTURE-DIAGNOSTICS/summary.md)). No raw errors, retries or privacy waivers are added.
 
 Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
 
@@ -753,7 +753,7 @@ An AI image-dimension refusal now tells you to choose a smaller viewport or lowe
 ### Installed-dashboard CI scope and interruption evidence
 
 The packaged Chromium release flow and an ordinary `--dashboard-only` run execute
-all eighteen declared dashboard files. Firefox/WebKit CI assigns those same files
+all nineteen declared dashboard files. Firefox/WebKit CI assigns those same files
 to two required partitions (`--dashboard-shard 1` and `--dashboard-shard 2`); both
 must pass for each browser. A partition is not whole-browser acceptance. Selection
 contracts guard exhaustive, disjoint membership and reject sharding the full CLI
@@ -775,6 +775,6 @@ The original installed Firefox failure is retained in the
 The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a historical light Firefox journey failure. Subsequent exact-head CI 34091854414 passed all required installed browser cases before PR #455 merged; local reruns alone did not waive the earlier failure.
 Project-dialog footer actions use a 44-pixel minimum height. In settings, the explanatory text precedes Back and Save, keeping navigation and submission on one row on narrow screens. [Retained red evidence](evidence/WEB-456-FOOTER/action-row/summary.md) documents the original 114-pixel action-row separation and 32-pixel tablet targets. This layout fix does not convert unresolved footer contrast checks into passes.
 
-Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among eighteen required dashboard files.
+Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among nineteen required dashboard files.
 
 The intent inventory includes a matching-declaration link for each discovered project. Activate it by pointer or keyboard to focus the declaration heading without scrolling past the route table. Zero matches lead to the explicit empty result; source revision hashes wrap at narrow widths. Navigation acceptance includes 1440- and 320-pixel views.

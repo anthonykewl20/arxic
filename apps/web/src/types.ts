@@ -130,4 +130,4 @@ export type Campaign = {
 
 /** Last attempted capture operation; never inferred from raw exception text. */
 export type CaptureFailurePhase =
-  'navigation' | 'readiness' | 'measurement' | 'privacy-capture' | 'evidence-write';
+  'environment' | 'navigation' | 'readiness' | 'measurement' | 'privacy-capture' | 'evidence-write';
