@@ -1,0 +1,17 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "teardown-silent",
+      "passed": true,
+      "values": {
+        "engine": "firefox",
+        "reproduced": 0,
+        "waived": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "engine": "firefox",
+  "events": [
+    {
+      "kind": "hard",
+      "name": "Fetch API cannot load http"
+    },
+    {
+      "kind": "hard",
+      "name": "Error"
+    }
+  ],
+  "trace": [
+    {
+      "sequence": 0,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 1,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 2,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 3,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 4,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 5,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 6,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 7,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 8,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 9,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 10,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 11,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 12,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 13,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 14,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 15,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 16,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 17,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 18,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 19,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 20,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 21,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 22,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 23,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 24,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 25,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 26,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 27,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 28,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 29,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 30,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 31,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 32,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 33,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 34,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 35,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 36,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 37,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 38,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 39,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 40,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 41,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 42,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 43,
+      "kind": "native-error"
+    },
+    {
+      "sequence": 44,
+      "kind": "hard"
+    },
+    {
+      "sequence": 45,
+      "kind": "native-error"
+    },
+    {
+      "sequence": 46,
+      "kind": "hard"
+    }
+  ]
+}

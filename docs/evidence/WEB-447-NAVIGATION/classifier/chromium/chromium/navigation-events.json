@@ -1,0 +1,155 @@
+{
+  "engine": "chromium",
+  "events": [
+    {
+      "kind": "hard",
+      "name": "Fetch API cannot load http"
+    },
+    {
+      "kind": "hard",
+      "name": "Error"
+    }
+  ],
+  "trace": [
+    {
+      "sequence": 0,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 1,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 2,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 3,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 4,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 5,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 6,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 7,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 8,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 9,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 10,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 11,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 12,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 13,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 14,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 15,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 16,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 17,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 18,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 19,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 20,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 21,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 22,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 23,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 24,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 25,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 26,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 27,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 28,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 29,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 30,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 31,
+      "kind": "native-error"
+    },
+    {
+      "sequence": 32,
+      "kind": "hard"
+    },
+    {
+      "sequence": 33,
+      "kind": "native-error"
+    },
+    {
+      "sequence": 34,
+      "kind": "hard"
+    }
+  ]
+}

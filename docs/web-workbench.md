@@ -715,6 +715,18 @@ checks require that detail before reload and retain session draft/consent cleanu
 checks. The general WebKit early-reload diagnostic is separately tracked in #447;
 the login fix is not a claim that every outgoing-document error is resolved.
 
+The #447 investigation is closed by corroboration, not waiver: WebKit's
+`ThreadableLoader::logError` skips cancellations but logs fetches initiated
+during document teardown as JS-source console errors, which the driver reports
+as `pageerror`. The shared `trackDashboardErrors` check classifies such an event
+as outgoing-document evidence only when the exact message shape, a known API
+endpoint, a teardown marker, the absence of a same-endpoint non-cancellation
+request failure and the absence of native exceptions all corroborate; active
+request refusals, thrown look-alikes and native errors stay hard on every
+engine, and non-reproducing WebKit proof rounds fail as inconclusive. The main
+journey asserts this classified hard list; [retained proof](./evidence/WEB-447-NAVIGATION/summary.md)
+records the three-engine evidence and the deterministic reproduction.
+
 Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
 
 Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
@@ -741,7 +753,7 @@ An AI image-dimension refusal now tells you to choose a smaller viewport or lowe
 ### Installed-dashboard CI scope and interruption evidence
 
 The packaged Chromium release flow and an ordinary `--dashboard-only` run execute
-all seventeen declared dashboard files. Firefox/WebKit CI assigns those same files
+all eighteen declared dashboard files. Firefox/WebKit CI assigns those same files
 to two required partitions (`--dashboard-shard 1` and `--dashboard-shard 2`); both
 must pass for each browser. A partition is not whole-browser acceptance. Selection
 contracts guard exhaustive, disjoint membership and reject sharding the full CLI
@@ -763,6 +775,6 @@ The original installed Firefox failure is retained in the
 The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a historical light Firefox journey failure. Subsequent exact-head CI 34091854414 passed all required installed browser cases before PR #455 merged; local reruns alone did not waive the earlier failure.
 Project-dialog footer actions use a 44-pixel minimum height. In settings, the explanatory text precedes Back and Save, keeping navigation and submission on one row on narrow screens. [Retained red evidence](evidence/WEB-456-FOOTER/action-row/summary.md) documents the original 114-pixel action-row separation and 32-pixel tablet targets. This layout fix does not convert unresolved footer contrast checks into passes.
 
-Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among seventeen required dashboard files.
+Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among eighteen required dashboard files.
 
 The intent inventory includes a matching-declaration link for each discovered project. Activate it by pointer or keyboard to focus the declaration heading without scrolling past the route table. Zero matches lead to the explicit empty result; source revision hashes wrap at narrow widths. Navigation acceptance includes 1440- and 320-pixel views.

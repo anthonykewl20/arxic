@@ -1,0 +1,17 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "teardown-diagnostic-reproduced",
+      "passed": true,
+      "values": {
+        "engine": "webkit",
+        "reproduced": 2,
+        "waived": 2
+      }
+    }
+  ]
+}

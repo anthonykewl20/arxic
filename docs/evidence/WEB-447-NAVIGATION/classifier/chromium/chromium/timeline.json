@@ -1,0 +1,47 @@
+[
+  {
+    "action": "Real session is established before any stimulus",
+    "result": "passed",
+    "screenshot": "01-signed-in.png",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    }
+  },
+  {
+    "action": "Fetches initiated during document teardown are classified, not waived blindly",
+    "result": "passed",
+    "screenshot": "02-teardown-stimulus.png",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    }
+  },
+  {
+    "action": "An active-page request refusal stays an error on every engine",
+    "result": "passed",
+    "screenshot": "03-active-refusal.png",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    }
+  },
+  {
+    "action": "A thrown fetch-lookalike stays a hard error",
+    "result": "passed",
+    "screenshot": "04-thrown-lookalike.png",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    }
+  },
+  {
+    "action": "An unrelated native error stays hard",
+    "result": "passed",
+    "screenshot": "05-native-canary.png",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    }
+  }
+]

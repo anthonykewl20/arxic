@@ -58,3 +58,44 @@ incorrect exact canary message match. Both harness problems were corrected.
 WebKit rejected a route-fulfilled HTTP 302 stimulus, so that harness run failed;
 the final active-failure stimulus uses the supported browser request-abort API.
 No original production assertion was widened to resolve these failures.
+
+## Runtime classifier delivered and proven (2026-09-07)
+
+The authorized runtime classification now exists: `apps/web/src/__tests__/dashboard-errors.ts`
+(`trackDashboardErrors`) waives a fetch-load-shaped driver `pageerror` only when
+the exact `ThreadableLoader::logError` console-text shape matches, the URL is a
+known dashboard GET API endpoint, an outgoing-document teardown marker (native
+`pagehide` or main-frame navigation commit) exists within a two-second window on
+either side, no request to the same endpoint failed for a non-cancellation
+reason (every active failed request has a `requestfailed` record; the teardown
+fetch fails synchronously before dispatch), and no native
+`error`/`unhandledrejection` marker exists. Classification is deferred to query
+time because driver delivery order can place the `pageerror` before the
+outgoing document's `pagehide` marker and before the replacing document's
+commit event — both observed in retained traces. Message shape alone waives
+nothing; ambiguous cases stay hard errors.
+
+Deterministic reproduction replaced the 4-in-100 loop: a fetch issued from a
+`pagehide` handler and tight-timer fetches racing navigation teardown produce
+the driver event on demand (plain in-flight cancellation never does —
+`logError` skips cancellations, and 14 held-response/cancel rounds produced
+zero events). The split of the console text across `error.name`/`error.message`
+at the URL's `http:` is recorded with the exact reconstructions.
+
+Proof (three engines, `classifier/` in this directory): WebKit reproduces the
+teardown event and classifies it `outgoing-document-fetch` while active-page
+`accessdenied` refusals, thrown fetch-look-alikes and native canaries stay hard
+(non-reproducing WebKit rounds fail the test as inconclusive); Chromium and
+Firefox teardown stays silent with zero pageerrors and every guard stays hard.
+The post-stimulus document still serves real navigation and data. The
+`ui.real-world` journey now asserts `hard()` instead of a raw name list — the
+first adoption; other journeys keep their existing no-error checks until their
+own adoption is proven. The journey's retry-click race (unroute → polling
+recovery detaches the button mid-click) was made deterministic by retrying
+while the refusal is still routed; assertions are unchanged.
+
+Residuals, explicitly: the classifier waives only the corroborated
+outgoing-document shape; back/forward restoration and multi-document session
+lifecycle beyond this journey remain unvisited, and no human inspection is
+claimed. Raw Playwright traces are never retained; the event records carry
+closed categories with hash-bound sanitization metadata.

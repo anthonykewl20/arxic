@@ -1,0 +1,132 @@
+{
+  "engine": "webkit",
+  "events": [
+    {
+      "kind": "outgoing-document-fetch",
+      "endpoint": "/api/state"
+    },
+    {
+      "kind": "outgoing-document-fetch",
+      "endpoint": "/api/state"
+    },
+    {
+      "kind": "hard",
+      "name": "Fetch API cannot load http"
+    },
+    {
+      "kind": "hard",
+      "name": "Fetch API cannot load http"
+    },
+    {
+      "kind": "hard",
+      "name": "Error"
+    }
+  ],
+  "trace": [
+    {
+      "sequence": 0,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 1,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 2,
+      "kind": "request-cancelled",
+      "endpoint": "/api/state"
+    },
+    {
+      "sequence": 3,
+      "kind": "request-cancelled",
+      "endpoint": "/api/state"
+    },
+    {
+      "sequence": 4,
+      "kind": "request-cancelled",
+      "endpoint": "/api/state"
+    },
+    {
+      "sequence": 5,
+      "kind": "request-cancelled",
+      "endpoint": "/api/state"
+    },
+    {
+      "sequence": 6,
+      "kind": "request-cancelled",
+      "endpoint": "/api/state"
+    },
+    {
+      "sequence": 7,
+      "kind": "request-cancelled",
+      "endpoint": "/api/state"
+    },
+    {
+      "sequence": 8,
+      "kind": "request-cancelled",
+      "endpoint": "/api/state"
+    },
+    {
+      "sequence": 9,
+      "kind": "outgoing-document-fetch",
+      "endpoint": "/api/state"
+    },
+    {
+      "sequence": 10,
+      "kind": "outgoing-document-fetch",
+      "endpoint": "/api/state"
+    },
+    {
+      "sequence": 11,
+      "kind": "native-hide"
+    },
+    {
+      "sequence": 12,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 13,
+      "kind": "native-ready"
+    },
+    {
+      "sequence": 14,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 15,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 16,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 17,
+      "kind": "hard"
+    },
+    {
+      "sequence": 18,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 19,
+      "kind": "main-frame-navigated"
+    },
+    {
+      "sequence": 20,
+      "kind": "native-error"
+    },
+    {
+      "sequence": 21,
+      "kind": "hard"
+    },
+    {
+      "sequence": 22,
+      "kind": "native-error"
+    },
+    {
+      "sequence": 23,
+      "kind": "hard"
+    }
+  ]
+}
