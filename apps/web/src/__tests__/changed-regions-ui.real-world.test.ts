@@ -13,8 +13,8 @@ import { Workbench } from '../workbench';
 import { startWorkbench } from './workbench-runtime';
 
 const REGION_STYLE = `<style>
-.change-a{position:fixed;left:40px;top:40px;width:40px;height:40px;background:#e14b1f}
-.change-b{position:fixed;right:60px;bottom:80px;width:48px;height:32px;background:#1fd3e1}
+body::before{content:'';position:fixed;z-index:2147483647;left:40px;top:40px;width:40px;height:40px;background:#e14b1f}
+body::after{content:'';position:fixed;z-index:2147483647;right:60px;bottom:80px;width:48px;height:32px;background:#1fd3e1}
 </style>`;
 
 it('walks changed regions with an overlay and keyboard shortcuts in a real browser', async () => {
