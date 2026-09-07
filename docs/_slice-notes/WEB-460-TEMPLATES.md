@@ -1,6 +1,6 @@
 # WEB-460-TEMPLATES — staged doc updates
 
-Issue: #460 · PR: pending · Disposition: mixed, installed acceptance pending
+Issue: #460 · PR: #461 · Disposition: mixed, installed acceptance pending
 
 ## 1. `docs/SYNC.md` — tracker row
 

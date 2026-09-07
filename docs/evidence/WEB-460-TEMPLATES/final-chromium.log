@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/frontend-templates
+
+
+ Test Files  5 passed (5)
+      Tests  14 passed (14)
+   Start at  15:53:58
+   Duration  110.61s (transform 988ms, setup 0ms, import 1.06s, tests 109.06s, environment 0ms)
+
