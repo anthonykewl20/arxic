@@ -9,7 +9,7 @@ Self-hosted frontend testing workbench for source-intent discovery, AI-assisted
 E2E, visual regression review, scheduled runs, and project administration.
 
 The web workbench includes real source scanning with frontend declarations and coverage gaps, an existing AI/replay
-engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, Chromium screenshot comparisons, on-demand selected-workflow campaigns and a management dashboard. The full
+engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, browser/theme/pixel-density screenshot comparisons, on-demand selected-workflow campaigns and a management dashboard. The full
 product remains in development: authenticated visual states and comprehensive
 frontend state/intent campaigns are tracked in [#402](https://github.com/anthonykewl20/arxic/issues/402).
 Contributor setup and CI native-build details are in [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -23,11 +23,15 @@ The [compact visual-model experiment](scripts/visual-slm/README.md) now provides
 
 The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
-Test runs now searches all stored history with project/type/status filters and bookmarkable URLs. Capture details expose numeric measurements and explicit coverage gaps. The dashboard includes responsive themes, keyboard navigation and [real-browser UX audit evidence](docs/evidence/WEB-402-DASHBOARD-UX/summary.md). Continuous unmasked video is unavailable; masked screenshots and sanitized action timelines provide recording evidence.
+Test runs now searches all stored history with project/type/status filters and bookmarkable URLs. Within a run, the capture gallery combines path/browser/theme/pixel-density/viewport/comparison filters and six-capture pagination. Capture details expose numeric measurements, solid-paint text contrast, screenshot regions and explicit coverage gaps. The dashboard includes responsive themes, keyboard navigation and [real-browser UX audit evidence](docs/evidence/WEB-402-DASHBOARD-UX/summary.md). Continuous unmasked video is unavailable; masked screenshots and sanitized action timelines provide recording evidence.
 
 The dashboard uses React/shadcn for its navigation shell, overview, intent inventory, workflow selection, campaigns, run/capture review, model fields, schedules, administration and **Models & accounts** screen with provider-owned model discovery (including configured default HTTP connections), native subscription-account bridges and [provider connections and custom model IDs](docs/web-workbench.md#provider-connections-and-model-ids) for guided AI execution and inspected-image review. Review and campaign submissions stay pending across navigation; session invalidation clears unsent consent and selections.
 
 ## Run the web app locally
+
+The built npm tarball also provides `arxic web` with prebuilt dashboard assets and
+compiled background jobs. See [installed server setup](docs/web-workbench.md#installed-server-command).
+The source-checkout commands are:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -130,3 +134,55 @@ MIT. See `LICENSE` for terms. Third-party notices are tracked in `NOTICE`.
 
 Current scoped proof: [default-provider catalogs](docs/evidence/WEB-402-DEFAULT-CATALOG/summary.md), [session and pending-request protection](docs/evidence/WEB-402-SESSIONS/summary.md), [React run and review controls](docs/evidence/WEB-402-RUN-REVIEW/summary.md), [subscription accounts and dynamic catalogs](docs/evidence/WEB-402-SUBSCRIPTIONS/summary.md), [provider/model controls](docs/evidence/WEB-402-MODELS/summary.md)
 and [clean source installation/recovery](docs/evidence/WEB-402-INSTALL/summary.md).
+
+Latest scoped visual evidence: [solid text contrast and dashboard region inspection](docs/evidence/WEB-402-CONTRAST/summary.md).
+
+Generated workflow replays wait for action-related network completion and stable page observations before assertions, screenshots and receipts. The same bounded settling service runs during exploration; see [the reset replay regression](docs/adr/009-web-workbench.md#2026-09-06-asynchronous-replay-completion).
+
+Guided AI E2E can expose approved workflow checkpoint screenshots in the dashboard,
+including states reached after authentication. Configure a semantic capture region
+and privacy masks with explicit consent, then inspect the hash-checked checkpoint
+gallery and provenance in Test runs. See the [workflow checkpoint guide](docs/web-workbench.md#workflow-checkpoints).
+
+Visual checkpoints also support [captured-element inspection](docs/web-workbench.md#inspect-captured-elements):
+filter by element type, pick a screenshot point or search capture-local element numbers, navigate measured
+parents, and inspect bounds and overlapping checks. Invalid or image-unbound
+evidence remains unavailable; numeric boxes are not semantic replay locators.
+
+The web dashboard also supports opt-in [evidence retention](docs/web-workbench.md#schedules-and-history): preview expired runs, preserve baseline/review/campaign references, and recover interrupted cleanup. It is disabled by default.
+
+Visual results distinguish the baseline used for a historical run from the currently approved baseline, preserving prior comparison evidence after approval changes.
+
+Visual capture settings include a browser/theme matrix: Chromium, Firefox and
+WebKit × light/dark × configured viewports, with environment-specific baselines,
+explicit blocked environments and a shared capture budget. See the
+[dashboard setup and scope](docs/web-workbench.md#browsertheme-capture-matrix).
+
+Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](docs/web-workbench.md#dashboard-browser-verification) records engine provenance. [Dashboard proof](docs/evidence/WEB-443-BROWSERS/summary.md) documents the UX fixes, measured checks and remaining coverage boundaries; PR #444 passed installed CI and is merged.
+
+Dashboard readability checks exercise user text spacing and 200% mounted text enlargement across real discovery and capture journeys. Navigation and text buttons grow with content; headings and folder metadata wrap across system fonts, and the model catalog supports keyboard scrolling. See [readability scope](docs/web-workbench.md#dashboard-readability-verification) for exact checks and limits.
+
+[Readability evidence](docs/evidence/WEB-445-READABILITY/summary.md) retains the three-engine source results, measured defects, corrected screenshots and explicit limits. Successful sign-in preserves bookmarked run selection while clearing unsent session drafts and consent. PR #446 tracks required installed CI and the explicit 1/65536 CSS pixel text measurement resolution; general early-reload diagnostics remain in #447. Full release acceptance is pending.
+
+Dashboard validation follow-up: source CI 34075361763 retained five of six required healthy-page gallery captures. Per-cell failure evidence is now retained; the original cause remains tracked in [#448](https://github.com/anthonykewl20/arxic/issues/448), and a later local pass does not discharge it.
+
+Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
+
+Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract.
+
+A [real WebKit navigation diagnostic](docs/evidence/WEB-447-NAVIGATION/summary.md) records native/driver events and adversarial failure cases for #447; it does not suppress production errors.
+
+Managed fixture declarations accept only `captured-mail-sink` (inbox), `test-otp`
+(OTP), and `app-seed-api` or `boot-seeded-admin` (persona strategy). CLI validation and worker policy
+refuse unknown or malformed names before execution, without echoing supplied
+values. These optional declarations name built-in capabilities; they do not load
+plugins, supply credentials, or establish fixture readiness. Omission and the
+existing per-pass login declaration retain their behavior (refs #452).
+
+Native 1×/2×/3× capture selection and density filtering merged in PR #455 after required CI 34091854414 passed. High-density Chromium uses full Chromium headless with an explicit renderer identity. That acceptance covers the scoped source and installed browser journeys; it is not full production-readiness proof.
+
+Capture ordinals are reserved per attempted checkpoint, so a failed evidence destination does not block later healthy pages by reusing its filename. [Storage-failure proof](docs/evidence/WEB-458-WRITE-ISOLATION/summary.md) retains real red/green results and manual recovery with the original blocked snapshot unchanged. Installed acceptance includes eighteen dashboard files; #458 merged after exact-head CI passed (run 34095128927).
+
+Literal HTML/HTM and EJS control discovery includes source lines and hashes, with explicit gaps for unevaluated template code. Declaration IDs distinguish repeated syntax on the same line, preventing stale rows after filtering a fresh scan. [Template discovery proof](docs/evidence/WEB-460-TEMPLATES/summary.md) records actual reference-page and dashboard checks; runtime business semantics remain unproved.
+
+The intent inventory includes a matching-declaration link for each discovered project. Activate it by pointer or keyboard to focus the declaration heading without scrolling past the route table. Zero matches lead to the explicit empty result; source revision hashes wrap at narrow widths. Navigation acceptance includes 1440- and 320-pixel views.

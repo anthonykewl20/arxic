@@ -204,3 +204,46 @@ full-page capture, contrast/alignment/overlap solver, matrix execution or new
 AI fusion is claimed by the evidence foundation.
 
 The dashboard now exposes each retained numeric assessment under **Measured checks and coverage**, with expected predicates, measurement IDs, deltas, unverified gaps, JSON download and unavailable/retry handling. [Dashboard audit evidence](evidence/WEB-402-DASHBOARD-UX/summary.md) tests that presentation and its recovery path; it does not expand the foundation's detector coverage. Continuous unmasked video is refused, including legacy enabled configurations.
+
+## Solid text contrast profile
+
+The visual scene now optionally includes a bounded `textPaint` projection: numeric
+text-fragment bounds, opaque sRGB foreground/background, font size/weight and a
+closed unavailable-reason enum. No DOM text, field values, selectors, URLs or font
+names are retained. New reports use `arxic-layout-text-evidence-v2`; older layout
+reports remain readable. Pixel baseline identity is unchanged by the added detector.
+
+`text-contrast-N` applies the unrounded WCAG 1.4.3 ratio and numeric thresholds:
+4.5:1 for ordinary text; 3:1 at 24 CSS px, or 56/3 CSS px with weight at least 700.
+It describes the solid-paint text profile, not whole-page WCAG compliance or a
+claim that decorative/logotype exceptions have been inferred. Known inactive,
+aria-hidden and image-role text stays unverified. Brand/decorative intent requires
+independent classification; a numeric finding is not legal certification.
+
+The first collector supports direct HTML text with an explicit opaque ancestor
+background. Gradients/images, partial alpha, masks, transforms, nonstandard color
+spaces, unresolved canvas backing, clipping/rounded paint, font uncertainty and
+intersecting non-ancestor boxes remain unverified. Generated pseudo paint, shadows
+and filters conservatively invalidate this profile because their paint can extend
+beyond layout boxes. Iframes, shadow DOM, SVG/canvas text, placeholders, implicit UA
+canvas backgrounds and cross-browser text paint require later collectors. A 2,000
+element budget is explicit; exhaustion cannot produce a contrast pass. The broader
+`contrast-painted-pairs` family therefore remains an unverified coverage gap.
+
+Each applicable result includes observed ratio, threshold, delta, measurement IDs
+and a viewport-space region. The dashboard can locate that region on the retained
+masked image. Screenshot/assessment hashes and stable before/after observations
+remain required. Hard numeric failures survive unavailable model/vision checks.
+
+### Captured element inspection
+
+The dashboard projects the numeric element boxes from a screenshot-bound scene
+for point selection, keyboard ID search, pagination and parent navigation. Scene
+validation checks the image binding, viewport, finite/bounded geometry, scan limit,
+unique preorder IDs and parent ordering. Unsupported/unstable scenes remain
+unavailable. Overlapping boxes are ordered by area and then descending preorder ID;
+this ordering is not a paint or hit-testing claim. Text-paint IDs remain a separate
+namespace; the inspector associates checks only by region intersection. No new
+hard, suspect or vision verdict is assigned by selection. Original image retrieval
+uses bounded regular-file reads with the recorded SHA-256 before any outline is
+shown. See [the operator guide](web-workbench.md#inspect-captured-elements).

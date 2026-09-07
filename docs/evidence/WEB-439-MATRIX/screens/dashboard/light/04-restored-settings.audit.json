@@ -1,0 +1,10 @@
+{
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "count": 1
+    }
+  ],
+  "overflow": 0
+}

@@ -1,0 +1,146 @@
+[
+  {
+    "action": "Invalid login refused; late anonymous response cannot hide authenticated workspace",
+    "result": "passed",
+    "screenshot": "01-empty-workspace.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Outside-root folder refused; reference project saved with visual and schedule settings",
+    "result": "passed",
+    "screenshot": "02-project-overview.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Real source scanner reported login surface and source evidence",
+    "result": "passed",
+    "screenshot": "03-intent-inventory.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Real documentation declarations have source hashes; unsupported EJS stays in coverage gaps",
+    "result": "passed",
+    "screenshot": "09-frontend-declarations.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Unavailable evidence stays an error; retry loads real numeric checks and unverified coverage",
+    "result": "passed",
+    "screenshot": "10-measurement-report.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Measured screenshot region scales to mobile without losing the masked target image",
+    "result": "passed",
+    "screenshot": "14-mobile-measurement-region.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Failed history request shows error instead of stale results",
+    "result": "passed",
+    "screenshot": "13-run-history-unavailable.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Approved baseline compared against fresh real Chromium capture with zero changed pixels",
+    "result": "passed",
+    "screenshot": "04-visual-comparison.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Raw credential rejected; guided settings accept only server secret names",
+    "result": "passed",
+    "screenshot": "11-guided-settings.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Guided settings persist after save and fit the mobile dialog",
+    "result": "passed",
+    "screenshot": "12-mobile-guided-settings.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Administrator enabled the persisted UTC cron schedule",
+    "result": "passed",
+    "screenshot": "05-schedule.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Administration exposes root allow-list and immutable baseline approval audit event",
+    "result": "passed",
+    "screenshot": "06-administration.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Mobile navigation exposes every workspace screen and Escape restores toggle focus",
+    "result": "passed",
+    "screenshot": "13-mobile-navigation.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Mobile dashboard fits its viewport",
+    "result": "passed",
+    "screenshot": "07-mobile-overview.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Mobile search survives status polling and filters real source declarations",
+    "result": "passed",
+    "screenshot": "10-mobile-declarations.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Late pre-logout dashboard response cannot restore a signed-out workspace",
+    "result": "passed",
+    "screenshot": "08-signed-out.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

@@ -14,6 +14,18 @@ set `ARXIC_STATE_DIR` to override the `~/.arxic` state base.
 It runs the real pipeline in the sandbox and imports validated artifacts. See
 [worker deployment](https://github.com/anthonykewl20/arxic/blob/main/docs/operator/worker-deploy.md).
 
+## Web dashboard
+
+`arxic web` starts the token-authenticated local/server workbench. Set
+`ARXIC_ADMIN_TOKEN` (at least 32 characters), `ARXIC_WEB_ROOTS` (a nonempty JSON array
+of absolute allowed folders), and optionally `ARXIC_WEB_STATE_DIR`. Install Chromium
+with `npx --yes --package=playwright@1.62.1 playwright install chromium` for captures.
+The installed command uses bundled frontend assets and compiled jobs; it does not
+compile a source checkout at startup. Missing/corrupt assets refuse readiness.
+See the [server setup guide](https://github.com/anthonykewl20/arxic/blob/main/docs/web-workbench.md#installed-server-command)
+for persistent state, restart behavior, HTTPS proxy settings and runtime prerequisites.
+This command is included in locally built tarballs; publication is a separate release step.
+
 ## Stage-11 healing in 0.1.0
 
 Healing is not performed in the 0.1.0 pipeline. Each completed run records the
@@ -39,3 +51,32 @@ The web workbench's native account profiles reuse this executor's model adapter.
 `ARXIC_MODEL_HOST_CLI_JSON_INPUT=1` enables a prompt/schema stdin envelope for native
 bridges, while ordinary wrappers retain text input. Named web connections resolve
 these settings per job. See [subscription and provider setup](../../docs/web-workbench.md#subscription-accounts-and-provider-catalogs).
+
+### Workflow checkpoint privacy
+
+`policy.checkpointCapture` optionally selects an explicit screenshot capture declaration:
+
+```yaml
+policy:
+  checkpointCapture:
+    mode: approved-region
+    region: { kind: role, role: heading, name: Reference Auth App, exact: true }
+    masks: []
+```
+
+This is an addition to the existing policy fields. The same privacy validator and
+runtime apply to local and worker execution. Regions must use an exact accessible
+role/name or field label and resolve uniquely at each checkpoint; CSS selectors
+and arbitrary script are refused. Use `masked-page` with `fullPage: true` and a
+nonempty semantic `masks` list to capture a page with required redactions. Missing or ambiguous regions fail the capture. Missing mask anchors use the
+existing broader landmark-mask fallback, recorded by the privacy runtime; if no
+bounded fallback exists, capture fails. With no declaration the conservative full-`main`
+mask remains. Choose approved test content; this setting is not a claim that
+arbitrary pixels are secret-free. Dashboard execution also requires capture consent.
+
+Managed fixture declarations accept only `captured-mail-sink` (inbox), `test-otp`
+(OTP), and `app-seed-api` or `boot-seeded-admin` (persona strategy). CLI validation and worker policy
+refuse unknown or malformed names before execution, without echoing supplied
+values. These optional declarations name built-in capabilities; they do not load
+plugins, supply credentials, or establish fixture readiness. Omission and the
+existing per-pass login declaration retain their behavior (refs #452).

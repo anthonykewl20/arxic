@@ -1,0 +1,72 @@
+{
+  "implementation": "f23d337",
+  "proofHead": "45a1560c527618ee571786f0d77e6dbaf1c5eee0",
+  "humanInspection": "not performed",
+  "agentInspection": "Generated PNGs were viewed; the main region is masked and cannot establish layout. Trace archives passed independent sanitizer inspection before export.",
+  "files": [
+    {
+      "file": "before/both-replays-delayed.json",
+      "sha256": "8e99244b69e2c07690219139f971b88d9d658f43dc9a00e577d55de08be04c68"
+    },
+    {
+      "file": "before/first-replay-delayed.json",
+      "sha256": "cea91359208609c21de3b1cf5ab02fb3f01bbd30491c5699a7360a37fbd71e54"
+    },
+    {
+      "file": "run-one/reset-1.png",
+      "sha256": "43b343be982337a4f724c4ccfec670b5246b1a8b78ae110cff7b94bfe317f6d7"
+    },
+    {
+      "file": "run-one/reset-1.png.privacy.json",
+      "sha256": "00e9979eae54555749390db5a7adec8c00cd32ffc7eab2c42ca9287805f8d951"
+    },
+    {
+      "file": "run-one/side-effects.json",
+      "sha256": "83d032b4c09cd9ff273878a806e192545c63e469560c561ea0bf487d8e93c585"
+    },
+    {
+      "file": "run-one/timeline-1.zip",
+      "sha256": "2108f7bbaab4e36757564e889a61db2397d7c9f301105fc462e69c896eb24240"
+    },
+    {
+      "file": "run-one/timeline-1.zip.sanitization.json",
+      "sha256": "583d6a2821c257ca824a09c1a8aaabf68cae8ed18bcf1a4641138943e7d11a96"
+    },
+    {
+      "file": "run-one/timeline-2.zip",
+      "sha256": "97fa5c81df8cce3e40cb2f163d76cfdd8afbbc07ac5b5047ac45cc727b84d65b"
+    },
+    {
+      "file": "run-one/timeline-2.zip.sanitization.json",
+      "sha256": "1bcec20777a94c4361de72df7c58a929ff52f6b4577fe1e898e6620ced637692"
+    },
+    {
+      "file": "run-two/reset-1.png",
+      "sha256": "43b343be982337a4f724c4ccfec670b5246b1a8b78ae110cff7b94bfe317f6d7"
+    },
+    {
+      "file": "run-two/reset-1.png.privacy.json",
+      "sha256": "8ea8d4375e4b549288f92ab9d718b34af737ef7e4eb7c3db20b69bbc53eacd40"
+    },
+    {
+      "file": "run-two/side-effects.json",
+      "sha256": "83d032b4c09cd9ff273878a806e192545c63e469560c561ea0bf487d8e93c585"
+    },
+    {
+      "file": "run-two/timeline-1.zip",
+      "sha256": "2108f7bbaab4e36757564e889a61db2397d7c9f301105fc462e69c896eb24240"
+    },
+    {
+      "file": "run-two/timeline-1.zip.sanitization.json",
+      "sha256": "b74d032665191ea6b9ca3d957e0783969891ed2f428256beea74e562dca34520"
+    },
+    {
+      "file": "run-two/timeline-2.zip",
+      "sha256": "b13a7bec6be85d1a74a31235ffe6ea0bcbb40017807471749f273780f0dcfcbc"
+    },
+    {
+      "file": "run-two/timeline-2.zip.sanitization.json",
+      "sha256": "82a680bfa7e6aa9e69c9964e79154e1c864367b3855d5b68cedaecd0d3e57a05"
+    }
+  ]
+}

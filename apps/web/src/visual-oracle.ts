@@ -1,19 +1,25 @@
 import type { Page } from 'playwright';
+import { elementKindProjection, validElementKind, type ElementKind } from './element-kinds';
+import { collectTextPaint } from './text-paint';
+import { assessTextContrast, validTextPaint, type TextPaint } from './text-contrast';
 
-/** Numeric-only projection: never retain DOM text, attributes, URLs or field values. */
+/** Numeric geometry and bounded kind codes; never retain raw DOM text, attributes, URLs or values. */
 export type VisualScene = {
   schemaVersion: 1;
+  kindSchemaVersion?: 1;
   viewport: { width: number; height: number };
   documentWidth: number;
   nodes: Array<{
     id: number;
     parent: number | null;
+    kind?: ElementKind;
     x: number;
     y: number;
     width: number;
     height: number;
   }>;
   truncated: boolean;
+  textPaint?: TextPaint[];
 };
 export type VisualVerdict = 'pass' | 'fail' | 'unverified';
 export type VisualCheck = {
@@ -24,6 +30,9 @@ export type VisualCheck = {
   measurementIds: string[];
   reason: string;
   delta?: number;
+  region?: { x: number; y: number; width: number; height: number };
+  observed?: number;
+  threshold?: number;
 };
 export type VisualAssessment = {
   schemaVersion: 1;
@@ -34,8 +43,10 @@ export type VisualAssessment = {
 };
 
 /** Read-only layout observation. The limit bounds retained nodes and solver work. */
-export async function collectVisualScene(page: Page): Promise<VisualScene> {
-  const scene = await page.evaluate(() => {
+export async function collectVisualScene(page: Page, masks: string[] = []): Promise<VisualScene> {
+  const scene = await page.evaluate((projection) => {
+    const tags: Record<string, ElementKind> = projection.tags;
+    const roles: Record<string, ElementKind> = projection.roles;
     const nodes: VisualScene['nodes'] = [];
     const ids = new Map<Element, number>();
     const walker = document.createTreeWalker(document.documentElement, NodeFilter.SHOW_ELEMENT);
@@ -55,34 +66,54 @@ export async function collectVisualScene(page: Page): Promise<VisualScene> {
         box.top < window.innerHeight &&
         style.visibility === 'visible' &&
         style.display !== 'none'
-      )
+      ) {
+        const tag = element.tagName.toLowerCase();
+        const role = (element.getAttribute('role') ?? '')
+          .slice(0, 256)
+          .trim()
+          .split(/\s+/u)
+          .find((value) => Object.hasOwn(roles, value));
+        let kind: ElementKind = 0;
+        if (role) kind = roles[role];
+        else if (tag === 'input')
+          kind = ['button', 'submit', 'reset'].includes((element as HTMLInputElement).type) ? 1 : 3;
+        else if (tag === 'a' && element.hasAttribute('href')) kind = 2;
+        else if (Object.hasOwn(tags, tag)) kind = tags[tag];
         nodes.push({
           id,
+          kind,
           parent: ids.get(element.parentElement!) ?? null,
           x: box.x,
           y: box.y,
           width: box.width,
           height: box.height,
         });
+      }
       element = walker.nextNode() as Element | null;
     }
     return {
       schemaVersion: 1 as const,
+      kindSchemaVersion: 1 as const,
       viewport: { width: window.innerWidth, height: window.innerHeight },
       documentWidth: document.documentElement.scrollWidth,
       nodes,
       truncated: element !== null,
     };
-  });
+  }, elementKindProjection);
   if (!numericScene(scene)) throw new Error('Invalid numeric scene evidence');
+  if (scene.kindSchemaVersion !== 1 || !scene.nodes.every((node) => validElementKind(node.kind)))
+    throw new Error('Invalid element kind evidence');
   // Rebuild the projection on the trusted host; do not retain unexpected browser fields.
   return {
     schemaVersion: 1,
+    kindSchemaVersion: 1,
     viewport: { width: scene.viewport.width, height: scene.viewport.height },
     documentWidth: scene.documentWidth,
     truncated: scene.truncated,
-    nodes: scene.nodes.map(({ id, parent, x, y, width, height }) => ({
+    textPaint: await collectTextPaint(page, masks),
+    nodes: scene.nodes.map(({ id, parent, kind, x, y, width, height }) => ({
       id,
+      kind,
       parent,
       x,
       y,
@@ -103,6 +134,7 @@ function numericScene(scene: VisualScene): boolean {
     scene.viewport.width > 0 &&
     Number.isFinite(scene.viewport?.height) &&
     scene.viewport.height > 0 &&
+    (scene.textPaint === undefined || validTextPaint(scene.textPaint)) &&
     Array.isArray(scene.nodes) &&
     scene.nodes.length <= 2000 &&
     scene.nodes.every(
@@ -156,6 +188,7 @@ export function assessVisualScene(
       ...(valid ? { delta } : {}),
     },
   ];
+  if (scene.textPaint) checks.push(...assessTextContrast(scene.textPaint, valid));
   for (const gap of gaps)
     checks.push({
       id: gap,

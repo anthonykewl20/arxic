@@ -1,0 +1,29 @@
+[
+  {
+    "action": "Storage failure remains blocked beside two healthy captured pages",
+    "result": "passed",
+    "screenshot": "01-write-refusal-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Storage failure remains blocked beside two healthy captured pages",
+    "result": "passed",
+    "screenshot": "01-write-refusal-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "A new explicit run captures all three pages after storage repair",
+    "result": "passed",
+    "screenshot": "02-manual-recovery.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  }
+]

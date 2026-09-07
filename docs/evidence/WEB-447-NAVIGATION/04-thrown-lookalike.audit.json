@@ -1,0 +1,16 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "native-lookalike-observed",
+      "passed": true,
+      "values": {
+        "nativeErrors": 1,
+        "driverErrors": 1
+      }
+    }
+  ]
+}

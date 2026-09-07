@@ -1,0 +1,21 @@
+{
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "count": 1
+    }
+  ],
+  "overflow": 3,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "literal-control-count",
+      "passed": true,
+      "values": {
+        "declared": 13,
+        "rendered": 13
+      }
+    }
+  ]
+}

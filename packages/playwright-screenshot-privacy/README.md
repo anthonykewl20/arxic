@@ -46,3 +46,14 @@ Pinned upstream evidence:
 - [libpng read validation at `95ab3fd`](https://github.com/pnggroup/libpng/blob/95ab3fdca83ea294efd3b092e9a53c5a39886444/pngrutil.c)
 - [Node zlib `maxOutputLength` at `20da4ae`](https://github.com/nodejs/node/blob/20da4aeadabc5b0a01e3fcf520f91df8285c68a2/doc/api/zlib.md#L839-L840)
 - [Node zlib `info` and `bytesWritten` at `20da4ae`](https://github.com/nodejs/node/blob/20da4aeadabc5b0a01e3fcf520f91df8285c68a2/doc/api/zlib.md#L1019-L1029)
+
+Application-owned `captureMaskedViewport` normalizes validated browser PNG color
+markers before strict inspection: one sRGB rendering-intent marker and one sBIT
+marker declaring full 8-bit channel precision may be removed before IDAT. Their
+lengths, values, position and CRCs are checked. Pixel chunks are byte-identical;
+other ancillary chunks, reduced precision, duplicates and malformed markers are
+rejected. The retained-evidence validator and generated verifier capture contract
+are unchanged. This supports actual Playwright WebKit viewport captures without
+retaining metadata or loosening retained PNG acceptance.
+
+Application-owned `captureMaskedViewport` accepts optional `scale: 'css' | 'device'`; omitted scale preserves CSS-pixel screenshots. Native device-scale callers retain the same masks and strict PNG resource limits. This does not change generated verifier capture behavior or confer screenshot attestation.

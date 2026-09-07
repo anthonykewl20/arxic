@@ -18,3 +18,30 @@ catalogs with Models & accounts; unavailable wrappers explain their discovery li
 See `LICENSE.shadcn` for the upstream license. The visual direction uses neutral
 surfaces, compact navigation, consistent spacing and restrained color inspired by
 [Linear's design reset](https://linear.app/now/a-design-reset).
+
+The measurement inspector shows solid-paint contrast ratios and unverified applicability, with search/verdict filters and viewport-scaled region overlays on loaded, masked capture images. Image-load failures have explicit retry; the full-size artifact remains available. Display rounding never affects the server verdict.
+
+`checkpoint-settings.tsx` edits guided semantic capture declarations without raw
+selectors or script. `workflow-checkpoints.tsx` renders authenticated workflow
+checkpoint copies with explicit loading/error/retry states, full-size links and
+privacy provenance. These images have no visual baseline approval control.
+
+`element-inspector.tsx` displays the validated, screenshot-bound numeric projection
+from `element-scene.ts`. It maps responsive preview coordinates to the original CSS
+viewport and provides keyboard search/list/parent alternatives. Geometry selection
+does not alter solver verdicts or infer paint order. Image errors disable picking;
+malformed/unstable scenes remain unavailable. The desktop topbar scrolls with the
+page so it cannot cover actions during report inspection.
+
+`retention-panel.tsx` owns the administrator's unsaved age/newest policy, preview
+and deletion consent. Controls remain disabled during requests; edits invalidate
+the preview and consent. Cleanup applies only the saved policy, and failures
+refresh durable recovery status without hiding the original error. Component
+unmount prevents late responses from changing a later session's presentation.
+
+`run-panel.tsx` distinguishes comparison-at-capture-time status from current
+baseline approval. Figure placeholders explain absent historical evidence rather
+than asking for approval after approval has already succeeded. This is presentation
+of existing records; it does not mutate comparison or approval policy.
+
+Project capture settings now expose native 1×/2×/3× pixel densities. Capture gallery filtering and environment labels retain density identity. High-density Chromium uses full headless rendering after a shell-specific raster-repeatability failure. See the workbench guide for current proof and CI limits.

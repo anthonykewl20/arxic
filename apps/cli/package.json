@@ -1,6 +1,6 @@
 {
   "name": "arxic",
-  "version": "0.0.200",
+  "version": "0.0.300",
   "private": false,
   "type": "module",
   "bin": {
@@ -29,7 +29,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "prepack": "pnpm run build && node scripts/copy-rulepacks.mjs",
+    "prepack": "pnpm run build && pnpm --filter @arxic/web exec tsx src/build-assets.ts ../cli/dist/web-assets && node scripts/copy-rulepacks.mjs",
     "postpack": "node scripts/clean-package-artifacts.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -42,7 +42,11 @@
     "tree-sitter": "^0.25.1",
     "tree-sitter-javascript": "^0.25.0",
     "tree-sitter-php": "^0.24.2",
-    "tree-sitter-typescript": "^0.23.2"
+    "tree-sitter-typescript": "^0.23.2",
+    "better-sqlite3": "13.0.3",
+    "sharp": "0.35.4",
+    "cron-parser": "5.10.0",
+    "pixelmatch": "7.2.0"
   },
   "devDependencies": {
     "@arxic/ast-grep-adapter": "workspace:*",

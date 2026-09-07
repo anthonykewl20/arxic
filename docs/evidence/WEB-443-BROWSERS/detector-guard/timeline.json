@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Controlled stylesheet regression must remain detectable",
+    "result": "failed",
+    "screenshot": "intentional-overflow.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  }
+]

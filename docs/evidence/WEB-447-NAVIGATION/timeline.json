@@ -1,0 +1,38 @@
+[
+  {
+    "action": "Real bookmarked reference run is visible before navigation diagnostics",
+    "result": "passed",
+    "screenshot": "01-ready.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Observe driver fetch diagnostics and native window exceptions after real reloads",
+    "result": "passed",
+    "screenshot": "02-after-navigation.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "An active browser request refusal in the active page must remain an error, not a navigation exemption",
+    "result": "passed",
+    "screenshot": "03-active-fetch-failure.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "A thrown fetch-lookalike remains a native exception; no driver errors are waived",
+    "result": "passed",
+    "screenshot": "04-thrown-lookalike.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

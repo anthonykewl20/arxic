@@ -1,0 +1,56 @@
+[
+  {
+    "action": "Approval failure preserves historical no-baseline result and offers retry",
+    "result": "passed",
+    "screenshot": "01-approval-unavailable.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Current approval is distinct from the immutable absence of a prior baseline",
+    "result": "passed",
+    "screenshot": "02-first-approved.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Mobile approval badge and historical comparison copy remain distinct and readable",
+    "result": "passed",
+    "screenshot": "03-mobile-approved.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Subsequent capture compares against the approved first image",
+    "result": "passed",
+    "screenshot": "04-compared.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Replacement changes future comparisons without rewriting the prior comparison",
+    "result": "passed",
+    "screenshot": "05-replaced.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Mobile history distinguishes no prior baseline from current approval after replacement",
+    "result": "passed",
+    "screenshot": "06-mobile-history.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

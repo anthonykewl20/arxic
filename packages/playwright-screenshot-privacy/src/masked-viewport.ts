@@ -1,11 +1,15 @@
 import type { Page } from '@playwright/test';
-import { inspectPng } from './png';
+import { normalizeBrowserPng } from './png';
 import { ScreenshotPrivacyError } from './standalone-runtime';
 
 /** Capture mechanics for trusted application-owned viewport checks, not verifier attestation. */
 export async function captureMaskedViewport(
   page: Page,
-  input: { automaticMasks: readonly string[]; requiredMasks: readonly string[] },
+  input: {
+    automaticMasks: readonly string[];
+    requiredMasks: readonly string[];
+    scale?: 'css' | 'device';
+  },
 ): Promise<Buffer> {
   const required = input.requiredMasks.map((selector) => page.locator(selector));
   for (const mask of required) {
@@ -20,10 +24,9 @@ export async function captureMaskedViewport(
     fullPage: false,
     animations: 'disabled',
     caret: 'hide',
-    scale: 'css',
+    scale: input.scale ?? 'css',
     mask: [...input.automaticMasks.map((selector) => page.locator(selector)), ...required],
     timeout: 15_000,
   });
-  inspectPng(bytes);
-  return bytes;
+  return normalizeBrowserPng(bytes);
 }

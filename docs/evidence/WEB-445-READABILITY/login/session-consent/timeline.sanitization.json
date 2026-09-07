@@ -1,0 +1,13 @@
+{
+  "sourceCommit": "d6ff592a7d7a1466d004c3626a2185c7415d60e0",
+  "browser": {
+    "name": "chromium",
+    "version": "151.0.7922.34"
+  },
+  "dirty": false,
+  "sha256": "10865b123f462979759bdabd7f775e4ed08dde10dfa5a1008b1bec012ece8d06",
+  "method": "allow-listed actions/assertion outcomes only; no raw DOM/network or traces",
+  "rawTraceRetained": false,
+  "originalTimelineSha256": "839f37a60f04c8ec124ba704580da918f46cf748489fdb735149555ae227fafe",
+  "selection": "Exact original action entry matched to the named proof call in visual-review-ui.real-world.test.ts; this legacy timeline has no screenshot field. Other entries omitted; no action or result rewritten."
+}

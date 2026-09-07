@@ -1,3 +1,5 @@
+import { validateCheckpointCapture } from '../../../worker/src/checkpoint-capture';
+import { unsupportedFixtureProviders } from '../../../worker/src/fixture-providers';
 import type { Diagnostic } from '@arxic/contracts';
 import type { ArxicConfig } from '@arxic/worker';
 import {
@@ -185,6 +187,18 @@ export function validateConfig(input: unknown): ValidationResult {
     invalid(diagnostics, 'config.policy.externalNetwork', 'must be deny');
   }
   const screenshots = nonEmptyString(policy?.screenshots, 'config.policy.screenshots', diagnostics);
+  let checkpointCapture: ArxicConfig['policy']['checkpointCapture'];
+  if (policy && 'checkpointCapture' in policy) {
+    try {
+      checkpointCapture = validateCheckpointCapture(policy.checkpointCapture);
+    } catch {
+      invalid(
+        diagnostics,
+        'config.policy.checkpointCapture',
+        'must be a valid semantic screenshot capture declaration',
+      );
+    }
+  }
   const trace = nonEmptyString(policy?.trace, 'config.policy.trace', diagnostics);
   if (screenshots !== undefined && screenshots !== 'transition-checkpoints') {
     invalid(diagnostics, 'config.policy.screenshots', 'must be transition-checkpoints');
@@ -206,6 +220,8 @@ export function validateConfig(input: unknown): ValidationResult {
     'config.fixtures.personaProvisioner',
     diagnostics,
   );
+  for (const { field, reason } of unsupportedFixtureProviders({ inbox, otp, personaProvisioner }))
+    invalid(diagnostics, `config.fixtures.${field}`, reason);
   // #288: the frozen `fixtures.replayPersona` declaration — validated with
   // its own frozen ARXIC-VERIFY-FIXTURE-* family (C-5 / SP-4), no silent
   // defaults. Unknown sibling keys inside the declaration are rejected so a
@@ -291,6 +307,7 @@ export function validateConfig(input: unknown): ValidationResult {
         externalNetwork: externalNetwork as 'deny',
         requiredVerificationRuns: requiredVerificationRuns!,
         screenshots: screenshots!,
+        ...(checkpointCapture ? { checkpointCapture } : {}),
         trace: trace!,
         humanApproval: humanApproval!,
       },

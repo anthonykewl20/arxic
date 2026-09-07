@@ -90,3 +90,5 @@ establish free usage or enforce provider quotas.
 the selected backend model through `x-openclaw-model`. Client `tool_choice: none`
 does not disable that agent's internal tools; configure its tool policy separately.
 See [connection setup and evidence](../../docs/web-workbench.md#subscription-accounts-and-provider-catalogs).
+
+Image validation exposes `ModelImageDimensionsError` for an otherwise parsed image that exceeds the existing dimension/pixel bounds. Callers can provide size-recovery guidance without matching exception text or exposing malformed-image/parser details. Limits and accepted image bytes are unchanged.

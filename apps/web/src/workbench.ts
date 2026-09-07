@@ -1,3 +1,7 @@
+import { planVisualMatrix } from './visual-matrix';
+import { Retention } from './retention';
+import { readEvidenceFile } from './evidence-files';
+import { readWorkflowArtifact } from './workflow-captures';
 import { hostname } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, realpath, rm, unlink, writeFile } from 'node:fs/promises';
@@ -17,7 +21,8 @@ export function loginEnvironment(login: NonNullable<Project['login']>, env: Node
 /** Five minutes plus a per-capture allowance; crawl, sign-in and stability retries need headroom. */
 export function visualRuntimeLimit(project: Project) {
   const pages = project.pageMode === 'discover' ? project.maxPages : project.paths.length;
-  const captures = Math.min(600, pages * project.viewports.length);
+  const { environments, pageBudget } = planVisualMatrix(project);
+  const captures = Math.min(pages, pageBudget) * project.viewports.length * environments.length;
   return Math.min(60 * 60_000, 5 * 60_000 + captures * 6_000);
 }
 import { compareCapture, digest } from './visual';
@@ -29,6 +34,9 @@ import { campaignRows, campaignView } from './campaigns';
 import { reviewImage, type VisualReviewScope } from './visual-review';
 
 export class Workbench {
+  private maintenance = false;
+  private runningId: string | null = null;
+  private nextRetentionAt = Date.now() + 60_000;
   private active: ReturnType<typeof launchJob> | null = null;
   private pending: Promise<void> | null = null;
   private closed = false;
@@ -39,6 +47,7 @@ export class Workbench {
     readonly store: Store,
     readonly roots: string[],
     readonly directory: string,
+    private readonly retention: Retention,
   ) {
     this.store.recover();
     this.timer = setInterval(() => {
@@ -84,7 +93,9 @@ export class Workbench {
               recursive: true,
               force: true,
             });
-        return new Workbench(store, resolved, directory);
+        const retention = new Retention(store, await realpath(directory));
+        await retention.recover();
+        return new Workbench(store, resolved, directory, retention);
       } catch (error) {
         store.db.close();
         throw error;
@@ -106,6 +117,18 @@ export class Workbench {
         return { ...this.campaign(item.id), rows: undefined };
       }),
     };
+  }
+  retentionState() {
+    return this.retention.state();
+  }
+  async saveRetention(input: unknown) {
+    return this.mutate(async () => this.retention.save(input));
+  }
+  previewRetention(input?: unknown) {
+    return this.retention.preview(input);
+  }
+  async cleanupRetention() {
+    return this.maintain(() => this.retention.cleanup());
   }
   async saveProject(input: Record<string, unknown>, id?: string) {
     const previous = id ? this.store.project(id) : undefined;
@@ -355,9 +378,21 @@ export class Workbench {
       }
     })();
     this.kick();
+    if (
+      now.getTime() >= this.nextRetentionAt &&
+      !this.maintenance &&
+      !this.runningId &&
+      !this.store.activeCount() &&
+      this.retention.state().policy.enabled
+    ) {
+      this.nextRetentionAt = now.getTime() + 60_000;
+      void this.cleanupRetention().catch(() => {
+        /* Retention keeps its own visible failure record. */
+      });
+    }
   }
   private kick() {
-    if (this.pending || this.closed) return;
+    if (this.pending || this.closed || this.maintenance) return;
     this.pending = Promise.resolve()
       .then(() => this.drain())
       .catch(() => {
@@ -369,7 +404,8 @@ export class Workbench {
   }
   private async drain() {
     let run: Run | undefined;
-    while (!this.closed && (run = this.store.next())) {
+    while (!this.closed && !this.maintenance && (run = this.store.next())) {
+      this.runningId = run.id;
       this.store.saveRun({ ...run, state: 'running' });
       let result: RunResult;
       let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -436,6 +472,7 @@ export class Workbench {
               join(directory, capture.file),
               baselinePath,
               join(directory, diffFile),
+              capture.environment?.deviceScaleFactor ?? 1,
             );
             Object.assign(capture, compared, {
               status: compared.changedPixels ? 'changed' : 'unchanged',
@@ -461,9 +498,12 @@ export class Workbench {
         });
       }
       if (this.store.run(run.id)?.state !== 'cancelled') this.store.finish(run, result);
+      this.runningId = null;
     }
   }
   async idle() {
+    await this.pending;
+    await this.mutationTail;
     await this.pending;
   }
   async approveBaseline(runId: string, captureId: string) {
@@ -497,13 +537,35 @@ export class Workbench {
       files.add('timeline.json');
       files.add('timeline.sanitization.json');
     }
+    const checkpoint = run?.result?.workflowCaptures?.find(
+      (item) => item.file === filename || item.privacyFile === filename,
+    );
+    if (checkpoint) {
+      const bytes = await readWorkflowArtifact(
+        join(this.directory, 'runs', runId, filename),
+        checkpoint.file === filename ? checkpoint.sha256 : checkpoint.privacySha256,
+      );
+      return {
+        bytes,
+        type: checkpoint.file === filename ? 'image/png' : 'application/json; charset=utf-8',
+      };
+    }
     if (!files.has(filename)) throw new HttpError(404, 'Artifact not found');
-    const bytes = await readFile(join(this.directory, 'runs', runId, filename));
+    const path = join(this.directory, 'runs', runId, filename);
+    const image = run?.result?.captures?.find((capture) => capture.file === filename);
     const assessment = run?.result?.captures?.find(
       (capture) => capture.assessmentFile === filename,
     );
-    if (assessment && digest(bytes) !== assessment.assessmentSha256)
-      throw new HttpError(409, 'Assessment integrity check failed');
+    let bytes: Buffer;
+    if (image || assessment) {
+      const evidence = await readEvidenceFile(
+        path,
+        image ? image.sha256 : assessment!.assessmentSha256!,
+        image ? 16 * 1024 * 1024 : 4 * 1024 * 1024,
+      );
+      if (!evidence.ok) throw new HttpError(409, 'Capture evidence integrity check failed');
+      bytes = evidence.bytes;
+    } else bytes = await readFile(path);
     return {
       bytes,
       type: filename.endsWith('.png')
@@ -514,20 +576,20 @@ export class Workbench {
     };
   }
   async deleteRun(id: string) {
+    return this.maintain(() => this.retention.deleteRun(id));
+  }
+  private maintain<T>(action: () => Promise<T>) {
     return this.mutate(async () => {
-      const run = this.store.run(id);
-      if (!run) throw new HttpError(404, 'Run not found');
-      if (this.store.referencesReview(id))
-        throw new HttpError(409, 'Evidence referenced by an AI review cannot be deleted');
-      if (this.store.referencesCampaign(id))
-        throw new HttpError(409, 'Evidence referenced by a campaign cannot be deleted');
-      if (['queued', 'running'].includes(run.state) || this.store.referencesBaseline(id))
-        throw new HttpError(409, 'Active runs and approved baselines cannot be deleted');
-      await rm(join(this.directory, 'runs', id), { recursive: true, force: true });
-      this.store.db.transaction(() => {
-        this.store.deleteRun(id);
-        this.store.audit('run.deleted', id);
-      })();
+      if (this.closed) throw new HttpError(503, 'Workbench is closing');
+      if (this.runningId || this.store.activeCount())
+        throw new HttpError(409, 'Active runs must finish before evidence cleanup');
+      this.maintenance = true;
+      try {
+        return await action();
+      } finally {
+        this.maintenance = false;
+        this.kick();
+      }
     });
   }
   private mutate<T>(action: () => Promise<T>): Promise<T> {

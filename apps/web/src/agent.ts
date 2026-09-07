@@ -1,3 +1,5 @@
+import { rulepacksDirectory } from './runtime';
+import { collectWorkflowCaptures } from './workflow-captures';
 import { readFile, realpath, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { loadConfig } from '../../cli/src/config/parse';
@@ -35,6 +37,11 @@ export async function runAgent(run: Run, directory: string): Promise<RunResult> 
       outcome: 'blocked',
       summary: 'The Arxic configuration is invalid. Validate it with the CLI configuration guide.',
     };
+  if (loaded.value.policy.checkpointCapture && !run.project.captureConsent)
+    return {
+      outcome: 'blocked',
+      summary: 'Workflow screenshots require capture consent in project settings.',
+    };
   const source = await realpath(resolve(run.project.folder, loaded.value.source.repository));
   if (source !== run.project.folder || loaded.value.target.origin !== run.project.origin)
     return {
@@ -66,7 +73,7 @@ export async function runAgent(run: Run, directory: string): Promise<RunResult> 
     runId: run.id,
     executor: new LocalRunExecutor(),
     cwd: run.project.folder,
-    rulepacksDir: resolve(import.meta.dirname, '../../../rulepacks'),
+    rulepacksDir: rulepacksDirectory,
   });
   let engineRun: unknown;
   let ledger: unknown;
@@ -82,6 +89,16 @@ export async function runAgent(run: Run, directory: string): Promise<RunResult> 
     }
   }
   const truth = outcome.outcome;
+  let workflowCaptures: RunResult['workflowCaptures'];
+  let workflowCaptureGap: string | undefined;
+  if (loaded.value.policy.checkpointCapture && truth === 'verified') {
+    try {
+      workflowCaptures = await collectWorkflowCaptures(directory, run.id);
+    } catch {
+      workflowCaptureGap =
+        'Workflow checkpoints are unavailable: their evidence could not be validated. Run the workflow again to produce fresh evidence.';
+    }
+  }
   return {
     outcome:
       truth === 'verified' ||
@@ -94,6 +111,8 @@ export async function runAgent(run: Run, directory: string): Promise<RunResult> 
       outcome.exitCode === 0
         ? 'The existing deterministic verifier passed this candidate. Inspect the intent ledger for remaining coverage gaps.'
         : 'The AI pipeline did not produce a verified candidate. Review its diagnostics and unmet prerequisites.',
+    ...(workflowCaptures ? { workflowCaptures } : {}),
+    ...(workflowCaptureGap ? { workflowCaptureGap } : {}),
     diagnostics: outcome.diagnostics,
     engineRun,
     ledger,

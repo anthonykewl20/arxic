@@ -301,3 +301,142 @@ predicate. Unavailable detector families remain unverified and cannot establish
 a whole-audit pass. Engine truth states and frozen contracts are unchanged.
 The current screenshot-review model still emits separate hypotheses; full
 scene-bound model fusion and expanded capture matrices are future slices.
+
+## 2026-09-06: solid text contrast and region inspection
+
+The numeric scene now includes a bounded, text-free solid-paint projection.
+Pure assessment predicates compare unrounded ratios against explicit thresholds;
+unsupported paint stays unverified. The dashboard searches measured checks and
+locates their numeric regions on the retained masked capture, with native image
+readiness and recoverable load failures. Capture identity and engine truth states
+remain unchanged. This is a scoped profile, not whole-page accessibility
+certification. See the [contrast contract](../visual-oracle.md#solid-text-contrast-profile)
+and [real reference-app and dashboard proof](../evidence/WEB-402-CONTRAST/summary.md).
+
+## 2026-09-06: asynchronous replay completion
+
+A real selected-reset run exposed premature replay completion: pathname and heading assertions could already hold while the submitted request was pending. Delaying only the first replay by 800 ms reproduced two emails despite two passing replay reports; the browser closed the delayed request before it reached the real app. Exploration already waited for completion.
+
+Generated replays now use the same bounded network/render settling service before assertions, screenshots and receipts. The service's constant package-owned source also keeps runtime bytes stable across source execution and bundling. It is emitted in the existing transition runtime, preserving independent source/hash verification and compile-policy boundaries. No model decides completion, no locator gate is widened, and engine truth contracts are unchanged.
+
+The regression preserves the original minimum-three-email assertion and additionally checks each accepted submission's inbox count (1, 2, 3) against real Next.js and isolated Mailpit. This establishes the delayed-request failure mechanism; the original historical request timing was not retained. Full #402 production scope remains separate.
+
+### 2026-09-06 — Explicit workflow checkpoint captures (refs #427)
+
+The app-local CLI/worker policy now accepts an optional `checkpointCapture`
+declaration using the existing screenshot privacy contract. CLI and worker share
+validation/policy construction; neither invents approval metadata from model output.
+Guided dashboard settings require operator capture consent and carry the declaration
+into the execution snapshot. File-config execution applies the same consent gate.
+
+A separate `workflowCaptures` result exposes only verifier-attested screenshots from
+a successful promoted run. Export revalidates the complete artifact set and bound
+source, confines reads to that run's engine directory, and copies image/provenance
+bytes under an explicit original-name mapping. Requests reject altered or nonregular
+files. Export failures remain explicit evidence gaps while retaining the deterministic
+engine verdict. This gallery has no baseline approval action and makes no complete
+visual-audit claim. Frozen workflow truth contracts remain unchanged.
+
+## 2026-09-07: opt-in evidence retention (refs #431)
+
+A persisted administrator policy controls age/newest retention and is disabled
+by default. The action layer validates explicit deletion consent, streams whole
+history eligibility and applies bounded cleanup only while execution is idle.
+A single reference projection serves manual deletion and retention, protecting
+current/historical baseline evidence, review sources and campaign sources/children.
+SQLite mechanics live in the retention repository; eligibility and failure
+classification remain actions.
+
+Deletion persists an intent before removing files and then deletes the run record
+and intent in one database transaction. Failed filesystem cleanup stays visible;
+startup resumes authorized intents before any jobs execute. A later policy disable
+stops new selection but does not revoke already authorized deletion. The dashboard
+previews bounded candidate details with complete counts and explains this recovery
+boundary. Disk quotas, SQLite compaction and campaign removal are outside this slice.
+
+## 2026-09-07: Installed web distribution (refs #435)
+
+The CLI package now exposes `arxic web`. Packaging compiles a separate web-job
+entrypoint and builds the React/Tailwind frontend once. Runtime startup reads a
+bounded manifest and checks hashes for the index, JS, CSS and compiled job before
+opening the state store or listener. The manifest detects incomplete/corrupt local
+installation; it is not a signed supply-chain attestation. Source execution retains
+its Vite builder behind a source-only dynamic import. Build-time runtime selection
+cannot be changed through an environment variable.
+
+The existing source dashboard E2E assertions can launch the installed public command
+outside the repository. The packaging gate reuses its clean install for startup,
+source discovery, visual baseline/element inspection, responsive navigation, real
+reference-app campaigns and restart/deletion-recovery assertions. Model proposals
+remain boundary stubs in campaign proof; source analysis, browser actions, compiler,
+verifier and Mailpit are real. Safe named screenshots and sanitized timelines are
+retained; no raw trace archive is exported. Release publication and human screenshot
+inspection remain separate gates.
+
+## 2026-09-07: Bounded element-kind browsing (refs #437)
+
+VisualScene schema 1 gains the optional `kindSchemaVersion: 1` projection with
+per-node integer kind codes 0–9. The browser derives them from a fixed recognized-role
+lookup (precedence over native defaults) or native element type. Unknown strings
+never leave the browser; host validation/reprojection retains only the bounded code.
+The 2000-node budget and original numeric IDs remain unchanged. No raw roles, labels,
+field values, URLs or selectors are retained. This is an inspection hint, not an
+accessibility-role oracle or replay locator.
+
+The inspector requires supported versioned kinds when that projection is present;
+legacy numeric-only scenes remain valid with unknown kinds. Existing screenshot
+hash/viewport and numeric bounds checks remain mandatory. Browsing metadata does not
+participate in hard-solver validity, so it cannot waive a measured overflow failure.
+Type filters combine with number or point selection; filter changes reset selection
+and pagination, and parent navigation clears filters before revealing the parent.
+
+Proof uses actual reference-app captures in both themes, narrow/wide dashboard
+layouts, and actual dashboard native/declared controls. Historical metadata is an
+explicit response-format boundary supplement over unchanged real capture geometry
+and pixels. The installed-browser packaging gate runs these assertions too.
+
+### 2026-09-07 — explicit visual environment matrix (refs #439)
+
+Project admission accepts bounded, distinct browser and color-scheme selections;
+legacy projects default to Chromium/light. Capture orchestration expands the
+browser/theme × viewport matrix, divides the 600-checkpoint budget across it and
+keeps each environment’s failure visible. Per-environment authentication uses its
+own browser/session. The existing capture mechanics, privacy masks, read-only
+network policy, stable scene checks and hard assessment predicates apply unchanged.
+Baselines bind engine and theme; legacy Chromium/light spec identity is preserved.
+
+Browser-generated sRGB and full-precision sBIT PNG markers are validated and removed
+only in the application-owned viewport capture helper. No encoded pixel chunk is
+changed. The strict retained validator still rejects ancillary chunks. This is not
+a change to verifier attestation or generated screenshot policy.
+
+Real reference-app tests exercise all three engines and both themes, independent
+baseline histories, a dark-only regression, authenticated Next.js capture and
+explicit missing-engine boundary failure. Dashboard journeys configure and inspect
+the matrix in both themes and four widths; installed-package CI runs those GUI
+journeys. DPR/zoom/locale/direction/forced-color and arbitrary workflow-state
+coverage remain open. Engine WebKit is not real-device Safari certification.
+
+### 2026-09-07 — native pixel density and run-local authentication (refs #454)
+
+The matrix additionally accepts native 1×/2×/3× density with a shared 600-checkpoint
+budget and a 16-megapixel per-capture admission bound. Missing density preserves
+legacy 1× identities. Screenshot pixels retain native resolution; scene boxes and
+point selection remain CSS coordinates. AI overlays use image dimensions, and the
+unchanged model image bound produces an actionable refusal when exceeded.
+
+Native Chromium 2×/3× uses Playwright's full Chromium headless channel after real
+reference-app probes reproduced two shell text rasters across fresh captures. The
+renderer is explicit in environment/baseline identity; an unavailable full browser
+blocks the cell rather than falling back. This does not assert cross-OS parity.
+
+Superseding the prior per-environment sign-in bootstrap, each browser family signs
+in once through the real form per run. Its result remains in memory for that run
+only; later cells record explicit reuse. This avoids matrix expansion exhausting
+the target's login rate limit. A fresh invalid-credential run must block every
+cell with zero captures, even after a successful run. No session state is persisted.
+Capture contexts and their privacy/read-only guards remain independent. This is
+authenticated capture coverage, not independent login-state coverage in every cell.
+
+[Local proof](../evidence/WEB-454-DENSITY/followup.md) retains red and green evidence;
+required exact-head CI and installed acceptance remain pending for PR #455.

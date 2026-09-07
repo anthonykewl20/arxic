@@ -1,0 +1,6 @@
+[
+  {
+    "action": "Signing out clears the unsent review draft and requires fresh screenshot consent",
+    "result": "passed"
+  }
+]

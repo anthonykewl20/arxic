@@ -1,0 +1,13 @@
+{
+  "sha256": "c730d71a0d8c8c8a76a90d287892acf38ad262f8a9346cbf0d24f97b3c908c1b",
+  "method": "allow-listed test annotations, viewport and result; no DOM/network/field payloads",
+  "rawTraceRetained": false,
+  "sourceCommit": "f9a1c08dac7580263d778cbfb4e53d5b09dc1a2a",
+  "browser": {
+    "name": "chromium",
+    "version": "151.0.7922.34"
+  },
+  "dirty": true,
+  "originalTimelineSha256": "92b47ef475edabd52f95843266c9b65914d087999cedb5de8b084593f7070347",
+  "selection": "Exact original entries for the named retained screenshots; other original test points omitted. No actions or results rewritten."
+}

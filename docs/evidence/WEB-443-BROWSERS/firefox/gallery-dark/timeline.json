@@ -1,0 +1,20 @@
+[
+  {
+    "action": "Combined capture filters keep original image, measurement and review targets",
+    "result": "passed",
+    "screenshot": "03-filtered-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Comparison filter finds a real dark-only regression without changing baseline history",
+    "result": "passed",
+    "screenshot": "06-regression.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Preserve the missing matrix cell diagnostic before asserting the required healthy-page captures",
+    "result": "failed",
+    "screenshot": "07-blocked-capture-shortfall.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

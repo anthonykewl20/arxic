@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it, vi } from 'vitest';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
-import { startWorkbench } from '../server';
+import { startWorkbench } from './workbench-runtime';
 
 it('refreshes provider-owned models in a real browser and preserves search and stale status', async () => {
   let revision = 1;
@@ -39,13 +39,15 @@ it('refreshes provider-owned models in a real browser and preserves search and s
     adminToken: 'test-administrator-token-32-characters',
     port: 0,
   });
-  const browser = await chromium.launch({ headless: true });
+  const browser = await launchDashboardBrowser({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
 
   const timeline: Array<{ action: string; result: 'passed' }> = [];
   const evidence = process.env.ARXIC_PROVIDER_EVIDENCE_DIR;
+  const browserIdentity = { name: browser.browserType().name(), version: browser.version() };
+  const dirty = !!execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
   const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   const capture = async (name: string, action: string) => {
     timeline.push({ action, result: 'passed' });
@@ -62,6 +64,8 @@ it('refreshes provider-owned models in a real browser and preserves search and s
         {
           sha256: createHash('sha256').update(bytes).digest('hex'),
           sourceCommit,
+          browser: browserIdentity,
+          dirty,
           policy: 'persona-free dashboard; password inputs masked',
           humanInspection: 'not performed',
           rawTraceRetained: false,
@@ -116,7 +120,7 @@ it('refreshes provider-owned models in a real browser and preserves search and s
       '02-provider-stale',
       'Changed catalog replaces old IDs; failed refresh retains visibly stale data',
     );
-    await page.setViewportSize({ width: 390, height: 844 });
+    await resizeDashboard(page, { width: 390, height: 844 });
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
@@ -124,7 +128,7 @@ it('refreshes provider-owned models in a real browser and preserves search and s
       '03-provider-mobile',
       'Provider management fits mobile viewport without horizontal page overflow',
     );
-    await page.setViewportSize({ width: 1440, height: 1000 });
+    await resizeDashboard(page, { width: 1440, height: 1000 });
     await page.locator('#new-project').click();
     await page.getByLabel('Project folder', { exact: true }).fill(state);
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
@@ -191,6 +195,8 @@ it('refreshes provider-owned models in a real browser and preserves search and s
         JSON.stringify(
           {
             sourceCommit,
+            browser: browserIdentity,
+            dirty,
             sha256: createHash('sha256').update(bytes).digest('hex'),
             policy: 'allowlisted named actions and pass disposition only',
             rawTraceRetained: false,

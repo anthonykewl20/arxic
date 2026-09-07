@@ -95,17 +95,17 @@ never assign `verified` or decide that a visual difference is an accepted change
 
 ## Implementation and gap matrix
 
-| Capability                 | Implemented workbench (#401/#402)                                                                                                                                 | Full release requirement (#402)                                                                        |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Local/server web dashboard | Implemented from source checkout; single administrator                                                                                                            | Clean-install server distribution and recovery proof                                                   |
-| Project configuration      | Folder, target, visual settings, cron; guided provider/model/persona/secret-reference/budget/deployment settings or engine config path                            | Remaining worker/retention controls, richer fixture setup and safe runtime onboarding                  |
-| Source discovery           | Route/domain inventory plus JS/TS/JSX/TSX frontend declarations and Markdown/text requirements; line/hash provenance, filtering and explicit file/runtime gaps    | Semantic intent synthesis, richer framework support and source-to-runtime campaign mapping             |
-| AI-assisted E2E            | Guided on-demand campaigns: one serialized engine run per selected source row, full denominator, per-workflow verifier outcomes and restart/cancellation controls | Broader state/persona/flag campaigns, recurring campaigns and independent business acceptance criteria |
-| Visual regression          | Stable anonymous viewport captures, explicit baseline approval, real pixel differences                                                                            | Authenticated workflow checkpoints, responsive/state coverage, reviewed baseline lifecycle             |
-| Frontend findings          | Deterministic layout/error heuristics plus inspected-image AI hypotheses with bounded regions, reproduction, independent criterion/gap and model provenance       | Broader semantic evaluation, authenticated/state coverage and independent confirmation                 |
-| Scheduling                 | Durable serialized UTC cron; pause/resume; missed-slot coalescing                                                                                                 | Campaign/worker coordination, notification and budget/retention policies                               |
-| Administration             | Single admin sessions, folder allow-list, audit events, cancellation, protected baseline deletion                                                                 | Role model if multi-user is required; secrets management and operator controls                         |
-| Evidence                   | Named images, hashes, privacy provenance and sanitized action timeline; existing engine receipts                                                                  | Full real-app campaign proof and required independent human release inspection                         |
+| Capability                 | Implemented workbench (#401/#402)                                                                                                                                                | Full release requirement (#402)                                                                        |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Local/server web dashboard | Source checkout and compiled `arxic web` tarball; single administrator                                                                                                           | Broader deployment/runtime onboarding and release signoff                                              |
+| Project configuration      | Folder, target, visual settings, cron; guided provider/model/persona/secret-reference/budget/deployment settings or engine config path                                           | Remaining worker controls, storage quotas, richer fixture setup and safe runtime onboarding            |
+| Source discovery           | Route/domain inventory plus JS/TS/JSX/TSX declarations, literal HTML/EJS controls and Markdown/text requirements; line/hash provenance, filtering and explicit file/runtime gaps | Semantic intent synthesis, richer framework support and source-to-runtime campaign mapping             |
+| AI-assisted E2E            | Guided on-demand campaigns: one serialized engine run per selected source row, full denominator, per-workflow verifier outcomes and restart/cancellation controls                | Broader state/persona/flag campaigns, recurring campaigns and independent business acceptance criteria |
+| Visual regression          | Browser/theme/viewport capture matrix, redirect sign-in, approved workflow checkpoint gallery, independent baselines, pixel differences and scoped text contrast                 | General workflow/state, locale/zoom/OS/device coverage and independent business acceptance             |
+| Frontend findings          | Deterministic layout/error heuristics plus inspected-image AI hypotheses with bounded regions, reproduction, independent criterion/gap and model provenance                      | Broader semantic evaluation, authenticated/state coverage and independent confirmation                 |
+| Scheduling                 | Durable serialized UTC cron; pause/resume; missed-slot coalescing                                                                                                                | Campaign/worker coordination, notifications and budget policies                                        |
+| Administration             | Single admin sessions, folder allow-list, audit events, cancellation, protected baseline deletion                                                                                | Role model if multi-user is required; secrets management and operator controls                         |
+| Evidence                   | Named images, hashes, privacy provenance and sanitized action timeline; existing engine receipts                                                                                 | Full real-app campaign proof and required independent human release inspection                         |
 
 ## Release acceptance
 
@@ -126,7 +126,28 @@ has its real-app proof. At minimum, demonstrate:
 ## Explicit initial assumptions
 
 One trusted administrator operates each instance. Projects are already on the
-host and test apps are already running. The initial web app does not clone remote
-repositories, launch arbitrary project scripts, host multiple isolated tenants,
+host and test apps are already running. The web app supports guided GitHub cloning into validated new folders; it does not
+launch arbitrary project scripts, host multiple isolated tenants,
 configure SSO, or send external notifications. These are implementation
 boundaries, not claims that the broader product direction has been completed.
+
+The opt-in retention implementation is documented in the [history guide](web-workbench.md#schedules-and-history): preview, explicit authorization, bounded idle cleanup, reference protection and durable deletion recovery. This does not supply a disk quota or campaign deletion.
+
+Captured-element inspection includes a bounded type filter alongside point/number
+selection (refs #437). Older captures remain inspectable with unknown type coverage.
+This browsing aid does not supply semantic names, replay locators or a complete
+accessibility tree, and cannot change deterministic visual verdicts.
+
+Browser/theme visual coverage now supports explicit Chromium/Firefox/WebKit ×
+light/dark × configured viewport selections (refs #439). Per-environment outcomes,
+shared-budget omissions and independent baselines prevent an absent cell from
+becoming a pass. Real browser, authenticated reference-app and dashboard proofs
+cover the named matrix. Zoom/locale/OS/device and broad interaction-state
+coverage remain release gaps; #402 stays open.
+
+Native 1×/2×/3× density selection extends that matrix in #454 / PR #455.
+Native PNGs and baseline identities preserve density; the inspector retains CSS
+coordinates. High-density Chromium uses explicitly identified full headless
+rendering. Local native-repeat, authenticated eighteen-cell and responsive dashboard
+proof passes; exact-head installed CI remains pending. See the
+[density follow-up](evidence/WEB-454-DENSITY/followup.md).

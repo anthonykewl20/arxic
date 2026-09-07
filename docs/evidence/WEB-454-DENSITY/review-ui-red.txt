@@ -1,0 +1,7 @@
+AssertionError: expected '0 0 800 600' to be '0 0 1600 1200' // Object.is equality
+Expected: "0 0 1600 1200"
+Received: "0 0 800 600"
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 skipped (2)
+   Start at  12:42:17
+   Duration  22.25s (transform 917ms, setup 0ms, import 460ms, tests 21.69s, environment 0ms)

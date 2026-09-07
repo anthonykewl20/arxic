@@ -1,3 +1,6 @@
+import { captureFailureMessage } from './capture-failure';
+import { CaptureGallery } from './capture-gallery';
+import { WorkflowCheckpoints } from './workflow-checkpoints';
 import { AssessmentPanel } from './assessment-panel';
 import type { RunHistoryPage } from '../run-history';
 import { Button, Input } from './components';
@@ -144,7 +147,17 @@ export function RunPanel(props: RunPanelProps) {
     </>
   );
 }
-function CaptureFigure({ label, runId, file }: { label: string; runId?: string; file?: string }) {
+function CaptureFigure({
+  label,
+  runId,
+  file,
+  empty,
+}: {
+  label: string;
+  runId?: string;
+  file?: string;
+  empty: string;
+}) {
   const url = file ? `/api/runs/${runId}/artifacts/${encodeURIComponent(file)}` : '';
   return (
     <figure>
@@ -154,13 +167,19 @@ function CaptureFigure({ label, runId, file }: { label: string; runId?: string; 
           <img alt={label} src={url} loading="lazy" decoding="async" />
         </a>
       ) : (
-        <div className="placeholder">Awaiting a reviewed baseline</div>
+        <div className="placeholder">{empty}</div>
       )}
     </figure>
   );
 }
 function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: Run }) {
   const result = run.result;
+  const canEditCapture =
+    run.mode === 'visual' &&
+    result?.findings?.some(
+      (item) => item.kind === 'capture-blocked-check-target-and-privacy-masks',
+    ) &&
+    state.projects.some((project) => project.id === run.projectId);
   return (
     <section className="run-detail">
       <div className="section-heading">
@@ -208,11 +227,43 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
         </div>
         {!!result?.findings?.length && (
           <div className="findings">
-            <h3>Observed frontend findings</h3>
+            <div className="section-heading">
+              <h3>Findings and capture diagnostics</h3>
+              {canEditCapture && (
+                <Button variant="outline" data-edit={run.projectId}>
+                  Edit capture settings
+                </Button>
+              )}
+            </div>
             <ul>
               {result.findings.map((item, index) => (
-                <li key={`${item.path}:${item.kind}:${index}`}>
-                  {item.path} · {item.kind}: {item.count}
+                <li
+                  key={`${item.path}:${item.kind}:${index}`}
+                  className={item.failurePhase ? 'capture-diagnostic' : undefined}
+                >
+                  <span>
+                    {item.environment && (
+                      <>
+                        {item.environment.browser} · {item.environment.colorScheme} ·{' '}
+                        {item.environment.deviceScaleFactor ?? 1}× ·{' '}
+                      </>
+                    )}
+                    {item.path}
+                    {!item.failurePhase && (
+                      <>
+                        {' '}
+                        · {item.kind}: {item.count}
+                      </>
+                    )}
+                  </span>
+                  {item.failurePhase && (
+                    <>
+                      <p>{captureFailureMessage(item.failurePhase)}</p>
+                      <small>
+                        {item.count} failed checkpoint{item.count === 1 ? '' : 's'}
+                      </small>
+                    </>
+                  )}
                 </li>
               ))}
             </ul>
@@ -227,83 +278,142 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
           </details>
         )}
       </div>
-      {(result?.captures ?? []).map((capture) => {
-        const approved = state.baselines.some(
-          (item) => item.run_id === run.id && item.capture_id === capture.id,
-        );
-        return (
-          <article className="capture" key={capture.id}>
-            <div className="capture-head">
-              <div>
-                <h3>
-                  {capture.path}{' '}
-                  <span className="muted">
-                    {capture.viewport.width} × {capture.viewport.height}
-                  </span>
-                </h3>
-                <small>
-                  <Status value={capture.status} />{' '}
-                  {capture.authenticated && <Status value="signed in" />}{' '}
-                  {capture.changedPixels !== undefined && (
-                    <>
-                      {capture.changedPixels.toLocaleString()} changed pixels
-                      {capture.ratio !== undefined && ` · ${(capture.ratio * 100).toFixed(3)}%`}
-                    </>
-                  )}
-                </small>
+      <WorkflowCheckpoints run={run} />
+      {result?.visualEnvironments && (
+        <section aria-label="Visual environments">
+          <h3>Visual environments</h3>
+          <p className="muted">
+            Only the environments below were attempted. Other browsers, themes, locales and
+            interaction states remain uncovered.
+          </p>
+          <ul>
+            {result.visualEnvironments.map((cell) => (
+              <li key={`${cell.browser}-${cell.colorScheme}-${cell.deviceScaleFactor ?? 1}`}>
+                <strong>
+                  {cell.browser} · {cell.colorScheme} · {cell.deviceScaleFactor ?? 1}×
+                </strong>{' '}
+                <Status value={cell.outcome} /> · {cell.captures} captures
+                {cell.omittedPages ? (
+                  <p>
+                    {cell.omittedPages} pages omitted by the shared capture budget. Coverage is
+                    incomplete.
+                  </p>
+                ) : null}
+                {cell.reason && <p>{cell.reason}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <CaptureGallery key={run.id} captures={result?.captures ?? []}>
+        {(capture) => {
+          const approved = state.baselines.some(
+            (item) => item.run_id === run.id && item.capture_id === capture.id,
+          );
+          return (
+            <article className="capture" key={capture.id}>
+              <div className="capture-head">
+                <div>
+                  <h3>
+                    {capture.path}{' '}
+                    <span className="muted">
+                      {capture.viewport.width} × {capture.viewport.height}
+                    </span>
+                  </h3>
+                  <p>
+                    {capture.environment?.browser ?? 'chromium'} ·{' '}
+                    {capture.environment?.colorScheme ?? 'light'} ·{' '}
+                    {capture.environment?.deviceScaleFactor ?? 1}×
+                  </p>
+                  <small>
+                    Comparison at capture time:{' '}
+                    {capture.status === 'needs-baseline' ? (
+                      'no prior baseline'
+                    ) : (
+                      <Status value={capture.status} />
+                    )}{' '}
+                    {capture.authenticated && <Status value="signed in" />}{' '}
+                    {capture.changedPixels !== undefined && (
+                      <>
+                        {capture.changedPixels.toLocaleString()} changed pixels
+                        {capture.ratio !== undefined && ` · ${(capture.ratio * 100).toFixed(3)}%`}
+                      </>
+                    )}
+                  </small>
+                </div>
+                {approved ? (
+                  <Status value="current approved baseline" />
+                ) : (
+                  run.state === 'completed' &&
+                  capture.status !== 'unstable' && (
+                    <Button
+                      variant="outline"
+                      className="secondary"
+                      data-approve={capture.id}
+                      data-run={run.id}
+                    >
+                      Approve as baseline
+                    </Button>
+                  )
+                )}
               </div>
-              {approved ? (
-                <Status value="approved baseline" />
-              ) : (
-                run.state === 'completed' &&
-                capture.status !== 'unstable' && (
-                  <Button
-                    variant="outline"
-                    className="secondary"
-                    data-approve={capture.id}
-                    data-run={run.id}
-                  >
-                    Approve as baseline
-                  </Button>
-                )
-              )}
-            </div>
-            <div className="compare">
-              <CaptureFigure
-                label="Approved baseline"
-                runId={capture.baselineRunId}
-                file={capture.baselineFile}
-              />
-              <CaptureFigure label="Current capture" runId={run.id} file={capture.file} />
-              <CaptureFigure label="Pixel difference" runId={run.id} file={capture.diffFile} />
-              {capture.videoFile && (
-                <figure>
-                  <video
-                    controls
-                    preload="metadata"
-                    src={`/api/runs/${run.id}/artifacts/${encodeURIComponent(capture.videoFile)}`}
-                  />
-                  <figcaption>Session video · unmasked, inspect before sharing</figcaption>
-                </figure>
-              )}
-            </div>
-            <AssessmentPanel
-              key={capture.assessmentSha256 ?? capture.id}
-              runId={run.id}
-              file={capture.assessmentFile}
-            />
-            {run.state === 'completed' && capture.status !== 'unstable' && (
-              <ReviewForm
-                key={reviewDraftKey(run.id, capture.id, capture.sha256)}
-                run={run}
+              <div className="compare">
+                <CaptureFigure
+                  label="Baseline used for this run"
+                  runId={capture.baselineRunId}
+                  file={capture.baselineFile}
+                  empty={
+                    capture.status === 'needs-baseline'
+                      ? 'No baseline existed when this run was captured.'
+                      : 'Baseline image unavailable for this run.'
+                  }
+                />
+                <CaptureFigure
+                  label="Capture from this run"
+                  runId={run.id}
+                  file={capture.file}
+                  empty="Capture image unavailable for this run."
+                />
+                <CaptureFigure
+                  label="Pixel difference"
+                  runId={run.id}
+                  file={capture.diffFile}
+                  empty={
+                    capture.status === 'needs-baseline'
+                      ? 'No comparison was made because this run had no prior baseline.'
+                      : 'Difference image unavailable for this run.'
+                  }
+                />
+                {capture.videoFile && (
+                  <figure>
+                    <video
+                      controls
+                      preload="metadata"
+                      src={`/api/runs/${run.id}/artifacts/${encodeURIComponent(capture.videoFile)}`}
+                    />
+                    <figcaption>Session video · unmasked, inspect before sharing</figcaption>
+                  </figure>
+                )}
+              </div>
+              <AssessmentPanel
+                key={capture.assessmentSha256 ?? capture.id}
+                runId={run.id}
+                file={capture.assessmentFile}
                 capture={capture}
-                onRefresh={onRefresh}
-                onReview={onReview}
               />
-            )}
-          </article>
-        );
-      })}
+              {run.state === 'completed' && capture.status !== 'unstable' && (
+                <ReviewForm
+                  key={reviewDraftKey(run.id, capture.id, capture.sha256)}
+                  run={run}
+                  capture={capture}
+                  onRefresh={onRefresh}
+                  onReview={onReview}
+                />
+              )}
+            </article>
+          );
+        }}
+      </CaptureGallery>
       <VisualReviewPanel run={run} />
       {run.workflowScope ? (
         <p className="scope-note">
@@ -350,15 +460,15 @@ function VisualReviewPanel({ run }: { run: Run }) {
         <a href={run.project.origin + capture.path} target="_blank" rel="noopener">
           {capture.path}
         </a>{' '}
-        in a fresh anonymous browser at {capture.viewport.width} × {capture.viewport.height}, with
-        the recorded privacy masks.
+        in a fresh anonymous browser at {capture.viewport.width} × {capture.viewport.height}, with{' '}
+        {capture.environment?.deviceScaleFactor ?? 1}× pixel density and the recorded privacy masks.
       </p>
       <div className="review-image">
         <a href={url} target="_blank" rel="noopener">
           <img src={url} alt="Reviewed screenshot with numbered proposed defect regions" />
         </a>
         <svg
-          viewBox={`0 0 ${capture.viewport.width} ${capture.viewport.height}`}
+          viewBox={`0 0 ${capture.viewport.width * (capture.environment?.deviceScaleFactor ?? 1)} ${capture.viewport.height * (capture.environment?.deviceScaleFactor ?? 1)}`}
           aria-label="Proposed regions"
           role="img"
         >

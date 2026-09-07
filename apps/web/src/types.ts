@@ -1,3 +1,11 @@
+export type VisualEnvironment = {
+  browser: 'chromium' | 'firefox' | 'webkit';
+  colorScheme: 'light' | 'dark';
+  /** Omitted in historical and 1x cells to preserve their baseline identity. */
+  deviceScaleFactor?: 1 | 2 | 3;
+  /** Explicit evidence identity for native Chromium captures; historical 1x uses the shell. */
+  renderer?: 'chromium-full-headless';
+};
 export type RunMode = 'discovery' | 'visual' | 'agent' | 'review';
 /** Form sign-in performed once per visual run; secrets are ARXIC_SECRET_ server variables. */
 export type VisualLogin = {
@@ -14,6 +22,9 @@ export type Project = {
   folder: string;
   origin: string;
   paths: string[];
+  browsers?: VisualEnvironment['browser'][];
+  colorSchemes?: VisualEnvironment['colorScheme'][];
+  deviceScaleFactors?: Array<1 | 2 | 3>;
   viewports: Array<{ width: number; height: number }>;
   masks: string[];
   captureConsent: boolean;
@@ -34,6 +45,7 @@ export type Project = {
   createdAt: string;
 };
 export type Capture = {
+  environment?: VisualEnvironment;
   id: string;
   path: string;
   viewport: { width: number; height: number };
@@ -53,6 +65,16 @@ export type Capture = {
   assessmentSha256?: string;
 };
 export type RunResult = {
+  visualEnvironments?: Array<
+    VisualEnvironment & {
+      outcome: 'observed' | 'blocked';
+      captures: number;
+      omittedPages?: number;
+      reason?: string;
+    }
+  >;
+  workflowCaptures?: import('./workflow-captures').WorkflowCapture[];
+  workflowCaptureGap?: string;
   review?: import('./visual-review').VisualReviewResult;
   outcome: 'hypothesized' | 'observed' | 'verified' | 'contradicted' | 'blocked';
   summary: string;
@@ -64,7 +86,13 @@ export type RunResult = {
   captures?: Capture[];
   /** Paths found by crawling the signed-in app during AI discovery, in discovery order. */
   discoveredPaths?: string[];
-  findings?: Array<{ path: string; kind: string; count: number }>;
+  findings?: Array<{
+    path: string;
+    kind: string;
+    count: number;
+    environment?: VisualEnvironment;
+    failurePhase?: CaptureFailurePhase;
+  }>;
   ledger?: unknown;
   engineRun?: unknown;
 };
@@ -99,3 +127,7 @@ export type Campaign = {
     runId?: string;
   }>;
 };
+
+/** Last attempted capture operation; never inferred from raw exception text. */
+export type CaptureFailurePhase =
+  'navigation' | 'readiness' | 'measurement' | 'privacy-capture' | 'evidence-write';

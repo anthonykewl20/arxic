@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Successful sign-in opens the requested run without a second navigation",
+    "result": "passed",
+    "screenshot": "00-bookmarked-run.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

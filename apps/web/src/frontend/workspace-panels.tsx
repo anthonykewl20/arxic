@@ -1,3 +1,4 @@
+import { RetentionPanel } from './retention-panel';
 import { RunPanel, type RunPanelProps } from './run-panel';
 import { RunTable, Status } from './run-table';
 import { time } from './display';
@@ -203,6 +204,7 @@ function Administration({ state }: { state: State }) {
           </p>
         </Card>
       </div>
+      <RetentionPanel />
       <div className="section-heading mt-6">
         <h2>Administrator activity</h2>
         <small>Latest 100 events</small>

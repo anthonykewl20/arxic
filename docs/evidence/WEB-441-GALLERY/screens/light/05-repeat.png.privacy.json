@@ -1,0 +1,8 @@
+{
+  "sha256": "2488c7f6c7ef821e817d757506a6c77a6ff5fa325722a36c8a0efe0bb51e765a",
+  "policy": "persona-free test dashboard; password inputs masked",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed",
+  "sourceCommit": "5341fea3932e37701e30e482fd4b90925bcf3b82",
+  "dirty": false
+}

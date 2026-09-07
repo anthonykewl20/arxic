@@ -4,6 +4,7 @@ import {
   assertBlockedRun,
   assertSuccessfulRun,
   createConfig,
+  formatVerdict,
   modelStubOutput,
   stableRunRoot,
 } from './human-flow-e2e.mjs';
@@ -97,4 +98,16 @@ describe('human-flow E2E pure helpers', () => {
 import { renderFallbackConfig } from '../packages/playwright-agent-adapter/src/fallback-generator';
 it('fallback replay also defaults to no raw trace retention', () => {
   expect(renderFallbackConfig()).toContain("trace: 'off'");
+});
+
+it('never labels a dashboard-only run as the full CLI human flow', () => {
+  expect(formatVerdict({ scope: 'dashboard', ok: false, phases: [], totalMs: 1 })).toBe(
+    'DASHBOARD-E2E FAIL\ntotalMs=1',
+  );
+  expect(formatVerdict({ scope: 'dashboard', ok: true, phases: [], totalMs: 2 })).toBe(
+    'DASHBOARD-E2E PASS\ntotalMs=2',
+  );
+  expect(formatVerdict({ ok: true, phases: [], totalMs: 3 })).toBe(
+    'HUMAN-FLOW-E2E PASS\ntotalMs=3',
+  );
 });

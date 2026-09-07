@@ -1,0 +1,11 @@
+[
+  {
+    "action": "text-200: control text containment; provider names checked by activation",
+    "result": "failed",
+    "screenshot": "04-desktop-overview.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

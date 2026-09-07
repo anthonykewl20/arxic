@@ -1,0 +1,15 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "no-page-errors",
+      "passed": true,
+      "values": {
+        "count": 0
+      }
+    }
+  ]
+}

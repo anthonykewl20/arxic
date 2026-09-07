@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "outcome": "failed",
+  "elapsedMs": 891277,
+  "timeoutMs": 900000,
+  "failure": {
+    "code": 1,
+    "signal": null,
+    "killed": false
+  },
+  "progressAvailable": true
+}

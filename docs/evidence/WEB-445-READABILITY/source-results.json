@@ -1,0 +1,71 @@
+[
+  {
+    "engine": "chromium",
+    "durationSeconds": 122.92,
+    "passedTests": 6,
+    "files": 2,
+    "pngs": 126,
+    "timelines": 6,
+    "incompleteReports": 26,
+    "numericChecks": 1738,
+    "expectedGuardFindings": [
+      {
+        "path": "readability/guard/clipped-button-guard.audit.json",
+        "checks": [
+          "login-label-containment"
+        ]
+      }
+    ],
+    "browsers": [
+      "{\"name\": \"chromium\", \"version\": \"151.0.7922.34\"}"
+    ],
+    "sourceCommit": "9bc52fdd8aebd39e9203c49b7da565b9a287a198",
+    "dirty": false
+  },
+  {
+    "engine": "firefox",
+    "durationSeconds": 195.06,
+    "passedTests": 6,
+    "files": 2,
+    "pngs": 126,
+    "timelines": 6,
+    "incompleteReports": 26,
+    "numericChecks": 1738,
+    "expectedGuardFindings": [
+      {
+        "path": "readability/guard/clipped-button-guard.audit.json",
+        "checks": [
+          "login-label-containment"
+        ]
+      }
+    ],
+    "browsers": [
+      "{\"name\": \"firefox\", \"version\": \"153.0\"}"
+    ],
+    "sourceCommit": "9bc52fdd8aebd39e9203c49b7da565b9a287a198",
+    "dirty": false
+  },
+  {
+    "engine": "webkit",
+    "durationSeconds": 153.89,
+    "passedTests": 6,
+    "files": 2,
+    "pngs": 126,
+    "timelines": 6,
+    "incompleteReports": 28,
+    "numericChecks": 1738,
+    "expectedGuardFindings": [
+      {
+        "path": "readability/guard/clipped-button-guard.audit.json",
+        "checks": [
+          "login-label-containment"
+        ]
+      }
+    ],
+    "browsers": [
+      "{\"name\": \"webkit\", \"version\": \"26.5\"}"
+    ],
+    "sourceCommit": "9bc52fdd8aebd39e9203c49b7da565b9a287a198",
+    "dirty": false
+  }
+]

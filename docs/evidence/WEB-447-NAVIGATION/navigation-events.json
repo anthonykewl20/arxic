@@ -1,0 +1,1640 @@
+[
+  {
+    "sequence": 0,
+    "stage": "setup",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 1,
+    "stage": "canary-error",
+    "kind": "arxic-native-error"
+  },
+  {
+    "sequence": 2,
+    "stage": "canary-error",
+    "kind": "driver-canary",
+    "endpoint": "other"
+  },
+  {
+    "sequence": 3,
+    "stage": "canary-rejection",
+    "kind": "arxic-native-rejection"
+  },
+  {
+    "sequence": 4,
+    "stage": "canary-rejection",
+    "kind": "driver-canary",
+    "endpoint": "other"
+  },
+  {
+    "sequence": 5,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 6,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 7,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 8,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 9,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 10,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 11,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 12,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 13,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 14,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 15,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 16,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 17,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 18,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 19,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 20,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 21,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 22,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 23,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 24,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 25,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 26,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 27,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 28,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 29,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 30,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 31,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 32,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 33,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 34,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 35,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 36,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 37,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 38,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 39,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 40,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 41,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 42,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 43,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 44,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 45,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 46,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 47,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 48,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 49,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 50,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 51,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 52,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 53,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 54,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 55,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 56,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 57,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 58,
+    "stage": "response-boundary-navigation",
+    "kind": "driver-fetch-load",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 59,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 60,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 61,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 62,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 63,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 64,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 65,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 66,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 67,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 68,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 69,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 70,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 71,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 72,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 73,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 74,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 75,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 76,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 77,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 78,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 79,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 80,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 81,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 82,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 83,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 84,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 85,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 86,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 87,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 88,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 89,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 90,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 91,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 92,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 93,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 94,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 95,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 96,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 97,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 98,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 99,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 100,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 101,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 102,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 103,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 104,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 105,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 106,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 107,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 108,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 109,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 110,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 111,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 112,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 113,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 114,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 115,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 116,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 117,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 118,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 119,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 120,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 121,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 122,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 123,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 124,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 125,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 126,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 127,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 128,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 129,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 130,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 131,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 132,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 133,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 134,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 135,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 136,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 137,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 138,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 139,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 140,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 141,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 142,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 143,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 144,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 145,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 146,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 147,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 148,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 149,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 150,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 151,
+    "stage": "response-boundary-navigation",
+    "kind": "driver-fetch-load",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 152,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 153,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 154,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 155,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 156,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 157,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 158,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 159,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 160,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 161,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 162,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 163,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 164,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 165,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 166,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 167,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 168,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 169,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 170,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 171,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 172,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 173,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 174,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 175,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 176,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 177,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 178,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 179,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 180,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 181,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 182,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 183,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 184,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 185,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 186,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 187,
+    "stage": "response-boundary-navigation",
+    "kind": "driver-fetch-load",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 188,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 189,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 190,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 191,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 192,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 193,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 194,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 195,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 196,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 197,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 198,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 199,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 200,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 201,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 202,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 203,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 204,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 205,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 206,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 207,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 208,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 209,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 210,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 211,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 212,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 213,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 214,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 215,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 216,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 217,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 218,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 219,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 220,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 221,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 222,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 223,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 224,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 225,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 226,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 227,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 228,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 229,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 230,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 231,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 232,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 233,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 234,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 235,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 236,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 237,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 238,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 239,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 240,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 241,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 242,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 243,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 244,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 245,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 246,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 247,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 248,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 249,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 250,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 251,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 252,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 253,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 254,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 255,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 256,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 257,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 258,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 259,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 260,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 261,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 262,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 263,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 264,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 265,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 266,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 267,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 268,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 269,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 270,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 271,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 272,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 273,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 274,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 275,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 276,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 277,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 278,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 279,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 280,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 281,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 282,
+    "stage": "response-boundary-navigation",
+    "kind": "driver-fetch-load",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 283,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 284,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 285,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 286,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 287,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 288,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 289,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 290,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 291,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 292,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 293,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 294,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 295,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 296,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 297,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 298,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 299,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 300,
+    "stage": "response-boundary-navigation",
+    "kind": "request-cancelled",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 301,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-hide"
+  },
+  {
+    "sequence": 302,
+    "stage": "response-boundary-navigation",
+    "kind": "arxic-native-ready"
+  },
+  {
+    "sequence": 303,
+    "stage": "active-fetch-failure",
+    "kind": "driver-fetch-load",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 304,
+    "stage": "active-fetch-failure",
+    "kind": "request-failed",
+    "endpoint": "/api/runs"
+  },
+  {
+    "sequence": 305,
+    "stage": "throw-fetch-lookalike",
+    "kind": "arxic-native-error"
+  },
+  {
+    "sequence": 306,
+    "stage": "throw-fetch-lookalike",
+    "kind": "driver-fetch-load",
+    "endpoint": "/api/runs"
+  }
+]

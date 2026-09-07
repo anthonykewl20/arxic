@@ -1,0 +1,33 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/frontend-templates
+
+ ❯ packages/source-ua-adapter/src/__tests__/frontend-template.test.ts (3 tests | 1 failed) 1711ms
+   × discovers all thirteen literal controls in the committed real Express view with exact source references 97ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/source-ua-adapter/src/__tests__/frontend-template.test.ts > discovers all thirteen literal controls in the committed real Express view with exact source references
+AssertionError: expected 82 to be 89 // Object.is equality
+
+- Expected
++ Received
+
+- 89
++ 82
+
+ ❯ packages/source-ua-adapter/src/__tests__/frontend-template.test.ts:74:58
+     72|   expect(result.gaps).not.toContainEqual({ path, reason: 'unsupported-…
+     73|   expect(result.files.find((file) => file.path === path)?.status).toBe…
+     74|   expect(new Set(result.rows.map((row) => row.id)).size).toBe(result.r…
+       |                                                          ^
+     75|   expect(await collectFrontendInventory(repo.root, index)).toEqual(res…
+     76| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  15:51:53
+   Duration  2.08s (transform 180ms, setup 0ms, import 274ms, tests 1.71s, environment 0ms)
+

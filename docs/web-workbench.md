@@ -5,6 +5,25 @@ engine and a new visual comparison lane. The [product specification](web-product
 lists what is implemented and what remains before the full web product release.
 The dashboard displays `v0.0.200`; the CLI displays the same label and canonical package metadata uses `0.0.200`.
 
+## Installed server command
+
+A tarball built from this revision includes `arxic web`, compiled jobs and prebuilt
+React/CSS assets. Install the tarball with `npm install -g /absolute/path/arxic-0.0.200.tgz`,
+install the selected browsers using `npx --yes --package=playwright@1.62.1 playwright install chromium firefox webkit`,
+and configure the same administrator token and workspace roots shown below before
+running `arxic web`. Startup needs Node 22.22 or newer and the package's native
+SQLite/image dependencies; it does not need the Arxic source checkout, pnpm, tsx or Vite.
+Source projects still need their own runtime dependencies and a running test target.
+This documents the locally built distribution; it does not announce an npm release.
+
+Startup validates the bundled frontend, index and job bytes before reporting its
+address. If it reports missing or invalid packaged assets, reinstall the package;
+do not bypass the manifest. Workspace roots must be a nonempty JSON array of absolute
+paths. A restart retains projects, run history, approved baselines and retention
+settings, resumes durable deletion intents, and invalidates browser sessions.
+Sign in again after restart. Interrupted execution remains explicitly blocked;
+queued work follows the existing serialized runner's recovery policy.
+
 ## Local setup
 
 Use a checkout of this repository with Node 22.22 or newer and its pinned pnpm.
@@ -72,8 +91,12 @@ Supported extraction is structural JS/TS/JSX/TSX: components, native controls,
 action attributes, conditionals, state hooks/attributes, test declarations and
 configuration references and feature-flag member expressions. Markdown/text headings and
 requirement language outside fenced code are declarations, not independently
-accepted business rules. EJS, HTML, Vue, Svelte and MDX component syntax are
-explicitly unsupported; arbitrary aliases, generated markup and hidden
+accepted business rules. HTML/HTM and default-delimiter EJS add literal native
+controls and action/state attribute names with committed line/hash provenance.
+Template code is excluded, never executed. Embedded scripts, inert templates,
+foreign markup, malformed templates and the 20,000-node parser budget are explicit
+coverage gaps. Attribute values are not emitted. Vue, Svelte and MDX component syntax
+remain unsupported; arbitrary aliases, generated markup and hidden
 requirements cannot be recovered completely. Conditions and declarations may also
 come from server/test code; component-to-runtime reachability is not proven.
 Environment variables are configuration references, not proven feature flags. Limits are 1 MiB per file, 5,000
@@ -83,12 +106,20 @@ runtime route/state/action outcome and viewport coverage remains unobserved.
 
 Stable visual captures require two consecutive identical PNG captures and matching
 bounded numeric layout observations immediately before/after the final capture. Locale
-`en-US`, timezone UTC, light color scheme, scale 1, reduced motion and browser
-version are controlled. Baselines bind the target, path, viewport, masks,
-platform, browser and capture policy. Keep the execution environment consistent;
+`en-US`, timezone UTC, selected light/dark color scheme, scale 1, reduced motion and browser
+version are controlled. **Capture environments** selects Chromium, Firefox and/or WebKit and light and/or dark. Every selected pair runs at every configured viewport; older projects default to Chromium/light. Install the matching Playwright browsers and system dependencies on the server (see [Playwright browser setup](https://playwright.dev/docs/browsers)). WebKit is Playwright’s engine build, not a claim of real-device Safari coverage. Baselines bind the target, path, viewport, masks,
+platform, browser engine/version, color scheme and capture policy. The legacy Chromium/light spec identity is preserved; another environment cannot reuse its baseline. Keep the execution environment consistent;
 a changed environment requires its own reviewed baseline. The pixel comparator
 uses Pixelmatch's 0.1 per-pixel threshold and reports every differing pixel beyond
 that threshold. It does not silently accept a percentage of changed pixels.
+
+The capture panel distinguishes **Comparison at capture time** from **current
+approved baseline**. **Baseline used for this run** shows the historical image
+used in that comparison. When no baseline existed, the panel says so and explains
+why there is no difference image. Approving or replacing a baseline changes future
+comparisons; it does not rewrite a prior run, invent a self-comparison, or change
+its retained pixels. A previously approved capture can be approved again after
+replacement, but only the current selection carries the approval badge.
 
 The read-only visual lane blocks cross-origin assets, non-GET/HEAD requests,
 service workers and WebSockets. Apps that need these may render incompletely;
@@ -347,17 +378,40 @@ Interrupted running jobs become blocked at restart; queued jobs resume. There is
 no automatic retry of potentially mutating workflows.
 
 Test runs searches all stored SQLite history by project name or run ID, with project, type and status filters and 25-row pages. Section, selected run and search filters persist in the URL for refresh, Back and shared bookmarks. Deleted-run bookmarks return to history with an explanation. Full records remain accessible through the authenticated run endpoint. The application
-does not yet implement automatic retention or a disk quota. Monitor storage.
-An administrator can cancel active jobs and delete terminal run artifacts;
-approved baselines are protected from deletion. Back up the stopped instance's
-entire state directory (including SQLite WAL/SHM if present), not just PNG files.
+supports opt-in retention under **Administration → Evidence retention**. It is disabled
+by default. Set an age limit (1–3650 days) and the newest terminal runs to retain
+per project (1–1000), preview the whole history, then explicitly authorize deletion
+and save. Preview shows total eligibility, protection counts and the next bounded
+batch; it does not delete anything. Unsaved changes disable **Clean up now**.
+
+Enabled retention checks about once a minute while the queue is idle. Each cleanup
+removes at most 50 newly eligible runs. Active runs, current and historical baseline
+references, review sources, campaign discovery sources/children and the configured
+newest runs remain protected. Evidence still referenced by a campaign will not age
+out; campaign removal remains separate work. Manual run deletion uses the same
+reference protections and also waits for an idle queue.
+
+Policy and last cleanup outcome persist in SQLite. Filesystem failure leaves a
+visible failure and durable deletion intent; **Clean up now** retries after storage
+is repaired. Authorized deletions resume at startup, even if the policy was later
+disabled. Recovery must finish before jobs start. Disabling stops new automatic
+deletions; it cannot undo an already authorized deletion. A failed recovery refuses
+startup rather than claiming success. No disk quota or SQLite file compaction is
+implemented. Monitor free space and back up the stopped instance's entire state
+directory (including SQLite WAL/SHM if present), not just PNG files.
+
+The authenticated retention API is `GET /api/retention`, `POST /api/retention`
+(save), `POST /api/retention/preview` (read-only preview), and
+`POST /api/retention/cleanup` (apply saved policy; body `{}`). Policy bodies contain
+`enabled`, `maxAgeDays`, `keepLatest`; saving an enabled policy also requires
+`confirmDeletion: true`. Invalid/extra fields and cross-origin mutations are refused.
 
 ## Server deployment
 
 Install the same checkout and dependencies on a dedicated host under a service
 account, with project folders mounted and readable there. On Linux, install
-Chromium system dependencies with the documented Playwright setup for your OS.
-Use a service manager to keep `pnpm web` running and provide:
+system dependencies for every selected browser with the documented Playwright setup for your OS.
+Use a service manager to keep the installed `arxic web` command running (or `pnpm web` for a source checkout) and provide:
 
 | Variable                  | Purpose                                                            |
 | ------------------------- | ------------------------------------------------------------------ |
@@ -477,3 +531,250 @@ The seven sections support Light/Dark/System themes, keyboard navigation, a skip
 Each capture exposes **Measured checks and coverage**, the numeric report and its JSON download. Failed evidence retrieval shows an error and Retry; it never becomes a pass. Unverified predicates and uncovered states remain explicit. The report is hash-checked by the server and the dashboard preserves its verdicts.
 
 The dashboard audit uses real Chromium, axe checks, viewport overflow measurements, keyboard journeys and masked screenshots across seven sections, four widths and two themes. It supplements populated discovery/capture/baseline/schedule/session journeys. Automated accessibility checks do not certify every heuristic, assistive technology or browser. See the [dashboard UX evidence](evidence/WEB-402-DASHBOARD-UX/summary.md) for exact results and remaining production gates.
+
+Measured checks include scoped solid-paint text contrast. Each supported check shows its ratio/threshold and can locate the measured region in the masked capture. Gradients, images, ambiguous compositing, privacy masks and unavailable paint remain unverified; see the [profile and limitations](visual-oracle.md#solid-text-contrast-profile).
+
+## Workflow checkpoints
+
+In **Project settings → Configure AI execution in this dashboard**, enable
+**Show workflow screenshots in run results**. Choose **Only an approved region**,
+then its accessible role and exact name, or its field label. The region must be
+unique and present at every recorded checkpoint; an absent or ambiguous region
+blocks capture. Missing mask anchors use the existing broader landmark masking
+fallback; capture fails when no bounded fallback is available. Add privacy masks for sensitive content and authorize screenshot
+capture at the bottom of the settings form. For a larger view, **Page with required
+privacy masks** requires at least one mask. File-based execution supports the same
+`policy.checkpointCapture` declaration and also requires project capture consent.
+
+After a successful verifier run, open **Test runs → View run → Workflow
+checkpoints**. Each checkpoint shows its capture dimensions, time, privacy mode,
+full-size image and original provenance. The gallery validates the complete
+promoted screenshot artifact set, including bound runnable source, before copying
+images. Every image/provenance request checks its recorded hash using a bounded,
+regular-file read that rejects symlinks. Altered or unavailable files produce an
+explicit error; **Retry screenshot** rechecks the file. A failed export leaves an
+explicit evidence gap and does not rewrite the engine's workflow verdict.
+
+Gallery filenames are stable `checkpoint-NNN.png` copies. The unchanged provenance
+refers to the displayed **Original evidence file**; image bytes and hashes remain
+identical. The gallery does not export runnable source or raw traces. Only
+explicitly configured captures are exported; absent capture declarations retain
+the existing conservative `main` mask inside engine evidence.
+
+These images show states reached during the actual workflow, including authenticated
+states when the verifier reached them. They are not visual baselines, a complete
+state inventory or an automatic UI/UX pass. Broader browser/locale/role/state matrices
+and human release inspection remain separate requirements.
+
+Run-history failures remain visible even when background polling supersedes a
+manual search. **Retry run history** reloads the selected filters after recovery;
+stale or signed-out responses cannot overwrite the current history result.
+
+## Inspect captured elements
+
+In **Test runs**, expand a viewport capture's **Measured checks and coverage**, then
+choose **Inspect captured elements**. Click a screenshot point to list overlapping
+measured boxes, smallest first. Use **Element type** to find buttons, form fields, links, images, headings, tables, regions, lists or media. Combine a type with **Find element number** or a screenshot point. **Show all captured elements** clears all filters; parent navigation also clears filters so the parent remains visible. Use the paginated
+buttons with the keyboard, or navigate to a retained parent. The selected outline
+and CSS bounds use the original capture coordinates even when the preview scales
+to a mobile screen. Checks overlapping the selected area retain their original
+verdicts and measurement references; expand **Checks overlapping this area** when
+you need the details. Search feedback appears above the input. **Show selected on screenshot** returns focus
+to the outline; **Open full-size element image** opens the original image.
+
+Element numbers are capture-local measurement IDs, not semantic names or replay
+selectors. The retained scene contains numeric geometry plus a bounded type code; it deliberately
+excludes page text, field values and raw DOM attributes. Types are browsing hints derived from recognized declared roles or native elements, not verified accessibility semantics. Unclassified elements appear as **Other**. Older captures remain inspectable with **Unknown (older capture)** and an explicit note that types were not recorded. Invalid or unsupported type metadata cannot gain trusted inspection or waive a hard measurement failure. A box intersecting a point
+does not prove paint order or clickability. Only viewport-intersecting boxes from
+the bounded scan are available; a truncated scan and missing parents remain
+explicit. Text-paint measurement IDs are separate from element IDs.
+
+Unstable, malformed, duplicate/cyclic, oversized or image-unbound geometry cannot
+be inspected. Retry element measurements after a retrieval problem, or run a fresh
+capture if evidence is unsupported. Image failure disables picking and offers a
+retry. The server checks original visual PNG and assessment hashes through bounded,
+regular-file reads; symlinks and changed bytes are refused. Workflow image/provenance
+reads share those mechanics. This does not add separate hashes for legacy visual
+difference images or visual privacy sidecars.
+
+## Browser/theme capture matrix
+
+The dashboard accepts distinct selections of one to three browser engines and one
+or both color schemes, and one or more native pixel densities (1×, 2×, 3×). The saved project and each run snapshot retain the selection.
+Each capture identifies its environment, and **Visual environments** lists every
+attempted browser/theme/pixel-density combination, its capture count, blocked reason and omitted pages.
+Observed findings are tagged with their environment. An unavailable engine or failed
+cell keeps the aggregate run blocked while successful independent captures remain
+available; it never becomes an implicit pass. Fix the prerequisite and rerun before
+baseline approval.
+
+The 600-checkpoint budget is shared across the entire matrix, not reset per browser.
+Pages are bounded equally per environment/viewport and truncation remains visible.
+Each environment establishes its own authorized sign-in and memory-only session;
+the same origin/mutation/mask policies apply to every browser. The matrix signs in once per browser family and reuses that real session in memory within the current run, avoiding repeated login submissions for each theme/density. Every reuse is explicit in the sanitized timeline; sessions and failed-login outcomes are discarded between runs. Authenticated workflow
+exploration beyond the configured redirect-based sign-in is still a separate gap.
+
+The application-owned capture helper removes only validated sRGB intent and
+full-precision sBIT markers emitted by WebKit. Encoded pixel chunks are unchanged;
+retained files still pass the strict IHDR/IDAT/IEND-only PNG validator. Text metadata,
+malformed markers and all other unexpected chunks remain rejected.
+
+Locale, direction, zoom, forced colors, OS/device behavior and arbitrary
+interactive-state matrices are not configurable by this slice. Native engine
+comparison does not make pixel differences into semantic defect proof.
+
+## Find captures within a run
+
+Open **Test runs**, select a run, then use **Captured pages**. Search a path or
+combine **Capture browser**, **Capture theme**, **Capture pixel density**, **Capture viewport** and
+**Comparison at capture time**. The count reports matching captures out of the full
+run. **Next captures** and **Previous captures** show up to six at a time and return
+keyboard focus to the heading. Clear filters to recover from no matches.
+
+Filters survive periodic refresh but reset when you change runs. They only narrow
+the gallery: blocked environments and coverage omissions above remain visible.
+Current baseline approval is separate from the comparison result recorded when a
+capture was made. Measurements, source images and review forms still refer to the
+original capture. Older captures without environment metadata use Chromium/light,
+the legacy capture defaults. Filters are not persisted in bookmarks or across a
+full browser reload. Workflow checkpoint galleries are separate.
+
+## Dashboard browser verification
+
+Target capture engines and the browser running the dashboard are independent.
+`ARXIC_DASHBOARD_BROWSER=chromium|firefox|webkit` selects the real dashboard test
+driver; an absent value defaults to Chromium, and unsupported values fail rather
+than falling back. Element-inspector expected geometry is measured independently
+in the retained capture's engine and viewport.
+
+Run the installed dashboard contract with:
+
+```sh
+ARXIC_DASHBOARD_BROWSER=firefox node scripts/human-flow-e2e.mjs --dashboard-only --evidence-dir artifacts/dashboard-firefox
+```
+
+This packs and installs the public CLI in a temporary clean room, checks its web
+startup and executes the same dashboard journeys used by the full package gate.
+It reports `DASHBOARD-E2E`, keeping CLI workflow proof separate. The suite includes
+access refusal, project validation, run search, capture filters, element picking,
+keyboard navigation, provider refresh failures, review consent, baseline history,
+retention and campaign controls. It uses real reference apps and browser engines;
+provider-boundary stubs do not establish paid-model quality.
+
+Static audits wait for fonts and fixed animation-frame boundaries; they never
+wait for the finding predicate to pass. A deliberately widened real dashboard
+stylesheet guards against hiding persistent overflow. Incomplete accessibility
+checks are marked unverified in timelines.
+
+Named masked screenshots and sanitized timelines record actual browser versions
+in adjacent provenance. Accessibility checks retain incomplete results. Desktop
+WebKit automation is not real-device Safari proof, and automated checks do not
+replace human visual/release inspection. The [retained dashboard proof](./evidence/WEB-443-BROWSERS/summary.md) documents source-picker stability, measurement reveal/retry, forced-color fixes and the 18-test installed contract. [PR #444 checks](https://github.com/anthonykewl20/arxic/pull/444/checks) passed installed acceptance before merge. Incomplete contrast and transient-frame causality remain explicit gaps; no blanket production-readiness claim is made.
+
+## Dashboard readability verification
+
+The installed contract includes five readability tests, bringing the shared dashboard
+suite to 24 tests in 14 files (including the capture-recovery journey). Each selected engine runs the same contract. Four
+journeys combine light/dark with either user text spacing (1.5 line height, 2em
+paragraph spacing, 0.12em letter spacing and 0.16em word spacing) or 200% mounted
+HTML text enlargement. These overrides use the loaded same-origin stylesheet
+with Content Security Policy still enabled. Computed styles confirm application;
+newly mounted views receive the profile again. This is not native browser zoom.
+
+The journeys connect a real reference project, discover its source, run a visual
+test, select measured elements, open mobile navigation and Administration, and
+recover provider names. They measure document overflow and text containment in
+buttons, labels, headings, summaries and sidebar identity groups at desktop and
+narrow widths. Desktop and open mobile navigation must keep Administration on one line.
+The model catalog is a named keyboard-focusable region; End/Home must scroll it.
+A deliberately clipped real login button is the fifth test and must produce a
+failed numeric finding even when the accessibility engine finds no violation.
+
+Navigation rows and text buttons use content height with minimum target sizes.
+The desktop sidebar scales with enlarged text and mobile navigation reduces its
+column count when needed; run headings, breadcrumbs and
+activity rows wrap. Headings and folder metadata also wrap under wider system
+fonts; the wizard audits populated folder rows and retains a scrolled metadata
+capture. Provider titles may truncate in the picker only because
+activation exposes the exact full heading, which is separately measured.
+
+Numeric findings are retained beside screenshots and sanitized action timelines.
+DOM Range containment uses an explicit 1/65536 CSS pixel edge resolution; raw
+spill measurements remain in the evidence. This widens the former zero-tolerance
+comparison after a Firefox precision discrepancy; 1/64-pixel edge spills still fail.
+DOM Range rectangles do not establish optical or glyph-level correctness.
+Incomplete accessibility checks remain unverified. These cases do not certify
+all heuristics, arbitrary form-input clipping, native zoom, every locale/persona
+or transient animation frame. [Retained readability evidence](./evidence/WEB-445-READABILITY/summary.md) records
+all three source-engine passes and the before/after findings. PR #446 records
+required installed CI acceptance; issue #445 requires that pass before closure.
+
+Successful dashboard sign-in restores the requested URL selection before loading
+its data. A bookmarked run therefore opens directly after login. Real browser
+checks require that detail before reload and retain session draft/consent cleanup
+checks. The general WebKit early-reload diagnostic is separately tracked in #447;
+the login fix is not a claim that every outgoing-document error is resolved.
+
+The #447 investigation is closed by corroboration, not waiver: WebKit's
+`ThreadableLoader::logError` skips cancellations but logs fetches initiated
+during document teardown as JS-source console errors, which the driver reports
+as `pageerror`. The shared `trackDashboardErrors` check classifies such an event
+as outgoing-document evidence only when the exact message shape, a known API
+endpoint, a teardown marker, the absence of a same-endpoint non-cancellation
+request failure and the absence of native exceptions all corroborate; active
+request refusals, thrown look-alikes and native errors stay hard on every
+engine, and non-reproducing WebKit proof rounds fail as inconclusive. The main
+journey asserts this classified hard list; [retained proof](./evidence/WEB-447-NAVIGATION/summary.md)
+records the three-engine evidence and the deterministic reproduction.
+
+Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
+
+Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
+
+Imported AI execution configurations are subject to the same managed fixture
+provider validation when the CLI loads them for execution. Unsupported provider
+names are refused at that boundary. Built-in provider declarations
+do not add inbox/OTP setup controls to the dashboard (refs #452).
+
+## Native pixel density (in progress, #454)
+
+In project settings, choose **1× standard**, **2× sharp** or **3× extra sharp** under **Pixel density**. Each chosen density multiplies the browser/theme/viewport matrix and shares its 600-checkpoint budget. An empty selection is refused; older projects retain 1× and existing baseline identities. Higher density produces more native image pixels while layout dimensions and element picking remain in CSS pixels. Baselines, filenames, outcomes and gallery filters distinguish the density.
+
+A viewport/density product exceeding 16 × 1024 × 1024 image pixels is refused before capture. Reduce the viewport or deselect a density to recover; images are not silently downsampled. PNG dimensions, decoded-pixel limits and privacy masks remain enforced. Workflow checkpoint screenshots keep their existing CSS-pixel capture behavior.
+
+Local dashboard tests exercise selection, keyboard controls, empty-selection and oversized-image recovery, saved settings and density filtering. The original Chromium headless shell produced small text-paint differences with equal geometry. Native 2×/3× Chromium now uses full Chromium headless, recorded as `renderer: chromium-full-headless` in environment evidence and baseline identity. Two fresh nine-environment baseline/repeat/regression runs pass without widening pixel tolerance. Existing 1× captures retain their prior renderer and baseline identity. Physical hardware and cross-OS rendering are outside this emulation proof.
+
+Native-density AI review uses image-pixel coordinates for overlays. Review accepts density-qualified filenames but retains its separate 4 × 1024 × 1024 pixel model-image limit; an allowed visual capture can still be too large for AI review. Settings validation brings the error into view and focuses it for keyboard recovery.
+
+For native Chromium, install the full browser with `pnpm exec playwright install chromium`; a shell-only installation is insufficient and the unavailable environment remains blocked. This follows Playwright’s [documented new headless mode](https://playwright.dev/docs/browsers#chromium-new-headless-mode). Firefox and WebKit retain their own native rendering engines.
+
+An AI image-dimension refusal now tells you to choose a smaller viewport or lower pixel density. It preserves the review form input and restores submission controls. Invalid bytes and hash failures retain the opaque integrity diagnostic; neither model bounds nor PNG validation were relaxed.
+
+### Installed-dashboard CI scope and interruption evidence
+
+The packaged Chromium release flow and an ordinary `--dashboard-only` run execute
+all eighteen declared dashboard files. Firefox/WebKit CI assigns those same files
+to two required partitions (`--dashboard-shard 1` and `--dashboard-shard 2`); both
+must pass for each browser. A partition is not whole-browser acceptance. Selection
+contracts guard exhaustive, disjoint membership and reject sharding the full CLI
+release flow. Each command retains its 900-second limit, each job its 25-minute
+limit, and all individual Vitest case deadlines/assertions remain unchanged. There are now
+two jobs' worth of execution capacity per non-Chromium browser.
+
+Each run writes `web/dashboard-progress.jsonl` incrementally, with module basename,
+hashed case ID, source line, reported state and receipt elapsed time. These are
+reporter observation times, not exact browser execution timings. Adjacent
+provenance binds the bytes, and `web/dashboard-command.json` records selected files,
+partition, duration and bounded child-exit facts. Test names, assertion values and
+exception bodies are excluded. Missing completion records remain incomplete;
+later success cannot retroactively fill a failed run's evidence.
+
+The original installed Firefox failure is retained in the
+[failed CI record](evidence/WEB-454-DENSITY/ci-34086989767/summary.md).
+
+The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a historical light Firefox journey failure. Subsequent exact-head CI 34091854414 passed all required installed browser cases before PR #455 merged; local reruns alone did not waive the earlier failure.
+Project-dialog footer actions use a 44-pixel minimum height. In settings, the explanatory text precedes Back and Save, keeping navigation and submission on one row on narrow screens. [Retained red evidence](evidence/WEB-456-FOOTER/action-row/summary.md) documents the original 114-pixel action-row separation and 32-pixel tablet targets. This layout fix does not convert unresolved footer contrast checks into passes.
+
+Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among eighteen required dashboard files.
+
+The intent inventory includes a matching-declaration link for each discovered project. Activate it by pointer or keyboard to focus the declaration heading without scrolling past the route table. Zero matches lead to the explicit empty result; source revision hashes wrap at narrow widths. Navigation acceptance includes 1440- and 320-pixel views.

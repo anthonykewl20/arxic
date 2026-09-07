@@ -2,6 +2,7 @@ import { Button } from './components';
 import { Badge } from './components';
 import { Input } from './components';
 import { WorkflowSelection } from './workflow-selection';
+import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { IntentLedger } from '../../../../packages/intent/src/ledger';
 import type { Project, Run } from '../types';
@@ -70,6 +71,33 @@ export function InventoryPanel(props: InventoryPanelProps) {
           </Button>
         </form>
       </div>
+      <nav className="toolbar" aria-label="Declaration results">
+        {latest.flatMap(({ project, discovery }) =>
+          discovery?.result?.frontend
+            ? [
+                <Button
+                  key={project.id}
+                  asChild
+                  variant="outline"
+                  className="min-h-11 max-w-full text-left"
+                >
+                  <a
+                    href={`#declarations-${discovery.id}`}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      const heading = document.getElementById(`declarations-${discovery.id}`);
+                      heading?.focus({ preventScroll: true });
+                      heading?.scrollIntoView({ block: 'start', behavior: 'instant' });
+                    }}
+                  >
+                    {matchingDeclarations(discovery.result.frontend, kind, search).length} matching
+                    declarations · {project.name}
+                  </a>
+                </Button>,
+              ]
+            : [],
+        )}
+      </nav>
       <p className="scope-note">
         Source discovery inventories routes and frontend declarations with explicit gaps; it does
         not recover every business rule. AI E2E adds evidence-grounded proposals and replay
@@ -197,6 +225,14 @@ function SurfaceInventory({ project, run }: { project: Project; run: Run }) {
   );
 }
 
+function matchingDeclarations(inventory: FrontendInventory, kind: string, search: string) {
+  return inventory.rows.filter(
+    (row) =>
+      (!kind || row.kind === kind) &&
+      `${row.label} ${row.source.path}`.toLowerCase().includes(search.toLowerCase()),
+  );
+}
+
 function FrontendDeclarations({
   run,
   kind,
@@ -210,11 +246,11 @@ function FrontendDeclarations({
 }) {
   const inventory = run.result?.frontend;
   if (!inventory) return null;
-  const matches = inventory.rows.filter(
-    (row) =>
-      (!kind || row.kind === kind) &&
-      `${row.label} ${row.source.path}`.toLowerCase().includes(search.toLowerCase()),
-  );
+  // Historical inventories can persist duplicate row IDs from the earlier
+  // identity format; key rows by immutable inventory position so duplicate IDs
+  // never collide as React keys and retained evidence stays unchanged.
+  const rowKeys = new Map(inventory.rows.map((row, index) => [row, `${index}:${row.id}`]));
+  const matches = matchingDeclarations(inventory, kind, search);
   const pageSize = 100;
   const page = Math.min(
     pages.get(run.id) ?? 0,
@@ -223,7 +259,9 @@ function FrontendDeclarations({
   return (
     <section className="frontend-inventory">
       <div className="section-heading">
-        <h2>Frontend declarations</h2>
+        <h2 id={`declarations-${run.id}`} tabIndex={-1} className="declaration-heading">
+          Frontend declarations
+        </h2>
         <small>
           {inventory.rows.length} hypotheses · {inventory.coverage.analyzedFiles}/
           {inventory.coverage.enumeratedFiles} files analyzed
@@ -247,7 +285,7 @@ function FrontendDeclarations({
           <tbody>
             {matches.length ? (
               matches.slice(page * pageSize, (page + 1) * pageSize).map((row) => (
-                <tr key={row.id}>
+                <tr key={rowKeys.get(row) ?? row.id}>
                   <td data-label="KIND">
                     {row.kind}
                     <small>{row.basis} · hypothesized</small>

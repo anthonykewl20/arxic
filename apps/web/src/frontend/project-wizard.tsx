@@ -1,3 +1,4 @@
+import { CheckpointSettings } from './checkpoint-settings';
 import { useEffect, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { flushSync } from 'react-dom';
@@ -73,6 +74,17 @@ export function projectBody(values: FormData) {
       values.get(key) ?? '',
     ]),
   );
+  body.browsers = values.has('visualMatrixConfigured') ? values.getAll('browsers') : ['chromium'];
+  body.colorSchemes = values.has('visualMatrixConfigured')
+    ? values.getAll('colorSchemes')
+    : ['light'];
+  if (!(body.browsers as unknown[]).length || !(body.colorSchemes as unknown[]).length)
+    throw new Error('Choose at least one browser and one color scheme');
+  body.deviceScaleFactors = values.has('visualDensityConfigured')
+    ? values.getAll('deviceScaleFactors').map(Number)
+    : [1];
+  if (!(body.deviceScaleFactors as number[]).length)
+    throw new Error('Choose at least one pixel density');
   body.paths = lines(values.get('paths'));
   body.masks = lines(values.get('masks'));
   body.viewports = String(values.get('viewports') ?? '')
@@ -117,6 +129,8 @@ export function projectBody(values: FormData) {
             ? splitList(value)
             : value;
     }
+    if (values.has('checkpointEnabled'))
+      execution.checkpointCapture = JSON.parse(String(values.get('checkpointCapture')));
     body.execution = execution;
   }
   return body;
@@ -330,6 +344,9 @@ function SettingsStep({
     origin: detection?.origin ?? '',
     paths: detection?.paths ?? ['/'],
     masks: [],
+    browsers: ['chromium'] as NonNullable<Project['browsers']>,
+    colorSchemes: ['light'] as NonNullable<Project['colorSchemes']>,
+    deviceScaleFactors: [1] as NonNullable<Project['deviceScaleFactors']>,
     viewports: [
       { width: 1440, height: 900 },
       { width: 390, height: 844 },
@@ -359,6 +376,12 @@ function SettingsStep({
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const form = useRef<HTMLFormElement>(null);
+  const errorMessage = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (!error) return;
+    errorMessage.current?.focus({ preventScroll: true });
+    errorMessage.current?.scrollIntoView({ block: 'nearest' });
+  }, [error]);
   const initialConnection = seed.execution?.modelConnection;
   const hasExecution = !!seed.execution;
   useEffect(() => {
@@ -525,6 +548,84 @@ function SettingsStep({
             </small>
           </Label>
         </div>
+        <fieldset
+          className="form-stack"
+          onChange={() => {
+            if (
+              error === 'Choose at least one pixel density' &&
+              form.current &&
+              new FormData(form.current).getAll('deviceScaleFactors').length
+            )
+              setError('');
+            if (error === 'Choose at least one browser and one color scheme' && form.current) {
+              const values = new FormData(form.current);
+              if (values.getAll('browsers').length && values.getAll('colorSchemes').length)
+                setError('');
+            }
+          }}
+        >
+          <legend>Capture environments</legend>
+          <input type="hidden" name="visualMatrixConfigured" value="true" />
+          <input type="hidden" name="visualDensityConfigured" value="true" />
+          <p className="muted">
+            Each browser, color scheme and pixel density is captured at every viewport. Baselines
+            are kept separate. Browsers must be installed on the server; unavailable environments
+            are reported as blocked.
+          </p>
+          <fieldset>
+            <legend>Browsers</legend>
+            <div className="chip-list">
+              {(['chromium', 'firefox', 'webkit'] as const).map((browser) => (
+                <Checkbox
+                  key={browser}
+                  className="min-h-11 items-center px-2"
+                  name="browsers"
+                  value={browser}
+                  label={{ chromium: 'Chromium', firefox: 'Firefox', webkit: 'WebKit' }[browser]}
+                  defaultChecked={(seed.browsers ?? ['chromium']).includes(browser)}
+                />
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Color schemes</legend>
+            <div className="chip-list">
+              {(['light', 'dark'] as const).map((scheme) => (
+                <Checkbox
+                  key={scheme}
+                  className="min-h-11 items-center px-2"
+                  name="colorSchemes"
+                  value={scheme}
+                  label={scheme === 'light' ? 'Light' : 'Dark'}
+                  defaultChecked={(seed.colorSchemes ?? ['light']).includes(scheme)}
+                />
+              ))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Pixel density</legend>
+            <div className="chip-list">
+              {([1, 2, 3] as const).map((density) => (
+                <Checkbox
+                  key={density}
+                  className="min-h-11 items-center px-2"
+                  name="deviceScaleFactors"
+                  value={String(density)}
+                  label={{ 1: '1× standard', 2: '2× sharp', 3: '3× extra sharp' }[density]}
+                  defaultChecked={(seed.deviceScaleFactors ?? [1]).includes(density)}
+                />
+              ))}
+            </div>
+            <small>
+              Higher density captures more pixels at the same layout size and uses more storage.
+              Each image must fit the 16-megapixel capture limit.
+            </small>
+          </fieldset>
+          <small>
+            Up to 600 checkpoints per run across the matrix. Omitted pages and failed environments
+            stay visible in the results.
+          </small>
+        </fieldset>
         <div className="form-stack">
           <span className="text-xs font-medium text-secondary-foreground">Viewports</span>
           <div className="chip-list" role="group" aria-label="Viewport presets">
@@ -563,9 +664,9 @@ function SettingsStep({
           <fieldset id="login-fields" hidden={!loginEnabled} disabled={!loginEnabled}>
             <legend>Test account sign-in</legend>
             <p className="muted">
-              One form sign-in per run with a test account. Secret references name ARXIC_SECRET_
-              variables on the server; the session lives in memory for the run only. Fields are
-              found by label, then by input type.
+              One form sign-in per browser/theme environment with a test account. Secret references
+              name ARXIC_SECRET_ variables on the server; the session lives in memory for the run
+              only. Fields are found by label, then by input type.
             </p>
             <div className="form-grid">
               <Label>
@@ -666,6 +767,7 @@ function SettingsStep({
         />
         <fieldset id="execution-fields" hidden={!guided} disabled={!guided}>
           <legend>AI execution</legend>
+          <CheckpointSettings initial={seed.execution?.checkpointCapture} />
           <p className="muted">
             Choose a provider connection and model. Secret references name server environment
             variables; enter no passwords or API keys here.
@@ -868,19 +970,25 @@ function SettingsStep({
           defaultChecked={seed.captureConsent}
           label="I authorize screenshot capture of this test environment. The pages contain test data; I have added masks for any other sensitive content."
         />
-        <p id="project-error" role="alert">
+        <p
+          id="project-error"
+          role="alert"
+          ref={errorMessage}
+          tabIndex={-1}
+          style={{ scrollMarginBlock: 'var(--space-4)' }}
+        >
           {error}
         </p>
       </DialogBody>
       <DialogFooter>
+        <small>
+          Discovery reports known scope and gaps; source alone cannot prove complete coverage.
+        </small>
         {onBack ? (
           <Button type="button" variant="outline" onClick={onBack}>
             Back
           </Button>
         ) : null}
-        <small>
-          Discovery reports known scope and gaps; source alone cannot prove complete coverage.
-        </small>
         <Button type="submit" disabled={saving}>
           {saving ? 'Saving…' : 'Save project'}
         </Button>

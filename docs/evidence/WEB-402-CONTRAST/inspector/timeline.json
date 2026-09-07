@@ -1,0 +1,29 @@
+[
+  {
+    "action": "Real reference-app CSS regression: 1.606:1 heading fails 3:1; locate its retained region",
+    "result": "passed",
+    "screenshot": "01-failed-contrast.png",
+    "viewport": {
+      "width": 1280,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Mobile inspector retains the measured failure and scaled screenshot region",
+    "result": "passed",
+    "screenshot": "02-mobile-failed-contrast.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Inspect the failed 1.606:1 numeric ratio, independent 3:1 threshold and measurement IDs",
+    "result": "passed",
+    "screenshot": "03-contrast-ratio.png",
+    "viewport": {
+      "width": 1280,
+      "height": 1000
+    }
+  }
+]

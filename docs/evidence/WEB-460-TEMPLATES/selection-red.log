@@ -1,0 +1,33 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/frontend-templates
+
+ ❯ scripts/dashboard-cases.test.mjs (4 tests | 1 failed) 150ms
+   × partitions every installed dashboard file exactly once and preserves full default coverage 9ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/dashboard-cases.test.mjs > partitions every installed dashboard file exactly once and preserves full default coverage
+AssertionError: expected [ …(16) ] to have a length of 17 but got 16
+
+- Expected
++ Received
+
+- 17
++ 16
+
+ ❯ scripts/dashboard-cases.test.mjs:8:16
+      6|   const first = installedDashboardCases({ dashboardOnly: true, shard: …
+      7|   const second = installedDashboardCases({ dashboardOnly: true, shard:…
+      8|   expect(full).toHaveLength(17);
+       |                ^
+      9|   expect(full).toContain('apps/web/src/__tests__/capture-write-isolati…
+     10|   expect(full).toContain('apps/web/src/__tests__/frontend-template.rea…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  15:53:41
+   Duration  277ms (transform 18ms, setup 0ms, import 23ms, tests 150ms, environment 0ms)
+

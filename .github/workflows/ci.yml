@@ -157,12 +157,12 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-playwright-matrix-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-playwright-chromium-
+            ${{ runner.os }}-playwright-matrix-
 
-      - name: Install Playwright Chromium
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
+      - name: Install Playwright browser matrix
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
 
       # Same fallback Mailpit the monolithic Test step had. The suite leaves
       # ARXIC_MAILPIT_* unset, so tests provision their own per-run
@@ -230,7 +230,7 @@ jobs:
   # Packaging/compliance gates: packed-CLI smoke, license allowlist, SBOM.
   package:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
 
@@ -252,10 +252,10 @@ jobs:
       - name: Tarball smoke
         run: node scripts/tarball-smoke.mjs
 
-      - name: Install Chromium system dependencies for packed replay
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install-deps chromium
+      - name: Install browser system dependencies for packed replay
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install-deps chromium firefox webkit
 
-      - name: Packed human-flow release regression
+      - name: Packed CLI and dashboard release regression
         run: node scripts/human-flow-e2e.mjs --evidence-dir artifacts/human-flow
 
       - name: Upload sanitized human-flow evidence
@@ -278,6 +278,43 @@ jobs:
           name: sbom-cyclonedx
           path: sbom.cdx.json
           retention-days: 14
+
+  dashboard:
+    name: dashboard (${{ matrix.browser }}, ${{ matrix.shard }}/2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6.0.10
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.0
+          cache: pnpm
+      - name: Use installed Node headers for native builds
+        run: node scripts/ci-native-headers.mjs
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install target and dashboard browser dependencies
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
+      - name: Installed dashboard journeys
+        run: node scripts/human-flow-e2e.mjs --dashboard-only --dashboard-shard ${{ matrix.shard }} --evidence-dir artifacts/dashboard
+        env:
+          ARXIC_DASHBOARD_BROWSER: ${{ matrix.browser }}
+      - name: Retain sanitized dashboard proof
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: installed-dashboard-${{ matrix.browser }}-${{ matrix.shard }}
+          path: artifacts/dashboard/
+          retention-days: 14
+          if-no-files-found: warn
 
   worker-image:
     needs: [changes]
@@ -316,7 +353,7 @@ jobs:
   # The required branch-protection check `ci` (strict): green iff every gate
   # job above is green, including worker-image whenever relevant files changed.
   ci:
-    needs: [changes, static, test, fixture-apps, package, worker-image]
+    needs: [changes, static, test, fixture-apps, package, dashboard, worker-image]
     # always() so the gate RUNS and reports red when a dependency failed;
     # a skipped gate would leave the required check pending forever.
     if: always()
@@ -329,15 +366,16 @@ jobs:
           TEST: ${{ needs.test.result }}
           FIXTURE_APPS: ${{ needs.fixture-apps.result }}
           PACKAGE: ${{ needs.package.result }}
+          DASHBOARD: ${{ needs.dashboard.result }}
           CHANGES: ${{ needs.changes.result }}
           WORKER_REQUIRED: ${{ needs.changes.outputs.worker }}
           WORKER_IMAGE: ${{ needs.worker-image.result }}
         run: |
           set -euo pipefail
-          echo "static=$STATIC test=$TEST fixture-apps=$FIXTURE_APPS package=$PACKAGE"
-          for result in "$CHANGES" "$STATIC" "$TEST" "$FIXTURE_APPS" "$PACKAGE"; do
+          echo "static=$STATIC test=$TEST fixture-apps=$FIXTURE_APPS package=$PACKAGE dashboard=$DASHBOARD"
+          for result in "$CHANGES" "$STATIC" "$TEST" "$FIXTURE_APPS" "$PACKAGE" "$DASHBOARD"; do
             if [ "$result" != "success" ]; then
-              echo "::error::ci gate requires every gate job green; got static=$STATIC test=$TEST fixture-apps=$FIXTURE_APPS package=$PACKAGE"
+              echo "::error::ci gate requires every gate job green; got static=$STATIC test=$TEST fixture-apps=$FIXTURE_APPS package=$PACKAGE dashboard=$DASHBOARD"
               exit 1
             fi
           done

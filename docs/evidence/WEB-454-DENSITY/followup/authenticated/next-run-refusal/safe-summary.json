@@ -1,0 +1,147 @@
+{
+  "outcome": "blocked",
+  "environments": [
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "deviceScaleFactor": 2,
+      "renderer": "chromium-full-headless",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "deviceScaleFactor": 3,
+      "renderer": "chromium-full-headless",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "dark",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 2,
+      "renderer": "chromium-full-headless",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 3,
+      "renderer": "chromium-full-headless",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "deviceScaleFactor": 2,
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "deviceScaleFactor": 3,
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "dark",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 2,
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 3,
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "deviceScaleFactor": 2,
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "deviceScaleFactor": 3,
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "dark",
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 2,
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 3,
+      "outcome": "blocked",
+      "captures": 0,
+      "reason": "Sign-in failed: Still on the login page after submitting; check the secrets and labels"
+    }
+  ]
+}

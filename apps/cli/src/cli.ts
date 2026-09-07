@@ -36,6 +36,16 @@ export async function runCli(
       print(stdout, helpText(parsed.command.command));
       return { exitCode: 0 };
     }
+    if (parsed.command.kind === 'web') {
+      const { startWebCommand } = await import('../../web/src/start');
+      try {
+        await startWebCommand();
+        return { exitCode: 0 };
+      } catch (error) {
+        print(stderr, error instanceof Error ? error.message : 'Web server failed to start');
+        return { exitCode: 1 };
+      }
+    }
     if (parsed.command.kind === 'intents') {
       const { intentsAction } = await import('./intents');
       return intentsAction(parsed.command, { stdout, stderr });
@@ -98,11 +108,13 @@ async function defaultExecutor(
   return new WorkerRunExecutor(workerClient ?? createLocalWorkerClient());
 }
 
-const HELP = `Usage: arxic <command> [options]\n\nCommands:\n  run --config <path>  Start a run (local by default)\n  intents <path>       Read the intent ledger of a run or bundle directory\n\nOptions:\n  -h, --help            Show help\n  -v, --version         Show version`;
+const HELP = `Usage: arxic <command> [options]\n\nCommands:\n  web                 Start the local/server dashboard\n  run --config <path>  Start a run (local by default)\n  intents <path>       Read the intent ledger of a run or bundle directory\n\nOptions:\n  -h, --help            Show help\n  -v, --version         Show version`;
 const RUN_HELP = `Usage: arxic run --config <path> [--executor <local|worker>] [--out <dir>] [--run-id <id>]`;
 const INTENTS_HELP = `Usage: arxic intents <path> [--json]\n\nRenders the intent ledger (read-only). <path> is a run directory (either lane\nlayout) or an assembled bundle directory. --json prints machine JSON.`;
 
-function helpText(command: 'run' | 'intents' | undefined): string {
+function helpText(command: 'run' | 'intents' | 'web' | undefined): string {
+  if (command === 'web')
+    return 'Usage: arxic web\nConfigure ARXIC_ADMIN_TOKEN, ARXIC_WEB_ROOTS and optional ARXIC_WEB_STATE_DIR, ARXIC_WEB_PORT, ARXIC_WEB_HOST, ARXIC_WEB_PUBLIC_ORIGIN.';
   if (command === 'run') return RUN_HELP;
   if (command === 'intents') return INTENTS_HELP;
   return HELP;

@@ -1,0 +1,56 @@
+{
+  "implementationCommit": "d6ff592a7d7a1466d004c3626a2185c7415d60e0",
+  "dirty": false,
+  "red": {
+    "browser": "webkit",
+    "failed": 1,
+    "seconds": 7.19,
+    "requestedRun": false,
+    "detailVisible": false,
+    "baseCommit": "2b1a835",
+    "dirty": true
+  },
+  "green": [
+    {
+      "browser": "webkit",
+      "cases": 2,
+      "files": 1,
+      "seconds": 36.64
+    },
+    {
+      "browser": "firefox",
+      "cases": 2,
+      "files": 1,
+      "seconds": 46.9
+    },
+    {
+      "browser": "chromium",
+      "cases": 6,
+      "files": 4,
+      "seconds": 206.01,
+      "scope": "baseline history plus real UI, campaign and review session-isolation flows"
+    }
+  ],
+  "successfulLoginsAndReloadsPerBaselineCase": 18,
+  "inventory": {
+    "pngs": 104,
+    "timelines": 10,
+    "incompleteReports": 4,
+    "violationReports": 0,
+    "overflows": [],
+    "failedNumericChecks": [],
+    "browsers": {
+      "{\"name\": \"chromium\", \"version\": \"151.0.7922.34\"}": 72,
+      "{\"name\": \"webkit\", \"version\": \"26.5\"}": 16,
+      "{\"name\": \"firefox\", \"version\": \"153.0\"}": 16
+    },
+    "commits": {
+      "d6ff592a7d7a1466d004c3626a2185c7415d60e0": 104
+    },
+    "dirty": {
+      "False": 104
+    }
+  },
+  "generalEarlyReloadDiagnostic": "Unresolved separately in #447; pagehide cancellation candidate was removed after failing.",
+  "installedCiForThisImplementation": "pending"
+}

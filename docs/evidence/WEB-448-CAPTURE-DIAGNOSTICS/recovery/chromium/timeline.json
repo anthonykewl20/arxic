@@ -1,0 +1,38 @@
+[
+  {
+    "action": "A blocked run offers direct access to its project capture settings",
+    "result": "passed",
+    "screenshot": "04-recovery-entry.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Correct the required mask using the existing project settings form",
+    "result": "unverified",
+    "screenshot": "05-edit-required-mask.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Rerun with the corrected mask yields six actual browser/theme captures",
+    "result": "passed",
+    "screenshot": "06-recovered-run.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "The original blocked run remains immutable after a successful corrected run",
+    "result": "passed",
+    "screenshot": "07-original-refusal-preserved.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

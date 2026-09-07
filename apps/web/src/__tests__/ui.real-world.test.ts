@@ -1,7 +1,11 @@
-import { mkdtemp, rm } from 'node:fs/promises';
+import { inspectCapturedElements } from './element-inspector-proof';
+import { inspectLegacyElementKinds } from './element-kind-legacy-proof';
+import sharp from 'sharp';
+import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { chromium } from 'playwright';
+import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it, vi } from 'vitest';
 import {
   bootFixtureApp,
@@ -9,8 +13,9 @@ import {
   vulnerableAuthApp,
 } from '../../../../packages/real-world-testkit/src';
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
-import { startWorkbench } from '../server';
+import { startWorkbench } from './workbench-runtime';
 import { dashboardProof } from './dashboard-proof';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it.each(['light', 'dark'] as const)(
   'lets a real browser register a folder, discover source intent, run visual checks, approve a baseline, and manage schedules (%s)',
@@ -38,7 +43,7 @@ it.each(['light', 'dark'] as const)(
       adminToken: 'test-administrator-token-32-characters',
       port: 0,
     });
-    const browser = await chromium.launch({ headless: true });
+    const browser = await launchDashboardBrowser({ headless: true });
     const context = await browser.newContext({
       reducedMotion: 'reduce',
       colorScheme: theme,
@@ -46,19 +51,36 @@ it.each(['light', 'dark'] as const)(
       timezoneId: 'Asia/Manila',
     });
     const page = await context.newPage();
+    // Bound each browser wait so a stalled step yields a source location before the case deadline.
+    page.setDefaultTimeout(10_000);
+    const failureEvidence = process.env.ARXIC_WEB_EVIDENCE_DIR
+      ? join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme)
+      : undefined;
     const auditProof = dashboardProof(
       page,
       process.env.ARXIC_WEB_EVIDENCE_DIR
         ? join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme)
         : undefined,
     );
-    const errors: string[] = [];
-    page.on('pageerror', (error) => errors.push(error.name));
+    const historyProof = dashboardProof(
+      page,
+      process.env.ARXIC_HISTORY_EVIDENCE_DIR
+        ? join(process.env.ARXIC_HISTORY_EVIDENCE_DIR, theme)
+        : undefined,
+    );
+    // #447: corroborated classification; active failures and native errors stay hard.
+    const errors = trackDashboardErrors(page);
     const capture = async (name: string, action: string) => {
-      const audit = await auditProof.audit(name, action);
+      const proof =
+        process.env.ARXIC_HISTORY_EVIDENCE_DIR &&
+        ['13-run-history-unavailable', '04-visual-comparison'].includes(name)
+          ? historyProof
+          : auditProof;
+      const audit = await proof.audit(name, action);
       expect(audit.details).toEqual([]);
       expect(audit.overflow).toBe(0);
     };
+    let releaseFolders = () => {};
     let releaseInitial!: () => void;
     let initialReady!: () => void;
     const initialHeld = new Promise<void>((done) => {
@@ -100,12 +122,59 @@ it.each(['light', 'dark'] as const)(
         '01-empty-workspace',
         'Invalid login refused; late anonymous response cannot hide authenticated workspace',
       );
+      let foldersReady!: () => void;
+      const foldersHeld = new Promise<void>((resolve) => {
+        foldersReady = resolve;
+      });
+      const foldersReleased = new Promise<void>((resolve) => {
+        releaseFolders = resolve;
+      });
+      await page.route(
+        '**/api/workspace/folders?**',
+        async (route) => {
+          const response = await route.fetch();
+          foldersReady();
+          await foldersReleased;
+          await route.fulfill({ response });
+        },
+        { times: 1 },
+      );
       await page.locator('#new-project').click();
+      await foldersHeld;
       await page.getByLabel('Project folder', { exact: true }).fill(tmpdir());
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
       await expect.poll(() => page.locator('#project-error').textContent()).toContain('outside');
       await page.getByLabel('Project folder', { exact: true }).fill(repo.root);
+      const continueBefore = (await page
+        .getByRole('button', { name: 'Continue', exact: true })
+        .boundingBox())!;
+      await capture(
+        '16-source-loading',
+        'Folder discovery shows a stable loading area before its real response',
+      );
+      releaseFolders();
+      await page.getByText('Loading folders…', { exact: true }).waitFor({ state: 'hidden' });
+      const continueAfter = (await page
+        .getByRole('button', { name: 'Continue', exact: true })
+        .boundingBox())!;
+      expect(
+        continueAfter.y,
+        'Folder results must not move Continue while the user is editing',
+      ).toBe(continueBefore.y);
+      await capture(
+        '17-source-ready',
+        'Folder results preserve the exact Continue position while editing',
+      );
+      if (process.env.ARXIC_WEB_EVIDENCE_DIR)
+        await writeFile(
+          join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme, 'source-layout.json'),
+          JSON.stringify({ before: continueBefore, after: continueAfter }, null, 2),
+        );
+      const detectedFolder = page.waitForResponse(
+        (response) => new URL(response.url()).pathname === '/api/workspace/detect',
+      );
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
+      expect((await detectedFolder).status()).toBe(200);
       await page.getByLabel('Project name', { exact: true }).fill('Reference frontend');
       await page.getByLabel('Running test app origin').fill(target.origin);
       await page.getByLabel('Viewport sizes').fill('800x600');
@@ -132,7 +201,7 @@ it.each(['light', 'dark'] as const)(
       await page.getByText('Coverage gaps', { exact: true }).click();
       await expect
         .poll(() => page.locator('#content').textContent())
-        .toContain('unsupported-framework');
+        .toContain('template-expressions-not-evaluated');
       await capture(
         '03-intent-inventory',
         'Real source scanner reported login surface and source evidence',
@@ -151,24 +220,177 @@ it.each(['light', 'dark'] as const)(
       await page.getByText('Measured checks and coverage', { exact: true }).click();
       await page.getByRole('button', { name: 'Retry measurements' }).waitFor();
       await page.unroute('**/*.assessment.json');
+      await page.route('**/*.assessment.json', async (route) => {
+        const response = await route.fetch();
+        const report = await response.json();
+        report.scene.nodes.push(report.scene.nodes[0]);
+        await route.fulfill({ response, json: report });
+      });
       await page.getByRole('button', { name: 'Retry measurements' }).click();
+      await page
+        .getByText(
+          'Element geometry is unavailable, unstable, or outside the supported bounds. Run a fresh visual capture to inspect elements.',
+          { exact: true },
+        )
+        .waitFor();
+      expect(
+        await page.getByRole('button', { name: 'Inspect captured elements', exact: true }).count(),
+      ).toBe(0);
+      await capture(
+        '14-invalid-element-geometry',
+        'Duplicate captured element IDs disable inspection',
+      );
+      await page.unroute('**/*.assessment.json');
+      await page.route('**/*.assessment.json', async (route) => {
+        const response = await route.fetch();
+        const report = await response.json();
+        report.assessment.screenshotSha256 = '0'.repeat(64);
+        await route.fulfill({ response, json: report });
+      });
+      await page.getByRole('button', { name: 'Retry element measurements' }).click();
+      await expect
+        .poll(() => page.getByRole('button', { name: 'Retry element measurements' }).isEnabled())
+        .toBe(true);
+      expect(
+        await page.getByRole('button', { name: 'Inspect captured elements', exact: true }).count(),
+      ).toBe(0);
+      await capture(
+        '15-unbound-element-geometry',
+        'Mismatched screenshot binding disables inspection',
+      );
+      await page.unroute('**/*.assessment.json');
+      await inspectLegacyElementKinds(page, theme);
       await page.getByText('document-horizontal-overflow', { exact: true }).waitFor();
+      await inspectCapturedElements(page, target.origin, theme);
+      await page.route('**/artifacts/checkpoint-1.png?measurement=*', (route) =>
+        route.fulfill({ status: 503, body: 'Unavailable' }),
+      );
+      await page.getByRole('button', { name: 'Locate measured text' }).first().click();
+      await page.getByText('Captured image could not be loaded.', { exact: true }).waitFor();
+      await page.unroute('**/artifacts/checkpoint-1.png?measurement=*');
+      await page.getByRole('button', { name: 'Retry capture image' }).click();
+      await page.getByRole('img', { name: 'Measured text region in captured viewport' }).waitFor();
+      expect(
+        await page
+          .getByRole('img', { name: 'Measured text region in captured viewport' })
+          .getAttribute('viewBox'),
+      ).toBe('0 0 800 600');
+      await page.getByLabel('Find measurement').fill('absent-measurement-id');
+      await page.getByText('No checks match these filters.', { exact: true }).waitFor();
+      expect(await page.locator('.measurement-checks > li').count()).toBe(0);
+      await page.getByLabel('Find measurement').fill('');
+      await page.getByLabel('Measurement verdict').selectOption('unverified');
+      expect(await page.locator('.measurement-checks > li').count()).toBeGreaterThan(0);
+      await page.getByLabel('Measurement verdict').selectOption('all');
+      await page.locator('.measurement-checks > li').last().scrollIntoViewIfNeeded();
+      await page.getByRole('button', { name: 'Locate measured text' }).first().click();
+      await expect
+        .poll(async () => {
+          const box = await page
+            .getByRole('img', { name: 'Measured text region in captured viewport' })
+            .boundingBox();
+          const header = await page.locator('.topbar').boundingBox();
+          return (
+            !!box &&
+            !!header &&
+            box.y >= Math.max(0, header.y + header.height) &&
+            box.y + box.height <= 1000
+          );
+        })
+        .toBe(true);
       await capture(
         '10-measurement-report',
-        'Unavailable evidence stays an error; retry loads real numeric checks and unverified coverage',
+        'Retry loads real measurements; reselecting a check reveals the complete captured image',
       );
+      const previewBounds = (await page
+        .getByRole('img', { name: 'Measured text region in captured viewport' })
+        .boundingBox())!;
+      if (process.env.ARXIC_WEB_EVIDENCE_DIR)
+        await writeFile(
+          join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme, 'measurement-layout.json'),
+          JSON.stringify(
+            {
+              previewBounds,
+              viewport: page.viewportSize(),
+              screenshot: '10-measurement-report.png',
+            },
+            null,
+            2,
+          ),
+        );
+      const painted = await sharp(
+        process.env.ARXIC_WEB_EVIDENCE_DIR
+          ? await readFile(
+              join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme, '10-measurement-report.png'),
+            )
+          : await captureMaskedViewport(page, {
+              automaticMasks: ['input[type="password"]'],
+              requiredMasks: [],
+            }),
+      )
+        .extract({
+          left: Math.ceil(previewBounds.x),
+          top: Math.ceil(previewBounds.y),
+          width: Math.floor(previewBounds.width),
+          height: Math.floor(previewBounds.height),
+        })
+        .removeAlpha()
+        .raw()
+        .toBuffer();
+      let maskedInk = 0;
+      for (let i = 0; i < painted.length; i += 3)
+        if (painted[i] === 255 && painted[i + 1] === 0 && painted[i + 2] === 255) maskedInk++;
+      expect(
+        maskedInk,
+        'the region preview must paint the actual masked reference-app image',
+      ).toBeGreaterThan(100);
+      await resizeDashboard(page, { width: 390, height: 844 });
+      await page
+        .getByRole('img', { name: 'Measured text region in captured viewport' })
+        .scrollIntoViewIfNeeded();
+      await capture(
+        '14-mobile-measurement-region',
+        'Measured screenshot region scales to mobile without losing the masked target image',
+      );
+      await resizeDashboard(page, { width: 1440, height: 1000 });
       await page.route('**/api/runs?**', (route) =>
         route.fulfill({ status: 503, json: { error: 'History unavailable' } }),
       );
+      // Reproduce the CI race: a manual search's slow state response is
+      // superseded by polling, whose history request then fails.
+      await page.waitForResponse((response) => new URL(response.url()).pathname === '/api/state');
       await page.getByLabel('Search runs').fill('no-matching-project');
+      let releaseSearch!: () => void;
+      const searchReleased = new Promise<void>((done) => {
+        releaseSearch = done;
+      });
+      let holdSearch = true;
+      await page.route('**/api/state', async (route) => {
+        const response = await route.fetch();
+        if (holdSearch) {
+          holdSearch = false;
+          await searchReleased;
+        } else releaseSearch();
+        await route.fulfill({ response });
+      });
       await page.getByRole('button', { name: 'Search runs', exact: true }).click();
       await page.getByRole('button', { name: 'Retry run history' }).waitFor();
       await capture(
         '13-run-history-unavailable',
         'Failed history request shows error instead of stale results',
       );
-      await page.unroute('**/api/runs?**');
+      // Retry while the 503 refusal is still routed: the click cannot race the
+      // polling recovery after unroute, and the request deterministically fails
+      // again before the routes release and the heading recovers.
       await page.getByRole('button', { name: 'Retry run history' }).click();
+      await page
+        .getByText('Run history could not be loaded. Retry or check your connection.', {
+          exact: true,
+        })
+        .waitFor();
+      releaseSearch();
+      await page.unroute('**/api/state');
+      await page.unroute('**/api/runs?**');
       await page.getByRole('heading', { name: 'No matching runs' }).waitFor();
       await page.reload();
       await page.getByRole('heading', { name: 'No matching runs' }).waitFor();
@@ -240,7 +462,7 @@ it.each(['light', 'dark'] as const)(
         'ARXIC_SECRET_TEST_EMAIL',
       );
       expect(await page.getByLabel('Maximum run minutes', { exact: true }).inputValue()).toBe('5');
-      await page.setViewportSize({ width: 390, height: 844 });
+      await resizeDashboard(page, { width: 390, height: 844 });
       await page.getByLabel('Model name', { exact: true }).scrollIntoViewIfNeeded();
       expect(
         await page.locator('#project-dialog').evaluate((el) => el.scrollWidth <= el.clientWidth),
@@ -250,7 +472,7 @@ it.each(['light', 'dark'] as const)(
         'Guided settings persist after save and fit the mobile dialog',
       );
       await page.locator('#close-dialog').click();
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await resizeDashboard(page, { width: 1440, height: 1000 });
       await expect.poll(() => page.locator('#content').textContent()).toContain('09:00:00 UTC');
       await capture('05-schedule', 'Administrator enabled the persisted UTC cron schedule');
       await page.getByRole('button', { name: 'Administration', exact: true }).click();
@@ -261,7 +483,7 @@ it.each(['light', 'dark'] as const)(
         '06-administration',
         'Administration exposes root allow-list and immutable baseline approval audit event',
       );
-      await page.setViewportSize({ width: 390, height: 844 });
+      await resizeDashboard(page, { width: 390, height: 844 });
       await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
       await page.getByRole('button', { name: 'Overview', exact: false }).focus();
       await page.keyboard.press('Escape');
@@ -307,7 +529,7 @@ it.each(['light', 'dark'] as const)(
         '10-mobile-declarations',
         'Mobile search survives status polling and filters real source declarations',
       );
-      await page.setViewportSize({ width: 1440, height: 1000 });
+      await resizeDashboard(page, { width: 1440, height: 1000 });
       let releaseResponse!: () => void;
       let responseReady!: () => void;
       const held = new Promise<void>((done) => {
@@ -335,9 +557,28 @@ it.each(['light', 'dark'] as const)(
         '08-signed-out',
         'Late pre-logout dashboard response cannot restore a signed-out workspace',
       );
-      expect(errors).toEqual([]);
+      expect(errors.hard()).toEqual([]);
+    } catch (error) {
+      if (failureEvidence) {
+        try {
+          await auditProof.audit(
+            '99-failed-ui-step',
+            'A browser journey step failed; this screenshot does not waive the failure',
+            [{ id: 'browser-journey-failure', passed: false, values: { observed: 1 } }],
+          );
+        } catch {
+          await mkdir(failureEvidence, { recursive: true });
+          await writeFile(
+            join(failureEvidence, '99-failure-capture.json'),
+            JSON.stringify({ outcome: 'unavailable', rawTraceRetained: false }),
+          );
+        }
+      }
+      throw error;
     } finally {
+      releaseFolders();
       await auditProof.finish();
+      await historyProof.finish();
       vi.unstubAllEnvs();
       await browser.close();
       await app.close();

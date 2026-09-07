@@ -1,0 +1,11 @@
+[
+  {
+    "action": "A blocked run offers direct access to its project capture settings",
+    "result": "failed",
+    "screenshot": "04-recovery-entry.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

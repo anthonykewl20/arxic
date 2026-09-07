@@ -7,6 +7,8 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { commandFailureFacts } from './command-failure.mjs';
+import { installedDashboardCases } from './dashboard-cases.mjs';
 
 const execute = promisify(execFile);
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -18,6 +20,8 @@ const playwrightInstallCommand = [
   'playwright',
   'install',
   'chromium',
+  'firefox',
+  'webkit',
 ];
 
 export function createConfig({ origin, repository, revision, requiredVerificationRuns = 2 }) {
@@ -95,7 +99,13 @@ export function assertBlockedRun({ exitCode, run, diagnostics, priorBundle, curr
   }
 }
 
-export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
+export async function runHumanFlow({
+  keep = false,
+  evidenceDirectory,
+  dashboardOnly = false,
+  dashboardShard,
+} = {}) {
+  const dashboardCases = installedDashboardCases({ dashboardOnly, shard: dashboardShard });
   const timings = [];
   const startedAt = Date.now();
   const cleanRoom = await mkdtemp(join(tmpdir(), 'arxic-human-flow-'));
@@ -147,6 +157,35 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
         { cwd: paths.install, env: cleanEnvironment(paths), timeout: 30_000 },
       );
     });
+
+    if (dashboardOnly) {
+      await runInstalledDashboard(
+        paths,
+        timings,
+        evidenceDirectory,
+        dashboardCases,
+        dashboardShard,
+      );
+      outcome = {
+        scope: 'dashboard',
+        dashboardShard: dashboardShard ?? 'all',
+        dashboardFiles: dashboardCases.length,
+        ok: true,
+        cleanRoom: keep ? cleanRoom : undefined,
+        phases: timings,
+        totalMs: Date.now() - startedAt,
+      };
+      if (evidenceDirectory) {
+        await mkdirp(resolve(evidenceDirectory));
+        await writeFile(
+          resolve(evidenceDirectory, 'summary.md'),
+          `# Installed dashboard E2E evidence\n\nScope: ${dashboardShard ? `dashboard partition ${dashboardShard} of 2; both partitions must pass for this browser` : 'all dashboard files'}. The CLI workflow and live-provider quality are not covered by this run. Browser identity is recorded in adjacent screenshot/timeline provenance. Human release inspection remains outstanding.\n\n\`\`\`text\n` +
+            formatVerdict(outcome) +
+            '\n```\n',
+        );
+      }
+      return outcome;
+    }
 
     const appPort = await freePort();
     const origin = `http://127.0.0.1:${appPort}`;
@@ -369,6 +408,7 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
         }),
       );
     }
+    await runInstalledDashboard(paths, timings, evidenceDirectory, dashboardCases, dashboardShard);
     outcome = {
       ok: true,
       cleanRoom: keep ? cleanRoom : undefined,
@@ -388,6 +428,10 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
   } catch (error) {
     outcome = {
       ok: false,
+      scope: dashboardOnly ? 'dashboard' : 'human-flow',
+      ...(dashboardOnly
+        ? { dashboardShard: dashboardShard ?? 'all', dashboardFiles: dashboardCases.length }
+        : {}),
       cleanRoom: keep ? cleanRoom : undefined,
       phases: timings,
       totalMs: Date.now() - startedAt,
@@ -398,6 +442,121 @@ export async function runHumanFlow({ keep = false, evidenceDirectory } = {}) {
     await Promise.all([stopChild(app), model?.close()]);
     if (!keep) await rm(cleanRoom, { recursive: true, force: true });
     printVerdict(outcome ?? { ok: false, phases: timings, totalMs: Date.now() - startedAt });
+  }
+}
+
+async function runInstalledDashboard(
+  paths,
+  timings,
+  evidenceDirectory,
+  dashboardCases,
+  dashboardShard,
+) {
+  await phase(timings, 'packed-web-startup', () =>
+    command(
+      process.execPath,
+      [
+        join(repositoryRoot, 'scripts/web-distribution-e2e.mjs'),
+        join(paths.install, 'node_modules/arxic/dist/cli.js'),
+        paths.install,
+      ],
+      { cwd: repositoryRoot, env: cleanEnvironment(paths), timeout: 180_000 },
+    ),
+  );
+  const progressPath = resolve(
+    evidenceDirectory ?? paths.cleanRoom,
+    'web/dashboard-progress.jsonl',
+  );
+  await mkdirp(dirname(progressPath));
+  const browserStarted = Date.now();
+  let failure;
+  try {
+    await phase(timings, 'packed-web-browser', () =>
+      command(
+        'pnpm',
+        [
+          'exec',
+          'vitest',
+          'run',
+          ...dashboardCases,
+          '--includeTaskLocation',
+          '--reporter=default',
+          `--reporter=${join(repositoryRoot, 'scripts/dashboard-progress-reporter.mjs')}`,
+        ],
+        {
+          cwd: repositoryRoot,
+          env: {
+            ...cleanEnvironment(paths),
+            ARXIC_TEST_INSTALLED_WEB_BIN: join(paths.install, 'node_modules/arxic/dist/cli.js'),
+            ARXIC_DASHBOARD_PROGRESS_PATH: progressPath,
+            ...(evidenceDirectory
+              ? {
+                  ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
+                  ARXIC_DENSITY_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/density'),
+                  ARXIC_MATRIX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/matrix'),
+                  ARXIC_GALLERY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/gallery'),
+                  ARXIC_ELEMENTS_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/elements'),
+                  ARXIC_UX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/navigation'),
+                  ARXIC_READABILITY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/readability'),
+                  ARXIC_CAMPAIGN_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/campaign'),
+                  ARXIC_PROVIDER_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/provider'),
+                  ARXIC_REVIEW_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/review'),
+                  ARXIC_RETENTION_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/retention'),
+                  ARXIC_BASELINE_HISTORY_EVIDENCE_DIR: resolve(
+                    evidenceDirectory,
+                    'web/baseline-history',
+                  ),
+                  ARXIC_CONTRAST_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/contrast'),
+                }
+              : {}),
+          },
+          timeout: 900_000,
+        },
+      ),
+    );
+  } catch (error) {
+    failure = commandFailureFacts(error);
+    timings.push({ name: 'packed-web-browser-failed', durationMs: Date.now() - browserStarted });
+    throw new Error(`Installed dashboard command failed: ${JSON.stringify(failure)}`, {
+      cause: error,
+    });
+  } finally {
+    const bytes = await readFile(progressPath).catch((error) => {
+      if (error.code === 'ENOENT') return undefined;
+      throw error;
+    });
+    if (bytes)
+      await writeFile(
+        `${progressPath}.sanitization.json`,
+        JSON.stringify(
+          {
+            schemaVersion: 1,
+            sha256: createHash('sha256').update(bytes).digest('hex'),
+            method:
+              'allow-listed module basename, hashed case ID, source/failure line, receipt elapsed time, state and bounded failure category/timeout; no test names or error payloads',
+            rawTraceRetained: false,
+          },
+          null,
+          2,
+        ),
+      );
+    await writeFile(
+      join(dirname(progressPath), 'dashboard-command.json'),
+      JSON.stringify(
+        {
+          schemaVersion: 1,
+          outcome: failure ? 'failed' : 'passed',
+          elapsedMs: Date.now() - browserStarted,
+          timeoutMs: 900000,
+          shard: dashboardShard ?? 'all',
+          files: dashboardCases.map((file) => basename(file)),
+          ...(failure ? { failure } : {}),
+          progressAvailable: !!bytes,
+        },
+        null,
+        2,
+      ),
+    );
   }
 }
 
@@ -790,11 +949,14 @@ function printVerdict(outcome) {
   console.log(formatVerdict(outcome));
 }
 
-function formatVerdict(outcome) {
+export function formatVerdict(outcome) {
   return [
-    `HUMAN-FLOW-E2E ${outcome.ok ? 'PASS' : 'FAIL'}`,
+    `${outcome.scope === 'dashboard' ? 'DASHBOARD-E2E' : 'HUMAN-FLOW-E2E'} ${outcome.ok ? 'PASS' : 'FAIL'}`,
     ...outcome.phases.map((phase) => `phase=${phase.name} durationMs=${phase.durationMs}`),
     `totalMs=${outcome.totalMs}`,
+    ...(outcome.dashboardShard
+      ? [`dashboardShard=${outcome.dashboardShard} files=${outcome.dashboardFiles}`]
+      : []),
     ...(outcome.modelRequests === undefined ? [] : [`modelRequests=${outcome.modelRequests}`]),
     ...(outcome.error ? [`error=${outcome.error}`] : []),
     ...(outcome.cleanRoom ? [`cleanRoom=${outcome.cleanRoom}`] : []),
@@ -803,13 +965,30 @@ function formatVerdict(outcome) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const keep = process.argv.includes('--keep');
+  const shardFlag = process.argv.indexOf('--dashboard-shard');
+  const dashboardShard = shardFlag === -1 ? undefined : (process.argv[shardFlag + 1] ?? null);
+  const dashboardOnly = process.argv.includes('--dashboard-only');
+  let validShard = true;
+  try {
+    installedDashboardCases({ dashboardOnly, shard: dashboardShard });
+  } catch {
+    validShard = false;
+  }
   const evidenceFlag = process.argv.indexOf('--evidence-dir');
   const evidenceDirectory = evidenceFlag === -1 ? undefined : process.argv[evidenceFlag + 1];
-  if (evidenceFlag !== -1 && !evidenceDirectory) {
+  if (!validShard) {
+    console.error('--dashboard-shard requires --dashboard-only and a value of 1 or 2');
+    process.exitCode = 2;
+  } else if (evidenceFlag !== -1 && !evidenceDirectory) {
     console.error('--evidence-dir requires a path');
     process.exitCode = 2;
   } else {
-    runHumanFlow({ keep, evidenceDirectory }).catch(() => {
+    runHumanFlow({
+      keep,
+      evidenceDirectory,
+      dashboardOnly,
+      dashboardShard,
+    }).catch(() => {
       process.exitCode = 1;
     });
   }

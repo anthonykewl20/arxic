@@ -174,95 +174,97 @@ async function refresh() {
   if (signingOut) return;
   const epoch = sessionEpoch;
   const sequence = ++refreshSequence;
-  const snapshot = await api('/state');
-  if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
-  if (section === 'runs') {
-    const params = new URLSearchParams({
-      query: runSearch,
-      mode: runModeFilter,
-      status: runStatusFilter,
-      project: selectedProject,
-      offset: String(runOffset),
-      limit: '25',
-    });
-    snapshot.runHistory = await api(`/runs?${params}`);
-    if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
-    runOffset = snapshot.runHistory.offset;
-    for (const run of snapshot.runHistory.runs) {
-      if (!snapshot.runs.some((item: { id: string }) => item.id === run.id))
-        snapshot.runs.push(run);
-    }
-  }
-  const desired: string[] =
-    section === 'intents'
-      ? snapshot.projects
-          .flatMap((item: { id: string }) =>
-            ['hasInventory', 'hasLedger'].map(
-              (key) =>
-                snapshot.runs.find(
-                  (run: Record<string, unknown>) => run.projectId === item.id && run[key],
-                )?.id,
-            ),
-          )
-          .filter(Boolean)
-      : section === 'runs' && selectedRun
-        ? [selectedRun]
-        : [];
-  await Promise.all(
-    desired.map(async (id) => {
-      let detail;
-      try {
-        detail = await api(`/runs/${id}`);
-      } catch (error) {
-        if ((error as { status?: number }).status === 404) {
-          if (selectedRun === id) selectedRun = '';
-          notice('This run is no longer available. Browse the remaining run history.');
-          return;
-        }
-        throw error;
-      }
-      const index = snapshot.runs.findIndex((run: { id: string }) => run.id === id);
-      if (index >= 0) snapshot.runs[index] = detail;
-      else snapshot.runs.push(detail);
-    }),
-  );
-  if (section === 'campaigns' && selectedCampaign) {
-    const detail = await api(`/campaigns/${selectedCampaign}`);
-    const index = snapshot.campaigns.findIndex(
-      (item: { id: string }) => item.id === selectedCampaign,
-    );
-    if (index >= 0) snapshot.campaigns[index] = detail;
-    else snapshot.campaigns.push(detail);
-  }
-  if (epoch !== sessionEpoch || sequence !== refreshSequence || signingOut) return;
-  state = snapshot;
-  updateModelCatalogs(state.modelConnections ?? []);
-  $('#app').hidden = false;
-  $('#login').hidden = true;
-  $('#version').textContent = state.versionLabel;
-  if (state.queueError) notice(state.queueError);
-  if (agentDialog().open) renderAgentWizard();
-  if (
-    !projectDialog().open &&
-    !document.activeElement?.closest('#declaration-search, #run-search, [data-review-form]')
-  )
-    render();
-}
-async function refreshRunHistory() {
-  const epoch = sessionEpoch;
-  state.runHistoryLoading = true;
-  state.runHistoryError = '';
-  render();
   try {
-    await refresh();
+    const snapshot = await api('/state');
+    if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
+    if (section === 'runs') {
+      const params = new URLSearchParams({
+        query: runSearch,
+        mode: runModeFilter,
+        status: runStatusFilter,
+        project: selectedProject,
+        offset: String(runOffset),
+        limit: '25',
+      });
+      snapshot.runHistory = await api(`/runs?${params}`);
+      if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
+      runOffset = snapshot.runHistory.offset;
+      for (const run of snapshot.runHistory.runs) {
+        if (!snapshot.runs.some((item: { id: string }) => item.id === run.id))
+          snapshot.runs.push(run);
+      }
+    }
+    const desired: string[] =
+      section === 'intents'
+        ? snapshot.projects
+            .flatMap((item: { id: string }) =>
+              ['hasInventory', 'hasLedger'].map(
+                (key) =>
+                  snapshot.runs.find(
+                    (run: Record<string, unknown>) => run.projectId === item.id && run[key],
+                  )?.id,
+              ),
+            )
+            .filter(Boolean)
+        : section === 'runs' && selectedRun
+          ? [selectedRun]
+          : [];
+    await Promise.all(
+      desired.map(async (id) => {
+        let detail;
+        try {
+          detail = await api(`/runs/${id}`);
+        } catch (error) {
+          if ((error as { status?: number }).status === 404) {
+            if (selectedRun === id) selectedRun = '';
+            notice('This run is no longer available. Browse the remaining run history.');
+            return;
+          }
+          throw error;
+        }
+        const index = snapshot.runs.findIndex((run: { id: string }) => run.id === id);
+        if (index >= 0) snapshot.runs[index] = detail;
+        else snapshot.runs.push(detail);
+      }),
+    );
+    if (section === 'campaigns' && selectedCampaign) {
+      const detail = await api(`/campaigns/${selectedCampaign}`);
+      const index = snapshot.campaigns.findIndex(
+        (item: { id: string }) => item.id === selectedCampaign,
+      );
+      if (index >= 0) snapshot.campaigns[index] = detail;
+      else snapshot.campaigns.push(detail);
+    }
+    if (epoch !== sessionEpoch || sequence !== refreshSequence || signingOut) return;
+    state = snapshot;
+    updateModelCatalogs(state.modelConnections ?? []);
+    $('#app').hidden = false;
+    $('#login').hidden = true;
+    $('#version').textContent = state.versionLabel;
+    if (state.queueError) notice(state.queueError);
+    if (agentDialog().open) renderAgentWizard();
+    if (
+      !projectDialog().open &&
+      !document.activeElement?.closest('#declaration-search, #run-search, [data-review-form]')
+    )
+      render();
   } catch (error) {
-    if (epoch !== sessionEpoch || signingOut) throw error;
-    state.runHistoryLoading = false;
-    state.runHistoryError = 'Run history could not be loaded. Retry or check your connection.';
-    render();
+    if (epoch !== sessionEpoch || sequence !== refreshSequence || signingOut) return;
+    if (section === 'runs') {
+      state.runHistoryLoading = false;
+      state.runHistoryError = 'Run history could not be loaded. Retry or check your connection.';
+      render();
+    }
     throw error;
   }
 }
+async function refreshRunHistory() {
+  state.runHistoryLoading = true;
+  state.runHistoryError = '';
+  render();
+  await refresh();
+}
+
 function project(id: string) {
   return state.projects.find((item: { id: string }) => item.id === id);
 }
@@ -384,6 +386,8 @@ $('#login-form').addEventListener('submit', async (event) => {
     });
     form.reset();
     $('#login-error').textContent = '';
+    // Session cleanup clears in-memory selection; the requested URL remains the entry point.
+    readLocation();
     await refresh();
   } catch (error) {
     $('#login-error').textContent = (error as Error).message;
@@ -491,6 +495,11 @@ document.addEventListener('submit', async (event) => {
 document.addEventListener('click', async (event) => {
   const button = (event.target as Element).closest('button');
   if (!button || button.closest('dialog')) return;
+  let disabledForRequest = false;
+  const disableForRequest = () => {
+    disabledForRequest = true;
+    button.disabled = true;
+  };
   try {
     if (button.hasAttribute('data-retry-run-history')) await refreshRunHistory();
     if (button.hasAttribute('data-clear-run-filters')) {
@@ -512,7 +521,7 @@ document.addEventListener('click', async (event) => {
       await refresh();
     }
     if (button.dataset.cancelCampaign) {
-      button.disabled = true;
+      disableForRequest();
       await api(`/campaigns/${button.dataset.cancelCampaign}/cancel`, 'POST', {});
       await refresh();
     }
@@ -540,7 +549,7 @@ document.addEventListener('click', async (event) => {
     if (button.hasAttribute('data-connect-agent')) connectAgent();
     if (button.dataset.edit) editProject(button.dataset.edit);
     if (button.dataset.start) {
-      button.disabled = true;
+      disableForRequest();
       const run = await api(`/projects/${button.dataset.project}/runs`, 'POST', {
         mode: button.dataset.start,
       });
@@ -570,7 +579,7 @@ document.addEventListener('click', async (event) => {
       await refresh();
     }
     if (button.dataset.approve) {
-      button.disabled = true;
+      disableForRequest();
       await api(`/runs/${button.dataset.run}/baselines`, 'POST', {
         captureId: button.dataset.approve,
       });
@@ -580,7 +589,7 @@ document.addEventListener('click', async (event) => {
   } catch (error) {
     notice((error as Error).message);
   } finally {
-    button.disabled = false;
+    if (disabledForRequest) button.disabled = false;
   }
 });
 void refresh().catch(() => {});

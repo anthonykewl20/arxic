@@ -1,3 +1,4 @@
+import { hasRunReference } from './retention-store';
 import Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import { chmod, mkdir } from 'node:fs/promises';
@@ -105,18 +106,10 @@ export class Store {
       .run(campaign.id, JSON.stringify(campaign));
   }
   referencesReview(runId: string): boolean {
-    return !!this.db
-      .prepare(
-        "SELECT 1 FROM runs WHERE json_extract(data, '$.visualReview.sourceRunId')=? LIMIT 1",
-      )
-      .get(runId);
+    return hasRunReference(this.db, 'review', runId);
   }
   referencesCampaign(runId: string): boolean {
-    return !!this.db
-      .prepare(
-        "SELECT 1 FROM campaigns WHERE json_extract(data, '$.discoveryRunId')=? UNION ALL SELECT 1 FROM campaigns, json_each(campaigns.data, '$.runIds') AS child WHERE child.value=? LIMIT 1",
-      )
-      .get(runId, runId);
+    return hasRunReference(this.db, 'campaign', runId);
   }
   saveProject(project: Project) {
     this.db
@@ -177,11 +170,7 @@ export class Store {
       .get(projectId, spec) as { run_id: string; capture_id: string } | undefined;
   }
   referencesBaseline(runId: string): boolean {
-    return !!this.db
-      .prepare(
-        "SELECT 1 FROM baselines WHERE run_id=? UNION ALL SELECT 1 FROM runs, json_each(runs.data, '$.result.captures') AS capture WHERE json_extract(capture.value, '$.baselineRunId')=? LIMIT 1",
-      )
-      .get(runId, runId);
+    return hasRunReference(this.db, 'baseline', runId);
   }
   deleteRun(runId: string) {
     this.db.prepare('DELETE FROM runs WHERE id=?').run(runId);

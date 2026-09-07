@@ -3,7 +3,8 @@ import type { Diagnostic } from '@arxic/contracts';
 
 export type CliCommand =
   | Readonly<{ kind: 'version' }>
-  | Readonly<{ kind: 'help'; command?: 'run' | 'intents' }>
+  | Readonly<{ kind: 'web' }>
+  | Readonly<{ kind: 'help'; command?: 'run' | 'intents' | 'web' }>
   | Readonly<{
       kind: 'run';
       config: string;
@@ -22,6 +23,18 @@ type ParseResult = { ok: true; command: CliCommand } | { ok: false; diagnostics:
 export function parseArgs(argv: readonly string[]): ParseResult {
   try {
     if (argv.length === 0) return { ok: true, command: { kind: 'help' } };
+    if (argv[0] === 'web') {
+      const parsed = nodeParseArgs({
+        args: [...argv.slice(1)],
+        options: { help: { type: 'boolean', short: 'h' } },
+        strict: true,
+        allowPositionals: false,
+      });
+      return {
+        ok: true,
+        command: parsed.values.help ? { kind: 'help', command: 'web' } : { kind: 'web' },
+      };
+    }
     if (argv[0] === 'run') return parseRunArgs(argv.slice(1));
     if (argv[0] === 'intents') return parseIntentsArgs(argv.slice(1));
     const parsed = nodeParseArgs({

@@ -1,0 +1,29 @@
+[
+  {
+    "action": "Healthy sibling captures remain visible beside each blocked navigation cell",
+    "result": "passed",
+    "screenshot": "01-navigation-refusal.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Each missing required-mask capture remains blocked with recovery guidance",
+    "result": "passed",
+    "screenshot": "02-required-mask-refusal.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Blocked capture recovery guidance wraps within the mobile viewport",
+    "result": "passed",
+    "screenshot": "03-mobile-refusal.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

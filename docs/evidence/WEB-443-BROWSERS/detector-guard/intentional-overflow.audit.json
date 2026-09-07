@@ -1,0 +1,122 @@
+{
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "count": 3
+    }
+  ],
+  "overflow": 704,
+  "overflowNodes": [
+    {
+      "tag": "FORM",
+      "classes": "login-card",
+      "x": 24,
+      "y": 357.8500061035156,
+      "width": 1000,
+      "height": 284.29998779296875,
+      "right": 1024,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    },
+    {
+      "tag": "DIV",
+      "classes": "brand",
+      "x": 24,
+      "y": 357.8500061035156,
+      "width": 1000,
+      "height": 28,
+      "right": 1024,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    },
+    {
+      "tag": "DIV",
+      "classes": "page-heading",
+      "x": 24,
+      "y": 405.8500061035156,
+      "width": 1000,
+      "height": 54.29998779296875,
+      "right": 1024,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    },
+    {
+      "tag": "H1",
+      "classes": "",
+      "x": 24,
+      "y": 405.8500061035156,
+      "width": 1000,
+      "height": 28.599990844726562,
+      "right": 1024,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    },
+    {
+      "tag": "P",
+      "classes": "muted",
+      "x": 24,
+      "y": 438.45001220703125,
+      "width": 1000,
+      "height": 21.699996948242188,
+      "right": 1024,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    },
+    {
+      "tag": "DIV",
+      "classes": "field",
+      "x": 24,
+      "y": 480.1499938964844,
+      "width": 1000,
+      "height": 60,
+      "right": 1024,
+      "overflowX": "visible",
+      "minWidth": "0px"
+    },
+    {
+      "tag": "LABEL",
+      "classes": "",
+      "x": 24,
+      "y": 480.1499938964844,
+      "width": 1000,
+      "height": 60,
+      "right": 1024,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    },
+    {
+      "tag": "INPUT",
+      "classes": "flex h-9 w-full rounded-md border border-input bg-card px-2.5 py-1 text-[13px] transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/25 disabled:cursor-not-",
+      "x": 24,
+      "y": 504.1499938964844,
+      "width": 1000,
+      "height": 36,
+      "right": 1024,
+      "overflowX": "clip",
+      "minWidth": "auto"
+    },
+    {
+      "tag": "BUTTON",
+      "classes": "inline-flex items-center justify-center gap-2 whitespace-nowrap text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-",
+      "x": 24,
+      "y": 560.1500244140625,
+      "width": 1000,
+      "height": 44,
+      "right": 1024,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    },
+    {
+      "tag": "SMALL",
+      "classes": "",
+      "x": 24,
+      "y": 624.1500244140625,
+      "width": 1000,
+      "height": 18,
+      "right": 1024,
+      "overflowX": "visible",
+      "minWidth": "auto"
+    }
+  ]
+}

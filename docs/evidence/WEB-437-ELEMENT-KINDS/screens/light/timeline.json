@@ -1,0 +1,92 @@
+[
+  {
+    "action": "Image load failure disables element picking and offers retry",
+    "result": "passed",
+    "screenshot": "01-image-unavailable.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Element type and number filters remain reachable without horizontal overflow",
+    "result": "passed",
+    "screenshot": "06-kind-filter-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Element type and number filters remain reachable without horizontal overflow",
+    "result": "passed",
+    "screenshot": "06-kind-filter-390.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Element type and number filters remain reachable without horizontal overflow",
+    "result": "passed",
+    "screenshot": "06-kind-filter-768.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Element type and number filters remain reachable without horizontal overflow",
+    "result": "passed",
+    "screenshot": "06-kind-filter-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Type and screenshot-point filters select the independently measured real Login button",
+    "result": "passed",
+    "screenshot": "07-type-and-point.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Unknown element number has an explicit empty result",
+    "result": "passed",
+    "screenshot": "02-no-matches.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Picked bounds exactly match an independently measured real-app heading",
+    "result": "passed",
+    "screenshot": "03-picked-heading.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Parent navigation matches independently measured reference-app bounds",
+    "result": "passed",
+    "screenshot": "04-parent.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Mobile screenshot picking maps to the same original CSS coordinates",
+    "result": "passed",
+    "screenshot": "05-mobile.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+]

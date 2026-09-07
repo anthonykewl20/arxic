@@ -1,3 +1,5 @@
+import { validateCheckpointCapture } from './checkpoint-capture';
+import { unsupportedFixtureProviders } from './fixture-providers';
 import type { Diagnostic } from '@arxic/contracts';
 import { defaultQuotas, workerDiagnostic, type WorkerQuotas } from '@arxic/environment';
 import type { RunSpec } from './run-spec';
@@ -97,6 +99,18 @@ export function validateWorkerSecurity(
 ): { ok: true } | { ok: false; diagnostics: Diagnostic[] } {
   const findings: Finding[] = [];
   visit(spec, '', findings);
+  for (const { field, reason } of unsupportedFixtureProviders(spec.config.fixtures))
+    findings.push({ path: `config.fixtures.${field}`, reason });
+  if ('checkpointCapture' in spec.config.policy) {
+    try {
+      validateCheckpointCapture(spec.config.policy.checkpointCapture);
+    } catch {
+      findings.push({
+        path: 'config.policy.checkpointCapture',
+        reason: 'invalid screenshot privacy declaration',
+      });
+    }
+  }
   if (!/^[A-Za-z0-9_.-]+$/.test(spec.runId))
     findings.push({ path: 'runId', reason: 'unsafe resource identifier' });
   if (spec.config.policy.externalNetwork !== 'deny')

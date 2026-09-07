@@ -1,0 +1,5 @@
+# CI reporter interruption-test correction
+
+Run 34098206322, source shard 1 (job 101666546549), failed the interruption-test no-result assertion at head `70270595`. CI received case-start and a passed case-result together at 5111 ms. The real child fixture succeeded automatically after five seconds, so it was no longer running when inspected. Other source shards and all four installed Firefox/WebKit dashboard partitions passed. This run remains failed.
+
+Local CI=true alone passed; it did not reproduce the scheduling condition. Adding a 5.5-second observer delay reproduced the same no-result assertion failure deterministically (one failed, three passed, 6.72 s). Keeping the child pending until interruption fixes the fixture race; eight reporter/selection tests pass in 6.92 s. The no-result assertion is unchanged, as are the 10-second child deadline, 10-second observation deadline and 20-second parent deadline. No production reporter code is changed and no failure is waived. Fresh exact-head CI is still required.

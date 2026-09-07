@@ -1,0 +1,525 @@
+{
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "count": 4
+    }
+  ],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "user-text-profile-applied",
+      "passed": true,
+      "values": {
+        "originalSize": 14,
+        "actualSize": 28
+      }
+    },
+    {
+      "id": "text-3-containment",
+      "passed": true,
+      "values": {
+        "x": 12,
+        "y": 11,
+        "width": 148.09375,
+        "height": 42,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-19-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": -1875,
+        "width": 288,
+        "height": 52,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-20-containment",
+      "passed": true,
+      "values": {
+        "x": 128.421875,
+        "y": -1616.828125,
+        "width": 175.578125,
+        "height": 49,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-21-containment",
+      "passed": true,
+      "values": {
+        "x": 33,
+        "y": -989.828125,
+        "width": 161.265625,
+        "height": 44,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-22-containment",
+      "passed": true,
+      "values": {
+        "x": 33,
+        "y": -458.828125,
+        "width": 161.265625,
+        "height": 44,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-23-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": -303.828125,
+        "width": 196.140625,
+        "height": 49,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-24-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": -246.828125,
+        "width": 146.453125,
+        "height": 49,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-25-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": -173.828125,
+        "width": 288,
+        "height": 84,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-26-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 6.171875,
+        "width": 148.890625,
+        "height": 49,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-27-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 525.890625,
+        "width": 288,
+        "height": 39,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-28-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 993.625,
+        "width": 288,
+        "height": 39,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-29-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 1368.359375,
+        "width": 288,
+        "height": 84,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-30-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 1464.359375,
+        "width": 288,
+        "height": 84,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-31-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 1560.359375,
+        "width": 288,
+        "height": 84,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-32-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 1656.359375,
+        "width": 288,
+        "height": 84,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-33-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 1752.359375,
+        "width": 288,
+        "height": 120,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-34-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 1991.140625,
+        "width": 288,
+        "height": 39,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-35-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 2169.53125,
+        "width": 278.078125,
+        "height": 49,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-36-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 3058.03125,
+        "width": 230,
+        "height": 72,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-37-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 3513.9375,
+        "width": 230,
+        "height": 127,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-38-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 5197.453125,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-39-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 6136.625,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-40-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 7075.796875,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-41-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 8050.96875,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-42-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 9503.4375,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-43-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 11063.90625,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-44-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 12147.078125,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-45-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 13086.25,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-46-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 14538.71875,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-47-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 15621.890625,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-48-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 16561.0625,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-49-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 17536.234375,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-50-containment",
+      "passed": true,
+      "values": {
+        "x": 45,
+        "y": 18988.703125,
+        "width": 230,
+        "height": 88,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-51-containment",
+      "passed": true,
+      "values": {
+        "x": 58,
+        "y": 26961.9375,
+        "width": 204,
+        "height": 72,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-52-containment",
+      "passed": true,
+      "values": {
+        "x": 33,
+        "y": 27230.9375,
+        "width": 254,
+        "height": 72,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    },
+    {
+      "id": "text-61-containment",
+      "passed": true,
+      "values": {
+        "x": 16,
+        "y": 27319.9375,
+        "width": 288,
+        "height": 90.59375,
+        "spillLeft": 0,
+        "spillRight": 0,
+        "spillTop": 0,
+        "spillBottom": 0
+      }
+    }
+  ]
+}
