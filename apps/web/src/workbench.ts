@@ -27,7 +27,13 @@ export function visualRuntimeLimit(project: Project) {
 }
 import { compareCapture, digest } from './visual';
 import { executionEnvironment, secretRef } from './execution';
-import { modelEnvironment, validateConnection } from './model-connections';
+import {
+  connectionCredentialRef,
+  modelConnections,
+  modelEnvironment,
+  validateConnection,
+} from './model-connections';
+import { SecretStore } from './secret-store';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
 import { campaignRows, campaignView } from './campaigns';
@@ -43,6 +49,7 @@ export class Workbench {
   private queueError: string | null = null;
   private mutationTail: Promise<unknown> = Promise.resolve();
   private timer: ReturnType<typeof setInterval>;
+  private readonly providerSecrets: SecretStore;
   private constructor(
     readonly store: Store,
     startupRoots: string[],
@@ -57,6 +64,7 @@ export class Workbench {
       ...startupRoots.filter((root) => !deltas.removed.includes(root)),
       ...deltas.added,
     ];
+    this.providerSecrets = new SecretStore(store.db);
     this.timer = setInterval(() => {
       try {
         this.tick();
@@ -170,6 +178,36 @@ export class Workbench {
   }
   retentionState() {
     return this.retention.state();
+  }
+  /** Runtime-entered credentials complete the environment; explicit operator env keeps precedence. */
+  effectiveEnv(): NodeJS.ProcessEnv {
+    const merged: NodeJS.ProcessEnv = this.providerSecrets.all();
+    for (const [key, value] of Object.entries(process.env))
+      if (value !== undefined) merged[key] = value;
+    return merged;
+  }
+  async saveProviderSecret(input: unknown) {
+    return this.mutate(async () => {
+      const record = input as { connection?: unknown; value?: unknown } | null;
+      const ref = connectionCredentialRef(record?.connection, this.effectiveEnv());
+      const value = typeof record?.value === 'string' ? record.value.trim() : '';
+      if (!value || value.length > 5000)
+        throw new HttpError(400, 'Provide the provider key as text between 1 and 5000 characters');
+      this.providerSecrets.set(ref, value);
+      this.store.audit('provider.secret-set', ref);
+      return { modelConnections: modelConnections(this.effectiveEnv()) };
+    });
+  }
+  async removeProviderSecret(input: unknown) {
+    return this.mutate(async () => {
+      const ref = connectionCredentialRef(
+        (input as { connection?: unknown } | null)?.connection,
+        this.effectiveEnv(),
+      );
+      this.providerSecrets.remove(ref);
+      this.store.audit('provider.secret-removed', ref);
+      return { modelConnections: modelConnections(this.effectiveEnv()) };
+    });
   }
   async saveRetention(input: unknown) {
     return this.mutate(async () => this.retention.save(input));
@@ -534,16 +572,16 @@ export class Workbench {
           throw new Error('Run cancelled before launch');
         const overrides =
           run.mode === 'agent' && run.project.execution
-            ? executionEnvironment(run.project.execution, process.env)
+            ? executionEnvironment(run.project.execution, this.effectiveEnv())
             : run.mode === 'review'
               ? modelEnvironment(
                   run.visualReview!.modelConnection,
                   run.visualReview!.model,
                   run.visualReview!.modelSecretRef,
-                  process.env,
+                  this.effectiveEnv(),
                 )
               : run.mode === 'visual' && run.project.login
-                ? loginEnvironment(run.project.login, process.env)
+                ? loginEnvironment(run.project.login, this.effectiveEnv())
                 : undefined;
         this.active = launchJob(input, output, overrides);
         timeout = setTimeout(

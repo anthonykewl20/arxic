@@ -214,3 +214,134 @@ it('refreshes provider-owned models in a real browser and preserves search and s
     await rm(state, { recursive: true, force: true });
   }
 }, 60_000);
+
+it('connects and removes a provider key in a real browser without displaying it', async () => {
+  const observed: Array<string | undefined> = [];
+  const provider = createServer((request, response) => {
+    observed.push(request.headers.authorization);
+    if (request.headers.authorization !== 'Bearer browser-secret-value')
+      return response.writeHead(401).end('private-keyed-details');
+    response.end(JSON.stringify({ data: [{ id: 'keyed/model-a' }, { id: 'keyed/model-b' }] }));
+  }).listen(0, '127.0.0.1');
+  await new Promise<void>((resolve) => provider.once('listening', resolve));
+  const state = await mkdtemp(join(tmpdir(), 'arxic-provider-secrets-ui-'));
+  const address = provider.address() as { port: number };
+  vi.stubEnv(
+    'ARXIC_MODEL_CONNECTIONS',
+    JSON.stringify([
+      {
+        id: 'browser-keyed',
+        label: 'Browser keyed provider',
+        transport: 'http',
+        baseUrl: `http://127.0.0.1:${address.port}/v1`,
+        credentialRef: 'ARXIC_SECRET_BROWSER_KEY',
+        models: [],
+      },
+    ]),
+  );
+  const app = await startWorkbench({
+    stateDirectory: state,
+    roots: [state],
+    adminToken: 'test-administrator-token-32-characters',
+    port: 0,
+  });
+  const browser = await launchDashboardBrowser({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  const evidence = process.env.ARXIC_PROVIDER_EVIDENCE_DIR;
+  const browserIdentity = { name: browser.browserType().name(), version: browser.version() };
+  const dirty = !!execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
+  const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const timeline: Array<{ action: string; result: 'passed' }> = [];
+  const capture = async (name: string, action: string) => {
+    timeline.push({ action, result: 'passed' });
+    if (!evidence) return;
+    await mkdir(evidence, { recursive: true });
+    const bytes = await captureMaskedViewport(page, {
+      automaticMasks: ['input[type="password"]'],
+      requiredMasks: [],
+    });
+    await writeFile(join(evidence, `${name}.png`), bytes);
+    await writeFile(
+      join(evidence, `${name}.png.privacy.json`),
+      JSON.stringify(
+        {
+          sha256: createHash('sha256').update(bytes).digest('hex'),
+          sourceCommit,
+          browser: browserIdentity,
+          dirty,
+          policy: 'persona-free dashboard; password inputs masked',
+          humanInspection: 'not performed',
+          rawTraceRetained: false,
+        },
+        null,
+        2,
+      ),
+    );
+  };
+  try {
+    await page.goto(app.origin);
+    await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
+    await page.getByRole('button', { name: 'Open workbench' }).click();
+    await expect
+      .poll(
+        async () => (errors.length ? errors.join('; ') : await page.locator('#app').isVisible()),
+        {
+          timeout: 10_000,
+        },
+      )
+      .toBe(true);
+    await page.getByRole('button', { name: 'Models & accounts', exact: true }).click();
+    const row = page.locator('.provider-row').filter({ hasText: 'Browser keyed provider' });
+    await expect.poll(() => row.count()).toBe(1);
+    await row.click();
+    await page
+      .getByRole('alert')
+      .filter({ hasText: 'The provider credential is not configured on this server' })
+      .waitFor();
+    await page.getByLabel('API key or token').fill('browser-secret-value');
+    await capture('01-provider-key-entered', 'Key pasted into the masked connect input');
+    await page.getByRole('button', { name: 'Connect key', exact: true }).click();
+    await page.getByText('Credential connected on this server', { exact: true }).waitFor();
+    await page.getByText('keyed/model-a', { exact: true }).waitFor();
+    expect(observed).toContain('Bearer browser-secret-value');
+    expect(await page.locator('body').textContent()).not.toContain('browser-secret-value');
+    expect(await page.locator('body').textContent()).not.toContain('private-keyed-details');
+    await capture(
+      '02-provider-key-connected',
+      'Connected badge and discovered catalog appear without the key value anywhere in the DOM',
+    );
+    await page.getByRole('button', { name: 'Remove credential', exact: true }).click();
+    await page.getByLabel('API key or token').waitFor();
+    await capture('03-provider-key-removed', 'Removal returns the connect input');
+    expect(errors).toEqual([]);
+    if (evidence) {
+      const bytes =
+        JSON.stringify({ schemaVersion: 'arxic-ui-timeline-v1', actions: timeline }, null, 2) +
+        '\n';
+      await writeFile(join(evidence, 'timeline.json'), bytes);
+      await writeFile(
+        join(evidence, 'timeline.sanitization.json'),
+        JSON.stringify(
+          {
+            sourceCommit,
+            browser: browserIdentity,
+            dirty,
+            sha256: createHash('sha256').update(bytes).digest('hex'),
+            policy: 'allowlisted named actions and pass disposition only',
+            rawTraceRetained: false,
+          },
+          null,
+          2,
+        ),
+      );
+    }
+  } finally {
+    await browser.close();
+    await app.close();
+    vi.unstubAllEnvs();
+    await new Promise<void>((resolve) => provider.close(() => resolve()));
+    await rm(state, { recursive: true, force: true });
+  }
+}, 60_000);
