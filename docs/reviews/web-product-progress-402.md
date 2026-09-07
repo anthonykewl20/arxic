@@ -136,7 +136,7 @@ Browser/theme visual coverage now supports explicit Chromium/Firefox/WebKit ×
 light/dark × configured viewport selections (refs #439). Per-environment outcomes,
 shared-budget omissions and independent baselines prevent an absent cell from
 becoming a pass. Real browser, authenticated reference-app and dashboard proofs
-cover the named matrix. DPR/zoom/locale/OS/device and broad interaction-state
+cover the named matrix. Zoom/locale/OS/device and broad interaction-state
 coverage remain release gaps; #402 stays open.
 
 ### Capture gallery navigation (refs #441)
@@ -177,3 +177,10 @@ Dashboard validation follow-up: source CI 34075361763 retained five of six requi
 Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
 
 Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
+
+Native 1×/2×/3× density selection extends that matrix in #454 / PR #455.
+Native PNGs and baseline identities preserve density; the inspector retains CSS
+coordinates. High-density Chromium uses explicitly identified full headless
+rendering. Local native-repeat, authenticated eighteen-cell and responsive dashboard
+proof passes; exact-head installed CI remains pending. See the
+[density follow-up](../evidence/WEB-454-DENSITY/followup.md).

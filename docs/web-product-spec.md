@@ -142,5 +142,12 @@ Browser/theme visual coverage now supports explicit Chromium/Firefox/WebKit ×
 light/dark × configured viewport selections (refs #439). Per-environment outcomes,
 shared-budget omissions and independent baselines prevent an absent cell from
 becoming a pass. Real browser, authenticated reference-app and dashboard proofs
-cover the named matrix. DPR/zoom/locale/OS/device and broad interaction-state
+cover the named matrix. Zoom/locale/OS/device and broad interaction-state
 coverage remain release gaps; #402 stays open.
+
+Native 1×/2×/3× density selection extends that matrix in #454 / PR #455.
+Native PNGs and baseline identities preserve density; the inspector retains CSS
+coordinates. High-density Chromium uses explicitly identified full headless
+rendering. Local native-repeat, authenticated eighteen-cell and responsive dashboard
+proof passes; exact-head installed CI remains pending. See the
+[density follow-up](evidence/WEB-454-DENSITY/followup.md).

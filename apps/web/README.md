@@ -28,7 +28,7 @@ preserve the full denominator and survive restart. Unsupported/unselected rows
 and uncompiled hypotheses remain visible. Recurring campaigns and broader state
 coverage remain tracked in #402.
 
-The visual lane compares configured browser/theme/viewport combinations against independently approved baselines. Chromium, Firefox and WebKit with light/dark are selectable; missing engines remain blocked. Older projects use Chromium/light. Stable
+The visual lane compares configured browser/theme/pixel-density/viewport combinations against independently approved baselines. Chromium, Firefox and WebKit with light/dark are selectable; missing engines remain blocked. Older projects use Chromium/light. Stable
 retained captures support inspected-image AI review with model/secret-reference/
 budget/criterion controls, proposed regions, reproduction and model provenance.
 Findings remain hypotheses. Optional redirect-based sign-in keeps session state in memory; comprehensive business-state exploration remains under #402.
@@ -101,7 +101,7 @@ approval or replacement; unavailable baseline/difference images explain why.
 
 ## Find captures in a run
 
-**Captured pages** combines path search with browser, theme, viewport and historical
+**Captured pages** combines path search with browser, theme, pixel density, viewport and historical
 comparison filters. The matching/total count stays explicit and **Clear capture
 filters** restores the complete list. Each page renders at most six captures;
 keyboard pagination returns focus to the gallery heading. Selections survive polling
@@ -122,3 +122,13 @@ Capture failures now carry a bounded failed-operation diagnostic and grouped bro
 Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
 
 The [WebKit navigation investigation](../../docs/evidence/WEB-447-NAVIGATION/summary.md) provides an explicit probe command; no production error waiver is enabled.
+
+Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery and native baseline repeatability pass local reference-app checks. High-density Chromium uses full Chromium headless with an explicit renderer identity; final installed CI remains required. This is not full production-readiness proof.
+
+Visual matrix authentication performs one GUI sign-in per browser family per run. Successful session state and failed outcomes are reused in memory across that browser’s cells; each reuse is recorded, and nothing carries into a later run. This avoids exhausting target login-rate limits while preserving real authenticated screenshots and run isolation.
+
+Installed-dashboard acceptance now retains incremental case progress and bounded
+process-exit facts with provenance, so interruption cannot erase which tests
+finished. Test names, assertion values and exception bodies are excluded. The
+900-second command limit, 25-minute job limit and per-test assertions remain unchanged. Installed Firefox/WebKit CI uses two required exhaustive partitions of the same fifteen files; this increases aggregate execution capacity per browser without omitting or duplicating a file. Default local and packed Chromium runs still execute all fifteen files.
+The density slice's [first installed Firefox gate failed](../../docs/evidence/WEB-454-DENSITY/ci-34086989767/summary.md); final-head acceptance is still required.

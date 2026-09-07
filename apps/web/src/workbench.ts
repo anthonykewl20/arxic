@@ -472,6 +472,7 @@ export class Workbench {
               join(directory, capture.file),
               baselinePath,
               join(directory, diffFile),
+              capture.environment?.deviceScaleFactor ?? 1,
             );
             Object.assign(capture, compared, {
               status: compared.changedPixels ? 'changed' : 'unchanged',

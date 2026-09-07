@@ -2,7 +2,7 @@ import { inspectCapturedElements } from './element-inspector-proof';
 import { inspectLegacyElementKinds } from './element-kind-legacy-proof';
 import sharp from 'sharp';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
@@ -50,6 +50,11 @@ it.each(['light', 'dark'] as const)(
       timezoneId: 'Asia/Manila',
     });
     const page = await context.newPage();
+    // Bound each browser wait so a stalled step yields a source location before the case deadline.
+    page.setDefaultTimeout(10_000);
+    const failureEvidence = process.env.ARXIC_WEB_EVIDENCE_DIR
+      ? join(process.env.ARXIC_WEB_EVIDENCE_DIR, theme)
+      : undefined;
     const auditProof = dashboardProof(
       page,
       process.env.ARXIC_WEB_EVIDENCE_DIR
@@ -544,6 +549,23 @@ it.each(['light', 'dark'] as const)(
         'Late pre-logout dashboard response cannot restore a signed-out workspace',
       );
       expect(errors).toEqual([]);
+    } catch (error) {
+      if (failureEvidence) {
+        try {
+          await auditProof.audit(
+            '99-failed-ui-step',
+            'A browser journey step failed; this screenshot does not waive the failure',
+            [{ id: 'browser-journey-failure', passed: false, values: { observed: 1 } }],
+          );
+        } catch {
+          await mkdir(failureEvidence, { recursive: true });
+          await writeFile(
+            join(failureEvidence, '99-failure-capture.json'),
+            JSON.stringify({ outcome: 'unavailable', rawTraceRetained: false }),
+          );
+        }
+      }
+      throw error;
     } finally {
       releaseFolders();
       await auditProof.finish();

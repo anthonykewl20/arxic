@@ -1,0 +1,250 @@
+{
+  "outcome": "observed",
+  "summary": "9 viewport checkpoints captured across 9 browser/theme/pixel-density environments. Visual baseline review is separate from business-logic verification.",
+  "captures": [
+    {
+      "assessmentFile": "chromium-light-checkpoint-1.assessment.json",
+      "assessmentSha256": "468573d20cb6bbe3f343bd9e3e8e8f2df3662b223feeb93d3967fc10dac2fe80",
+      "id": "chromium-light-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "chromium-light-checkpoint-1.png",
+      "sha256": "0dc9a257910b31741ea85b2f304f75f03fd46ace16954f85b0637f275ebdfb68",
+      "specHash": "ffe2bff454f2b93621301e8b7f8e95f50f6a59f5a489a88c8788c60c879eb871",
+      "browserVersion": "151.0.7922.34",
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "light"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "chromium-light-2x-checkpoint-1.assessment.json",
+      "assessmentSha256": "0a2cd6f709c28314763916ad90089c546fe21370e3b4129b52dbeec9c9036157",
+      "id": "chromium-light-2x-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "chromium-light-2x-checkpoint-1.png",
+      "sha256": "f67fdaa7ceed0b351ec8e7a105ac753f79e5c02de7ad44dd0c7704310f5ea7e4",
+      "specHash": "0d21aad0733bf7aa505aeaa6aaa19cac0bfbc3369e7d4da8a140cf42f344517e",
+      "browserVersion": "151.0.7922.34",
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "light",
+        "deviceScaleFactor": 2,
+        "renderer": "chromium-full-headless"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "chromium-light-3x-checkpoint-1.assessment.json",
+      "assessmentSha256": "6d58085c161eb21e4c10479ea982be0dbedc49a6a0ea6aff1abb6905773068be",
+      "id": "chromium-light-3x-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "chromium-light-3x-checkpoint-1.png",
+      "sha256": "ae50f7ff8b6f4b85025cdc2b3d221f28935b64ac4e554556d7ed6c59dcab0029",
+      "specHash": "bfd235402d3973cccb8c12d4046fd6328dd7bc99708a89061e1be2b5a72033e6",
+      "browserVersion": "151.0.7922.34",
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "light",
+        "deviceScaleFactor": 3,
+        "renderer": "chromium-full-headless"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "firefox-light-checkpoint-1.assessment.json",
+      "assessmentSha256": "a20b4a6d9d273d969349317f681f1d2c16dc7a4ae1b6a87c6c3fff850c3c607d",
+      "id": "firefox-light-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "firefox-light-checkpoint-1.png",
+      "sha256": "edd016f4dbf640a3478f592922e48c1d996a1e0ee12d5c2471df27a0612bc6bb",
+      "specHash": "cb137f3c92ce67b916966a56a93c872c3df824200c3a7198a9087ea8e54ebf27",
+      "browserVersion": "153.0",
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "light"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "firefox-light-2x-checkpoint-1.assessment.json",
+      "assessmentSha256": "d2aacb710e62da1402c1edb7d22214955a8be91fdef5f9b0cbec735bb74e14b4",
+      "id": "firefox-light-2x-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "firefox-light-2x-checkpoint-1.png",
+      "sha256": "f5f502e4731f6ff5fa9ccf9482528f786ca5fc45c2e911d9dc0424bcc6532818",
+      "specHash": "e542ab72cc40dcbbdd13805ba88b31e6fe33e4bce2fcae7db34c11df69b03970",
+      "browserVersion": "153.0",
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "light",
+        "deviceScaleFactor": 2
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "firefox-light-3x-checkpoint-1.assessment.json",
+      "assessmentSha256": "ff68a11f1a411e7052f54727096444288ed17a78d9c32d82ec66c0dd3c649502",
+      "id": "firefox-light-3x-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "firefox-light-3x-checkpoint-1.png",
+      "sha256": "581d29eef934ed6dcbe6c7635629adee4bc97d20dd60d0abf961e50ec2100bd7",
+      "specHash": "d8b4cb4da851c593cc3f61ee042774077b2dc5c24576d8c504abc6da7011a7e1",
+      "browserVersion": "153.0",
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "light",
+        "deviceScaleFactor": 3
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "webkit-light-checkpoint-1.assessment.json",
+      "assessmentSha256": "96350d2c237667f81e7e17b3783dc8227055a5e8aec434414e8f0a79f66f90e0",
+      "id": "webkit-light-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "webkit-light-checkpoint-1.png",
+      "sha256": "db2d13d02cc7cef6b36b10b075e3b557bdd558bb18de1929d32dee28fe6ac978",
+      "specHash": "e6cc75c1ac304dbb49b9927af41b8974733e2786d65f9d8c3f1d0bd0764147be",
+      "browserVersion": "26.5",
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "light"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "webkit-light-2x-checkpoint-1.assessment.json",
+      "assessmentSha256": "f46f1ee58a46d98e992da975ff554e936d3aa49e8bdae88bece212ef0da23344",
+      "id": "webkit-light-2x-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "webkit-light-2x-checkpoint-1.png",
+      "sha256": "8c71f68bef3fc3344f2bef976e14574e936054f4087c7df328eaea8b4e1f38b4",
+      "specHash": "98391c7284fd5f80ea525620c0a3039a7bb3be0032813ee652903252880486a0",
+      "browserVersion": "26.5",
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "light",
+        "deviceScaleFactor": 2
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "webkit-light-3x-checkpoint-1.assessment.json",
+      "assessmentSha256": "95b3bdadb3050cc4b3c75e020ff49cefec294e561fb6e5eb5c503aba813e77b2",
+      "id": "webkit-light-3x-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "webkit-light-3x-checkpoint-1.png",
+      "sha256": "198a859e7c37ad0e1757d2d1b980ad5fe4b9e20e0e09091168b7a0fbdf883f07",
+      "specHash": "c2b721cd7d8b2ec147b326e12b7d93d44a829f57c23ffcba0d9210545aaaebe8",
+      "browserVersion": "26.5",
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "light",
+        "deviceScaleFactor": 3
+      },
+      "status": "needs-baseline"
+    }
+  ],
+  "findings": [],
+  "visualEnvironments": [
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "deviceScaleFactor": 2,
+      "renderer": "chromium-full-headless",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "deviceScaleFactor": 3,
+      "renderer": "chromium-full-headless",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "deviceScaleFactor": 2,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "deviceScaleFactor": 3,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "deviceScaleFactor": 2,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "deviceScaleFactor": 3,
+      "outcome": "observed",
+      "captures": 1
+    }
+  ]
+}

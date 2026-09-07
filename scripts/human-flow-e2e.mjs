@@ -7,6 +7,8 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { commandFailureFacts } from './command-failure.mjs';
+import { installedDashboardCases } from './dashboard-cases.mjs';
 
 const execute = promisify(execFile);
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -101,7 +103,9 @@ export async function runHumanFlow({
   keep = false,
   evidenceDirectory,
   dashboardOnly = false,
+  dashboardShard,
 } = {}) {
+  const dashboardCases = installedDashboardCases({ dashboardOnly, shard: dashboardShard });
   const timings = [];
   const startedAt = Date.now();
   const cleanRoom = await mkdtemp(join(tmpdir(), 'arxic-human-flow-'));
@@ -155,9 +159,17 @@ export async function runHumanFlow({
     });
 
     if (dashboardOnly) {
-      await runInstalledDashboard(paths, timings, evidenceDirectory);
+      await runInstalledDashboard(
+        paths,
+        timings,
+        evidenceDirectory,
+        dashboardCases,
+        dashboardShard,
+      );
       outcome = {
         scope: 'dashboard',
+        dashboardShard: dashboardShard ?? 'all',
+        dashboardFiles: dashboardCases.length,
         ok: true,
         cleanRoom: keep ? cleanRoom : undefined,
         phases: timings,
@@ -167,7 +179,7 @@ export async function runHumanFlow({
         await mkdirp(resolve(evidenceDirectory));
         await writeFile(
           resolve(evidenceDirectory, 'summary.md'),
-          '# Installed dashboard E2E evidence\n\nScope: dashboard journeys only. The CLI workflow and live-provider quality are not covered by this run. Browser identity is recorded in adjacent screenshot/timeline provenance. Human release inspection remains outstanding.\n\n```text\n' +
+          `# Installed dashboard E2E evidence\n\nScope: ${dashboardShard ? `dashboard partition ${dashboardShard} of 2; both partitions must pass for this browser` : 'all dashboard files'}. The CLI workflow and live-provider quality are not covered by this run. Browser identity is recorded in adjacent screenshot/timeline provenance. Human release inspection remains outstanding.\n\n\`\`\`text\n` +
             formatVerdict(outcome) +
             '\n```\n',
         );
@@ -396,7 +408,7 @@ export async function runHumanFlow({
         }),
       );
     }
-    await runInstalledDashboard(paths, timings, evidenceDirectory);
+    await runInstalledDashboard(paths, timings, evidenceDirectory, dashboardCases, dashboardShard);
     outcome = {
       ok: true,
       cleanRoom: keep ? cleanRoom : undefined,
@@ -417,6 +429,9 @@ export async function runHumanFlow({
     outcome = {
       ok: false,
       scope: dashboardOnly ? 'dashboard' : 'human-flow',
+      ...(dashboardOnly
+        ? { dashboardShard: dashboardShard ?? 'all', dashboardFiles: dashboardCases.length }
+        : {}),
       cleanRoom: keep ? cleanRoom : undefined,
       phases: timings,
       totalMs: Date.now() - startedAt,
@@ -430,7 +445,13 @@ export async function runHumanFlow({
   }
 }
 
-async function runInstalledDashboard(paths, timings, evidenceDirectory) {
+async function runInstalledDashboard(
+  paths,
+  timings,
+  evidenceDirectory,
+  dashboardCases,
+  dashboardShard,
+) {
   await phase(timings, 'packed-web-startup', () =>
     command(
       process.execPath,
@@ -442,57 +463,101 @@ async function runInstalledDashboard(paths, timings, evidenceDirectory) {
       { cwd: repositoryRoot, env: cleanEnvironment(paths), timeout: 180_000 },
     ),
   );
-  await phase(timings, 'packed-web-browser', () =>
-    command(
-      'pnpm',
-      [
-        'exec',
-        'vitest',
-        'run',
-        'apps/web/src/__tests__/ui.real-world.test.ts',
-        'apps/web/src/__tests__/dashboard-ux.real-world.test.ts',
-        'apps/web/src/__tests__/dashboard-readability.real-world.test.ts',
-        'apps/web/src/__tests__/campaign-ui.real-world.test.ts',
-        'apps/web/src/__tests__/restart.real-world.test.ts',
-        'apps/web/src/__tests__/element-kinds.real-world.test.ts',
-        'apps/web/src/__tests__/visual-matrix-ui.real-world.test.ts',
-        'apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts',
-        'apps/web/src/__tests__/capture-failures.real-world.test.ts',
-        'apps/web/src/__tests__/provider-ui.real-world.test.ts',
-        'apps/web/src/__tests__/visual-review-ui.real-world.test.ts',
-        'apps/web/src/__tests__/retention-ui.real-world.test.ts',
-        'apps/web/src/__tests__/baseline-history-ui.real-world.test.ts',
-        'apps/web/src/__tests__/contrast-ui.real-world.test.ts',
-      ],
-      {
-        cwd: repositoryRoot,
-        env: {
-          ...cleanEnvironment(paths),
-          ARXIC_TEST_INSTALLED_WEB_BIN: join(paths.install, 'node_modules/arxic/dist/cli.js'),
-          ...(evidenceDirectory
-            ? {
-                ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
-                ARXIC_MATRIX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/matrix'),
-                ARXIC_GALLERY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/gallery'),
-                ARXIC_ELEMENTS_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/elements'),
-                ARXIC_UX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/navigation'),
-                ARXIC_READABILITY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/readability'),
-                ARXIC_CAMPAIGN_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/campaign'),
-                ARXIC_PROVIDER_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/provider'),
-                ARXIC_REVIEW_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/review'),
-                ARXIC_RETENTION_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/retention'),
-                ARXIC_BASELINE_HISTORY_EVIDENCE_DIR: resolve(
-                  evidenceDirectory,
-                  'web/baseline-history',
-                ),
-                ARXIC_CONTRAST_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/contrast'),
-              }
-            : {}),
-        },
-        timeout: 900_000,
-      },
-    ),
+  const progressPath = resolve(
+    evidenceDirectory ?? paths.cleanRoom,
+    'web/dashboard-progress.jsonl',
   );
+  await mkdirp(dirname(progressPath));
+  const browserStarted = Date.now();
+  let failure;
+  try {
+    await phase(timings, 'packed-web-browser', () =>
+      command(
+        'pnpm',
+        [
+          'exec',
+          'vitest',
+          'run',
+          ...dashboardCases,
+          '--includeTaskLocation',
+          '--reporter=default',
+          `--reporter=${join(repositoryRoot, 'scripts/dashboard-progress-reporter.mjs')}`,
+        ],
+        {
+          cwd: repositoryRoot,
+          env: {
+            ...cleanEnvironment(paths),
+            ARXIC_TEST_INSTALLED_WEB_BIN: join(paths.install, 'node_modules/arxic/dist/cli.js'),
+            ARXIC_DASHBOARD_PROGRESS_PATH: progressPath,
+            ...(evidenceDirectory
+              ? {
+                  ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
+                  ARXIC_DENSITY_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/density'),
+                  ARXIC_MATRIX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/matrix'),
+                  ARXIC_GALLERY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/gallery'),
+                  ARXIC_ELEMENTS_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/elements'),
+                  ARXIC_UX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/navigation'),
+                  ARXIC_READABILITY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/readability'),
+                  ARXIC_CAMPAIGN_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/campaign'),
+                  ARXIC_PROVIDER_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/provider'),
+                  ARXIC_REVIEW_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/review'),
+                  ARXIC_RETENTION_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/retention'),
+                  ARXIC_BASELINE_HISTORY_EVIDENCE_DIR: resolve(
+                    evidenceDirectory,
+                    'web/baseline-history',
+                  ),
+                  ARXIC_CONTRAST_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/contrast'),
+                }
+              : {}),
+          },
+          timeout: 900_000,
+        },
+      ),
+    );
+  } catch (error) {
+    failure = commandFailureFacts(error);
+    timings.push({ name: 'packed-web-browser-failed', durationMs: Date.now() - browserStarted });
+    throw new Error(`Installed dashboard command failed: ${JSON.stringify(failure)}`, {
+      cause: error,
+    });
+  } finally {
+    const bytes = await readFile(progressPath).catch((error) => {
+      if (error.code === 'ENOENT') return undefined;
+      throw error;
+    });
+    if (bytes)
+      await writeFile(
+        `${progressPath}.sanitization.json`,
+        JSON.stringify(
+          {
+            schemaVersion: 1,
+            sha256: createHash('sha256').update(bytes).digest('hex'),
+            method:
+              'allow-listed module basename, hashed case ID, source/failure line, receipt elapsed time, state and bounded failure category/timeout; no test names or error payloads',
+            rawTraceRetained: false,
+          },
+          null,
+          2,
+        ),
+      );
+    await writeFile(
+      join(dirname(progressPath), 'dashboard-command.json'),
+      JSON.stringify(
+        {
+          schemaVersion: 1,
+          outcome: failure ? 'failed' : 'passed',
+          elapsedMs: Date.now() - browserStarted,
+          timeoutMs: 900000,
+          shard: dashboardShard ?? 'all',
+          files: dashboardCases.map((file) => basename(file)),
+          ...(failure ? { failure } : {}),
+          progressAvailable: !!bytes,
+        },
+        null,
+        2,
+      ),
+    );
+  }
 }
 
 function cleanEnvironment(paths) {
@@ -889,6 +954,9 @@ export function formatVerdict(outcome) {
     `${outcome.scope === 'dashboard' ? 'DASHBOARD-E2E' : 'HUMAN-FLOW-E2E'} ${outcome.ok ? 'PASS' : 'FAIL'}`,
     ...outcome.phases.map((phase) => `phase=${phase.name} durationMs=${phase.durationMs}`),
     `totalMs=${outcome.totalMs}`,
+    ...(outcome.dashboardShard
+      ? [`dashboardShard=${outcome.dashboardShard} files=${outcome.dashboardFiles}`]
+      : []),
     ...(outcome.modelRequests === undefined ? [] : [`modelRequests=${outcome.modelRequests}`]),
     ...(outcome.error ? [`error=${outcome.error}`] : []),
     ...(outcome.cleanRoom ? [`cleanRoom=${outcome.cleanRoom}`] : []),
@@ -897,16 +965,29 @@ export function formatVerdict(outcome) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const keep = process.argv.includes('--keep');
+  const shardFlag = process.argv.indexOf('--dashboard-shard');
+  const dashboardShard = shardFlag === -1 ? undefined : (process.argv[shardFlag + 1] ?? null);
+  const dashboardOnly = process.argv.includes('--dashboard-only');
+  let validShard = true;
+  try {
+    installedDashboardCases({ dashboardOnly, shard: dashboardShard });
+  } catch {
+    validShard = false;
+  }
   const evidenceFlag = process.argv.indexOf('--evidence-dir');
   const evidenceDirectory = evidenceFlag === -1 ? undefined : process.argv[evidenceFlag + 1];
-  if (evidenceFlag !== -1 && !evidenceDirectory) {
+  if (!validShard) {
+    console.error('--dashboard-shard requires --dashboard-only and a value of 1 or 2');
+    process.exitCode = 2;
+  } else if (evidenceFlag !== -1 && !evidenceDirectory) {
     console.error('--evidence-dir requires a path');
     process.exitCode = 2;
   } else {
     runHumanFlow({
       keep,
       evidenceDirectory,
-      dashboardOnly: process.argv.includes('--dashboard-only'),
+      dashboardOnly,
+      dashboardShard,
     }).catch(() => {
       process.exitCode = 1;
     });

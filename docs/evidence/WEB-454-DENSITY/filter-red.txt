@@ -1,0 +1,5 @@
+AssertionError: expected [ …(2) ] to deeply equal [ { id: 'dense', …(8) } ]
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  12:32:45
+   Duration  155ms (transform 30ms, setup 0ms, import 41ms, tests 9ms, environment 0ms)

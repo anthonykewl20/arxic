@@ -1,0 +1,65 @@
+[
+  {
+    "action": "Browser/theme selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Browser/theme selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-390.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Browser/theme selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-768.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Browser/theme selection retains labels, keyboard focus and responsive layout",
+    "result": "passed",
+    "screenshot": "01-matrix-settings-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Six actual browser/theme captures report independent environments and outcomes",
+    "result": "passed",
+    "screenshot": "02-matrix-results.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Environment outcomes remain readable on a narrow dashboard",
+    "result": "passed",
+    "screenshot": "03-mobile-results.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Saved browser/theme selections survive reopening project settings",
+    "result": "passed",
+    "screenshot": "04-restored-settings.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

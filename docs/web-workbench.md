@@ -596,9 +596,9 @@ difference images or visual privacy sidecars.
 ## Browser/theme capture matrix
 
 The dashboard accepts distinct selections of one to three browser engines and one
-or both color schemes. The saved project and each run snapshot retain the selection.
+or both color schemes, and one or more native pixel densities (1×, 2×, 3×). The saved project and each run snapshot retain the selection.
 Each capture identifies its environment, and **Visual environments** lists every
-attempted browser/theme pair, its capture count, blocked reason and omitted pages.
+attempted browser/theme/pixel-density combination, its capture count, blocked reason and omitted pages.
 Observed findings are tagged with their environment. An unavailable engine or failed
 cell keeps the aggregate run blocked while successful independent captures remain
 available; it never becomes an implicit pass. Fix the prerequisite and rerun before
@@ -607,7 +607,7 @@ baseline approval.
 The 600-checkpoint budget is shared across the entire matrix, not reset per browser.
 Pages are bounded equally per environment/viewport and truncation remains visible.
 Each environment establishes its own authorized sign-in and memory-only session;
-the same origin/mutation/mask policies apply to every browser. Authenticated workflow
+the same origin/mutation/mask policies apply to every browser. The matrix signs in once per browser family and reuses that real session in memory within the current run, avoiding repeated login submissions for each theme/density. Every reuse is explicit in the sanitized timeline; sessions and failed-login outcomes are discarded between runs. Authenticated workflow
 exploration beyond the configured redirect-based sign-in is still a separate gap.
 
 The application-owned capture helper removes only validated sRGB intent and
@@ -615,14 +615,14 @@ full-precision sBIT markers emitted by WebKit. Encoded pixel chunks are unchange
 retained files still pass the strict IHDR/IDAT/IEND-only PNG validator. Text metadata,
 malformed markers and all other unexpected chunks remain rejected.
 
-Locale, direction, DPR, zoom, forced colors, OS/device behavior and arbitrary
+Locale, direction, zoom, forced colors, OS/device behavior and arbitrary
 interactive-state matrices are not configurable by this slice. Native engine
 comparison does not make pixel differences into semantic defect proof.
 
 ## Find captures within a run
 
 Open **Test runs**, select a run, then use **Captured pages**. Search a path or
-combine **Capture browser**, **Capture theme**, **Capture viewport** and
+combine **Capture browser**, **Capture theme**, **Capture pixel density**, **Capture viewport** and
 **Comparison at capture time**. The count reports matching captures out of the full
 run. **Next captures** and **Previous captures** show up to six at a time and return
 keyboard focus to the heading. Clear filters to recover from no matches.
@@ -719,3 +719,41 @@ Imported AI execution configurations are subject to the same managed fixture
 provider validation when the CLI loads them for execution. Unsupported provider
 names are refused at that boundary. Built-in provider declarations
 do not add inbox/OTP setup controls to the dashboard (refs #452).
+
+## Native pixel density (in progress, #454)
+
+In project settings, choose **1× standard**, **2× sharp** or **3× extra sharp** under **Pixel density**. Each chosen density multiplies the browser/theme/viewport matrix and shares its 600-checkpoint budget. An empty selection is refused; older projects retain 1× and existing baseline identities. Higher density produces more native image pixels while layout dimensions and element picking remain in CSS pixels. Baselines, filenames, outcomes and gallery filters distinguish the density.
+
+A viewport/density product exceeding 16 × 1024 × 1024 image pixels is refused before capture. Reduce the viewport or deselect a density to recover; images are not silently downsampled. PNG dimensions, decoded-pixel limits and privacy masks remain enforced. Workflow checkpoint screenshots keep their existing CSS-pixel capture behavior.
+
+Local dashboard tests exercise selection, keyboard controls, empty-selection and oversized-image recovery, saved settings and density filtering. The original Chromium headless shell produced small text-paint differences with equal geometry. Native 2×/3× Chromium now uses full Chromium headless, recorded as `renderer: chromium-full-headless` in environment evidence and baseline identity. Two fresh nine-environment baseline/repeat/regression runs pass without widening pixel tolerance. Existing 1× captures retain their prior renderer and baseline identity. Physical hardware and cross-OS rendering are outside this emulation proof.
+
+Native-density AI review uses image-pixel coordinates for overlays. Review accepts density-qualified filenames but retains its separate 4 × 1024 × 1024 pixel model-image limit; an allowed visual capture can still be too large for AI review. Settings validation brings the error into view and focuses it for keyboard recovery.
+
+For native Chromium, install the full browser with `pnpm exec playwright install chromium`; a shell-only installation is insufficient and the unavailable environment remains blocked. This follows Playwright’s [documented new headless mode](https://playwright.dev/docs/browsers#chromium-new-headless-mode). Firefox and WebKit retain their own native rendering engines.
+
+An AI image-dimension refusal now tells you to choose a smaller viewport or lower pixel density. It preserves the review form input and restores submission controls. Invalid bytes and hash failures retain the opaque integrity diagnostic; neither model bounds nor PNG validation were relaxed.
+
+### Installed-dashboard CI scope and interruption evidence
+
+The packaged Chromium release flow and an ordinary `--dashboard-only` run execute
+all fifteen declared dashboard files. Firefox/WebKit CI assigns those same files
+to two required partitions (`--dashboard-shard 1` and `--dashboard-shard 2`); both
+must pass for each browser. A partition is not whole-browser acceptance. Selection
+contracts guard exhaustive, disjoint membership and reject sharding the full CLI
+release flow. Each command retains its 900-second limit, each job its 25-minute
+limit, and all individual test timeouts/assertions remain unchanged. There are now
+two jobs' worth of execution capacity per non-Chromium browser.
+
+Each run writes `web/dashboard-progress.jsonl` incrementally, with module basename,
+hashed case ID, source line, reported state and receipt elapsed time. These are
+reporter observation times, not exact browser execution timings. Adjacent
+provenance binds the bytes, and `web/dashboard-command.json` records selected files,
+partition, duration and bounded child-exit facts. Test names, assertion values and
+exception bodies are excluded. Missing completion records remain incomplete;
+later success cannot retroactively fill a failed run's evidence.
+
+The original installed Firefox failure is retained in the
+[failed CI record](evidence/WEB-454-DENSITY/ci-34086989767/summary.md).
+
+The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a recorded light Firefox journey failure until a subsequent exact-head gate passes; local reruns do not waive it.

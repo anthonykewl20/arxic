@@ -1,0 +1,110 @@
+[
+  {
+    "action": "Pixel-density selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Pixel-density selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-390.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Pixel-density selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-768.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Pixel-density selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Oversized native capture is refused with a recoverable error",
+    "result": "unverified",
+    "screenshot": "01b-pixel-limit.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Density filter isolates the 2x capture without changing run coverage",
+    "result": "passed",
+    "screenshot": "02a-density-filter.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Native 2x screenshot picking selects the independently measured Login button",
+    "result": "passed",
+    "screenshot": "02b-native-element-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Native 2x screenshot picking selects the independently measured Login button",
+    "result": "passed",
+    "screenshot": "02b-native-element-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Oversized AI review is refused with actionable recovery and retained form input",
+    "result": "passed",
+    "screenshot": "02c-review-image-limit.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Three native pixel-density captures report independent environments and outcomes",
+    "result": "passed",
+    "screenshot": "02-matrix-results.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Environment outcomes remain readable on a narrow dashboard",
+    "result": "passed",
+    "screenshot": "03-mobile-results.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Saved pixel-density selections survive reopening project settings",
+    "result": "passed",
+    "screenshot": "04-restored-settings.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

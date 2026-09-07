@@ -43,3 +43,19 @@ it('legacy captures retain the documented Chromium/light environment and paging 
   expect(selectCaptures(captures, emptyCaptureFilters, 0).items).toHaveLength(6);
   expect(selectCaptures(captures, emptyCaptureFilters, -1).page).toBe(0);
 });
+
+it('isolates native pixel density while retaining legacy 1x capture identities', () => {
+  const dense: Capture = {
+    ...captures[0],
+    id: 'dense',
+    environment: { browser: 'chromium', colorScheme: 'light', deviceScaleFactor: 2 },
+  };
+  const all = [captures[0], dense];
+  expect(selectCaptures(all, { ...emptyCaptureFilters, deviceScaleFactor: '2' }, 0).items).toEqual([
+    dense,
+  ]);
+  expect(selectCaptures(all, { ...emptyCaptureFilters, deviceScaleFactor: '1' }, 0).items).toEqual([
+    captures[0],
+  ]);
+  expect(selectCaptures(all, { ...emptyCaptureFilters, deviceScaleFactor: '3' }, 0).total).toBe(0);
+});

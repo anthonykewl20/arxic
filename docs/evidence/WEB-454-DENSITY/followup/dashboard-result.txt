@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/visual-density
+
+
+ Test Files  5 passed (5)
+      Tests  21 passed (21)
+   Start at  13:23:13
+   Duration  141.32s (transform 941ms, setup 0ms, import 2.65s, tests 138.19s, environment 0ms)
+

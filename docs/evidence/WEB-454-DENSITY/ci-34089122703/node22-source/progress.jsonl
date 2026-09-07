@@ -1,0 +1,6 @@
+{"event":"run-start","elapsedMs":20}
+{"event":"case-start","elapsedMs":850,"file":"ui.real-world.test.ts","caseId":"cff70530ce89f412","line":19}
+{"event":"case-result","elapsedMs":65704,"file":"ui.real-world.test.ts","caseId":"cff70530ce89f412","line":19,"state":"passed"}
+{"event":"case-start","elapsedMs":127213,"file":"ui.real-world.test.ts","caseId":"46cf6f47dcdfa1ca","line":19}
+{"event":"case-result","elapsedMs":127213,"file":"ui.real-world.test.ts","caseId":"46cf6f47dcdfa1ca","line":19,"state":"passed"}
+{"event":"run-end","elapsedMs":127216,"reason":"passed"}

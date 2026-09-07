@@ -1,0 +1,101 @@
+[
+  {
+    "action": "Invalid login refused; late anonymous response cannot hide authenticated workspace",
+    "result": "passed",
+    "screenshot": "01-empty-workspace.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Folder discovery shows a stable loading area before its real response",
+    "result": "unverified",
+    "screenshot": "16-source-loading.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Folder results preserve the exact Continue position while editing",
+    "result": "unverified",
+    "screenshot": "17-source-ready.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Outside-root folder refused; reference project saved with visual and schedule settings",
+    "result": "passed",
+    "screenshot": "02-project-overview.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Real source scanner reported login surface and source evidence",
+    "result": "passed",
+    "screenshot": "03-intent-inventory.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Real documentation declarations have source hashes; unsupported EJS stays in coverage gaps",
+    "result": "passed",
+    "screenshot": "09-frontend-declarations.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Duplicate captured element IDs disable inspection",
+    "result": "passed",
+    "screenshot": "14-invalid-element-geometry.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Mismatched screenshot binding disables inspection",
+    "result": "passed",
+    "screenshot": "15-unbound-element-geometry.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Retry loads real measurements; reselecting a check reveals the complete captured image",
+    "result": "passed",
+    "screenshot": "10-measurement-report.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Measured screenshot region scales to mobile without losing the masked target image",
+    "result": "passed",
+    "screenshot": "14-mobile-measurement-region.png",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  {
+    "action": "Failed history request shows error instead of stale results",
+    "result": "passed",
+    "screenshot": "13-run-history-unavailable.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

@@ -1,6 +1,10 @@
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { prepareModelImages, type ModelRunRecord } from '@arxic/model-adapter';
+import {
+  ModelImageDimensionsError,
+  prepareModelImages,
+  type ModelRunRecord,
+} from '@arxic/model-adapter';
 import { configuredModel } from '../../cli/src/local-executor';
 import { resolveModelPrices } from '../../../packages/orchestrator-langgraph/src/intent-proposer';
 import { HttpError } from './errors';
@@ -37,7 +41,7 @@ export async function reviewImage(
 ) {
   if (
     !/^[a-f0-9-]{36}$/u.test(scope.sourceRunId) ||
-    !/^(?:(?:chromium|firefox|webkit)-(?:light|dark)-)?checkpoint-\d+\.png$/u.test(
+    !/^(?:(?:chromium|firefox|webkit)-(?:light|dark)-(?:[23]x-)?)?checkpoint-\d+\.png$/u.test(
       scope.capture.file,
     )
   )
@@ -56,7 +60,12 @@ export async function reviewImage(
     return prepareModelImages([
       { mediaType: 'image/png', sha256: scope.capture.sha256, bytes },
     ])![0];
-  } catch {
+  } catch (error) {
+    if (error instanceof ModelImageDimensionsError)
+      throw new HttpError(
+        409,
+        'Capture exceeds AI review image limits; choose a smaller viewport or lower pixel density',
+      );
     throw new HttpError(409, 'Capture integrity check failed');
   }
 }

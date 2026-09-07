@@ -9,7 +9,7 @@ Self-hosted frontend testing workbench for source-intent discovery, AI-assisted
 E2E, visual regression review, scheduled runs, and project administration.
 
 The web workbench includes real source scanning with frontend declarations and coverage gaps, an existing AI/replay
-engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, browser/theme screenshot comparisons, on-demand selected-workflow campaigns and a management dashboard. The full
+engine with optional file-based source-row scope, dashboard-based model/persona/budget settings, browser/theme/pixel-density screenshot comparisons, on-demand selected-workflow campaigns and a management dashboard. The full
 product remains in development: authenticated visual states and comprehensive
 frontend state/intent campaigns are tracked in [#402](https://github.com/anthonykewl20/arxic/issues/402).
 Contributor setup and CI native-build details are in [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -21,7 +21,7 @@ The [full visual-auditor contract](docs/visual-oracle.md) defines the requested 
 
 The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
-Test runs now searches all stored history with project/type/status filters and bookmarkable URLs. Within a run, the capture gallery combines path/browser/theme/viewport/comparison filters and six-capture pagination. Capture details expose numeric measurements, solid-paint text contrast, screenshot regions and explicit coverage gaps. The dashboard includes responsive themes, keyboard navigation and [real-browser UX audit evidence](docs/evidence/WEB-402-DASHBOARD-UX/summary.md). Continuous unmasked video is unavailable; masked screenshots and sanitized action timelines provide recording evidence.
+Test runs now searches all stored history with project/type/status filters and bookmarkable URLs. Within a run, the capture gallery combines path/browser/theme/pixel-density/viewport/comparison filters and six-capture pagination. Capture details expose numeric measurements, solid-paint text contrast, screenshot regions and explicit coverage gaps. The dashboard includes responsive themes, keyboard navigation and [real-browser UX audit evidence](docs/evidence/WEB-402-DASHBOARD-UX/summary.md). Continuous unmasked video is unavailable; masked screenshots and sanitized action timelines provide recording evidence.
 
 The dashboard uses React/shadcn for its navigation shell, overview, intent inventory, workflow selection, campaigns, run/capture review, model fields, schedules, administration and **Models & accounts** screen with provider-owned model discovery (including configured default HTTP connections), native subscription-account bridges and [provider connections and custom model IDs](docs/web-workbench.md#provider-connections-and-model-ids) for guided AI execution and inspected-image review. Review and campaign submissions stay pending across navigation; session invalidation clears unsent consent and selections.
 
@@ -176,3 +176,5 @@ refuse unknown or malformed names before execution, without echoing supplied
 values. These optional declarations name built-in capabilities; they do not load
 plugins, supply credentials, or establish fixture readiness. Omission and the
 existing per-pass login declaration retain their behavior (refs #452).
+
+Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery and native baseline repeatability pass local reference-app checks. High-density Chromium uses full Chromium headless with an explicit renderer identity; final installed CI remains required. This is not full production-readiness proof.

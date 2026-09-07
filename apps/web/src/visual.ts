@@ -42,11 +42,12 @@ async function openContext(
     storageState?: StorageState;
     allowMutations?: boolean;
     colorScheme?: VisualEnvironment['colorScheme'];
+    deviceScaleFactor?: VisualEnvironment['deviceScaleFactor'];
   },
 ) {
   const context = await browser.newContext({
     viewport,
-    deviceScaleFactor: 1,
+    deviceScaleFactor: options.deviceScaleFactor ?? 1,
     locale: 'en-US',
     timezoneId: 'UTC',
     colorScheme: options.colorScheme ?? 'light',
@@ -83,6 +84,7 @@ async function crawl(
   const { context } = await openContext(browser, project, project.viewports[0], {
     storageState,
     colorScheme: environment.colorScheme,
+    deviceScaleFactor: environment.deviceScaleFactor,
   });
   const page = await context.newPage();
   page.setDefaultTimeout(15_000);
@@ -143,7 +145,7 @@ async function crawl(
   return found;
 }
 
-/** One form sign-in per run. Fields resolve by label, then by input type; values never enter the timeline. */
+/** One form sign-in per browser family in a run. Fields resolve by label, then by input type; values never enter the timeline. */
 async function signIn(
   browser: Browser,
   project: Project,
@@ -155,6 +157,7 @@ async function signIn(
   const { context } = await openContext(browser, project, project.viewports[0], {
     allowMutations: true,
     colorScheme: environment.colorScheme,
+    deviceScaleFactor: environment.deviceScaleFactor,
   });
   const page = await context.newPage();
   page.setDefaultTimeout(15_000);
@@ -218,6 +221,7 @@ async function captureEnvironment(
   environment: VisualEnvironment,
   pageBudget: number,
   prefix: string,
+  signIns: Map<VisualEnvironment['browser'], Awaited<ReturnType<typeof signIn>>>,
 ): Promise<RunResult> {
   const project = run.project;
   if (!project.origin || !project.captureConsent)
@@ -234,6 +238,7 @@ async function captureEnvironment(
     };
   const browser = await { chromium, firefox, webkit }[environment.browser].launch({
     headless: true,
+    ...(environment.renderer === 'chromium-full-headless' ? { channel: 'chromium' } : {}),
   });
   const captures: Capture[] = [];
   const findings: NonNullable<RunResult['findings']> = [];
@@ -269,9 +274,20 @@ async function captureEnvironment(
           findings: [{ path: project.login.loginPath, kind: 'login-secrets-missing', count: 1 }],
         };
       }
-      const outcome = await signIn(browser, project, { email, password }, timeline, environment);
+      let outcome = signIns.get(environment.browser);
+      const reused = !!outcome;
+      if (!outcome) {
+        outcome = await signIn(browser, project, { email, password }, timeline, environment);
+        signIns.set(environment.browser, outcome);
+      } else {
+        timeline.push({
+          action: 'reuse-browser-sign-in',
+          checkpoint: 0,
+          result: 'state' in outcome ? 'in-memory state from this run' : 'prior sign-in failed',
+        });
+      }
       if ('reason' in outcome) {
-        timeline.push({ action: 'sign-in-form', checkpoint: 0, result: 'failed' });
+        if (!reused) timeline.push({ action: 'sign-in-form', checkpoint: 0, result: 'failed' });
         await writeTimeline();
         return {
           outcome: 'blocked',
@@ -299,6 +315,7 @@ async function captureEnvironment(
         const { context, counters } = await openContext(browser, project, viewport, {
           storageState,
           colorScheme: environment.colorScheme,
+          deviceScaleFactor: environment.deviceScaleFactor,
         });
         let networkErrors = 0;
         let scriptErrors = 0;
@@ -368,6 +385,7 @@ async function captureEnvironment(
             bytes = await captureMaskedViewport(page, {
               automaticMasks: ['input,textarea,[contenteditable="true"]'],
               requiredMasks: project.masks,
+              scale: 'device',
             });
             failurePhase = 'measurement';
             scene = await collectVisualScene(page, [
@@ -390,7 +408,9 @@ async function captureEnvironment(
               viewport,
               masks: project.masks,
               browser: browser.version(),
-              ...(environment.browser === 'chromium' && environment.colorScheme === 'light'
+              ...(environment.browser === 'chromium' &&
+              environment.colorScheme === 'light' &&
+              !environment.deviceScaleFactor
                 ? {}
                 : { environment }),
               platform: process.platform,
@@ -515,13 +535,17 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
   const visualEnvironments: NonNullable<RunResult['visualEnvironments']> = [];
   const discoveredPaths = new Set<string>();
   const timeline: Timeline = [];
+  // Authentication is run-local; matrix expansion must not repeatedly submit the same login.
+  const signIns = new Map<VisualEnvironment['browser'], Awaited<ReturnType<typeof signIn>>>();
   let singleSummary = '';
   for (const environment of environments) {
     const prefix =
-      environments.length === 1 ? '' : `${environment.browser}-${environment.colorScheme}-`;
+      environments.length === 1
+        ? ''
+        : `${environment.browser}-${environment.colorScheme}${environment.deviceScaleFactor ? `-${environment.deviceScaleFactor}x` : ''}-`;
     let result: RunResult;
     try {
-      result = await captureEnvironment(run, directory, environment, pageBudget, prefix);
+      result = await captureEnvironment(run, directory, environment, pageBudget, prefix, signIns);
       if (run.project.origin && run.project.captureConsent && !run.project.recordVideo) {
         const steps = JSON.parse(
           await readFile(join(directory, `${prefix}timeline.json`), 'utf8'),
@@ -578,7 +602,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
     summary:
       environments.length === 1
         ? singleSummary
-        : `${captures.length} viewport checkpoints captured across ${environments.length} browser/theme environments. Visual baseline review is separate from business-logic verification.`,
+        : `${captures.length} viewport checkpoints captured across ${environments.length} ${environments.some((cell) => cell.deviceScaleFactor) ? 'browser/theme/pixel-density' : 'browser/theme'} environments. Visual baseline review is separate from business-logic verification.`,
     captures,
     findings,
     visualEnvironments,
@@ -590,12 +614,15 @@ export async function compareCapture(
   currentPath: string,
   baselinePath: string,
   outputPath: string,
+  deviceScaleFactor: 1 | 2 | 3 = 1,
 ) {
-  const current = await sharp(await readFile(currentPath), { limitInputPixels: 1920 * 1200 })
+  if (![1, 2, 3].includes(deviceScaleFactor)) throw new Error('Unsupported comparison pixel ratio');
+  const limitInputPixels = Math.min(16 * 1024 * 1024, 1920 * 1200 * deviceScaleFactor ** 2);
+  const current = await sharp(await readFile(currentPath), { limitInputPixels })
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
-  const baseline = await sharp(await readFile(baselinePath), { limitInputPixels: 1920 * 1200 })
+  const baseline = await sharp(await readFile(baselinePath), { limitInputPixels })
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });

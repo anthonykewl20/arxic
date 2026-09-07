@@ -245,6 +245,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                     {item.environment && (
                       <>
                         {item.environment.browser} · {item.environment.colorScheme} ·{' '}
+                        {item.environment.deviceScaleFactor ?? 1}× ·{' '}
                       </>
                     )}
                     {item.path}
@@ -287,9 +288,9 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
           </p>
           <ul>
             {result.visualEnvironments.map((cell) => (
-              <li key={`${cell.browser}-${cell.colorScheme}`}>
+              <li key={`${cell.browser}-${cell.colorScheme}-${cell.deviceScaleFactor ?? 1}`}>
                 <strong>
-                  {cell.browser} · {cell.colorScheme}
+                  {cell.browser} · {cell.colorScheme} · {cell.deviceScaleFactor ?? 1}×
                 </strong>{' '}
                 <Status value={cell.outcome} /> · {cell.captures} captures
                 {cell.omittedPages ? (
@@ -321,7 +322,8 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                   </h3>
                   <p>
                     {capture.environment?.browser ?? 'chromium'} ·{' '}
-                    {capture.environment?.colorScheme ?? 'light'}
+                    {capture.environment?.colorScheme ?? 'light'} ·{' '}
+                    {capture.environment?.deviceScaleFactor ?? 1}×
                   </p>
                   <small>
                     Comparison at capture time:{' '}
@@ -458,15 +460,15 @@ function VisualReviewPanel({ run }: { run: Run }) {
         <a href={run.project.origin + capture.path} target="_blank" rel="noopener">
           {capture.path}
         </a>{' '}
-        in a fresh anonymous browser at {capture.viewport.width} × {capture.viewport.height}, with
-        the recorded privacy masks.
+        in a fresh anonymous browser at {capture.viewport.width} × {capture.viewport.height}, with{' '}
+        {capture.environment?.deviceScaleFactor ?? 1}× pixel density and the recorded privacy masks.
       </p>
       <div className="review-image">
         <a href={url} target="_blank" rel="noopener">
           <img src={url} alt="Reviewed screenshot with numbered proposed defect regions" />
         </a>
         <svg
-          viewBox={`0 0 ${capture.viewport.width} ${capture.viewport.height}`}
+          viewBox={`0 0 ${capture.viewport.width * (capture.environment?.deviceScaleFactor ?? 1)} ${capture.viewport.height * (capture.environment?.deviceScaleFactor ?? 1)}`}
           aria-label="Proposed regions"
           role="img"
         >

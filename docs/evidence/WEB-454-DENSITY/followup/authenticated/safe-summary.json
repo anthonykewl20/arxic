@@ -1,0 +1,273 @@
+{
+  "summary": "18 viewport checkpoints captured across 18 browser/theme/pixel-density environments. Visual baseline review is separate from business-logic verification.",
+  "environments": [
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "deviceScaleFactor": 2,
+      "renderer": "chromium-full-headless",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "deviceScaleFactor": 3,
+      "renderer": "chromium-full-headless",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "dark",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 2,
+      "renderer": "chromium-full-headless",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 3,
+      "renderer": "chromium-full-headless",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "deviceScaleFactor": 2,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "deviceScaleFactor": 3,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "dark",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 2,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 3,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "deviceScaleFactor": 2,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "deviceScaleFactor": 3,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "dark",
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 2,
+      "outcome": "observed",
+      "captures": 1
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "dark",
+      "deviceScaleFactor": 3,
+      "outcome": "observed",
+      "captures": 1
+    }
+  ],
+  "captures": [
+    {
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "light"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "light",
+        "deviceScaleFactor": 2,
+        "renderer": "chromium-full-headless"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "light",
+        "deviceScaleFactor": 3,
+        "renderer": "chromium-full-headless"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "dark"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "dark",
+        "deviceScaleFactor": 2,
+        "renderer": "chromium-full-headless"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "dark",
+        "deviceScaleFactor": 3,
+        "renderer": "chromium-full-headless"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "light"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "light",
+        "deviceScaleFactor": 2
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "light",
+        "deviceScaleFactor": 3
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "dark"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "dark",
+        "deviceScaleFactor": 2
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "dark",
+        "deviceScaleFactor": 3
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "light"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "light",
+        "deviceScaleFactor": 2
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "light",
+        "deviceScaleFactor": 3
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "dark"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "dark",
+        "deviceScaleFactor": 2
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "dark",
+        "deviceScaleFactor": 3
+      },
+      "status": "needs-baseline"
+    }
+  ]
+}

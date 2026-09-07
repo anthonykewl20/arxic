@@ -55,3 +55,5 @@ other ancillary chunks, reduced precision, duplicates and malformed markers are
 rejected. The retained-evidence validator and generated verifier capture contract
 are unchanged. This supports actual Playwright WebKit viewport captures without
 retaining metadata or loosening retained PNG acceptance.
+
+Application-owned `captureMaskedViewport` accepts optional `scale: 'css' | 'device'`; omitted scale preserves CSS-pixel screenshots. Native device-scale callers retain the same masks and strict PNG resource limits. This does not change generated verifier capture behavior or confer screenshot attestation.
