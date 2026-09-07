@@ -147,3 +147,15 @@ retain their identity; environment coverage is never filtered. Real reference-ap
 matrix journeys test no matches, keyboard paging, polling, run changes and retained
 baseline comparisons. This expands dashboard usability, not the oracle's detector
 or state coverage. Proof and final CI are recorded in the WEB-441-GALLERY note.
+
+## Dashboard readability follow-up (#445)
+
+The dashboard contract adds real reference-project discovery and capture journeys
+under user text spacing and 200% mounted HTML text enlargement, in light/dark.
+It covers narrow navigation, run measurements, Administration, provider-name
+recovery and keyboard scrolling of the model catalog. A deliberately clipped
+login control guards the numeric detector. Sidebar rows, text buttons, run
+headings and mobile activity/header groups now accommodate enlarged content.
+The source/installed multi-engine acceptance is still in progress under #445;
+this is not a completed release or human visual sign-off. Native browser zoom,
+full locale/persona/state coverage and incomplete accessibility checks remain gaps.

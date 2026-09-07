@@ -110,3 +110,5 @@ default. Filtering never changes run coverage, comparison history, approval targ
 or image/measurement identities. The environment outcomes remain outside the filters.
 
 Dashboard test drivers now support explicit Chromium, Firefox and WebKit selection, independently of target capture engines. The [installed dashboard test command](../../docs/web-workbench.md#dashboard-browser-verification) records engine provenance. [Dashboard proof](../../docs/evidence/WEB-443-BROWSERS/summary.md) documents the UX fixes, measured checks and remaining coverage boundaries; PR #444 tracks final installed CI acceptance.
+
+Dashboard readability checks exercise user text spacing and 200% mounted text enlargement across real discovery and capture journeys. Navigation and text buttons grow with content; narrow headers wrap, and the model catalog supports keyboard scrolling. See [readability scope](../../docs/web-workbench.md#dashboard-readability-verification) for exact checks and limits.

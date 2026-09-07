@@ -293,7 +293,7 @@
   }
   .shell {
     display: grid;
-    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    grid-template-columns: max(var(--sidebar-width), 11em) minmax(0, 1fr);
     min-height: 100vh;
   }
   .sidebar {
@@ -537,6 +537,14 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
+  }
+  .run-detail > .section-heading {
+    flex-wrap: wrap;
+  }
+  .run-detail > .section-heading > div {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
   .card,
   .panel {

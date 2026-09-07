@@ -666,3 +666,33 @@ Named masked screenshots and sanitized timelines record actual browser versions
 in adjacent provenance. Accessibility checks retain incomplete results. Desktop
 WebKit automation is not real-device Safari proof, and automated checks do not
 replace human visual/release inspection. The [retained dashboard proof](./evidence/WEB-443-BROWSERS/summary.md) documents source-picker stability, measurement reveal/retry, forced-color fixes and the 18-test installed contract. [PR #444 checks](https://github.com/anthonykewl20/arxic/pull/444/checks) track final installed acceptance. Incomplete contrast and transient-frame causality remain explicit gaps; no blanket production-readiness claim is made.
+
+## Dashboard readability verification
+
+The installed contract includes five readability tests, bringing the shared dashboard
+suite to 23 tests in 13 files. Each selected engine runs the same contract. Four
+journeys combine light/dark with either user text spacing (1.5 line height, 2em
+paragraph spacing, 0.12em letter spacing and 0.16em word spacing) or 200% mounted
+HTML text enlargement. These overrides use the loaded same-origin stylesheet
+with Content Security Policy still enabled. Computed styles confirm application;
+newly mounted views receive the profile again. This is not native browser zoom.
+
+The journeys connect a real reference project, discover its source, run a visual
+test, select measured elements, open mobile navigation and Administration, and
+recover provider names. They measure document overflow and text containment in
+buttons, labels, headings, summaries and sidebar identity groups at desktop and
+narrow widths. Enlarged desktop navigation must keep Administration on one line.
+The model catalog is a named keyboard-focusable region; End/Home must scroll it.
+A deliberately clipped real login button is the fifth test and must produce a
+failed numeric finding even when the accessibility engine finds no violation.
+
+Navigation rows and text buttons use content height with minimum target sizes.
+The desktop sidebar scales with enlarged text; run headings, breadcrumbs and
+activity rows wrap. Provider titles may truncate in the picker only because
+activation exposes the exact full heading, which is separately measured.
+
+Numeric findings are retained beside screenshots and sanitized action timelines.
+DOM Range rectangles do not establish optical or glyph-level correctness.
+Incomplete accessibility checks remain unverified. These cases do not certify
+all heuristics, arbitrary form-input clipping, native zoom, every locale/persona
+or transient animation frame. Current acceptance remains tracked in issue #445.

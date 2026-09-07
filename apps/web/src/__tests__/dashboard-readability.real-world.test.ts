@@ -170,6 +170,17 @@ it.each(
           },
         });
       }
+      if (name === '04-desktop-overview') {
+        const navigation = await measureControlText(
+          page.getByRole('button', { name: 'Administration', exact: true }),
+        );
+        const lineCount = new Set(navigation.lines.map((line) => line.y)).size;
+        checks.push({
+          id: 'desktop-navigation-whole-word',
+          passed: lineCount === 1,
+          values: { lineCount },
+        });
+      }
       const audit = await proof.audit(
         name,
         `${profile}: control text containment; provider names checked by activation`,
