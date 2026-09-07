@@ -1,8 +1,8 @@
 {
-  "sha256": "29e9d9d30bc821b30b8382a8274a7d5c7c0f979a20821c4e38a01eee09332a51",
+  "sha256": "b4b7cbabf70fc8112a1286c38257f8adad6d9e32f894ccea3f75239e772f3788",
   "method": "allow-listed test annotations, viewport and result; no DOM/network/field payloads",
   "rawTraceRetained": false,
-  "sourceCommit": "702705954539ad22ff91db4a2969501b782dd793",
+  "sourceCommit": "1b79a623a74bf51f68f28f898a73925d14230f0f",
   "browser": {
     "name": "firefox",
     "version": "153.0"

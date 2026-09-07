@@ -1,9 +1,10 @@
 
  RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/inventory-navigation
 
+ ✓ apps/web/src/__tests__/frontend-template.real-world.test.ts (1 test) 17774ms
+   ✓ shows source-bound EJS controls in the real dashboard and corroborates the reference page without promoting source truth  17773ms
 
  Test Files  1 passed (1)
       Tests  1 passed (1)
-   Start at  16:06:44
-   Duration  15.93s (transform 917ms, setup 0ms, import 468ms, tests 15.35s, environment 0ms)
-
+ Start at  16:34:30
+ Duration  18.42s (transform 1.10s, setup 0ms, import 535ms, tests 17.77s, environment 0ms)

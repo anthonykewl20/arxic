@@ -3,7 +3,7 @@
   "policy": "persona-free test dashboard; password inputs masked",
   "rawTraceRetained": false,
   "humanInspection": "not performed",
-  "sourceCommit": "702705954539ad22ff91db4a2969501b782dd793",
+  "sourceCommit": "1b79a623a74bf51f68f28f898a73925d14230f0f",
   "browser": {
     "name": "webkit",
     "version": "26.5"

@@ -246,6 +246,10 @@ function FrontendDeclarations({
 }) {
   const inventory = run.result?.frontend;
   if (!inventory) return null;
+  // Historical inventories can persist duplicate row IDs from the earlier
+  // identity format; key rows by immutable inventory position so duplicate IDs
+  // never collide as React keys and retained evidence stays unchanged.
+  const rowKeys = new Map(inventory.rows.map((row, index) => [row, `${index}:${row.id}`]));
   const matches = matchingDeclarations(inventory, kind, search);
   const pageSize = 100;
   const page = Math.min(
@@ -281,7 +285,7 @@ function FrontendDeclarations({
           <tbody>
             {matches.length ? (
               matches.slice(page * pageSize, (page + 1) * pageSize).map((row) => (
-                <tr key={row.id}>
+                <tr key={rowKeys.get(row) ?? row.id}>
                   <td data-label="KIND">
                     {row.kind}
                     <small>{row.basis} · hypothesized</small>

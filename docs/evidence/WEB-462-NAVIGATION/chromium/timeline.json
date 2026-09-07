@@ -61,5 +61,14 @@
       "width": 320,
       "height": 1000
     }
+  },
+  {
+    "action": "Filter a restored historical inventory without rewriting its evidence",
+    "result": "passed",
+    "screenshot": "historical-filter.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
   }
 ]
