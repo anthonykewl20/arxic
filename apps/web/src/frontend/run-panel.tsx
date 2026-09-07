@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { captureFailureMessage } from './capture-failure';
 import { CaptureGallery } from './capture-gallery';
 import { DiffViewer } from './diff-viewer';
@@ -150,6 +151,62 @@ export function RunPanel(props: RunPanelProps) {
 }
 function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: Run }) {
   const result = run.result;
+  const changedIds = useMemo(
+    () =>
+      (result?.captures ?? [])
+        .filter((capture) => capture.status === 'changed')
+        .map((capture) => capture.id),
+    [result],
+  );
+  const [activeReview, setActiveReview] = useState<string | null>(null);
+  const loop = useRef({ changedIds, activeReview });
+  loop.current = { changedIds, activeReview };
+  useEffect(() => {
+    function review(event: KeyboardEvent) {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      )
+        return;
+      const { changedIds: ids, activeReview: active } = loop.current;
+      if (event.key === 'a') {
+        const card = active
+          ? document.querySelector(`[data-capture-id="${CSS.escape(active)}"]`)
+          : null;
+        const approve = card?.querySelector<HTMLButtonElement>('[data-approve]');
+        if (approve && !approve.disabled) {
+          event.preventDefault();
+          approve.click();
+        }
+        return;
+      }
+      if ((event.key !== 'j' && event.key !== 'k') || !ids.length) return;
+      event.preventDefault();
+      const current = active ? ids.indexOf(active) : -1;
+      const next =
+        current === -1
+          ? event.key === 'j'
+            ? 0
+            : ids.length - 1
+          : event.key === 'j'
+            ? (current + 1) % ids.length
+            : (current - 1 + ids.length) % ids.length;
+      setActiveReview(ids[next]);
+    }
+    window.addEventListener('keydown', review);
+    return () => window.removeEventListener('keydown', review);
+  }, []);
+  useEffect(() => {
+    if (!activeReview) return;
+    document
+      .querySelector(`[data-capture-id="${CSS.escape(activeReview)}"]`)
+      ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [activeReview]);
   const canEditCapture =
     run.mode === 'visual' &&
     result?.findings?.some(
@@ -281,13 +338,24 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
           </ul>
         </section>
       )}
+      {!!changedIds.length && (
+        <p className="muted" data-review-loop-hint>
+          Review changed captures from the keyboard: j next · k previous · a approve focused.
+        </p>
+      )}
       <CaptureGallery key={run.id} captures={result?.captures ?? []}>
         {(capture) => {
           const approved = state.baselines.some(
             (item) => item.run_id === run.id && item.capture_id === capture.id,
           );
+          const reviewing = capture.id === activeReview;
           return (
-            <article className="capture" key={capture.id}>
+            <article
+              className={reviewing ? 'capture capture-reviewing' : 'capture'}
+              data-capture-id={capture.id}
+              aria-current={reviewing ? 'true' : undefined}
+              key={capture.id}
+            >
               <div className="capture-head">
                 <div>
                   <h3>

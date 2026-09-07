@@ -807,6 +807,11 @@
   .capture {
     margin-top: var(--space-4);
   }
+  .capture-reviewing {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+    scroll-margin-top: calc(var(--topbar-height) + var(--space-8));
+  }
   .capture-head {
     display: flex;
     justify-content: space-between;
