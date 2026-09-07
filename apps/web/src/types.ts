@@ -59,6 +59,7 @@ export type Capture = {
   baselineRunId?: string;
   baselineFile?: string;
   diffFile?: string;
+  diffRegions?: Array<{ x: number; y: number; width: number; height: number }>;
   videoFile?: string;
   authenticated?: boolean;
   assessmentFile?: string;

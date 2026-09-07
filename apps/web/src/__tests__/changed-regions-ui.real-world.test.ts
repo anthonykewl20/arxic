@@ -27,9 +27,7 @@ it('walks changed regions with an overlay and keyboard shortcuts in a real brows
     const html = await upstream.text();
     res.statusCode = upstream.status;
     res.setHeader('Content-Type', 'text/html');
-    res.end(
-      html.replace('</head>', changed ? `${REGION_STYLE}</head>` : '</head>'),
-    );
+    res.end(html.replace('</head>', changed ? `${REGION_STYLE}</head>` : '</head>'));
   });
   await new Promise<void>((done) => proxy.listen(0, '127.0.0.1', done));
   const state = await mkdtemp(join(tmpdir(), 'arxic-changed-regions-'));
@@ -86,9 +84,9 @@ it('walks changed regions with an overlay and keyboard shortcuts in a real brows
     await viewer.waitFor();
 
     // Two isolated changed areas: the region count and geometry are deterministic.
-    await expect.poll(() => viewer.getByText(/change regions/, { exact: true }).textContent()).toBe(
-      '2 change regions',
-    );
+    await expect
+      .poll(() => viewer.getByText(/change regions/, { exact: true }).textContent())
+      .toBe('2 change regions');
     await viewer.getByRole('button', { name: 'Changes', exact: true }).click();
     const regions = viewer.locator('.diff-region');
     await expect.poll(() => regions.count()).toBe(2);
@@ -110,9 +108,7 @@ it('walks changed regions with an overlay and keyboard shortcuts in a real brows
     await expect.poll(() => counter.isHidden()).toBe(true);
     await viewer.getByRole('button', { name: 'Next change', exact: true }).click();
     await expect.poll(() => counter.textContent()).toBe('1 / 2');
-    await expect
-      .poll(() => regions.first().getAttribute('aria-current'))
-      .toBe('true');
+    await expect.poll(() => regions.first().getAttribute('aria-current')).toBe('true');
     await viewer.getByRole('button', { name: 'Next change', exact: true }).click();
     await expect.poll(() => counter.textContent()).toBe('2 / 2');
     await viewer.getByRole('button', { name: 'Previous change', exact: true }).click();
@@ -124,9 +120,7 @@ it('walks changed regions with an overlay and keyboard shortcuts in a real brows
       .poll(() => viewer.getByRole('slider', { name: 'Comparison position' }).isVisible())
       .toBe(true);
     await page.keyboard.press('3');
-    await expect
-      .poll(() => viewer.getByLabel('Overlay opacity').isVisible())
-      .toBe(true);
+    await expect.poll(() => viewer.getByLabel('Overlay opacity').isVisible()).toBe(true);
     await page.keyboard.press('1');
     await expect
       .poll(() => viewer.getByRole('img', { name: 'Baseline used for this run' }).isVisible())

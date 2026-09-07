@@ -679,5 +679,81 @@ export async function compareCapture(
       .toBuffer(),
     { mode: 0o600 },
   );
-  return { changedPixels, ratio: changedPixels / (width * height) };
+  return {
+    changedPixels,
+    ratio: changedPixels / (width * height),
+    diffRegions: changedRegionBoxes(baseline.data, current.data, width, height),
+  };
+}
+
+/**
+ * Viewer navigation metadata only: bounding boxes over areas whose pixels moved
+ * by a plain RGB distance. pixelmatch keeps owning the comparison verdict; these
+ * boxes just tell a reviewer where to look.
+ */
+export function changedRegionBoxes(
+  baseline: Uint8Array,
+  current: Uint8Array,
+  width: number,
+  height: number,
+): Array<{ x: number; y: number; width: number; height: number }> {
+  const bridge = 3;
+  const minSide = 4;
+  const mask = new Uint8Array(width * height);
+  for (let pixel = 0, offset = 0; pixel < mask.length; pixel++, offset += 4) {
+    if (
+      Math.abs(baseline[offset] - current[offset]) +
+        Math.abs(baseline[offset + 1] - current[offset + 1]) +
+        Math.abs(baseline[offset + 2] - current[offset + 2]) >
+      48
+    )
+      mask[pixel] = 1;
+  }
+  type Open = { x0: number; x1: number; y0: number; y1: number };
+  const closed: Open[] = [];
+  let open: Open[] = [];
+  for (let y = 0; y < height; y++) {
+    const runs: Array<[number, number]> = [];
+    let start = -1;
+    let gap = 0;
+    for (let x = 0; x <= width; x++) {
+      const marked = x < width && mask[y * width + x] === 1;
+      if (marked) {
+        if (start < 0) start = x;
+        gap = 0;
+      } else if (start >= 0) {
+        if (++gap > bridge || x === width) {
+          runs.push([start, x - gap]);
+          start = -1;
+          gap = 0;
+        }
+      }
+    }
+    const next: Open[] = [];
+    for (const box of open) {
+      const run = runs.find(([from, to]) => from <= box.x1 + bridge && to >= box.x0 - bridge);
+      if (run) {
+        box.x0 = Math.min(box.x0, run[0]);
+        box.x1 = Math.max(box.x1, run[1]);
+        box.y1 = y;
+        next.push(box);
+      } else closed.push(box);
+    }
+    for (const [from, to] of runs)
+      if (!next.some((box) => from <= box.x1 + bridge && to >= box.x0 - bridge))
+        next.push({ x0: from, x1: to, y0: y, y1: y });
+    open = next;
+  }
+  closed.push(...open);
+  return closed
+    .filter((box) => box.x1 - box.x0 + 1 >= minSide && box.y1 - box.y0 + 1 >= minSide)
+    .map((box) => ({
+      x: box.x0,
+      y: box.y0,
+      width: box.x1 - box.x0 + 1,
+      height: box.y1 - box.y0 + 1,
+    }))
+    .sort((a, b) => b.width * b.height - a.width * a.height)
+    .slice(0, 200)
+    .sort((a, b) => a.y - b.y || a.x - b.x);
 }

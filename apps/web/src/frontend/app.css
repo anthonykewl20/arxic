@@ -954,6 +954,36 @@
   .capture-video {
     margin: 0;
   }
+  .diff-region-count,
+  .diff-region-counter {
+    align-self: center;
+    font-size: var(--text-xs);
+    color: var(--foreground-muted);
+    padding: 0 4px;
+  }
+  .diff-image-frame {
+    position: relative;
+  }
+  .diff-image-frame img {
+    width: 100%;
+    display: block;
+  }
+  .diff-regions {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .diff-region {
+    position: absolute;
+    border: 2px solid var(--danger);
+    background: color-mix(in srgb, var(--danger) 14%, transparent);
+    border-radius: 2px;
+  }
+  .diff-region.is-active {
+    border-width: 3px;
+    background: color-mix(in srgb, var(--danger) 22%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 45%, transparent);
+  }
   .audit-list {
     list-style: none;
     padding: 0;
