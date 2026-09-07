@@ -1,0 +1,38 @@
+[
+  {
+    "action": "Control filter must retain its selection and show only source controls",
+    "result": "passed",
+    "screenshot": "00-filter-result.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Find all thirteen literal EJS controls while template runtime coverage remains a gap",
+    "result": "passed",
+    "screenshot": "01-source-controls-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Find all thirteen literal EJS controls while template runtime coverage remains a gap",
+    "result": "passed",
+    "screenshot": "01-source-controls-390.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Scroll to the final source-bound control on mobile",
+    "result": "passed",
+    "screenshot": "02-last-control-mobile.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "action": "Control filter must retain its selection and show only source controls",
+    "result": "failed",
+    "screenshot": "00-filter-result.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  }
+]

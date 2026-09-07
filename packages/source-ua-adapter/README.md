@@ -18,7 +18,13 @@ rather than importing its internals or copying the project wholesale.
   Markdown/text headings and requirement language outside fenced code yield
   declared requirements, with an explicit gap for unproved acceptance semantics.
   Every row is hypothesized and carries commit/path/line/hash provenance.
-  Unsupported templates (including EJS, Vue and Svelte), malformed files,
+  HTML/HTM and default-delimiter EJS yield literal native controls, action and
+  state attribute names through parse5 7.3.0. EJS code is excluded with line
+  offsets preserved; no template code executes and no attribute values are
+  emitted. Embedded code/scripts, inert templates, foreign markup and parser
+  limits remain explicit gaps. Repeated same-line declarations receive stable,
+  distinct IDs while retaining every declaration.
+  Unsupported templates (including Vue and Svelte), malformed files,
   uncommitted bytes and quota stops remain per-file gaps. Limits are 1 MiB per
   file, 5,000 eligible analyzed files and 20,000 declarations; all enumerated
   files remain accounted for. Runtime personas, flag values, route/state/action

@@ -15,6 +15,7 @@ const allCases = [
   'apps/web/src/__tests__/baseline-history-ui.real-world.test.ts',
   'apps/web/src/__tests__/contrast-ui.real-world.test.ts',
   'apps/web/src/__tests__/capture-write-isolation.real-world.test.ts',
+  'apps/web/src/__tests__/frontend-template.real-world.test.ts',
 ];
 
 /** Two exhaustive installed-dashboard partitions; ordinary/full release runs retain every file. */

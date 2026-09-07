@@ -1,0 +1,340 @@
+{
+  "files": [
+    {
+      "path": "chromium/00-filter-result.audit.json",
+      "sha256": "ae70af63a44bb180f80db795e7527aabfcaa55330ecc893254785bdd6535502c"
+    },
+    {
+      "path": "chromium/00-filter-result.png",
+      "sha256": "2a1f5ba10b3b8fffb684c463a48dac0ac267a5f9733522d20ef6f61209972ce9"
+    },
+    {
+      "path": "chromium/00-filter-result.png.privacy.json",
+      "sha256": "b05ac3cc2d8e31ffaeaf7dd77c0c1705f7d414c18c375baf46541532c724d7a5"
+    },
+    {
+      "path": "chromium/01-source-controls-1440.audit.json",
+      "sha256": "5243db1607e794b77f08e606bef2c563d218cbde04d0a55ac0c3bf44de51754d"
+    },
+    {
+      "path": "chromium/01-source-controls-1440.png",
+      "sha256": "ce84639ce4ee658bd38611ed39faac70f70da45340cedc567452a2fed2c342be"
+    },
+    {
+      "path": "chromium/01-source-controls-1440.png.privacy.json",
+      "sha256": "de247608869b5049fb9bf119fd234ca3e3469600816af3cc0b0b98f91b0c435b"
+    },
+    {
+      "path": "chromium/01-source-controls-390.audit.json",
+      "sha256": "5243db1607e794b77f08e606bef2c563d218cbde04d0a55ac0c3bf44de51754d"
+    },
+    {
+      "path": "chromium/01-source-controls-390.png",
+      "sha256": "4b88f35bf5a9ca20d4def04703a5a8ebd1099d4303f518170be49a7bc0a9e781"
+    },
+    {
+      "path": "chromium/01-source-controls-390.png.privacy.json",
+      "sha256": "f8103969d4369465b54170cc05b70b3bfdade87866c34e81ab75e291acecc10e"
+    },
+    {
+      "path": "chromium/02-last-control-mobile.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/02-last-control-mobile.png",
+      "sha256": "ec99bbb60806258d1bfa25ce570681b2c2436589bd4be8a4e0ac1ce19b630909"
+    },
+    {
+      "path": "chromium/02-last-control-mobile.png.privacy.json",
+      "sha256": "de5a5a3751443ffa2154ac5d4dbf99fb739a575c542030ebea0b49c6419ea82e"
+    },
+    {
+      "path": "chromium/reference-controls.png",
+      "sha256": "33b8d6e95d08df9495c750204429c57d1f688cd00429e46ccdf07d12dbe95e59"
+    },
+    {
+      "path": "chromium/reference-controls.png.privacy.json",
+      "sha256": "443686f523bf5d68261c24d1cacde302c188e31ed0ab9fc29590af47618f481f"
+    },
+    {
+      "path": "chromium/source-runtime-check.json",
+      "sha256": "08560fe813f67ed37fe01f743fee3c00a467181892b1960c9b4c43b21d37e5c7"
+    },
+    {
+      "path": "chromium/timeline.json",
+      "sha256": "b402809ed36c4a460124bf79426f8c4c30e66bb1d3148dbb65970af75de5bd96"
+    },
+    {
+      "path": "chromium/timeline.sanitization.json",
+      "sha256": "3d18c805aef314067f5080c81b49e0ce9053fe8ae03de57f3a4bba51957f3b00"
+    },
+    {
+      "path": "filter-red/00-filter-result.audit.json",
+      "sha256": "33c8a8dfb38a0b1697101e6d0c4ca934cedd26296df4f992c82468c118978b7f"
+    },
+    {
+      "path": "filter-red/00-filter-result.png",
+      "sha256": "7cfe9ab9f062e7c28f4b80cfa9728ac4e3adf9e4f04946f808e6ca0480140a59"
+    },
+    {
+      "path": "filter-red/00-filter-result.png.privacy.json",
+      "sha256": "e5bdaeea8b416674e562fce240e7b4f351b993fcca00e25d846c024c960eca98"
+    },
+    {
+      "path": "filter-red/reference-controls.png",
+      "sha256": "33b8d6e95d08df9495c750204429c57d1f688cd00429e46ccdf07d12dbe95e59"
+    },
+    {
+      "path": "filter-red/reference-controls.png.privacy.json",
+      "sha256": "443686f523bf5d68261c24d1cacde302c188e31ed0ab9fc29590af47618f481f"
+    },
+    {
+      "path": "filter-red/source-runtime-check.json",
+      "sha256": "08560fe813f67ed37fe01f743fee3c00a467181892b1960c9b4c43b21d37e5c7"
+    },
+    {
+      "path": "filter-red/timeline.json",
+      "sha256": "d8e893e7c3a2f316bd862cc398b571298feec78050a5fe1d0bc29ff59090f4d5"
+    },
+    {
+      "path": "filter-red/timeline.sanitization.json",
+      "sha256": "4377b7c47c26b5cac2833733a769e74fb7864423cade23fa73db3e6a02135271"
+    },
+    {
+      "path": "final-chromium/00-filter-result.audit.json",
+      "sha256": "ae70af63a44bb180f80db795e7527aabfcaa55330ecc893254785bdd6535502c"
+    },
+    {
+      "path": "final-chromium/00-filter-result.png",
+      "sha256": "39c9ea8336925d68ae7cfc3960696068f0287e18bd82e9081f534f93dc23b33e"
+    },
+    {
+      "path": "final-chromium/00-filter-result.png.privacy.json",
+      "sha256": "c6c47cc00c008200dc0e1ac89b56f173a890311f46ad9fdfc0f233099dc7b7f6"
+    },
+    {
+      "path": "final-chromium/01-source-controls-1440.audit.json",
+      "sha256": "5243db1607e794b77f08e606bef2c563d218cbde04d0a55ac0c3bf44de51754d"
+    },
+    {
+      "path": "final-chromium/01-source-controls-1440.png",
+      "sha256": "ce84639ce4ee658bd38611ed39faac70f70da45340cedc567452a2fed2c342be"
+    },
+    {
+      "path": "final-chromium/01-source-controls-1440.png.privacy.json",
+      "sha256": "8f7bdd34b991940fcf0dc23926cd04366e24162d60424d83981b06bec4bef71c"
+    },
+    {
+      "path": "final-chromium/01-source-controls-390.audit.json",
+      "sha256": "5243db1607e794b77f08e606bef2c563d218cbde04d0a55ac0c3bf44de51754d"
+    },
+    {
+      "path": "final-chromium/01-source-controls-390.png",
+      "sha256": "4b88f35bf5a9ca20d4def04703a5a8ebd1099d4303f518170be49a7bc0a9e781"
+    },
+    {
+      "path": "final-chromium/01-source-controls-390.png.privacy.json",
+      "sha256": "16f0f241c7f462b9ccab2576a47ab182e933d8f85c70a5dbd6bb7a19cc988468"
+    },
+    {
+      "path": "final-chromium/02-last-control-mobile.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "final-chromium/02-last-control-mobile.png",
+      "sha256": "ec99bbb60806258d1bfa25ce570681b2c2436589bd4be8a4e0ac1ce19b630909"
+    },
+    {
+      "path": "final-chromium/02-last-control-mobile.png.privacy.json",
+      "sha256": "9c2f0f8654bc2154a3b7bf650d7cd94484a4fe901114dbee1a4a206785d8bf39"
+    },
+    {
+      "path": "final-chromium/reference-controls.png",
+      "sha256": "33b8d6e95d08df9495c750204429c57d1f688cd00429e46ccdf07d12dbe95e59"
+    },
+    {
+      "path": "final-chromium/reference-controls.png.privacy.json",
+      "sha256": "443686f523bf5d68261c24d1cacde302c188e31ed0ab9fc29590af47618f481f"
+    },
+    {
+      "path": "final-chromium/source-runtime-check.json",
+      "sha256": "08560fe813f67ed37fe01f743fee3c00a467181892b1960c9b4c43b21d37e5c7"
+    },
+    {
+      "path": "final-chromium/timeline.json",
+      "sha256": "b402809ed36c4a460124bf79426f8c4c30e66bb1d3148dbb65970af75de5bd96"
+    },
+    {
+      "path": "final-chromium/timeline.sanitization.json",
+      "sha256": "aeab08b31cad707faf6adf2c044314e4e714dc804af7bfa41f60f00249d186a9"
+    },
+    {
+      "path": "final-chromium.log",
+      "sha256": "be017bf617017b875afd87cc7ea1dbdf8a9346203f0747af201f1d27a099142a"
+    },
+    {
+      "path": "firefox/00-filter-result.audit.json",
+      "sha256": "ae70af63a44bb180f80db795e7527aabfcaa55330ecc893254785bdd6535502c"
+    },
+    {
+      "path": "firefox/00-filter-result.png",
+      "sha256": "264e27f63358e33c9c350193e4da9b6b976d4b5374e8c98dd6efc715dc530c8c"
+    },
+    {
+      "path": "firefox/00-filter-result.png.privacy.json",
+      "sha256": "c5ef6147c3b61677f519c64a8d2103817f4dd0700651eb9ace1a809c17dc5cf4"
+    },
+    {
+      "path": "firefox/01-source-controls-1440.audit.json",
+      "sha256": "5243db1607e794b77f08e606bef2c563d218cbde04d0a55ac0c3bf44de51754d"
+    },
+    {
+      "path": "firefox/01-source-controls-1440.png",
+      "sha256": "3d15b17b60b4820f06330c0b2ff4f035a234f1cea6bb6ccc8c5685e9fb84358f"
+    },
+    {
+      "path": "firefox/01-source-controls-1440.png.privacy.json",
+      "sha256": "85d8159534a2f139b790cee837917057acdf33f1cd209f4558aa37aa28fab4f2"
+    },
+    {
+      "path": "firefox/01-source-controls-390.audit.json",
+      "sha256": "5243db1607e794b77f08e606bef2c563d218cbde04d0a55ac0c3bf44de51754d"
+    },
+    {
+      "path": "firefox/01-source-controls-390.png",
+      "sha256": "48ba9bf5c8314f5c7ba3c10faae32dda15f10242020a3a655981ee9c26c2adc3"
+    },
+    {
+      "path": "firefox/01-source-controls-390.png.privacy.json",
+      "sha256": "344c75eac70dba59f0d169591a1f471611f2a7e7c45a886351dd2e9add799ecf"
+    },
+    {
+      "path": "firefox/02-last-control-mobile.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "firefox/02-last-control-mobile.png",
+      "sha256": "a92e51e2d24ded260ee780fc7f8d9d58410fd8f1cf9e9cb7de546e8688a13393"
+    },
+    {
+      "path": "firefox/02-last-control-mobile.png.privacy.json",
+      "sha256": "046892bd383c10e7e9dcbc9a6ddedcbea395242e5c2dcae80d1d7e913479eb05"
+    },
+    {
+      "path": "firefox/reference-controls.png",
+      "sha256": "121caf7153cfd8b9069a6b769d9b8cbafd94d229d4ed746673685630a89bd8e8"
+    },
+    {
+      "path": "firefox/reference-controls.png.privacy.json",
+      "sha256": "1d8342531e9f99ba4e034fac1c04cdaa5bbae88a332055989db7dd7efda8684e"
+    },
+    {
+      "path": "firefox/source-runtime-check.json",
+      "sha256": "08560fe813f67ed37fe01f743fee3c00a467181892b1960c9b4c43b21d37e5c7"
+    },
+    {
+      "path": "firefox/timeline.json",
+      "sha256": "b402809ed36c4a460124bf79426f8c4c30e66bb1d3148dbb65970af75de5bd96"
+    },
+    {
+      "path": "firefox/timeline.sanitization.json",
+      "sha256": "636c06cbc9a6b7e7227e12e397bbea5266144767b99ab3fc12c2e616aea9c599"
+    },
+    {
+      "path": "firefox.log",
+      "sha256": "3ca396e5402b70c8d7081ac5969a74371be4d771638f6c117fbd35fd1c8b47c2"
+    },
+    {
+      "path": "id-red.log",
+      "sha256": "cde2f95016e2e273d6523db70b478e69ba847d20901f5e4cd6b7ad33f576b532"
+    },
+    {
+      "path": "identities-green.log",
+      "sha256": "544253d880f8f78393255d833af77916746e111d020b94fff06fc7d35ff94350"
+    },
+    {
+      "path": "red.log",
+      "sha256": "856363d8115d4fe2dcc135f9a47e454c851946702f53b73b75958b43a0d8e1f8"
+    },
+    {
+      "path": "selection-red.log",
+      "sha256": "ac6a5426595d7bb65dc77323d6a15ee63ba97215f2f33ced8052eb530e93ebcf"
+    },
+    {
+      "path": "summary.md",
+      "sha256": "6b71f03480d3ceff0afe275751662c1386473f69efbf58af1ff84270c4651557"
+    },
+    {
+      "path": "webkit/00-filter-result.audit.json",
+      "sha256": "ae70af63a44bb180f80db795e7527aabfcaa55330ecc893254785bdd6535502c"
+    },
+    {
+      "path": "webkit/00-filter-result.png",
+      "sha256": "a2cff1fdfe90a1f7c683c3e28d668f3d0eb098ebe53d618a0e04ddfea660bb77"
+    },
+    {
+      "path": "webkit/00-filter-result.png.privacy.json",
+      "sha256": "a8d3f025eadbd527cc08f6723a4ea9be84377a8ee96ff624955b4a346d9637bc"
+    },
+    {
+      "path": "webkit/01-source-controls-1440.audit.json",
+      "sha256": "5243db1607e794b77f08e606bef2c563d218cbde04d0a55ac0c3bf44de51754d"
+    },
+    {
+      "path": "webkit/01-source-controls-1440.png",
+      "sha256": "b1badb6cdb522202bcfa14ff429821aeaee0d871317f12d4e8aac1cc73311bcf"
+    },
+    {
+      "path": "webkit/01-source-controls-1440.png.privacy.json",
+      "sha256": "e0832fc65f1dd7b638f829fe5783853097a93b019164b0d7d993ef0c3ac6ffa6"
+    },
+    {
+      "path": "webkit/01-source-controls-390.audit.json",
+      "sha256": "5243db1607e794b77f08e606bef2c563d218cbde04d0a55ac0c3bf44de51754d"
+    },
+    {
+      "path": "webkit/01-source-controls-390.png",
+      "sha256": "7de2a2b834fad1813ab2a62b47a3a84492249b9ce966435f0bfb4488000415dc"
+    },
+    {
+      "path": "webkit/01-source-controls-390.png.privacy.json",
+      "sha256": "422529813b520a11b3a84e9296a9a1e7899b24e11e2f6a7fcc6172f5ca76ddec"
+    },
+    {
+      "path": "webkit/02-last-control-mobile.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "webkit/02-last-control-mobile.png",
+      "sha256": "971e8fbbbc8d94230f67388ae255d23c4637ba4f89b93e6b405febde0a542639"
+    },
+    {
+      "path": "webkit/02-last-control-mobile.png.privacy.json",
+      "sha256": "fbca78fd01fa5caf835a1015c2dca877ee4542986824bc3954814a391a3b0297"
+    },
+    {
+      "path": "webkit/reference-controls.png",
+      "sha256": "dc5712028084b5d67faee170fe14022608d434ba849a56e6224487c27b068f6f"
+    },
+    {
+      "path": "webkit/reference-controls.png.privacy.json",
+      "sha256": "71cec1182ccc0cdafc963e3d6d19233ecb495aef49c73d9f35a03ca350f49d6a"
+    },
+    {
+      "path": "webkit/source-runtime-check.json",
+      "sha256": "08560fe813f67ed37fe01f743fee3c00a467181892b1960c9b4c43b21d37e5c7"
+    },
+    {
+      "path": "webkit/timeline.json",
+      "sha256": "b402809ed36c4a460124bf79426f8c4c30e66bb1d3148dbb65970af75de5bd96"
+    },
+    {
+      "path": "webkit/timeline.sanitization.json",
+      "sha256": "85c0db104c2f4d8d6f5cb87f194be6c076076db6a76338b1b5524693b994b4db"
+    },
+    {
+      "path": "webkit.log",
+      "sha256": "e8b5594898c1f80d2ec5beecdfeb4e238803fccf647c1fc5e9ef7cd663c21488"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "sha256": "33b8d6e95d08df9495c750204429c57d1f688cd00429e46ccdf07d12dbe95e59",
+  "policy": "reference test app; all inputs masked",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed",
+  "browser": {
+    "name": "chromium",
+    "version": "151.0.7922.34"
+  }
+}
