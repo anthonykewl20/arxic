@@ -38,3 +38,5 @@ Yes, integrator-owned user-visible discovery improvement. No VERSION or package 
 Remaining: exact-head installed CI, historical inventories (rediscover for corrected IDs), wider theme/persona/state coverage, integrator document/version folding, full #402 and independent human release inspection. This note is not a completion claim.
 
 Final local browser proof: Firefox 1 case / 13.09 s; WebKit 1 case / 11.65 s. Chromium regression 14 cases / 5 files / 110.61 s. All new final dashboard audits have zero violations/overflow and passing explicit checks where specified. Named capture-masked screenshots and adjacent provenance are retained in the evidence manifest.
+
+CI follow-up: run 34098206322 failed source shard 1 on the reporter interruption fixture’s five-second auto-completion. A 5.5-second delayed observer reproduces the race; keeping the child pending until interruption passes eight reporter/selection tests (6.92 s). The assertion and all deadlines remain unchanged. See `docs/evidence/WEB-460-TEMPLATES/ci-reporter/summary.md`. All four installed browser partitions passed that run; required CI did not. Fresh exact-head acceptance remains pending.
