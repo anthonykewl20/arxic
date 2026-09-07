@@ -1,6 +1,6 @@
 # WEB-448-CAPTURE-DIAGNOSTICS — staged doc updates
 
-Issue: #448 · PR: pending · Disposition: observed diagnostics; cause investigation open
+Issue: #448 · PR: #450 · Disposition: observed diagnostics; cause investigation open
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
@@ -22,6 +22,7 @@ Yes: user-visible diagnostic guidance; integrator applies the next patch increme
 
 - [Real proof](../evidence/WEB-448-CAPTURE-DIAGNOSTICS/summary.md): red missing classifications; all-three-engine desktop/mobile journeys over real six-cell target matrices, masked PNGs and hash-bound sanitized timelines.
 - Actions own the failed-operation classification. Screenshot/measurement mechanics remain in their existing services; the frontend helper formats fixed recovery copy only.
+- Typecheck and lint passed. Full-repository format after the final note ended `All matched files use Prettier code style!`.
 - Current-head CI is required before integration. This diagnostic increment does not complete #448.
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
