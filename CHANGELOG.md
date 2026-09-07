@@ -10,6 +10,18 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ## [Unreleased]
 
+- Give every campaign workflow row a per-row execution history ({executions, verified, contradicted, blocked, uncovered, pending}) unioned across all of the project's campaigns — queried directly from run workflow scopes rather than the 200-capped run list — so a recurring campaign's view of a surface shows its complete multi-week record at a glance; the campaign panel renders "N verified of K executions on this surface" per row (refs #402, PR #476).
+
+- Re-execute exactly the selected rows when a recurring campaign fires: a fire re-ran every eligible discovery row instead of the rows selected when the campaign was created (a one-row selection fired seven runs per slot); fires now match the documented recurring-campaign semantics (refs #402, PR #476).
+
+- Stop a recurring campaign's schedule when a fired run is refused because the source moved or became dirty since discovery: the schedule stops with an audited `campaign.schedule-drift-stopped` event instead of re-enqueueing the same stale rows at every slot; operators re-arm by committing and starting a fresh campaign on a new discovery (refs #402, PR #476).
+
+- Widen the dashboard-progress child-startup poll window from 10s to 60s so a contended runner's cold vitest start no longer flakes the suite; the asserted property is unchanged (refs #478, PR #479).
+
+- Compare captures through an interactive diff viewer: Side by side, Swipe (draggable and keyboard-operable divider) and Overlay (onion-skin opacity) modes over the existing baseline/current/diff artifacts, with approve-as-baseline one action away — pattern-matched on BackstopJS's scrubber and Argos's view modes, implemented natively with no new dependencies (refs #402, PR #475).
+
+- Paint where a compared capture changed: comparisons derive display-only diff-region boxes at comparison time and the viewer overlays them in every mode with Next/Previous change walking, an active-region counter and keyboard shortcuts (1/2/3 view modes, n/p regions); pixelmatch keeps owning the changed/unchanged verdict (refs #402, PR #477).
+
 - Retain every completed capture when an environment-level failure strikes mid-matrix: a failed environment timeline write classifies as `timeline-write-failed` with an attributed cell reason instead of discarding that environment's captures; the run-level read-back no longer discards a faulty environment; context/page creation failures record a per-page `environment` phase. The original five-of-six CI capture loss is explained by this class and any recurrence self-identifies (refs #448).
 
 - Classify WebKit fetch-load driver diagnostics as outgoing-document evidence only under exact corroboration (message shape, known endpoint, teardown marker, no same-endpoint request failure, no native exception); active failures and thrown look-alikes stay hard errors on every engine. Make the journey's post-refusal retry click deterministic by retrying while the refusal is still routed (refs #447).
