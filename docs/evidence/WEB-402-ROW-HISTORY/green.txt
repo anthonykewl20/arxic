@@ -1,0 +1,70 @@
+WEB-402-ROW-HISTORY — evidence (all lines below are verbatim tool output captured during the slice)
+
+=== 1. Red (implementation stashed; test present) — docs/evidence/WEB-402-ROW-HISTORY/red.txt ===
+
+ FAIL  apps/web/src/__tests__/campaign-row-history.real-world.test.ts > unions every prior execution of a row into its workflow history across recurring fires
+AssertionError: expected undefined to be defined
+ ❯ apps/web/src/__tests__/campaign-row-history.real-world.test.ts:65:19
+     63|   const view = wb.campaign(first.id);
+     64|   const history = view.workflows[0].history;
+     65|   expect(history).toBeDefined();
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+
+Second red stage (same session, before the fire-selection fix): the fired campaign executed every
+eligible discovery row instead of the selected one, so its first workflow was an unselected row:
+
+AssertionError: expected 2 to be 3 // Object.is equality
+ ❯ apps/web/src/__tests__/campaign-row-history.real-world.test.ts:79:66
+     77|   // A fired campaign's view shows the same union, not only its own ru…
+     78|   const fired = campaigns.find((item) => item.id !== first.id)!;
+     79|   expect(wb.campaign(fired.id).workflows[0].history!.executions).toBe(…
+
+=== 2. Green — slice test, repeated ===
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  02:01:12
+   Duration  19.01s (transform 2.48s, setup 0ms, import 5.38s, tests 13.38s, environment 0ms)
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  02:12:37 (together with campaign-recurrence, after the deterministic-arming fix)
+   Duration  25.88s (transform 1.43s, setup 0ms, import 6.49s, tests 19.04s, environment 0ms)
+
+=== 3. Regression breadth — 6 campaign/workspace suites, 2 consecutive loaded runs ===
+
+ Test Files  6 passed (6)
+      Tests  19 passed (19)
+   Start at  02:13:08
+   Duration  109.47s (transform 1.43s, setup 0ms, import 14.17s, tests 94.27s, environment 1ms)
+
+ Test Files  6 passed (6)
+      Tests  19 passed (19)
+   Start at  02:15:07
+   Duration  112.40s (transform 1.95s, setup 0ms, import 14.13s, tests 97.30s, environment 1ms)
+
+=== 4. Gates ===
+
+apps/web `tsc --noEmit`: exit 0
+eslint on workbench.ts store.ts campaigns.ts campaign-panel.tsx campaign-row-history test: exit 0
+full-repo `pnpm format:check`: (appended below after the slice note was written)
+
+=== 5. Test-side determinism fix disclosed (no assertion widened, no implementation change) ===
+
+The drift journey in campaign-recurrence.real-world.test.ts failed twice under a contended
+regression batch ("expected 2 campaigns, got 3") and passed in isolation and in earlier runs with
+identical code. Root cause (test-side, confirmed by an instrumented probe run): with a
+'*/1 * * * *' schedule, the first real engine run can straddle the minute boundary; the
+Workbench's own 1s background tick then legitimately fires that slot mid-idle, and the test's
+subsequent explicit tick fires the NEXT slot — two legitimate fires where the journey assumed
+one. Fix: both recurring journeys (drift stop and row history) now arm with '0 0 1 1 *' (next
+January 1 — unreachable by the background ticker within a test lifetime) and drive every fire
+with explicit wb.tick(slot) calls; slot coalescing is still proven by ticking the same slot
+twice. Every assertion is unchanged in strength; the implementation was never touched for this.
+
+=== 6. Format (full repo, run AFTER the slice note) ===
+$ pnpm format:check
+Checking formatting...
+All matched files use Prettier code style!

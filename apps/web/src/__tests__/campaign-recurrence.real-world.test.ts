@@ -77,10 +77,12 @@ it('re-fires a recurring campaign at its next cron slot as a fresh execution wit
 
 it('stops the recurring schedule when a fired run is refused for source drift', async () => {
   const { wb, project, discovery, repo } = await openCampaignWorkbench();
+  // Yearly slots are unreachable by the Workbench's 1s background ticker, so the
+  // journey — not wall-clock luck — decides when the drift fire happens.
   const first = await wb.enqueueCampaign(project.id, {
     discoveryRunId: discovery.id,
     inventoryRowIds: [ROW],
-    cron: '*/1 * * * *',
+    cron: '0 0 1 1 *',
   });
   await wb.idle();
 

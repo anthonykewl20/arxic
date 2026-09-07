@@ -45,6 +45,14 @@ export class Store {
   runs(): Run[] {
     return this.documents<Run>('SELECT data FROM runs ORDER BY rowid DESC LIMIT 200');
   }
+  /** Row executions are queried directly, not through the 200-capped run list, so multi-week recurring histories stay complete. */
+  rowRuns(projectId: string, inventoryRowId: string): Run[] {
+    return this.documents<Run>(
+      `SELECT data FROM runs WHERE project_id = ? AND json_extract(data,'$.workflowScope.inventoryRowId') = ? ORDER BY rowid DESC`,
+      projectId,
+      inventoryRowId,
+    );
+  }
   summaries(): Array<Run & { hasInventory: boolean; hasLedger: boolean }> {
     return this.documents(
       `SELECT json_set(${summaryProjection}, '$.hasInventory', json_type(data, '$.result.inventory') IS NOT NULL, '$.hasLedger', json_type(data, '$.result.ledger') IS NOT NULL) AS data FROM runs ORDER BY rowid DESC LIMIT 200`,
@@ -214,8 +222,8 @@ export class Store {
       )
       .all();
   }
-  private documents<T>(query: string): T[] {
-    return (this.db.prepare(query).all() as Array<{ data: string }>).map(
+  private documents<T>(query: string, ...args: string[]): T[] {
+    return (this.db.prepare(query).all(...args) as Array<{ data: string }>).map(
       (row) => JSON.parse(row.data) as T,
     );
   }

@@ -36,7 +36,7 @@ import {
 import { SecretStore } from './secret-store';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
-import { campaignRows, campaignView } from './campaigns';
+import { campaignRows, campaignView, rowHistoryOf } from './campaigns';
 import { reviewImage, type VisualReviewScope } from './visual-review';
 
 /** Single source of truth for the workflow-scope drift refusal (throw site, run record, schedule stop). */
@@ -436,6 +436,7 @@ export class Workbench {
     return campaignView(
       campaign,
       campaign.runIds.map((runId) => this.store.run(runId)),
+      (inventoryRowId) => rowHistoryOf(this.store.rowRuns(campaign.projectId, inventoryRowId)),
     );
   }
   async cancelCampaign(id: string) {
@@ -495,7 +496,9 @@ export class Workbench {
           this.store.audit('campaign.schedule-stopped', source.id);
           continue;
         }
-        const rows = source.rows.filter((row) => row.inventoryRowId);
+        // Recurring fires re-execute the campaign's selected rows only — unselected
+        // discovery rows stay out of the slot's cost and queue capacity.
+        const rows = source.rows.filter((row) => row.inventoryRowId && row.runId);
         // Deferred, not dropped: the slot stays due and retries on the next tick.
         if (this.store.activeCount() + rows.length > 20) continue;
         const fired: Campaign = {

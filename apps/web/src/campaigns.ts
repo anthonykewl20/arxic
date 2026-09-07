@@ -1,6 +1,37 @@
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import type { Campaign, Run } from './types';
 
+export type RowHistory = {
+  executions: number;
+  verified: number;
+  contradicted: number;
+  blocked: number;
+  uncovered: number;
+  pending: number;
+};
+
+/** Same outcome buckets as the campaign view, so history and execution totals read alike. */
+export function rowHistoryOf(runs: Array<Run | undefined>): RowHistory {
+  const history: RowHistory = {
+    executions: 0,
+    verified: 0,
+    contradicted: 0,
+    blocked: 0,
+    uncovered: 0,
+    pending: 0,
+  };
+  for (const run of runs) {
+    history.executions++;
+    if (run && ['queued', 'running'].includes(run.state)) history.pending++;
+    else if (run?.result?.outcome === 'verified') history.verified++;
+    else if (run?.result?.outcome === 'contradicted') history.contradicted++;
+    else if (run?.result && ['hypothesized', 'observed'].includes(run.result.outcome))
+      history.uncovered++;
+    else history.blocked++;
+  }
+  return history;
+}
+
 /** Preserve the whole source denominator, including rows the proposer cannot consume. */
 export function campaignRows(inventory: DomainInventory): Campaign['rows'] {
   return inventory.rows.map((row) => {
@@ -20,6 +51,7 @@ export function campaignRows(inventory: DomainInventory): Campaign['rows'] {
 export function campaignView(
   campaign: Campaign,
   children: Array<Pick<Run, 'state' | 'result' | 'workflowScope'> | undefined>,
+  historyOf?: (inventoryRowId: string) => RowHistory,
 ) {
   const counts = {
     selected: campaign.runIds.length,
@@ -58,6 +90,9 @@ export function campaignView(
       state: run?.state ?? 'blocked',
       outcome: run?.result?.outcome,
       summary: run?.result?.summary,
+      ...(run?.workflowScope?.inventoryRowId && historyOf
+        ? { history: historyOf(run.workflowScope.inventoryRowId) }
+        : {}),
     })),
   };
 }
