@@ -27,8 +27,9 @@ No — the fold integrator owns `VERSION`; the user-visible capability rides the
 ## 5. Evidence pointers
 
 - Real-world proof: `apps/web/src/__tests__/provider-secrets.real-world.test.ts` — real `startWorkbench` HTTP servers, real session-cookie flow, real close/reopen restart persistence, a real local HTTP provider endpoint with real `Authorization: Bearer` verification, and the real `modelEnvironment` job seam.
+- Browser proof: `apps/web/src/__tests__/provider-ui.real-world.test.ts` (second journey) — real dashboard in a real browser: masked connect input, connected badge, auto catalog discovery after connecting, key value asserted absent from the whole DOM (and the provider's 401 body never surfaced), removal returns the input; masked-viewport captures + sanitized timeline gated on `ARXIC_PROVIDER_EVIDENCE_DIR`.
 - Artifacts: `docs/evidence/WEB-402-PROVIDER-SECRETS/green.txt` — final 3× repeated full-suite run `Tests 4 passed (4)` plus the changed-area regression suites. Red record: commit `487b198e`.
-- Gates: typecheck ☑ · lint ☑ · format ☑ · test (4/4 ×3 + 24/24 regressions) ☑ · license gate → CI.
+- Gates: typecheck ☑ · lint ☑ · format ☑ · test (4/4 ×3 + 24/24 regressions + 2/2 provider-ui real-browser) ☑ · license gate → CI.
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
