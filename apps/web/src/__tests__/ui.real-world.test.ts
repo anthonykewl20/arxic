@@ -15,6 +15,7 @@ import {
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
 import { startWorkbench } from './workbench-runtime';
 import { dashboardProof } from './dashboard-proof';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it.each(['light', 'dark'] as const)(
   'lets a real browser register a folder, discover source intent, run visual checks, approve a baseline, and manage schedules (%s)',
@@ -67,8 +68,8 @@ it.each(['light', 'dark'] as const)(
         ? join(process.env.ARXIC_HISTORY_EVIDENCE_DIR, theme)
         : undefined,
     );
-    const errors: string[] = [];
-    page.on('pageerror', (error) => errors.push(error.name));
+    // #447: corroborated classification; active failures and native errors stay hard.
+    const errors = trackDashboardErrors(page);
     const capture = async (name: string, action: string) => {
       const proof =
         process.env.ARXIC_HISTORY_EVIDENCE_DIR &&
@@ -378,10 +379,18 @@ it.each(['light', 'dark'] as const)(
         '13-run-history-unavailable',
         'Failed history request shows error instead of stale results',
       );
+      // Retry while the 503 refusal is still routed: the click cannot race the
+      // polling recovery after unroute, and the request deterministically fails
+      // again before the routes release and the heading recovers.
+      await page.getByRole('button', { name: 'Retry run history' }).click();
+      await page
+        .getByText('Run history could not be loaded. Retry or check your connection.', {
+          exact: true,
+        })
+        .waitFor();
       releaseSearch();
       await page.unroute('**/api/state');
       await page.unroute('**/api/runs?**');
-      await page.getByRole('button', { name: 'Retry run history' }).click();
       await page.getByRole('heading', { name: 'No matching runs' }).waitFor();
       await page.reload();
       await page.getByRole('heading', { name: 'No matching runs' }).waitFor();
@@ -548,7 +557,7 @@ it.each(['light', 'dark'] as const)(
         '08-signed-out',
         'Late pre-logout dashboard response cannot restore a signed-out workspace',
       );
-      expect(errors).toEqual([]);
+      expect(errors.hard()).toEqual([]);
     } catch (error) {
       if (failureEvidence) {
         try {

@@ -1,0 +1,15 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "lookalike-hard",
+      "passed": true,
+      "values": {
+        "engine": "chromium"
+      }
+    }
+  ]
+}

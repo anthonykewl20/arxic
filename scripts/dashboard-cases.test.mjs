@@ -5,7 +5,7 @@ it('partitions every installed dashboard file exactly once and preserves full de
   const full = installedDashboardCases();
   const first = installedDashboardCases({ dashboardOnly: true, shard: '1' });
   const second = installedDashboardCases({ dashboardOnly: true, shard: '2' });
-  expect(full).toHaveLength(17);
+  expect(full).toHaveLength(18);
   expect(full).toContain('apps/web/src/__tests__/capture-write-isolation.real-world.test.ts');
   expect(full).toContain('apps/web/src/__tests__/frontend-template.real-world.test.ts');
   expect(full).toContain('apps/web/src/__tests__/visual-density-ui.real-world.test.ts');

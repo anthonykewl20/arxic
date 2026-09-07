@@ -1,0 +1,16 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "active-refusal-hard",
+      "passed": true,
+      "values": {
+        "engine": "chromium",
+        "fetchLoadHard": 0
+      }
+    }
+  ]
+}

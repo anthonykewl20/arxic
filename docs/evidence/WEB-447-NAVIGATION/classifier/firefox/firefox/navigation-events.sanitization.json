@@ -1,0 +1,5 @@
+{
+  "sha256": "088bdca89c63ca911a59a87d9906c5e648127b42a6ac2ad39958f09deabf6c8c",
+  "method": "closed event/trace categories, endpoints and ordinals only; no URLs, payloads, credentials or raw stacks",
+  "rawTraceRetained": false
+}
