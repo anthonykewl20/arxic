@@ -733,3 +733,5 @@ Native-density AI review uses image-pixel coordinates for overlays. Review accep
 For native Chromium, install the full browser with `pnpm exec playwright install chromium`; a shell-only installation is insufficient and the unavailable environment remains blocked. This follows Playwright’s [documented new headless mode](https://playwright.dev/docs/browsers#chromium-new-headless-mode). Firefox and WebKit retain their own native rendering engines.
 
 An AI image-dimension refusal now tells you to choose a smaller viewport or lower pixel density. It preserves the review form input and restores submission controls. Invalid bytes and hash failures retain the opaque integrity diagnostic; neither model bounds nor PNG validation were relaxed.
+
+Project-dialog footer actions use a 44-pixel minimum height. In settings, the explanatory text precedes Back and Save, keeping navigation and submission on one row on narrow screens. [Retained red evidence](evidence/WEB-456-FOOTER/action-row/summary.md) documents the original 114-pixel action-row separation and 32-pixel tablet targets. This layout fix does not convert unresolved footer contrast checks into passes.

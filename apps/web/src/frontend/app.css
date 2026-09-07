@@ -1491,6 +1491,11 @@
   }
 }
 
+/* Keep footer actions touch-sized above the mobile breakpoint too. */
+.dialog-footer button {
+  min-height: 44px;
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
   .shell {

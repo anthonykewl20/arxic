@@ -1,0 +1,29 @@
+[
+  {
+    "action": "Pixel-density selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Pixel-density selection retains labels, keyboard focus and responsive layout",
+    "result": "unverified",
+    "screenshot": "01-matrix-settings-390.png",
+    "viewport": {
+      "width": 390,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Pixel-density selection retains labels, keyboard focus and responsive layout",
+    "result": "failed",
+    "screenshot": "01-matrix-settings-768.png",
+    "viewport": {
+      "width": 768,
+      "height": 1000
+    }
+  }
+]

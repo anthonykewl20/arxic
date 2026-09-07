@@ -126,3 +126,5 @@ The [WebKit navigation investigation](../../docs/evidence/WEB-447-NAVIGATION/sum
 Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery and native baseline repeatability pass local reference-app checks. High-density Chromium uses full Chromium headless with an explicit renderer identity; final installed CI remains required. This is not full production-readiness proof.
 
 Visual matrix authentication performs one GUI sign-in per browser family per run. Successful session state and failed outcomes are reused in memory across that browser’s cells; each reuse is recorded, and nothing carries into a later run. This avoids exhausting target login-rate limits while preserving real authenticated screenshots and run isolation.
+
+Project settings place the scope explanation before Back and Save so the actions remain together on mobile. Dialog-footer buttons have a 44-pixel minimum height at tablet and desktop widths too. The [footer audit](../../docs/evidence/WEB-456-FOOTER/action-row/summary.md) retains the original layout/target failures; incomplete automated contrast checks remain explicit.

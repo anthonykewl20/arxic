@@ -78,7 +78,13 @@ it.each(['light', 'dark'] as const)(
           const range = document.createRange();
           range.selectNodeContents(text);
           const lines = [...range.getClientRects()].filter((r) => r.width > 0 && r.height > 0);
+          const actions = [...footer.querySelectorAll('button')].map((button) =>
+            button.getBoundingClientRect(),
+          );
           return {
+            actionRowDelta:
+              Math.max(...actions.map((r) => r.top)) - Math.min(...actions.map((r) => r.top)),
+            smallestActionHeight: Math.min(...actions.map((r) => r.height)),
             lines: lines.length,
             clipped: lines.filter(
               (r) =>
@@ -100,6 +106,8 @@ it.each(['light', 'dark'] as const)(
             {
               id: 'dialog-footer-visible-lines',
               passed:
+                footerMetrics.actionRowDelta <= 1 &&
+                footerMetrics.smallestActionHeight >= 44 &&
                 footerMetrics.lines > 0 &&
                 footerMetrics.clipped === 0 &&
                 footerMetrics.occluded === 0,
@@ -107,6 +115,11 @@ it.each(['light', 'dark'] as const)(
             },
           ],
         );
+        expect(
+          footerMetrics.actionRowDelta,
+          'Back and Save must share an action row',
+        ).toBeLessThanOrEqual(1);
+        expect(footerMetrics.smallestActionHeight).toBeGreaterThanOrEqual(44);
         expect(footerMetrics.lines).toBeGreaterThan(0);
         expect(footerMetrics.clipped).toBe(0);
         expect(footerMetrics.occluded).toBe(0);

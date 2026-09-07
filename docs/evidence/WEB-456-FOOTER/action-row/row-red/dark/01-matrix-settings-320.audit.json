@@ -1,0 +1,24 @@
+{
+  "violations": [],
+  "incomplete": [
+    {
+      "id": "color-contrast",
+      "count": 1
+    }
+  ],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "dialog-footer-visible-lines",
+      "passed": false,
+      "values": {
+        "actionRowDelta": 114,
+        "smallestActionHeight": 44,
+        "lines": 3,
+        "clipped": 0,
+        "occluded": 0
+      }
+    }
+  ]
+}
