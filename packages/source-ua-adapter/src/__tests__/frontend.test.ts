@@ -107,7 +107,7 @@ it('retains real Express documentation declarations while exposing its unsupport
   );
   expect(result.gaps).toContainEqual({
     path: 'src/views/index.ejs',
-    reason: 'unsupported-framework',
+    reason: 'template-expressions-not-evaluated',
   });
 });
 

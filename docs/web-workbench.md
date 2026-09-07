@@ -91,8 +91,12 @@ Supported extraction is structural JS/TS/JSX/TSX: components, native controls,
 action attributes, conditionals, state hooks/attributes, test declarations and
 configuration references and feature-flag member expressions. Markdown/text headings and
 requirement language outside fenced code are declarations, not independently
-accepted business rules. EJS, HTML, Vue, Svelte and MDX component syntax are
-explicitly unsupported; arbitrary aliases, generated markup and hidden
+accepted business rules. HTML/HTM and default-delimiter EJS add literal native
+controls and action/state attribute names with committed line/hash provenance.
+Template code is excluded, never executed. Embedded scripts, inert templates,
+foreign markup, malformed templates and the 20,000-node parser budget are explicit
+coverage gaps. Attribute values are not emitted. Vue, Svelte and MDX component syntax
+remain unsupported; arbitrary aliases, generated markup and hidden
 requirements cannot be recovered completely. Conditions and declarations may also
 come from server/test code; component-to-runtime reachability is not proven.
 Environment variables are configuration references, not proven feature flags. Limits are 1 MiB per file, 5,000
@@ -737,7 +741,7 @@ An AI image-dimension refusal now tells you to choose a smaller viewport or lowe
 ### Installed-dashboard CI scope and interruption evidence
 
 The packaged Chromium release flow and an ordinary `--dashboard-only` run execute
-all sixteen declared dashboard files. Firefox/WebKit CI assigns those same files
+all seventeen declared dashboard files. Firefox/WebKit CI assigns those same files
 to two required partitions (`--dashboard-shard 1` and `--dashboard-shard 2`); both
 must pass for each browser. A partition is not whole-browser acceptance. Selection
 contracts guard exhaustive, disjoint membership and reject sharding the full CLI
@@ -759,4 +763,4 @@ The original installed Firefox failure is retained in the
 The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a historical light Firefox journey failure. Subsequent exact-head CI 34091854414 passed all required installed browser cases before PR #455 merged; local reruns alone did not waive the earlier failure.
 Project-dialog footer actions use a 44-pixel minimum height. In settings, the explanatory text precedes Back and Save, keeping navigation and submission on one row on narrow screens. [Retained red evidence](evidence/WEB-456-FOOTER/action-row/summary.md) documents the original 114-pixel action-row separation and 32-pixel tablet targets. This layout fix does not convert unresolved footer contrast checks into passes.
 
-Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among sixteen required dashboard files.
+Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among seventeen required dashboard files.

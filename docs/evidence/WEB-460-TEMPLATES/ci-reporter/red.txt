@@ -1,0 +1,44 @@
+Scope: all 32 workspace projects
+[WARN] There are cyclic workspace dependencies: /home/soultransit/devtony/arxic/.worktrees/frontend-templates/packages/auth-domain-pack, /home/soultransit/devtony/arxic/.worktrees/frontend-templates/packages/domain-inventory-spike, /home/soultransit/devtony/arxic/.worktrees/frontend-templates/packages/intent-proposal-spike, /home/soultransit/devtony/arxic/.worktrees/frontend-templates/packages/intent
+✓ Lockfile passes supply-chain policies (verified 44m ago)
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+Done in 2.4s using pnpm v11.17.0
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/frontend-templates
+
+ ❯ scripts/dashboard-progress.test.mjs (4 tests | 1 failed) 6587ms
+   × flushes case-start evidence before a real running test process is interrupted 6018ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  scripts/dashboard-progress.test.mjs > flushes case-start evidence before a real running test process is interrupted
+AssertionError: expected '{"event":"run-start","elapsedMs":8}\n…' not to contain 'case-result'
+
+- Expected
++ Received
+
+- case-result
++ {"event":"run-start","elapsedMs":8}
++ {"event":"case-start","elapsedMs":220,"file":"sample.test.mjs","caseId":"b42ebe4d6cb5ae54","line":null}
++ {"event":"case-result","elapsedMs":5127,"file":"sample.test.mjs","caseId":"b42ebe4d6cb5ae54","line":null,"state":"passed"}
++ {"event":"run-end","elapsedMs":5129,"reason":"passed"}
++
+
+ ❯ scripts/dashboard-progress.test.mjs:128:24
+    126|     await new Promise((resolveDelay) => setTimeout(resolveDelay, 5500)…
+    127|     const before = await readFile(output, 'utf8');
+    128|     expect(before).not.toContain('case-result');
+       |                        ^
+    129|     expect(before).not.toContain('private-running-name');
+    130|     expect(child.exitCode).toBe(null);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  16:15:17
+   Duration  6.72s (transform 20ms, setup 0ms, import 28ms, tests 6.59s, environment 0ms)
+

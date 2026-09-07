@@ -10,6 +10,7 @@
   "dependencies": {
     "@arxic/contracts": "workspace:*",
     "@arxic/fs-safe": "workspace:*",
+    "parse5": "7.3.0",
     "tree-sitter": "^0.25.1",
     "tree-sitter-javascript": "^0.25.0",
     "tree-sitter-php": "^0.24.2",

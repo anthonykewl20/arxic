@@ -1,0 +1,10 @@
+{
+  "sha256": "121caf7153cfd8b9069a6b769d9b8cbafd94d229d4ed746673685630a89bd8e8",
+  "policy": "reference test app; all inputs masked",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed",
+  "browser": {
+    "name": "firefox",
+    "version": "153.0"
+  }
+}

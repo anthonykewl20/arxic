@@ -100,7 +100,7 @@ it('flushes case-start evidence before a real running test process is interrupte
     );
     await writeFile(
       join(directory, 'sample.test.mjs'),
-      `import {it} from ${JSON.stringify(pathToFileURL(resolve('node_modules/vitest/dist/index.js')).href)};it('private-running-name',()=>new Promise(resolve=>setTimeout(resolve,5000)),10000);`,
+      `import {it} from ${JSON.stringify(pathToFileURL(resolve('node_modules/vitest/dist/index.js')).href)};it('private-running-name',()=>new Promise(()=>{}),10000);`,
     );
     child = spawn(
       process.execPath,
@@ -122,6 +122,8 @@ it('flushes case-start evidence before a real running test process is interrupte
     await expect
       .poll(async () => readFile(output, 'utf8').catch(() => ''), { timeout: 10000 })
       .toContain('case-start');
+    // Exercise a delayed controller beyond the old child's five-second completion.
+    await new Promise((resolveDelay) => setTimeout(resolveDelay, 5500));
     const before = await readFile(output, 'utf8');
     expect(before).not.toContain('case-result');
     expect(before).not.toContain('private-running-name');

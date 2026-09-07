@@ -1,0 +1,80 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/frontend-templates
+
+ ❯ packages/source-ua-adapter/src/__tests__/frontend-template.test.ts (2 tests | 2 failed) 140ms
+   × keeps malformed templates, embedded code and phantom markup explicit without inventing controls 47ms
+   × discovers all thirteen literal controls in the committed real Express view with exact source references 92ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/source-ua-adapter/src/__tests__/frontend-template.test.ts > keeps malformed templates, embedded code and phantom markup explicit without inventing controls
+AssertionError: expected [ { path: '.gitignore', …(1) }, …(4) ] to deeply equal ArrayContaining{…}
+
+- Expected
++ Received
+
+- ArrayContaining [
++ [
++   {
++     "path": ".gitignore",
++     "reason": "unsupported-file-kind",
++   },
+    {
+      "path": "broken.ejs",
+-     "reason": "malformed-template",
++     "reason": "unsupported-framework",
+    },
+    {
+      "path": "broken.html",
+-     "reason": "html-parse-error",
++     "reason": "unsupported-framework",
+    },
+    {
+-     "path": "safe.html",
+-     "reason": "embedded-script-not-analyzed",
++     "path": "dynamic.ejs",
++     "reason": "unsupported-framework",
+    },
+    {
+-     "path": "dynamic.ejs",
+-     "reason": "template-expressions-not-evaluated",
++     "path": "safe.html",
++     "reason": "unsupported-framework",
+    },
+  ]
+
+ ❯ packages/source-ua-adapter/src/__tests__/frontend-template.test.ts:24:23
+     22|   const index = await new SourceUaAdapter().collect(repo.request);
+     23|   const result = await collectFrontendInventory(repo.root, index);
+     24|   expect(result.gaps).toEqual(
+       |                       ^
+     25|     expect.arrayContaining([
+     26|       { path: 'broken.ejs', reason: 'malformed-template' },
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/source-ua-adapter/src/__tests__/frontend-template.test.ts > discovers all thirteen literal controls in the committed real Express view with exact source references
+AssertionError: expected [] to have a length of 13 but got +0
+
+- Expected
++ Received
+
+- 13
++ 0
+
+ ❯ packages/source-ua-adapter/src/__tests__/frontend-template.test.ts:57:20
+     55|   const path = 'src/views/index.ejs';
+     56|   const controls = result.rows.filter((row) => row.source.path === pat…
+     57|   expect(controls).toHaveLength(13);
+       |                    ^
+     58|   expect(controls.filter((row) => row.label.startsWith('form'))).toHav…
+     59|   expect(controls.filter((row) => row.label.startsWith('input'))).toHa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  15:30:35
+   Duration  488ms (transform 168ms, setup 0ms, import 241ms, tests 140ms, environment 0ms)
+
