@@ -50,6 +50,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
       "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
     );
     void handle(request, response).catch((error: unknown) => {
+      if (!(error instanceof HttpError)) console.error(error);
       if (!response.headersSent)
         json(response, error instanceof HttpError ? error.status : 500, {
           error: error instanceof HttpError ? error.message : 'Request could not be completed',

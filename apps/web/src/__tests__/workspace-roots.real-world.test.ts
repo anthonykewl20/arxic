@@ -108,6 +108,19 @@ it('adds a workspace root at runtime, connects a project under it, and persists 
   expect((await create('POST', { path: spare })).status).toBe(201);
   expect((await create('DELETE', { path: spare })).status).toBe(200);
 
+  // Instance settings share the store with retention; saving a policy must keep working.
+  const policy = await fetch(`${app.origin}/api/retention`, {
+    method: 'POST',
+    headers: { cookie, origin: app.origin, 'content-type': 'application/json' },
+    body: JSON.stringify({ enabled: false, maxAgeDays: 17, keepLatest: 7 }),
+  });
+  expect(policy.status).toBe(200);
+  expect((await policy.json()).policy).toEqual({
+    enabled: false,
+    maxAgeDays: 17,
+    keepLatest: 7,
+  });
+
   // The added root survives a server restart on the same state directory.
   await cleanups.pop()!();
   const restarted = await open(join(directory, 'state'), [startupRoot]);

@@ -1,20 +1,24 @@
+WEB-402-WORKSPACE-ROOTS — gate evidence (updated 2026-09-07 after CI regression fix)
 
- RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/workspace-roots-402
-
- ✓ apps/web/src/__tests__/campaigns.test.ts (7 tests) 4453ms
-   ✓ refuses invalid selected rows and reserves the whole campaign queue atomically  882ms
-   ✓ refuses changed source and missing guided execution before any campaign child is inserted  631ms
-   ✓ persists a complete campaign, cancels its children and protects its evidence after restart  861ms
-   ✓ blocks queued campaign work after source changes during a server restart  735ms
-   ✓ cannot delete discovery evidence while a campaign is being created  1206ms
- ✓ apps/web/src/__tests__/http.test.ts (4 tests) 2503ms
-   ✓ refuses anonymous reads and cross-origin sign-in without exposing state  2427ms
- ✓ apps/web/src/__tests__/workspace-roots.real-world.test.ts (2 tests) 2236ms
-   ✓ refuses to widen workspace roots without a session or a real absolute folder  2180ms
- ✓ apps/web/src/__tests__/workspace.test.ts (5 tests) 139ms
-
- Test Files  4 passed (4)
-      Tests  18 passed (18)
-   Start at  22:39:31
-   Duration  19.85s (transform 1.54s, setup 0ms, import 10.01s, tests 9.33s, environment 0ms)
-
+Regression caught by first CI run on the PR head (dashboard x4 + package jobs):
+the slice's `settings` table (key,data) collided with the retention repository's
+`settings` table (key,value); RetentionRepository.write raised
+`SqliteError: no such column: excluded.value` -> POST /api/retention 500.
+Red proof (before rename):
+  pnpm vitest run apps/web/src/__tests__/retention*.test.ts apps/web/src/__tests__/workspace*.test.ts
+  Test Files  5 failed (5)
+       Tests  7 failed (7)
+Green proof (after rename to instance_settings, same command set):
+  Test Files  7 passed (7)  [retention x5, workspace-roots.real-world, workspace]
+       Tests  14 passed (14)
+Packed-distribution probe (npm pack apps/cli -> clean-room npm install -> installed CLI):
+  before fix: retention POST: 500  body: {"error":"Request could not be completed"}
+              SqliteError: no such column: excluded.value
+  after fix:  state: 401 / login: 200 / retention POST: 200
+              body: {"policy":{"enabled":false,"maxAgeDays":17,"keepLatest":7},"pendingDeletions":0}
+Gates: apps/web typecheck exit 0; pnpm lint clean;
+pnpm format:check last line: "All matched files use Prettier code style!"
+Known local gate gap (disclosed): full 4-shard vitest run and the dashboard
+human-flow replica were attempted locally but the dev box was oversubscribed
+(load average 40+, vitest starved at 0 CPU); CI's uncontended test shards and
+dashboard/package jobs on the PR head are the authoritative gate for the full suite.
