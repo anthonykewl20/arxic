@@ -111,12 +111,15 @@ it.each(
         ? join(process.env.ARXIC_READABILITY_EVIDENCE_DIR, profile, theme)
         : undefined,
     );
-    const inspect = async (name: string) => {
-      await applyTextProfile(page, 'default');
-      const originalSize = await page
-        .locator('body')
-        .evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
-      await applyTextProfile(page, profile);
+    let originalSize = 0;
+    const inspect = async (name: string, preserveProfile = false) => {
+      if (!preserveProfile) {
+        await applyTextProfile(page, 'default');
+        originalSize = await page
+          .locator('body')
+          .evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
+        await applyTextProfile(page, profile);
+      }
       const actual = await page.locator('body').evaluate((element) => ({
         size: parseFloat(getComputedStyle(element).fontSize),
         spacing: parseFloat(getComputedStyle(element).letterSpacing),
@@ -278,7 +281,8 @@ it.each(
         await models.focus();
         await page.keyboard.press('End');
         await expect.poll(() => models.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-        await inspect('15b-keyboard-model-scroll');
+        await inspect('15b-keyboard-model-scroll', true);
+        expect(await models.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
         await page.keyboard.press('Home');
         await expect.poll(() => models.evaluate((element) => element.scrollTop)).toBe(0);
       }
