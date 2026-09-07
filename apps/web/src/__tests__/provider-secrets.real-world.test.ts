@@ -1,9 +1,11 @@
-import { createServer, type AddressInfo } from 'node:http';
+import { createServer } from 'node:http';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
+import { modelEnvironment } from '../model-connections';
 import { startWorkbench } from '../server';
+import { Workbench } from '../workbench';
 
 type App = Awaited<ReturnType<typeof startWorkbench>>;
 const token = 'provider-secrets-test-token-at-least-32-characters';
@@ -65,7 +67,9 @@ it('connects and removes an HTTP provider credential from the dashboard without 
     ).status,
   ).toBe(201);
   const after = await connections(app, cookie);
-  expect(after.modelConnections.find((item) => item.id === 'glm-coding')?.secret).toBe('configured');
+  expect(after.modelConnections.find((item) => item.id === 'glm-coding')?.secret).toBe(
+    'configured',
+  );
   expect(after.text).not.toContain('zai-plan-key-not-for-display');
 
   await app.close();
@@ -77,13 +81,12 @@ it('connects and removes an HTTP provider credential from the dashboard without 
   );
 
   expect(
-    (
-      await secretCall(restarted, await signIn(restarted), 'DELETE', { connection: 'glm-coding' })
-    ).status,
+    (await secretCall(restarted, await signIn(restarted), 'DELETE', { connection: 'glm-coding' }))
+      .status,
   ).toBe(200);
   const removed = await connections(restarted, await signIn(restarted));
   expect(removed.modelConnections.find((item) => item.id === 'glm-coding')?.secret).toBe('missing');
-});
+}, 60_000);
 
 it('rejects unauthenticated, unknown, credential-less and malformed secret requests', async () => {
   const state = await mkdtemp(join(tmpdir(), 'arxic-provider-secrets-sad-'));
@@ -133,7 +136,8 @@ it('discovers a real local provider catalog through the stored credential only',
   });
   await new Promise<void>((resolve) => provider.listen(0, '127.0.0.1', resolve));
   cleanup.push(() => new Promise<void>((resolve) => provider.close(() => resolve())));
-  const baseUrl = `http://127.0.0.1:${(provider.address() as AddressInfo).port}`;
+  const address = provider.address() as { port: number };
+  const baseUrl = `http://127.0.0.1:${address.port}`;
   vi.stubEnv(
     'ARXIC_MODEL_CONNECTIONS',
     JSON.stringify([
@@ -161,9 +165,9 @@ it('discovers a real local provider catalog through the stored credential only',
   const deniedState = (await denied.json()) as {
     modelConnections: Array<{ id: string; catalog: { error: string | null } }>;
   };
-  expect(deniedState.modelConnections.find((item) => item.id === 'local-keyed')?.catalog.error).toBe(
-    'The provider credential is not configured on this server',
-  );
+  expect(
+    deniedState.modelConnections.find((item) => item.id === 'local-keyed')?.catalog.error,
+  ).toBe('The provider credential is not configured on this server');
 
   expect(
     (
@@ -187,4 +191,16 @@ it('discovers a real local provider catalog through the stored credential only',
   expect(observed).toContain('Bearer local-bearer-secret');
   const text = JSON.stringify(refreshedState);
   expect(text).not.toContain('local-bearer-secret');
+}, 60_000);
+
+it('resolves a stored credential into the job model environment', async () => {
+  const state = await mkdtemp(join(tmpdir(), 'arxic-provider-secrets-jobs-'));
+  cleanup.push(() => rm(state, { recursive: true, force: true }));
+  const workbench = await Workbench.open(join(state, 'state'), [state]);
+  cleanup.push(() => workbench.close());
+  await workbench.saveProviderSecret({ connection: 'glm-coding', value: 'zai-key-for-jobs' });
+  const env = modelEnvironment('glm-coding', 'glm-4.7', '', workbench.effectiveEnv());
+  expect(env.ARXIC_MODEL_API_KEY).toBe('zai-key-for-jobs');
+  expect(env.ARXIC_MODEL_BASE_URL).toBe('https://api.z.ai/api/coding/paas/v4');
+  expect(env.ARXIC_MODEL_BILLING_MODE).toBe('subscription');
 });

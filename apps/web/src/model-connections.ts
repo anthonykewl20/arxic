@@ -246,6 +246,18 @@ export function validateConnection(value: unknown, env: NodeJS.ProcessEnv = proc
   return value;
 }
 
+/** Resolve a connection id to its credential reference; the reference name is the only published part. */
+export function connectionCredentialRef(
+  value: unknown,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const id = validateConnection(value === '' ? undefined : value, env);
+  const connection = connections(env).find((item) => item.id === id);
+  if (!connection?.credentialRef)
+    throw new HttpError(400, 'This connection does not use a connectable server credential');
+  return connection.credentialRef;
+}
+
 /** Resolve one job's provider selection; the caller owns scheduling and authorization. */
 export function modelEnvironment(
   id: string | undefined,

@@ -334,6 +334,8 @@ function render() {
       connections: state.modelConnections ?? [],
       setup: state.providerSetup ?? [],
       onRefresh: refreshModels,
+      onConnectSecret: saveProviderSecret,
+      onDisconnectSecret: removeProviderSecret,
     });
     return;
   }
@@ -620,6 +622,24 @@ async function refreshModels(id: string) {
   } catch (error) {
     notice((error as Error).message);
   }
+}
+async function saveProviderSecret(id: string, value: string) {
+  const epoch = sessionEpoch;
+  const result = await api('/provider-secrets', 'POST', { connection: id, value });
+  if (epoch !== sessionEpoch || signingOut) return;
+  state.modelConnections = result.modelConnections;
+  updateModelCatalogs(state.modelConnections);
+  if (section === 'providers') render();
+  if (agentDialog().open) renderAgentWizard();
+}
+async function removeProviderSecret(id: string) {
+  const epoch = sessionEpoch;
+  const result = await api('/provider-secrets', 'DELETE', { connection: id });
+  if (epoch !== sessionEpoch || signingOut) return;
+  state.modelConnections = result.modelConnections;
+  updateModelCatalogs(state.modelConnections);
+  if (section === 'providers') render();
+  if (agentDialog().open) renderAgentWizard();
 }
 setInterval(() => {
   if (document.hidden || $('#app').hidden) return;
