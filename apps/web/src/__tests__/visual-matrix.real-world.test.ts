@@ -151,7 +151,7 @@ it('retains real Chromium evidence when a separate browser cannot launch', async
         outcome: 'blocked',
         captures: 0,
         reason:
-          'Environment could not start or complete. Check the installed Playwright browser and system dependencies.',
+          'Environment could not start; no checkpoint was attempted. Check the installed Playwright browser and system dependencies.',
       },
     ]);
     expect(JSON.stringify(result)).not.toContain('private-error-marker');
