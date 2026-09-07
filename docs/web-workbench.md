@@ -670,7 +670,7 @@ replace human visual/release inspection. The [retained dashboard proof](./eviden
 ## Dashboard readability verification
 
 The installed contract includes five readability tests, bringing the shared dashboard
-suite to 23 tests in 13 files. Each selected engine runs the same contract. Four
+suite to 24 tests in 14 files (including the capture-recovery journey). Each selected engine runs the same contract. Four
 journeys combine light/dark with either user text spacing (1.5 line height, 2em
 paragraph spacing, 0.12em letter spacing and 0.16em word spacing) or 200% mounted
 HTML text enlargement. These overrides use the loaded same-origin stylesheet
@@ -712,3 +712,5 @@ checks. The general WebKit early-reload diagnostic is separately tracked in #447
 the login fix is not a claim that every outgoing-document error is resolved.
 
 Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
+
+Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).

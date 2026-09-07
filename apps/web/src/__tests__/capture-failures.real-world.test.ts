@@ -155,6 +155,68 @@ it('retains healthy matrix siblings and distinguishes navigation from required-m
         '03-mobile-refusal',
         'Blocked capture recovery guidance wraps within the mobile viewport',
       );
+      const editCapture = page.getByRole('button', { name: 'Edit capture settings', exact: true });
+      const editCount = await editCapture.count();
+      await audit(
+        '04-recovery-entry',
+        'A blocked run offers direct access to its project capture settings',
+        [
+          {
+            id: 'capture-settings-recovery',
+            passed: editCount === 1,
+            values: { actual: editCount, expected: 1 },
+          },
+        ],
+      );
+      expect(editCount).toBe(1);
+      await editCapture.click();
+      const masks = page.getByLabel('Additional privacy masks');
+      expect(await masks.inputValue()).toBe('.arxic-absent-required-mask');
+      await masks.click();
+      await masks.fill('h1');
+      expect(await masks.inputValue()).toBe('h1');
+      await audit(
+        '05-edit-required-mask',
+        'Correct the required mask using the existing project settings form',
+      );
+      await page.getByRole('button', { name: 'Save project', exact: true }).click();
+      await expect.poll(() => page.locator('#project-dialog').isVisible()).toBe(false);
+      await page.getByRole('button', { name: 'Run again', exact: true }).click();
+      await expect.poll(() => new URL(page.url()).searchParams.get('run')).not.toBe(masked.id);
+      const recoveredId = new URL(page.url()).searchParams.get('run')!;
+      const read = async (id: string) => {
+        const response = await page.request.get(`${app!.origin}/api/runs/${id}`);
+        expect(response.status()).toBe(200);
+        return response.json();
+      };
+      await expect
+        .poll(async () => (await read(recoveredId)).state, { timeout: 90000 })
+        .toBe('completed');
+      await page.locator('.capture').first().waitFor();
+      const recovered = await read(recoveredId);
+      expect(recovered.result.captures).toHaveLength(6);
+      expect(recovered.project.masks).toEqual(['h1']);
+      expect(
+        recovered.result.findings.some(
+          (finding: { failurePhase?: string }) => finding.failurePhase,
+        ),
+      ).toBe(false);
+      await page.locator('.run-detail .result-summary').scrollIntoViewIfNeeded();
+      await audit(
+        '06-recovered-run',
+        'Rerun with the corrected mask yields six actual browser/theme captures',
+      );
+      await page.goto(`${app.origin}?view=runs&run=${masked.id}`);
+      await page.getByRole('button', { name: 'Edit capture settings', exact: true }).waitFor();
+      const original = await read(masked.id);
+      expect(original.state).toBe('blocked');
+      expect(original.result.captures).toHaveLength(0);
+      expect(original.project.masks).toEqual(['.arxic-absent-required-mask']);
+      await page.locator('.run-detail .result-summary').scrollIntoViewIfNeeded();
+      await audit(
+        '07-original-refusal-preserved',
+        'The original blocked run remains immutable after a successful corrected run',
+      );
       expect(errors).toEqual([]);
     } finally {
       await second.close();

@@ -1,0 +1,13 @@
+{
+  "sha256": "2cd6b606a6112c0119b451c055c4dceae2d5f15cc06e99a6f06e8a8fb76719e5",
+  "method": "allow-listed test annotations, viewport and result; no DOM/network/field payloads",
+  "rawTraceRetained": false,
+  "sourceCommit": "6b09e45f8a4275b0dc85aaae2106e8b62eea4ff8",
+  "browser": {
+    "name": "chromium",
+    "version": "151.0.7922.34"
+  },
+  "dirty": true,
+  "originalTimelineSha256": "35db8b0857d96850d6409706bd4adca499cca5b95c7364640aca34179f4b45ce",
+  "selection": "Exact original entries for selected recovery screenshots; earlier matrix checks omitted, no action/result rewritten."
+}

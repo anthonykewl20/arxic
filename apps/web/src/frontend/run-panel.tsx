@@ -174,6 +174,12 @@ function CaptureFigure({
 }
 function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: Run }) {
   const result = run.result;
+  const canEditCapture =
+    run.mode === 'visual' &&
+    result?.findings?.some(
+      (item) => item.kind === 'capture-blocked-check-target-and-privacy-masks',
+    ) &&
+    state.projects.some((project) => project.id === run.projectId);
   return (
     <section className="run-detail">
       <div className="section-heading">
@@ -221,7 +227,14 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
         </div>
         {!!result?.findings?.length && (
           <div className="findings">
-            <h3>Findings and capture diagnostics</h3>
+            <div className="section-heading">
+              <h3>Findings and capture diagnostics</h3>
+              {canEditCapture && (
+                <Button variant="outline" data-edit={run.projectId}>
+                  Edit capture settings
+                </Button>
+              )}
+            </div>
             <ul>
               {result.findings.map((item, index) => (
                 <li

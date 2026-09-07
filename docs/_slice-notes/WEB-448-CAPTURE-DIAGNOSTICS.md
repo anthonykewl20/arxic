@@ -35,3 +35,12 @@ Yes: user-visible diagnostic guidance; integrator applies the next patch increme
 | Unknown original CI cause | Remains unresolved                                            | #448 stays open               |
 
 Readiness/measurement/storage injection, browser teardown recovery and human release inspection remain gaps. No cause is inferred from a later passing matrix.
+
+The follow-up recovery entry uses the existing project-edit action. A second
+red test found zero direct controls; the final journey passes in Chromium30.09s,
+Firefox34.92s and WebKit30.99s, requiring the corrected mask to remain persisted
+and the original blocked snapshot to remain unchanged. The shared installed
+contract now includes this journey (24 tests /14 files). The expanded retained
+selection has23 inspected PNGs and100 hashed machine artifacts; original source
+metadata and earlier proof are preserved. Required final-head CI must cover this
+follow-up before integration; the earlier6b09e45 CI pass does not cover it.

@@ -165,3 +165,5 @@ Dashboard readability checks exercise user text spacing and 200% mounted text en
 Dashboard validation follow-up: source CI 34075361763 retained five of six required healthy-page gallery captures. Per-cell failure evidence is now retained; the original cause remains tracked in [#448](https://github.com/anthonykewl20/arxic/issues/448), and a later local pass does not discharge it.
 
 Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
+
+Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).

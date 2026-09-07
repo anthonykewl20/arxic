@@ -1,0 +1,16 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "capture-settings-recovery",
+      "passed": false,
+      "values": {
+        "actual": 0,
+        "expected": 1
+      }
+    }
+  ]
+}
