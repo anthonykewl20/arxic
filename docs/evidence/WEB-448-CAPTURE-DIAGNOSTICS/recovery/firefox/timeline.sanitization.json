@@ -1,0 +1,13 @@
+{
+  "sha256": "c408220a5135f678ee779cb2507822a4c45fc34d69596e6e19ccb512e28c7295",
+  "method": "allow-listed test annotations, viewport and result; no DOM/network/field payloads",
+  "rawTraceRetained": false,
+  "sourceCommit": "6b09e45f8a4275b0dc85aaae2106e8b62eea4ff8",
+  "browser": {
+    "name": "firefox",
+    "version": "153.0"
+  },
+  "dirty": true,
+  "originalTimelineSha256": "0ce78643da7912e90534ec9d43c6801a59b47bf10012bd09d988184d1c0d5c98",
+  "selection": "Exact original entries for selected recovery screenshots; earlier matrix checks omitted, no action/result rewritten."
+}

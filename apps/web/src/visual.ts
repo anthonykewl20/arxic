@@ -13,7 +13,14 @@ import {
 import sharp from 'sharp';
 import pixelmatch from 'pixelmatch';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
-import type { Capture, Project, Run, RunResult, VisualEnvironment } from './types';
+import type {
+  Capture,
+  CaptureFailurePhase,
+  Project,
+  Run,
+  RunResult,
+  VisualEnvironment,
+} from './types';
 import { collectVisualScene, assessVisualScene } from './visual-oracle';
 
 export { digest };
@@ -303,6 +310,7 @@ async function captureEnvironment(
         page.on('response', (response) => {
           if (response.status() >= 400) networkErrors++;
         });
+        let failurePhase: CaptureFailurePhase = 'navigation';
         try {
           const checkpoint = captures.length;
           timeline.push({ action: 'navigate', checkpoint });
@@ -318,8 +326,10 @@ async function captureEnvironment(
             new URL(page.url()).pathname.startsWith(project.login.loginPath)
           )
             findings.push({ path, kind: 'redirected-to-login', count: 1 });
+          failurePhase = 'readiness';
           await page.locator('body').waitFor({ state: 'visible' });
           await page.evaluate(() => document.fonts.ready.then(() => undefined));
+          failurePhase = 'measurement';
           const defects = await page.evaluate(() => ({
             brokenImages: [...document.images].filter(
               (image) => image.complete && image.naturalWidth === 0 && image.getAttribute('src'),
@@ -349,14 +359,17 @@ async function captureEnvironment(
             ...project.masks,
           ]);
           for (let attempt = 0; attempt < 6; attempt++) {
+            failurePhase = 'measurement';
             const before = await collectVisualScene(page, [
               'input,textarea,[contenteditable="true"]',
               ...project.masks,
             ]);
+            failurePhase = 'privacy-capture';
             bytes = await captureMaskedViewport(page, {
               automaticMasks: ['input,textarea,[contenteditable="true"]'],
               requiredMasks: project.masks,
             });
+            failurePhase = 'measurement';
             scene = await collectVisualScene(page, [
               'input,textarea,[contenteditable="true"]',
               ...project.masks,
@@ -386,6 +399,7 @@ async function captureEnvironment(
               login: project.login ?? null,
             }),
           );
+          failurePhase = 'evidence-write';
           await writeFile(join(directory, file), bytes, { mode: 0o600 });
           await writeFile(
             join(directory, `${file}.privacy.json`),
@@ -409,6 +423,7 @@ async function captureEnvironment(
             { mode: 0o600 },
           );
           const assessmentFile = `${id}.assessment.json`;
+          failurePhase = 'measurement';
           const assessment = assessVisualScene(scene, {
             screenshotSha256: digest(bytes),
             stable,
@@ -432,6 +447,7 @@ async function captureEnvironment(
             scene,
             assessment,
           });
+          failurePhase = 'evidence-write';
           await writeFile(join(directory, assessmentFile), assessmentBytes, { mode: 0o600 });
           captures.push({
             assessmentFile,
@@ -458,7 +474,12 @@ async function captureEnvironment(
           if (scriptErrors) findings.push({ path, kind: 'script-errors', count: scriptErrors });
         } catch {
           blocked = true;
-          findings.push({ path, kind: 'capture-blocked-check-target-and-privacy-masks', count: 1 });
+          findings.push({
+            path,
+            kind: 'capture-blocked-check-target-and-privacy-masks',
+            count: 1,
+            failurePhase,
+          });
           timeline.push({
             action: 'capture-refused',
             checkpoint: captures.length,

@@ -457,6 +457,7 @@ async function runInstalledDashboard(paths, timings, evidenceDirectory) {
         'apps/web/src/__tests__/element-kinds.real-world.test.ts',
         'apps/web/src/__tests__/visual-matrix-ui.real-world.test.ts',
         'apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts',
+        'apps/web/src/__tests__/capture-failures.real-world.test.ts',
         'apps/web/src/__tests__/provider-ui.real-world.test.ts',
         'apps/web/src/__tests__/visual-review-ui.real-world.test.ts',
         'apps/web/src/__tests__/retention-ui.real-world.test.ts',

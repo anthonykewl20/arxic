@@ -1,0 +1,226 @@
+{
+  "outcome": "blocked",
+  "summary": "6 viewport checkpoints captured across 6 browser/theme environments. Visual baseline review is separate from business-logic verification.",
+  "captures": [
+    {
+      "assessmentFile": "chromium-light-checkpoint-1.assessment.json",
+      "assessmentSha256": "5d6e18c2a37743250378e90633032f4e66613229c6f7599f8ddb5c9422853f46",
+      "id": "chromium-light-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "chromium-light-checkpoint-1.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a",
+      "specHash": "d55f97c2ba196ac35d8ffa4366c7c3e634140cb4534b2d9a2688522d1164d001",
+      "browserVersion": "151.0.7922.34",
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "light"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "chromium-dark-checkpoint-1.assessment.json",
+      "assessmentSha256": "9f1a13bd1949bf378d4fa02e8b486849f0dbfdf7be762f8d053b933b7130baee",
+      "id": "chromium-dark-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "chromium-dark-checkpoint-1.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a",
+      "specHash": "fbda8b9ad39ca6880e02c1e01893a5a3d95a740df8c92098729782f5bbf39bf6",
+      "browserVersion": "151.0.7922.34",
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "dark"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "firefox-light-checkpoint-1.assessment.json",
+      "assessmentSha256": "9faf02af33426e84870e27f44ca28689bc06e91740b27072d61db121a0090cf9",
+      "id": "firefox-light-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "firefox-light-checkpoint-1.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42",
+      "specHash": "fbe7cec732cd5f56429b242067e4a8192ea2d0bb89bcb443df97938c72a749dd",
+      "browserVersion": "153.0",
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "light"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "firefox-dark-checkpoint-1.assessment.json",
+      "assessmentSha256": "b050c454e1346fe56eda814a4ac157b9dd8430f71e25373a46ce35c290a6a9bd",
+      "id": "firefox-dark-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "firefox-dark-checkpoint-1.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42",
+      "specHash": "3b3cc3e719941543c0f537c12e192422c30bc51007a430cf43efad0a4a927080",
+      "browserVersion": "153.0",
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "dark"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "webkit-light-checkpoint-1.assessment.json",
+      "assessmentSha256": "bba18fcf051d963000126d36cbb1254829accc4a458b12dcd72c5521208d3e6d",
+      "id": "webkit-light-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "webkit-light-checkpoint-1.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69",
+      "specHash": "fee914736b51a5166c59834e9029202de503c1e87e25909e5f31315613394911",
+      "browserVersion": "26.5",
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "light"
+      },
+      "status": "needs-baseline"
+    },
+    {
+      "assessmentFile": "webkit-dark-checkpoint-1.assessment.json",
+      "assessmentSha256": "ea79e62cb98dfa8d13087fca5474283f9f53cb2f050969cca46514e929c3b1bc",
+      "id": "webkit-dark-checkpoint-1",
+      "path": "/",
+      "viewport": {
+        "width": 800,
+        "height": 600
+      },
+      "file": "webkit-dark-checkpoint-1.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69",
+      "specHash": "fbadfb3084076fa2dc1ea04f10fc418d05cfd32985c088e836a94cef0d058e98",
+      "browserVersion": "26.5",
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "dark"
+      },
+      "status": "needs-baseline"
+    }
+  ],
+  "findings": [
+    {
+      "path": "/missing",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "navigation",
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "light"
+      }
+    },
+    {
+      "path": "/missing",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "navigation",
+      "environment": {
+        "browser": "chromium",
+        "colorScheme": "dark"
+      }
+    },
+    {
+      "path": "/missing",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "navigation",
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "light"
+      }
+    },
+    {
+      "path": "/missing",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "navigation",
+      "environment": {
+        "browser": "firefox",
+        "colorScheme": "dark"
+      }
+    },
+    {
+      "path": "/missing",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "navigation",
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "light"
+      }
+    },
+    {
+      "path": "/missing",
+      "kind": "capture-blocked-check-target-and-privacy-masks",
+      "count": 1,
+      "failurePhase": "navigation",
+      "environment": {
+        "browser": "webkit",
+        "colorScheme": "dark"
+      }
+    }
+  ],
+  "visualEnvironments": [
+    {
+      "browser": "chromium",
+      "colorScheme": "light",
+      "outcome": "blocked",
+      "captures": 1,
+      "reason": "1 viewport checkpoints captured across 2 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "chromium",
+      "colorScheme": "dark",
+      "outcome": "blocked",
+      "captures": 1,
+      "reason": "1 viewport checkpoints captured across 2 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "light",
+      "outcome": "blocked",
+      "captures": 1,
+      "reason": "1 viewport checkpoints captured across 2 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "firefox",
+      "colorScheme": "dark",
+      "outcome": "blocked",
+      "captures": 1,
+      "reason": "1 viewport checkpoints captured across 2 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "light",
+      "outcome": "blocked",
+      "captures": 1,
+      "reason": "1 viewport checkpoints captured across 2 pages. Visual baseline review is separate from business-logic verification."
+    },
+    {
+      "browser": "webkit",
+      "colorScheme": "dark",
+      "outcome": "blocked",
+      "captures": 1,
+      "reason": "1 viewport checkpoints captured across 2 pages. Visual baseline review is separate from business-logic verification."
+    }
+  ]
+}

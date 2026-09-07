@@ -1,0 +1,16 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "navigation-failures-classified",
+      "passed": true,
+      "values": {
+        "expected": 6,
+        "actual": 6
+      }
+    }
+  ]
+}
