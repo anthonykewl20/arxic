@@ -1,4 +1,5 @@
 import { validateCheckpointCapture } from '../../../worker/src/checkpoint-capture';
+import { unsupportedFixtureProviders } from '../../../worker/src/fixture-providers';
 import type { Diagnostic } from '@arxic/contracts';
 import type { ArxicConfig } from '@arxic/worker';
 import {
@@ -219,6 +220,8 @@ export function validateConfig(input: unknown): ValidationResult {
     'config.fixtures.personaProvisioner',
     diagnostics,
   );
+  for (const { field, reason } of unsupportedFixtureProviders({ inbox, otp, personaProvisioner }))
+    invalid(diagnostics, `config.fixtures.${field}`, reason);
   // #288: the frozen `fixtures.replayPersona` declaration — validated with
   // its own frozen ARXIC-VERIFY-FIXTURE-* family (C-5 / SP-4), no silent
   // defaults. Unknown sibling keys inside the declaration are rejected so a

@@ -1,4 +1,5 @@
 import { validateCheckpointCapture } from './checkpoint-capture';
+import { unsupportedFixtureProviders } from './fixture-providers';
 import type { Diagnostic } from '@arxic/contracts';
 import { defaultQuotas, workerDiagnostic, type WorkerQuotas } from '@arxic/environment';
 import type { RunSpec } from './run-spec';
@@ -98,6 +99,8 @@ export function validateWorkerSecurity(
 ): { ok: true } | { ok: false; diagnostics: Diagnostic[] } {
   const findings: Finding[] = [];
   visit(spec, '', findings);
+  for (const { field, reason } of unsupportedFixtureProviders(spec.config.fixtures))
+    findings.push({ path: `config.fixtures.${field}`, reason });
   if ('checkpointCapture' in spec.config.policy) {
     try {
       validateCheckpointCapture(spec.config.policy.checkpointCapture);
