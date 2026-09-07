@@ -1,5 +1,6 @@
 import { captureFailureMessage } from './capture-failure';
 import { CaptureGallery } from './capture-gallery';
+import { DiffViewer } from './diff-viewer';
 import { WorkflowCheckpoints } from './workflow-checkpoints';
 import { AssessmentPanel } from './assessment-panel';
 import type { RunHistoryPage } from '../run-history';
@@ -145,31 +146,6 @@ export function RunPanel(props: RunPanelProps) {
         <RunDetail {...props} key={chosen.id} run={chosen} />
       )}
     </>
-  );
-}
-function CaptureFigure({
-  label,
-  runId,
-  file,
-  empty,
-}: {
-  label: string;
-  runId?: string;
-  file?: string;
-  empty: string;
-}) {
-  const url = file ? `/api/runs/${runId}/artifacts/${encodeURIComponent(file)}` : '';
-  return (
-    <figure>
-      <figcaption>{label}</figcaption>
-      {file ? (
-        <a href={url} target="_blank" rel="noopener">
-          <img alt={label} src={url} loading="lazy" decoding="async" />
-        </a>
-      ) : (
-        <div className="placeholder">{empty}</div>
-      )}
-    </figure>
   );
 }
 function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: Run }) {
@@ -357,44 +333,17 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                   )
                 )}
               </div>
-              <div className="compare">
-                <CaptureFigure
-                  label="Baseline used for this run"
-                  runId={capture.baselineRunId}
-                  file={capture.baselineFile}
-                  empty={
-                    capture.status === 'needs-baseline'
-                      ? 'No baseline existed when this run was captured.'
-                      : 'Baseline image unavailable for this run.'
-                  }
-                />
-                <CaptureFigure
-                  label="Capture from this run"
-                  runId={run.id}
-                  file={capture.file}
-                  empty="Capture image unavailable for this run."
-                />
-                <CaptureFigure
-                  label="Pixel difference"
-                  runId={run.id}
-                  file={capture.diffFile}
-                  empty={
-                    capture.status === 'needs-baseline'
-                      ? 'No comparison was made because this run had no prior baseline.'
-                      : 'Difference image unavailable for this run.'
-                  }
-                />
-                {capture.videoFile && (
-                  <figure>
-                    <video
-                      controls
-                      preload="metadata"
-                      src={`/api/runs/${run.id}/artifacts/${encodeURIComponent(capture.videoFile)}`}
-                    />
-                    <figcaption>Session video · unmasked, inspect before sharing</figcaption>
-                  </figure>
-                )}
-              </div>
+              <DiffViewer runId={run.id} capture={capture} />
+              {capture.videoFile && (
+                <figure className="capture-video">
+                  <video
+                    controls
+                    preload="metadata"
+                    src={`/api/runs/${run.id}/artifacts/${encodeURIComponent(capture.videoFile)}`}
+                  />
+                  <figcaption>Session video · unmasked, inspect before sharing</figcaption>
+                </figure>
+              )}
               <AssessmentPanel
                 key={capture.assessmentSha256 ?? capture.id}
                 runId={run.id}
