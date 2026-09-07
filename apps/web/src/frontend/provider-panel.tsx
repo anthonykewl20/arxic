@@ -10,6 +10,7 @@ type Connection = {
   billing?: string;
   models: string[];
   catalog?: { status: string; fetchedAt: string | null; error: string | null };
+  secret?: 'configured' | 'missing' | 'none';
 };
 type Setup = {
   id: string;
@@ -23,10 +24,21 @@ type Props = {
   connections: Connection[];
   setup: Setup[];
   onRefresh: (id: string) => Promise<void>;
+  onConnectSecret: (id: string, value: string) => Promise<void>;
+  onDisconnectSecret: (id: string) => Promise<void>;
 };
-function ProviderPanel({ connections, setup, onRefresh }: Props) {
+function ProviderPanel({
+  connections,
+  setup,
+  onRefresh,
+  onConnectSecret,
+  onDisconnectSecret,
+}: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [keyValue, setKeyValue] = useState('');
+  const [keyPending, setKeyPending] = useState(false);
+  const [keyError, setKeyError] = useState('');
   const [pending, setPending] = useState(new Set<string>());
   const [error, setError] = useState('');
   const available = connections
@@ -73,6 +85,8 @@ function ProviderPanel({ connections, setup, onRefresh }: Props) {
               onClick={() => {
                 setSelected(item.id);
                 setQuery('');
+                setKeyValue('');
+                setKeyError('');
                 if (item.catalog?.status === 'unfetched') void refresh(item.id);
               }}
             >
@@ -123,6 +137,90 @@ function ProviderPanel({ connections, setup, onRefresh }: Props) {
                 <a href={guide.url} target="_blank" rel="noreferrer">
                   Connection guide <ArrowUpRight size={14} />
                 </a>
+              </div>
+            )}
+            {(active.secret === 'missing' || active.secret === 'configured') && (
+              <div className="provider-secret">
+                {active.secret === 'missing' ? (
+                  <form
+                    onSubmit={async (event) => {
+                      event.preventDefault();
+                      const value = keyValue.trim();
+                      if (!value || keyPending) return;
+                      setKeyPending(true);
+                      setKeyError('');
+                      try {
+                        await onConnectSecret(active.id, value);
+                        setKeyValue('');
+                        await refresh(active.id);
+                      } catch (failure) {
+                        setKeyError(
+                          failure instanceof Error && failure.message
+                            ? failure.message
+                            : 'Could not save the key on this server.',
+                        );
+                      } finally {
+                        setKeyPending(false);
+                      }
+                    }}
+                  >
+                    <label htmlFor="provider-secret-input">API key or token</label>
+                    <div className="provider-secret-row">
+                      <Input
+                        id="provider-secret-input"
+                        type="password"
+                        autoComplete="off"
+                        placeholder="Paste the key from your provider"
+                        value={keyValue}
+                        onChange={(event) => setKeyValue(event.target.value)}
+                      />
+                      <Button type="submit" disabled={keyPending || !keyValue.trim()}>
+                        {keyPending ? 'Connecting' : 'Connect key'}
+                      </Button>
+                    </div>
+                    {keyError && (
+                      <p className="provider-secret-error" role="alert">
+                        {keyError}
+                      </p>
+                    )}
+                    <p className="provider-secret-hint">
+                      Stored on this server only. The value is never displayed again after saving.
+                    </p>
+                  </form>
+                ) : (
+                  <div className="provider-secret-row">
+                    <span className="provider-secret-state">
+                      <Check size={14} /> Credential connected on this server
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={keyPending}
+                      onClick={async () => {
+                        setKeyPending(true);
+                        setKeyError('');
+                        try {
+                          await onDisconnectSecret(active.id);
+                        } catch (failure) {
+                          setKeyError(
+                            failure instanceof Error && failure.message
+                              ? failure.message
+                              : 'Could not remove the key on this server.',
+                          );
+                        } finally {
+                          setKeyPending(false);
+                        }
+                      }}
+                    >
+                      {keyPending ? 'Removing' : 'Remove credential'}
+                    </Button>
+                  </div>
+                )}
+                {keyError && active.secret === 'configured' && (
+                  <p className="provider-secret-error" role="alert">
+                    {keyError}
+                  </p>
+                )}
               </div>
             )}
             <div className="provider-model-heading">
