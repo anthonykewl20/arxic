@@ -1,0 +1,800 @@
+{
+  "files": [
+    {
+      "path": "engine-green/chromium/checkpoint-1.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    {
+      "path": "engine-green/chromium/checkpoint-1.png.privacy.json",
+      "sha256": "ace09cac73f2331fe3956b222b99e67fb7659fd60798e5bb78743ac8a19016ba"
+    },
+    {
+      "path": "engine-green/chromium/checkpoint-3.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    {
+      "path": "engine-green/chromium/checkpoint-3.png.privacy.json",
+      "sha256": "ace09cac73f2331fe3956b222b99e67fb7659fd60798e5bb78743ac8a19016ba"
+    },
+    {
+      "path": "engine-green/chromium/result.json",
+      "sha256": "f3a55865ac2a3022d7fa4a5ca7e70c9288c338f507632235b849330cde30cd22"
+    },
+    {
+      "path": "engine-green/chromium/timeline.json",
+      "sha256": "571b8ff581584c7a7ba0f36a3577e6d6c842e4e788059fddf429d95b8eda0c10"
+    },
+    {
+      "path": "engine-green/chromium/timeline.sanitization.json",
+      "sha256": "660b5f64301995430ca0d371a7e48e6c06a297d594a7d5666bf9ac7e912a81d9"
+    },
+    {
+      "path": "engine-green/firefox/checkpoint-1.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42"
+    },
+    {
+      "path": "engine-green/firefox/checkpoint-1.png.privacy.json",
+      "sha256": "ed2f85fb2ad22c0afbd6db1c1320647fe0b7d3dd0dae799e74ea1b78ce3ccbef"
+    },
+    {
+      "path": "engine-green/firefox/checkpoint-3.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42"
+    },
+    {
+      "path": "engine-green/firefox/checkpoint-3.png.privacy.json",
+      "sha256": "ed2f85fb2ad22c0afbd6db1c1320647fe0b7d3dd0dae799e74ea1b78ce3ccbef"
+    },
+    {
+      "path": "engine-green/firefox/result.json",
+      "sha256": "f1a1f63c5bf732cc56107e8ca945d8ddd772f26b8beba7dc0c89ef35ab0fb058"
+    },
+    {
+      "path": "engine-green/firefox/timeline.json",
+      "sha256": "b890db81349bfc6beb92301125ea07d645576ec88fbc8cc098e00da9cd7d8cb9"
+    },
+    {
+      "path": "engine-green/firefox/timeline.sanitization.json",
+      "sha256": "2358a0f6a12ec193ba8c46904052a5708b5d7ea243aad91e67a71c6c55a29946"
+    },
+    {
+      "path": "engine-green/webkit/checkpoint-1.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69"
+    },
+    {
+      "path": "engine-green/webkit/checkpoint-1.png.privacy.json",
+      "sha256": "7208b54e38bece8f86035121fce35595afb6c7fa673eb1dd15b8105680fd9609"
+    },
+    {
+      "path": "engine-green/webkit/checkpoint-3.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69"
+    },
+    {
+      "path": "engine-green/webkit/checkpoint-3.png.privacy.json",
+      "sha256": "7208b54e38bece8f86035121fce35595afb6c7fa673eb1dd15b8105680fd9609"
+    },
+    {
+      "path": "engine-green/webkit/result.json",
+      "sha256": "68932396f82fbefc55cfc89beb4cc871207a157b77186d21118b0cd28ee58b0a"
+    },
+    {
+      "path": "engine-green/webkit/timeline.json",
+      "sha256": "afdeb8e0ed6db01306c9d2e0307141ab0c100965f416891f8681fb9447f307af"
+    },
+    {
+      "path": "engine-green/webkit/timeline.sanitization.json",
+      "sha256": "4070d96d00ced2c03ab11ab5aa4d4b9e913c847940557df142aa2824aa051a05"
+    },
+    {
+      "path": "firefox-dashboard/chromium/checkpoint-1.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    {
+      "path": "firefox-dashboard/chromium/checkpoint-1.png.privacy.json",
+      "sha256": "0061b1a605de458c361b1c8f5f771b5387c65e2c24c00d394ed5e20170d69f57"
+    },
+    {
+      "path": "firefox-dashboard/chromium/checkpoint-3.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    {
+      "path": "firefox-dashboard/chromium/checkpoint-3.png.privacy.json",
+      "sha256": "0061b1a605de458c361b1c8f5f771b5387c65e2c24c00d394ed5e20170d69f57"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/01-write-refusal-1440.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/01-write-refusal-1440.png",
+      "sha256": "32d30137ae5e5a2af4ecec40aaa6f101f44b2b4e05937abb6793f5da57b8a3d3"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/01-write-refusal-1440.png.privacy.json",
+      "sha256": "f01741f435000a69d41015dc174a82c3af9a89c4ee3b6521dfddebe5b06869af"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/01-write-refusal-320.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/01-write-refusal-320.png",
+      "sha256": "fdceaa7d3ee4b40f982e66dd05878591ca89ce6d20c524b31d9529b9831571a8"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/01-write-refusal-320.png.privacy.json",
+      "sha256": "e7f3e33654800909f409b2aea07c2467130f7b23f74b3b2cb18e6be8003392c2"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/02-manual-recovery.audit.json",
+      "sha256": "b08f198651adb40683896c6796e71c2cb79ed424846597eadb9e531d6275bda3"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/02-manual-recovery.png",
+      "sha256": "9bc09f4705f1bdeded27bba5c162b7d7d338ef5837b31e64988b3d059e89ba58"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/02-manual-recovery.png.privacy.json",
+      "sha256": "d44ab1f29fc25916319b714dd81003718e272c20ee9bdb740e94f030ffb92d3a"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/timeline.json",
+      "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405"
+    },
+    {
+      "path": "firefox-dashboard/chromium/dashboard/timeline.sanitization.json",
+      "sha256": "d97eecbbbc0cdafb80f9eef67df3f1a26a21b2d4ece5938f34170c75dfcc5f9f"
+    },
+    {
+      "path": "firefox-dashboard/chromium/result.json",
+      "sha256": "f3a55865ac2a3022d7fa4a5ca7e70c9288c338f507632235b849330cde30cd22"
+    },
+    {
+      "path": "firefox-dashboard/chromium/timeline.json",
+      "sha256": "571b8ff581584c7a7ba0f36a3577e6d6c842e4e788059fddf429d95b8eda0c10"
+    },
+    {
+      "path": "firefox-dashboard/chromium/timeline.sanitization.json",
+      "sha256": "660b5f64301995430ca0d371a7e48e6c06a297d594a7d5666bf9ac7e912a81d9"
+    },
+    {
+      "path": "firefox-dashboard/firefox/checkpoint-1.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42"
+    },
+    {
+      "path": "firefox-dashboard/firefox/checkpoint-1.png.privacy.json",
+      "sha256": "e50e1e7e2b5f1cbdf2101936b0cb54404f54076ff13c34613a7e6d2395049de3"
+    },
+    {
+      "path": "firefox-dashboard/firefox/checkpoint-3.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42"
+    },
+    {
+      "path": "firefox-dashboard/firefox/checkpoint-3.png.privacy.json",
+      "sha256": "e50e1e7e2b5f1cbdf2101936b0cb54404f54076ff13c34613a7e6d2395049de3"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/01-write-refusal-1440.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/01-write-refusal-1440.png",
+      "sha256": "9e568476f74ec4326f1487369a3705548b7ab0bf8c66368839ac855859d969c9"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/01-write-refusal-1440.png.privacy.json",
+      "sha256": "6688e6e06abb17dc48850f4949d05c7d73ebef0d985c298e36bfa13ba1038043"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/01-write-refusal-320.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/01-write-refusal-320.png",
+      "sha256": "9f1d30ca4584504aa97d5895e9c66ab7728cc22e53e6b166d17b1f80179d0887"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/01-write-refusal-320.png.privacy.json",
+      "sha256": "31ad78fd656828410240a068d071fc1cd440c7d16fb26d428b364b3b5042fdcb"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/02-manual-recovery.audit.json",
+      "sha256": "b08f198651adb40683896c6796e71c2cb79ed424846597eadb9e531d6275bda3"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/02-manual-recovery.png",
+      "sha256": "9d7c06972ddda704d3c80cc345e6c581b5be284adc35a3b27eff43b7d915d9ec"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/02-manual-recovery.png.privacy.json",
+      "sha256": "5ee44c72daa971244e6dce0c585eec4fde8b896466592be32ed0c198737b8020"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/timeline.json",
+      "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405"
+    },
+    {
+      "path": "firefox-dashboard/firefox/dashboard/timeline.sanitization.json",
+      "sha256": "d97eecbbbc0cdafb80f9eef67df3f1a26a21b2d4ece5938f34170c75dfcc5f9f"
+    },
+    {
+      "path": "firefox-dashboard/firefox/result.json",
+      "sha256": "f1a1f63c5bf732cc56107e8ca945d8ddd772f26b8beba7dc0c89ef35ab0fb058"
+    },
+    {
+      "path": "firefox-dashboard/firefox/timeline.json",
+      "sha256": "b890db81349bfc6beb92301125ea07d645576ec88fbc8cc098e00da9cd7d8cb9"
+    },
+    {
+      "path": "firefox-dashboard/firefox/timeline.sanitization.json",
+      "sha256": "2358a0f6a12ec193ba8c46904052a5708b5d7ea243aad91e67a71c6c55a29946"
+    },
+    {
+      "path": "firefox-dashboard/webkit/checkpoint-1.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69"
+    },
+    {
+      "path": "firefox-dashboard/webkit/checkpoint-1.png.privacy.json",
+      "sha256": "0d84792689391fb05567994924c20910d757d41b0d1c6709e339e0b092637e98"
+    },
+    {
+      "path": "firefox-dashboard/webkit/checkpoint-3.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69"
+    },
+    {
+      "path": "firefox-dashboard/webkit/checkpoint-3.png.privacy.json",
+      "sha256": "0d84792689391fb05567994924c20910d757d41b0d1c6709e339e0b092637e98"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/01-write-refusal-1440.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/01-write-refusal-1440.png",
+      "sha256": "ca4ad1885f32b30e12f7fd9ebef092dbc2afa7521785cc677d56e80fb906e4e9"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/01-write-refusal-1440.png.privacy.json",
+      "sha256": "5f19b31b28285dc021aea9dff7e4e797bf03e0700989cdb8b9b2b7d80037ad1f"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/01-write-refusal-320.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/01-write-refusal-320.png",
+      "sha256": "b779e4463ab2ea3918769c103b53499f9d9166dc08bb9a7f4c0d666bba3b3a73"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/01-write-refusal-320.png.privacy.json",
+      "sha256": "b00944484a287c1cf010a9654b1699f8ec2472852b84f0c51ebf64fe9f3f11f0"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/02-manual-recovery.audit.json",
+      "sha256": "b08f198651adb40683896c6796e71c2cb79ed424846597eadb9e531d6275bda3"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/02-manual-recovery.png",
+      "sha256": "920ff12c16424a1fa68045cf8c5680b36134bc239d7a57be6f48f5f1e7f14bd2"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/02-manual-recovery.png.privacy.json",
+      "sha256": "34646c99347a75d176c5e8a721f7ca2f95a746d08d371a9d22c7259c7f933e25"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/timeline.json",
+      "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405"
+    },
+    {
+      "path": "firefox-dashboard/webkit/dashboard/timeline.sanitization.json",
+      "sha256": "d97eecbbbc0cdafb80f9eef67df3f1a26a21b2d4ece5938f34170c75dfcc5f9f"
+    },
+    {
+      "path": "firefox-dashboard/webkit/result.json",
+      "sha256": "68932396f82fbefc55cfc89beb4cc871207a157b77186d21118b0cd28ee58b0a"
+    },
+    {
+      "path": "firefox-dashboard/webkit/timeline.json",
+      "sha256": "afdeb8e0ed6db01306c9d2e0307141ab0c100965f416891f8681fb9447f307af"
+    },
+    {
+      "path": "firefox-dashboard/webkit/timeline.sanitization.json",
+      "sha256": "4070d96d00ced2c03ab11ab5aa4d4b9e913c847940557df142aa2824aa051a05"
+    },
+    {
+      "path": "red/chromium/checkpoint-1.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    {
+      "path": "red/chromium/checkpoint-1.png.privacy.json",
+      "sha256": "8e6f8ecbc91310160ca7827242d340a472d3f13b689761bd0d19d9bf0f0ffa28"
+    },
+    {
+      "path": "red/chromium/result.json",
+      "sha256": "78a841b66dfdbcf493da21670d3b10270f3546311670e9c807fe3800fe1ded01"
+    },
+    {
+      "path": "red/chromium/timeline.json",
+      "sha256": "120016104df7d69668f5c43426ad74d3a75aa827838aba6f3ad3ec5074801277"
+    },
+    {
+      "path": "red/chromium/timeline.sanitization.json",
+      "sha256": "e7c9e88dc98626a9afee34157b9638b0ef974bba0ca39a97a1e2e1b0a8134c2c"
+    },
+    {
+      "path": "red/firefox/checkpoint-1.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42"
+    },
+    {
+      "path": "red/firefox/checkpoint-1.png.privacy.json",
+      "sha256": "5262e794fa337fbd874a7673b2b6d9f806301b3617e61d6e0ef213452d59fbbc"
+    },
+    {
+      "path": "red/firefox/result.json",
+      "sha256": "46bc3178fd821cc112caa3801caa37cb9e69ea21f3af2145a69d870d9133c788"
+    },
+    {
+      "path": "red/firefox/timeline.json",
+      "sha256": "b5b58fbc00cb3c328585b06d656113ec1e66a3713484f3fd750739d87afe2ec4"
+    },
+    {
+      "path": "red/firefox/timeline.sanitization.json",
+      "sha256": "f00bae6fc7353be79db95064d684f68bde9c755fca1612b1e2df71c0722baf8b"
+    },
+    {
+      "path": "red/webkit/checkpoint-1.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69"
+    },
+    {
+      "path": "red/webkit/checkpoint-1.png.privacy.json",
+      "sha256": "0129fdfa6bff2a9f8413b4ca52935116a352a260de38b2f3fe348db4843b16e5"
+    },
+    {
+      "path": "red/webkit/result.json",
+      "sha256": "5141bd0b3cfb4add19a01777fe9d0f2857dba9fde98f5b10d03952497fca0dcd"
+    },
+    {
+      "path": "red/webkit/timeline.json",
+      "sha256": "3a7c04a1017f1878f2efa6f7f8eb8f91fd86db479267dc6fc6e26df8f0c6d045"
+    },
+    {
+      "path": "red/webkit/timeline.sanitization.json",
+      "sha256": "7e84acdafee68157a60dd18fa0d51dd2fd6c08d5d8ac335a3235f3cbb0277217"
+    },
+    {
+      "path": "server-green/chromium/checkpoint-1.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    {
+      "path": "server-green/chromium/checkpoint-1.png.privacy.json",
+      "sha256": "f03eaa71c62c0aef33cb08e714db0e9d2d5fdd41e5d754f81d69cb9aa0b7a93a"
+    },
+    {
+      "path": "server-green/chromium/checkpoint-3.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    {
+      "path": "server-green/chromium/checkpoint-3.png.privacy.json",
+      "sha256": "f03eaa71c62c0aef33cb08e714db0e9d2d5fdd41e5d754f81d69cb9aa0b7a93a"
+    },
+    {
+      "path": "server-green/chromium/dashboard/01-write-refusal-1440.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "server-green/chromium/dashboard/01-write-refusal-1440.png",
+      "sha256": "f3d837ca72d6956a545f7a017807f734b19db8ab814e9479b4e9a8357881ebde"
+    },
+    {
+      "path": "server-green/chromium/dashboard/01-write-refusal-1440.png.privacy.json",
+      "sha256": "16927958f4d514a6a16296d003ab1fcf347c42ecb97f4798329bf84753ea6d85"
+    },
+    {
+      "path": "server-green/chromium/dashboard/01-write-refusal-320.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "server-green/chromium/dashboard/01-write-refusal-320.png",
+      "sha256": "d83a1d3851210d4f180997ef5564dcecb43ec25d222139fc40599d58f6ec7942"
+    },
+    {
+      "path": "server-green/chromium/dashboard/01-write-refusal-320.png.privacy.json",
+      "sha256": "847b43ac22e0c40f8dc7e962725d145f0278f5863dfb55054aa10fc0eb8bd566"
+    },
+    {
+      "path": "server-green/chromium/dashboard/02-manual-recovery.audit.json",
+      "sha256": "b08f198651adb40683896c6796e71c2cb79ed424846597eadb9e531d6275bda3"
+    },
+    {
+      "path": "server-green/chromium/dashboard/02-manual-recovery.png",
+      "sha256": "ec38725e5348c538eefa4a8d30348a60cc069e9270f9cd59a9f9a54b65724fe5"
+    },
+    {
+      "path": "server-green/chromium/dashboard/02-manual-recovery.png.privacy.json",
+      "sha256": "2bfae3ee52f9c2021a79d38ee627ef534ffd5ac77b6b325bf6eb9d3aec677e97"
+    },
+    {
+      "path": "server-green/chromium/dashboard/timeline.json",
+      "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405"
+    },
+    {
+      "path": "server-green/chromium/dashboard/timeline.sanitization.json",
+      "sha256": "a3144702b7f3c65b4fed2d2ced51a4dc1a7429aea7d5a53bf5228b297b4d1915"
+    },
+    {
+      "path": "server-green/chromium/result.json",
+      "sha256": "f3a55865ac2a3022d7fa4a5ca7e70c9288c338f507632235b849330cde30cd22"
+    },
+    {
+      "path": "server-green/chromium/timeline.json",
+      "sha256": "571b8ff581584c7a7ba0f36a3577e6d6c842e4e788059fddf429d95b8eda0c10"
+    },
+    {
+      "path": "server-green/chromium/timeline.sanitization.json",
+      "sha256": "660b5f64301995430ca0d371a7e48e6c06a297d594a7d5666bf9ac7e912a81d9"
+    },
+    {
+      "path": "server-green/firefox/checkpoint-1.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42"
+    },
+    {
+      "path": "server-green/firefox/checkpoint-1.png.privacy.json",
+      "sha256": "70e0cd0ad66e64d9a4aa04087cb7a1afcff0fd8ff8a102e700a693b85a7e54e5"
+    },
+    {
+      "path": "server-green/firefox/checkpoint-3.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42"
+    },
+    {
+      "path": "server-green/firefox/checkpoint-3.png.privacy.json",
+      "sha256": "70e0cd0ad66e64d9a4aa04087cb7a1afcff0fd8ff8a102e700a693b85a7e54e5"
+    },
+    {
+      "path": "server-green/firefox/dashboard/01-write-refusal-1440.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "server-green/firefox/dashboard/01-write-refusal-1440.png",
+      "sha256": "adef86a9498d811b15ae65594b172b18d207c0225a4ee10bd48487fc10f5b47a"
+    },
+    {
+      "path": "server-green/firefox/dashboard/01-write-refusal-1440.png.privacy.json",
+      "sha256": "a8fae4a275981bfdeb56cf5446d2c388df225ed70cd1c305fa5c3d74810e4c67"
+    },
+    {
+      "path": "server-green/firefox/dashboard/01-write-refusal-320.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "server-green/firefox/dashboard/01-write-refusal-320.png",
+      "sha256": "673c34f6be00d23b9abae2fff435f9d5150ba2aa2b172a6137d46c7039c26480"
+    },
+    {
+      "path": "server-green/firefox/dashboard/01-write-refusal-320.png.privacy.json",
+      "sha256": "5846f28c4efa4c343d555cd1e19ba6e1693f7bf1fe35e101e810841dcf413514"
+    },
+    {
+      "path": "server-green/firefox/dashboard/02-manual-recovery.audit.json",
+      "sha256": "b08f198651adb40683896c6796e71c2cb79ed424846597eadb9e531d6275bda3"
+    },
+    {
+      "path": "server-green/firefox/dashboard/02-manual-recovery.png",
+      "sha256": "cc1768491b49d23e94271d1c2d7342cee96bf76ff4ac3cdf727edbb2d3c14bec"
+    },
+    {
+      "path": "server-green/firefox/dashboard/02-manual-recovery.png.privacy.json",
+      "sha256": "7a0d999fe1a654c56f8a2484e12c92bf183b64080e7eee9474095f6af575d9cc"
+    },
+    {
+      "path": "server-green/firefox/dashboard/timeline.json",
+      "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405"
+    },
+    {
+      "path": "server-green/firefox/dashboard/timeline.sanitization.json",
+      "sha256": "a3144702b7f3c65b4fed2d2ced51a4dc1a7429aea7d5a53bf5228b297b4d1915"
+    },
+    {
+      "path": "server-green/firefox/result.json",
+      "sha256": "f1a1f63c5bf732cc56107e8ca945d8ddd772f26b8beba7dc0c89ef35ab0fb058"
+    },
+    {
+      "path": "server-green/firefox/timeline.json",
+      "sha256": "b890db81349bfc6beb92301125ea07d645576ec88fbc8cc098e00da9cd7d8cb9"
+    },
+    {
+      "path": "server-green/firefox/timeline.sanitization.json",
+      "sha256": "2358a0f6a12ec193ba8c46904052a5708b5d7ea243aad91e67a71c6c55a29946"
+    },
+    {
+      "path": "server-green/webkit/checkpoint-1.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69"
+    },
+    {
+      "path": "server-green/webkit/checkpoint-1.png.privacy.json",
+      "sha256": "c3430e8e6833eda444b752f26b757876d2de4b9feeebf2b626ca1432e5c4ae9a"
+    },
+    {
+      "path": "server-green/webkit/checkpoint-3.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69"
+    },
+    {
+      "path": "server-green/webkit/checkpoint-3.png.privacy.json",
+      "sha256": "c3430e8e6833eda444b752f26b757876d2de4b9feeebf2b626ca1432e5c4ae9a"
+    },
+    {
+      "path": "server-green/webkit/dashboard/01-write-refusal-1440.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "server-green/webkit/dashboard/01-write-refusal-1440.png",
+      "sha256": "38be5172c6e3057cc78782b807633f1072ef3403a6ebbdc852b586ccb6747a37"
+    },
+    {
+      "path": "server-green/webkit/dashboard/01-write-refusal-1440.png.privacy.json",
+      "sha256": "27f643119de334dcd9b68229f818edad448b880e458621682df161219786f1f5"
+    },
+    {
+      "path": "server-green/webkit/dashboard/01-write-refusal-320.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "server-green/webkit/dashboard/01-write-refusal-320.png",
+      "sha256": "0102bd01421908a88159b6a82a83c77fa7c0793cc88cd90096d1dfbb3a7452cc"
+    },
+    {
+      "path": "server-green/webkit/dashboard/01-write-refusal-320.png.privacy.json",
+      "sha256": "5a5357489b7ac3ce9bf61e1070ced4a9d93634cb508834fcf4068f07c1fe3580"
+    },
+    {
+      "path": "server-green/webkit/dashboard/02-manual-recovery.audit.json",
+      "sha256": "b08f198651adb40683896c6796e71c2cb79ed424846597eadb9e531d6275bda3"
+    },
+    {
+      "path": "server-green/webkit/dashboard/02-manual-recovery.png",
+      "sha256": "860ad99b6e4fa55de55fca3b5d2c5015b4d1822f4fae406b8e0dc34adc6da6db"
+    },
+    {
+      "path": "server-green/webkit/dashboard/02-manual-recovery.png.privacy.json",
+      "sha256": "f506538c7eff853384069e414c71bd92310d8810febba5b37ec627cb90057e25"
+    },
+    {
+      "path": "server-green/webkit/dashboard/timeline.json",
+      "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405"
+    },
+    {
+      "path": "server-green/webkit/dashboard/timeline.sanitization.json",
+      "sha256": "a3144702b7f3c65b4fed2d2ced51a4dc1a7429aea7d5a53bf5228b297b4d1915"
+    },
+    {
+      "path": "server-green/webkit/result.json",
+      "sha256": "68932396f82fbefc55cfc89beb4cc871207a157b77186d21118b0cd28ee58b0a"
+    },
+    {
+      "path": "server-green/webkit/timeline.json",
+      "sha256": "afdeb8e0ed6db01306c9d2e0307141ab0c100965f416891f8681fb9447f307af"
+    },
+    {
+      "path": "server-green/webkit/timeline.sanitization.json",
+      "sha256": "4070d96d00ced2c03ab11ab5aa4d4b9e913c847940557df142aa2824aa051a05"
+    },
+    {
+      "path": "summary.md",
+      "sha256": "083678fc1156698dd52d219f83cbe0466c6ba021ca0bb02845e620c960313eaa"
+    },
+    {
+      "path": "webkit-dashboard/chromium/checkpoint-1.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    {
+      "path": "webkit-dashboard/chromium/checkpoint-1.png.privacy.json",
+      "sha256": "4f0a6a1e926c9c7ec3c16e43d3591770aad64140726beaddf57cbee5097890f1"
+    },
+    {
+      "path": "webkit-dashboard/chromium/checkpoint-3.png",
+      "sha256": "7125537953dccb3afee4801a0a295c035f7a3f3dff7865f50f4e2ca744c1365a"
+    },
+    {
+      "path": "webkit-dashboard/chromium/checkpoint-3.png.privacy.json",
+      "sha256": "4f0a6a1e926c9c7ec3c16e43d3591770aad64140726beaddf57cbee5097890f1"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/01-write-refusal-1440.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/01-write-refusal-1440.png",
+      "sha256": "fccc5d4d99763e6a955943654f56d84168094f3b627253e80e1833da67782170"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/01-write-refusal-1440.png.privacy.json",
+      "sha256": "ad78dd069a32b9c5068845941e9028a2b7cf398869c5ab104fdd403e9517de4b"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/01-write-refusal-320.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/01-write-refusal-320.png",
+      "sha256": "b12d561f26baff013ae7dbd0f19a706361950cc1e41653e4f4f07a3225e2ca11"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/01-write-refusal-320.png.privacy.json",
+      "sha256": "9da935fed488ca3fcff238fb478c96323e472bca05b3c0f4ab23edd6e18eed18"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/02-manual-recovery.audit.json",
+      "sha256": "b08f198651adb40683896c6796e71c2cb79ed424846597eadb9e531d6275bda3"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/02-manual-recovery.png",
+      "sha256": "5ad57c1ff225eed37dd2d77d467478014b7ae9bdb99dc80134a3cbf14cfba2fa"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/02-manual-recovery.png.privacy.json",
+      "sha256": "9f1bd4d797b70894826a745cb0a6b29a3a068b5cadf85c20047a26c871938ca3"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/timeline.json",
+      "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405"
+    },
+    {
+      "path": "webkit-dashboard/chromium/dashboard/timeline.sanitization.json",
+      "sha256": "313828a0778d8685426ae8ab596cc200786cb2b5071533a49b8651d51867004a"
+    },
+    {
+      "path": "webkit-dashboard/chromium/result.json",
+      "sha256": "f3a55865ac2a3022d7fa4a5ca7e70c9288c338f507632235b849330cde30cd22"
+    },
+    {
+      "path": "webkit-dashboard/chromium/timeline.json",
+      "sha256": "571b8ff581584c7a7ba0f36a3577e6d6c842e4e788059fddf429d95b8eda0c10"
+    },
+    {
+      "path": "webkit-dashboard/chromium/timeline.sanitization.json",
+      "sha256": "660b5f64301995430ca0d371a7e48e6c06a297d594a7d5666bf9ac7e912a81d9"
+    },
+    {
+      "path": "webkit-dashboard/firefox/checkpoint-1.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42"
+    },
+    {
+      "path": "webkit-dashboard/firefox/checkpoint-1.png.privacy.json",
+      "sha256": "151a9699158a59949a38a5ea2d1544908a3c5640874a09cdda0024e908a7c48d"
+    },
+    {
+      "path": "webkit-dashboard/firefox/checkpoint-3.png",
+      "sha256": "526998692c01460d271ca36e167771167d505fd361c43e2d191528f7db133b42"
+    },
+    {
+      "path": "webkit-dashboard/firefox/checkpoint-3.png.privacy.json",
+      "sha256": "151a9699158a59949a38a5ea2d1544908a3c5640874a09cdda0024e908a7c48d"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/01-write-refusal-1440.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/01-write-refusal-1440.png",
+      "sha256": "709592a579cea5e129175e4c631aedd7c651c6a56e167a7598234367664f481b"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/01-write-refusal-1440.png.privacy.json",
+      "sha256": "d86f3cbc0f9325df892c7c8604cd8065f367fcc6c526b02fc79f2b5d3b8af536"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/01-write-refusal-320.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/01-write-refusal-320.png",
+      "sha256": "19dd838bdc191a13b9946859e0afbc90202751f1702671c90017fc967d3c413f"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/01-write-refusal-320.png.privacy.json",
+      "sha256": "26fa4e6cd5bdcfe45b654d3d1f0fcba4eff8d8730b0f2c6f4a8c7f25e269c152"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/02-manual-recovery.audit.json",
+      "sha256": "b08f198651adb40683896c6796e71c2cb79ed424846597eadb9e531d6275bda3"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/02-manual-recovery.png",
+      "sha256": "a2696d5616bdabee3b1cfadcb353bc0a264505ffe8cffda4ceb804543d883471"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/02-manual-recovery.png.privacy.json",
+      "sha256": "3e35dedb59002ef5e5d3c1477ad6ac2bf4040e2514b2e5d30b0ca2300bf35493"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/timeline.json",
+      "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405"
+    },
+    {
+      "path": "webkit-dashboard/firefox/dashboard/timeline.sanitization.json",
+      "sha256": "313828a0778d8685426ae8ab596cc200786cb2b5071533a49b8651d51867004a"
+    },
+    {
+      "path": "webkit-dashboard/firefox/result.json",
+      "sha256": "f1a1f63c5bf732cc56107e8ca945d8ddd772f26b8beba7dc0c89ef35ab0fb058"
+    },
+    {
+      "path": "webkit-dashboard/firefox/timeline.json",
+      "sha256": "b890db81349bfc6beb92301125ea07d645576ec88fbc8cc098e00da9cd7d8cb9"
+    },
+    {
+      "path": "webkit-dashboard/firefox/timeline.sanitization.json",
+      "sha256": "2358a0f6a12ec193ba8c46904052a5708b5d7ea243aad91e67a71c6c55a29946"
+    },
+    {
+      "path": "webkit-dashboard/webkit/checkpoint-1.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69"
+    },
+    {
+      "path": "webkit-dashboard/webkit/checkpoint-1.png.privacy.json",
+      "sha256": "24fe1c68305053634f77dc1fb0cd530a91094718231884102f9e048e8a270828"
+    },
+    {
+      "path": "webkit-dashboard/webkit/checkpoint-3.png",
+      "sha256": "db504570dc1a7d03abfb4f0798552a577cf9c95a32c1bb98a4a828f5a4f7db69"
+    },
+    {
+      "path": "webkit-dashboard/webkit/checkpoint-3.png.privacy.json",
+      "sha256": "24fe1c68305053634f77dc1fb0cd530a91094718231884102f9e048e8a270828"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/01-write-refusal-1440.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/01-write-refusal-1440.png",
+      "sha256": "2c1b2416f528ebb50ddab335d3ef2788e24f288d77896df758fb4fbb0e06b4a6"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/01-write-refusal-1440.png.privacy.json",
+      "sha256": "7285d35f63bf59adaa1f94c958b502be5daa487b5776064ff128544ba447e807"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/01-write-refusal-320.audit.json",
+      "sha256": "a1360ab81f93d8bb62d93d8c1d1e8614032d7ffda30b7ef68589f49c65e1e68b"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/01-write-refusal-320.png",
+      "sha256": "2ef9722e5a8f425b977c31ffff7b0cda511a8b4301f87e64d0366bc527174570"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/01-write-refusal-320.png.privacy.json",
+      "sha256": "37dd0fca769c53153cf2d9361851e91e06c3d4330c43e2409b57d425a32cb2b0"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/02-manual-recovery.audit.json",
+      "sha256": "b08f198651adb40683896c6796e71c2cb79ed424846597eadb9e531d6275bda3"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/02-manual-recovery.png",
+      "sha256": "f8274728cd6ee52f7cae3e4b122e51129dbd76960c3650e0c7f84e4778c134a3"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/02-manual-recovery.png.privacy.json",
+      "sha256": "688fda3440b8ae8b543a72627b6bd1e85f53fb6a9f21684d7468f1cf2a6da3df"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/timeline.json",
+      "sha256": "f2f86f70e4c9ed7ee51002133ea80970d44480659470e3dbf75fb0def2a4a405"
+    },
+    {
+      "path": "webkit-dashboard/webkit/dashboard/timeline.sanitization.json",
+      "sha256": "313828a0778d8685426ae8ab596cc200786cb2b5071533a49b8651d51867004a"
+    },
+    {
+      "path": "webkit-dashboard/webkit/result.json",
+      "sha256": "68932396f82fbefc55cfc89beb4cc871207a157b77186d21118b0cd28ee58b0a"
+    },
+    {
+      "path": "webkit-dashboard/webkit/timeline.json",
+      "sha256": "afdeb8e0ed6db01306c9d2e0307141ab0c100965f416891f8681fb9447f307af"
+    },
+    {
+      "path": "webkit-dashboard/webkit/timeline.sanitization.json",
+      "sha256": "4070d96d00ced2c03ab11ab5aa4d4b9e913c847940557df142aa2824aa051a05"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "sha256": "b12d561f26baff013ae7dbd0f19a706361950cc1e41653e4f4f07a3225e2ca11",
+  "policy": "persona-free test dashboard; password inputs masked",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed",
+  "sourceCommit": "aa661279c24f34a2f96be9309f2a0dd208a4b1e5",
+  "browser": {
+    "name": "webkit",
+    "version": "26.5"
+  },
+  "dirty": true
+}
