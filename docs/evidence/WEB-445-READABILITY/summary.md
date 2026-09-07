@@ -261,6 +261,27 @@ cancellation candidate failed and was removed. No Fetch API error filter or
 production lifecycle cancellation was retained. The login fix and correct
 completed-sign-in precondition do not establish a general early-reload fix.
 
-The complete selection now contains **35 agent-inspected masked PNGs and 30 exact
+The complete selection now contains **36 agent-inspected masked PNGs and 31 exact
 timeline excerpts**. Required CI against the login/evidence head, broader #402
 coverage and human release inspection remain outstanding.
+
+
+The follow-up CI run [34075361763](https://github.com/anthonykewl20/arxic/actions/runs/34075361763)
+on `3afd1dd` failed source shard 1: the light gallery retained five healthy-page
+captures where six were required. All three installed dashboard jobs passed;
+this does not waive the source failure. The original missing-capture cause is
+unresolved in [#448](https://github.com/anthonykewl20/arxic/issues/448).
+The gallery now retains per-cell capture/findings diagnostics under the shared
+CI evidence directory and a named failed numeric screenshot before the original
+six-capture assertion. No count, privacy gate, or retry policy was relaxed.
+
+A focused normal real Chromium gallery run passed (61.34 s). A temporary real
+reference proxy refusal of the Firefox root page then made the same test fail
+at four captures (60.34 s), with both Firefox cells explicitly zero. This
+controlled guard proves the new diagnostic branch, **not** the cause of the CI
+five-capture failure. The injection was removed. The agent-viewed
+[masked failure screenshot](./gallery-diagnostic/07-blocked-capture-shortfall.png),
+[failed numeric audit](./gallery-diagnostic/07-blocked-capture-shortfall.audit.json),
+[per-cell record](./gallery-diagnostic/blocked-matrix.json) and exact timeline
+excerpt retain source `3afd1dd`, dirty=true. No raw traces or error messages were
+retained. Latest-head CI is still required.

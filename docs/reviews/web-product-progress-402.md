@@ -176,3 +176,5 @@ was lost during session cleanup. `d6ff592` restores the requested URL after sign
 ten real source cases passed across Chromium, Firefox and WebKit, including
 stale-response/draft/consent checks. The current login/evidence head still requires
 CI. Generic WebKit early-reload error classification remains tracked in #447.
+
+Dashboard validation follow-up: source CI 34075361763 retained five of six required healthy-page gallery captures. Per-cell failure evidence is now retained; the original cause remains tracked in [#448](https://github.com/anthonykewl20/arxic/issues/448), and a later local pass does not discharge it.

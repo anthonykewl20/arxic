@@ -46,12 +46,12 @@ it.each(['light', 'dark'] as const)(
       reducedMotion: 'reduce',
     });
     const page = await context.newPage();
-    const proof = dashboardProof(
-      page,
-      process.env.ARXIC_GALLERY_EVIDENCE_DIR
-        ? join(process.env.ARXIC_GALLERY_EVIDENCE_DIR, theme)
-        : undefined,
-    );
+    const galleryEvidence =
+      process.env.ARXIC_GALLERY_EVIDENCE_DIR ??
+      (process.env.ARXIC_WEB_EVIDENCE_DIR
+        ? join(process.env.ARXIC_WEB_EVIDENCE_DIR, 'gallery')
+        : undefined);
+    const proof = dashboardProof(page, galleryEvidence ? join(galleryEvidence, theme) : undefined);
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.name));
     let app: Awaited<ReturnType<typeof startWorkbench>> | undefined;
@@ -327,7 +327,35 @@ it.each(['light', 'dark'] as const)(
         .poll(async () => (await readRun(blockedId)).state, { timeout: 90000 })
         .toBe('blocked');
       const blockedRun = await readRun(blockedId);
-      expect(blockedRun.result!.captures).toHaveLength(6);
+      const blockedMatrix = {
+        captures: blockedRun.result!.captures!.map((capture) => ({
+          path: capture.path,
+          environment: capture.environment,
+        })),
+        environments: blockedRun.result!.visualEnvironments,
+        findings: blockedRun.result!.findings,
+      };
+      if (galleryEvidence)
+        await writeFile(
+          join(galleryEvidence, theme, 'blocked-matrix.json'),
+          JSON.stringify(blockedMatrix, null, 2),
+        );
+      if (blockedRun.result!.captures!.length !== 6) {
+        await page.goto(`${app.origin}?view=runs&run=${blockedId}`);
+        await page.getByRole('region', { name: 'Visual environments', exact: true }).waitFor();
+        await proof.audit(
+          '07-blocked-capture-shortfall',
+          'Preserve the missing matrix cell diagnostic before asserting the required healthy-page captures',
+          [
+            {
+              id: 'healthy-page-capture-count',
+              passed: false,
+              values: { expected: 6, actual: blockedRun.result!.captures!.length },
+            },
+          ],
+        );
+      }
+      expect(blockedRun.result!.captures, JSON.stringify(blockedMatrix)).toHaveLength(6);
       expect(
         blockedRun.result!.visualEnvironments!.every((cell) => cell.outcome === 'blocked'),
       ).toBe(true);
@@ -351,9 +379,9 @@ it.each(['light', 'dark'] as const)(
         await page.getByRole('button', { name: 'Approve as baseline', exact: true }).count(),
       ).toBe(0);
       expect(errors).toEqual([]);
-      if (process.env.ARXIC_GALLERY_EVIDENCE_DIR) {
+      if (galleryEvidence) {
         await writeFile(
-          join(process.env.ARXIC_GALLERY_EVIDENCE_DIR, theme, 'measurements.json'),
+          join(galleryEvidence, theme, 'measurements.json'),
           JSON.stringify(
             {
               mobileHeading: headingBox,

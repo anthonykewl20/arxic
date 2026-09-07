@@ -85,3 +85,5 @@ corrects an ellipsis false positive explicitly. DOM Range metrics are not optica
 or glyph correctness. Native zoom, arbitrary input-text clipping, full
 persona/locale/state coverage, transient causality, paid-model quality and human
 release inspection remain gaps. No LLM assigns `verified`.
+
+Latest `3afd1dd` CI failed the unchanged six-capture gallery assertion (five retained). The test now retains per-cell data and named numeric failure evidence in CI; a real proxy refusal proved that diagnostic branch at four captures. Original cause remains #448, not resolved by a later local pass. See the evidence summary for source provenance and proof boundaries. All three installed dashboard jobs passed that run; the aggregate gate did not.
