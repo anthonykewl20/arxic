@@ -69,6 +69,22 @@
       "sha256": "3d18c805aef314067f5080c81b49e0ce9053fe8ae03de57f3a4bba51957f3b00"
     },
     {
+      "path": "ci-reporter/ci-green.txt",
+      "sha256": "af2c17fa5498e10397c91bf62f046b08c5ff809b4335148abe82f9ec3de31be2"
+    },
+    {
+      "path": "ci-reporter/green.txt",
+      "sha256": "425e8a0d7cbf8011cb181a75d79eef3c0566290452527986a2ed545895f8d6c0"
+    },
+    {
+      "path": "ci-reporter/red.txt",
+      "sha256": "5696e8d43215ad79b55f2020111973024be83f2e80bb3f726d32c8d112283d4d"
+    },
+    {
+      "path": "ci-reporter/summary.md",
+      "sha256": "fc80211f2ea1fbdfeee7a17a2f22ad30ac2c64258a5b953ecc58d224fe5a3c7e"
+    },
+    {
       "path": "filter-red/00-filter-result.audit.json",
       "sha256": "33c8a8dfb38a0b1697101e6d0c4ca934cedd26296df4f992c82468c118978b7f"
     },
@@ -262,7 +278,7 @@
     },
     {
       "path": "summary.md",
-      "sha256": "6b71f03480d3ceff0afe275751662c1386473f69efbf58af1ff84270c4651557"
+      "sha256": "4671cac8c98d4c802961a8f639471cc47f5efa62615cfff47f3986013ba438ca"
     },
     {
       "path": "webkit/00-filter-result.audit.json",
