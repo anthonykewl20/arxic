@@ -168,3 +168,11 @@ The first installed #445 run exposed font-dependent title/activity overflow and
 folder metadata clipping after local source passes. Both were reproduced and
 corrected; the retained proof distinguishes failed CI, temporary font probes and
 committed normal-font validation. Current-head installed CI remains mandatory.
+
+The precision revision `2b1a835` passed required CI 34073809235 (2,096 shard tests,
+all three installed dashboard engines; 867 PNG and 78 timeline hashes matched).
+A subsequent deterministic login defect was then exposed: bookmarked run selection
+was lost during session cleanup. `d6ff592` restores the requested URL after sign-in;
+ten real source cases passed across Chromium, Firefox and WebKit, including
+stale-response/draft/consent checks. The current login/evidence head still requires
+CI. Generic WebKit early-reload error classification remains tracked in #447.

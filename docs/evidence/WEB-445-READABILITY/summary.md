@@ -212,3 +212,55 @@ numerical cases passed, including rejection of non-finite measurements.
 
 The complete retained selection now contains 30 agent-inspected masked PNGs and
 25 exact timeline excerpts. Human inspection and release approval remain owed.
+
+
+## Installed precision acceptance and bookmarked-run correction
+
+CI [34073809235](https://github.com/anthonykewl20/arxic/actions/runs/34073809235)
+passed on `2b1a835`: all four shards (2,096 tests, two existing worker-only skips),
+static, fixtures, packed Chromium and installed Firefox/WebKit. The shared
+23-case/13-file installed contract produced 867 hash-checked dashboard PNGs and
+78 timelines. Each engine retained the intentional 704px overflow guard and
+failed clipped-login numeric predicate; no other overflow/numeric failures or
+Axe violations were present. Incomplete Axe reports remain unverified. The
+conditional worker-image job was skipped. [CI record](./precision-ci-results.json)
+preserves the merge-checkout identity and original dirty flags. That pass predates
+the login fix below and does not discharge its required current-head CI.
+
+A further real navigation probe exposed a deterministic wayfinding defect:
+opening a bookmarked run while signed out lost both its URL selection and its
+detail panel during sign-in. The old test immediately navigated again after the
+login click, hiding that defect and racing the asynchronous refresh. Requiring
+the requested detail **before** the second navigation failed; the explicit
+numeric assertion recorded `requestedRun=false` and `detailVisible=false` (7.19s).
+Successful sign-in now re-reads the requested URL before refreshing. Session
+cleanup still clears unsent drafts, consent and stale asynchronous state.
+
+Clean implementation `d6ff592` passed two baseline cases in WebKit (36.64s), two
+in Firefox (46.90s), and six Chromium baseline/UI/campaign/review cases (206.01s).
+Each baseline case completes 18 real sign-ins and reloads below the server's
+sign-in rate limit. Requested detail appears before reload; baseline approval,
+replacement history, source image identity and mobile review still pass. The
+broader Chromium cases retain stale-response, unsent-draft and consent-reset
+checks. All 104 PNG and ten timeline hashes matched, with no unexpected numeric
+failures, document overflow or Axe violations; four incomplete reports remain
+unverified. [Login results](./login-results.json) record the exact revision/scope.
+
+| Evidence | Observation |
+| --- | --- |
+| [Before: lost bookmarked run](./login/before/00-bookmarked-run.png) | Only the list remains after sign-in; requested detail is absent |
+| [After: WebKit](./login/webkit/00-bookmarked-run.png) | Requested run opens directly after sign-in |
+| [After: Firefox](./login/firefox/00-bookmarked-run.png) | Requested run opens directly after sign-in |
+| [After: Chromium](./login/chromium/00-bookmarked-run.png) | Requested run opens directly after sign-in |
+| [Fresh-session review](./login/session-consent/06-new-session-consent.png) | Unsent criterion and screenshot consent remain cleared |
+
+The general WebKit early-reload event remains explicitly tracked in
+[#447](https://github.com/anthonykewl20/arxic/issues/447). It was reproduced during
+an outgoing sign-in refresh, but shorter probes sometimes passed. A pagehide
+cancellation candidate failed and was removed. No Fetch API error filter or
+production lifecycle cancellation was retained. The login fix and correct
+completed-sign-in precondition do not establish a general early-reload fix.
+
+The complete selection now contains **35 agent-inspected masked PNGs and 30 exact
+timeline excerpts**. Required CI against the login/evidence head, broader #402
+coverage and human release inspection remain outstanding.

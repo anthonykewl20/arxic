@@ -704,3 +704,9 @@ all heuristics, arbitrary form-input clipping, native zoom, every locale/persona
 or transient animation frame. [Retained readability evidence](./evidence/WEB-445-READABILITY/summary.md) records
 all three source-engine passes and the before/after findings. PR #446 records
 required installed CI acceptance; issue #445 requires that pass before closure.
+
+Successful dashboard sign-in restores the requested URL selection before loading
+its data. A bookmarked run therefore opens directly after login. Real browser
+checks require that detail before reload and retain session draft/consent cleanup
+checks. The general WebKit early-reload diagnostic is separately tracked in #447;
+the login fix is not a claim that every outgoing-document error is resolved.

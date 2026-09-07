@@ -4,7 +4,7 @@ Issue: #445 · PR: #446 · Disposition: observed source proof; current-head CI r
 
 ## 1. `docs/SYNC.md` — tracker row
 
-- [ ] WEB-445: text-spacing/enlargement journeys, adaptive navigation, text-button and header reflow, keyboard model catalog. Flip only after PR #446 required `ci` prints `pass` on its final head.
+- [ ] WEB-445: text-spacing/enlargement journeys, adaptive navigation, text-button and header reflow, keyboard model catalog, and bookmarked-run restoration after sign-in. Flip only after PR #446 required `ci` prints `pass` on its final head.
 
 ## 2. `docs/SYNC.md` — session-log row
 
@@ -14,11 +14,14 @@ readability/navigation cases at `9bc52fd`. Screenshot review caught mobile word
 splitting after containment checks had passed; the added whole-word assertion
 failed red before the adaptive grid fix. Current-head installed acceptance is
 recorded on PR #446. Incomplete accessibility and human release gates remain open
-under #402.
+under #402. Successful sign-in now restores the requested run URL; the strengthened
+baseline test exposes the detail before reload. Ten clean source cases at `d6ff592`
+passed across three engines, including session-isolation regressions. #447 retains
+the general early-reload diagnostic gap.
 
 ## 3. `CHANGELOG.md` — proposed `Fixed` entry
 
-- Dashboard readability (#445): navigation and text buttons grow with text; mobile navigation adapts its column count; run headings, breadcrumbs and activity rows and folder metadata wrap across system fonts; the model catalog supports keyboard scrolling. Real-app spacing/enlargement tests retain numeric checks and masked evidence, including a deliberately clipped control guard.
+- Dashboard readability (#445): navigation and text buttons grow with text; mobile navigation adapts its column count; run headings, breadcrumbs and activity rows and folder metadata wrap across system fonts; the model catalog supports keyboard scrolling. Real-app spacing/enlargement tests retain numeric checks and masked evidence, including a deliberately clipped control guard. Successful sign-in preserves bookmarked run selection while clearing unsent drafts and screenshot consent.
 
 ## 4. `VERSION` bump required?
 
@@ -28,7 +31,7 @@ in this worktree.
 
 ## 5. Evidence pointers
 
-[Retained evidence](../evidence/WEB-445-READABILITY/summary.md) includes 30
+[Retained evidence](../evidence/WEB-445-READABILITY/summary.md) includes 35
 agent-viewed masked PNGs and exact sanitized timeline excerpts with original and
 selected hashes. All 378 original PNGs and 18 timeline hashes matched. Each
 engine passed all six source cases, with no unexpected numeric failures,
@@ -50,16 +53,28 @@ Current-head installed CI remains required before completion; source proof does
 not discharge it. The PR records the final full-repository format result after
 this note and the evidence summary were written.
 
+The precision head `2b1a835` subsequently passed required CI 34073809235:
+2,096 tests across four shards, both installed browsers and packed Chromium.
+The 867 dashboard PNGs and 78 timeline hashes matched; only the intentional
+overflow/clipped-control guards failed their predicates. This predates the new
+bookmarked-run fix. Session cleanup lost requested URL selection; successful
+sign-in now re-reads it before refresh, removing the test's need to navigate
+again to expose the detail. Clean `d6ff592` passed ten real cases across three
+engines, including Chromium stale-response/draft/consent isolation (104 PNGs,
+ten timelines, hashes matched). Current-head CI remains required. General early
+reload classification remains #447; the failed pagehide candidate was removed.
+
 ## 6. Sad paths proved
 
-| Trigger                                | Expected disposition                           | Test                               |
-| -------------------------------------- | ---------------------------------------------- | ---------------------------------- |
-| Deliberately clipped real login button | Contradicted numeric containment; failed audit | Clipped-control guard              |
-| Unknown text profile                   | Explicit rejection                             | Clipped-control guard              |
-| Incomplete accessibility analysis      | Unverified audit, never silent pass            | Shared dashboard proof helper      |
-| Picker title truncates                 | Full exact heading required after activation   | All four readability journeys      |
-| Model catalog overflows vertically     | Keyboard focus and End/Home recovery required  | Enlarged-text journeys             |
-| Contained navigation splits a word     | Failed whole-word finding                      | Desktop and open mobile navigation |
+| Trigger                                | Expected disposition                           | Test                                   |
+| -------------------------------------- | ---------------------------------------------- | -------------------------------------- |
+| Deliberately clipped real login button | Contradicted numeric containment; failed audit | Clipped-control guard                  |
+| Bookmarked run lost after login        | Requested run URL and visible detail required  | Real baseline history in three engines |
+| Unknown text profile                   | Explicit rejection                             | Clipped-control guard                  |
+| Incomplete accessibility analysis      | Unverified audit, never silent pass            | Shared dashboard proof helper          |
+| Picker title truncates                 | Full exact heading required after activation   | All four readability journeys          |
+| Model catalog overflows vertically     | Keyboard focus and End/Home recovery required  | Enlarged-text journeys                 |
+| Contained navigation splits a word     | Failed whole-word finding                      | Desktop and open mobile navigation     |
 
 The text-edge assertion was explicitly widened from zero to 1/65536 CSS pixel
 after Firefox reported that exact discrepancy; raw values remain in evidence.

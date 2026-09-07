@@ -1,0 +1,105 @@
+{
+  "runId": 34073809235,
+  "headCommit": "2b1a835a315ab642dfbcb588127e00bb2e7ce0ea",
+  "ci": "pass",
+  "shards": {
+    "passed": 2096,
+    "existingWorkerOnlySkipped": 2,
+    "files": 265
+  },
+  "installedContract": {
+    "cases": 23,
+    "files": 13,
+    "browserJobs": "all passed",
+    "pngs": 867,
+    "timelines": 78,
+    "inventories": [
+      {
+        "pngs": 289,
+        "timelines": 26,
+        "incompleteReports": 41,
+        "violationReports": 0,
+        "overflows": [
+          {
+            "path": "web/elements/intentional-overflow-guard/intentional-overflow.audit.json",
+            "px": 704
+          }
+        ],
+        "failedNumericChecks": [
+          {
+            "path": "web/readability/guard/clipped-button-guard.audit.json",
+            "id": "login-label-containment"
+          }
+        ],
+        "browsers": {
+          "{\"name\": \"firefox\", \"version\": \"153.0\"}": 289
+        },
+        "commits": {
+          "e5f6be2376eab4c8e69d7a547d7a848f87a8522d": 289
+        },
+        "dirty": {
+          "True": 269,
+          "False": 20
+        }
+      },
+      {
+        "pngs": 289,
+        "timelines": 26,
+        "incompleteReports": 45,
+        "violationReports": 0,
+        "overflows": [
+          {
+            "path": "web/elements/intentional-overflow-guard/intentional-overflow.audit.json",
+            "px": 704
+          }
+        ],
+        "failedNumericChecks": [
+          {
+            "path": "web/readability/guard/clipped-button-guard.audit.json",
+            "id": "login-label-containment"
+          }
+        ],
+        "browsers": {
+          "{\"name\": \"webkit\", \"version\": \"26.5\"}": 289
+        },
+        "commits": {
+          "e5f6be2376eab4c8e69d7a547d7a848f87a8522d": 289
+        },
+        "dirty": {
+          "True": 269,
+          "False": 20
+        }
+      },
+      {
+        "pngs": 289,
+        "timelines": 26,
+        "incompleteReports": 41,
+        "violationReports": 0,
+        "overflows": [
+          {
+            "path": "elements/intentional-overflow-guard/intentional-overflow.audit.json",
+            "px": 704
+          }
+        ],
+        "failedNumericChecks": [
+          {
+            "path": "readability/guard/clipped-button-guard.audit.json",
+            "id": "login-label-containment"
+          }
+        ],
+        "browsers": {
+          "{\"name\": \"chromium\", \"version\": \"151.0.7922.34\"}": 289
+        },
+        "commits": {
+          "e5f6be2376eab4c8e69d7a547d7a848f87a8522d": 289
+        },
+        "dirty": {
+          "True": 289
+        }
+      }
+    ]
+  },
+  "knownNegativeControls": "Each engine intentionally reports 704px overflow in the overflow guard and a failed numeric clipped-login predicate. Other overflow and numeric failures are absent.",
+  "workerImage": "conditionally skipped",
+  "supersededByUnvalidatedLoginFix": true
+}
