@@ -126,3 +126,9 @@ The [WebKit navigation investigation](../../docs/evidence/WEB-447-NAVIGATION/sum
 Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery and native baseline repeatability pass local reference-app checks. High-density Chromium uses full Chromium headless with an explicit renderer identity; final installed CI remains required. This is not full production-readiness proof.
 
 Visual matrix authentication performs one GUI sign-in per browser family per run. Successful session state and failed outcomes are reused in memory across that browser’s cells; each reuse is recorded, and nothing carries into a later run. This avoids exhausting target login-rate limits while preserving real authenticated screenshots and run isolation.
+
+Installed-dashboard acceptance now retains incremental case progress and bounded
+process-exit facts with provenance, so interruption cannot erase which tests
+finished. Test names, assertion values and exception bodies are excluded. The
+original 900-second aggregate budget and per-test assertions remain unchanged.
+The density slice's [first installed Firefox gate failed](../../docs/evidence/WEB-454-DENSITY/ci-34086989767/summary.md); final-head acceptance is still required.

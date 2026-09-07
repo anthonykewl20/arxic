@@ -1,11 +1,11 @@
 # WEB-454-DENSITY — staged doc updates (in progress)
 
-Issue: #454 · PR: #455 · Disposition: scoped local checks pass after reproducing/fixing native shell drift; required final-head CI remains pending.
+Issue: #454 · PR: #455 · Disposition: scoped local checks pass after reproducing/fixing native shell drift; CI 34086989767 failed the installed Firefox aggregate; diagnostics and reproduction are in progress.
 
 ## 1. `docs/SYNC.md` — tracker row
 
 ```
-| #454 | [WEB-454-DENSITY] Native pixel-density matrix and dashboard review | ☐ in progress; local proof passes, CI pending |
+| #454 | [WEB-454-DENSITY] Native pixel-density matrix and dashboard review | ☐ in progress; local proof passes; installed Firefox CI red |
 ```
 
 ## 2. `docs/SYNC.md` — session-log row
@@ -27,6 +27,8 @@ Stage only after acceptance and CI pass:
 Yes, user-observable functionality. Integrator selects the next synchronized version after completion; this worktree does not edit VERSION, CHANGELOG or SYNC.
 
 ## 5. Evidence pointers
+
+- [Failed CI and installed density evidence](../evidence/WEB-454-DENSITY/ci-34086989767/summary.md): all source shards and installed Chromium/WebKit pass; Firefox stops without complete proof. Incremental runner diagnostics preserve case progress and bounded process facts; no timeout or assertion is relaxed.
 
 - `apps/web/src/__tests__/visual-density.real-world.test.ts`: actual reference app, Chromium/Firefox/WebKit, nine native environments; two fresh baseline/repeat/2×-only-regression runs pass with full Chromium at high density.
 - `visual-density-ui.real-world.test.ts`: actual dashboard/reference app; empty/oversized settings, keyboard selection, responsive density filtering and independently measured 2× element picking.

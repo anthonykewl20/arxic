@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { commandFailureFacts } from './command-failure.mjs';
 
 const execute = promisify(execFile);
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -442,59 +443,113 @@ async function runInstalledDashboard(paths, timings, evidenceDirectory) {
       { cwd: repositoryRoot, env: cleanEnvironment(paths), timeout: 180_000 },
     ),
   );
-  await phase(timings, 'packed-web-browser', () =>
-    command(
-      'pnpm',
-      [
-        'exec',
-        'vitest',
-        'run',
-        'apps/web/src/__tests__/ui.real-world.test.ts',
-        'apps/web/src/__tests__/dashboard-ux.real-world.test.ts',
-        'apps/web/src/__tests__/dashboard-readability.real-world.test.ts',
-        'apps/web/src/__tests__/campaign-ui.real-world.test.ts',
-        'apps/web/src/__tests__/restart.real-world.test.ts',
-        'apps/web/src/__tests__/element-kinds.real-world.test.ts',
-        'apps/web/src/__tests__/visual-matrix-ui.real-world.test.ts',
-        'apps/web/src/__tests__/visual-density-ui.real-world.test.ts',
-        'apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts',
-        'apps/web/src/__tests__/capture-failures.real-world.test.ts',
-        'apps/web/src/__tests__/provider-ui.real-world.test.ts',
-        'apps/web/src/__tests__/visual-review-ui.real-world.test.ts',
-        'apps/web/src/__tests__/retention-ui.real-world.test.ts',
-        'apps/web/src/__tests__/baseline-history-ui.real-world.test.ts',
-        'apps/web/src/__tests__/contrast-ui.real-world.test.ts',
-      ],
-      {
-        cwd: repositoryRoot,
-        env: {
-          ...cleanEnvironment(paths),
-          ARXIC_TEST_INSTALLED_WEB_BIN: join(paths.install, 'node_modules/arxic/dist/cli.js'),
-          ...(evidenceDirectory
-            ? {
-                ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
-                ARXIC_DENSITY_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/density'),
-                ARXIC_MATRIX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/matrix'),
-                ARXIC_GALLERY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/gallery'),
-                ARXIC_ELEMENTS_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/elements'),
-                ARXIC_UX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/navigation'),
-                ARXIC_READABILITY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/readability'),
-                ARXIC_CAMPAIGN_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/campaign'),
-                ARXIC_PROVIDER_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/provider'),
-                ARXIC_REVIEW_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/review'),
-                ARXIC_RETENTION_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/retention'),
-                ARXIC_BASELINE_HISTORY_EVIDENCE_DIR: resolve(
-                  evidenceDirectory,
-                  'web/baseline-history',
-                ),
-                ARXIC_CONTRAST_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/contrast'),
-              }
-            : {}),
-        },
-        timeout: 900_000,
-      },
-    ),
+  const progressPath = resolve(
+    evidenceDirectory ?? paths.cleanRoom,
+    'web/dashboard-progress.jsonl',
   );
+  await mkdirp(dirname(progressPath));
+  const browserStarted = Date.now();
+  let failure;
+  try {
+    await phase(timings, 'packed-web-browser', () =>
+      command(
+        'pnpm',
+        [
+          'exec',
+          'vitest',
+          'run',
+          'apps/web/src/__tests__/ui.real-world.test.ts',
+          'apps/web/src/__tests__/dashboard-ux.real-world.test.ts',
+          'apps/web/src/__tests__/dashboard-readability.real-world.test.ts',
+          'apps/web/src/__tests__/campaign-ui.real-world.test.ts',
+          'apps/web/src/__tests__/restart.real-world.test.ts',
+          'apps/web/src/__tests__/element-kinds.real-world.test.ts',
+          'apps/web/src/__tests__/visual-matrix-ui.real-world.test.ts',
+          'apps/web/src/__tests__/visual-density-ui.real-world.test.ts',
+          'apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts',
+          'apps/web/src/__tests__/capture-failures.real-world.test.ts',
+          'apps/web/src/__tests__/provider-ui.real-world.test.ts',
+          'apps/web/src/__tests__/visual-review-ui.real-world.test.ts',
+          'apps/web/src/__tests__/retention-ui.real-world.test.ts',
+          'apps/web/src/__tests__/baseline-history-ui.real-world.test.ts',
+          'apps/web/src/__tests__/contrast-ui.real-world.test.ts',
+          '--includeTaskLocation',
+          '--reporter=default',
+          `--reporter=${join(repositoryRoot, 'scripts/dashboard-progress-reporter.mjs')}`,
+        ],
+        {
+          cwd: repositoryRoot,
+          env: {
+            ...cleanEnvironment(paths),
+            ARXIC_TEST_INSTALLED_WEB_BIN: join(paths.install, 'node_modules/arxic/dist/cli.js'),
+            ARXIC_DASHBOARD_PROGRESS_PATH: progressPath,
+            ...(evidenceDirectory
+              ? {
+                  ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
+                  ARXIC_DENSITY_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/density'),
+                  ARXIC_MATRIX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/matrix'),
+                  ARXIC_GALLERY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/gallery'),
+                  ARXIC_ELEMENTS_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/elements'),
+                  ARXIC_UX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/navigation'),
+                  ARXIC_READABILITY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/readability'),
+                  ARXIC_CAMPAIGN_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/campaign'),
+                  ARXIC_PROVIDER_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/provider'),
+                  ARXIC_REVIEW_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/review'),
+                  ARXIC_RETENTION_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/retention'),
+                  ARXIC_BASELINE_HISTORY_EVIDENCE_DIR: resolve(
+                    evidenceDirectory,
+                    'web/baseline-history',
+                  ),
+                  ARXIC_CONTRAST_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/contrast'),
+                }
+              : {}),
+          },
+          timeout: 900_000,
+        },
+      ),
+    );
+  } catch (error) {
+    failure = commandFailureFacts(error);
+    timings.push({ name: 'packed-web-browser-failed', durationMs: Date.now() - browserStarted });
+    throw new Error(`Installed dashboard command failed: ${JSON.stringify(failure)}`, {
+      cause: error,
+    });
+  } finally {
+    const bytes = await readFile(progressPath).catch((error) => {
+      if (error.code === 'ENOENT') return undefined;
+      throw error;
+    });
+    if (bytes)
+      await writeFile(
+        `${progressPath}.sanitization.json`,
+        JSON.stringify(
+          {
+            schemaVersion: 1,
+            sha256: createHash('sha256').update(bytes).digest('hex'),
+            method:
+              'allow-listed module basename, hashed case ID, source line, elapsed time and state; no test names or error payloads',
+            rawTraceRetained: false,
+          },
+          null,
+          2,
+        ),
+      );
+    await writeFile(
+      join(dirname(progressPath), 'dashboard-command.json'),
+      JSON.stringify(
+        {
+          schemaVersion: 1,
+          outcome: failure ? 'failed' : 'passed',
+          elapsedMs: Date.now() - browserStarted,
+          timeoutMs: 900000,
+          ...(failure ? { failure } : {}),
+          progressAvailable: !!bytes,
+        },
+        null,
+        2,
+      ),
+    );
+  }
 }
 
 function cleanEnvironment(paths) {
