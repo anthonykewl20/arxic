@@ -36,7 +36,7 @@ import {
 import { SecretStore } from './secret-store';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
-import { campaignRows, campaignView, rowHistoryOf } from './campaigns';
+import { campaignRows, campaignView, rowHistoryOf, type RowHistory } from './campaigns';
 import { reviewImage, type VisualReviewScope } from './visual-review';
 
 /** Single source of truth for the workflow-scope drift refusal (throw site, run record, schedule stop). */
@@ -167,6 +167,39 @@ export class Workbench {
       throw error;
     }
   }
+  /**
+   * Surface-keyed execution ledger: every campaign-scoped run of a row unions
+   * across the project's campaigns (originals and recurring fires), keyed by
+   * the inventory row key the intents panel renders.
+   */
+  rowOutcomes(): Record<string, Record<string, RowHistory>> {
+    const outcomes: Record<string, Record<string, RowHistory>> = {};
+    const campaignsByProject = new Map<string, Campaign[]>();
+    for (const campaign of this.store.campaigns()) {
+      const list = campaignsByProject.get(campaign.projectId) ?? [];
+      list.push(campaign);
+      campaignsByProject.set(campaign.projectId, list);
+    }
+    for (const [projectId, campaigns] of campaignsByProject) {
+      const keyByRowId = new Map<string, string>();
+      for (const campaign of campaigns)
+        for (const row of campaign.rows)
+          if (row.inventoryRowId) keyByRowId.set(row.inventoryRowId, row.key);
+      if (!keyByRowId.size) continue;
+      const runsByKey = new Map<string, Run[]>();
+      for (const run of this.store.scopedRuns(projectId)) {
+        const key = keyByRowId.get(run.workflowScope?.inventoryRowId ?? '');
+        if (!key) continue;
+        const list = runsByKey.get(key) ?? [];
+        list.push(run);
+        runsByKey.set(key, list);
+      }
+      if (!runsByKey.size) continue;
+      const project = (outcomes[projectId] ??= {});
+      for (const [key, runs] of runsByKey) project[key] = rowHistoryOf(runs);
+    }
+    return outcomes;
+  }
   state() {
     return {
       projects: this.store.projects(),
@@ -175,6 +208,7 @@ export class Workbench {
       audit: this.store.auditLog(),
       baselines: this.store.baselines(),
       queueError: this.queueError,
+      outcomes: this.rowOutcomes(),
       campaigns: this.store.campaigns().map((item) => {
         return { ...this.campaign(item.id), rows: undefined };
       }),

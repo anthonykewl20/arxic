@@ -53,6 +53,13 @@ export class Store {
       inventoryRowId,
     );
   }
+  /** Campaign-scoped executions of every row, uncapped, for the project-wide surface ledger. */
+  scopedRuns(projectId: string): Run[] {
+    return this.documents<Run>(
+      `SELECT data FROM runs WHERE project_id = ? AND json_extract(data,'$.workflowScope.inventoryRowId') IS NOT NULL ORDER BY rowid DESC`,
+      projectId,
+    );
+  }
   summaries(): Array<Run & { hasInventory: boolean; hasLedger: boolean }> {
     return this.documents(
       `SELECT json_set(${summaryProjection}, '$.hasInventory', json_type(data, '$.result.inventory') IS NOT NULL, '$.hasLedger', json_type(data, '$.result.ledger') IS NOT NULL) AS data FROM runs ORDER BY rowid DESC LIMIT 200`,
