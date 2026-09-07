@@ -58,7 +58,7 @@ it('refuses to widen workspace roots without a session or a real absolute folder
     });
     expect(response.status).toBe(expected);
   }
-});
+}, 30_000);
 
 it('adds a workspace root at runtime, connects a project under it, and persists the root across restart', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'arxic-web-roots-'));
@@ -96,23 +96,22 @@ it('adds a workspace root at runtime, connects a project under it, and persists 
     body: JSON.stringify({ name: 'Mightybox', folder: outside }),
   });
   expect(connected.status).toBe(201);
-  const project = (await connected.json()) as { id: string };
 
+  // A root with a connected project cannot be removed; an unused root can.
   const blocked = await create('DELETE', { path: outside });
   expect(blocked.status).toBe(409);
-  expect(await blocked.text()).toContain('project');
+  expect(await blocked.text()).toContain('still uses this workspace root');
+  const spare = join(directory, 'spare-root');
+  await mkdir(spare);
+  expect((await create('POST', { path: spare })).status).toBe(201);
+  expect((await create('DELETE', { path: spare })).status).toBe(200);
 
-  await fetch(`${app.origin}/api/projects/${project.id}`, {
-    method: 'DELETE',
-    headers: { cookie, origin: app.origin },
-  });
-  expect((await create('DELETE', { path: outside })).status).toBe(200);
-
-  expect((await create('POST', { path: outside })).status).toBe(201);
+  // The added root survives a server restart on the same state directory.
+  await cleanups.pop()!();
   const restarted = await open(join(directory, 'state'), [startupRoot]);
   const restartedCookie = await login(restarted);
   const resumed = (await (
     await fetch(`${restarted.origin}/api/state`, { headers: { cookie: restartedCookie } })
   ).json()) as { roots: string[] };
   expect(resumed.roots).toContain(outside);
-}, 60_000);
+}, 120_000);

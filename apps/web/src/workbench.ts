@@ -5,10 +5,10 @@ import { readWorkflowArtifact } from './workflow-captures';
 import { hostname } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, realpath, rm, unlink, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { HttpError } from './errors';
 import { Store } from './store';
-import { allowedFolder, nextSlot, runMode, validateProject } from './projects';
+import { allowedFolder, inside, nextSlot, runMode, validateProject } from './projects';
 import { launchJob, stopProcess } from './process';
 import type { Campaign, Project, Run, RunResult } from './types';
 
@@ -45,11 +45,18 @@ export class Workbench {
   private timer: ReturnType<typeof setInterval>;
   private constructor(
     readonly store: Store,
-    readonly roots: string[],
+    startupRoots: string[],
     readonly directory: string,
     private readonly retention: Retention,
   ) {
     this.store.recover();
+    const deltas =
+      this.store.setting<{ added: string[]; removed: string[] }>('workspace.roots') ??
+      { added: [], removed: [] };
+    this.roots = [
+      ...startupRoots.filter((root) => !deltas.removed.includes(root)),
+      ...deltas.added,
+    ];
     this.timer = setInterval(() => {
       try {
         this.tick();
@@ -59,6 +66,49 @@ export class Workbench {
     }, 1000);
     this.timer.unref();
     this.kick();
+  }
+  /** Operator-widened allow-list: re-executes the startup list plus durable deltas. */
+  roots: string[];
+  async addWorkspaceRoot(input: unknown) {
+    const resolved = await this.requestedRoot(input);
+    if (this.roots.some((root) => inside(root, resolved) || inside(resolved, root)))
+      throw new HttpError(409, 'Workspace root overlaps a configured root');
+    const deltas =
+      this.store.setting<{ added: string[]; removed: string[] }>('workspace.roots') ??
+      { added: [], removed: [] };
+    deltas.added = [...deltas.added.filter((root) => root !== resolved), resolved];
+    deltas.removed = deltas.removed.filter((root) => root !== resolved);
+    this.store.saveSetting('workspace.roots', deltas);
+    this.roots = [...this.roots, resolved];
+    this.store.audit('workspace.root-added', resolved);
+    return { roots: this.roots };
+  }
+  async removeWorkspaceRoot(input: unknown) {
+    const resolved = await this.requestedRoot(input);
+    if (!this.roots.includes(resolved))
+      throw new HttpError(404, 'Workspace root is not configured');
+    const dependent = this.store
+      .projects()
+      .find((project) => project.folder === resolved || inside(resolved, project.folder));
+    if (dependent)
+      throw new HttpError(409, `Project ${dependent.name} still uses this workspace root`);
+    const deltas =
+      this.store.setting<{ added: string[]; removed: string[] }>('workspace.roots') ??
+      { added: [], removed: [] };
+    deltas.removed = [...deltas.removed.filter((root) => root !== resolved), resolved];
+    deltas.added = deltas.added.filter((root) => root !== resolved);
+    this.store.saveSetting('workspace.roots', deltas);
+    this.roots = this.roots.filter((root) => root !== resolved);
+    this.store.audit('workspace.root-removed', resolved);
+    return { roots: this.roots };
+  }
+  private async requestedRoot(input: unknown) {
+    const path = (input as { path?: unknown } | null)?.path;
+    if (typeof path !== 'string' || !isAbsolute(path))
+      throw new HttpError(400, 'Workspace root must be an absolute folder path');
+    return realpath(path).catch(() => {
+      throw new HttpError(400, 'Workspace root must exist on this server');
+    });
   }
   static async open(directory: string, roots: string[]) {
     const resolved = await Promise.all(roots.map((root) => realpath(root)));

@@ -28,7 +28,10 @@ export async function allowedFolder(folder: string, roots: readonly string[]): P
     throw new HttpError(400, 'Project folder must exist on this server');
   }
   if (!roots.some((root) => inside(root, actual)))
-    throw new HttpError(400, 'Project folder is outside the configured workspace roots');
+    throw new HttpError(
+      400,
+      'Project folder is outside the configured workspace roots; add its folder under Administration → Workspace roots',
+    );
   return actual;
 }
 export function inside(root: string, path: string): boolean {
