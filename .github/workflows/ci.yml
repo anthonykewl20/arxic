@@ -275,13 +275,14 @@ jobs:
           retention-days: 14
 
   dashboard:
-    name: dashboard (${{ matrix.browser }})
+    name: dashboard (${{ matrix.browser }}, ${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         browser: [firefox, webkit]
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
       - name: Setup pnpm
@@ -298,14 +299,14 @@ jobs:
       - name: Install target and dashboard browser dependencies
         run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
       - name: Installed dashboard journeys
-        run: node scripts/human-flow-e2e.mjs --dashboard-only --evidence-dir artifacts/dashboard
+        run: node scripts/human-flow-e2e.mjs --dashboard-only --dashboard-shard ${{ matrix.shard }} --evidence-dir artifacts/dashboard
         env:
           ARXIC_DASHBOARD_BROWSER: ${{ matrix.browser }}
       - name: Retain sanitized dashboard proof
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: installed-dashboard-${{ matrix.browser }}
+          name: installed-dashboard-${{ matrix.browser }}-${{ matrix.shard }}
           path: artifacts/dashboard/
           retention-days: 14
           if-no-files-found: warn

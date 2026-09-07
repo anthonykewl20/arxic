@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "sha256": "b26fba6973f688ef781840d0881866464d8ddacca85680fd5f1d534aaca3706c",
+  "method": "allow-listed module basename, hashed case ID, source line, elapsed time and state; no test names or error payloads",
+  "rawTraceRetained": false
+}

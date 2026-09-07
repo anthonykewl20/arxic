@@ -733,3 +733,27 @@ Native-density AI review uses image-pixel coordinates for overlays. Review accep
 For native Chromium, install the full browser with `pnpm exec playwright install chromium`; a shell-only installation is insufficient and the unavailable environment remains blocked. This follows Playwright’s [documented new headless mode](https://playwright.dev/docs/browsers#chromium-new-headless-mode). Firefox and WebKit retain their own native rendering engines.
 
 An AI image-dimension refusal now tells you to choose a smaller viewport or lower pixel density. It preserves the review form input and restores submission controls. Invalid bytes and hash failures retain the opaque integrity diagnostic; neither model bounds nor PNG validation were relaxed.
+
+### Installed-dashboard CI scope and interruption evidence
+
+The packaged Chromium release flow and an ordinary `--dashboard-only` run execute
+all fifteen declared dashboard files. Firefox/WebKit CI assigns those same files
+to two required partitions (`--dashboard-shard 1` and `--dashboard-shard 2`); both
+must pass for each browser. A partition is not whole-browser acceptance. Selection
+contracts guard exhaustive, disjoint membership and reject sharding the full CLI
+release flow. Each command retains its 900-second limit, each job its 25-minute
+limit, and all individual test timeouts/assertions remain unchanged. There are now
+two jobs' worth of execution capacity per non-Chromium browser.
+
+Each run writes `web/dashboard-progress.jsonl` incrementally, with module basename,
+hashed case ID, source line, reported state and receipt elapsed time. These are
+reporter observation times, not exact browser execution timings. Adjacent
+provenance binds the bytes, and `web/dashboard-command.json` records selected files,
+partition, duration and bounded child-exit facts. Test names, assertion values and
+exception bodies are excluded. Missing completion records remain incomplete;
+later success cannot retroactively fill a failed run's evidence.
+
+The original installed Firefox failure is retained in the
+[failed CI record](evidence/WEB-454-DENSITY/ci-34086989767/summary.md).
+
+The main dashboard journey bounds browser waits at 10 seconds so a stalled action can retain a masked failure checkpoint before the existing Vitest deadline. Progress failures include a bounded category and current-module source line; receipt timestamps are not individual test durations. CI 34089122703 remains a recorded light Firefox journey failure until a subsequent exact-head gate passes; local reruns do not waive it.

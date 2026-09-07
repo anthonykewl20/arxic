@@ -1,0 +1,11 @@
+{
+  "sha256": "6e8231b38e484184288fbbd5ebe3cffbc65deb40a2a2995b0f2db237ce0392c2",
+  "method": "allow-listed test annotations, viewport and result; no DOM/network/field payloads",
+  "rawTraceRetained": false,
+  "sourceCommit": "d49b051014f9c27a7eece3078ed5c469fb676fce",
+  "browser": {
+    "name": "firefox",
+    "version": "153.0"
+  },
+  "dirty": true
+}

@@ -8,6 +8,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { commandFailureFacts } from './command-failure.mjs';
+import { installedDashboardCases } from './dashboard-cases.mjs';
 
 const execute = promisify(execFile);
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
@@ -102,7 +103,9 @@ export async function runHumanFlow({
   keep = false,
   evidenceDirectory,
   dashboardOnly = false,
+  dashboardShard,
 } = {}) {
+  const dashboardCases = installedDashboardCases({ dashboardOnly, shard: dashboardShard });
   const timings = [];
   const startedAt = Date.now();
   const cleanRoom = await mkdtemp(join(tmpdir(), 'arxic-human-flow-'));
@@ -156,9 +159,17 @@ export async function runHumanFlow({
     });
 
     if (dashboardOnly) {
-      await runInstalledDashboard(paths, timings, evidenceDirectory);
+      await runInstalledDashboard(
+        paths,
+        timings,
+        evidenceDirectory,
+        dashboardCases,
+        dashboardShard,
+      );
       outcome = {
         scope: 'dashboard',
+        dashboardShard: dashboardShard ?? 'all',
+        dashboardFiles: dashboardCases.length,
         ok: true,
         cleanRoom: keep ? cleanRoom : undefined,
         phases: timings,
@@ -168,7 +179,7 @@ export async function runHumanFlow({
         await mkdirp(resolve(evidenceDirectory));
         await writeFile(
           resolve(evidenceDirectory, 'summary.md'),
-          '# Installed dashboard E2E evidence\n\nScope: dashboard journeys only. The CLI workflow and live-provider quality are not covered by this run. Browser identity is recorded in adjacent screenshot/timeline provenance. Human release inspection remains outstanding.\n\n```text\n' +
+          `# Installed dashboard E2E evidence\n\nScope: ${dashboardShard ? `dashboard partition ${dashboardShard} of 2; both partitions must pass for this browser` : 'all dashboard files'}. The CLI workflow and live-provider quality are not covered by this run. Browser identity is recorded in adjacent screenshot/timeline provenance. Human release inspection remains outstanding.\n\n\`\`\`text\n` +
             formatVerdict(outcome) +
             '\n```\n',
         );
@@ -397,7 +408,7 @@ export async function runHumanFlow({
         }),
       );
     }
-    await runInstalledDashboard(paths, timings, evidenceDirectory);
+    await runInstalledDashboard(paths, timings, evidenceDirectory, dashboardCases, dashboardShard);
     outcome = {
       ok: true,
       cleanRoom: keep ? cleanRoom : undefined,
@@ -418,6 +429,9 @@ export async function runHumanFlow({
     outcome = {
       ok: false,
       scope: dashboardOnly ? 'dashboard' : 'human-flow',
+      ...(dashboardOnly
+        ? { dashboardShard: dashboardShard ?? 'all', dashboardFiles: dashboardCases.length }
+        : {}),
       cleanRoom: keep ? cleanRoom : undefined,
       phases: timings,
       totalMs: Date.now() - startedAt,
@@ -431,7 +445,13 @@ export async function runHumanFlow({
   }
 }
 
-async function runInstalledDashboard(paths, timings, evidenceDirectory) {
+async function runInstalledDashboard(
+  paths,
+  timings,
+  evidenceDirectory,
+  dashboardCases,
+  dashboardShard,
+) {
   await phase(timings, 'packed-web-startup', () =>
     command(
       process.execPath,
@@ -458,21 +478,7 @@ async function runInstalledDashboard(paths, timings, evidenceDirectory) {
           'exec',
           'vitest',
           'run',
-          'apps/web/src/__tests__/ui.real-world.test.ts',
-          'apps/web/src/__tests__/dashboard-ux.real-world.test.ts',
-          'apps/web/src/__tests__/dashboard-readability.real-world.test.ts',
-          'apps/web/src/__tests__/campaign-ui.real-world.test.ts',
-          'apps/web/src/__tests__/restart.real-world.test.ts',
-          'apps/web/src/__tests__/element-kinds.real-world.test.ts',
-          'apps/web/src/__tests__/visual-matrix-ui.real-world.test.ts',
-          'apps/web/src/__tests__/visual-density-ui.real-world.test.ts',
-          'apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts',
-          'apps/web/src/__tests__/capture-failures.real-world.test.ts',
-          'apps/web/src/__tests__/provider-ui.real-world.test.ts',
-          'apps/web/src/__tests__/visual-review-ui.real-world.test.ts',
-          'apps/web/src/__tests__/retention-ui.real-world.test.ts',
-          'apps/web/src/__tests__/baseline-history-ui.real-world.test.ts',
-          'apps/web/src/__tests__/contrast-ui.real-world.test.ts',
+          ...dashboardCases,
           '--includeTaskLocation',
           '--reporter=default',
           `--reporter=${join(repositoryRoot, 'scripts/dashboard-progress-reporter.mjs')}`,
@@ -527,7 +533,7 @@ async function runInstalledDashboard(paths, timings, evidenceDirectory) {
             schemaVersion: 1,
             sha256: createHash('sha256').update(bytes).digest('hex'),
             method:
-              'allow-listed module basename, hashed case ID, source line, elapsed time and state; no test names or error payloads',
+              'allow-listed module basename, hashed case ID, source/failure line, receipt elapsed time, state and bounded failure category/timeout; no test names or error payloads',
             rawTraceRetained: false,
           },
           null,
@@ -542,6 +548,8 @@ async function runInstalledDashboard(paths, timings, evidenceDirectory) {
           outcome: failure ? 'failed' : 'passed',
           elapsedMs: Date.now() - browserStarted,
           timeoutMs: 900000,
+          shard: dashboardShard ?? 'all',
+          files: dashboardCases.map((file) => basename(file)),
           ...(failure ? { failure } : {}),
           progressAvailable: !!bytes,
         },
@@ -946,6 +954,9 @@ export function formatVerdict(outcome) {
     `${outcome.scope === 'dashboard' ? 'DASHBOARD-E2E' : 'HUMAN-FLOW-E2E'} ${outcome.ok ? 'PASS' : 'FAIL'}`,
     ...outcome.phases.map((phase) => `phase=${phase.name} durationMs=${phase.durationMs}`),
     `totalMs=${outcome.totalMs}`,
+    ...(outcome.dashboardShard
+      ? [`dashboardShard=${outcome.dashboardShard} files=${outcome.dashboardFiles}`]
+      : []),
     ...(outcome.modelRequests === undefined ? [] : [`modelRequests=${outcome.modelRequests}`]),
     ...(outcome.error ? [`error=${outcome.error}`] : []),
     ...(outcome.cleanRoom ? [`cleanRoom=${outcome.cleanRoom}`] : []),
@@ -954,16 +965,29 @@ export function formatVerdict(outcome) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const keep = process.argv.includes('--keep');
+  const shardFlag = process.argv.indexOf('--dashboard-shard');
+  const dashboardShard = shardFlag === -1 ? undefined : (process.argv[shardFlag + 1] ?? null);
+  const dashboardOnly = process.argv.includes('--dashboard-only');
+  let validShard = true;
+  try {
+    installedDashboardCases({ dashboardOnly, shard: dashboardShard });
+  } catch {
+    validShard = false;
+  }
   const evidenceFlag = process.argv.indexOf('--evidence-dir');
   const evidenceDirectory = evidenceFlag === -1 ? undefined : process.argv[evidenceFlag + 1];
-  if (evidenceFlag !== -1 && !evidenceDirectory) {
+  if (!validShard) {
+    console.error('--dashboard-shard requires --dashboard-only and a value of 1 or 2');
+    process.exitCode = 2;
+  } else if (evidenceFlag !== -1 && !evidenceDirectory) {
     console.error('--evidence-dir requires a path');
     process.exitCode = 2;
   } else {
     runHumanFlow({
       keep,
       evidenceDirectory,
-      dashboardOnly: process.argv.includes('--dashboard-only'),
+      dashboardOnly,
+      dashboardShard,
     }).catch(() => {
       process.exitCode = 1;
     });

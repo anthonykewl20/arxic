@@ -130,5 +130,5 @@ Visual matrix authentication performs one GUI sign-in per browser family per run
 Installed-dashboard acceptance now retains incremental case progress and bounded
 process-exit facts with provenance, so interruption cannot erase which tests
 finished. Test names, assertion values and exception bodies are excluded. The
-original 900-second aggregate budget and per-test assertions remain unchanged.
+900-second command limit, 25-minute job limit and per-test assertions remain unchanged. Installed Firefox/WebKit CI uses two required exhaustive partitions of the same fifteen files; this increases aggregate execution capacity per browser without omitting or duplicating a file. Default local and packed Chromium runs still execute all fifteen files.
 The density slice's [first installed Firefox gate failed](../../docs/evidence/WEB-454-DENSITY/ci-34086989767/summary.md); final-head acceptance is still required.

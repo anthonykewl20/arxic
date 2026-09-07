@@ -48,11 +48,28 @@ it('retains bounded real Vitest case outcomes without names, assertion values or
       'failed',
       'passed',
     ]);
+    expect(rows.find((row) => row.event === 'case-result' && row.state === 'failed')).toMatchObject(
+      { failureKind: 'assertion' },
+    );
+    expect(
+      rows.find((row) => row.event === 'case-result' && row.state === 'failed').failureLine,
+    ).toBeGreaterThan(0);
     expect(rows.at(-1)).toMatchObject({ event: 'run-end', reason: 'failed' });
     for (const row of rows)
       expect(
         Object.keys(row).every((key) =>
-          ['event', 'elapsedMs', 'file', 'caseId', 'line', 'state', 'reason'].includes(key),
+          [
+            'event',
+            'elapsedMs',
+            'file',
+            'caseId',
+            'line',
+            'state',
+            'reason',
+            'failureKind',
+            'failureLine',
+            'reportedTimeoutMs',
+          ].includes(key),
         ),
       ).toBe(true);
   } finally {

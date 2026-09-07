@@ -37,11 +37,42 @@ export default class DashboardProgressReporter {
   onTestCaseReady(test) {
     this.record('case-start', this.identity(test));
   }
+  failureFields(test) {
+    const error = test.result().errors?.[0] ?? {};
+    const message = typeof error.message === 'string' ? error.message.slice(0, 512) : '';
+    const timeout = /Test timed out in (\d+)ms/u.exec(message);
+    const stack = typeof error.stack === 'string' ? error.stack.slice(0, 65536) : '';
+    const marker = basename(test.module.moduleId) + ':';
+    let failureLine = null;
+    for (const line of stack.split('\n')) {
+      const at = line.lastIndexOf(marker);
+      if (at < 0) continue;
+      const match = /^(\d+):\d+/u.exec(line.slice(at + marker.length));
+      if (match && Number(match[1]) > 0 && Number(match[1]) <= 1000000) {
+        failureLine = Number(match[1]);
+        break;
+      }
+    }
+    return {
+      failureKind: timeout
+        ? 'reported-test-timeout'
+        : error.name === 'AssertionError'
+          ? 'assertion'
+          : error.name === 'TimeoutError'
+            ? 'browser-timeout'
+            : 'other',
+      failureLine,
+      ...(timeout && Number(timeout[1]) <= 3600000
+        ? { reportedTimeoutMs: Number(timeout[1]) }
+        : {}),
+    };
+  }
   onTestCaseResult(test) {
     const state = test.result().state;
     this.record('case-result', {
       ...this.identity(test),
       state: ['passed', 'failed', 'skipped', 'pending'].includes(state) ? state : 'unknown',
+      ...(state === 'failed' ? this.failureFields(test) : {}),
     });
   }
   onTestRunEnd(...args) {

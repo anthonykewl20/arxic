@@ -1,6 +1,6 @@
 # WEB-454-DENSITY — staged doc updates (in progress)
 
-Issue: #454 · PR: #455 · Disposition: scoped local checks pass after reproducing/fixing native shell drift; CI 34086989767 failed the installed Firefox aggregate; diagnostics and reproduction are in progress.
+Issue: #454 · PR: #455 · Disposition: scoped local checks pass after reproducing/fixing native shell drift; CI 34089122703 records one failed light Firefox journey (26 pass); diagnostics and reproduction are in progress.
 
 ## 1. `docs/SYNC.md` — tracker row
 
@@ -28,7 +28,9 @@ Yes, user-observable functionality. Integrator selects the next synchronized ver
 
 ## 5. Evidence pointers
 
-- [Failed CI and installed density evidence](../evidence/WEB-454-DENSITY/ci-34086989767/summary.md): all source shards and installed Chromium/WebKit pass; Firefox stops without complete proof. Incremental runner diagnostics preserve case progress and bounded process facts; no timeout or assertion is relaxed.
+- [Second CI failure and Node 22 reproduction](../evidence/WEB-454-DENSITY/ci-34089122703/summary.md): ordinary test exit, not killed or aggregate timeout. Local source light/dark passes do not discharge CI. Browser waits now have a stricter 10-second bound with masked failure capture; existing Vitest deadlines remain unchanged. Reporter retains bounded failure category and source line.
+
+- [Failed CI and installed density evidence](../evidence/WEB-454-DENSITY/ci-34086989767/summary.md): all source shards and installed Chromium/WebKit pass; Firefox stops without complete proof. Incremental runner diagnostics preserve case progress and bounded process facts. The full local installed Firefox reproduction passes 27 cases across all 15 files in 780.9 seconds. Two required exhaustive CI partitions retain the same per-command/job/test limits while increasing aggregate capacity; no file is omitted or duplicated. New-head CI remains pending.
 
 - `apps/web/src/__tests__/visual-density.real-world.test.ts`: actual reference app, Chromium/Firefox/WebKit, nine native environments; two fresh baseline/repeat/2×-only-regression runs pass with full Chromium at high density.
 - `visual-density-ui.real-world.test.ts`: actual dashboard/reference app; empty/oversized settings, keyboard selection, responsive density filtering and independently measured 2× element picking.
