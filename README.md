@@ -177,4 +177,4 @@ values. These optional declarations name built-in capabilities; they do not load
 plugins, supply credentials, or establish fixture readiness. Omission and the
 existing per-pass login declaration retain their behavior (refs #452).
 
-Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery is locally exercised; Chromium native text-paint repeatability remains a failing acceptance check. This is not production-readiness proof.
+Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery and native baseline repeatability pass local reference-app checks. High-density Chromium uses full Chromium headless with an explicit renderer identity; final installed CI remains required. This is not full production-readiness proof.

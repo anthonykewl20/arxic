@@ -607,7 +607,7 @@ baseline approval.
 The 600-checkpoint budget is shared across the entire matrix, not reset per browser.
 Pages are bounded equally per environment/viewport and truncation remains visible.
 Each environment establishes its own authorized sign-in and memory-only session;
-the same origin/mutation/mask policies apply to every browser. Authenticated workflow
+the same origin/mutation/mask policies apply to every browser. The matrix signs in once per browser family and reuses that real session in memory within the current run, avoiding repeated login submissions for each theme/density. Every reuse is explicit in the sanitized timeline; sessions and failed-login outcomes are discarded between runs. Authenticated workflow
 exploration beyond the configured redirect-based sign-in is still a separate gap.
 
 The application-owned capture helper removes only validated sRGB intent and
@@ -726,6 +726,10 @@ In project settings, choose **1× standard**, **2× sharp** or **3× extra sharp
 
 A viewport/density product exceeding 16 × 1024 × 1024 image pixels is refused before capture. Reduce the viewport or deselect a density to recover; images are not silently downsampled. PNG dimensions, decoded-pixel limits and privacy masks remain enforced. Workflow checkpoint screenshots keep their existing CSS-pixel capture behavior.
 
-Local dashboard tests exercise selection, keyboard controls, empty-selection and oversized-image recovery, saved settings and density filtering. Native Chromium repeat captures still produce small text-paint differences with equal retained geometry. That acceptance test remains failing; no tolerance was widened and no deterministic/release-ready claim is made. Physical hardware and cross-OS rendering are outside this emulation proof.
+Local dashboard tests exercise selection, keyboard controls, empty-selection and oversized-image recovery, saved settings and density filtering. The original Chromium headless shell produced small text-paint differences with equal geometry. Native 2×/3× Chromium now uses full Chromium headless, recorded as `renderer: chromium-full-headless` in environment evidence and baseline identity. Two fresh nine-environment baseline/repeat/regression runs pass without widening pixel tolerance. Existing 1× captures retain their prior renderer and baseline identity. Physical hardware and cross-OS rendering are outside this emulation proof.
 
 Native-density AI review uses image-pixel coordinates for overlays. Review accepts density-qualified filenames but retains its separate 4 × 1024 × 1024 pixel model-image limit; an allowed visual capture can still be too large for AI review. Settings validation brings the error into view and focuses it for keyboard recovery.
+
+For native Chromium, install the full browser with `pnpm exec playwright install chromium`; a shell-only installation is insufficient and the unavailable environment remains blocked. This follows Playwright’s [documented new headless mode](https://playwright.dev/docs/browsers#chromium-new-headless-mode). Firefox and WebKit retain their own native rendering engines.
+
+An AI image-dimension refusal now tells you to choose a smaller viewport or lower pixel density. It preserves the review form input and restores submission controls. Invalid bytes and hash failures retain the opaque integrity diagnostic; neither model bounds nor PNG validation were relaxed.

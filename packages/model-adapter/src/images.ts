@@ -13,6 +13,14 @@ export type ModelImageMetadata = Readonly<{
   width: number;
   height: number;
 }>;
+/** Typed resource refusal so callers can offer recovery without exposing parser errors. */
+export class ModelImageDimensionsError extends Error {
+  constructor() {
+    super('Model image dimensions exceed their bound');
+    this.name = 'ModelImageDimensionsError';
+  }
+}
+
 export type PreparedModelImage = ModelImage & { metadata: ModelImageMetadata };
 
 /** Validates bounded canonical pixels and takes ownership before asynchronous provider work. */
@@ -42,7 +50,7 @@ export function prepareModelImages(
       inspected.height > 4096 ||
       inspected.width * inspected.height > 4 * 1024 * 1024
     )
-      throw new Error('Model image dimensions exceed their bound');
+      throw new ModelImageDimensionsError();
     return {
       mediaType: 'image/png',
       sha256: image.sha256,

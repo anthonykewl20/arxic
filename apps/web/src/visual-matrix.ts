@@ -10,6 +10,9 @@ export function planVisualMatrix(
         browser,
         colorScheme,
         ...(deviceScaleFactor === 1 ? {} : { deviceScaleFactor }),
+        ...(browser === 'chromium' && deviceScaleFactor > 1
+          ? { renderer: 'chromium-full-headless' as const }
+          : {}),
       })),
     ),
   );

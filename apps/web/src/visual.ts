@@ -145,7 +145,7 @@ async function crawl(
   return found;
 }
 
-/** One form sign-in per run. Fields resolve by label, then by input type; values never enter the timeline. */
+/** One form sign-in per browser family in a run. Fields resolve by label, then by input type; values never enter the timeline. */
 async function signIn(
   browser: Browser,
   project: Project,
@@ -221,6 +221,7 @@ async function captureEnvironment(
   environment: VisualEnvironment,
   pageBudget: number,
   prefix: string,
+  signIns: Map<VisualEnvironment['browser'], Awaited<ReturnType<typeof signIn>>>,
 ): Promise<RunResult> {
   const project = run.project;
   if (!project.origin || !project.captureConsent)
@@ -237,6 +238,7 @@ async function captureEnvironment(
     };
   const browser = await { chromium, firefox, webkit }[environment.browser].launch({
     headless: true,
+    ...(environment.renderer === 'chromium-full-headless' ? { channel: 'chromium' } : {}),
   });
   const captures: Capture[] = [];
   const findings: NonNullable<RunResult['findings']> = [];
@@ -272,9 +274,20 @@ async function captureEnvironment(
           findings: [{ path: project.login.loginPath, kind: 'login-secrets-missing', count: 1 }],
         };
       }
-      const outcome = await signIn(browser, project, { email, password }, timeline, environment);
+      let outcome = signIns.get(environment.browser);
+      const reused = !!outcome;
+      if (!outcome) {
+        outcome = await signIn(browser, project, { email, password }, timeline, environment);
+        signIns.set(environment.browser, outcome);
+      } else {
+        timeline.push({
+          action: 'reuse-browser-sign-in',
+          checkpoint: 0,
+          result: 'state' in outcome ? 'in-memory state from this run' : 'prior sign-in failed',
+        });
+      }
       if ('reason' in outcome) {
-        timeline.push({ action: 'sign-in-form', checkpoint: 0, result: 'failed' });
+        if (!reused) timeline.push({ action: 'sign-in-form', checkpoint: 0, result: 'failed' });
         await writeTimeline();
         return {
           outcome: 'blocked',
@@ -522,6 +535,8 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
   const visualEnvironments: NonNullable<RunResult['visualEnvironments']> = [];
   const discoveredPaths = new Set<string>();
   const timeline: Timeline = [];
+  // Authentication is run-local; matrix expansion must not repeatedly submit the same login.
+  const signIns = new Map<VisualEnvironment['browser'], Awaited<ReturnType<typeof signIn>>>();
   let singleSummary = '';
   for (const environment of environments) {
     const prefix =
@@ -530,7 +545,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
         : `${environment.browser}-${environment.colorScheme}${environment.deviceScaleFactor ? `-${environment.deviceScaleFactor}x` : ''}-`;
     let result: RunResult;
     try {
-      result = await captureEnvironment(run, directory, environment, pageBudget, prefix);
+      result = await captureEnvironment(run, directory, environment, pageBudget, prefix, signIns);
       if (run.project.origin && run.project.captureConsent && !run.project.recordVideo) {
         const steps = JSON.parse(
           await readFile(join(directory, `${prefix}timeline.json`), 'utf8'),

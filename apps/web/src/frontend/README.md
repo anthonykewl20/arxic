@@ -44,4 +44,4 @@ baseline approval. Figure placeholders explain absent historical evidence rather
 than asking for approval after approval has already succeeded. This is presentation
 of existing records; it does not mutate comparison or approval policy.
 
-Project capture settings now expose native 1×/2×/3× pixel densities. Capture gallery filtering and environment labels retain density identity. Native repeatability remains under investigation in #454; see the workbench guide for the current proof limits.
+Project capture settings now expose native 1×/2×/3× pixel densities. Capture gallery filtering and environment labels retain density identity. High-density Chromium uses full headless rendering after a shell-specific raster-repeatability failure. See the workbench guide for current proof and CI limits.

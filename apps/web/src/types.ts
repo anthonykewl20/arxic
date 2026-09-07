@@ -3,6 +3,8 @@ export type VisualEnvironment = {
   colorScheme: 'light' | 'dark';
   /** Omitted in historical and 1x cells to preserve their baseline identity. */
   deviceScaleFactor?: 1 | 2 | 3;
+  /** Explicit evidence identity for native Chromium captures; historical 1x uses the shell. */
+  renderer?: 'chromium-full-headless';
 };
 export type RunMode = 'discovery' | 'visual' | 'agent' | 'review';
 /** Form sign-in performed once per visual run; secrets are ARXIC_SECRET_ server variables. */

@@ -1,0 +1,1 @@
+{"schemaVersion":1,"sha256":"987072a9ef0e2debfe857539e783198eca3db2e0c5e306c43d2015853c4cd8a1","method":"allow-listed action and ordinal fields only; no DOM, network payloads, credentials or trace recording","rawTraceRetained":false}

@@ -123,4 +123,6 @@ Blocked visual runs link directly to their current project capture settings. The
 
 The [WebKit navigation investigation](../../docs/evidence/WEB-447-NAVIGATION/summary.md) provides an explicit probe command; no production error waiver is enabled.
 
-Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery is locally exercised; Chromium native text-paint repeatability remains a failing acceptance check. This is not production-readiness proof.
+Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery and native baseline repeatability pass local reference-app checks. High-density Chromium uses full Chromium headless with an explicit renderer identity; final installed CI remains required. This is not full production-readiness proof.
+
+Visual matrix authentication performs one GUI sign-in per browser family per run. Successful session state and failed outcomes are reused in memory across that browser’s cells; each reuse is recorded, and nothing carries into a later run. This avoids exhausting target login-rate limits while preserving real authenticated screenshots and run isolation.

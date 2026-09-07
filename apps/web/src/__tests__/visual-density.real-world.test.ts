@@ -57,6 +57,11 @@ it('binds native density pixels to independent real browser baselines', async ()
       expect(new Set(result.captures!.map((c) => c.specHash)).size).toBe(9);
       for (const capture of result.captures!) {
         const density = capture.environment?.deviceScaleFactor ?? 1;
+        expect(capture.environment?.renderer).toBe(
+          capture.environment?.browser === 'chromium' && density > 1
+            ? 'chromium-full-headless'
+            : undefined,
+        );
         const png = await sharp(join(state, 'runs', queued.id, capture.file)).metadata();
         expect([png.width, png.height]).toEqual([800 * density, 600 * density]);
         const scene = JSON.parse(

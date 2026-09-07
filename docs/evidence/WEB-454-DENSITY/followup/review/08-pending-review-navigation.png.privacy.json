@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "923794b3c3d33263f6deb0f813cd5aee0ed774b0",
+  "browser": {
+    "name": "chromium",
+    "version": "151.0.7922.34"
+  },
+  "dirty": true,
+  "sha256": "7e52c96ee10ff3103916294d081ed3fbb3eda3b42e3e9671541af61ae3294172",
+  "policy": "anonymous reference-app/dashboard test data; password inputs masked",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed"
+}

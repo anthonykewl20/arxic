@@ -32,7 +32,9 @@ it('reads an authorized native 2x capture without relaxing model image limits', 
       sourceRunId: run.id,
       capture: captures.find((c) => c.environment?.deviceScaleFactor === density)!,
     });
-    await expect(reviewImage(join(state, 'runs'), scope(3))).rejects.toThrow();
+    await expect(reviewImage(join(state, 'runs'), scope(3))).rejects.toThrow(
+      'Capture exceeds AI review image limits; choose a smaller viewport or lower pixel density',
+    );
     const image = await reviewImage(join(state, 'runs'), scope(2));
     expect(image.metadata).toMatchObject({ width: 1600, height: 1200 });
     expect(image.sha256).toBe(scope(2).capture.sha256);

@@ -160,6 +160,34 @@ it.each(['light', 'dark'] as const)(
         );
       }
       await page.getByRole('button', { name: 'Inspect captured elements', exact: true }).click();
+      await page.getByLabel('Capture pixel density', { exact: true }).selectOption('3');
+      await page.getByText('Ask AI to review this screenshot', { exact: true }).click();
+      await page.getByLabel('Review model', { exact: true }).fill('local-vision-check');
+      await page
+        .getByLabel('Independent acceptance criterion', { exact: false })
+        .fill('The Login control must remain readable.');
+      await page.getByLabel('I inspected this screenshot', { exact: false }).check();
+      const refusal = page.waitForResponse(
+        (response) => response.url().endsWith('/reviews') && response.request().method() === 'POST',
+      );
+      await page.getByRole('button', { name: 'Review these pixels', exact: true }).click();
+      expect((await refusal).status()).toBe(409);
+      const limitMessage = page.getByText(
+        'Capture exceeds AI review image limits; choose a smaller viewport or lower pixel density',
+        { exact: true },
+      );
+      await limitMessage.waitFor();
+      expect(
+        await page.getByRole('button', { name: 'Review these pixels', exact: true }).isDisabled(),
+      ).toBe(false);
+      expect(await page.getByLabel('Review model', { exact: true }).inputValue()).toBe(
+        'local-vision-check',
+      );
+      await limitMessage.scrollIntoViewIfNeeded();
+      await audit(
+        '02c-review-image-limit',
+        'Oversized AI review is refused with actionable recovery and retained form input',
+      );
       await page.getByRole('button', { name: 'Clear capture filters' }).click();
       expect(await page.locator('.capture').count()).toBe(3);
       await page
