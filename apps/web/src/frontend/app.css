@@ -80,6 +80,12 @@
   p {
     margin: 0;
   }
+  h1,
+  h2,
+  h3,
+  h4 {
+    overflow-wrap: anywhere;
+  }
   h1 {
     font-size: var(--text-2xl);
     font-weight: 600;
@@ -534,14 +540,12 @@
   }
   .section-heading {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
   }
-  .run-detail > .section-heading {
-    flex-wrap: wrap;
-  }
-  .run-detail > .section-heading > div {
+  .section-heading > * {
     min-width: 0;
     max-width: 100%;
     overflow-wrap: anywhere;
@@ -1000,6 +1004,8 @@
   .picker-row {
     width: 100%;
     display: flex;
+    flex-wrap: wrap;
+    overflow-wrap: anywhere;
     align-items: center;
     gap: 10px;
     min-height: 40px;
@@ -1025,9 +1031,14 @@
   .picker-row svg {
     color: var(--foreground-faint);
   }
+  .picker-row > span {
+    flex: 1 1 8em;
+    min-width: 0;
+  }
   .picker-row small {
     margin-left: auto;
-    white-space: nowrap;
+    max-width: 100%;
+    white-space: normal;
     font-size: var(--text-xs);
   }
   .picker-empty {

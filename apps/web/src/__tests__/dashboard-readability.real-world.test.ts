@@ -228,7 +228,14 @@ it.each(
       await inspect('02-overview');
       await page.locator('#new-project').click();
       await page.getByRole('dialog').waitFor();
+      await page.locator('.picker-row').first().waitFor();
       await inspect('03-source-wizard');
+      await page
+        .locator('.picker-row')
+        .filter({ hasText: 'no package.json' })
+        .last()
+        .scrollIntoViewIfNeeded();
+      await inspect('03b-folder-metadata', true);
       await page.keyboard.press('Escape');
       await resizeDashboard(page, { width: 1440, height: 1000 });
       await inspect('04-desktop-overview');
