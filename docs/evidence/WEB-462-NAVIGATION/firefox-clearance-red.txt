@@ -1,0 +1,26 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/inventory-navigation
+
+ ❯ apps/web/src/__tests__/frontend-template.real-world.test.ts (1 test | 1 failed) 13704ms
+   × shows source-bound EJS controls in the real dashboard and corroborates the reference page without promoting source truth 13703ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/frontend-template.real-world.test.ts > shows source-bound EJS controls in the real dashboard and corroborates the reference page without promoting source truth
+AssertionError: expected 63.5 to be greater than or equal to 64
+ ❯ apps/web/src/__tests__/frontend-template.real-world.test.ts:216:27
+    214|       );
+    215|       expect(position).not.toBeNull();
+    216|       expect(position!.y).toBeGreaterThanOrEqual(64);
+       |                           ^
+    217|       expect(position!.y + position!.height).toBeLessThan(1000);
+    218|       expect(await heading.evaluate((node) => node === document.active…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  16:05:50
+   Duration  14.32s (transform 912ms, setup 0ms, import 502ms, tests 13.70s, environment 0ms)
+

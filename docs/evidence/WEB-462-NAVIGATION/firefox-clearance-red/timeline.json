@@ -1,0 +1,47 @@
+[
+  {
+    "action": "Control filter must retain its selection and show only source controls",
+    "result": "passed",
+    "screenshot": "00-filter-result.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "A search without matches still reaches an explicit empty result",
+    "result": "passed",
+    "screenshot": "empty-result-navigation.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Activate declaration results and focus the visible heading",
+    "result": "passed",
+    "screenshot": "navigation-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Find all thirteen literal EJS controls while template runtime coverage remains a gap",
+    "result": "passed",
+    "screenshot": "01-source-controls-1440.png",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    }
+  },
+  {
+    "action": "Activate declaration results and focus the visible heading",
+    "result": "failed",
+    "screenshot": "navigation-320.png",
+    "viewport": {
+      "width": 320,
+      "height": 1000
+    }
+  }
+]

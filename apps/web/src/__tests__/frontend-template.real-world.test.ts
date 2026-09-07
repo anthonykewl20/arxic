@@ -12,6 +12,8 @@ import {
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import { startWorkbench } from './workbench-runtime';
+import { Store } from '../store';
+import type { Run } from '../types';
 import { launchDashboardBrowser, resizeDashboard, settleDashboard } from './dashboard-browser';
 import { dashboardProof } from './dashboard-proof';
 
@@ -98,7 +100,8 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
     const runId = new URL(page.url()).searchParams.get('run')!;
     const response = await page.request.get(`${app.origin}/api/runs/${runId}`);
     expect(response.status()).toBe(200);
-    const inventory = (await response.json()).result.frontend as FrontendInventory;
+    const sourceRun = (await response.json()) as Run;
+    const inventory = sourceRun.result!.frontend as FrontendInventory;
     const controls = inventory.rows.filter(
       (row) => row.source.path === 'src/views/index.ejs' && row.kind === 'control',
     );
@@ -156,13 +159,66 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
       ],
     );
     await expect.poll(() => page.locator('[data-frontend-rows] tbody tr').count()).toBe(13);
+    await page.getByLabel('Search declarations').fill('missing-source-element');
+    await page
+      .locator('#declaration-search')
+      .getByRole('button', { name: 'Search', exact: true })
+      .click();
+    await page
+      .getByRole('link', {
+        name: '0 matching declarations · Express template discovery',
+        exact: true,
+      })
+      .click();
+    await page.getByText('No declarations match these filters.', { exact: true }).waitFor();
+    await proof.audit(
+      'empty-result-navigation',
+      'A search without matches still reaches an explicit empty result',
+    );
+    await page.getByLabel('Search declarations').fill('src/views/index.ejs');
+    await page
+      .locator('#declaration-search')
+      .getByRole('button', { name: 'Search', exact: true })
+      .click();
     await page.getByText('Coverage gaps', { exact: true }).click();
     await page.getByText('template-expressions-not-evaluated', { exact: false }).waitFor();
-    for (const width of [1440, 390]) {
+    for (const width of [1440, 320]) {
       await resizeDashboard(page, { width, height: 1000 });
-      await page
-        .getByRole('heading', { name: 'Frontend declarations', exact: true })
-        .scrollIntoViewIfNeeded();
+      const jump = page.getByRole('link', {
+        name: '13 matching declarations · Express template discovery',
+        exact: true,
+      });
+      if (width === 1440) {
+        await page.getByLabel('Search declarations').click();
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
+        expect(await jump.evaluate((node) => node === document.activeElement)).toBe(true);
+        await page.keyboard.press('Enter');
+      } else await jump.click();
+      await settleDashboard(page);
+      const heading = page.getByRole('heading', { name: 'Frontend declarations', exact: true });
+      const position = await heading.boundingBox();
+      const focused = await heading.evaluate((node) => node === document.activeElement);
+      await proof.audit(
+        `navigation-${width}`,
+        'Activate declaration results and focus the visible heading',
+        [
+          {
+            id: 'visible-focused-heading',
+            passed:
+              focused && !!position && position.y >= 64 && position.y + position.height < 1000,
+            values: {
+              focused: focused ? 1 : 0,
+              top: position?.y ?? -1,
+              bottom: position ? position.y + position.height : -1,
+            },
+          },
+        ],
+      );
+      expect(position).not.toBeNull();
+      expect(position!.y).toBeGreaterThanOrEqual(64);
+      expect(position!.y + position!.height).toBeLessThan(1000);
+      expect(await heading.evaluate((node) => node === document.activeElement)).toBe(true);
       const audit = await proof.audit(
         `01-source-controls-${width}`,
         'Find all thirteen literal EJS controls while template runtime coverage remains a gap',
@@ -187,6 +243,68 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
     );
     expect(bottom.violations).toEqual([]);
     expect(bottom.overflow).toBe(0);
+    // Restore the pre-#460 persisted identity format from actual source declarations.
+    // This is a separate historical database; the fresh run is never rewritten.
+    const historicalState = await mkdtemp(join(tmpdir(), 'historical-inventory-ui-'));
+    let historicalApp: Awaited<ReturnType<typeof startWorkbench>> | undefined;
+    try {
+      const historical = {
+        ...inventory,
+        rows: inventory.rows.map((row) => ({
+          ...row,
+          id: createHash('sha256')
+            .update(JSON.stringify([row.source, row.kind, row.label]))
+            .digest('hex'),
+        })),
+      };
+      expect(new Set(historical.rows.map((row) => row.id)).size).toBe(historical.rows.length - 7);
+      const store = await Store.open(historicalState);
+      let historicalId: string;
+      try {
+        store.saveProject(sourceRun.project);
+        const restored = store.enqueue(sourceRun.project, 'discovery')!;
+        historicalId = restored.id;
+        store.finish(restored, { ...sourceRun.result!, frontend: historical });
+      } finally {
+        store.db.close();
+      }
+      historicalApp = await startWorkbench({
+        roots: [repo.root],
+        stateDirectory: historicalState,
+        port: 0,
+        adminToken: 'frontend-template-test-administrator',
+      });
+      await page.goto(`${historicalApp.origin}?view=intents`);
+      await page.getByLabel('Administrator token').fill('frontend-template-test-administrator');
+      await page.getByRole('button', { name: 'Open workbench' }).click();
+      await page.locator('[data-frontend-rows]').waitFor();
+      await page.getByLabel('Declaration kind').selectOption('control');
+      await page.getByLabel('Search declarations').fill('src/views/index.ejs');
+      await page
+        .locator('#declaration-search')
+        .getByRole('button', { name: 'Search', exact: true })
+        .click();
+      await page
+        .getByRole('link', {
+          name: '13 matching declarations · Express template discovery',
+          exact: true,
+        })
+        .click();
+      await settleDashboard(page);
+      const actual = await page.locator('[data-frontend-rows] tbody tr').count();
+      await proof.audit(
+        'historical-filter',
+        'Filter a restored historical inventory without rewriting its evidence',
+        [{ id: 'historical-controls', passed: actual === 13, values: { actual, expected: 13 } }],
+      );
+      expect(actual).toBe(13);
+      const retained = await page.request.get(`${historicalApp.origin}/api/runs/${historicalId}`);
+      expect(retained.status()).toBe(200);
+      expect((await retained.json()).result.frontend).toEqual(historical);
+    } finally {
+      await historicalApp?.close();
+      await rm(historicalState, { recursive: true, force: true });
+    }
     expect(errors).toEqual([]);
   } finally {
     await proof.finish();

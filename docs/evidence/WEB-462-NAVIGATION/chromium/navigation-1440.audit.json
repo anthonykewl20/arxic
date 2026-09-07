@@ -1,0 +1,17 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "visible-focused-heading",
+      "passed": true,
+      "values": {
+        "focused": 1,
+        "top": 80.25,
+        "bottom": 101.25
+      }
+    }
+  ]
+}

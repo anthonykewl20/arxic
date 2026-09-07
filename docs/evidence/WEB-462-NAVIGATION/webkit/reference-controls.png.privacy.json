@@ -1,0 +1,10 @@
+{
+  "sha256": "dc5712028084b5d67faee170fe14022608d434ba849a56e6224487c27b068f6f",
+  "policy": "reference test app; all inputs masked",
+  "rawTraceRetained": false,
+  "humanInspection": "not performed",
+  "browser": {
+    "name": "webkit",
+    "version": "26.5"
+  }
+}
