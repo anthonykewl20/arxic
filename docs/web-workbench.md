@@ -681,13 +681,14 @@ The journeys connect a real reference project, discover its source, run a visual
 test, select measured elements, open mobile navigation and Administration, and
 recover provider names. They measure document overflow and text containment in
 buttons, labels, headings, summaries and sidebar identity groups at desktop and
-narrow widths. Enlarged desktop navigation must keep Administration on one line.
+narrow widths. Desktop and open mobile navigation must keep Administration on one line.
 The model catalog is a named keyboard-focusable region; End/Home must scroll it.
 A deliberately clipped real login button is the fifth test and must produce a
 failed numeric finding even when the accessibility engine finds no violation.
 
 Navigation rows and text buttons use content height with minimum target sizes.
-The desktop sidebar scales with enlarged text; run headings, breadcrumbs and
+The desktop sidebar scales with enlarged text and mobile navigation reduces its
+column count when needed; run headings, breadcrumbs and
 activity rows wrap. Provider titles may truncate in the picker only because
 activation exposes the exact full heading, which is separately measured.
 

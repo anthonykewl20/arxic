@@ -170,13 +170,13 @@ it.each(
           },
         });
       }
-      if (name === '04-desktop-overview') {
+      if (name === '04-desktop-overview' || name === '13-mobile-navigation') {
         const navigation = await measureControlText(
           page.getByRole('button', { name: 'Administration', exact: true }),
         );
         const lineCount = new Set(navigation.lines.map((line) => line.y)).size;
         checks.push({
-          id: 'desktop-navigation-whole-word',
+          id: 'navigation-whole-word',
           passed: lineCount === 1,
           values: { lineCount },
         });

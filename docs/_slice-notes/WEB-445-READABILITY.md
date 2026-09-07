@@ -1,6 +1,6 @@
 # WEB-445-READABILITY — staged doc updates (charter §10.2)
 
-Issue: #445 · PR: pending · Disposition: mixed (acceptance in progress)
+Issue: #445 · PR: #446 · Disposition: mixed (acceptance in progress)
 
 ## 1. `docs/SYNC.md` — tracker row
 
@@ -11,7 +11,7 @@ Issue: #445 · PR: pending · Disposition: mixed (acceptance in progress)
 ## 2. `docs/SYNC.md` — session-log row
 
 ```text
-| 2026-09-07 | #445 dashboard readability: real reference-project discovery/capture journeys now exercise spacing and mounted text enlargement, light/dark and narrow/desktop layouts. Sidebar, button, run/header/activity reflow and keyboard catalog fixes are under multi-engine acceptance. Final installed CI and retained proof pending; #402 remains open. |
+| 2026-09-07 | #445 dashboard readability: real reference-project discovery/capture journeys now exercise spacing and mounted text enlargement, light/dark and narrow/desktop layouts. Sidebar, button, run/header/activity reflow, adaptive mobile navigation and keyboard catalog fixes are under multi-engine acceptance. Final installed CI and retained proof pending; #402 remains open. |
 ```
 
 ## 3. `CHANGELOG.md` — proposed `Fixed` entry
