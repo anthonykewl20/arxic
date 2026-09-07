@@ -1,102 +1,488 @@
 {
-  "before/01-navigation-refusal.audit.json": "d57e26c66c8673430e9f2d819890556374ee161b89a3e0821c401dfc82ee8030",
-  "before/01-navigation-refusal.png": "c6e62afa970ff553d76cb3c6e164cd7d6c32bb86801dd592ff21b2cd56c0e3ac",
-  "before/01-navigation-refusal.png.privacy.json": "a4d25a9c025a17dd9e168093b0d30194e665f99561575abc8d59d9920bb233c1",
-  "before/engine-timeline.json": "6638490e72d98d7b1951890ceec2f9ad955a0412cdc350207e9b68ad598f4fa2",
-  "before/engine-timeline.sanitization.json": "027453c8cbcb14ae546d8c5e945bfe97da6f43dd04c872b4c929e91eed39abc3",
-  "before/navigation-result.json": "9bde744c999e7912eed0805d798208cef3d521b300aa35c1367280765fc674b2",
-  "before/timeline.json": "2f7e4b7cf1fe2d19aa8c5a62fd2ec0ba52c9bb0fea6cfcef1adfc87b6dc62c9e",
-  "before/timeline.sanitization.json": "9831db60870d99afd0091a00d985a84640bf941e1d638f3962b4feaabe6d3de6",
-  "chromium/01-navigation-refusal.audit.json": "addb45204f5ede9257b014eead9181e05475588e66b33a83aa8f4711d804006f",
-  "chromium/01-navigation-refusal.png": "bea6a009a23eec5ff6cc658c0258c7743804c00a91f0df540224b2d0d249626b",
-  "chromium/01-navigation-refusal.png.privacy.json": "1694f83eaa87e51ccca3469413163a9baa874cd53ac45cc484df28d5f74415f3",
-  "chromium/02-required-mask-refusal.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "chromium/02-required-mask-refusal.png": "0c566e9eb85a26bbfcfd000b44bc6192844b028b19e67946cafe6f70e3c2f4e7",
-  "chromium/02-required-mask-refusal.png.privacy.json": "760f93164040d5999ed81c390a4d0f1daaed67acc4bd8c3685f5a230179ccceb",
-  "chromium/03-mobile-refusal.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "chromium/03-mobile-refusal.png": "428e1ca5c84cd59bc9a3808ff4f2e0b77989093e037d89f09659a744215e60ff",
-  "chromium/03-mobile-refusal.png.privacy.json": "2271b745e4c0928b51f83e7c293c0cb0035c544fcaf0cac4b459bd57077c3105",
-  "chromium/engine-timeline.json": "6638490e72d98d7b1951890ceec2f9ad955a0412cdc350207e9b68ad598f4fa2",
-  "chromium/engine-timeline.sanitization.json": "027453c8cbcb14ae546d8c5e945bfe97da6f43dd04c872b4c929e91eed39abc3",
-  "chromium/navigation-result.json": "3b74d015c3e04c4cacbd62742430dd013a52e4706889092394a9f826c9b25c9f",
-  "chromium/privacy-result.json": "227cd6fd105a42ba23eb53dd3efe6a005fd2ad5b64453ae3f51675828703e025",
-  "chromium/timeline.json": "32201923f0d440e68641b1e0d7cef0081d5164dc544054086228bbaf1aae8f7b",
-  "chromium/timeline.sanitization.json": "7e4bcdc9bf40ba6cfe03b3bab01303043c536c94a30cd7d55224b07199d8dee1",
-  "firefox/01-navigation-refusal.audit.json": "addb45204f5ede9257b014eead9181e05475588e66b33a83aa8f4711d804006f",
-  "firefox/01-navigation-refusal.png": "dc909cacbcba1f3f282c7c38af5e19209ac2ea039cb762faa036025d68e363de",
-  "firefox/01-navigation-refusal.png.privacy.json": "05cb999c5f18de390f9b48df94a19ef49f92d361b79fde14dfc233c4839fe278",
-  "firefox/02-required-mask-refusal.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "firefox/02-required-mask-refusal.png": "e62ca180bd25527c91a05432c3e218627a2a730259803305e154e50cad55b844",
-  "firefox/02-required-mask-refusal.png.privacy.json": "12e502ac93f81945b3356966a23b649a4470d5b6c9b453a0ba556d01b5639dec",
-  "firefox/03-mobile-refusal.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "firefox/03-mobile-refusal.png": "da7fbb298fe4d325afe48defa0756e1abed6d3960c593f6e9f6e2783818523de",
-  "firefox/03-mobile-refusal.png.privacy.json": "c43708a42b75494398d85ebc50fc43a1da42b77996d6f657f7a93b08d596b1ab",
-  "firefox/engine-timeline.json": "6638490e72d98d7b1951890ceec2f9ad955a0412cdc350207e9b68ad598f4fa2",
-  "firefox/engine-timeline.sanitization.json": "027453c8cbcb14ae546d8c5e945bfe97da6f43dd04c872b4c929e91eed39abc3",
-  "firefox/navigation-result.json": "5b01f3b4feed3af25f01ea7d35f789959540904a193790dd660aeaa74acd08ec",
-  "firefox/privacy-result.json": "227cd6fd105a42ba23eb53dd3efe6a005fd2ad5b64453ae3f51675828703e025",
-  "firefox/timeline.json": "32201923f0d440e68641b1e0d7cef0081d5164dc544054086228bbaf1aae8f7b",
-  "firefox/timeline.sanitization.json": "a5dbf78445e5706d92c7f35f30f8ef3a2210e70da1b39665544fd233d073cef0",
-  "recovery/chromium/04-recovery-entry.audit.json": "dafe45a86f01e2751bb89e2d17e3d32d4f01c1d93f2d5c291fef5e7406925fb4",
-  "recovery/chromium/04-recovery-entry.png": "c5246b8391801a67241619a39b2c59e485943cbf8cf14897f83d8e712f569d74",
-  "recovery/chromium/04-recovery-entry.png.privacy.json": "1b8ef5d78fc6382e73672b4ed0d02b3f23de458cd3f03010271d33354b4193a4",
-  "recovery/chromium/05-edit-required-mask.audit.json": "b0f3ff80af1db919b93397abe30e1f14636167d531ef90c1d2e91036294cec63",
-  "recovery/chromium/05-edit-required-mask.png": "2a83eabb6d1eeecbefed7aa8ca15ffe0346a67cf784836678ef48312a96ad2d3",
-  "recovery/chromium/05-edit-required-mask.png.privacy.json": "670b141dc1b2aed0f0ff479f5a618af9069a503bbbe9f42fa38d3bc6bfdef33c",
-  "recovery/chromium/06-recovered-run.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "recovery/chromium/06-recovered-run.png": "bf72d11a94b092443bcd2a03267f59475eda002b717c66dc27c1e55d1f661dcb",
-  "recovery/chromium/06-recovered-run.png.privacy.json": "f807afa381c5cdd742f97fe6d27c1d09421bb62548655762f788748782c5fe34",
-  "recovery/chromium/07-original-refusal-preserved.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "recovery/chromium/07-original-refusal-preserved.png": "f8013f1ef3198492156547798678959037b6c92d07b6b9ead3bd7bb0ff5e9b43",
-  "recovery/chromium/07-original-refusal-preserved.png.privacy.json": "d4845fb1ae8215058c09a9a2275683cbfc6baa9906c924d1d78aba9b454f1567",
-  "recovery/chromium/timeline.json": "c408220a5135f678ee779cb2507822a4c45fc34d69596e6e19ccb512e28c7295",
-  "recovery/chromium/timeline.sanitization.json": "c006ef732f24376b67cac49d56d2be64a5ff89715f6b65de4916e68c3afe14b5",
-  "recovery/firefox/04-recovery-entry.audit.json": "dafe45a86f01e2751bb89e2d17e3d32d4f01c1d93f2d5c291fef5e7406925fb4",
-  "recovery/firefox/04-recovery-entry.png": "fb921b66c2ef701ec50fa81b07eeb41ee8c72ce0d04c1df06fdb387c2108c349",
-  "recovery/firefox/04-recovery-entry.png.privacy.json": "9e47c0478f0d04af10d629486418eab183b04b2dc4aac06c72a0fb9acae62482",
-  "recovery/firefox/05-edit-required-mask.audit.json": "b0f3ff80af1db919b93397abe30e1f14636167d531ef90c1d2e91036294cec63",
-  "recovery/firefox/05-edit-required-mask.png": "d488147ba21925ffe2e3804a2e9ea12fb4ea470aaa3dbe8ece3ac3a9eae7f19f",
-  "recovery/firefox/05-edit-required-mask.png.privacy.json": "96c8059fdbb91876108ff9aec60a6831fa74cccc5d79ebdfe0564d26609e5860",
-  "recovery/firefox/06-recovered-run.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "recovery/firefox/06-recovered-run.png": "f1695ecde85c208bb3cfe3598c4df6d8b4b61a5df3150a2343eb3a65a9aaf9da",
-  "recovery/firefox/06-recovered-run.png.privacy.json": "e7645ec8b311db292e30525aadee4aa03b7e01d40c6df894866651139b4c8a6c",
-  "recovery/firefox/07-original-refusal-preserved.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "recovery/firefox/07-original-refusal-preserved.png": "c008ed26d398fcaf5fe809d7c404ac969b282521c5c7293dcca02b0431d631e7",
-  "recovery/firefox/07-original-refusal-preserved.png.privacy.json": "f63b55e234dc400c5ed4df1f55ea0b8c2ccffe5a517c8024a6ced49625b48602",
-  "recovery/firefox/timeline.json": "c408220a5135f678ee779cb2507822a4c45fc34d69596e6e19ccb512e28c7295",
-  "recovery/firefox/timeline.sanitization.json": "3263534f4b8c4121077c0ee2cce846849c4f23394d5dd49cf221a8a3e5bf09cd",
-  "recovery/webkit/04-recovery-entry.audit.json": "dafe45a86f01e2751bb89e2d17e3d32d4f01c1d93f2d5c291fef5e7406925fb4",
-  "recovery/webkit/04-recovery-entry.png": "6f4c65103877030938a76f8a4748a6639b1e9a2862320cfbbfbd73ea1e3b15cb",
-  "recovery/webkit/04-recovery-entry.png.privacy.json": "74e35c6a5fcfe7db1ef3580e3d79ca0e352739bfb232e6b40134c8cd668f79bb",
-  "recovery/webkit/05-edit-required-mask.audit.json": "b0f3ff80af1db919b93397abe30e1f14636167d531ef90c1d2e91036294cec63",
-  "recovery/webkit/05-edit-required-mask.png": "c747e03d25fb07cf92310a91aa5051e86e2b45a0772e93be51b3f752f5b4d3c1",
-  "recovery/webkit/05-edit-required-mask.png.privacy.json": "34455c83eafcf261b341bbba90056a245f7b5aeff03057db0961cb2418b88472",
-  "recovery/webkit/06-recovered-run.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "recovery/webkit/06-recovered-run.png": "5ae97d7d008e5b1a2755271bd6ed04110e9ce941191b701c7cfbdc0c93aabbb5",
-  "recovery/webkit/06-recovered-run.png.privacy.json": "b116b2865d972a5da6ded393e5e01dd3c473e07449c8c8d02ca014dedf511d0a",
-  "recovery/webkit/07-original-refusal-preserved.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "recovery/webkit/07-original-refusal-preserved.png": "06611f22ee51fa339686b54552a081d5589caf4a359d097af30e4501aaaa1c60",
-  "recovery/webkit/07-original-refusal-preserved.png.privacy.json": "63691389081155cee0b9ccf096a078643ed4aa946b8e9675c55bb9a345bdfbde",
-  "recovery/webkit/timeline.json": "c408220a5135f678ee779cb2507822a4c45fc34d69596e6e19ccb512e28c7295",
-  "recovery/webkit/timeline.sanitization.json": "40cae597483119d882b29330363b668d5e794553798102ec698cd2a6580deb5f",
-  "recovery-before/04-recovery-entry.audit.json": "5712b2c6ab1cf6b9a3edcd76e1cef550847516846fc400b7375704cebd5973d6",
-  "recovery-before/04-recovery-entry.png": "150472e0b6a0442af99db1b393dfe662105eb4dbc8ae5702d8d927e6f661dbe1",
-  "recovery-before/04-recovery-entry.png.privacy.json": "affcfa24e5afabd885dc404e967cb5afd059f6dc55caee15ab22c1a1e4ec438e",
-  "recovery-before/timeline.json": "2cd6b606a6112c0119b451c055c4dceae2d5f15cc06e99a6f06e8a8fb76719e5",
-  "recovery-before/timeline.sanitization.json": "2793191c82f3682c824b11fa211bb8d3136688fb9433a6afbaf23f413e00c300",
-  "webkit/01-navigation-refusal.audit.json": "addb45204f5ede9257b014eead9181e05475588e66b33a83aa8f4711d804006f",
-  "webkit/01-navigation-refusal.png": "cccd52940e0a3e4a8b629613eb62f91cbb7942f3d6c7531547e80da6672ed605",
-  "webkit/01-navigation-refusal.png.privacy.json": "cd8f30e15685ddc35ea2f089650410f44ba7fed74045514da6ff131f6b8246a8",
-  "webkit/02-required-mask-refusal.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "webkit/02-required-mask-refusal.png": "76b185bfbef55dc793c5af78a6ac63fdcca93bf47b429031262bd31d64728e66",
-  "webkit/02-required-mask-refusal.png.privacy.json": "b9618050972d99659143d1d9741a945854ecc816da9c3e8426fd9e14435c5754",
-  "webkit/03-mobile-refusal.audit.json": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4",
-  "webkit/03-mobile-refusal.png": "4ba5dfa005380699fcc4ab566cf573b665201be04c6e074d559bafd16880c5e3",
-  "webkit/03-mobile-refusal.png.privacy.json": "4d307f64937cb0ed7e6e7e806ceb2cf662a1956570f9643360b644535cbbe01d",
-  "webkit/engine-timeline.json": "6638490e72d98d7b1951890ceec2f9ad955a0412cdc350207e9b68ad598f4fa2",
-  "webkit/engine-timeline.sanitization.json": "027453c8cbcb14ae546d8c5e945bfe97da6f43dd04c872b4c929e91eed39abc3",
-  "webkit/navigation-result.json": "763a55ef953555c217597d359338adb516821963d685cb1e3bed8a41455788fe",
-  "webkit/privacy-result.json": "227cd6fd105a42ba23eb53dd3efe6a005fd2ad5b64453ae3f51675828703e025",
-  "webkit/timeline.json": "32201923f0d440e68641b1e0d7cef0081d5164dc544054086228bbaf1aae8f7b",
-  "webkit/timeline.sanitization.json": "9fe10a451bcd47084c4e48f656692c554def9fabe613a9fb28cba4adf5c1b9a4"
+  "files": [
+    {
+      "path": "before/01-navigation-refusal.audit.json",
+      "sha256": "d57e26c66c8673430e9f2d819890556374ee161b89a3e0821c401dfc82ee8030"
+    },
+    {
+      "path": "before/01-navigation-refusal.png",
+      "sha256": "c6e62afa970ff553d76cb3c6e164cd7d6c32bb86801dd592ff21b2cd56c0e3ac"
+    },
+    {
+      "path": "before/01-navigation-refusal.png.privacy.json",
+      "sha256": "a4d25a9c025a17dd9e168093b0d30194e665f99561575abc8d59d9920bb233c1"
+    },
+    {
+      "path": "before/engine-timeline.json",
+      "sha256": "6638490e72d98d7b1951890ceec2f9ad955a0412cdc350207e9b68ad598f4fa2"
+    },
+    {
+      "path": "before/engine-timeline.sanitization.json",
+      "sha256": "027453c8cbcb14ae546d8c5e945bfe97da6f43dd04c872b4c929e91eed39abc3"
+    },
+    {
+      "path": "before/navigation-result.json",
+      "sha256": "9bde744c999e7912eed0805d798208cef3d521b300aa35c1367280765fc674b2"
+    },
+    {
+      "path": "before/timeline.json",
+      "sha256": "2f7e4b7cf1fe2d19aa8c5a62fd2ec0ba52c9bb0fea6cfcef1adfc87b6dc62c9e"
+    },
+    {
+      "path": "before/timeline.sanitization.json",
+      "sha256": "9831db60870d99afd0091a00d985a84640bf941e1d638f3962b4feaabe6d3de6"
+    },
+    {
+      "path": "chromium/01-navigation-refusal.audit.json",
+      "sha256": "addb45204f5ede9257b014eead9181e05475588e66b33a83aa8f4711d804006f"
+    },
+    {
+      "path": "chromium/01-navigation-refusal.png",
+      "sha256": "bea6a009a23eec5ff6cc658c0258c7743804c00a91f0df540224b2d0d249626b"
+    },
+    {
+      "path": "chromium/01-navigation-refusal.png.privacy.json",
+      "sha256": "1694f83eaa87e51ccca3469413163a9baa874cd53ac45cc484df28d5f74415f3"
+    },
+    {
+      "path": "chromium/02-required-mask-refusal.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/02-required-mask-refusal.png",
+      "sha256": "0c566e9eb85a26bbfcfd000b44bc6192844b028b19e67946cafe6f70e3c2f4e7"
+    },
+    {
+      "path": "chromium/02-required-mask-refusal.png.privacy.json",
+      "sha256": "760f93164040d5999ed81c390a4d0f1daaed67acc4bd8c3685f5a230179ccceb"
+    },
+    {
+      "path": "chromium/03-mobile-refusal.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "chromium/03-mobile-refusal.png",
+      "sha256": "428e1ca5c84cd59bc9a3808ff4f2e0b77989093e037d89f09659a744215e60ff"
+    },
+    {
+      "path": "chromium/03-mobile-refusal.png.privacy.json",
+      "sha256": "2271b745e4c0928b51f83e7c293c0cb0035c544fcaf0cac4b459bd57077c3105"
+    },
+    {
+      "path": "chromium/engine-timeline.json",
+      "sha256": "6638490e72d98d7b1951890ceec2f9ad955a0412cdc350207e9b68ad598f4fa2"
+    },
+    {
+      "path": "chromium/engine-timeline.sanitization.json",
+      "sha256": "027453c8cbcb14ae546d8c5e945bfe97da6f43dd04c872b4c929e91eed39abc3"
+    },
+    {
+      "path": "chromium/navigation-result.json",
+      "sha256": "3b74d015c3e04c4cacbd62742430dd013a52e4706889092394a9f826c9b25c9f"
+    },
+    {
+      "path": "chromium/privacy-result.json",
+      "sha256": "227cd6fd105a42ba23eb53dd3efe6a005fd2ad5b64453ae3f51675828703e025"
+    },
+    {
+      "path": "chromium/timeline.json",
+      "sha256": "32201923f0d440e68641b1e0d7cef0081d5164dc544054086228bbaf1aae8f7b"
+    },
+    {
+      "path": "chromium/timeline.sanitization.json",
+      "sha256": "7e4bcdc9bf40ba6cfe03b3bab01303043c536c94a30cd7d55224b07199d8dee1"
+    },
+    {
+      "path": "firefox/01-navigation-refusal.audit.json",
+      "sha256": "addb45204f5ede9257b014eead9181e05475588e66b33a83aa8f4711d804006f"
+    },
+    {
+      "path": "firefox/01-navigation-refusal.png",
+      "sha256": "dc909cacbcba1f3f282c7c38af5e19209ac2ea039cb762faa036025d68e363de"
+    },
+    {
+      "path": "firefox/01-navigation-refusal.png.privacy.json",
+      "sha256": "05cb999c5f18de390f9b48df94a19ef49f92d361b79fde14dfc233c4839fe278"
+    },
+    {
+      "path": "firefox/02-required-mask-refusal.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "firefox/02-required-mask-refusal.png",
+      "sha256": "e62ca180bd25527c91a05432c3e218627a2a730259803305e154e50cad55b844"
+    },
+    {
+      "path": "firefox/02-required-mask-refusal.png.privacy.json",
+      "sha256": "12e502ac93f81945b3356966a23b649a4470d5b6c9b453a0ba556d01b5639dec"
+    },
+    {
+      "path": "firefox/03-mobile-refusal.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "firefox/03-mobile-refusal.png",
+      "sha256": "da7fbb298fe4d325afe48defa0756e1abed6d3960c593f6e9f6e2783818523de"
+    },
+    {
+      "path": "firefox/03-mobile-refusal.png.privacy.json",
+      "sha256": "c43708a42b75494398d85ebc50fc43a1da42b77996d6f657f7a93b08d596b1ab"
+    },
+    {
+      "path": "firefox/engine-timeline.json",
+      "sha256": "6638490e72d98d7b1951890ceec2f9ad955a0412cdc350207e9b68ad598f4fa2"
+    },
+    {
+      "path": "firefox/engine-timeline.sanitization.json",
+      "sha256": "027453c8cbcb14ae546d8c5e945bfe97da6f43dd04c872b4c929e91eed39abc3"
+    },
+    {
+      "path": "firefox/navigation-result.json",
+      "sha256": "5b01f3b4feed3af25f01ea7d35f789959540904a193790dd660aeaa74acd08ec"
+    },
+    {
+      "path": "firefox/privacy-result.json",
+      "sha256": "227cd6fd105a42ba23eb53dd3efe6a005fd2ad5b64453ae3f51675828703e025"
+    },
+    {
+      "path": "firefox/timeline.json",
+      "sha256": "32201923f0d440e68641b1e0d7cef0081d5164dc544054086228bbaf1aae8f7b"
+    },
+    {
+      "path": "firefox/timeline.sanitization.json",
+      "sha256": "a5dbf78445e5706d92c7f35f30f8ef3a2210e70da1b39665544fd233d073cef0"
+    },
+    {
+      "path": "partial-loss/green-firefox/01-partial-loss.audit.json",
+      "sha256": "af71775ffcdc2cef7cfb46dfe6449865c5aaf5565153457e6c03412053eefbf0"
+    },
+    {
+      "path": "partial-loss/green-firefox/01-partial-loss.png",
+      "sha256": "d436405d50c5010561c1e451df1a59e868cc95e5cb599928d7eff1843e0874df"
+    },
+    {
+      "path": "partial-loss/green-firefox/01-partial-loss.png.privacy.json",
+      "sha256": "7ee2bc4e9b508fc0ec9c0bee7b9eaad8d6955ee7cd108088ca2932030f88d5c7"
+    },
+    {
+      "path": "partial-loss/green-firefox/timeline.json",
+      "sha256": "9e75e8f038e1bec99be2fbca6603f2082a4cd86728213d9ed5d294aa46cf171c"
+    },
+    {
+      "path": "partial-loss/green-firefox/timeline.sanitization.json",
+      "sha256": "3bc59645b302fd7056e9132ca1900ae08576dba2af01ddd0d44e54d40e62ac44"
+    },
+    {
+      "path": "partial-loss/green-webkit/01-partial-loss.audit.json",
+      "sha256": "af71775ffcdc2cef7cfb46dfe6449865c5aaf5565153457e6c03412053eefbf0"
+    },
+    {
+      "path": "partial-loss/green-webkit/01-partial-loss.png",
+      "sha256": "841ded0464e9362b07441ff975bf3ada84ce1c407b87f31e0715675785e957db"
+    },
+    {
+      "path": "partial-loss/green-webkit/01-partial-loss.png.privacy.json",
+      "sha256": "c03dd9516b736d986e33a48ca42e3a1668014801ece3edffa26d4ee050daee86"
+    },
+    {
+      "path": "partial-loss/green-webkit/timeline.json",
+      "sha256": "9e75e8f038e1bec99be2fbca6603f2082a4cd86728213d9ed5d294aa46cf171c"
+    },
+    {
+      "path": "partial-loss/green-webkit/timeline.sanitization.json",
+      "sha256": "3dfc0492418f0074c4523f86a77dbf3072cfe097952462dc4da0f05e47a4bbe4"
+    },
+    {
+      "path": "partial-loss/green/01-partial-loss.audit.json",
+      "sha256": "af71775ffcdc2cef7cfb46dfe6449865c5aaf5565153457e6c03412053eefbf0"
+    },
+    {
+      "path": "partial-loss/green/01-partial-loss.png",
+      "sha256": "3817c8953c6dbc8157523a69c5ce9053bc9cd494aea33bfa6acfd7a5c471c23d"
+    },
+    {
+      "path": "partial-loss/green/01-partial-loss.png.privacy.json",
+      "sha256": "c71331692f26f7144feb43a4b670ac5cc9650e55a5117f29ae4448c18a445057"
+    },
+    {
+      "path": "partial-loss/green/timeline.json",
+      "sha256": "9e75e8f038e1bec99be2fbca6603f2082a4cd86728213d9ed5d294aa46cf171c"
+    },
+    {
+      "path": "partial-loss/green/timeline.sanitization.json",
+      "sha256": "220ace5bb3279ef6f68a9761579b0d8d23e4258d1e347b8ffcac56509c2f1e47"
+    },
+    {
+      "path": "partial-loss/red/01-partial-loss.audit.json",
+      "sha256": "9e05109362466fc6f1a7c8cd038ce8b5131f5b117034c0ec2fd1110775cc61c5"
+    },
+    {
+      "path": "partial-loss/red/01-partial-loss.png",
+      "sha256": "3a36db95261428a5c6266f5cb5ddf4b671adb8bb961a72f1348c22c290d218eb"
+    },
+    {
+      "path": "partial-loss/red/01-partial-loss.png.privacy.json",
+      "sha256": "9dd703a556f47e160293c146c46cc83352104916faf494c9e115fa3d4f99e436"
+    },
+    {
+      "path": "partial-loss/red/timeline.json",
+      "sha256": "4451db9f28689d660c75a2f4e3ec914eda8cbd61d92764ca7e47afb2720608e3"
+    },
+    {
+      "path": "partial-loss/red/timeline.sanitization.json",
+      "sha256": "2e16c82078389bce5567e438bc0085bc7f0752a5e3fa8c16c8b800d5499e76f2"
+    },
+    {
+      "path": "recovery-before/04-recovery-entry.audit.json",
+      "sha256": "5712b2c6ab1cf6b9a3edcd76e1cef550847516846fc400b7375704cebd5973d6"
+    },
+    {
+      "path": "recovery-before/04-recovery-entry.png",
+      "sha256": "150472e0b6a0442af99db1b393dfe662105eb4dbc8ae5702d8d927e6f661dbe1"
+    },
+    {
+      "path": "recovery-before/04-recovery-entry.png.privacy.json",
+      "sha256": "affcfa24e5afabd885dc404e967cb5afd059f6dc55caee15ab22c1a1e4ec438e"
+    },
+    {
+      "path": "recovery-before/timeline.json",
+      "sha256": "2cd6b606a6112c0119b451c055c4dceae2d5f15cc06e99a6f06e8a8fb76719e5"
+    },
+    {
+      "path": "recovery-before/timeline.sanitization.json",
+      "sha256": "2793191c82f3682c824b11fa211bb8d3136688fb9433a6afbaf23f413e00c300"
+    },
+    {
+      "path": "recovery/chromium/04-recovery-entry.audit.json",
+      "sha256": "dafe45a86f01e2751bb89e2d17e3d32d4f01c1d93f2d5c291fef5e7406925fb4"
+    },
+    {
+      "path": "recovery/chromium/04-recovery-entry.png",
+      "sha256": "c5246b8391801a67241619a39b2c59e485943cbf8cf14897f83d8e712f569d74"
+    },
+    {
+      "path": "recovery/chromium/04-recovery-entry.png.privacy.json",
+      "sha256": "1b8ef5d78fc6382e73672b4ed0d02b3f23de458cd3f03010271d33354b4193a4"
+    },
+    {
+      "path": "recovery/chromium/05-edit-required-mask.audit.json",
+      "sha256": "b0f3ff80af1db919b93397abe30e1f14636167d531ef90c1d2e91036294cec63"
+    },
+    {
+      "path": "recovery/chromium/05-edit-required-mask.png",
+      "sha256": "2a83eabb6d1eeecbefed7aa8ca15ffe0346a67cf784836678ef48312a96ad2d3"
+    },
+    {
+      "path": "recovery/chromium/05-edit-required-mask.png.privacy.json",
+      "sha256": "670b141dc1b2aed0f0ff479f5a618af9069a503bbbe9f42fa38d3bc6bfdef33c"
+    },
+    {
+      "path": "recovery/chromium/06-recovered-run.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "recovery/chromium/06-recovered-run.png",
+      "sha256": "bf72d11a94b092443bcd2a03267f59475eda002b717c66dc27c1e55d1f661dcb"
+    },
+    {
+      "path": "recovery/chromium/06-recovered-run.png.privacy.json",
+      "sha256": "f807afa381c5cdd742f97fe6d27c1d09421bb62548655762f788748782c5fe34"
+    },
+    {
+      "path": "recovery/chromium/07-original-refusal-preserved.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "recovery/chromium/07-original-refusal-preserved.png",
+      "sha256": "f8013f1ef3198492156547798678959037b6c92d07b6b9ead3bd7bb0ff5e9b43"
+    },
+    {
+      "path": "recovery/chromium/07-original-refusal-preserved.png.privacy.json",
+      "sha256": "d4845fb1ae8215058c09a9a2275683cbfc6baa9906c924d1d78aba9b454f1567"
+    },
+    {
+      "path": "recovery/chromium/timeline.json",
+      "sha256": "c408220a5135f678ee779cb2507822a4c45fc34d69596e6e19ccb512e28c7295"
+    },
+    {
+      "path": "recovery/chromium/timeline.sanitization.json",
+      "sha256": "c006ef732f24376b67cac49d56d2be64a5ff89715f6b65de4916e68c3afe14b5"
+    },
+    {
+      "path": "recovery/firefox/04-recovery-entry.audit.json",
+      "sha256": "dafe45a86f01e2751bb89e2d17e3d32d4f01c1d93f2d5c291fef5e7406925fb4"
+    },
+    {
+      "path": "recovery/firefox/04-recovery-entry.png",
+      "sha256": "fb921b66c2ef701ec50fa81b07eeb41ee8c72ce0d04c1df06fdb387c2108c349"
+    },
+    {
+      "path": "recovery/firefox/04-recovery-entry.png.privacy.json",
+      "sha256": "9e47c0478f0d04af10d629486418eab183b04b2dc4aac06c72a0fb9acae62482"
+    },
+    {
+      "path": "recovery/firefox/05-edit-required-mask.audit.json",
+      "sha256": "b0f3ff80af1db919b93397abe30e1f14636167d531ef90c1d2e91036294cec63"
+    },
+    {
+      "path": "recovery/firefox/05-edit-required-mask.png",
+      "sha256": "d488147ba21925ffe2e3804a2e9ea12fb4ea470aaa3dbe8ece3ac3a9eae7f19f"
+    },
+    {
+      "path": "recovery/firefox/05-edit-required-mask.png.privacy.json",
+      "sha256": "96c8059fdbb91876108ff9aec60a6831fa74cccc5d79ebdfe0564d26609e5860"
+    },
+    {
+      "path": "recovery/firefox/06-recovered-run.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "recovery/firefox/06-recovered-run.png",
+      "sha256": "f1695ecde85c208bb3cfe3598c4df6d8b4b61a5df3150a2343eb3a65a9aaf9da"
+    },
+    {
+      "path": "recovery/firefox/06-recovered-run.png.privacy.json",
+      "sha256": "e7645ec8b311db292e30525aadee4aa03b7e01d40c6df894866651139b4c8a6c"
+    },
+    {
+      "path": "recovery/firefox/07-original-refusal-preserved.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "recovery/firefox/07-original-refusal-preserved.png",
+      "sha256": "c008ed26d398fcaf5fe809d7c404ac969b282521c5c7293dcca02b0431d631e7"
+    },
+    {
+      "path": "recovery/firefox/07-original-refusal-preserved.png.privacy.json",
+      "sha256": "f63b55e234dc400c5ed4df1f55ea0b8c2ccffe5a517c8024a6ced49625b48602"
+    },
+    {
+      "path": "recovery/firefox/timeline.json",
+      "sha256": "c408220a5135f678ee779cb2507822a4c45fc34d69596e6e19ccb512e28c7295"
+    },
+    {
+      "path": "recovery/firefox/timeline.sanitization.json",
+      "sha256": "3263534f4b8c4121077c0ee2cce846849c4f23394d5dd49cf221a8a3e5bf09cd"
+    },
+    {
+      "path": "recovery/webkit/04-recovery-entry.audit.json",
+      "sha256": "dafe45a86f01e2751bb89e2d17e3d32d4f01c1d93f2d5c291fef5e7406925fb4"
+    },
+    {
+      "path": "recovery/webkit/04-recovery-entry.png",
+      "sha256": "6f4c65103877030938a76f8a4748a6639b1e9a2862320cfbbfbd73ea1e3b15cb"
+    },
+    {
+      "path": "recovery/webkit/04-recovery-entry.png.privacy.json",
+      "sha256": "74e35c6a5fcfe7db1ef3580e3d79ca0e352739bfb232e6b40134c8cd668f79bb"
+    },
+    {
+      "path": "recovery/webkit/05-edit-required-mask.audit.json",
+      "sha256": "b0f3ff80af1db919b93397abe30e1f14636167d531ef90c1d2e91036294cec63"
+    },
+    {
+      "path": "recovery/webkit/05-edit-required-mask.png",
+      "sha256": "c747e03d25fb07cf92310a91aa5051e86e2b45a0772e93be51b3f752f5b4d3c1"
+    },
+    {
+      "path": "recovery/webkit/05-edit-required-mask.png.privacy.json",
+      "sha256": "34455c83eafcf261b341bbba90056a245f7b5aeff03057db0961cb2418b88472"
+    },
+    {
+      "path": "recovery/webkit/06-recovered-run.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "recovery/webkit/06-recovered-run.png",
+      "sha256": "5ae97d7d008e5b1a2755271bd6ed04110e9ce941191b701c7cfbdc0c93aabbb5"
+    },
+    {
+      "path": "recovery/webkit/06-recovered-run.png.privacy.json",
+      "sha256": "b116b2865d972a5da6ded393e5e01dd3c473e07449c8c8d02ca014dedf511d0a"
+    },
+    {
+      "path": "recovery/webkit/07-original-refusal-preserved.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "recovery/webkit/07-original-refusal-preserved.png",
+      "sha256": "06611f22ee51fa339686b54552a081d5589caf4a359d097af30e4501aaaa1c60"
+    },
+    {
+      "path": "recovery/webkit/07-original-refusal-preserved.png.privacy.json",
+      "sha256": "63691389081155cee0b9ccf096a078643ed4aa946b8e9675c55bb9a345bdfbde"
+    },
+    {
+      "path": "recovery/webkit/timeline.json",
+      "sha256": "c408220a5135f678ee779cb2507822a4c45fc34d69596e6e19ccb512e28c7295"
+    },
+    {
+      "path": "recovery/webkit/timeline.sanitization.json",
+      "sha256": "40cae597483119d882b29330363b668d5e794553798102ec698cd2a6580deb5f"
+    },
+    {
+      "path": "summary.md",
+      "sha256": "e5dba530acff2015ab4973dc571428e7c9fe81f6175a6ab12ac83f72d9739f92"
+    },
+    {
+      "path": "webkit/01-navigation-refusal.audit.json",
+      "sha256": "addb45204f5ede9257b014eead9181e05475588e66b33a83aa8f4711d804006f"
+    },
+    {
+      "path": "webkit/01-navigation-refusal.png",
+      "sha256": "cccd52940e0a3e4a8b629613eb62f91cbb7942f3d6c7531547e80da6672ed605"
+    },
+    {
+      "path": "webkit/01-navigation-refusal.png.privacy.json",
+      "sha256": "cd8f30e15685ddc35ea2f089650410f44ba7fed74045514da6ff131f6b8246a8"
+    },
+    {
+      "path": "webkit/02-required-mask-refusal.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "webkit/02-required-mask-refusal.png",
+      "sha256": "76b185bfbef55dc793c5af78a6ac63fdcca93bf47b429031262bd31d64728e66"
+    },
+    {
+      "path": "webkit/02-required-mask-refusal.png.privacy.json",
+      "sha256": "b9618050972d99659143d1d9741a945854ecc816da9c3e8426fd9e14435c5754"
+    },
+    {
+      "path": "webkit/03-mobile-refusal.audit.json",
+      "sha256": "fc9a8c5bfb3fdc92813850d34c673636d43ecac8d662a5fa48c8db96904378f4"
+    },
+    {
+      "path": "webkit/03-mobile-refusal.png",
+      "sha256": "4ba5dfa005380699fcc4ab566cf573b665201be04c6e074d559bafd16880c5e3"
+    },
+    {
+      "path": "webkit/03-mobile-refusal.png.privacy.json",
+      "sha256": "4d307f64937cb0ed7e6e7e806ceb2cf662a1956570f9643360b644535cbbe01d"
+    },
+    {
+      "path": "webkit/engine-timeline.json",
+      "sha256": "6638490e72d98d7b1951890ceec2f9ad955a0412cdc350207e9b68ad598f4fa2"
+    },
+    {
+      "path": "webkit/engine-timeline.sanitization.json",
+      "sha256": "027453c8cbcb14ae546d8c5e945bfe97da6f43dd04c872b4c929e91eed39abc3"
+    },
+    {
+      "path": "webkit/navigation-result.json",
+      "sha256": "763a55ef953555c217597d359338adb516821963d685cb1e3bed8a41455788fe"
+    },
+    {
+      "path": "webkit/privacy-result.json",
+      "sha256": "227cd6fd105a42ba23eb53dd3efe6a005fd2ad5b64453ae3f51675828703e025"
+    },
+    {
+      "path": "webkit/timeline.json",
+      "sha256": "32201923f0d440e68641b1e0d7cef0081d5164dc544054086228bbaf1aae8f7b"
+    },
+    {
+      "path": "webkit/timeline.sanitization.json",
+      "sha256": "9fe10a451bcd47084c4e48f656692c554def9fabe613a9fb28cba4adf5c1b9a4"
+    }
+  ]
 }

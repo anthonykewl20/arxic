@@ -1,0 +1,23 @@
+{
+  "violations": [],
+  "incomplete": [],
+  "overflow": 0,
+  "overflowNodes": [],
+  "checks": [
+    {
+      "id": "healthy-captures-retained",
+      "passed": false,
+      "values": {
+        "expected": 2,
+        "actual": 1
+      }
+    },
+    {
+      "id": "loss-classified",
+      "passed": false,
+      "values": {
+        "findings": 0
+      }
+    }
+  ]
+}

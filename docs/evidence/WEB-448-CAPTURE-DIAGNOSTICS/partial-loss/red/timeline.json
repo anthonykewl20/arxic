@@ -1,0 +1,11 @@
+[
+  {
+    "action": "A failed environment timeline write retains every completed capture and classifies the loss",
+    "result": "failed",
+    "screenshot": "01-partial-loss.png",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    }
+  }
+]
