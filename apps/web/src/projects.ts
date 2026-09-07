@@ -58,6 +58,7 @@ export async function validateProject(
     'viewports',
     'browsers',
     'colorSchemes',
+    'deviceScaleFactors',
     'masks',
     'captureConsent',
     'pageMode',
@@ -141,6 +142,17 @@ export async function validateProject(
     Project['colorSchemes']
   >;
   const masks = strings('masks', [], 20);
+  const densities = input.deviceScaleFactors ?? [1];
+  if (
+    !Array.isArray(densities) ||
+    !densities.length ||
+    densities.length > 3 ||
+    densities.some((value) => ![1, 2, 3].includes(value)) ||
+    new Set(densities).size !== densities.length ||
+    input.deviceScaleFactors === null
+  )
+    throw new HttpError(400, 'Choose distinct supported visual pixel ratios: 1, 2 or 3');
+  const deviceScaleFactors = ([1, 2, 3] as const).filter((value) => densities.includes(value));
   const viewports = input.viewports ?? [
     { width: 1440, height: 900 },
     { width: 390, height: 844 },
@@ -161,6 +173,17 @@ export async function validateProject(
     )
   )
     throw new HttpError(400, 'Choose 1–3 viewports, width 320–1920 and height 320–1200');
+  if (
+    viewports.some((view) =>
+      deviceScaleFactors.some(
+        (density) => view.width * view.height * density ** 2 > 16 * 1024 * 1024,
+      ),
+    )
+  )
+    throw new HttpError(
+      400,
+      'Viewport and pixel ratio exceed the retained PNG pixel limit; reduce either setting',
+    );
   if (input.pageMode !== undefined && input.pageMode !== 'manual' && input.pageMode !== 'discover')
     throw new HttpError(400, 'Choose manual or discover page mode');
   if (input.recordVideo === true)
@@ -245,6 +268,7 @@ export async function validateProject(
     viewports,
     browsers,
     colorSchemes,
+    deviceScaleFactors,
     masks,
     captureConsent: input.captureConsent === true,
     pageMode: input.pageMode === 'discover' ? 'discover' : 'manual',

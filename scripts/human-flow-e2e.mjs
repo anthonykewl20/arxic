@@ -456,6 +456,7 @@ async function runInstalledDashboard(paths, timings, evidenceDirectory) {
         'apps/web/src/__tests__/restart.real-world.test.ts',
         'apps/web/src/__tests__/element-kinds.real-world.test.ts',
         'apps/web/src/__tests__/visual-matrix-ui.real-world.test.ts',
+        'apps/web/src/__tests__/visual-density-ui.real-world.test.ts',
         'apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts',
         'apps/web/src/__tests__/capture-failures.real-world.test.ts',
         'apps/web/src/__tests__/provider-ui.real-world.test.ts',
@@ -472,6 +473,7 @@ async function runInstalledDashboard(paths, timings, evidenceDirectory) {
           ...(evidenceDirectory
             ? {
                 ARXIC_WEB_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/dashboard'),
+                ARXIC_DENSITY_UI_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/density'),
                 ARXIC_MATRIX_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/matrix'),
                 ARXIC_GALLERY_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/gallery'),
                 ARXIC_ELEMENTS_EVIDENCE_DIR: resolve(evidenceDirectory, 'web/elements'),

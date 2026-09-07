@@ -596,9 +596,9 @@ difference images or visual privacy sidecars.
 ## Browser/theme capture matrix
 
 The dashboard accepts distinct selections of one to three browser engines and one
-or both color schemes. The saved project and each run snapshot retain the selection.
+or both color schemes, and one or more native pixel densities (1×, 2×, 3×). The saved project and each run snapshot retain the selection.
 Each capture identifies its environment, and **Visual environments** lists every
-attempted browser/theme pair, its capture count, blocked reason and omitted pages.
+attempted browser/theme/pixel-density combination, its capture count, blocked reason and omitted pages.
 Observed findings are tagged with their environment. An unavailable engine or failed
 cell keeps the aggregate run blocked while successful independent captures remain
 available; it never becomes an implicit pass. Fix the prerequisite and rerun before
@@ -615,14 +615,14 @@ full-precision sBIT markers emitted by WebKit. Encoded pixel chunks are unchange
 retained files still pass the strict IHDR/IDAT/IEND-only PNG validator. Text metadata,
 malformed markers and all other unexpected chunks remain rejected.
 
-Locale, direction, DPR, zoom, forced colors, OS/device behavior and arbitrary
+Locale, direction, zoom, forced colors, OS/device behavior and arbitrary
 interactive-state matrices are not configurable by this slice. Native engine
 comparison does not make pixel differences into semantic defect proof.
 
 ## Find captures within a run
 
 Open **Test runs**, select a run, then use **Captured pages**. Search a path or
-combine **Capture browser**, **Capture theme**, **Capture viewport** and
+combine **Capture browser**, **Capture theme**, **Capture pixel density**, **Capture viewport** and
 **Comparison at capture time**. The count reports matching captures out of the full
 run. **Next captures** and **Previous captures** show up to six at a time and return
 keyboard focus to the heading. Clear filters to recover from no matches.
@@ -719,3 +719,13 @@ Imported AI execution configurations are subject to the same managed fixture
 provider validation when the CLI loads them for execution. Unsupported provider
 names are refused at that boundary. Built-in provider declarations
 do not add inbox/OTP setup controls to the dashboard (refs #452).
+
+## Native pixel density (in progress, #454)
+
+In project settings, choose **1× standard**, **2× sharp** or **3× extra sharp** under **Pixel density**. Each chosen density multiplies the browser/theme/viewport matrix and shares its 600-checkpoint budget. An empty selection is refused; older projects retain 1× and existing baseline identities. Higher density produces more native image pixels while layout dimensions and element picking remain in CSS pixels. Baselines, filenames, outcomes and gallery filters distinguish the density.
+
+A viewport/density product exceeding 16 × 1024 × 1024 image pixels is refused before capture. Reduce the viewport or deselect a density to recover; images are not silently downsampled. PNG dimensions, decoded-pixel limits and privacy masks remain enforced. Workflow checkpoint screenshots keep their existing CSS-pixel capture behavior.
+
+Local dashboard tests exercise selection, keyboard controls, empty-selection and oversized-image recovery, saved settings and density filtering. Native Chromium repeat captures still produce small text-paint differences with equal retained geometry. That acceptance test remains failing; no tolerance was widened and no deterministic/release-ready claim is made. Physical hardware and cross-OS rendering are outside this emulation proof.
+
+Native-density AI review uses image-pixel coordinates for overlays. Review accepts density-qualified filenames but retains its separate 4 × 1024 × 1024 pixel model-image limit; an allowed visual capture can still be too large for AI review. Settings validation brings the error into view and focuses it for keyboard recovery.

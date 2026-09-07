@@ -37,7 +37,7 @@ export async function reviewImage(
 ) {
   if (
     !/^[a-f0-9-]{36}$/u.test(scope.sourceRunId) ||
-    !/^(?:(?:chromium|firefox|webkit)-(?:light|dark)-)?checkpoint-\d+\.png$/u.test(
+    !/^(?:(?:chromium|firefox|webkit)-(?:light|dark)-(?:[23]x-)?)?checkpoint-\d+\.png$/u.test(
       scope.capture.file,
     )
   )

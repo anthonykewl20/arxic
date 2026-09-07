@@ -28,7 +28,7 @@ preserve the full denominator and survive restart. Unsupported/unselected rows
 and uncompiled hypotheses remain visible. Recurring campaigns and broader state
 coverage remain tracked in #402.
 
-The visual lane compares configured browser/theme/viewport combinations against independently approved baselines. Chromium, Firefox and WebKit with light/dark are selectable; missing engines remain blocked. Older projects use Chromium/light. Stable
+The visual lane compares configured browser/theme/pixel-density/viewport combinations against independently approved baselines. Chromium, Firefox and WebKit with light/dark are selectable; missing engines remain blocked. Older projects use Chromium/light. Stable
 retained captures support inspected-image AI review with model/secret-reference/
 budget/criterion controls, proposed regions, reproduction and model provenance.
 Findings remain hypotheses. Optional redirect-based sign-in keeps session state in memory; comprehensive business-state exploration remains under #402.
@@ -101,7 +101,7 @@ approval or replacement; unavailable baseline/difference images explain why.
 
 ## Find captures in a run
 
-**Captured pages** combines path search with browser, theme, viewport and historical
+**Captured pages** combines path search with browser, theme, pixel density, viewport and historical
 comparison filters. The matching/total count stays explicit and **Clear capture
 filters** restores the complete list. Each page renders at most six captures;
 keyboard pagination returns focus to the gallery heading. Selections survive polling
@@ -122,3 +122,5 @@ Capture failures now carry a bounded failed-operation diagnostic and grouped bro
 Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
 
 The [WebKit navigation investigation](../../docs/evidence/WEB-447-NAVIGATION/summary.md) provides an explicit probe command; no production error waiver is enabled.
+
+Native 1×/2×/3× capture selection and density filtering are in progress in #454. Dashboard selection/recovery is locally exercised; Chromium native text-paint repeatability remains a failing acceptance check. This is not production-readiness proof.

@@ -101,6 +101,12 @@ export function CaptureGallery({
           'Capture theme',
           choices(captures.map((c) => captureEnvironment(c).colorScheme)),
         )}
+        {select(
+          'deviceScaleFactor',
+          'Capture pixel density',
+          choices(captures.map((c) => String(captureEnvironment(c).deviceScaleFactor ?? 1))),
+          { '1': '1×', '2': '2×', '3': '3×' },
+        )}
         {select('viewport', 'Capture viewport', choices(captures.map(captureViewport)))}
         {select('status', 'Comparison at capture time', choices(captures.map((c) => c.status)), {
           'needs-baseline': 'No prior baseline',

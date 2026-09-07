@@ -245,6 +245,8 @@ it.runIf(process.platform === 'linux')(
 it.each([
   '../chromium-dark-checkpoint-1.png',
   'safari-dark-checkpoint-1.png',
+  'chromium-light-4x-checkpoint-1.png',
+  'chromium-light-2x-../checkpoint-1.png',
   'webkit-system-checkpoint-1.png',
   'chromium-dark-checkpoint-1.png/extra',
 ])('refuses unsafe or unsupported matrix review filename %s', async (file) => {

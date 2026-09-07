@@ -4,6 +4,7 @@ export const emptyCaptureFilters = {
   path: '',
   browser: '',
   colorScheme: '',
+  deviceScaleFactor: '',
   viewport: '',
   status: '',
 };
@@ -26,6 +27,8 @@ export function selectCaptures(
       capture.path.toLowerCase().includes(filters.path.trim().toLowerCase()) &&
       (!filters.browser || environment.browser === filters.browser) &&
       (!filters.colorScheme || environment.colorScheme === filters.colorScheme) &&
+      (!filters.deviceScaleFactor ||
+        String(environment.deviceScaleFactor ?? 1) === filters.deviceScaleFactor) &&
       (!filters.viewport || captureViewport(capture) === filters.viewport) &&
       (!filters.status || capture.status === filters.status)
     );
