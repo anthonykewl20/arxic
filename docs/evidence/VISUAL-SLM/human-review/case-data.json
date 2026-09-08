@@ -1,0 +1,121 @@
+[
+ {
+  "id": "next-800-occlusion-overlay",
+  "family": "next",
+  "variant": "occlusion-overlay",
+  "viewport": 800,
+  "labels": [
+   0,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  "measuredClip": 1,
+  "measuredOverflowX": 0,
+  "checks": "clipping=pass; occlusion=fail; missing_element=pass; overflow=pass; text_truncation=pass; layout_shift=pass"
+ },
+ {
+  "id": "next-800-text-truncate",
+  "family": "next",
+  "variant": "text-truncate",
+  "viewport": 800,
+  "labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "measuredClip": 1,
+  "measuredOverflowX": 0,
+  "checks": "clipping=pass; occlusion=pass; missing_element=pass; overflow=pass; text_truncation=fail; layout_shift=pass"
+ },
+ {
+  "id": "next-800-layout-shift",
+  "family": "next",
+  "variant": "layout-shift",
+  "viewport": 800,
+  "labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  "measuredClip": 1,
+  "measuredOverflowX": 0,
+  "checks": "clipping=pass; occlusion=pass; missing_element=pass; overflow=pass; text_truncation=pass; layout_shift=fail"
+ },
+ {
+  "id": "express-800-missing-element",
+  "family": "express",
+  "variant": "missing-element",
+  "viewport": 800,
+  "labels": [
+   null,
+   null,
+   1,
+   0,
+   0,
+   null
+  ],
+  "measuredClip": null,
+  "measuredOverflowX": 0,
+  "checks": "missing_element=fail; overflow=pass; text_truncation=pass"
+ },
+ {
+  "id": "koel-800-occlusion-overlay",
+  "family": "koel",
+  "variant": "occlusion-overlay",
+  "viewport": 800,
+  "labels": [
+   0,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  "measuredClip": 1,
+  "measuredOverflowX": 0,
+  "checks": "clipping=pass; occlusion=fail; missing_element=pass; overflow=pass; text_truncation=pass; layout_shift=pass"
+ },
+ {
+  "id": "todomvc-800-occlusion-overlay",
+  "family": "todomvc",
+  "variant": "occlusion-overlay",
+  "viewport": 800,
+  "labels": [
+   0,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  "measuredClip": 1,
+  "measuredOverflowX": 0,
+  "checks": "clipping=pass; occlusion=fail; missing_element=pass; overflow=pass; text_truncation=pass; layout_shift=pass"
+ },
+ {
+  "id": "adminlte-1280-layout-shift",
+  "family": "adminlte",
+  "variant": "layout-shift",
+  "viewport": 1280,
+  "labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1
+  ],
+  "measuredClip": 1,
+  "measuredOverflowX": 0,
+  "checks": "clipping=pass; occlusion=pass; missing_element=pass; overflow=pass; text_truncation=pass; layout_shift=fail"
+ }
+]
