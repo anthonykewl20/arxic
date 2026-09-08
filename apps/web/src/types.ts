@@ -66,6 +66,8 @@ export type Capture = {
   baselineFile?: string;
   diffFile?: string;
   diffRegions?: Array<{ x: number; y: number; width: number; height: number }>;
+  /** Deterministic fusion of the diff regions with measured scene elements and check verdicts. */
+  diffExplanation?: import('./diff-explanation').DiffExplanation;
   videoFile?: string;
   authenticated?: boolean;
   assessmentFile?: string;
