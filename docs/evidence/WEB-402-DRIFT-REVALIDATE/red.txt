@@ -1,0 +1,45 @@
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/campaign-drift-revalidate.real-world.test.ts > stops a commit-drifted recurring campaign at the fire boundary with zero doomed runs
+TypeError: wb.guardDueCampaigns is not a function
+ ❯ apps/web/src/__tests__/campaign-drift-revalidate.real-world.test.ts:93:12
+     91|   // journey — not wall-clock luck — decides when the guarded fire hap…
+     92|   const slot2 = new Date(wb.store.campaign(campaign.id)!.nextFireAt!);
+     93|   await wb.guardDueCampaigns(slot2);
+       |            ^
+     94|   wb.tick(slot2);
+     95|   await wb.idle();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  apps/web/src/__tests__/campaign-drift-revalidate.real-world.test.ts > still fires a clean-source recurring campaign after the per-fire guard runs
+TypeError: wb.guardDueCampaigns is not a function
+ ❯ apps/web/src/__tests__/campaign-drift-revalidate.real-world.test.ts:118:12
+    116|   // No drift: the guard must not stop the armed schedule.
+    117|   const slot2 = new Date(wb.store.campaign(campaign.id)!.nextFireAt!);
+    118|   await wb.guardDueCampaigns(slot2);
+       |            ^
+    119|   wb.tick(slot2);
+    120|   await wb.idle();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  apps/web/src/__tests__/campaign-drift-revalidate.real-world.test.ts > stops a dirty-tree recurring campaign at the fire boundary with zero doomed runs
+TypeError: wb.guardDueCampaigns is not a function
+ ❯ apps/web/src/__tests__/campaign-drift-revalidate.real-world.test.ts:150:12
+    148|
+    149|   const slot2 = new Date(wb.store.campaign(campaign.id)!.nextFireAt!);
+    150|   await wb.guardDueCampaigns(slot2);
+       |            ^
+    151|   wb.tick(slot2);
+    152|   await wb.idle();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  08:21:15
+   Duration  17.29s (transform 1.04s, setup 0ms, import 2.59s, tests 14.60s, environment 0ms)
+

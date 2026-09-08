@@ -1,0 +1,12 @@
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/drift-revalidate-402
+
+ ✓ apps/web/src/__tests__/campaign-drift-revalidate.real-world.test.ts (3 tests) 20375ms
+   ✓ stops a commit-drifted recurring campaign at the fire boundary with zero doomed runs  5474ms
+   ✓ still fires a clean-source recurring campaign after the per-fire guard runs  10009ms
+   ✓ stops a dirty-tree recurring campaign at the fire boundary with zero doomed runs  4891ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  08:22:22
+   Duration  23.40s (transform 1.19s, setup 0ms, import 2.92s, tests 20.37s, environment 0ms)
+
