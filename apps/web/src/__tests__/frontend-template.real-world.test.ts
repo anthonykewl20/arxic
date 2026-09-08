@@ -257,7 +257,9 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
       // preserving exactly the property this journey pins: rendering and
       // filtering a restored inventory whose row ids collide.
       const oldIdentityOf = (row: (typeof inventory.rows)[number]) =>
-        createHash('sha256').update(JSON.stringify([row.source, row.kind, row.label])).digest('hex');
+        createHash('sha256')
+          .update(JSON.stringify([row.source, row.kind, row.label]))
+          .digest('hex');
       const conditionIndexes = inventory.rows.flatMap((row, index) =>
         row.kind === 'condition' ? [index] : [],
       );
