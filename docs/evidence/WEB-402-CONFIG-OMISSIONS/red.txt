@@ -1,0 +1,20 @@
+RED stage — recorded on origin/main (930bd251) before implementation, worktree
+.worktrees/config-omissions-402, 2026-09-09 local.
+
+apps/web/src/__tests__/config-omissions.test.ts:
+
+ ❯ apps/web/src/__tests__/config-omissions.test.ts (2 tests | 2 failed) 4504ms
+   × exposes flag, persona and action omissions fusing real settings with the real discovery stack 3789ms
+   × derives the same omissions over the raw discovery adapters 713ms
+ FAIL … > exposes flag, persona and action omissions …
+TypeError: configurationOmissions is not a function
+
+(The UI journey was red for the same reason — the [data-config-omissions]
+block does not exist; it was first exercised green after the panel work, with
+its two harness fix-ups disclosed below.)
+
+Design-correcting red during implementation: the first persona:seed-endpoint
+implementation looked for a seed row in the CONSUMER inventory — but API routes
+are not page rows there (probed: the real inventory lists only the 8 GET pages
++ one scan diagnostic); the check moved to the discovered frontend source rows
+(seed route file), which is where the evidence genuinely lives.

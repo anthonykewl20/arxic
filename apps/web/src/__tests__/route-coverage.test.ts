@@ -103,6 +103,7 @@ it('renders the status page', () => {
       'state:loading',
       'state:error',
       'state:empty',
+      'actions',
       'tests',
       'docs',
     ]);
