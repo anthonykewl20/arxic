@@ -67,6 +67,17 @@ Test runs searches all stored history with project/type/status filters and pagin
 
 Visual measurements now include solid-paint text contrast with numeric ratios and screenshot regions. Unsupported paint and privacy-masked text remain unverified; see the [contrast profile](../../docs/visual-oracle.md#solid-text-contrast-profile).
 
+Changed regions explain themselves with deterministic evidence. Each pixel-diff
+region is fused (DPR-aware) with the measured scene elements that intersect it
+(innermost first, kind label and coverage share) and the failing/unverified
+checks overlapping it, plus document-level non-pass checks, into
+`capture.diffExplanation` — computed only from the current capture's
+hash-verified assessment bytes and bound to that hash. Regions with no measured
+element stay labeled `unexplained` (preserved, never attributed), and a missing
+or unverifiable assessment leaves the capture without an explanation rather
+than guessing. The diff viewer renders this evidence next to the region
+overlays; no model participates in the explanation.
+
 The selected-reset real-app regression delays the first replay submission and independently requires three successful submissions and inbox counts 1, 2, 3. This guards against a run finishing while an asynchronous action is still pending; provider responses remain controlled test-boundary data.
 
 Guided AI execution now supports **Show workflow screenshots in run results**:
