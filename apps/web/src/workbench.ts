@@ -96,6 +96,7 @@ export function visualRuntimeLimit(project: Project) {
   return Math.min(60 * 60_000, 5 * 60_000 + captures * 6_000);
 }
 import { compareCapture, digest } from './visual';
+import { explainFromAssessment } from './diff-explanation';
 import {
   executionEnvironment,
   secretEnvironment,
@@ -1099,6 +1100,10 @@ export class Workbench {
               baselineRunId: baseline.run_id,
               baselineFile: previous.file,
               diffFile,
+              // Deterministic diff explanation: only from hash-verified current
+              // assessment bytes; missing/unverifiable evidence leaves the
+              // capture without an explanation rather than guessing.
+              ...(await explainFromAssessment(directory, capture, compared.diffRegions)),
             });
           }
       } catch (error) {
