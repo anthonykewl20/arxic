@@ -43,8 +43,15 @@ export type ConfigurationOmission = {
 
 type Evidence = RouteCoverageDimension['evidence'][number];
 
-/** Documented label patterns over condition/state declaration text. */
-const statePatterns: ReadonlyArray<[RouteCoverageDimensionName, RegExp]> = [
+/** The runtime-observable state dimensions (subset of the coverage dimensions). */
+export type RuntimeStateDimensionName = 'state:loading' | 'state:error' | 'state:empty';
+
+/**
+ * Documented label patterns over condition/state declaration text — the ONE
+ * vocabulary shared by the source tier (declaration labels) and the runtime
+ * observer (rendered markers), so mapped cells always compare like with like.
+ */
+const statePatterns: ReadonlyArray<[RuntimeStateDimensionName, RegExp]> = [
   [
     'state:loading',
     /(?:^|[^a-z])(?:loading|isloading|pending|skeleton|spinner)(?:[^a-z]|$)|aria-busy/iu,
@@ -52,6 +59,86 @@ const statePatterns: ReadonlyArray<[RouteCoverageDimensionName, RegExp]> = [
   ['state:error', /(?:^|[^a-z])(?:error|failed|failure|invalid)(?:[^a-z]|$)|aria-invalid/iu],
   ['state:empty', /(?:^|[^a-z])(?:empty|no results|nothing)(?:[^a-z]|$)/iu],
 ];
+
+const runtimeDimensionOrder: readonly RuntimeStateDimensionName[] = [
+  'state:loading',
+  'state:error',
+  'state:empty',
+];
+
+/** Classifies marker text (source declaration or rendered page) into dimensions. */
+export function classifyStateText(text: string): RuntimeStateDimensionName[] {
+  return runtimeDimensionOrder.filter((name) =>
+    statePatterns.find(([candidate]) => candidate === name)?.[1].test(text),
+  );
+}
+
+/** One route's runtime-observed rendered state markers (strings: persisted JSON). */
+export type RuntimeStateObservation = {
+  path: string;
+  states: readonly string[];
+};
+
+/** The four-way source↔runtime mapping for one route × state dimension. */
+export type RuntimeStateMapping = {
+  method: string;
+  path: string;
+  dimensions: Array<{
+    name: RuntimeStateDimensionName;
+    mapping:
+      | 'declared-and-observed'
+      | 'declared-unobserved'
+      | 'observed-undeclared'
+      | 'unobserved-undeclared';
+  }>;
+};
+
+/**
+ * Fuses the source-declared state dimensions with runtime-observed rendered
+ * markers (refs #402). `declared-unobserved` never means "the state does not
+ * exist" — plain navigation cannot provoke every conditional; it means the
+ * crawl never saw it render. `observed-undeclared` is the dynamic-state class:
+ * something rendered that no source declaration accounts for.
+ */
+export function runtimeStateMap(
+  coverage: RouteCoverage[],
+  runtime: RuntimeStateObservation[],
+): RuntimeStateMapping[] {
+  const known = new Set<string>(runtimeDimensionOrder);
+  const observed = new Map(
+    runtime.map((observation) => [
+      observation.path,
+      observation.states.filter((state) => known.has(state)),
+    ]),
+  );
+  const paths = new Set<string>([...coverage.map(({ path }) => path), ...observed.keys()]);
+  return [...paths]
+    .sort((left, right) => left.localeCompare(right))
+    .map((path) => {
+      const route = coverage.find((entry) => entry.path === path);
+      const states = observed.get(path) ?? [];
+      return {
+        method: route?.method ?? 'GET',
+        path,
+        dimensions: runtimeDimensionOrder.map((name) => {
+          const declared =
+            route?.dimensions.find((dimension) => dimension.name === name)?.status === 'referenced';
+          const seen = states.includes(name);
+          return {
+            name,
+            mapping:
+              declared && seen
+                ? 'declared-and-observed'
+                : declared
+                  ? 'declared-unobserved'
+                  : seen
+                    ? 'observed-undeclared'
+                    : 'unobserved-undeclared',
+          };
+        }),
+      };
+    });
+}
 
 const dimensionOrder: readonly RouteCoverageDimensionName[] = [
   'state:loading',
