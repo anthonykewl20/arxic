@@ -66,6 +66,29 @@ describe('ADR §23.14 target-attestation contract gate', () => {
     ).toMatchObject({ productionLooking: true, reasons: ['public-hostname'] });
   });
 
+  it('classifies RFC 6761 *.localhost hostnames as loopback-safe, not production-looking', () => {
+    // Reverse-proxy local stacks (Traefik/dokploy convention) live on
+    // <name>.localhost, which RFC 6761 §6.3 reserves to resolve to loopback.
+    for (const origin of [
+      'http://mightybox.localhost:8080',
+      'http://foo.bar.localhost:3000',
+      'https://stack.localhost',
+    ]) {
+      expect(classifyTarget({ origin, environmentClass: 'local-test' })).toMatchObject({
+        productionLooking: false,
+        reasons: [],
+      });
+    }
+    // The safe suffix is anchored at the end of the hostname: a public domain
+    // that merely contains "localhost" anywhere else stays production-looking.
+    expect(
+      classifyTarget({ origin: 'https://localhost.evil.com', environmentClass: 'preview' }),
+    ).toMatchObject({ productionLooking: true, reasons: ['public-hostname'] });
+    expect(
+      classifyTarget({ origin: 'https://evil-localhost.com', environmentClass: 'preview' }),
+    ).toMatchObject({ productionLooking: true, reasons: ['public-hostname'] });
+  });
+
   it('accepts an independently signed receipt and always records an allowed decision', () => {
     const origin = 'https://receipt.test';
     const nonce = 'one-time-nonce';
