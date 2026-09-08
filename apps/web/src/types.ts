@@ -35,6 +35,12 @@ export type Project = {
   /** Crawl budget for AI discovery: pages captured and link depth followed from configured paths. */
   maxPages: number;
   maxDepth: number;
+  /**
+   * Fraction of pixels (0–0.5) allowed to differ from the baseline before a capture counts as
+   * changed. 0 or unset keeps the pixel-exact behavior: any differing pixel flags the capture.
+   * The diff image, changed pixels and regions stay recorded even for sub-threshold captures.
+   */
+  visualChangeRatio?: number;
   login?: VisualLogin;
   configPath: string;
   execution?: import('./execution').ExecutionSettings;

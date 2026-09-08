@@ -99,6 +99,7 @@ export function projectBody(values: FormData) {
   body.recordVideo = false;
   body.maxPages = Number(values.get('maxPages') ?? 50);
   body.maxDepth = Number(values.get('maxDepth') ?? 3);
+  body.visualChangeRatio = Number(values.get('visualChangeRatio') ?? 0);
   if (values.has('loginEnabled'))
     body.login = Object.fromEntries(
       ['loginPath', 'emailRef', 'passwordRef', 'emailLabel', 'passwordLabel', 'submitLabel'].map(
@@ -356,6 +357,7 @@ function SettingsStep({
     recordVideo: false,
     maxPages: 50,
     maxDepth: 3,
+    visualChangeRatio: 0,
     login: undefined,
     configPath: detection?.configPath ?? '',
     cron: '',
@@ -652,6 +654,23 @@ function SettingsStep({
               placeholder="1440x900, 390x844"
             />
             <small>Up to 3 sizes as width×height. Each capture covers the visible viewport.</small>
+          </Label>
+        </div>
+        <div className="form-stack">
+          <span className="text-xs font-medium text-secondary-foreground">Visual comparison</span>
+          <Label>
+            Visual change ratio
+            <Input
+              name="visualChangeRatio"
+              type="number"
+              step="0.001"
+              defaultValue={seed.visualChangeRatio ?? 0}
+              required
+            />
+            <small>
+              Fraction of pixels that may differ before a capture counts as changed (0 =
+              pixel-exact, max 0.5).
+            </small>
           </Label>
         </div>
         <div className="form-stack">
