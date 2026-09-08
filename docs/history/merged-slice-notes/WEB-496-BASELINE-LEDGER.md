@@ -1,6 +1,6 @@
 # WEB-496-BASELINE-LEDGER — staged doc updates (charter §10.2)
 
-Issue: #496 · PR: (filled at PR creation) · Disposition: verified (deterministic store/action tests + real-browser journey; see boundaries)
+Issue: #496 · PR: #499 · Disposition: verified (deterministic store/action tests + real-browser journey; see boundaries)
 
 ## 1. `docs/SYNC.md` — tracker row (no numbered tracker table applies; #496 lives on the issues board under #402's scope. Suggested RESUME-note sentence instead)
 
