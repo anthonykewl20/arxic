@@ -160,6 +160,53 @@ export function DiffViewer({ capture, runId }: { capture: Capture; runId: string
           )}
         </div>
       )}
+      {capture.diffExplanation && regions.length > 0 && (
+        <ul
+          className="diff-evidence"
+          aria-label="Deterministic change evidence"
+          data-evidence-bound={capture.diffExplanation.assessmentSha256}
+        >
+          {(activeRegion !== null ? [activeRegion] : regions.map((_, index) => index)).map(
+            (index) => {
+              const evidence = capture.diffExplanation?.regions[index];
+              if (!evidence) return null;
+              return (
+                <li
+                  key={index}
+                  data-region-evidence={index}
+                  data-unexplained={evidence.unexplained}
+                >
+                  <span>
+                    Region {index + 1}
+                    {evidence.unexplained
+                      ? ' — unexplained paint change (no measured element)'
+                      : ''}
+                  </span>
+                  {evidence.elements.length > 0 && (
+                    <span>
+                      {evidence.elements
+                        .map((element) => `${element.label} ${Math.round(element.coverage * 100)}%`)
+                        .join(', ')}
+                    </span>
+                  )}
+                  {evidence.checks.length > 0 && (
+                    <span>
+                      {evidence.checks.map((check) => `${check.id} (${check.verdict})`).join(', ')}
+                    </span>
+                  )}
+                </li>
+              );
+            },
+          )}
+          {(capture.diffExplanation.documentChecks?.length ?? 0) > 0 && (
+            <li data-document-checks>
+              {capture.diffExplanation.documentChecks
+                .map((check) => `${check.id} (${check.verdict})`)
+                .join(', ')}
+            </li>
+          )}
+        </ul>
+      )}
       {!comparable ? (
         <div className="compare">
           <ViewerFigure
