@@ -1,6 +1,6 @@
 # WEB-402-PERSONA-VARIANTS-1D — staged doc updates (charter §10.2)
 
-Issue: #402 · PR: <to-fill> · Disposition: mixed (capability verified at the engine-config boundary; live-model divergence remains the paid-inference gap)
+Issue: #402 · PR: #500 · Disposition: mixed (capability verified at the engine-config boundary; live-model divergence remains the paid-inference gap)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
