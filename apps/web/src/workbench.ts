@@ -18,6 +18,13 @@ export function loginEnvironment(login: NonNullable<Project['login']>, env: Node
   for (const key of [login.emailRef, login.passwordRef]) if (env[key]) overrides[key] = env[key];
   return overrides;
 }
+
+/** Campaign copy with the transient rebind marker removed once a rebind settles. */
+function withoutRebinding(campaign: Campaign): Campaign {
+  const copy: Campaign = { ...campaign };
+  delete copy.rebinding;
+  return copy;
+}
 /** Five minutes plus a per-capture allowance; crawl, sign-in and stability retries need headroom. */
 export function visualRuntimeLimit(project: Project) {
   const pages = project.pageMode === 'discover' ? project.maxPages : project.paths.length;
@@ -500,24 +507,154 @@ export class Workbench {
   /**
    * Per-fire source-drift re-validation: every due recurring schedule is checked
    * against the real source BEFORE tick() fires it, so a drifted campaign (dirty
-   * tree or HEAD moved vs the pinned sourceCommit) stops at the fire boundary
-   * with zero doomed runs. Fail-soft: an unreadable source is drift by
-   * definition; one bad campaign never blocks the others or the tick.
+   * tree or HEAD moved vs the pinned sourceCommit) never fires doomed runs.
+   * Phase (b): the standard drift outcome is a REBIND — the guard enqueues a
+   * fresh real discovery and disarms the slot; when the discovery completes,
+   * drain()'s completion hook remaps the campaign onto the new commit by
+   * inventoryRowId identity. Stop (phase (a)) is the fallback when rebinding is
+   * impossible right now: no execution settings, or the queue cannot take the
+   * discovery. Fail-soft: an unreadable source is drift by definition; one bad
+   * campaign never blocks the others or the tick.
    */
   async guardDueCampaigns(now = new Date()) {
     for (const campaign of this.store.campaigns()) {
       if (!campaign.cron || campaign.cancelledAt || !campaign.nextFireAt) continue;
+      if (campaign.rebinding) continue; // a rebind discovery is already in flight
       if (new Date(campaign.nextFireAt) > now) continue;
       try {
         const project = this.store.project(campaign.projectId);
         if (!project) continue;
         const current = await sourceRevision(project.folder);
         if (current.dirty || current.commit !== campaign.sourceCommit)
-          this.stopDriftedSchedules(campaign.projectId, campaign.sourceCommit);
+          await this.startRebindOrStop(campaign, project);
       } catch {
         this.stopDriftedSchedules(campaign.projectId, campaign.sourceCommit);
       }
     }
+  }
+
+  /** Rebind-first drift handling; stopDriftedSchedules stays the honest fallback. */
+  private async startRebindOrStop(campaign: Campaign, project: Project) {
+    let discoveryRunId: string | undefined;
+    if (project.execution) {
+      try {
+        discoveryRunId = this.enqueue(project.id, 'discovery').id;
+      } catch {
+        discoveryRunId = undefined;
+      }
+    }
+    if (!discoveryRunId) {
+      this.stopDriftedSchedules(campaign.projectId, campaign.sourceCommit);
+      return;
+    }
+    this.store.db.transaction(() => {
+      // The campaign id is unchanged; the slot is disarmed until the rebind lands.
+      this.store.saveCampaign({ ...campaign, nextFireAt: null, rebinding: { discoveryRunId } });
+      this.store.audit('campaign.rebind-started', campaign.id);
+    })();
+  }
+
+  /**
+   * Rebind completion, driven from drain() after each recorded run: a campaign
+   * with a finished rebind discovery is remapped onto the new commit. Survivors
+   * (selected inventoryRowIds still present in the fresh inventory) re-acquire
+   * per-row executions and the cron slot re-arms; dropped selections are
+   * audited per row. Stop is the fallback: failed discovery, unpinnable source,
+   * or selection exhausted. Capacity follows queueCampaign's whole-campaign
+   * rule — when the surviving rows cannot fit, the rebind stays pending and
+   * retries on the next drain completion (never a partial remap).
+   */
+  private async processRebinds() {
+    for (const campaign of this.store.campaigns()) {
+      if (campaign.cancelledAt || !campaign.rebinding) continue;
+      const discovery = this.store.run(campaign.rebinding.discoveryRunId);
+      if (
+        !discovery ||
+        discovery.projectId !== campaign.projectId ||
+        discovery.mode !== 'discovery'
+      ) {
+        this.stopRebind(campaign, 'campaign.rebind-failed');
+        continue;
+      }
+      if (['queued', 'running'].includes(discovery.state)) continue;
+      if (discovery.state !== 'completed' || !discovery.result?.inventory) {
+        this.stopRebind(campaign, 'campaign.rebind-failed');
+        continue;
+      }
+      await this.rebindCampaign(campaign, discovery);
+    }
+  }
+
+  private async rebindCampaign(campaign: Campaign, discovery: Run) {
+    const inventory = discovery.result?.inventory;
+    const project = this.store.project(campaign.projectId);
+    if (!inventory || !project?.execution) {
+      this.stopRebind(campaign, 'campaign.rebind-failed');
+      return;
+    }
+    let current: Awaited<ReturnType<typeof sourceRevision>>;
+    try {
+      current = await sourceRevision(project.folder);
+    } catch {
+      this.stopRebind(campaign, 'campaign.rebind-failed');
+      return;
+    }
+    // A dirty tree cannot be pinned: firing on it would doom every run to the
+    // drain()'s 409 backstop, so rebinding onto it is refused.
+    if (current.dirty) {
+      this.stopRebind(campaign, 'campaign.rebind-failed');
+      return;
+    }
+    const selected = new Set(
+      campaign.rows
+        .filter((row) => row.inventoryRowId && row.runId)
+        .map((row) => row.inventoryRowId!),
+    );
+    const rows = campaignRows(inventory as DomainInventory);
+    const survivors = rows.filter((row) => row.inventoryRowId && selected.has(row.inventoryRowId));
+    if (!survivors.length) {
+      this.stopRebind(campaign, 'campaign.rebind-exhausted');
+      return;
+    }
+    if (this.store.activeCount() + survivors.length > 20) return; // deferred; retried on a later drain
+    const nextFireAt = campaign.cron ? nextSlot(campaign.cron) : null;
+    this.store.db.transaction(() => {
+      // Same identity, new source: rows come fresh from the NEW inventory and
+      // only survivors carry runId (the fire path executes rows with a runId).
+      const rebound: Campaign = {
+        ...withoutRebinding(campaign),
+        discoveryRunId: discovery.id,
+        sourceCommit: current.commit,
+        nextFireAt,
+        runIds: [],
+        rows,
+      };
+      for (const row of survivors) {
+        const run = this.store.enqueue(project, 'agent')!;
+        run.workflowScope = {
+          campaignId: campaign.id,
+          inventoryRowId: row.inventoryRowId!,
+          sourceCommit: current.commit,
+        };
+        this.store.saveRun(run);
+        rebound.runIds.push(run.id);
+        rebound.rows.find((item) => item.inventoryRowId === row.inventoryRowId)!.runId = run.id;
+      }
+      this.store.saveCampaign(rebound);
+      this.store.audit('campaign.rebound', campaign.id);
+      const survivorIds = new Set(survivors.map((row) => row.inventoryRowId!));
+      for (const id of selected)
+        if (!survivorIds.has(id))
+          this.store.audit('campaign.rebound-row-dropped', `${campaign.id}/${id}`);
+    })();
+  }
+
+  /** Disarm a rebinding campaign for good; the schedule stops without firing again. */
+  private stopRebind(campaign: Campaign, action: string) {
+    this.store.db.transaction(() => {
+      this.store.saveCampaign({ ...withoutRebinding(campaign), nextFireAt: null });
+      this.store.audit(action, campaign.id);
+    })();
   }
   tick(now = new Date()) {
     if (this.closed || this.queueError) return;
@@ -703,6 +840,9 @@ export class Workbench {
       if (this.store.run(run.id)?.state !== 'cancelled') this.store.finish(run, result);
       if (run.workflowScope && result.summary === sourceDriftRefusal)
         this.stopDriftedSchedules(run.projectId, run.workflowScope.sourceCommit);
+      // Every recorded run is a rebind retry opportunity: the discovery that
+      // completes a rebind, or a finished run that freed queue capacity.
+      await this.processRebinds();
       this.runningId = null;
     }
   }
