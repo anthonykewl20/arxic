@@ -1,0 +1,13 @@
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/persona-variants-1b-402
+
+ ✓ apps/web/src/__tests__/persona-variants-recurring.real-world.test.ts (4 tests) 61337ms
+   ✓ fires a recurring variant campaign with the full fan-out and per-fire run attribution  4796ms
+   ✓ defers a recurring variant fire without dropping it when the queue cannot fit the fan-out  42462ms
+   ✓ rebinds a drifted recurring variant campaign by row identity with a variant-aware fan-out  5184ms
+   ✓ blocks a fired variant run on its unset secret while the fired default run fails at the model stage  8893ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  15:24:44
+   Duration  63.92s (transform 963ms, setup 0ms, import 2.48s, tests 61.34s, environment 0ms)
+

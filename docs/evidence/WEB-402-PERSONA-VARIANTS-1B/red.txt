@@ -1,0 +1,32 @@
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/persona-variants-1b-402
+
+ ❯ apps/web/src/__tests__/persona-variants-recurring.real-world.test.ts (4 tests | 4 failed) 2109ms
+   × fires a recurring variant campaign with the full fan-out and per-fire run attribution 580ms
+   × defers a recurring variant fire without dropping it when the queue cannot fit the fan-out 519ms
+   × rebinds a drifted recurring variant campaign by row identity with a variant-aware fan-out 503ms
+   × blocks a fired variant run on its unset secret while the fired default run fails at the model stage 506ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/persona-variants-recurring.real-world.test.ts > fires a recurring variant campaign with the full fan-out and per-fire run attribution
+ FAIL  apps/web/src/__tests__/persona-variants-recurring.real-world.test.ts > defers a recurring variant fire without dropping it when the queue cannot fit the fan-out
+ FAIL  apps/web/src/__tests__/persona-variants-recurring.real-world.test.ts > rebinds a drifted recurring variant campaign by row identity with a variant-aware fan-out
+ FAIL  apps/web/src/__tests__/persona-variants-recurring.real-world.test.ts > blocks a fired variant run on its unset secret while the fired default run fails at the model stage
+Error: Variant campaigns run once; recurring variants are not implemented yet
+ ❯ Workbench.queueCampaign apps/web/src/workbench.ts:512:13
+    510|       throw new HttpError(400, 'Use a five-field cron expression in UT…
+    511|     if (cron !== undefined && variants.length)
+    512|       throw new HttpError(
+       |             ^
+    513|         400,
+    514|         'Variant campaigns run once; recurring variants are not implem…
+ ❯ apps/web/src/workbench.ts:474:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  15:20:58
+   Duration  4.85s (transform 1.06s, setup 0ms, import 2.64s, tests 2.11s, environment 0ms)
+

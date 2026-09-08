@@ -1,16 +1,12 @@
-import { execFile } from 'node:child_process';
-import { appendFile, mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { promisify } from 'node:util';
 import { afterEach, expect, it, vi } from 'vitest';
 import { Workbench } from '../workbench';
 import { campaignRows } from '../campaigns';
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { Campaign, Run } from '../types';
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
-
-const execute = promisify(execFile);
 
 const cleanups: Array<() => Promise<void>> = [];
 afterEach(async () => {
@@ -21,16 +17,6 @@ afterEach(async () => {
 // Content-derived row identity from a real discovery of the reference-auth-app
 // fixture; stable across re-scans of an unchanged route surface.
 const ROW = 'inv:page:GET:7db4b8bf2d28'; // GET /login — app/login/page.tsx
-
-const GIT_IDENTITY = {
-  GIT_AUTHOR_NAME: 'Arxic Test',
-  GIT_AUTHOR_EMAIL: 'test@arxic.invalid',
-  GIT_COMMITTER_NAME: 'Arxic Test',
-  GIT_COMMITTER_EMAIL: 'test@arxic.invalid',
-};
-
-const git = (cwd: string, ...args: string[]) =>
-  execute('git', args, { cwd, env: { ...process.env, ...GIT_IDENTITY } });
 
 const TWO_PERSONAS = [
   {
@@ -159,8 +145,9 @@ it('rejects every invalid variant configuration with its distinct message before
       },
       /ARXIC_SECRET_ environment names/u,
     ],
-    [{ ...base, cron: '0 0 1 1 *', variants: TWO_PERSONAS }, /run once; recurring/u],
   ];
+  // Deliberate slice-1b inversion: cron × variants is no longer rejected here —
+  // the recurring variant journeys live in persona-variants-recurring.real-world.test.ts.
   for (const [input, message] of cases)
     await expect(wb.enqueueCampaign(project.id, input)).rejects.toThrow(message);
   expect(wb.store.runs()).toHaveLength(before);
@@ -210,46 +197,9 @@ it('blocks the variant run — not the default run — when a variant credential
   }
 }, 120_000);
 
-it('stops a drifted variant campaign at the rebind guard without enqueuing a discovery', async () => {
-  const { wb, repo, project, discovery } = await openVariantWorkbench();
-  const campaign = await wb.enqueueCampaign(project.id, {
-    discoveryRunId: discovery.id,
-    inventoryRowIds: [ROW],
-    variants: TWO_PERSONAS,
-  });
-  await wb.idle();
-  // Slice-1 fallback reachability: a variant campaign that somehow carries a
-  // recurring slot (legacy record / hand-edited state) must stop at the guard.
-  wb.store.saveCampaign({
-    ...wb.store.campaign(campaign.id)!,
-    cron: '0 0 1 1 *',
-    nextFireAt: '2000-01-01T00:00:00.000Z',
-  });
-
-  // REAL drift: a real git commit moves HEAD past the pin.
-  const path = join(repo.root, 'app/page.tsx');
-  await appendFile(path, '\n// drift: comment appended between fires\n');
-  await execute('git', ['add', '-A'], { cwd: repo.root, env: { ...process.env, ...GIT_IDENTITY } });
-  await git(repo.root, 'commit', '-m', 'drift: append app/page.tsx');
-
-  const runsBefore = wb.store.runs().length;
-  await wb.guardDueCampaigns(new Date());
-  await wb.idle();
-
-  const stopped = wb.store.campaign(campaign.id)!;
-  expect(stopped.nextFireAt).toBeNull();
-  expect(stopped.rebinding).toBeUndefined();
-  expect(
-    wb.store
-      .auditLog()
-      .some((entry) => entry.action === 'campaign.rebind-failed' && entry.subject === campaign.id),
-  ).toBe(true);
-  // The guard fires before any rebind discovery is enqueued.
-  expect(wb.store.runs()).toHaveLength(runsBefore);
-  expect(
-    wb.store.runs().filter((run) => run.mode === 'discovery' && run.id !== discovery.id),
-  ).toEqual([]);
-}, 120_000);
+// Deliberate slice-1b inversion: the slice-1 "stops a drifted variant campaign
+// at the rebind guard" journey was removed — variant campaigns now rebind by
+// row identity, proven in persona-variants-recurring.real-world.test.ts.
 
 /** Compile-time shape helper: keeps the Run workflowScope variant contract honest. */
 export type VariantScope = Run['workflowScope'] & { variantKey?: string };
