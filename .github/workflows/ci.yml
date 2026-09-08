@@ -237,7 +237,10 @@ jobs:
   # Packaging/compliance gates: packed-CLI smoke, license allowlist, SBOM.
   package:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # The packed dashboard phase measured 772 s locally on main (e97a0880)
+    # and CI runners run browser suites ~2x slower (dashboard shards: 13-16
+    # min per half); 25 min cannot fit the full curated set anymore.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
 
