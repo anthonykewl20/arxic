@@ -10,6 +10,14 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ## [Unreleased]
 
+- WEB-402-DRIFT-REBIND drift rebind for recurring campaigns (#402, PR #484): a drifted DUE recurring campaign re-binds instead of dying — the pre-fire guard disarms the slot, enqueues a fresh real discovery and, on completion, remaps the campaign onto the new commit by content-derived inventoryRowId identity (survivors re-acquire per-row executions, the cron slot re-arms, fires continue on the new source, campaign id unchanged); stop is the fallback (selection exhausted, failed discovery, unpinnable dirty source, rebinding impossible), with `campaign.rebind-started`/`rebound`/`rebound-row-dropped`/`rebind-exhausted`/`rebind-failed` audits; proven against the real fixture repo with real git drift between fires.
+
+- WEB-402-DRIFT-REVALIDATE per-fire source-drift re-validation (#402, PR #483): due recurring campaigns are re-validated against the real source before every fire — a drifted (dirty tree or HEAD moved vs pin) or unreadable source stops the schedule at the fire boundary with the existing audited diagnostic and zero doomed runs, while drain()'s 409 refusal stays as the backstop; proven against a real checkout with real git commit and dirty-tree drift between fires.
+
+- WEB-402-LEDGER-PANEL per-row execution ledger (#402, PR #482): the inventory view gains an EXECUTION LEDGER column that unions every campaign execution per surface row — verified of executions across campaigns, with contradicted and blocked counts when present — and states plainly when a row has never been selected by a campaign; the workbench joins runs to surface keys server-side through campaign rows and ships the result in the state snapshot.
+
+- WEB-402-REVIEW-LOOP cross-capture review loop (#402, PR #481): a run's changed captures are walkable from the keyboard — j next, k previous (wrapping), with the focused capture highlighted and scrolled into view — and a approves the focused capture as baseline through the card's existing approve action; keys yield to text inputs and the hint appears only when there is something to review.
+
 - Give every campaign workflow row a per-row execution history ({executions, verified, contradicted, blocked, uncovered, pending}) unioned across all of the project's campaigns — queried directly from run workflow scopes rather than the 200-capped run list — so a recurring campaign's view of a surface shows its complete multi-week record at a glance; the campaign panel renders "N verified of K executions on this surface" per row (refs #402, PR #476).
 
 - Re-execute exactly the selected rows when a recurring campaign fires: a fire re-ran every eligible discovery row instead of the rows selected when the campaign was created (a one-row selection fired seven runs per slot); fires now match the documented recurring-campaign semantics (refs #402, PR #476).
