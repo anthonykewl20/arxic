@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic
+
+ ✓ apps/web/src/__tests__/visual-density-ui.real-world.test.ts (2 tests) 195190ms
+   ✓ configures and inspects a real pixel density matrix from the dashboard (light)  103705ms
+   ✓ configures and inspects a real pixel density matrix from the dashboard (dark)  91479ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  01:24:51
+   Duration  197.42s (transform 5.86s, setup 0ms, import 1.85s, tests 195.19s, environment 0ms)
+

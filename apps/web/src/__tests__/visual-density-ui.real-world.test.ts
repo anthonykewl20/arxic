@@ -11,6 +11,7 @@ import {
 } from '../../../../packages/real-world-testkit/src';
 import { startWorkbench } from './workbench-runtime';
 import { dashboardProof, type DashboardNumericCheck } from './dashboard-proof';
+import type { Run } from '../types';
 
 it.each(['light', 'dark'] as const)(
   'configures and inspects a real pixel density matrix from the dashboard (%s)',
@@ -144,8 +145,26 @@ it.each(['light', 'dark'] as const)(
       await page.getByRole('button', { name: 'Save project' }).click();
       await page.getByRole('heading', { name: 'Pixel density matrix', exact: true }).waitFor();
       await page.getByRole('button', { name: 'Visual test', exact: true }).click();
+      await expect.poll(() => new URL(page.url()).searchParams.get('run') ?? '').not.toBe('');
+      const runId = new URL(page.url()).searchParams.get('run')!;
+      // A correct three-environment capture measured 21-28s healthy and 113s
+      // under synthetic full-load contention (#502): the wait must outlive
+      // contention, and a non-completed outcome must fail here with its summary
+      // and findings instead of spinning on text that will never match.
+      const deadline = Date.now() + 240_000;
+      for (;;) {
+        const response = await page.request.get(`${app.origin}/api/runs/${runId}`);
+        expect(response.status()).toBe(200);
+        const run = (await response.json()) as Run;
+        if (run.state === 'blocked' || run.state === 'cancelled')
+          throw new Error(`visual run ended ${run.state}: ${run.result?.summary ?? 'no summary'}`);
+        if (run.state === 'completed') break;
+        if (Date.now() > deadline)
+          throw new Error(`visual run still ${run.state} after 240s: ${run.result?.summary ?? ''}`);
+        await page.waitForTimeout(500);
+      }
       await expect
-        .poll(() => page.locator('.run-detail').textContent(), { timeout: 90000 })
+        .poll(() => page.locator('.run-detail').textContent(), { timeout: 30_000 })
         .toContain(
           '3 viewport checkpoints captured across 3 browser/theme/pixel-density environments',
         );
@@ -271,5 +290,7 @@ it.each(['light', 'dark'] as const)(
       await rm(state, { recursive: true, force: true });
     }
   },
-  150000,
+  // 240s run wait plus the loaded remainder of the journey (measured worst
+  // 113s under contention for the run alone); 150s tripped before the run did.
+  420_000,
 );
