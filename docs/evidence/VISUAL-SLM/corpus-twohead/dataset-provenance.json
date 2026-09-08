@@ -1,0 +1,5078 @@
+{
+  "version": 1,
+  "datasetSha256": "824df040e9dc1558e9d88535c0975146b823b0ca16114a79ac49c9f5732c9c41",
+  "corpusManifest": "corpus-v2.json",
+  "frozenAllocationHash": "9487ffb49b3f92d520ba9057596bf0571ca89de41b84a86d290afa812927e287",
+  "evidence": [
+    {
+      "id": "next-360-clean-viewport",
+      "manifest": "next-360-clean.json",
+      "manifestSha256": "d68b82eb7727a25b5ef83291826532674ffe356218a55785b626873c1b60d9a9",
+      "family": "next",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-full-viewport",
+      "manifest": "next-360-clip-full.json",
+      "manifestSha256": "6371aac00514f70810a2acb3317b7a4a08befcd5685a21922cf980aa775c471b",
+      "family": "next",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-right-75-viewport",
+      "manifest": "next-360-clip-right-75.json",
+      "manifestSha256": "086e72fb1875c6d85df64945ff70bd598970856d153f1641bdbd62674ea78771",
+      "family": "next",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-right-50-viewport",
+      "manifest": "next-360-clip-right-50.json",
+      "manifestSha256": "d40fae5ab68d6377650e0ca5a92c6245e6d72c52bacd33105e6e2a4db3d662dd",
+      "family": "next",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-right-25-viewport",
+      "manifest": "next-360-clip-right-25.json",
+      "manifestSha256": "9c61fd3f02d04e47a5a2fc1b996565a41699a78386e2f06f5c6572827de857dd",
+      "family": "next",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-clip-bottom-50-viewport",
+      "manifest": "next-360-clip-bottom-50.json",
+      "manifestSha256": "998483c47c5bb5ae91470bc6d9151c86afb1da64eff8f2849bdf13c80c2714f0",
+      "family": "next",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-overflow-x-viewport",
+      "manifest": "next-360-overflow-x.json",
+      "manifestSha256": "8a7c95693935bba035affc9e19b20916ca7a3cc404aa523d54887c1b166baabd",
+      "family": "next",
+      "variant": "overflow-x",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-content-change-viewport",
+      "manifest": "next-360-content-change.json",
+      "manifestSha256": "b3dc641c4e6ec450a4274c7c97714376700052984548461024486875f3515892",
+      "family": "next",
+      "variant": "content-change",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-overlay-adjacent-viewport",
+      "manifest": "next-360-overlay-adjacent.json",
+      "manifestSha256": "6e008cc0d6d4c4392773a1ab230c805eee035e8a0388b4b90eddd50b555c3f0b",
+      "family": "next",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-360-style-tweak-viewport",
+      "manifest": "next-360-style-tweak.json",
+      "manifestSha256": "796c0fe0fab5cf36f45c69dcdd44c465fe0c0e32e0f0013d86e4b0bf56f463a0",
+      "family": "next",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clean-viewport",
+      "manifest": "next-640-clean.json",
+      "manifestSha256": "e409e5ebf7857de6d4aa72f408eef64cf1de2c8e796c495204877b04c7719af4",
+      "family": "next",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-full-viewport",
+      "manifest": "next-640-clip-full.json",
+      "manifestSha256": "0dd030568bcfa9194e54981b91ba0b0be50b40fc6ebddf5c4582f85c07765234",
+      "family": "next",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-right-75-viewport",
+      "manifest": "next-640-clip-right-75.json",
+      "manifestSha256": "aceef5042acfe8090f37783abbcb3960590f55f56958769795b1901546a96f30",
+      "family": "next",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-right-50-viewport",
+      "manifest": "next-640-clip-right-50.json",
+      "manifestSha256": "509ea788a7b38655d8daa98809bad237765c0c33ace081fd90cba70d486fbd91",
+      "family": "next",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-right-25-viewport",
+      "manifest": "next-640-clip-right-25.json",
+      "manifestSha256": "b10e241f829cea74f1374dd24ec23410c360c0498e30c372cba4bc83c13ebd8f",
+      "family": "next",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clip-bottom-50-viewport",
+      "manifest": "next-640-clip-bottom-50.json",
+      "manifestSha256": "3bbb058401a78d7ad13e190a6e44a4ba4dacd319e3bcb9abe4fe30d8f0da1805",
+      "family": "next",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-overflow-x-viewport",
+      "manifest": "next-640-overflow-x.json",
+      "manifestSha256": "e5a6e0aea05bcf62bfebdd52d121252a633a96af0b91864a626d80d55e768d64",
+      "family": "next",
+      "variant": "overflow-x",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-content-change-viewport",
+      "manifest": "next-640-content-change.json",
+      "manifestSha256": "89f953950da97029691580a01dc56fecae7bd2742b2c3a5d4e847e0f216927e4",
+      "family": "next",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-overlay-adjacent-viewport",
+      "manifest": "next-640-overlay-adjacent.json",
+      "manifestSha256": "4bb920b6b1b4320b6182bf7d60f21d085afb04cb8a07d018585fba256e5113bd",
+      "family": "next",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-style-tweak-viewport",
+      "manifest": "next-640-style-tweak.json",
+      "manifestSha256": "0d46e7e14b3ca475279bece47e968c8f9ae7fa2d5294ec0b40883d27d2ffa222",
+      "family": "next",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clean-viewport",
+      "manifest": "next-1024-clean.json",
+      "manifestSha256": "a21b559839a397ba35d59d4e1be8d46a114f441c94f3667c4bec9ab81366dbdc",
+      "family": "next",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-full-viewport",
+      "manifest": "next-1024-clip-full.json",
+      "manifestSha256": "350bbc41d7f56547467c08f334697d1ba9b202cd9072ded07c65bac3e72d95a4",
+      "family": "next",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-right-75-viewport",
+      "manifest": "next-1024-clip-right-75.json",
+      "manifestSha256": "985289deedbaba44f941e7c1416ad33dfc73d66b3b09034fe048264eee18a50f",
+      "family": "next",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-right-50-viewport",
+      "manifest": "next-1024-clip-right-50.json",
+      "manifestSha256": "365efc2ad878f53ea7949a5140f98c4af9a9921aed04b7d49abd0a914a56494a",
+      "family": "next",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-right-25-viewport",
+      "manifest": "next-1024-clip-right-25.json",
+      "manifestSha256": "82ce6c5a7158b60477f5ba154bf555eb28fc8a5553b5e2f5ff249ff15af2c19a",
+      "family": "next",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clip-bottom-50-viewport",
+      "manifest": "next-1024-clip-bottom-50.json",
+      "manifestSha256": "58de94b2bc86805e5686efb6194f55c0dbda566d52b83d547e30b04cc739f53b",
+      "family": "next",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-overflow-x-viewport",
+      "manifest": "next-1024-overflow-x.json",
+      "manifestSha256": "8d02d6f648bc86a996294a05f7a622cb8f7f0ecb60bce59b040a144a9eab6ae9",
+      "family": "next",
+      "variant": "overflow-x",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-content-change-viewport",
+      "manifest": "next-1024-content-change.json",
+      "manifestSha256": "758473c85c47a2850f9603c55a7757d266f498ef76367237eeda6774d80a0387",
+      "family": "next",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-overlay-adjacent-viewport",
+      "manifest": "next-1024-overlay-adjacent.json",
+      "manifestSha256": "60f34c4cccf29d4aa34226b1e293d3a1496d775ea979e3bfd85e4ec78b3c0583",
+      "family": "next",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-style-tweak-viewport",
+      "manifest": "next-1024-style-tweak.json",
+      "manifestSha256": "00fc7229740a6c3f1e80b2cdc1be548487928d49d96fef09be90face1369704f",
+      "family": "next",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clean-viewport",
+      "manifest": "next-1280-clean.json",
+      "manifestSha256": "9107fa39ea333314bc201fafd328348032848378809e139bdec0c2fe1ec19d72",
+      "family": "next",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-full-viewport",
+      "manifest": "next-1280-clip-full.json",
+      "manifestSha256": "7a10dd91f5eac57ebd2681b7307215d14cff1b3f6cffc263c203fb4ac8f410dc",
+      "family": "next",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-right-75-viewport",
+      "manifest": "next-1280-clip-right-75.json",
+      "manifestSha256": "e4a68d0342e7c1dade4aa7886004bbdd1168546e08db2b96249e3120facbe176",
+      "family": "next",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-right-50-viewport",
+      "manifest": "next-1280-clip-right-50.json",
+      "manifestSha256": "8ed0571ba4fb7d72c1e4c58808b990134b590a4c375ad4a084be0f0c6a458bb5",
+      "family": "next",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-right-25-viewport",
+      "manifest": "next-1280-clip-right-25.json",
+      "manifestSha256": "aef8825f69f5a5539dbf1d244b0ab1686291ad864f27793772b5e4f2210a0894",
+      "family": "next",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clip-bottom-50-viewport",
+      "manifest": "next-1280-clip-bottom-50.json",
+      "manifestSha256": "512475b2d63a6585953300f5074b18ccaa07daf24028ba0d216595a13c70e98a",
+      "family": "next",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-overflow-x-viewport",
+      "manifest": "next-1280-overflow-x.json",
+      "manifestSha256": "08e0d67149a8eebcf6eb0b269d1ab25e3b4fd203a7ad50e2a1af2174e5e3a0f4",
+      "family": "next",
+      "variant": "overflow-x",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-content-change-viewport",
+      "manifest": "next-1280-content-change.json",
+      "manifestSha256": "b698691d3a4ead29493479711971bdae6bca3dcf91262a03dec4dc6af1646a91",
+      "family": "next",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-overlay-adjacent-viewport",
+      "manifest": "next-1280-overlay-adjacent.json",
+      "manifestSha256": "9f965b6d24612180f88ddcceece5b2e94af25beb6f4d0969d84c6ba9cd3f7b13",
+      "family": "next",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-style-tweak-viewport",
+      "manifest": "next-1280-style-tweak.json",
+      "manifestSha256": "1aac01bc93cf35ad9de1b15f19ff345c125bd5dbb5c2247db25099613dd28376",
+      "family": "next",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clean-viewport",
+      "manifest": "express-360-clean.json",
+      "manifestSha256": "4902369ee2318db6c4a8df2f5acda5240335d2624615bbd513ce87f38f433597",
+      "family": "express",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-full-viewport",
+      "manifest": "express-360-clip-full.json",
+      "manifestSha256": "9f3a53ba87d3ef26e7dc4295968ef4a7c6f38e8b032408c5d51a054eabfd3ec4",
+      "family": "express",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-right-75-viewport",
+      "manifest": "express-360-clip-right-75.json",
+      "manifestSha256": "00e357cdc8e7338b8a8407c673908f830e44cc6401f8e5df3955da04f05331ab",
+      "family": "express",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-right-50-viewport",
+      "manifest": "express-360-clip-right-50.json",
+      "manifestSha256": "b193ce1f624e463d8cf2cefb24165218d751a24f694888cba6944922d06e37d9",
+      "family": "express",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-right-25-viewport",
+      "manifest": "express-360-clip-right-25.json",
+      "manifestSha256": "35f0e585391e873f90ca265a18b92b6aedc635f3221dd959651d36266a7d289e",
+      "family": "express",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-clip-bottom-50-viewport",
+      "manifest": "express-360-clip-bottom-50.json",
+      "manifestSha256": "498a4a2a5ad8603df6ddbe9ff60fd0bda5616fa1603690c447de1cd9f289b592",
+      "family": "express",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-overflow-x-viewport",
+      "manifest": "express-360-overflow-x.json",
+      "manifestSha256": "72b36a0d231cafc885240aeb83e69b58fa04a81feef3c2f712703d61c594e943",
+      "family": "express",
+      "variant": "overflow-x",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-content-change-viewport",
+      "manifest": "express-360-content-change.json",
+      "manifestSha256": "ee4dc931d71f947c583f3a81261cf284c4a53f4690996a500aee7996a6e681c0",
+      "family": "express",
+      "variant": "content-change",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-overlay-adjacent-viewport",
+      "manifest": "express-360-overlay-adjacent.json",
+      "manifestSha256": "2bc8685fe0cdd9bee2e355a9a969c0c78592d640e02d9d08bfd1c840a00daf29",
+      "family": "express",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-360-style-tweak-viewport",
+      "manifest": "express-360-style-tweak.json",
+      "manifestSha256": "bb9f6d2a83b08d47722c58d7b3d4d236399217d3dd8c9ad9a4b6cb48a6e0837f",
+      "family": "express",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clean-viewport",
+      "manifest": "express-640-clean.json",
+      "manifestSha256": "a7d237beb5e74842f8d183c8eb42a4b35e88e2c6eebcfc922e60ff05dc2d8d48",
+      "family": "express",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-full-viewport",
+      "manifest": "express-640-clip-full.json",
+      "manifestSha256": "db986158cfbe7a927764f6b70c06e65df9e31ff0ee950f9239c3dcd2f6979eac",
+      "family": "express",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-right-75-viewport",
+      "manifest": "express-640-clip-right-75.json",
+      "manifestSha256": "4c4c8976eba90cb44a646c1961befef852b92bd73775e0075f8c6b33e341437c",
+      "family": "express",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-right-50-viewport",
+      "manifest": "express-640-clip-right-50.json",
+      "manifestSha256": "25244216fa5318a8bbf620ef03215fade7a2b07020579e66000fb910bfeb4bfe",
+      "family": "express",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-right-25-viewport",
+      "manifest": "express-640-clip-right-25.json",
+      "manifestSha256": "cde6ad57a35b4c4acc469143cdf2dfe262c66a51de680ea409008224e987f0b4",
+      "family": "express",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clip-bottom-50-viewport",
+      "manifest": "express-640-clip-bottom-50.json",
+      "manifestSha256": "b0b2bb60066339febbf47e6292c51506aa36ae316a680073975992b4b8afd5ba",
+      "family": "express",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-overflow-x-viewport",
+      "manifest": "express-640-overflow-x.json",
+      "manifestSha256": "f138fb98f9ccfcd3a4bc5f30f61ce4410c527749694a44f20355fbaf6864c174",
+      "family": "express",
+      "variant": "overflow-x",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-content-change-viewport",
+      "manifest": "express-640-content-change.json",
+      "manifestSha256": "7435e82e239a891625bc43a83ef335dfdab4d7892168ec91aa09c639a64921d5",
+      "family": "express",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-overlay-adjacent-viewport",
+      "manifest": "express-640-overlay-adjacent.json",
+      "manifestSha256": "966e59099c86e87a77cb600b6c5cc9bc983cb0eaab69a455b5d5ad0820d8111d",
+      "family": "express",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-style-tweak-viewport",
+      "manifest": "express-640-style-tweak.json",
+      "manifestSha256": "767dd62149e9739d786028b216eafe909ccac193bffa76e517d30775b5b64013",
+      "family": "express",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clean-viewport",
+      "manifest": "express-1024-clean.json",
+      "manifestSha256": "2d36c56b5754642c81be51736ca4db0b6540166646e810d646651ba091de502a",
+      "family": "express",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-full-viewport",
+      "manifest": "express-1024-clip-full.json",
+      "manifestSha256": "6c6793e9ccf1a30d59d35736394f2c0c875d4beeed3e5deb1cf47ea8dca1a328",
+      "family": "express",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-right-75-viewport",
+      "manifest": "express-1024-clip-right-75.json",
+      "manifestSha256": "d242a95606a74bf8452eb43898a7c5ab58a3fc76af6d6a90e93d1c9c846e05d2",
+      "family": "express",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-right-50-viewport",
+      "manifest": "express-1024-clip-right-50.json",
+      "manifestSha256": "a1b390361925dbd77c187a1f477ab97ae52afff8c1f4475924dd1f3c678b96db",
+      "family": "express",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-right-25-viewport",
+      "manifest": "express-1024-clip-right-25.json",
+      "manifestSha256": "1675098d1d2bd4f59fc2d4ae748b7336ae5b99bd0c55c680b78ec8e473ceca7e",
+      "family": "express",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clip-bottom-50-viewport",
+      "manifest": "express-1024-clip-bottom-50.json",
+      "manifestSha256": "fc9e314ca82eea3f7bfd01bfdfe470d29ce8604593074bd5feca2a13b2a3ce81",
+      "family": "express",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-overflow-x-viewport",
+      "manifest": "express-1024-overflow-x.json",
+      "manifestSha256": "0bd24670d0a39c41a3a7c1f3582fb448bb035dfc46139706aa281485b8cf8f3b",
+      "family": "express",
+      "variant": "overflow-x",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-content-change-viewport",
+      "manifest": "express-1024-content-change.json",
+      "manifestSha256": "f5c25b0f529f391dd53e64d3b8ca64ac09b9ce03307c8897a8000143a30af126",
+      "family": "express",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-overlay-adjacent-viewport",
+      "manifest": "express-1024-overlay-adjacent.json",
+      "manifestSha256": "a3ace3ab0361ef4a2120d3a644f2161af71f20ff36627b4ac68ec0cb5d2f0674",
+      "family": "express",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-style-tweak-viewport",
+      "manifest": "express-1024-style-tweak.json",
+      "manifestSha256": "428ef689805cf74d5bff0d9cb3ef21a9c666118c34d7a8afb37700d918988db4",
+      "family": "express",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clean-viewport",
+      "manifest": "express-1280-clean.json",
+      "manifestSha256": "27719ff3df35c7e679d90c880eb17c3b3fa3998193d7555a13fc3046fa8616bc",
+      "family": "express",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-full-viewport",
+      "manifest": "express-1280-clip-full.json",
+      "manifestSha256": "f95d5fb23bcce0734adba0cde0c7609327860755532c76a85621026074836f9e",
+      "family": "express",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-right-75-viewport",
+      "manifest": "express-1280-clip-right-75.json",
+      "manifestSha256": "f2344d50658a9adc8b2ef2ba0503b2398fc686f795df1164bb9c830505f9cc91",
+      "family": "express",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-right-50-viewport",
+      "manifest": "express-1280-clip-right-50.json",
+      "manifestSha256": "587cdf821896bb70e4e6680ff2f73feaa3bd46573b1c138e2d39414192fb29ae",
+      "family": "express",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-right-25-viewport",
+      "manifest": "express-1280-clip-right-25.json",
+      "manifestSha256": "3ef524ef03c9cdfa42d33ed24785883b0f6a8e937a0c4cb45f0a10b3044c37cd",
+      "family": "express",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clip-bottom-50-viewport",
+      "manifest": "express-1280-clip-bottom-50.json",
+      "manifestSha256": "146020dbd3cbd69201417cd8a0bb65c89bcbcb73be66f29d87f56e66c03be5ed",
+      "family": "express",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-overflow-x-viewport",
+      "manifest": "express-1280-overflow-x.json",
+      "manifestSha256": "d26da8134f4a3d54c00af27d43f9e9a4217fa04c05d6649964951dd82aa86338",
+      "family": "express",
+      "variant": "overflow-x",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-content-change-viewport",
+      "manifest": "express-1280-content-change.json",
+      "manifestSha256": "25ebc4f517b3d1393559ee05c0a14ee0b4609303dc3a5064c65a6118831f18a6",
+      "family": "express",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-overlay-adjacent-viewport",
+      "manifest": "express-1280-overlay-adjacent.json",
+      "manifestSha256": "774c0174c4128b092a3d0016c1543ba046f05b372f8505dba04cdde5ebd1fabf",
+      "family": "express",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-style-tweak-viewport",
+      "manifest": "express-1280-style-tweak.json",
+      "manifestSha256": "936ad1e23fcd4b612aa9ef14324d74568900820605e8641cbdd6c2264614e5cb",
+      "family": "express",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clean-viewport",
+      "manifest": "arxic-360-clean.json",
+      "manifestSha256": "aff1c95df2c86df9e51bb3d46616a1f94f8079edc67f963e2a9f46ddae58c948",
+      "family": "arxic",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-full-viewport",
+      "manifest": "arxic-360-clip-full.json",
+      "manifestSha256": "ec245aa46e6a73b22565e7c4ad2ca5ce8de0be792177a92d54266c194e0c0689",
+      "family": "arxic",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-right-75-viewport",
+      "manifest": "arxic-360-clip-right-75.json",
+      "manifestSha256": "0601c08bec17d8cf684f8b2eb2f43662e8b9c4d762b80bb4981d788bc3b78d65",
+      "family": "arxic",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-right-50-viewport",
+      "manifest": "arxic-360-clip-right-50.json",
+      "manifestSha256": "383885df2d501b889f553770e27e10ba662656e4e05724f2f89cb227d2b8920a",
+      "family": "arxic",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-right-25-viewport",
+      "manifest": "arxic-360-clip-right-25.json",
+      "manifestSha256": "552e40dbc09393fd65346aa63cd07edfc8ad5bf120a28bb9b458cc5e2f973a77",
+      "family": "arxic",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-clip-bottom-50-viewport",
+      "manifest": "arxic-360-clip-bottom-50.json",
+      "manifestSha256": "c86bdf3ebf129c577bf219669db26e6901a74e25fe850372cae70277dcb8413f",
+      "family": "arxic",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-overflow-x-viewport",
+      "manifest": "arxic-360-overflow-x.json",
+      "manifestSha256": "48375fec8169d8d1718cfd3f7a39b5d77ee5d3348beded906e4fc278667c2147",
+      "family": "arxic",
+      "variant": "overflow-x",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-overlay-adjacent-viewport",
+      "manifest": "arxic-360-overlay-adjacent.json",
+      "manifestSha256": "ef1d1fbc78f40266910bfb4b5bd281e8a0ab60a3f1737ce44a6d5a0c87097dca",
+      "family": "arxic",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-360-style-tweak-viewport",
+      "manifest": "arxic-360-style-tweak.json",
+      "manifestSha256": "176dd18dcc4430d3e7499ceb06aea61792343c91854592018d11d5257f853cbe",
+      "family": "arxic",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clean-viewport",
+      "manifest": "arxic-640-clean.json",
+      "manifestSha256": "b10acaff5d0ed3f9bf3557289e06e461ceb5c0ddc5b59ce41f540f2897547367",
+      "family": "arxic",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-full-viewport",
+      "manifest": "arxic-640-clip-full.json",
+      "manifestSha256": "1d89205d6ee8126a474885bde2ba3fd32651a0eb8a8b179ea1d775037f22655e",
+      "family": "arxic",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-right-75-viewport",
+      "manifest": "arxic-640-clip-right-75.json",
+      "manifestSha256": "09e0ec6eee4720b9ce00d0a434b27d0e30defb9b93ce94b717b19e323efaa5f1",
+      "family": "arxic",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-right-50-viewport",
+      "manifest": "arxic-640-clip-right-50.json",
+      "manifestSha256": "8849157874dca98b10be4cabd030b07d01bf250a213a7c7c9db058b0636787cb",
+      "family": "arxic",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-right-25-viewport",
+      "manifest": "arxic-640-clip-right-25.json",
+      "manifestSha256": "123141120cd41a4a1117da9d1d4b2864fef369616c56da2344a6708c73ef2435",
+      "family": "arxic",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clip-bottom-50-viewport",
+      "manifest": "arxic-640-clip-bottom-50.json",
+      "manifestSha256": "663db172fdcd219cd13d1db9f251e442ffb5b86659569e626bc16806103b3bd4",
+      "family": "arxic",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-overflow-x-viewport",
+      "manifest": "arxic-640-overflow-x.json",
+      "manifestSha256": "c99d79bb69ebc6b20184c685d87d194104921f13f65303fafaa750ca04a43a6e",
+      "family": "arxic",
+      "variant": "overflow-x",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-content-change-viewport",
+      "manifest": "arxic-640-content-change.json",
+      "manifestSha256": "0eb9762e3d004be8991f68727b2bc884066db7d5fad3624da490b1ff486d274b",
+      "family": "arxic",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-overlay-adjacent-viewport",
+      "manifest": "arxic-640-overlay-adjacent.json",
+      "manifestSha256": "8a495edb0a0ee28c0f3a8ce9556770d500fb0aa08e7deb6039c571bd601169fd",
+      "family": "arxic",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-style-tweak-viewport",
+      "manifest": "arxic-640-style-tweak.json",
+      "manifestSha256": "364d9cc1f4f051d18798c3536345cf3c2521ca280bdc359649e1df320d269f2f",
+      "family": "arxic",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clean-viewport",
+      "manifest": "arxic-1024-clean.json",
+      "manifestSha256": "ac5a7d999b12a3533ad4bada3f0975240ff143cab2a28e08680719ae02d56816",
+      "family": "arxic",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-full-viewport",
+      "manifest": "arxic-1024-clip-full.json",
+      "manifestSha256": "208a05674d6a8bdfc2296ee2923175bfe3d1cd09f33d4612b8b0129f19f7e98b",
+      "family": "arxic",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-right-75-viewport",
+      "manifest": "arxic-1024-clip-right-75.json",
+      "manifestSha256": "a689122175ead83dd256b685b1f1a988d15cc4085855cbac08d48f63a47e11c9",
+      "family": "arxic",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-right-50-viewport",
+      "manifest": "arxic-1024-clip-right-50.json",
+      "manifestSha256": "c05ea605d850d5ede92ef2e7259ed4b9fd3005a34a1a0a1bf6b1038bed8941a1",
+      "family": "arxic",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-right-25-viewport",
+      "manifest": "arxic-1024-clip-right-25.json",
+      "manifestSha256": "01285d1d7e0367956558e1308f5c11541c3413a77797465d2bd729daba1fdc96",
+      "family": "arxic",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clip-bottom-50-viewport",
+      "manifest": "arxic-1024-clip-bottom-50.json",
+      "manifestSha256": "e5eac5933704831c01e0dbb7e33e0dd616a2ea57b6237a385d51cc6102084871",
+      "family": "arxic",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-overflow-x-viewport",
+      "manifest": "arxic-1024-overflow-x.json",
+      "manifestSha256": "abca6a51d28460b6a772ac680b86b0fcd2df736b9e1082970e69d25dce26e8df",
+      "family": "arxic",
+      "variant": "overflow-x",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-content-change-viewport",
+      "manifest": "arxic-1024-content-change.json",
+      "manifestSha256": "f54165c7fbd0887a58cfaf5228ae4f59dc47d530ef5f78d258db79fb561adbca",
+      "family": "arxic",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-overlay-adjacent-viewport",
+      "manifest": "arxic-1024-overlay-adjacent.json",
+      "manifestSha256": "9aede4142cbd90ec83064be23b0080bf2feb366eef0f52a14c96b9a1c226cafd",
+      "family": "arxic",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-style-tweak-viewport",
+      "manifest": "arxic-1024-style-tweak.json",
+      "manifestSha256": "0731831d7a33f4e32e4922d4020678170a12656926f279d64e318d664ab88173",
+      "family": "arxic",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clean-viewport",
+      "manifest": "arxic-1280-clean.json",
+      "manifestSha256": "d9a3889fe4883d6c1b662a2d57c08bc13f8a2c5846c4e41a475219e33108c584",
+      "family": "arxic",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-full-viewport",
+      "manifest": "arxic-1280-clip-full.json",
+      "manifestSha256": "d4ce8c0e81078ed2258470f82757206299d72ba1af807e33eb775d4c86eaa7ee",
+      "family": "arxic",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-right-75-viewport",
+      "manifest": "arxic-1280-clip-right-75.json",
+      "manifestSha256": "23a3dac48a595937c0cc7d262b709c0b2188c796a323747c98e801e8d16eb38a",
+      "family": "arxic",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-right-50-viewport",
+      "manifest": "arxic-1280-clip-right-50.json",
+      "manifestSha256": "3a2c7ce1323ac5848a6f608a417e01a9e52fedcc078eaa329ca43a0ed72b24b1",
+      "family": "arxic",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-right-25-viewport",
+      "manifest": "arxic-1280-clip-right-25.json",
+      "manifestSha256": "dec34ee99200a4cef64b93fe1eb3744b8f0774e370646a43149283247a2bf4e6",
+      "family": "arxic",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clip-bottom-50-viewport",
+      "manifest": "arxic-1280-clip-bottom-50.json",
+      "manifestSha256": "a6078e093fcfca9d551be1f2e7e50200915a208eb228737e6af21ff700bca56a",
+      "family": "arxic",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-overflow-x-viewport",
+      "manifest": "arxic-1280-overflow-x.json",
+      "manifestSha256": "d33a9e4173f2e9cd681980cf1366dad6c9a7ddd78faa2d250f332210b7fab6f3",
+      "family": "arxic",
+      "variant": "overflow-x",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-content-change-viewport",
+      "manifest": "arxic-1280-content-change.json",
+      "manifestSha256": "32640f2e74dc258b2d1935022141920d7a8af9ec6778a0fdfebaff385a1589d2",
+      "family": "arxic",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-overlay-adjacent-viewport",
+      "manifest": "arxic-1280-overlay-adjacent.json",
+      "manifestSha256": "4bbfa53e27e25b413fb29995179fa681641b199e284903d8061bf5e2684799c4",
+      "family": "arxic",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-style-tweak-viewport",
+      "manifest": "arxic-1280-style-tweak.json",
+      "manifestSha256": "a1cf2a6720037b08645a616185c8997402c89a6f97f6afae25055205396f224c",
+      "family": "arxic",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clean-viewport",
+      "manifest": "koel-360-clean.json",
+      "manifestSha256": "2762c7fb04a89dc75ed25c5b545ac1506c0dec3f1344558e9685b7062480c175",
+      "family": "koel",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-full-viewport",
+      "manifest": "koel-360-clip-full.json",
+      "manifestSha256": "940127819635f957e38da93298ce49d8ad95f648beb3cf30398926d41ee6c04e",
+      "family": "koel",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-right-75-viewport",
+      "manifest": "koel-360-clip-right-75.json",
+      "manifestSha256": "c27616067bdaa7df3d47256b8e725c188736991130e0f733537824dcf0d4bb76",
+      "family": "koel",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-right-50-viewport",
+      "manifest": "koel-360-clip-right-50.json",
+      "manifestSha256": "9d2b943b7c2289af19783255d0784e523b3e6159c251ac3f361ff6fb2b989f97",
+      "family": "koel",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-right-25-viewport",
+      "manifest": "koel-360-clip-right-25.json",
+      "manifestSha256": "c8b55c9f32f1b5614f2d2d0c251d3c4ee2118684cbbad5474e54924bb2e66fba",
+      "family": "koel",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-clip-bottom-50-viewport",
+      "manifest": "koel-360-clip-bottom-50.json",
+      "manifestSha256": "84101659116604fe7a4d001dae44df7acde79013722bf83f9c19c4a25bb1a22c",
+      "family": "koel",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-overflow-x-viewport",
+      "manifest": "koel-360-overflow-x.json",
+      "manifestSha256": "a760bc1f4fb305ffa585e4f204e14716ccb451011ed10b5f094811b1d0870fef",
+      "family": "koel",
+      "variant": "overflow-x",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-content-change-viewport",
+      "manifest": "koel-360-content-change.json",
+      "manifestSha256": "7e5b60c4b9c24cce37fc81b792a15d398aa5c223fb930637deba276ea8e687dd",
+      "family": "koel",
+      "variant": "content-change",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-overlay-adjacent-viewport",
+      "manifest": "koel-360-overlay-adjacent.json",
+      "manifestSha256": "b025763dfcc5a88e58a9343d7938bc4ca3a8ba347259b574a23143f8149b62d0",
+      "family": "koel",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-360-style-tweak-viewport",
+      "manifest": "koel-360-style-tweak.json",
+      "manifestSha256": "ad80327dab05ae5e3220c1608a1d574630e3efddfa77e5ba28b838df0b3e71b7",
+      "family": "koel",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clean-viewport",
+      "manifest": "koel-640-clean.json",
+      "manifestSha256": "e001393f4d9271b23c5c2778499b4955c1eff19f9dc4a20a5d63e7484bdc2633",
+      "family": "koel",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-full-viewport",
+      "manifest": "koel-640-clip-full.json",
+      "manifestSha256": "62c7b3a01d39a77ac031ec9323307a273530da76a9150ffb9ff8fff6d33529aa",
+      "family": "koel",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-right-75-viewport",
+      "manifest": "koel-640-clip-right-75.json",
+      "manifestSha256": "48f20ee0b7f9cf9edba4597169e8dc407ecfe48696e504dfcb8053bc7c7af757",
+      "family": "koel",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-right-50-viewport",
+      "manifest": "koel-640-clip-right-50.json",
+      "manifestSha256": "937c17b4f990319dee102d954528f180a6ac4d439046f69cf31b752e15c277d6",
+      "family": "koel",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-right-25-viewport",
+      "manifest": "koel-640-clip-right-25.json",
+      "manifestSha256": "6fcd58a5bcf8299df3eca1d603374c4b7fd5f4538e8eb2086f23244a91b2a4f0",
+      "family": "koel",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-clip-bottom-50-viewport",
+      "manifest": "koel-640-clip-bottom-50.json",
+      "manifestSha256": "59d14632bba7224e6d5e776d8d8776e39dc2e04ce3b97d87f0e57f26b1850669",
+      "family": "koel",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-overflow-x-viewport",
+      "manifest": "koel-640-overflow-x.json",
+      "manifestSha256": "e1b5496bc99aabf275d71aa2aba74218cc3f340413a1ae0a2cda1b9a17b1f8c1",
+      "family": "koel",
+      "variant": "overflow-x",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-content-change-viewport",
+      "manifest": "koel-640-content-change.json",
+      "manifestSha256": "eeae41072de0077feaf7670da4d8c9ba3a7a4df1378484287093270e37bca95c",
+      "family": "koel",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-overlay-adjacent-viewport",
+      "manifest": "koel-640-overlay-adjacent.json",
+      "manifestSha256": "de99e843f63d31477f77313291549eea4074700d13a10eacb2e6d15f639b8a42",
+      "family": "koel",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-640-style-tweak-viewport",
+      "manifest": "koel-640-style-tweak.json",
+      "manifestSha256": "8bdc4894fa6335499eb1e07b8d7be04127b00d2d8e23ee1824c794ea848cc5dc",
+      "family": "koel",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clean-viewport",
+      "manifest": "koel-1024-clean.json",
+      "manifestSha256": "30da4b2a79cc83760893ef53c7504942a4cce8daeb6f62401f5b661eeb51f6e8",
+      "family": "koel",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-full-viewport",
+      "manifest": "koel-1024-clip-full.json",
+      "manifestSha256": "4132e652193d12dfb8e93a5678dd1c067048a98f37a3ebd78419989e7bf21091",
+      "family": "koel",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-right-75-viewport",
+      "manifest": "koel-1024-clip-right-75.json",
+      "manifestSha256": "d54e4c2b746207f1a9493924865141f8b060300096533d8bbb4fc2c443fc2645",
+      "family": "koel",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-right-50-viewport",
+      "manifest": "koel-1024-clip-right-50.json",
+      "manifestSha256": "ea81f2bb3bf1a3dd8e0c86771c6e7780fd5aa5a879583f84830bd00b498b692f",
+      "family": "koel",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-right-25-viewport",
+      "manifest": "koel-1024-clip-right-25.json",
+      "manifestSha256": "38eafa7aa7370d906c24c28f2f1453aefb3e3d56893ae275e6673b4ac50125eb",
+      "family": "koel",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-clip-bottom-50-viewport",
+      "manifest": "koel-1024-clip-bottom-50.json",
+      "manifestSha256": "0cd34c6733802bd759fd606a939db3ad3203b0c15b438b8395b3149652d21ef7",
+      "family": "koel",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-overflow-x-viewport",
+      "manifest": "koel-1024-overflow-x.json",
+      "manifestSha256": "60ca451c695f2b376dfee52a6c801fc00fb87628e2d86063150e6aa838f346d5",
+      "family": "koel",
+      "variant": "overflow-x",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-content-change-viewport",
+      "manifest": "koel-1024-content-change.json",
+      "manifestSha256": "57cc290d56b7dafe618e6066e60427912193ec94ac7ab6a29c3cb0487b5ccf20",
+      "family": "koel",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-overlay-adjacent-viewport",
+      "manifest": "koel-1024-overlay-adjacent.json",
+      "manifestSha256": "1b8fd3474583608ccc463d798bdad51a4ce76c881ef32ca9933edf88896573b5",
+      "family": "koel",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1024-style-tweak-viewport",
+      "manifest": "koel-1024-style-tweak.json",
+      "manifestSha256": "70fb1a3916bc07b0032dcf61e5a1a761b4b054300d83ca0af6609d86912f2853",
+      "family": "koel",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clean-viewport",
+      "manifest": "koel-1280-clean.json",
+      "manifestSha256": "4e40dbcaa97a294db6e5dc1c611b9dd865f4dbe0f2106094116a056e0f827054",
+      "family": "koel",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-full-viewport",
+      "manifest": "koel-1280-clip-full.json",
+      "manifestSha256": "007dc3037a521e3f59d0146e3ddf29d2d92a23a84646edfaf7230f59055025d6",
+      "family": "koel",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-right-75-viewport",
+      "manifest": "koel-1280-clip-right-75.json",
+      "manifestSha256": "953aa11c21ce89f2a97b516fc1bafd654cc82299ca0a01ed4d4126e40789854b",
+      "family": "koel",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-right-50-viewport",
+      "manifest": "koel-1280-clip-right-50.json",
+      "manifestSha256": "7f2743cd62f5b107aba524c689ec9954e6216135a40649d198148595be633143",
+      "family": "koel",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-right-25-viewport",
+      "manifest": "koel-1280-clip-right-25.json",
+      "manifestSha256": "1b2854335ee5fca94542b936ad9a69ea716545319f0aadd3bffbfc72ddb7bab6",
+      "family": "koel",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-clip-bottom-50-viewport",
+      "manifest": "koel-1280-clip-bottom-50.json",
+      "manifestSha256": "32070341d9cef3865837c9ff5e7312d3332d9f166f10427ea678c8047cf074a6",
+      "family": "koel",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-overflow-x-viewport",
+      "manifest": "koel-1280-overflow-x.json",
+      "manifestSha256": "d4189847edc4cfca70af37a61938582d40b673c7aba782ef86773a0c550839c6",
+      "family": "koel",
+      "variant": "overflow-x",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 1,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-content-change-viewport",
+      "manifest": "koel-1280-content-change.json",
+      "manifestSha256": "44da2f4cec0e9a09e433cf7078048caf94c011cb906a71ec150b601cbbd11be6",
+      "family": "koel",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-overlay-adjacent-viewport",
+      "manifest": "koel-1280-overlay-adjacent.json",
+      "manifestSha256": "59b696105a7f789927386c5dbfe99cb987989af5621e416fb56f5b583b9b7e70",
+      "family": "koel",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "koel-1280-style-tweak-viewport",
+      "manifest": "koel-1280-style-tweak.json",
+      "manifestSha256": "eceab8359fdbeea03336dbfdecdf825b67aec1af7ae9f89ff1c311dbd5edbcc0",
+      "family": "koel",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clean-viewport",
+      "manifest": "directus-360-clean.json",
+      "manifestSha256": "7963f65740a7bd75a2f08f20347ee17cab1e7d7b14624025b0de2925c2f985ba",
+      "family": "directus",
+      "variant": "clean",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-full-viewport",
+      "manifest": "directus-360-clip-full.json",
+      "manifestSha256": "0063d0efa28d928e641831f5e3e3487e25062bf605539ffeb4834c747ba50106",
+      "family": "directus",
+      "variant": "clip-full",
+      "viewport": 360,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-right-75-viewport",
+      "manifest": "directus-360-clip-right-75.json",
+      "manifestSha256": "5bdccaedf91887154c08b9ecf119a6df4b184b101e0f5ec825efc9503454e293",
+      "family": "directus",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-right-50-viewport",
+      "manifest": "directus-360-clip-right-50.json",
+      "manifestSha256": "ee15572b6c03c5ec5a0a31b8ca0fd6fcdbe424f5e9bb94eec166282ebc7ecc56",
+      "family": "directus",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-right-25-viewport",
+      "manifest": "directus-360-clip-right-25.json",
+      "manifestSha256": "c4a7aa5fa65914d7b0d2b516cc87d758900e6ea168ee7bb4244e72ceccc59d80",
+      "family": "directus",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-clip-bottom-50-viewport",
+      "manifest": "directus-360-clip-bottom-50.json",
+      "manifestSha256": "db496be77e3c462fd5063b6d321c0867f695260e392f4336b99414e96405e90a",
+      "family": "directus",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-content-change-viewport",
+      "manifest": "directus-360-content-change.json",
+      "manifestSha256": "76dfc75a49341f4921637464ab4fde98394925c83bf5f6acff948bf05d7d84ec",
+      "family": "directus",
+      "variant": "content-change",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-overlay-adjacent-viewport",
+      "manifest": "directus-360-overlay-adjacent.json",
+      "manifestSha256": "3909d85fd0d6c7fe263c798f9cee87d62fa593717b45d26a4985f1c46df310b9",
+      "family": "directus",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-360-style-tweak-viewport",
+      "manifest": "directus-360-style-tweak.json",
+      "manifestSha256": "0a3371e7bb1573c16d5ccca350d65229bc3eb41bf8c96d15a3b2939918ec91d5",
+      "family": "directus",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clean-viewport",
+      "manifest": "directus-640-clean.json",
+      "manifestSha256": "2ccb76904afaaec5b5d4a87e5098ad8bd3b61aca787e09ba43bd269231d50869",
+      "family": "directus",
+      "variant": "clean",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-full-viewport",
+      "manifest": "directus-640-clip-full.json",
+      "manifestSha256": "2e8cdd1667a1eefa09448564434d389d1cd01374645dc5b743142dca76cf96b1",
+      "family": "directus",
+      "variant": "clip-full",
+      "viewport": 640,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-right-75-viewport",
+      "manifest": "directus-640-clip-right-75.json",
+      "manifestSha256": "a616a4b3511a5cfba57e0ccacae7d4347799ef01f060c1a3ce421b2262f630be",
+      "family": "directus",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-right-50-viewport",
+      "manifest": "directus-640-clip-right-50.json",
+      "manifestSha256": "17650b2bbb8804cf5695663e14ad983eff4c64987c54fbe5ef4eec0f1a4b9c76",
+      "family": "directus",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-right-25-viewport",
+      "manifest": "directus-640-clip-right-25.json",
+      "manifestSha256": "b1cfed190aeda7798fd650b158a5bc2e49ec764c847c856d8251612e3b9e8911",
+      "family": "directus",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-clip-bottom-50-viewport",
+      "manifest": "directus-640-clip-bottom-50.json",
+      "manifestSha256": "0436b6d8ae11a304fb04632b3d6cd44e2b601a16fac877d011e1acab02eed369",
+      "family": "directus",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-content-change-viewport",
+      "manifest": "directus-640-content-change.json",
+      "manifestSha256": "be2b99d07efbc8f4844c93d1a15e287a2815086ae9862c439e434c21210489a2",
+      "family": "directus",
+      "variant": "content-change",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-overlay-adjacent-viewport",
+      "manifest": "directus-640-overlay-adjacent.json",
+      "manifestSha256": "b23420f144cc07eea30c5b34edb298f8964389589aa8335f259a97abeeefe88c",
+      "family": "directus",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-640-style-tweak-viewport",
+      "manifest": "directus-640-style-tweak.json",
+      "manifestSha256": "0a68e039ba4b1402c0d89f72d2a269772dd2f2f575374ea618c06cb215e70d3f",
+      "family": "directus",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clean-viewport",
+      "manifest": "directus-1024-clean.json",
+      "manifestSha256": "d1708eb37ef1b30307f02c1796779826937cd92353700b0937fabfae30d3355e",
+      "family": "directus",
+      "variant": "clean",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-full-viewport",
+      "manifest": "directus-1024-clip-full.json",
+      "manifestSha256": "2a3566b12974ce4f13c2c34a5e8e4208a95e658fc8651704ecf34bf4cf0ce8bf",
+      "family": "directus",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-right-75-viewport",
+      "manifest": "directus-1024-clip-right-75.json",
+      "manifestSha256": "fb9771e165bd7847d74d8b9968daf524ccd3c60541368ccab030b327b3824a9f",
+      "family": "directus",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-right-50-viewport",
+      "manifest": "directus-1024-clip-right-50.json",
+      "manifestSha256": "25d076f45df0d5247a21832fba6b64e8f930b445eab05f795e2d76605944dbd2",
+      "family": "directus",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-right-25-viewport",
+      "manifest": "directus-1024-clip-right-25.json",
+      "manifestSha256": "04656bce130c2045fcf83a7705d26f97ee7a68a61ea1b2f43837c66f783c703b",
+      "family": "directus",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-clip-bottom-50-viewport",
+      "manifest": "directus-1024-clip-bottom-50.json",
+      "manifestSha256": "65dd0b70e6a661cf66b296e7e45f6e8cdc2e017ec31c199d634bbed8fc33712e",
+      "family": "directus",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-content-change-viewport",
+      "manifest": "directus-1024-content-change.json",
+      "manifestSha256": "b20717cb8d496d47c8b2862fc06e6f78f3d0c029a1c95dca9fa9e6ef852069eb",
+      "family": "directus",
+      "variant": "content-change",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-overlay-adjacent-viewport",
+      "manifest": "directus-1024-overlay-adjacent.json",
+      "manifestSha256": "80ea8561e2d97c48483cc4696c33e8e200828da455f55fb729ba3d6f8efe48fc",
+      "family": "directus",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1024-style-tweak-viewport",
+      "manifest": "directus-1024-style-tweak.json",
+      "manifestSha256": "6d9657c316be9febe6ccd56940dd3841a67d7221576147cdd044f40364c60d26",
+      "family": "directus",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clean-viewport",
+      "manifest": "directus-1280-clean.json",
+      "manifestSha256": "df597707401b0d52676561ac5411c9fae60c7ca75a6e9f5391d336dec368f355",
+      "family": "directus",
+      "variant": "clean",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-full-viewport",
+      "manifest": "directus-1280-clip-full.json",
+      "manifestSha256": "16f0cab288da5506d90d4ea7730793813d3453557ea31c70b71a52adff96ca63",
+      "family": "directus",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "measuredClip": 0,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-right-75-viewport",
+      "manifest": "directus-1280-clip-right-75.json",
+      "manifestSha256": "b7c906946040b209d8e76e7040f0dfd0a254eca501e482def6f0f12c874afbbc",
+      "family": "directus",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-right-50-viewport",
+      "manifest": "directus-1280-clip-right-50.json",
+      "manifestSha256": "3334019642c906b5c84247fac3b251fd96b921aeff4fec746096529e9c620ac2",
+      "family": "directus",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-right-25-viewport",
+      "manifest": "directus-1280-clip-right-25.json",
+      "manifestSha256": "41eb30a7402b49fa0a00fef5f3e58762a1f70826edcb759fd62b245c4eac9450",
+      "family": "directus",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-clip-bottom-50-viewport",
+      "manifest": "directus-1280-clip-bottom-50.json",
+      "manifestSha256": "0e192f44993b235232c8fccdddb03593874e705707ee8ff7fd9c60b85b2dfe24",
+      "family": "directus",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-regression",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-content-change-viewport",
+      "manifest": "directus-1280-content-change.json",
+      "manifestSha256": "f088d8d1d53ebc04f56703731e03f24f01a1f55e30fa109d4ae7cd97c39f787a",
+      "family": "directus",
+      "variant": "content-change",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-overlay-adjacent-viewport",
+      "manifest": "directus-1280-overlay-adjacent.json",
+      "manifestSha256": "093612c048a5f488bd539a55c4b0f7f7a499b7bbf196f28ef235d8047a30eef4",
+      "family": "directus",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "directus-1280-style-tweak-viewport",
+      "manifest": "directus-1280-style-tweak.json",
+      "manifestSha256": "404f2eb9568321b3d3ce86171de54d48f4683586ca068359d1abb2520d5c883b",
+      "family": "directus",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "measuredClip": 1,
+      "measuredOverflowX": 0,
+      "labelOrigin": "controlled-negative",
+      "criterion": "required-submit-inside-viewport",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "scrollport-overflow",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    }
+  ]
+}

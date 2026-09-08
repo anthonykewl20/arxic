@@ -1,0 +1,20 @@
+{
+  "scope": "PNG-evidence-to-native-shadow-report plus Node driver; no browser/server/OS",
+  "jobs": 18,
+  "requestedJobs": 60,
+  "processPerJob": true,
+  "case": "koel-360-clip-full.json",
+  "failure": {
+    "jobsCompleted": 18,
+    "childStatus": 1,
+    "childSignal": null,
+    "stderr": [
+      "Error: glib: Error creating thread: Resource temporarily unavailable",
+      "    at Sharp.toBuffer (sharp/dist/output.mjs:159:17)"
+    ],
+    "pidsCurrent": "26",
+    "pidsMax": "64"
+  },
+  "memoryPeakBytes": 108953600,
+  "note": "host-uid run, unbounded threadpools; recorded verbatim from the probe output at diagnosis time"
+}

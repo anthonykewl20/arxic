@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "arxic-1024-clipped",
+  "group": "arxic",
+  "revision": "d06c2f9263094378960d0a7d5d5324e4ba66fe53",
+  "consent": true,
+  "context": {
+    "width": 1024,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit"
+  },
+  "before": {
+    "path": "arxic-1024-clipped-before.png",
+    "sha256": "5532c4fa1db0f9f262d78e6e62bd8ca41437c4ae7593cfdd7b1952ab6b996729"
+  },
+  "current": {
+    "path": "arxic-1024-clipped-current.png",
+    "sha256": "ba97bcbde528312a355fa1721bc7d280a2bdc2f27434a85e4ea5b0f291dfad0b"
+  },
+  "beforePrivacy": {
+    "path": "arxic-1024-clipped-before.png.privacy.json",
+    "sha256": "1f6640d82eacdc06aa33387341e4658c4982a6a93d8e9903d6d351947b137041"
+  },
+  "currentPrivacy": {
+    "path": "arxic-1024-clipped-current.png.privacy.json",
+    "sha256": "3449727b6d8461f02380e1054eeaef591fe0475934e188803b133369a165e61d"
+  },
+  "scene": {
+    "path": "arxic-1024-clipped-scene.json",
+    "sha256": "ff6197eed4b4edec25e6bc8fda90956abadb864027b5b912b758fedb70550c7c"
+  },
+  "timeline": {
+    "path": "arxic-1024-clipped-timeline.json",
+    "sha256": "b3940328da992806be6401f8fa25680dd1f9c1bd10d4f44fa3e83955f27f78b4"
+  },
+  "timelineProvenance": {
+    "path": "arxic-1024-clipped-timeline.sanitization.json",
+    "sha256": "2c4c33a5ca77e88efe634f6be2ae1030c9a31a9950000f2a3a8f844dfe7cdd59"
+  }
+}

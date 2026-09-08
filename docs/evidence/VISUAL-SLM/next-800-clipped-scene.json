@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "beforeSha256": "f9ef1cea7c9b6bfeab97028a5e3882c8ad5f8e078d419797ed505feaf0775ac2",
+  "currentSha256": "d3ebf6d7c37e8a76ffd231bbe87feb197a85d7cafa6a3f7b561628b8ecc0f05a",
+  "sanitized": true,
+  "stable": true,
+  "regions": [
+    {
+      "id": "viewport",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 800,
+        "height": 800
+      },
+      "before": {
+        "box": {
+          "x": 97,
+          "y": 311.25,
+          "width": 384,
+          "height": 41.1875
+        },
+        "clip": 1,
+        "hit": null,
+        "overflowX": null,
+        "overflowY": null
+      },
+      "current": {
+        "box": {
+          "x": 3097,
+          "y": 311.25,
+          "width": 384,
+          "height": 41.1875
+        },
+        "clip": 0,
+        "hit": null,
+        "overflowX": null,
+        "overflowY": null
+      },
+      "eligible": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "criterion": "required-submit-inside-viewport"
+    }
+  ],
+  "hardChecks": [
+    {
+      "id": "viewport-clip",
+      "head": "clipping",
+      "verdict": "fail",
+      "region": "viewport"
+    }
+  ]
+}

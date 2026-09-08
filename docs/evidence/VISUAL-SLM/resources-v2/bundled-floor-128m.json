@@ -1,0 +1,16 @@
+{
+  "scope": "bundled plain-node review (no tsx/esbuild at runtime); no browser/server/OS",
+  "runtime": "node + review-bundle.mjs (esbuild-bundled, sharp external)",
+  "jobs": 1,
+  "requestedJobs": 1,
+  "case": "case.json",
+  "failure": null,
+  "coldMs": 664.163182,
+  "p50Ms": 664.163182,
+  "p95Ms": 664.163182,
+  "memoryPeakBytes": 91582464,
+  "memoryMax": "134217728",
+  "cpuMax": "100000 100000",
+  "memoryEvents": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+  "vpsQualified": false
+}

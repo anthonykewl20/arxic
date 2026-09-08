@@ -1,0 +1,29 @@
+{
+  "scope": "memory-floor sweep at maximum accepted input (2048x1024 pair, 128 regions) through the real review path; tsx dev harness included; no browser/server/OS",
+  "method": "docker --init --memory/--memory-swap equal caps, 1 CPU, no network, 64 pids; max_input_probe.mts; refines the first coarse sweep (192m pass; 128/96/64 killed with no output)",
+  "arms": [
+    {
+      "memoryMax": "176m",
+      "outcome": "pass",
+      "memoryPeakBytes": 144486400
+    },
+    {
+      "memoryMax": "160m",
+      "outcome": "pass",
+      "memoryPeakBytes": 150519808
+    },
+    {
+      "memoryMax": "144m",
+      "outcome": "pass",
+      "memoryPeakBytes": 150994944
+    },
+    {
+      "memoryMax": "128m",
+      "outcome": "oom-kill",
+      "containerExit": 137,
+      "note": "immediate bounded SIGKILL, no output, no hang"
+    }
+  ],
+  "conclusion": "The analysis path at maximum accepted input has a memory floor of ~144 MiB (peak 143.6-144.0 MiB) including the tsx/esbuild dev harness; a production-packaged runtime is expected lower but is unmeasured. Inside the 256 MiB service budget this leaves >=112 MiB headroom. Below the floor the failure is an immediate OOM kill (bounded; in a service context this lands in the intake execution-failure/deadline path proven to keep the queue serving).",
+  "vpsQualified": false
+}

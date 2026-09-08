@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "next-1280-clip-full",
+  "group": "next",
+  "revision": "b076dce9640a378c1c5b16e07be1fce41e89b01e",
+  "consent": true,
+  "context": {
+    "width": 1280,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clip-full"
+  },
+  "before": {
+    "path": "next-1280-clip-full-before.png",
+    "sha256": "e0b2953d7ded9710ccf4a2a3b4392e33b0bc2a9a9384352831c7acde22a067c9"
+  },
+  "current": {
+    "path": "next-1280-clip-full-current.png",
+    "sha256": "f99c6b00a649ef71fa3ad8dcfc02f79c4db70ea3530fd9b44aed8ec8a83d2096"
+  },
+  "beforePrivacy": {
+    "path": "next-1280-clip-full-before.png.privacy.json",
+    "sha256": "c170f057cb0bf5d9e3d81468b60f0bc646870c8310b6b279c7d4c052ee511028"
+  },
+  "currentPrivacy": {
+    "path": "next-1280-clip-full-current.png.privacy.json",
+    "sha256": "39edc62b91955d4ca411b8a149d5809b9eb6abe5dce523d032de6df5ca3df0f2"
+  },
+  "scene": {
+    "path": "next-1280-clip-full-scene.json",
+    "sha256": "fb0d2467a9721bc2fbeb92120a192914fa676d76632d66eddc49da4b26cc4056"
+  },
+  "timeline": {
+    "path": "next-1280-clip-full-timeline.json",
+    "sha256": "b3940328da992806be6401f8fa25680dd1f9c1bd10d4f44fa3e83955f27f78b4"
+  },
+  "timelineProvenance": {
+    "path": "next-1280-clip-full-timeline.sanitization.json",
+    "sha256": "2c4c33a5ca77e88efe634f6be2ae1030c9a31a9950000f2a3a8f844dfe7cdd59"
+  }
+}
