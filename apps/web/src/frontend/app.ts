@@ -513,6 +513,13 @@ document.addEventListener('submit', async (event) => {
           };
         }
         if (kind === 'state') return { label, key, kind: 'state', state: 'anonymous' };
+        // Login override: collected only when a route is present — a routeless
+        // row keeps the project login surface; labels left blank keep the
+        // project values server-side.
+        const loginRoute = valueOf(row, 'variant-login-route').trim();
+        const emailLabel = valueOf(row, 'variant-login-email-label').trim();
+        const passwordLabel = valueOf(row, 'variant-login-password-label').trim();
+        const submitLabel = valueOf(row, 'variant-login-submit-label').trim();
         return {
           label,
           key,
@@ -521,6 +528,16 @@ document.addEventListener('submit', async (event) => {
             emailRef: valueOf(row, 'variant-email').trim(),
             passwordRef: valueOf(row, 'variant-password').trim(),
           },
+          ...(loginRoute
+            ? {
+                login: {
+                  route: loginRoute,
+                  ...(emailLabel ? { emailLabel } : {}),
+                  ...(passwordLabel ? { passwordLabel } : {}),
+                  ...(submitLabel ? { submitLabel } : {}),
+                },
+              }
+            : {}),
         };
       })
       .filter((variant) => {

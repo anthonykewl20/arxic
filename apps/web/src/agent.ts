@@ -15,9 +15,11 @@ import type { Run, RunResult } from './types';
  * Per-run execution settings for variant fan-out runs: flag variants merge
  * their overrides over the project flags; the anonymous state variant switches
  * persona mode with the persona secret refs cleared (the validated anonymous
- * shape — anonymous mode must not carry persona secret refs). Returns the
- * project settings untouched for default and persona-variant runs; the single
- * executionConfig(...) call site below stays the only config builder.
+ * shape — anonymous mode must not carry persona secret refs); persona variants
+ * with a stamped login override swap the login surface (route + present labels
+ * merge over the project values). Returns the project settings untouched for
+ * default and plain persona-variant runs; the single executionConfig(...) call
+ * site below stays the only config builder.
  */
 function variantExecution(execution: ExecutionSettings, run: Run): ExecutionSettings {
   const flags = run.workflowScope?.variantFlags;
@@ -25,11 +27,25 @@ function variantExecution(execution: ExecutionSettings, run: Run): ExecutionSett
     flags && Object.keys(flags).length
       ? { ...execution, featureFlags: { ...execution.featureFlags, ...flags } }
       : execution;
-  if (run.workflowScope?.variantState !== 'anonymous') return withFlags;
+  const login = run.workflowScope?.variantLogin;
+  const withLogin =
+    login && !run.workflowScope?.variantState
+      ? {
+          ...withFlags,
+          persona: {
+            ...withFlags.persona,
+            loginPath: login.route,
+            ...(login.emailLabel ? { emailLabel: login.emailLabel } : {}),
+            ...(login.passwordLabel ? { passwordLabel: login.passwordLabel } : {}),
+            ...(login.submitLabel ? { submitLabel: login.submitLabel } : {}),
+          },
+        }
+      : withFlags;
+  if (run.workflowScope?.variantState !== 'anonymous') return withLogin;
   return {
-    ...withFlags,
+    ...withLogin,
     persona: {
-      ...withFlags.persona,
+      ...withLogin.persona,
       mode: 'anonymous',
       emailRef: '',
       passwordRef: '',
