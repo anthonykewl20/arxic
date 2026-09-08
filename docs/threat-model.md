@@ -155,8 +155,10 @@ approval.
 Target attestation is stage zero. The request origin must exactly equal the
 attested origin, occur in the target's own `allowedOrigins`, and occur in static
 policy. The environment class must be allowed. Production-named environments
-and public hostnames outside loopback, RFC1918, `.test`, `.example`, and
-`.local` are production-looking and refused by default.
+and public hostnames outside loopback, RFC1918, `.test`, `.example`, `.local`,
+and `.localhost` (RFC 6761 §6.3 — reserved to resolve to loopback, the standard
+reverse-proxy local-stack convention) are production-looking and refused by
+default.
 
 A nonce binds the handshake to configured test intent. Production deployment
 uses an HMAC-SHA256 receipt over `<buildDigest>.<nonce>` with a separately held

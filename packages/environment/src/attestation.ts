@@ -96,7 +96,9 @@ export function classifyTarget(target: {
     hostname === '127.0.0.1' ||
     hostname === '::1' ||
     isPrivateIpv4(hostname) ||
-    /\.(?:test|example|local)$/i.test(hostname);
+    // *.localhost is reserved to loopback (RFC 6761 §6.3) — the standard
+    // reverse-proxy local-stack convention (Traefik/dokploy <name>.localhost).
+    /\.(?:test|example|local|localhost)$/i.test(hostname);
   if (!safeHostname) reasons.push('public-hostname');
   return { productionLooking: reasons.length > 0, reasons };
 }
