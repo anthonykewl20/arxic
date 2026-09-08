@@ -1,6 +1,6 @@
 # DENSITY-WAIT-502 — staged doc updates (charter §10.2)
 
-Issue: #502 · PR: <to-fill> · Disposition: mixed (exceedance mechanism observed under controlled load; the historical CI occurrence's exact trigger stays hypothesized, now fail-fast if it was a blocked run)
+Issue: #502 · PR: #517 · Disposition: mixed (exceedance mechanism observed under controlled load; the historical CI occurrence's exact trigger stays hypothesized, now fail-fast if it was a blocked run)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
