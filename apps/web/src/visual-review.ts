@@ -27,8 +27,45 @@ type Finding = {
   region: { x: number; y: number; width: number; height: number };
   suggestedCheck: string;
 };
+/**
+ * Server-stamped per-finding grounding (refs #402): the exact authorized
+ * screenshot a finding asserts, a reproduction recipe from the real capture,
+ * and the finding's acceptance status — the administrator-supplied independent
+ * criterion when present, an explicit gap when not. Stamped AFTER the closed
+ * schema validation (additionalProperties: false), so model-authored evidence
+ * is refused rather than absorbed; suggestedCheck stays model-attributed and
+ * is never presented as independent.
+ */
+export type FindingEvidence = {
+  screenshot: {
+    runId: string;
+    captureId: string;
+    file: string;
+    sha256: string;
+    environment: Capture['environment'];
+    viewport: Capture['viewport'];
+  };
+  reproduction: {
+    path: string;
+    viewport: Capture['viewport'];
+    environment: Capture['environment'];
+    deviceScaleFactor: number;
+    browserVersion: string;
+  };
+};
+export type FindingAcceptance = {
+  source: 'administrator' | 'none';
+  independent: string | null;
+  suggestedCheck: string;
+};
+export type StampedFinding = Finding & {
+  id: string;
+  truthState: 'hypothesized';
+  evidence: FindingEvidence;
+  acceptance: FindingAcceptance;
+};
 export type VisualReviewResult = VisualReviewScope & {
-  findings: Array<Finding & { id: string; truthState: 'hypothesized' }>;
+  findings: StampedFinding[];
   runRecord: ModelRunRecord;
   estimatedCostUsd: number;
   coverage: string;
@@ -184,10 +221,32 @@ export async function reviewVisual(run: Run, runsDirectory: string): Promise<Run
     summary: `${findings.length} visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.`,
     review: {
       ...scope,
-      findings: findings.map((f, i) => ({
+      findings: findings.map((f, i): StampedFinding => ({
         ...f,
         id: `finding-${i + 1}`,
         truthState: 'hypothesized',
+        evidence: {
+          screenshot: {
+            runId: scope.sourceRunId,
+            captureId: scope.capture.id,
+            file: scope.capture.file,
+            sha256: scope.capture.sha256,
+            environment: scope.capture.environment,
+            viewport: scope.capture.viewport,
+          },
+          reproduction: {
+            path: scope.capture.path,
+            viewport: scope.capture.viewport,
+            environment: scope.capture.environment,
+            deviceScaleFactor: scope.capture.environment?.deviceScaleFactor ?? 1,
+            browserVersion: scope.capture.browserVersion,
+          },
+        },
+        acceptance: {
+          source: scope.acceptanceCriterion ? 'administrator' : 'none',
+          independent: scope.acceptanceCriterion || null,
+          suggestedCheck: f.suggestedCheck,
+        },
       })),
       runRecord: response.runRecord,
       estimatedCostUsd,
