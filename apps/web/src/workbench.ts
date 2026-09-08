@@ -404,6 +404,7 @@ export class Workbench {
       roots: this.roots,
       audit: this.store.auditLog(),
       baselines: this.store.baselines(),
+      baselineApprovals: this.store.approvalHistory(),
       queueError: this.queueError,
       outcomes: this.rowOutcomes(),
       campaigns: this.store.campaigns().map((item) => {
@@ -1152,7 +1153,7 @@ export class Workbench {
       )
         throw new HttpError(409, 'Capture integrity check failed');
       this.store.db.transaction(() => {
-        this.store.approve(run.projectId, capture.specHash, runId, captureId);
+        this.store.approve(run.projectId, capture.specHash, runId, captureId, capture.sha256);
         this.store.audit('baseline.approved', `${runId}/${captureId}`);
       })();
     });
