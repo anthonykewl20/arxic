@@ -3,17 +3,19 @@
 // by campaigns lives in campaigns.ts, server-side).
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { FrontendInventory, FrontendRow } from '@arxic/source-ua-adapter';
+import type { Project } from './types';
 
 /**
  * Route omission coverage (refs #402): associates the discovery inventory's
  * route rows with frontend declarations and exposes, per route, which
  * conditional-state markers (loading/error/empty) the route's OWN source
- * references, whether any test declaration covers its files, and whether any
- * documentation requirement does. Source-tier only: an absent marker is an
- * omission signal to investigate, never proof of absent behavior.
+ * references, which interactive actions it declares, whether any test
+ * declaration covers its files, and whether any documentation requirement
+ * does. Source-tier only: an absent marker is an omission signal to
+ * investigate, never proof of absent behavior.
  */
 export type RouteCoverageDimensionName =
-  'state:loading' | 'state:error' | 'state:empty' | 'tests' | 'docs';
+  'state:loading' | 'state:error' | 'state:empty' | 'actions' | 'tests' | 'docs';
 export type RouteCoverageDimension = {
   name: RouteCoverageDimensionName;
   status: 'referenced' | 'absent';
@@ -25,6 +27,21 @@ export type RouteCoverage = {
   files: string[];
   dimensions: RouteCoverageDimension[];
 };
+
+/**
+ * Configuration omission exposure (refs #402): fuses what the operator
+ * configured (declared feature flags, the persona's login route or seed
+ * dependency) with what discovery actually found. Runtime VALUES stay
+ * unobserved — these are configuration-vs-source misalignments, never runtime
+ * behavior claims.
+ */
+export type ConfigurationOmission = {
+  key: string;
+  status: 'aligned' | 'referenced' | 'declared-unreferenced' | 'referenced-undeclared' | 'missing';
+  evidence: RouteCoverageDimension['evidence'];
+};
+
+type Evidence = RouteCoverageDimension['evidence'][number];
 
 /** Documented label patterns over condition/state declaration text. */
 const statePatterns: ReadonlyArray<[RouteCoverageDimensionName, RegExp]> = [
@@ -40,9 +57,87 @@ const dimensionOrder: readonly RouteCoverageDimensionName[] = [
   'state:loading',
   'state:error',
   'state:empty',
+  'actions',
   'tests',
   'docs',
 ];
+
+/** Member-expression labels that name a feature flag (exact name capture). */
+const flagNameOf =
+  /^(?:flags|featureFlags|process\.env|import\.meta\.env)\.([A-Za-z][A-Za-z0-9_]*)$/u;
+
+const evidenceOfRow = (row: FrontendRow): Evidence => ({
+  path: row.source.path,
+  startLine: row.source.startLine,
+  endLine: row.source.endLine,
+  label: row.label,
+});
+
+export function configurationOmissions(
+  project: Project,
+  inventory: DomainInventory,
+  frontend: FrontendInventory,
+): ConfigurationOmission[] {
+  const execution = project.execution;
+  if (!execution) return [];
+  const entries: ConfigurationOmission[] = [];
+  const referenced = new Map<string, Evidence[]>();
+  for (const row of frontend.rows) {
+    if (row.kind !== 'feature-flag' && row.kind !== 'configuration') continue;
+    const name = flagNameOf.exec(row.label)?.[1];
+    if (!name) continue;
+    referenced.set(name, [...(referenced.get(name) ?? []), evidenceOfRow(row)]);
+  }
+  const declared = execution.featureFlags ?? {};
+  for (const name of Object.keys(declared).sort())
+    entries.push({
+      key: `flag:${name}`,
+      status: referenced.has(name) ? 'aligned' : 'declared-unreferenced',
+      evidence: referenced.get(name) ?? [],
+    });
+  for (const [name, evidence] of [...referenced.entries()].sort(([left], [right]) =>
+    left.localeCompare(right),
+  ))
+    if (!(name in declared))
+      entries.push({ key: `flag:${name}`, status: 'referenced-undeclared', evidence });
+
+  const routeEvidence = (path: string): Evidence[] =>
+    inventory.rows
+      .filter((row) => row.path === path)
+      .flatMap((row) =>
+        row.sourceRefs.map((ref) => ({
+          path: ref.path,
+          startLine: ref.startLine,
+          endLine: ref.endLine,
+          label: `${row.method} ${row.path}`,
+        })),
+      )
+      .sort(
+        (left, right) => left.path.localeCompare(right.path) || left.startLine - right.startLine,
+      );
+  const persona = execution.persona;
+  if (persona.mode === 'per-pass-login') {
+    const evidence = routeEvidence(persona.loginPath);
+    entries.push({
+      key: 'persona:login-route',
+      status: evidence.length ? 'referenced' : 'missing',
+      evidence,
+    });
+  }
+  if (persona.mode === 'seed-api') {
+    // Seed endpoints are API routes, which the consumer inventory does not
+    // carry as page rows; the discovered frontend declarations do.
+    const evidence = frontend.rows
+      .filter((row) => /(?:^|\/)seed(?:\/route)?\.[a-z]+$/iu.test(row.source.path))
+      .map(evidenceOfRow);
+    entries.push({
+      key: 'persona:seed-endpoint',
+      status: evidence.length ? 'referenced' : 'missing',
+      evidence,
+    });
+  }
+  return entries.sort((left, right) => left.key.localeCompare(right.key));
+}
 
 /** A file owning a route's page/route surface per framework conventions. */
 const routeSurfaceFile = /^(.*\/)?(?:page|route)\.(?:tsx?|jsx?|mts|mjs|ts|js)$/u;
@@ -110,6 +205,17 @@ export function routeStateCoverage(
           endLine: source.endLine,
           label,
         }));
+      } else if (name === 'actions') {
+        // Interactive action declarations (event/form-action attributes) in
+        // the route's associated files; none means nothing to drive.
+        evidence = associated
+          .filter((candidate) => candidate.kind === 'action')
+          .map(({ source, label }) => ({
+            path: source.path,
+            startLine: source.startLine,
+            endLine: source.endLine,
+            label,
+          }));
       } else if (name === 'tests') {
         // Test declarations count when they live in an associated file or pair
         // colocated with one (page.tsx ↔ page.test.tsx / __tests__/page.test.ts).

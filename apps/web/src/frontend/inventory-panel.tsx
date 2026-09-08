@@ -3,7 +3,11 @@ import { Badge } from './components';
 import { Input } from './components';
 import { WorkflowSelection } from './workflow-selection';
 import type { RowHistory } from '../campaigns';
-import { routeStateCoverage, type RouteCoverageDimensionName } from '../route-coverage';
+import {
+  configurationOmissions,
+  routeStateCoverage,
+  type RouteCoverageDimensionName,
+} from '../route-coverage';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { IntentLedger } from '../../../../packages/intent/src/ledger';
@@ -263,6 +267,7 @@ const dimensionLabels: Record<RouteCoverageDimensionName, string> = {
   'state:loading': 'loading',
   'state:error': 'error',
   'state:empty': 'empty',
+  actions: 'actions',
   tests: 'tests',
   docs: 'docs',
 };
@@ -271,11 +276,14 @@ const dimensionLabels: Record<RouteCoverageDimensionName, string> = {
 function RouteOmissionCoverage({
   inventory,
   frontend,
+  project,
 }: {
   inventory: DomainInventory;
   frontend: FrontendInventory;
+  project: Project;
 }) {
   const coverage = routeStateCoverage(inventory, frontend);
+  const configOmissions = configurationOmissions(project, inventory, frontend);
   if (!coverage.length) return null;
   return (
     <section className="route-coverage" data-route-coverage>
@@ -284,9 +292,9 @@ function RouteOmissionCoverage({
         <small>{coverage.length} routes · source-reference exposure</small>
       </div>
       <p className="scope-note">
-        Per route: which conditional states its own source files reference, and whether any test or
-        documentation declaration covers them. An absent marker is an omission signal to investigate
-        — not proof of absent behavior.
+        Per route: which conditional states and interactive actions its own source files reference,
+        and whether any test or documentation declaration covers them. An absent marker is an
+        omission signal to investigate — not proof of absent behavior.
       </p>
       <ul>
         {coverage.slice(0, 50).map((route) => (
@@ -321,6 +329,29 @@ function RouteOmissionCoverage({
         <p className="scope-note">
           First 50 routes shown; the complete inventory JSON preserves every route.
         </p>
+      )}
+      {configOmissions.length > 0 && (
+        <div className="config-omissions" data-config-omissions>
+          <h3>Configuration omissions</h3>
+          <p className="scope-note">
+            What this project declares fused with what discovery found — a declared flag no source
+            file reads, a source flag no deployment declares, or a persona route the app does not
+            have. These are configuration-vs-source misalignments, not proof of absent behavior.
+          </p>
+          <ul>
+            {configOmissions.map((entry) => (
+              <li key={entry.key}>
+                <code>{entry.key}</code>{' '}
+                <small>
+                  {entry.status}
+                  {entry.evidence[0]
+                    ? ` (${entry.evidence[0].path}:${entry.evidence[0].startLine})`
+                    : ''}
+                </small>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </section>
   );
@@ -439,7 +470,11 @@ function FrontendDeclarations({
         const routeInventory = run.result?.inventory as DomainInventory | undefined;
         return (
           routeInventory && (
-            <RouteOmissionCoverage inventory={routeInventory} frontend={inventory} />
+            <RouteOmissionCoverage
+              inventory={routeInventory}
+              frontend={inventory}
+              project={run.project}
+            />
           )
         );
       })()}
