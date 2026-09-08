@@ -1,0 +1,29 @@
+RED stage — recorded on origin/main (9f704b16) before implementation, worktree
+.worktrees/runtime-state-map-402, 2026-09-09 local.
+
+apps/web/src/__tests__/runtime-state-map.test.ts:
+
+ ❯ apps/web/src/__tests__/runtime-state-map.test.ts (2 tests | 2 failed) 192ms
+   × maps every declared/observed combination per state dimension
+   × classifies rendered marker text with the source-tier vocabulary
+Error: Cannot find module '../route-coverage' exports runtimeStateMap/classifyStateText
+ Test Files  1 failed (1)
+
+The real-world file was red at the same seam (imports missing); its first
+draft also chased an in-test fixture-copy build (overlaid routes in a copied
+Next app), which Turbopack refuses outside the pnpm workspace root — three
+probes retained the finding and the proof was re-scoped to two real engines
+(the unmodified real fixture app, and real HTTP servers whose pages render
+markers through real scripts observed by the real Chromium observer — the
+DG-297 real-server precedent). Disclosed: no fixture files were touched.
+
+Design-correcting reds during implementation (harness-level, each fixed):
+- marker text "Loading failed" matches BOTH loading and error in the shared
+  vocabulary — markers renamed to "Request failed" so each cell is
+  unambiguous (the vocabulary itself is unchanged);
+- the panel initially did not render the mapping — root cause was the call
+  site not passing the new props (found by dumping the run's result keys from
+  inside the failing journey: runtimeStates WAS present server-side); and
+- this origin serves a marker on EVERY path, so /login's declared error maps
+  declared-and-observed there — the journey expectation was corrected to the
+  actual semantics of the served origin.
