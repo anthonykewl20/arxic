@@ -1,0 +1,24 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/poll-window-525
+
+ ✓ apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts (2 tests) 120439ms
+   ✓ finds real matrix captures and preserves exact evidence actions (light)  62475ms
+   ✓ finds real matrix captures and preserves exact evidence actions (dark)  57962ms
+ ✓ apps/web/src/__tests__/visual-density-ui.real-world.test.ts (2 tests) 32421ms
+   ✓ configures and inspects a real pixel density matrix from the dashboard (light)  18185ms
+   ✓ configures and inspects a real pixel density matrix from the dashboard (dark)  14234ms
+ ✓ apps/web/src/__tests__/baseline-history-ui.real-world.test.ts (2 tests) 30965ms
+   ✓ distinguishes historical comparison from current baseline approval (light)  16265ms
+   ✓ distinguishes historical comparison from current baseline approval (dark)  14699ms
+ ✓ apps/web/src/__tests__/capture-failures.real-world.test.ts (1 test) 33270ms
+   ✓ retains healthy matrix siblings and distinguishes navigation from required-mask refusal  33269ms
+ ✓ apps/web/src/__tests__/capture-write-isolation.real-world.test.ts (3 tests) 32950ms
+   ✓ retains healthy real captures around a failed evidence destination (chromium)  10565ms
+   ✓ retains healthy real captures around a failed evidence destination (firefox)  13707ms
+   ✓ retains healthy real captures around a failed evidence destination (webkit)  8677ms
+
+ Test Files  5 passed (5)
+      Tests  10 passed (10)
+   Start at  05:34:41
+   Duration  258.60s (transform 1.22s, setup 0ms, import 8.02s, tests 250.05s, environment 0ms)
+
