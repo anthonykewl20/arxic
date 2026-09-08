@@ -317,6 +317,7 @@ function render() {
         selections: workflowSelections,
         workflowPages,
         outcomes: state.outcomes ?? {},
+        intentOutcomes: state.intentOutcomes ?? {},
       },
       campaign: {
         campaigns: state.campaigns ?? [],

@@ -5,9 +5,11 @@ import { WorkflowSelection } from './workflow-selection';
 import type { RowHistory } from '../campaigns';
 import {
   configurationOmissions,
+  declaredRouteRules,
   routeStateCoverage,
   runtimeStateMap,
   type RouteCoverageDimensionName,
+  type SurfaceIntentSummary,
 } from '../route-coverage';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import type { DomainInventory } from '@arxic/domain-inventory';
@@ -25,6 +27,8 @@ export type InventoryPanelProps = {
   workflowPages: Map<string, number>;
   /** Surface-keyed union of every campaign execution, from the workbench ledger. */
   outcomes: Record<string, Record<string, RowHistory>>;
+  /** Surface-keyed intent-ledger fusion; absent keys are intent omissions. */
+  intentOutcomes: Record<string, Record<string, SurfaceIntentSummary>>;
 };
 
 export function InventoryPanel(props: InventoryPanelProps) {
@@ -136,6 +140,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
                     kind={kind}
                     search={search}
                     pages={props.declarationPages}
+                    intentOutcomes={props.intentOutcomes[project.id] ?? {}}
                   />
                 )}
               </>
@@ -280,16 +285,24 @@ function RouteOmissionCoverage({
   project,
   runtimeStates,
   runtimeObservationGap,
+  intentOutcomes,
 }: {
   inventory: DomainInventory;
   frontend: FrontendInventory;
   project: Project;
   runtimeStates?: NonNullable<Run['result']>['runtimeStates'];
   runtimeObservationGap?: string;
+  intentOutcomes: Record<string, SurfaceIntentSummary>;
 }) {
   const coverage = routeStateCoverage(inventory, frontend);
   const configOmissions = configurationOmissions(project, inventory, frontend);
   const runtimeMapping = runtimeStates ? runtimeStateMap(coverage, runtimeStates) : undefined;
+  const rulesByPath = new Map(
+    declaredRouteRules(inventory, frontend).map((route) => [
+      `${route.method} ${route.path}`,
+      route,
+    ]),
+  );
   if (!coverage.length) return null;
   return (
     <section className="route-coverage" data-route-coverage>
@@ -328,6 +341,29 @@ function RouteOmissionCoverage({
                 )}
               </span>
             ))}
+            {(() => {
+              const key = `${route.method} ${route.path}`;
+              const rules = rulesByPath.get(key);
+              const intents = intentOutcomes[key];
+              return (
+                <span className="route-rules" data-route-rules={route.path}>
+                  {rules && !rules.omission ? (
+                    rules.rules.map((rule) => (
+                      <small key={rule.kind}>
+                        {rule.kind.replace('rule:', '')} ({rule.evidence.length})
+                      </small>
+                    ))
+                  ) : (
+                    <small>no declared rules</small>
+                  )}
+                  <small>
+                    {intents
+                      ? `intents: ${intents.intents} · ${intents.bestTruthState} · ${intents.replayStatus}`
+                      : 'no intent proposal yet'}
+                  </small>
+                </span>
+              );
+            })()}
           </li>
         ))}
       </ul>
@@ -414,11 +450,13 @@ function FrontendDeclarations({
   kind,
   search,
   pages,
+  intentOutcomes,
 }: {
   run: Run;
   kind: string;
   search: string;
   pages: Map<string, number>;
+  intentOutcomes: Record<string, SurfaceIntentSummary>;
 }) {
   const inventory = run.result?.frontend;
   if (!inventory) return null;
@@ -520,6 +558,7 @@ function FrontendDeclarations({
               project={run.project}
               runtimeStates={run.result?.runtimeStates}
               runtimeObservationGap={run.result?.runtimeObservationGap}
+              intentOutcomes={intentOutcomes}
             />
           )
         );
