@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/capture-cause-502
+
+ ✓ apps/web/src/__tests__/changed-regions-ui.real-world.test.ts (1 test) 6211ms
+   ✓ walks changed regions with an overlay and keyboard shortcuts in a real browser  6210ms
+ ✓ apps/web/src/__tests__/diff-viewer-ui.real-world.test.ts (1 test) 5969ms
+   ✓ compares a changed capture through swipe and overlay view modes in a real browser  5967ms
+
+ Test Files  2 passed (2)
+      Tests  2 passed (2)
+   Start at  02:26:02
+   Duration  18.16s (transform 1.32s, setup 0ms, import 5.72s, tests 12.18s, environment 0ms)
+
