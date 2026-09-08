@@ -1,0 +1,54 @@
+Red evidence — remedy 3 (release-test ubuntu cell cap), issue #525
+Collected 2026-09-09 by slice release-cap-525. Sources: GitHub Actions runs
+34245658145 and 34276464363 (pull_request, dependabot/github_actions group branch).
+
+== Job timings (gh run view --json jobs, startedAt -> completedAt) ==
+run 34245658145:
+  Release test (ubuntu-latest, Node 22) | cancelled | 2026-09-08T15:34:51Z -> 2026-09-08T16:00:07Z  (25m16s)
+  Release test (ubuntu-latest, Node 24) | cancelled | 2026-09-08T15:35:04Z -> 2026-09-08T16:00:21Z  (25m17s)
+  Release test (windows-latest, Node 24)| success   | 2026-09-08T15:34:53Z -> 2026-09-08T15:52:45Z  (17m52s)
+  Release test (macos-latest, Node 22)  | success   | 2026-09-08T15:34:57Z -> 2026-09-08T15:39:23Z  (4m26s)
+run 34276464363:
+  Release test (ubuntu-latest, Node 24) | cancelled | 2026-09-08T20:43:26Z -> 2026-09-08T21:08:42Z  (25m16s)
+  Release test (ubuntu-latest, Node 22) | cancelled | 2026-09-08T20:44:44Z -> 2026-09-08T21:10:04Z  (25m20s)
+  Release test (windows-latest, Node 22)| success   | 2026-09-08T20:43:26Z -> 2026-09-08T20:54:06Z  (10m40s)
+  Release test (macos-latest, Node 24)  | success   | 2026-09-08T20:43:31Z -> 2026-09-08T20:47:45Z  (4m14s)
+
+== Step outcome, ubuntu-latest Node 22, run 34245658145, job 102126843868 ==
+(gh api .../actions/jobs/102126843868 --jq steps; verbatim)
+step 1 Set up job | success
+step 2 Run actions/checkout@v7 | success
+step 3 Setup pnpm | success
+step 4 Setup Node | success
+step 5 Install dependencies | success
+step 6 Install Playwright Chromium (Linux) | success
+step 7 Install Playwright Chromium (macOS and Windows) | skipped
+step 8 Lint | success
+step 9 Typecheck | success
+step 10 Build CLI | success
+step 11 Verify version provenance | success
+step 12 Smoke-test packed CLI | success
+step 13 Start Mailpit for the Ubuntu core suite | success
+step 14 Core test suite (Ubuntu only) | cancelled
+step 26 Post Setup Node | skipped
+step 27 Post Setup pnpm | success
+step 28 Post Run actions/checkout@v7 | success
+step 29 Complete job | success
+
+== Verbatim log tail before termination (same job) ==
+-- last completed suite files (still passing, no summary reached): --
+2026-09-08T15:59:38.5555668Z  [32m✓[39m packages/verifier/src/redirect-verification.real-world.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 23025[2mms[22m[39m
+2026-09-08T15:59:39.2118719Z  [32m✓[39m packages/model-adapter/src/__tests__/sad-paths.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 376[2mms[22m[39m
+2026-09-08T15:59:54.3817362Z  [32m✓[39m apps/web/src/__tests__/frontend-template.real-world.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 14521[2mms[22m[39m
+2026-09-08T16:00:02.2550542Z  [32m✓[39m packages/orchestrator-langgraph/src/__tests__/exploration-real-world.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 7277[2mms[22m[39m
+-- runner cleanup/kill: --
+2026-09-08T16:00:05.7910415Z Cleaning up orphan processes
+2026-09-08T16:00:05.8424132Z Terminate orphan process: pid (5354) (node)
+2026-09-08T16:00:05.8467523Z Terminate orphan process: pid (5371) (sh)
+2026-09-08T16:00:05.8802120Z Terminate orphan process: pid (59965) (node)
+2026-09-08T16:00:05.8853875Z Terminate orphan process: pid (60020) (node)
+
+== Suite sizing cross-check (required ci, same suite sharded, healthy runs) ==
+run 34284745131 test shards: 15m40s + 16m5s + 17m15s + 10m19s = 59m39s shard wall time
+=> the unsharded release cell cannot fit the 25-minute cap; 90-minute cap sized
+   from ~9m setup + ~60m suite worst case with headroom.
