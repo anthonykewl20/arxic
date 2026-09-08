@@ -75,7 +75,12 @@ checks overlapping it, plus document-level non-pass checks, into
 hash-verified assessment bytes and bound to that hash. Regions with no measured
 element stay labeled `unexplained` (preserved, never attributed), and a missing
 or unverifiable assessment leaves the capture without an explanation rather
-than guessing. The diff viewer renders this evidence next to the region
+than guessing. Element ranking is deterministic and two-mode: regions covering less
+than 60% of the viewport area rank intersecting elements innermost-first
+(deepest parent chain, then coverage); a region covering 60% or more
+ranks by coverage first, so a full-page repaint attributes the actually
+repainted large element instead of filling the cap with the deepest
+nodes. The diff viewer renders this evidence next to the region
 overlays; no model participates in the explanation.
 
 The selected-reset real-app regression delays the first replay submission and independently requires three successful submissions and inbox counts 1, 2, 3. This guards against a run finishing while an asynchronous action is still pending; provider responses remain controlled test-boundary data.

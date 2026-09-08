@@ -98,6 +98,11 @@ it('blocks unapproved capture, then detects a real frontend regression without r
   expect(
     explanation!.regions.some((region) => !region.unexplained && region.elements.length > 0),
   ).toBe(true);
+  // WEB-520: the full-viewport region ranks coverage-first, so the real heading
+  // repaint is attributed to a measured Heading node.
+  expect(
+    explanation!.regions.some((region) => region.elements.some((element) => element.kind === 5)),
+  ).toBe(true);
   const artifact = await wb.artifact(third.id, measured.assessmentFile);
   const report = JSON.parse(artifact.bytes.toString());
   expect(report.assessment).toMatchObject({
