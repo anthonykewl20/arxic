@@ -255,3 +255,30 @@ it('bounds and rounds coverage: containment is exactly 1 and awkward ratios roun
   });
   expect(awkward.regions[0].elements[0].coverage).toBe(0.333);
 });
+
+it('ranks coverage-first exactly at 60% of the viewport area and depth-first below it', () => {
+  // 800x600 viewport; a big shallow node covering ~half the region vs a tiny deep node.
+  const nodes: VisualScene['nodes'] = [
+    { id: 0, parent: null, kind: 7, x: 0, y: 0, width: 800, height: 600 },
+    { id: 1, parent: 0, kind: 5, x: 0, y: 0, width: 400, height: 360 },
+    { id: 2, parent: 1, kind: 1, x: 0, y: 0, width: 16, height: 16 },
+  ];
+  const run = (height: number) =>
+    explainDiffRegions({
+      diffRegions: [{ x: 0, y: 0, width: 800, height }],
+      deviceScaleFactor: 1,
+      scene: scene(nodes),
+      checks: [],
+    }).regions[0].elements[0].label;
+  const large = explainDiffRegions({
+    diffRegions: [{ x: 0, y: 0, width: 800, height: 360 }],
+    deviceScaleFactor: 1,
+    scene: scene(nodes),
+    checks: [],
+  }).regions[0].elements.map((element) => element.label);
+  // 800*360 / (800*600) = exactly 0.6 -> coverage-first: root (100%), then the
+  // big shallow Heading (50%) ahead of the tiny deep Button (~2%).
+  expect(large).toEqual(['Region', 'Heading', 'Button']);
+  // 800*359 / (800*600) < 0.6 -> depth-first: the deep Button outranks the shallow Heading.
+  expect(run(359)).toBe('Button');
+});

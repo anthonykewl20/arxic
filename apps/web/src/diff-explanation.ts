@@ -80,6 +80,11 @@ export function explainDiffRegions(input: {
         }
       : box;
     const regionArea = cssBox.width * cssBox.height;
+    // A region covering most of the viewport (>= 60% of its area) attributes by
+    // coverage first: depth-first would fill the cap with the deepest nodes and
+    // never surface the actually-repainted large element (#510 finding, #520 fix).
+    const viewportArea = input.scene ? input.scene.viewport.width * input.scene.viewport.height : 0;
+    const largeRegion = viewportArea > 0 && regionArea / viewportArea >= 0.6;
     const joinable =
       supportedScale &&
       !!input.scene &&
@@ -105,7 +110,11 @@ export function explainDiffRegions(input: {
           id: node.id,
         };
       })
-      .sort((a, b) => b.depth - a.depth || b.coverage - a.coverage || a.id - b.id)
+      .sort((a, b) =>
+        largeRegion
+          ? b.coverage - a.coverage || b.depth - a.depth || a.id - b.id
+          : b.depth - a.depth || b.coverage - a.coverage || a.id - b.id,
+      )
       .slice(0, 5)
       .map(({ kind, label, box: elementBox, coverage }) => ({
         kind,
