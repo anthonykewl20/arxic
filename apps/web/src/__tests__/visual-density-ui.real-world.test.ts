@@ -145,7 +145,11 @@ it.each(['light', 'dark'] as const)(
       await page.getByRole('button', { name: 'Save project' }).click();
       await page.getByRole('heading', { name: 'Pixel density matrix', exact: true }).waitFor();
       await page.getByRole('button', { name: 'Visual test', exact: true }).click();
-      await expect.poll(() => new URL(page.url()).searchParams.get('run') ?? '').not.toBe('');
+      // The enqueue POST round-trip can exceed vitest's 1 s poll default under
+      // non-sharded load (observed in release-test ubuntu cells, #525).
+      await expect
+        .poll(() => new URL(page.url()).searchParams.get('run') ?? '', { timeout: 30_000 })
+        .not.toBe('');
       const runId = new URL(page.url()).searchParams.get('run')!;
       // A correct three-environment capture measured 21-28s healthy and 113s
       // under synthetic full-load contention (#502): the wait must outlive

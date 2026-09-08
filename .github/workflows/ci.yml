@@ -266,11 +266,15 @@ jobs:
         run: node scripts/human-flow-e2e.mjs --evidence-dir artifacts/human-flow
 
       - name: Upload sanitized human-flow evidence
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: packed-human-flow-evidence
           path: artifacts/human-flow
           retention-days: 14
+          # The progress journal is the only record of which packed case
+          # failed; a failed phase must still publish it (#525).
+          if-no-files-found: ignore
 
       - name: License gate
         run: node scripts/license-gate.mjs
