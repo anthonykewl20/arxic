@@ -122,6 +122,8 @@ export type RunResult = {
     count: number;
     environment?: VisualEnvironment;
     failurePhase?: CaptureFailurePhase;
+    /** Observed engine-side error, one line; evidence for operators, never a claimed cause. */
+    reason?: string;
   }>;
   ledger?: unknown;
   engineRun?: unknown;

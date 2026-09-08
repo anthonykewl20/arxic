@@ -1,0 +1,50 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/flake-captures-502
+
+ ❯ apps/web/src/__tests__/capture-reason.real-world.test.ts (2 tests | 2 failed) 1821ms
+   × records the observed navigation error on a blocked zero-capture run 1433ms
+   × names the failure when the engine entrypoint cannot read its job input 386ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/capture-reason.real-world.test.ts > records the observed navigation error on a blocked zero-capture run
+AssertionError: [{"path":"/","kind":"capture-blocked-check-target-and-privacy-masks","count":1,"failurePhase":"navigation"}]: expected undefined to be truthy
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ apps/web/src/__tests__/capture-reason.real-world.test.ts:46:58
+     44|     expect(navigation).toHaveLength(1);
+     45|     const reason = (navigation?.[0] as { reason?: string } | undefined…
+     46|     expect(reason, JSON.stringify(run.result?.findings)).toBeTruthy();
+       |                                                          ^
+     47|     // The retained evidence names the real navigation failure; which …
+     48|     // the socket teardown produces (RST vs empty response) is timing-…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  apps/web/src/__tests__/capture-reason.real-world.test.ts > names the failure when the engine entrypoint cannot read its job input
+AssertionError: expected 'Engine could not complete this run. C…' to contain 'ENOENT'
+
+Expected: "ENOENT"
+Received: "Engine could not complete this run. Check the project Git history and configured runtime prerequisites."
+
+ ❯ apps/web/src/__tests__/capture-reason.real-world.test.ts:86:26
+     84|   expect(result.outcome).toBe('blocked');
+     85|   expect(result.summary).toContain('Engine could not complete this run…
+     86|   expect(result.summary).toContain('ENOENT');
+       |                          ^
+     87|   await rm(state, { recursive: true, force: true });
+     88| }, 30_000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  23:45:24
+   Duration  5.63s (transform 1.70s, setup 0ms, import 3.69s, tests 1.82s, environment 0ms)
+
