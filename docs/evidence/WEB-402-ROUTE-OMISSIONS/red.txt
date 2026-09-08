@@ -1,0 +1,29 @@
+RED stage — recorded on origin/main (3586db7a) before implementation, worktree
+.worktrees/route-omissions-402, 2026-09-08 local.
+
+packages/source-ua-adapter/src/__tests__/frontend-conditions.test.ts:
+
+ ❯ packages/source-ua-adapter/src/__tests__/frontend-conditions.test.ts (1 test | 1 failed) 326ms
+   × labels condition rows with their bounded source condition text on the real fixture 325ms
+ FAIL … > labels condition rows …
+AssertionError: expected false to be true // Object.is equality
+ Test Files  1 failed (1)
+
+(condition rows carried only generic node-type labels — no condition text.)
+
+apps/web/src/__tests__/route-coverage.test.ts:
+
+ FAIL  apps/web/src/__tests__/route-coverage.test.ts [ apps/web/src/__tests__/route-coverage.test.ts ]
+Error: Cannot find module '../route-coverage' imported from …/apps/web/src/__tests__/route-coverage.test.ts
+
+apps/web/src/__tests__/route-coverage-ui.real-world.test.ts (before any UI work):
+
+ ❯ apps/web/src/__tests__/route-coverage-ui.real-world.test.ts (1 test | 1 failed) 76303ms
+   × renders per-route omission coverage in the inventory panel 76299ms
+     48|     await expect.poll(sectionText, { timeout: 30_000 }).toContain('GET…
+
+Mid-implementation red that changed the DESIGN (the test doing its job): the
+first directory-association implementation associated the root route with the
+whole app tree (HOME files included app/change-password/actions.ts), surfacing
+as `expected 'referenced' to be 'absent'` on GET / state:loading — fixed by
+same-directory-only sibling association, no assertion loosened.
