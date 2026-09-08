@@ -215,6 +215,12 @@ async function signIn(
   }
 }
 
+/** One-line observed engine error for blocked-capture findings; evidence, never a claimed cause. */
+function describeCaptureError(error: unknown): string {
+  const text = (error instanceof Error ? error.message.split('\n')[0] : String(error)).trim();
+  return text.length > 200 ? `${text.slice(0, 197)}...` : text || 'unknown error';
+}
+
 async function captureEnvironment(
   run: Run,
   directory: string,
@@ -522,13 +528,14 @@ async function captureEnvironment(
             findings.push({ path, kind: 'blocked-network-requests', count: counters.denied });
           if (networkErrors) findings.push({ path, kind: 'http-errors', count: networkErrors });
           if (scriptErrors) findings.push({ path, kind: 'script-errors', count: scriptErrors });
-        } catch {
+        } catch (error) {
           blocked = true;
           findings.push({
             path,
             kind: 'capture-blocked-check-target-and-privacy-masks',
             count: 1,
             failurePhase,
+            reason: describeCaptureError(error),
           });
           timeline.push({
             action: 'capture-refused',

@@ -1,0 +1,27 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/capture-cause-502
+
+ ❯ apps/web/src/__tests__/changed-regions-ui.real-world.test.ts (1 test | 1 failed) 2783ms
+   × walks changed regions with an overlay and keyboard shortcuts in a real browser 2782ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/changed-regions-ui.real-world.test.ts > walks changed regions with an overlay and keyboard shortcuts in a real browser
+Error: first visual run ended blocked: 0 viewport checkpoints captured across 1 pages. Visual baseline review is separate from business-logic verification. — page.goto: net::ERR_SOCKET_NOT_CONNECTED at http://127.0.0.1:35607/
+ ❯ requireCompletedRun apps/web/src/__tests__/run-outcome.ts:16:11
+     14|       .map((finding) => finding.reason)
+     15|       .join(' | ');
+     16|     throw new Error(
+       |           ^
+     17|       `${label} visual run ended ${run?.state ?? 'unknown'}: ${run?.re…
+     18|     );
+ ❯ apps/web/src/__tests__/changed-regions-ui.real-world.test.ts:58:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  02:25:02
+   Duration  7.99s (transform 1.60s, setup 0ms, import 5.04s, tests 2.78s, environment 0ms)
+

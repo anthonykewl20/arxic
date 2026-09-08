@@ -3,6 +3,14 @@ import { Badge } from './components';
 import { Input } from './components';
 import { WorkflowSelection } from './workflow-selection';
 import type { RowHistory } from '../campaigns';
+import {
+  configurationOmissions,
+  declaredRouteRules,
+  routeStateCoverage,
+  runtimeStateMap,
+  type RouteCoverageDimensionName,
+  type SurfaceIntentSummary,
+} from '../route-coverage';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { IntentLedger } from '../../../../packages/intent/src/ledger';
@@ -19,6 +27,8 @@ export type InventoryPanelProps = {
   workflowPages: Map<string, number>;
   /** Surface-keyed union of every campaign execution, from the workbench ledger. */
   outcomes: Record<string, Record<string, RowHistory>>;
+  /** Surface-keyed intent-ledger fusion; absent keys are intent omissions. */
+  intentOutcomes: Record<string, Record<string, SurfaceIntentSummary>>;
 };
 
 export function InventoryPanel(props: InventoryPanelProps) {
@@ -130,6 +140,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
                     kind={kind}
                     search={search}
                     pages={props.declarationPages}
+                    intentOutcomes={props.intentOutcomes[project.id] ?? {}}
                   />
                 )}
               </>
@@ -258,6 +269,174 @@ function SurfaceInventory({
   );
 }
 
+const dimensionLabels: Record<RouteCoverageDimensionName, string> = {
+  'state:loading': 'loading',
+  'state:error': 'error',
+  'state:empty': 'empty',
+  actions: 'actions',
+  tests: 'tests',
+  docs: 'docs',
+};
+
+/** Per-route omission chips derived from the run's own discovery artifacts. */
+function RouteOmissionCoverage({
+  inventory,
+  frontend,
+  project,
+  runtimeStates,
+  runtimeObservationGap,
+  intentOutcomes,
+}: {
+  inventory: DomainInventory;
+  frontend: FrontendInventory;
+  project: Project;
+  runtimeStates?: NonNullable<Run['result']>['runtimeStates'];
+  runtimeObservationGap?: string;
+  intentOutcomes: Record<string, SurfaceIntentSummary>;
+}) {
+  const coverage = routeStateCoverage(inventory, frontend);
+  const configOmissions = configurationOmissions(project, inventory, frontend);
+  const runtimeMapping = runtimeStates ? runtimeStateMap(coverage, runtimeStates) : undefined;
+  const rulesByPath = new Map(
+    declaredRouteRules(inventory, frontend).map((route) => [
+      `${route.method} ${route.path}`,
+      route,
+    ]),
+  );
+  if (!coverage.length) return null;
+  return (
+    <section className="route-coverage" data-route-coverage>
+      <div className="section-heading">
+        <h2>Route omission coverage</h2>
+        <small>{coverage.length} routes · source-reference exposure</small>
+      </div>
+      <p className="scope-note">
+        Per route: which conditional states and interactive actions its own source files reference,
+        and whether any test or documentation declaration covers them. An absent marker is an
+        omission signal to investigate — not proof of absent behavior.
+      </p>
+      <ul>
+        {coverage.slice(0, 50).map((route) => (
+          <li key={`${route.method} ${route.path}`} data-route={route.path}>
+            <code>
+              {route.method} {route.path}
+            </code>{' '}
+            {route.dimensions.map((dimension) => (
+              <span
+                key={dimension.name}
+                className={
+                  dimension.status === 'referenced' ? 'coverage-referenced' : 'coverage-absent'
+                }
+              >
+                {dimensionLabels[dimension.name]}{' '}
+                {dimension.status === 'referenced' ? (
+                  <small>
+                    referenced
+                    {dimension.evidence[0]
+                      ? ` (${dimension.evidence[0].path}:${dimension.evidence[0].startLine})`
+                      : ''}
+                  </small>
+                ) : (
+                  <small>absent</small>
+                )}
+              </span>
+            ))}
+            {(() => {
+              const key = `${route.method} ${route.path}`;
+              const rules = rulesByPath.get(key);
+              const intents = intentOutcomes[key];
+              return (
+                <span className="route-rules" data-route-rules={route.path}>
+                  {rules && !rules.omission ? (
+                    rules.rules.map((rule) => (
+                      <small key={rule.kind}>
+                        {rule.kind.replace('rule:', '')} ({rule.evidence.length})
+                      </small>
+                    ))
+                  ) : (
+                    <small>no declared rules</small>
+                  )}
+                  <small>
+                    {intents
+                      ? `intents: ${intents.intents} · ${intents.bestTruthState} · ${intents.replayStatus}`
+                      : 'no intent proposal yet'}
+                  </small>
+                </span>
+              );
+            })()}
+          </li>
+        ))}
+      </ul>
+      {coverage.length > 50 && (
+        <p className="scope-note">
+          First 50 routes shown; the complete inventory JSON preserves every route.
+        </p>
+      )}
+      {runtimeObservationGap && (
+        <p className="scope-note" data-runtime-gap>
+          Runtime state observation skipped: {runtimeObservationGap}. Point the project at a running
+          test app to map source-declared states onto rendered ones.
+        </p>
+      )}
+      {runtimeMapping && (
+        <div className="runtime-mapping" data-runtime-mapping>
+          <h3>Runtime state mapping</h3>
+          <p className="scope-note">
+            What plain navigation of the running app actually rendered, mapped onto the source
+            declarations above. Plain navigation cannot provoke every conditional: a
+            declared-unobserved state may still exist behind data or sign-in, and an
+            observed-undeclared marker means the runtime shows something no source declaration
+            accounts for.
+          </p>
+          <ul>
+            {runtimeMapping
+              .filter((route) =>
+                route.dimensions.some(({ mapping }) => mapping !== 'unobserved-undeclared'),
+              )
+              .map((route) => (
+                <li key={`${route.method} ${route.path}`} data-route={route.path}>
+                  <code>
+                    {route.method} {route.path}
+                  </code>{' '}
+                  {route.dimensions
+                    .filter(({ mapping }) => mapping !== 'unobserved-undeclared')
+                    .map((dimension) => (
+                      <span key={dimension.name} className={`runtime-${dimension.mapping}`}>
+                        {dimensionLabels[dimension.name]} <small>{dimension.mapping}</small>
+                      </span>
+                    ))}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
+      {configOmissions.length > 0 && (
+        <div className="config-omissions" data-config-omissions>
+          <h3>Configuration omissions</h3>
+          <p className="scope-note">
+            What this project declares fused with what discovery found — a declared flag no source
+            file reads, a source flag no deployment declares, or a persona route the app does not
+            have. These are configuration-vs-source misalignments, not proof of absent behavior.
+          </p>
+          <ul>
+            {configOmissions.map((entry) => (
+              <li key={entry.key}>
+                <code>{entry.key}</code>{' '}
+                <small>
+                  {entry.status}
+                  {entry.evidence[0]
+                    ? ` (${entry.evidence[0].path}:${entry.evidence[0].startLine})`
+                    : ''}
+                </small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function matchingDeclarations(inventory: FrontendInventory, kind: string, search: string) {
   return inventory.rows.filter(
     (row) =>
@@ -271,11 +450,13 @@ function FrontendDeclarations({
   kind,
   search,
   pages,
+  intentOutcomes,
 }: {
   run: Run;
   kind: string;
   search: string;
   pages: Map<string, number>;
+  intentOutcomes: Record<string, SurfaceIntentSummary>;
 }) {
   const inventory = run.result?.frontend;
   if (!inventory) return null;
@@ -367,6 +548,21 @@ function FrontendDeclarations({
           Complete inventory JSON
         </a>
       </div>
+      {(() => {
+        const routeInventory = run.result?.inventory as DomainInventory | undefined;
+        return (
+          routeInventory && (
+            <RouteOmissionCoverage
+              inventory={routeInventory}
+              frontend={inventory}
+              project={run.project}
+              runtimeStates={run.result?.runtimeStates}
+              runtimeObservationGap={run.result?.runtimeObservationGap}
+              intentOutcomes={intentOutcomes}
+            />
+          )
+        );
+      })()}
       <details data-detail-key={`${run.id}-gaps`}>
         <summary>Coverage gaps</summary>
         <p>

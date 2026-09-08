@@ -1,0 +1,26 @@
+GREEN stage — after the observer, mapping service, job wiring and panel block:
+
+ ✓ apps/web/src/__tests__/runtime-state-map.real-world.test.ts (5 tests) 43917ms
+   ✓ observes the real app and maps /login error as declared-unobserved and / as neither 22540ms
+   ✓ classifies rendered loading/error/empty markers after hydration 1484ms
+   ✓ records an explicit gap for an unreachable origin instead of hanging
+   ✓ maps observed markers onto source declarations (declared-and-observed vs observed-undeclared) 3966ms
+   ✓ renders the mapping with the honesty boundary for a real served origin 15926ms
+ ✓ apps/web/src/__tests__/runtime-state-map.test.ts (2 tests) 12ms
+ Test Files  2 passed (2)
+      Tests  7 passed (7)
+
+Real-data facts pinned:
+- REAL reference app (unmodified, real build): discovery observes runtime
+  states for its routes; /login error = declared-unobserved (the real ternary
+  never renders on plain navigation); / = unobserved-undeclared.
+- Real served pages + real Chromium observer: post-hydration markers classify
+  (empty + error); an unreachable origin records the explicit gap instantly.
+- API-level probe against a static origin: runtimeStates populated per route
+  with state:error; the summary projection carries the new fields through.
+- Real dashboard: the Runtime state mapping block renders per-route cells
+  (declared-and-observed / observed-undeclared on this origin) with the
+  "plain navigation" honesty wording; unreachable origins render the explicit
+  gap note instead of silence.
+Regression: workspace/campaigns/config-omissions/route-coverage 18/18; root +
+packages typecheck, lint clean.

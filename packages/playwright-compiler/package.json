@@ -1,6 +1,6 @@
 {
   "name": "@arxic/playwright-compiler",
-  "version": "0.0.302",
+  "version": "0.0.400",
   "private": true,
   "type": "module",
   "main": "src/index.ts",

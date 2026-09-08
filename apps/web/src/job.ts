@@ -6,6 +6,7 @@ import { buildSourceInventory } from '@arxic/domain-inventory';
 import type { Run, RunResult } from './types';
 import { sourceRevision } from './source';
 import { campaignRows } from './campaigns';
+import { observeRuntimeStates } from './runtime-states';
 
 async function runJob(run: Run): Promise<RunResult> {
   if (run.mode === 'review')
@@ -27,6 +28,13 @@ async function runJob(run: Run): Promise<RunResult> {
   const inventory = buildSourceInventory({ sourceIndex, interchanges });
   const diagnostics = diagnosticsOf(sourceIndex.events);
   const frontend = await collectFrontendInventory(run.project.folder, sourceIndex);
+  // Source-to-runtime state mapping: observe which state markers the running
+  // app actually renders on plain navigation of the discovered page routes.
+  // An unreachable origin (deliberate in most tests) records an explicit gap.
+  const pagePaths = inventory.rows
+    .filter((row) => row.method === 'GET' && row.sourceRefs.length)
+    .map((row) => row.path);
+  const runtime = await observeRuntimeStates(run.project.origin, pagePaths);
   return {
     outcome: sourceIndex.manifest.length ? 'hypothesized' : 'blocked',
     summary: `${inventory.rows.length} source surfaces across ${inventory.clusters.length} domains; ${frontend.rows.length} frontend declarations and ${frontend.gaps.length} explicit gaps. Source evidence is not runtime or business-acceptance proof.`,
@@ -35,6 +43,15 @@ async function runJob(run: Run): Promise<RunResult> {
     frontend,
     manifest: sourceIndex.manifest,
     diagnostics,
+    ...(runtime.observations
+      ? {
+          runtimeStates: runtime.observations.map(({ path, states }) => ({
+            path,
+            states: [...states],
+          })),
+        }
+      : {}),
+    ...(runtime.gap ? { runtimeObservationGap: runtime.gap } : {}),
   };
 }
 
@@ -51,11 +68,13 @@ if (process.env.ARXIC_WEB_JOB === '1') {
   let result: RunResult;
   try {
     result = await runJob(JSON.parse(await readFile(process.argv[2], 'utf8')) as Run);
-  } catch {
+  } catch (error) {
+    // A blocked run must identify what failed: naming the engine-side error is
+    // the difference between an operator diagnosis and a blind rerun (#502).
+    const reason = error instanceof Error ? error.message.split('\n')[0] : String(error);
     result = {
       outcome: 'blocked',
-      summary:
-        'Engine could not complete this run. Check the project Git history and configured runtime prerequisites.',
+      summary: `Engine could not complete this run (${reason.slice(0, 160)}). Check the project Git history and configured runtime prerequisites.`,
     };
   }
   await writeFile(process.argv[3], JSON.stringify(result), { mode: 0o600 });

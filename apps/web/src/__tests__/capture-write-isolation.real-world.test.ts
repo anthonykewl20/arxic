@@ -128,12 +128,14 @@ it.each(['chromium', 'firefox', 'webkit'] as const)(
           'checkpoint-1.png',
           'checkpoint-3.png',
         ]);
+        // The retained reason also pins the observed fault class (seeded EISDIR).
         expect(failures).toEqual([
           {
             path: '/write-fault',
             kind: 'capture-blocked-check-target-and-privacy-masks',
             count: 1,
             failurePhase: 'evidence-write',
+            reason: expect.stringMatching(/^EISDIR: illegal operation on a directory, open '/),
           },
         ]);
         const timeline = JSON.parse(

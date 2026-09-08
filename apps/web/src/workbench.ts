@@ -113,6 +113,7 @@ import { SecretStore } from './secret-store';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
 import { campaignRows, campaignView, rowHistoryOf, type RowHistory } from './campaigns';
+import { unionIntentCoverage } from './route-coverage';
 import { reviewImage, type VisualReviewScope } from './visual-review';
 
 /** Single source of truth for the workflow-scope drift refusal (throw site, run record, schedule stop). */
@@ -398,6 +399,30 @@ export class Workbench {
     }
     return outcomes;
   }
+  /**
+   * Surface-keyed intent-ledger fusion: every agent run's persisted ledger
+   * (full-record reads; the summary projection strips ledgers) unions per
+   * ledger surface key, exposing which routes have grounded AI proposals.
+   */
+  intentOutcomes(): Record<
+    string,
+    Record<string, import('./route-coverage').SurfaceIntentSummary>
+  > {
+    const outcomes: Record<
+      string,
+      Record<string, import('./route-coverage').SurfaceIntentSummary>
+    > = {};
+    for (const summary of this.store.summaries()) {
+      if (summary.mode !== 'agent') continue;
+      const run = this.store.run(summary.id);
+      const rows = (run?.result as { ledger?: { rows?: unknown[] } } | undefined)?.ledger?.rows as
+        import('./route-coverage').LedgerFusionRow[] | undefined;
+      if (!rows?.length) continue;
+      const project = (outcomes[run!.projectId] ??= {});
+      for (const [key, summaryRow] of unionIntentCoverage(rows)) project[key] = summaryRow;
+    }
+    return outcomes;
+  }
   state() {
     return {
       projects: this.store.projects(),
@@ -408,6 +433,7 @@ export class Workbench {
       baselineApprovals: this.store.approvalHistory(),
       queueError: this.queueError,
       outcomes: this.rowOutcomes(),
+      intentOutcomes: this.intentOutcomes(),
       campaigns: this.store.campaigns().map((item) => {
         return { ...this.campaign(item.id), rows: undefined };
       }),

@@ -116,12 +116,23 @@ export type RunResult = {
   captures?: Capture[];
   /** Paths found by crawling the signed-in app during AI discovery, in discovery order. */
   discoveredPaths?: string[];
+  /**
+   * Runtime-rendered state markers (loading/error/empty, shared vocabulary with
+   * the source tier) observed per discovered page route by plain navigation
+   * during source discovery. Absence is never disproof: plain navigation
+   * cannot provoke every conditional.
+   */
+  runtimeStates?: Array<{ path: string; states: string[] }>;
+  /** Why runtime state observation was skipped (unconfigured/unreachable origin, failure). */
+  runtimeObservationGap?: string;
   findings?: Array<{
     path: string;
     kind: string;
     count: number;
     environment?: VisualEnvironment;
     failurePhase?: CaptureFailurePhase;
+    /** Observed engine-side error, one line; evidence for operators, never a claimed cause. */
+    reason?: string;
   }>;
   ledger?: unknown;
   engineRun?: unknown;

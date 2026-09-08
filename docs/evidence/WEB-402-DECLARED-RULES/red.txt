@@ -1,0 +1,19 @@
+RED stage — recorded on origin/main (71227d07) before implementation, worktree
+.worktrees/declared-rules-402, 2026-09-09 local. Command:
+
+  pnpm vitest run apps/web/src/__tests__/declared-rules.test.ts
+
+ ✗ inventories declared validation and authorization rules per route with evidence
+ ✗ unions ledger rows across runs with truth ranking and exposes intent omissions
+ ✗ fuses real validated ledgers onto route surfaces through the workbench
+ Tests  3 failed (3)
+ (declaredRouteRules/unionIntentCoverage do not exist.)
+
+Validator-driven corrections in the fusion fixture (the REAL closed schema
+refused the first shapes — each fix is part of the record):
+- schemaVersion must be the string 'arxic-intent-ledger-v1' (not 1);
+- oracleKinds ≥ 1 ('repository-specification' used);
+- proposalId must match ^prop:[0-9a-f]{16}$;
+- intent evidenceRefIds ≥ 1 and must match ^src:[A-Za-z0-9._#-]+:[0-9]+-[0-9]+$
+  (the sanitized id format bans '/' — 'src:page.tsx:1-1' used).
+The UI journey was red at its own seam (chips absent) before the panel work.
