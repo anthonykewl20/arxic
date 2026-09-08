@@ -70,11 +70,11 @@ export class Workbench {
     ];
     this.providerSecrets = new SecretStore(store.db);
     this.timer = setInterval(() => {
-      try {
-        this.tick();
-      } catch {
-        /* Leave the durable slot due for the next tick. */
-      }
+      void this.guardDueCampaigns()
+        .then(() => this.tick())
+        .catch(() => {
+          /* Leave the durable slot due for the next tick. */
+        });
     }, 1000);
     this.timer.unref();
     this.kick();
@@ -496,6 +496,28 @@ export class Workbench {
       this.store.audit('campaign.cancelled', id);
     })();
     if (interrupt && this.active) await stopProcess(this.active.child);
+  }
+  /**
+   * Per-fire source-drift re-validation: every due recurring schedule is checked
+   * against the real source BEFORE tick() fires it, so a drifted campaign (dirty
+   * tree or HEAD moved vs the pinned sourceCommit) stops at the fire boundary
+   * with zero doomed runs. Fail-soft: an unreadable source is drift by
+   * definition; one bad campaign never blocks the others or the tick.
+   */
+  async guardDueCampaigns(now = new Date()) {
+    for (const campaign of this.store.campaigns()) {
+      if (!campaign.cron || campaign.cancelledAt || !campaign.nextFireAt) continue;
+      if (new Date(campaign.nextFireAt) > now) continue;
+      try {
+        const project = this.store.project(campaign.projectId);
+        if (!project) continue;
+        const current = await sourceRevision(project.folder);
+        if (current.dirty || current.commit !== campaign.sourceCommit)
+          this.stopDriftedSchedules(campaign.projectId, campaign.sourceCommit);
+      } catch {
+        this.stopDriftedSchedules(campaign.projectId, campaign.sourceCommit);
+      }
+    }
   }
   tick(now = new Date()) {
     if (this.closed || this.queueError) return;
