@@ -64,16 +64,16 @@ it('authenticates a seeded user through the real /login/alternate fixture route'
   try {
     await page.goto(`${app.origin}${ALTERNATE_LOGIN.route}`);
     // The alternate route is a real distinct entry point: same heading, its own marker.
-    await expect(page.getByRole('heading', { name: 'Login' })).toBeVisible();
-    await expect(page.getByTestId('alternate-login')).toBeVisible();
+    await page.getByRole('heading', { name: 'Login' }).waitFor();
+    await page.getByTestId('alternate-login').waitFor();
     await page.getByLabel('Work email').fill(SEED_PERSONA.email);
     await page.getByLabel('Passphrase').fill(SEED_PERSONA.password);
     await page.getByRole('button', { name: 'Sign in' }).click();
     await page.waitForURL(`${app.origin}/`);
     // Same assertion style the /login journeys use: the home page session line.
-    await expect(page.getByTestId('session-state')).toHaveText(
-      `Logged in as ${SEED_PERSONA.email}`,
-    );
+    await expect
+      .poll(() => page.getByTestId('session-state').textContent())
+      .toBe(`Logged in as ${SEED_PERSONA.email}`);
     expect(errors).toEqual([]);
   } finally {
     await browser.close();

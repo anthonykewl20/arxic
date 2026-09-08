@@ -175,6 +175,45 @@ export function WorkflowSelection({
                           autoComplete="off"
                         />
                       </label>
+                      <label>
+                        Variant login route
+                        <input
+                          name="variant-login-route"
+                          placeholder="/login/alternate"
+                          autoComplete="off"
+                        />
+                      </label>
+                      <label>
+                        Variant login email label
+                        <input
+                          name="variant-login-email-label"
+                          placeholder="Work email"
+                          maxLength={100}
+                          autoComplete="off"
+                        />
+                      </label>
+                      <label>
+                        Variant login password label
+                        <input
+                          name="variant-login-password-label"
+                          placeholder="Passphrase"
+                          maxLength={100}
+                          autoComplete="off"
+                        />
+                      </label>
+                      <label>
+                        Variant login submit label
+                        <input
+                          name="variant-login-submit-label"
+                          placeholder="Sign in"
+                          maxLength={100}
+                          autoComplete="off"
+                        />
+                      </label>
+                      <small>
+                        Optional: this variant logs in through this route instead of the project
+                        login route (labels left blank keep the project values).
+                      </small>
                     </>
                   )}
                   {kind === 'flag' && (

@@ -60,14 +60,29 @@ export function variantEnvironment(
 /**
  * Non-secret variant payload stamped next to variantKey on the workflow scope:
  * flag variants record their boolean overrides, state variants record the
- * anonymous switch; persona entries stay variantKey-only (credentials env-only).
+ * anonymous switch, persona variants with a login override record that form
+ * declaration (route + labels; credentials stay env-only).
  */
 function variantScopePayload(
   variant: NonNullable<Campaign['variants']>[number],
-): Pick<NonNullable<Run['workflowScope']>, 'variantFlags' | 'variantState'> {
+): Pick<
+  NonNullable<Run['workflowScope']>,
+  'variantFlags' | 'variantState' | 'variantLogin'
+> {
   if (variant.kind === 'flag') return { variantFlags: { ...variant.flags } };
   if (variant.kind === 'state') return { variantState: 'anonymous' };
-  return {};
+  return {
+    ...(variant.login
+      ? {
+          variantLogin: {
+            route: variant.login.route,
+            ...(variant.login.emailLabel ? { emailLabel: variant.login.emailLabel } : {}),
+            ...(variant.login.passwordLabel ? { passwordLabel: variant.login.passwordLabel } : {}),
+            ...(variant.login.submitLabel ? { submitLabel: variant.login.submitLabel } : {}),
+          },
+        }
+      : {}),
+  };
 }
 
 /** Campaign copy with the transient rebind marker removed once a rebind settles. */
@@ -125,7 +140,10 @@ function validateCampaignVariants(input: unknown): NonNullable<Campaign['variant
     const payloadKey =
       kind === 'flag' ? 'flags' : kind === 'state' ? 'state' : kind === 'persona' ? 'persona' : '';
     if (!payloadKey) throw new HttpError(400, 'Unsupported variant kind');
-    if (Object.keys(entry).some((key) => !['key', 'label', 'kind', payloadKey].includes(key)))
+    // `login` is a persona-only key: on flag/state entries it falls through to
+    // the same foreign-payload 400 as every other misplaced key.
+    const allowedKeys = ['key', 'label', 'kind', payloadKey, ...(kind === 'persona' ? ['login'] : [])];
+    if (Object.keys(entry).some((key) => !allowedKeys.includes(key)))
       throw new HttpError(400, 'Campaign variants must be a list of variant definitions');
     const key = entry.key;
     const label = entry.label;
@@ -149,11 +167,49 @@ function validateCampaignVariants(input: unknown): NonNullable<Campaign['variant
           400,
           'Variant credentials must reference ARXIC_SECRET_ environment names',
         );
+      // Optional non-secret login override: a route plus at most three short
+      // form labels; absent fields keep the project login surface's values.
+      let login:
+        | { route: string; emailLabel?: string; passwordLabel?: string; submitLabel?: string }
+        | undefined;
+      if (entry.login !== undefined) {
+        const raw = entry.login as Record<string, unknown> | undefined;
+        if (
+          !raw ||
+          typeof raw !== 'object' ||
+          Array.isArray(raw) ||
+          Object.keys(raw).some((name) =>
+            !['route', 'emailLabel', 'passwordLabel', 'submitLabel'].includes(name),
+          )
+        )
+          throw new HttpError(400, 'A variant login override must be a login form declaration');
+        if (typeof raw.route !== 'string' || !raw.route)
+          throw new HttpError(400, 'A variant login override requires a route');
+        if (!raw.route.startsWith('/'))
+          throw new HttpError(400, 'A variant login route must start with /');
+        if (
+          ['emailLabel', 'passwordLabel', 'submitLabel'].some(
+            (name) =>
+              raw[name] !== undefined &&
+              (typeof raw[name] !== 'string' || !raw[name].trim() || raw[name].trim().length > 100),
+          )
+        )
+          throw new HttpError(400, 'Variant login labels must be short non-empty text');
+        login = {
+          route: raw.route,
+          ...(typeof raw.emailLabel === 'string' ? { emailLabel: raw.emailLabel.trim() } : {}),
+          ...(typeof raw.passwordLabel === 'string'
+            ? { passwordLabel: raw.passwordLabel.trim() }
+            : {}),
+          ...(typeof raw.submitLabel === 'string' ? { submitLabel: raw.submitLabel.trim() } : {}),
+        };
+      }
       variants.push({
         key,
         label: label.trim(),
         kind: 'persona',
         persona: { emailRef: persona.emailRef, passwordRef: persona.passwordRef },
+        ...(login ? { login } : {}),
       });
     } else if (kind === 'flag') {
       const flags = entry.flags;

@@ -123,6 +123,13 @@ export type Run = {
     variantFlags?: Record<string, boolean>;
     /** Persona-state override recorded on kind:'state' variant fan-out runs. */
     variantState?: 'anonymous';
+    /** Non-secret login-surface override recorded on persona variant fan-out runs with a login declaration. */
+    variantLogin?: {
+      route: string;
+      emailLabel?: string;
+      passwordLabel?: string;
+      submitLabel?: string;
+    };
   };
 };
 export type Campaign = {
@@ -152,8 +159,10 @@ export type Campaign = {
   /**
    * Execution variants: each selected row fans out into one extra agent run per
    * variant. Persona variants carry ARXIC_SECRET_ ref NAMES (values never enter
-   * this record); flag variants carry non-secret boolean overrides; state
-   * variants switch the run to the anonymous persona.
+   * this record); their optional login override is a NON-SECRET form declaration
+   * (route + labels) that swaps the project login surface for that variant;
+   * flag variants carry non-secret boolean overrides; state variants switch the
+   * run to the anonymous persona.
    */
   variants?: Array<
     | {
@@ -161,6 +170,12 @@ export type Campaign = {
         label: string;
         kind: 'persona';
         persona: { emailRef: string; passwordRef: string };
+        login?: {
+          route: string;
+          emailLabel?: string;
+          passwordLabel?: string;
+          submitLabel?: string;
+        };
       }
     | { key: string; label: string; kind: 'flag'; flags: Record<string, boolean> }
     | { key: string; label: string; kind: 'state'; state: 'anonymous' }
