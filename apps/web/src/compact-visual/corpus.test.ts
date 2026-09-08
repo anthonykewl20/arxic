@@ -70,9 +70,7 @@ it('keeps every variant registry entry internally consistent across heads', () =
     expect(variant.labelOrigin).toMatch(/^controlled-(regression|negative)$/);
     // A clipping regression or a layout-shift regression moves the required
     // control; every other variant must leave it in place (or remove it whole).
-    expect(Boolean(variant.moveControl)).toBe(
-      variant.labels[0] === 1 || variant.labels[5] === 1,
-    );
+    expect(Boolean(variant.moveControl)).toBe(variant.labels[0] === 1 || variant.labels[5] === 1);
     // Every variant addresses at least one head; addressed heads are labeled 0/1.
     expect(addressedHeads(id).length).toBeGreaterThanOrEqual(1);
     for (const head of addressedHeads(id)) {
