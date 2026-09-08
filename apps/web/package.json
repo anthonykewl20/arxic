@@ -21,19 +21,19 @@
     "cron-parser": "5.10.0",
     "lucide-react": "^1.41.0",
     "pixelmatch": "7.2.0",
-    "playwright": "1.62.1",
+    "playwright": "1.63.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "sharp": "0.35.4",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
-    "tsx": "4.23.12",
-    "vite": "7.3.6"
+    "tsx": "4.23.13",
+    "vite": "8.2.2"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
     "@types/better-sqlite3": "9.6.0",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.5"
+    "@types/react-dom": "^19.2.7"
   }
 }

@@ -17,6 +17,6 @@
     "@arxic/policy-engine": "workspace:*",
     "@arxic/real-world-testkit": "workspace:*",
     "@arxic/verifier": "workspace:*",
-    "@playwright/test": "1.62.1"
+    "@playwright/test": "1.63.0"
   }
 }
