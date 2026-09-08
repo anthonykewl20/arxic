@@ -1,6 +1,6 @@
 # Historical merged slice notes
 
-These 102 merged slice notes are archived out of the active staging area
+These 103 merged slice notes are archived out of the active staging area
 required by charter §10.2. The release audit (refs #398) moved the first 64
 here; subsequent integrator folds appended the rest. Their dated claims are
 historical, not current release sign-offs. The current state is in `docs/SYNC.md`,
@@ -75,6 +75,7 @@ unchanged for provenance.
 - [WEB-402-DRIFT-REVALIDATE.md](./WEB-402-DRIFT-REVALIDATE.md)
 - [WEB-402-LEDGER-PANEL.md](./WEB-402-LEDGER-PANEL.md)
 - [WEB-402-ORACLE.md](./WEB-402-ORACLE.md)
+- [WEB-402-PERSONA-VARIANTS.md](./WEB-402-PERSONA-VARIANTS.md)
 - [WEB-402-PROVIDER-SECRETS.md](./WEB-402-PROVIDER-SECRETS.md)
 - [WEB-402-REBIND-COUNTS.md](./WEB-402-REBIND-COUNTS.md)
 - [WEB-402-REBIND-UI.md](./WEB-402-REBIND-UI.md)
