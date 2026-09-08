@@ -352,3 +352,154 @@ export function routeStateCoverage(
     (left, right) => left.path.localeCompare(right.path) || left.method.localeCompare(right.method),
   );
 }
+
+// ---------------------------------------------------------------------------
+// Declared business rules per route (refs #402) + intent-ledger fusion
+// ---------------------------------------------------------------------------
+
+/** Declared business-rule classes with documented deterministic recognition. */
+export type DeclaredRuleKind = 'rule:validation' | 'rule:authorization';
+export type RouteDeclaredRules = {
+  method: string;
+  path: string;
+  rules: Array<{ kind: DeclaredRuleKind; evidence: Evidence[] }>;
+  /** True when no rule class matched — an omission signal, never proof. */
+  omission: boolean;
+};
+
+const validationRulePattern = /\b(?:required|pattern|minlength|maxlength)\b/iu;
+const authorizationRulePattern =
+  /session|logged[ -]?in|logged[ -]?out|authenticated|unauthorized|permission|\brole\b|csrf|rate[ -]?limit|lockout|locked/iu;
+
+/**
+ * Deterministic declared-rule inventory per route: validation rules from
+ * control declarations (required/pattern/length-bound attribute names the
+ * adapter records — type=email/number VALUES are not captured today,
+ * disclosed) and authorization rules from condition/state/action declarations
+ * whose text names sessions, sign-in/out, csrf, rate limiting, lockout, roles
+ * or permissions. Same route-file association as routeStateCoverage
+ * (sourceRefs files plus same-directory siblings, never nested surfaces).
+ */
+export function declaredRouteRules(
+  inventory: DomainInventory,
+  frontend: FrontendInventory,
+): RouteDeclaredRules[] {
+  const rowsByPath = new Map<string, FrontendRow[]>();
+  for (const row of frontend.rows) {
+    const list = rowsByPath.get(row.source.path) ?? [];
+    list.push(row);
+    rowsByPath.set(row.source.path, list);
+  }
+  const result: RouteDeclaredRules[] = [];
+  for (const row of inventory.rows) {
+    const refs = row.sourceRefs.filter((ref) => ref.path);
+    if (!refs.length || row.method === '*') continue;
+    const refPaths = [...new Set(refs.map(({ path }) => path))];
+    const files = new Set(refPaths);
+    for (const path of refPaths)
+      if (routeSurfaceFile.test(path)) {
+        const dir = path.includes('/') ? `${path.slice(0, path.lastIndexOf('/'))}/` : '';
+        if (dir)
+          for (const candidate of rowsByPath.keys())
+            if (
+              candidate.startsWith(dir) &&
+              !candidate.slice(dir.length).includes('/') &&
+              !routeSurfaceFile.test(candidate)
+            )
+              files.add(candidate);
+      }
+    const associated = [...files].flatMap((path) => rowsByPath.get(path) ?? []);
+    const classes: Array<{ kind: DeclaredRuleKind; evidence: Evidence[] }> = [];
+    const validation = associated
+      .filter(
+        (candidate) => candidate.kind === 'control' && validationRulePattern.test(candidate.label),
+      )
+      .map(evidenceOfRow)
+      .sort(
+        (left, right) => left.path.localeCompare(right.path) || left.startLine - right.startLine,
+      );
+    if (validation.length) classes.push({ kind: 'rule:validation', evidence: validation });
+    const authorization = associated
+      .filter(
+        (candidate) =>
+          (candidate.kind === 'condition' ||
+            candidate.kind === 'state' ||
+            candidate.kind === 'action') &&
+          authorizationRulePattern.test(candidate.label),
+      )
+      .map(evidenceOfRow)
+      .sort(
+        (left, right) => left.path.localeCompare(right.path) || left.startLine - right.startLine,
+      );
+    if (authorization.length) classes.push({ kind: 'rule:authorization', evidence: authorization });
+    result.push({
+      method: row.method,
+      path: row.path,
+      rules: classes.sort((left, right) => left.kind.localeCompare(right.kind)),
+      omission: classes.length === 0,
+    });
+  }
+  return result.sort(
+    (left, right) => left.path.localeCompare(right.path) || left.method.localeCompare(right.method),
+  );
+}
+
+/** A ledger row projected to the fields the fusion needs (structural, no package import). */
+export type LedgerFusionRow = {
+  surface: { method: string; path: string };
+  truthState: string;
+  replayStatus: string;
+  intents: readonly { truthState: string; replayStatus: string }[];
+};
+export type SurfaceIntentSummary = {
+  rows: number;
+  intents: number;
+  bestTruthState: string;
+  replayStatus: string;
+};
+
+/** Documented rankings: verified > observed > hypothesized > contradicted > blocked;
+ * replay passed > attempted (failed/blocked) > not-attempted. */
+const truthRanking = ['blocked', 'contradicted', 'hypothesized', 'observed', 'verified'];
+const replayRanking = [
+  'not-attempted',
+  'attempted:blocked',
+  'attempted:failed',
+  'attempted:passed',
+];
+const bestOf = (ranking: readonly string[], left: string, right: string): string =>
+  ranking.indexOf(right) > ranking.indexOf(left) ? right : left;
+
+/**
+ * Intent-ledger fusion (refs #402): unions every run's ledger rows per ledger
+ * surface key `METHOD path` so routes without any grounded AI proposal are
+ * exposed next to their source/runtime omissions. Pure over the row shape the
+ * persisted ledgers already carry.
+ */
+export function unionIntentCoverage(
+  rows: readonly LedgerFusionRow[],
+): Map<string, SurfaceIntentSummary> {
+  const union = new Map<string, SurfaceIntentSummary>();
+  for (const row of rows) {
+    const key = `${row.surface.method} ${row.surface.path}`;
+    const current = union.get(key) ?? {
+      rows: 0,
+      intents: 0,
+      bestTruthState: 'blocked',
+      replayStatus: 'not-attempted',
+    };
+    let bestTruthState = current.bestTruthState;
+    let replayStatus = current.replayStatus;
+    for (const truthState of [row.truthState, ...row.intents.map(({ truthState: value }) => value)])
+      bestTruthState = bestOf(truthRanking, bestTruthState, truthState);
+    for (const status of [row.replayStatus, ...row.intents.map(({ replayStatus: value }) => value)])
+      replayStatus = bestOf(replayRanking, replayStatus, status);
+    union.set(key, {
+      rows: current.rows + 1,
+      intents: current.intents + row.intents.length,
+      bestTruthState,
+      replayStatus,
+    });
+  }
+  return union;
+}
