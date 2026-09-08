@@ -1,6 +1,6 @@
 # RELEASE-CAP-525 — staged doc updates (charter §10.2)
 
-Issue: #525 · PR: <to-fill> · Disposition: observed (red is reproduced CI evidence: both ubuntu cells of two Release runs killed at exactly the 25-minute job cap with the unsharded core suite still passing tests mid-suite; the raised cap's green proof is this PR's own release-test matrix run on the PR branch, recorded below when it lands)
+Issue: #525 · PR: #529 · Disposition: observed (red is reproduced CI evidence: both ubuntu cells of two Release runs killed at exactly the 25-minute job cap with the unsharded core suite still passing tests mid-suite; the raised cap's green proof is this PR's own release-test matrix run on the PR branch, recorded below when it lands)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
