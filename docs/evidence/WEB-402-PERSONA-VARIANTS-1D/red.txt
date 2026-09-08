@@ -1,0 +1,103 @@
+Scope: all 32 workspace projects
+[WARN] There are cyclic workspace dependencies: /home/soultransit/devtony/arxic/.worktrees/persona-paths-402/packages/auth-domain-pack, /home/soultransit/devtony/arxic/.worktrees/persona-paths-402/packages/domain-inventory-spike, /home/soultransit/devtony/arxic/.worktrees/persona-paths-402/packages/intent-proposal-spike, /home/soultransit/devtony/arxic/.worktrees/persona-paths-402/packages/intent
+✓ Lockfile passes supply-chain policies (verified 1d ago)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +919
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 919, reused 913, downloaded 0, added 756
+Progress: resolved 919, reused 913, downloaded 0, added 919, done
+
+devDependencies:
++ @eslint/js 10.0.1
++ @types/node 26.4.0
++ ajv 8.20.0
++ ajv-formats 3.0.1
++ eslint 10.9.1
++ globals 17.11.0
++ prettier 3.9.6
++ typescript 5.9.3
++ typescript-eslint 8.68.0
++ vitest 4.1.11
++ yaml 2.9.0
+
+Done in 4.8s using pnpm v11.17.0
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/persona-paths-402
+
+ ❯ apps/web/src/__tests__/persona-variants-1d.real-world.test.ts (5 tests | 5 failed) 50297ms
+   × authenticates a seeded user through the real /login/alternate fixture route 10487ms
+   × fans a distinct-login-path persona campaign out and diverges the real engine-config snapshots 816ms
+   × rejects every invalid variant login override with its distinct 400 before enqueueing anything 686ms
+   × carries a variant login override through recurring fires and drift rebinds 660ms
+   × saves a persona variant with its login override through the real dialog and API 37648ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/persona-variants-1d.real-world.test.ts > authenticates a seeded user through the real /login/alternate fixture route
+Error: Invalid Chai property: toBeVisible
+ ❯ apps/web/src/__tests__/persona-variants-1d.real-world.test.ts:67:62
+     65|     await page.goto(`${app.origin}${ALTERNATE_LOGIN.route}`);
+     66|     // The alternate route is a real distinct entry point: same headin…
+     67|     await expect(page.getByRole('heading', { name: 'Login' })).toBeVis…
+       |                                                              ^
+     68|     await expect(page.getByTestId('alternate-login')).toBeVisible();
+     69|     await page.getByLabel('Work email').fill(SEED_PERSONA.email);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  apps/web/src/__tests__/persona-variants-1d.real-world.test.ts > fans a distinct-login-path persona campaign out and diverges the real engine-config snapshots
+ FAIL  apps/web/src/__tests__/persona-variants-1d.real-world.test.ts > carries a variant login override through recurring fires and drift rebinds
+Error: Campaign variants must be a list of variant definitions
+ ❯ validateCampaignVariants apps/web/src/workbench.ts:129:13
+    127|     if (!payloadKey) throw new HttpError(400, 'Unsupported variant kin…
+    128|     if (Object.keys(entry).some((key) => !['key', 'label', 'kind', pay…
+    129|       throw new HttpError(400, 'Campaign variants must be a list of va…
+       |             ^
+    130|     const key = entry.key;
+    131|     const label = entry.label;
+ ❯ Workbench.queueCampaign apps/web/src/workbench.ts:541:22
+ ❯ apps/web/src/workbench.ts:511:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  apps/web/src/__tests__/persona-variants-1d.real-world.test.ts > rejects every invalid variant login override with its distinct 400 before enqueueing anything
+AssertionError: expected [Function] to throw error matching /variant login route must start with \// but got 'Campaign variants must be a list of v…'
+
+- Expected:
+/variant login route must start with \//u
+
++ Received:
+"Campaign variants must be a list of variant definitions"
+
+ ❯ apps/web/src/__tests__/persona-variants-1d.real-world.test.ts:271:55
+    269|   ];
+    270|   for (const [input, message] of cases)
+    271|     await expect(wb.enqueueCampaign(project.id, input)).rejects.toThro…
+       |                                                       ^
+    272|   expect(wb.store.runs()).toHaveLength(before);
+    273| }, 120_000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  apps/web/src/__tests__/persona-variants-1d.real-world.test.ts > saves a persona variant with its login override through the real dialog and API
+TimeoutError: locator.fill: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByLabel('Variant login route')
+
+ ❯ apps/web/src/__tests__/persona-variants-1d.real-world.test.ts:380:50
+    378|       .getByLabel('Variant password secret reference')
+    379|       .fill('ARXIC_SECRET_PERSONA_B_PASSWORD');
+    380|     await page.getByLabel('Variant login route').fill('/login/alternat…
+       |                                                  ^
+    381|     await page.getByLabel('Variant login email label', { exact: true }…
+    382|     await page.getByLabel('Variant login password label', { exact: tru…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  18:13:12
+   Duration  53.89s (transform 1.14s, setup 0ms, import 3.46s, tests 50.30s, environment 0ms)
+
