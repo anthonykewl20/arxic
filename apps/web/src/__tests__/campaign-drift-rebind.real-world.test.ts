@@ -138,6 +138,14 @@ it('rebinds a commit-drifted recurring campaign by row identity and keeps firing
   expect(rebound.runIds).toHaveLength(1);
   expect(audits('campaign.rebound')).toHaveLength(1);
 
+  // FRESH read from the store: the rebind outcome counts land as data on the
+  // campaign record — one survivor, nothing dropped.
+  const freshHappy = wb.store.campaign(campaign.id)!;
+  expect(freshHappy.rebound).toBeDefined();
+  expect(freshHappy.rebound!.survivors).toBe(1);
+  expect(freshHappy.rebound!.dropped).toBe(0);
+  expect(typeof freshHappy.rebound!.at).toBe('string');
+
   // The re-armed slot fires on the NEW source with a NEW-commit scope.
   const slot3 = new Date(rebound.nextFireAt!);
   wb.tick(slot3);
@@ -169,6 +177,8 @@ it('stops with rebind-exhausted when the drifted inventory no longer contains th
   await wb.idle();
   const stopped = wb.store.campaign(campaign.id)!;
   expect(stopped.rebinding).toBeUndefined();
+  // Stop paths stay field-free: no rebind landed, so no outcome counts exist.
+  expect(stopped.rebound).toBeUndefined();
   expect(stopped.nextFireAt).toBeNull();
   expect(audits('campaign.rebind-exhausted')).toHaveLength(1);
   expect(audits('campaign.rebound')).toHaveLength(0);
@@ -224,6 +234,12 @@ it('rebinds partially: survivors remap and fire while dropped rows stop and stay
       ),
   ).toBe(true);
   expect(audits('campaign.rebind-exhausted')).toHaveLength(0);
+
+  // FRESH read: the partial outcome is recorded exactly — one survivor, one drop.
+  const freshPartial = wb.store.campaign(campaign.id)!;
+  expect(freshPartial.rebound).toBeDefined();
+  expect(freshPartial.rebound!.survivors).toBe(1);
+  expect(freshPartial.rebound!.dropped).toBe(1);
 
   // The re-armed slot fires the survivor on the new source; the dropped row is done.
   const slot3 = new Date(rebound.nextFireAt!);

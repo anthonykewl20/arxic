@@ -133,6 +133,12 @@ export type Campaign = {
    * fires; the campaign id itself is unchanged across the rebind.
    */
   rebinding?: { discoveryRunId: string };
+  /**
+   * Latest rebind outcome — survivors re-acquired per-row executions on the
+   * new commit, dropped selections were audited per row; overwritten by any
+   * later rebind; historical, survives until the campaign is deleted.
+   */
+  rebound?: { survivors: number; dropped: number; at: string };
   runIds: string[];
   rows: Array<{
     key: string;

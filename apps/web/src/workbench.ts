@@ -618,6 +618,7 @@ export class Workbench {
     }
     if (this.store.activeCount() + survivors.length > 20) return; // deferred; retried on a later drain
     const nextFireAt = campaign.cron ? nextSlot(campaign.cron) : null;
+    const survivorIds = new Set(survivors.map((row) => row.inventoryRowId!));
     this.store.db.transaction(() => {
       // Same identity, new source: rows come fresh from the NEW inventory and
       // only survivors carry runId (the fire path executes rows with a runId).
@@ -628,6 +629,11 @@ export class Workbench {
         nextFireAt,
         runIds: [],
         rows,
+        rebound: {
+          survivors: survivors.length,
+          dropped: selected.size - survivorIds.size,
+          at: new Date().toISOString(),
+        },
       };
       for (const row of survivors) {
         const run = this.store.enqueue(project, 'agent')!;
@@ -642,7 +648,6 @@ export class Workbench {
       }
       this.store.saveCampaign(rebound);
       this.store.audit('campaign.rebound', campaign.id);
-      const survivorIds = new Set(survivors.map((row) => row.inventoryRowId!));
       for (const id of selected)
         if (!survivorIds.has(id))
           this.store.audit('campaign.rebound-row-dropped', `${campaign.id}/${id}`);
