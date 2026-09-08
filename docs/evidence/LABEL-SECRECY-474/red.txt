@@ -1,0 +1,32 @@
+RED stage — recorded on main (7bb767df) before the maskLabelUiCopy change,
+worktree .worktrees/label-secrecy-474, 2026-09-08 local. Command:
+
+  pnpm vitest run packages/bundle-promoter/src/__tests__/label-masking.test.ts \
+    packages/orchestrator-langgraph/src/__tests__/persist-label-masking.test.ts \
+    packages/orchestrator-langgraph/src/__tests__/persist-label-masking.real-world.test.ts
+
+ ❯ packages/orchestrator-langgraph/src/__tests__/persist-label-masking.test.ts (3 tests | 1 failed) 42ms
+     × masks an email-placeholder-derived label instead of blocking the stage-5 surface artifact 35ms
+     ✓ sad path: the same email outside a label value still refuses to persist 3ms
+     ✓ persona values inside a label keep the known-value redaction precedence 2ms
+ ❯ packages/orchestrator-langgraph/src/__tests__/persist-label-masking.real-world.test.ts (1 test | 1 failed) 1004ms
+     × persists a real placeholder-only email control masked instead of blocking stage 5 1003ms
+ ❯ packages/bundle-promoter/src/__tests__/label-masking.test.ts (5 tests | 2 failed) 61ms
+     × masks pattern-class matches inside label values whole and reports the masked classes 58ms
+     × masks any pattern class inside labels, not only emails 1ms
+     ✓ sad path: the same classes outside label values still produce refusing diagnostics 1ms
+     ✓ keeps known-value redaction ahead of label masking 1ms
+     ✓ leaves label values without pattern hits untouched 0ms
+ FAIL … persist-label-masking.real-world.test.ts
+PersistedSecretError: Refusing to persist sensitive data matched email-address
+ FAIL … persist-label-masking.test.ts
+PersistedSecretError: Refusing to persist sensitive data matched email-address
+ Test Files  3 failed (3)
+      Tests  3 failed | 6 passed (9)
+
+Notes: the real-world journey ran the REAL CrawleeSurfaceDiscoverer (real
+Chromium) against a real HTTP server whose email input carries
+placeholder="you@example.com"; the probe captured the placeholder into the
+control label (asserted before persisting), and the REAL FileStageCheckpointer
+refused at stage 5 with the exact diagnostic from the 14/14 blocked mightybox
+campaign runs (ARXIC-ORCH-STAGE-BLOCKED wraps this PersistedSecretError).
