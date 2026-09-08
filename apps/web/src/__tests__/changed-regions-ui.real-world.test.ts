@@ -11,6 +11,7 @@ import {
 } from '../../../../packages/real-world-testkit/src';
 import { Workbench } from '../workbench';
 import { startWorkbench } from './workbench-runtime';
+import { requireCompletedRun } from './run-outcome';
 
 const REGION_STYLE = `<style>
 body::before{content:'';position:fixed;z-index:2147483647;left:40px;top:40px;width:40px;height:40px;background:#e14b1f}
@@ -51,17 +52,16 @@ it('walks changed regions with an overlay and keyboard shortcuts in a real brows
     const first = wb.enqueue(project.id, 'visual');
     if (!first) throw new Error('first visual run was not queued');
     await wb.idle();
-    const firstRun = wb.store.run(first.id);
-    const baselineCapture = firstRun?.result?.captures?.[0];
-    if (!baselineCapture) throw new Error('first visual run produced no captures');
+    const firstRun = requireCompletedRun(wb.store.run(first.id), 'first');
+    const baselineCapture = firstRun.result?.captures?.[0];
+    if (!baselineCapture) throw new Error('first visual run completed without captures');
     await wb.approveBaseline(first.id, baselineCapture.id);
 
     changed = true;
     const second = wb.enqueue(project.id, 'visual');
     if (!second) throw new Error('second visual run was not queued');
     await wb.idle();
-    const secondRun = wb.store.run(second.id);
-    if (!secondRun) throw new Error('second visual run is missing');
+    const secondRun = requireCompletedRun(wb.store.run(second.id), 'second');
     const compared = secondRun.result?.captures?.[0];
     expect(compared?.status).toBe('changed');
     expect(compared?.diffFile).toBeTruthy();
