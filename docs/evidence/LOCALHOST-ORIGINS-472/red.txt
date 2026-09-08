@@ -1,0 +1,30 @@
+RED stage — recorded on main (7bb767df) before the classifyTarget fix, worktree
+. worktrees/localhost-origins-472, 2026-09-08 local. Command:
+
+  pnpm vitest run packages/environment/src/__tests__/contract-gate.test.ts \
+    packages/environment/src/__tests__/localhost-origins.real-world.test.ts
+
+ ❯ packages/environment/src/__tests__/contract-gate.test.ts (8 tests | 1 failed) 61ms
+     ✓ loop-closes every exported ARXIC-ATTESTATION code through the frozen validator 49ms
+     ✓ loop-closes every registered ARXIC-WORKER code through the frozen validator 1ms
+     ✓ classifies loopback, private, and reserved suffixes apart from production-looking targets 1ms
+     × classifies RFC 6761 *.localhost hostnames as loopback-safe, not production-looking 7ms
+     ✓ accepts an independently signed receipt and always records an allowed decision 1ms
+     ✓ always records a refused decision 0ms
+     ✓ does not use a human approval to bypass a non-production environment denial 0ms
+     ✓ does not use a human approval to bypass a malformed origin 1ms
+ ❯ packages/environment/src/__tests__/localhost-origins.real-world.test.ts (1 test | 1 failed) 86ms
+     × accepts a valid local-test attestation served on a real *.localhost origin 73ms
+ FAIL  packages/environment/src/__tests__/contract-gate.test.ts > ADR §23.14 target-attestation contract gate > classifies RFC 6761 *.localhost hostnames as loopback-safe, not production-looking
+AssertionError: expected { productionLooking: true, …(1) } to match object { productionLooking: false, …(1) }
+-   "productionLooking": false,
++   "productionLooking": true,
+     78|         productionLooking: false,
+ FAIL  packages/environment/src/__tests__/localhost-origins.real-world.test.ts > real-world *.localhost target origin > accepts a valid local-test attestation served on a real *.localhost origin
+AssertionError: expected [ 'stack-localhost' ] to deeply equal []
+ Test Files  2 failed (2)
+      Tests  2 failed | 7 passed (9)
+
+Notes: the real-world journey reached the real server (ephemeral loopback port,
+resolver synthesized stack.localhost → ::1/127.0.0.1) and the refusal came from
+the production-looking classification — the exact live failure from issue #472.

@@ -176,6 +176,13 @@ jobs:
           rustup toolchain install 1.89.0 --profile minimal --no-self-update
           echo "ARXIC_VISUAL_RUSTC=$(rustup which --toolchain 1.89.0 rustc)" >> "$GITHUB_ENV"
 
+      # The *.localhost real-world journey (packages/environment, issue #472)
+      # needs RFC 6761 §6.3 *.localhost → loopback synthesis. Dev hosts get it
+      # from systemd-resolved; pin it here so the handshake journey is
+      # deterministic on runners regardless of their resolver configuration.
+      - name: Map the RFC 6761 *.localhost probe host
+        run: echo '127.0.0.1 stack.localhost' | sudo tee -a /etc/hosts
+
       - name: Test
         run: pnpm exec vitest run --shard=${{ matrix.shard }}
         env:
