@@ -162,6 +162,29 @@ function CampaignDetail({
                       ? 'unselected'
                       : row.disposition}
                 </small>
+                {(() => {
+                  // Per-variant outcome attribution; optional fields narrowed
+                  // into locals before JSX (TS2322 lesson, #482/#489).
+                  const runIds = row.runIds;
+                  if (!runIds?.length) return null;
+                  const variants = campaign.variants;
+                  return runIds.map((id) => {
+                    const workflow = campaign.workflows.find((item) => item.id === id);
+                    const key = workflow?.variantKey ?? '';
+                    const label = variants?.find((item) => item.key === key)?.label ?? key;
+                    const state = workflow?.state ?? 'blocked';
+                    const outcome = workflow?.outcome;
+                    return (
+                      <small
+                        key={id}
+                        className="variant-outcome"
+                        data-variant-outcome={`${key}:${state}`}
+                      >
+                        {label}: {state} · {outcome ?? 'awaiting execution'}
+                      </small>
+                    );
+                  });
+                })()}
                 {row.reason && <small>{row.reason}</small>}
               </div>
               {run && (
