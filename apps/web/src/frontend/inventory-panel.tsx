@@ -6,6 +6,7 @@ import type { RowHistory } from '../campaigns';
 import {
   configurationOmissions,
   routeStateCoverage,
+  runtimeStateMap,
   type RouteCoverageDimensionName,
 } from '../route-coverage';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
@@ -277,13 +278,18 @@ function RouteOmissionCoverage({
   inventory,
   frontend,
   project,
+  runtimeStates,
+  runtimeObservationGap,
 }: {
   inventory: DomainInventory;
   frontend: FrontendInventory;
   project: Project;
+  runtimeStates?: NonNullable<Run['result']>['runtimeStates'];
+  runtimeObservationGap?: string;
 }) {
   const coverage = routeStateCoverage(inventory, frontend);
   const configOmissions = configurationOmissions(project, inventory, frontend);
+  const runtimeMapping = runtimeStates ? runtimeStateMap(coverage, runtimeStates) : undefined;
   if (!coverage.length) return null;
   return (
     <section className="route-coverage" data-route-coverage>
@@ -329,6 +335,44 @@ function RouteOmissionCoverage({
         <p className="scope-note">
           First 50 routes shown; the complete inventory JSON preserves every route.
         </p>
+      )}
+      {runtimeObservationGap && (
+        <p className="scope-note" data-runtime-gap>
+          Runtime state observation skipped: {runtimeObservationGap}. Point the project at a running
+          test app to map source-declared states onto rendered ones.
+        </p>
+      )}
+      {runtimeMapping && (
+        <div className="runtime-mapping" data-runtime-mapping>
+          <h3>Runtime state mapping</h3>
+          <p className="scope-note">
+            What plain navigation of the running app actually rendered, mapped onto the source
+            declarations above. Plain navigation cannot provoke every conditional: a
+            declared-unobserved state may still exist behind data or sign-in, and an
+            observed-undeclared marker means the runtime shows something no source declaration
+            accounts for.
+          </p>
+          <ul>
+            {runtimeMapping
+              .filter((route) =>
+                route.dimensions.some(({ mapping }) => mapping !== 'unobserved-undeclared'),
+              )
+              .map((route) => (
+                <li key={`${route.method} ${route.path}`} data-route={route.path}>
+                  <code>
+                    {route.method} {route.path}
+                  </code>{' '}
+                  {route.dimensions
+                    .filter(({ mapping }) => mapping !== 'unobserved-undeclared')
+                    .map((dimension) => (
+                      <span key={dimension.name} className={`runtime-${dimension.mapping}`}>
+                        {dimensionLabels[dimension.name]} <small>{dimension.mapping}</small>
+                      </span>
+                    ))}
+                </li>
+              ))}
+          </ul>
+        </div>
       )}
       {configOmissions.length > 0 && (
         <div className="config-omissions" data-config-omissions>
@@ -474,6 +518,8 @@ function FrontendDeclarations({
               inventory={routeInventory}
               frontend={inventory}
               project={run.project}
+              runtimeStates={run.result?.runtimeStates}
+              runtimeObservationGap={run.result?.runtimeObservationGap}
             />
           )
         );
