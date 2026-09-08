@@ -209,7 +209,10 @@ it('rejects every invalid variant login override with its distinct 400 before en
     key: 'persona-a',
     label: 'Persona A',
     kind: 'persona',
-    persona: { emailRef: 'ARXIC_SECRET_PERSONA_A_EMAIL', passwordRef: 'ARXIC_SECRET_PERSONA_A_PASSWORD' },
+    persona: {
+      emailRef: 'ARXIC_SECRET_PERSONA_A_EMAIL',
+      passwordRef: 'ARXIC_SECRET_PERSONA_A_PASSWORD',
+    },
   };
   const cases: Array<[Record<string, unknown>, RegExp]> = [
     // route without a leading slash
@@ -261,7 +264,13 @@ it('rejects every invalid variant login override with its distinct 400 before en
       {
         ...base,
         variants: [
-          { key: 'state-c', label: 'State C', kind: 'state', state: 'anonymous', login: { ...ALTERNATE_LOGIN } },
+          {
+            key: 'state-c',
+            label: 'State C',
+            kind: 'state',
+            state: 'anonymous',
+            login: { ...ALTERNATE_LOGIN },
+          },
         ],
       },
       /must be a list of variant definitions/u,
@@ -368,7 +377,9 @@ it('saves a persona variant with its login override through the real dialog and 
     await page.getByLabel('Domain declarations', { exact: false }).fill('authentication');
     await page.getByRole('button', { name: 'Save project' }).click();
     await page.getByRole('checkbox', { name: 'Select GET /login', exact: true }).check();
-    await page.waitForResponse((response) => response.url().endsWith('/api/state') && response.ok());
+    await page.waitForResponse(
+      (response) => response.url().endsWith('/api/state') && response.ok(),
+    );
 
     // One persona variant row with the full login override (route + three labels).
     await page.getByRole('button', { name: 'Add variant' }).click();
@@ -390,7 +401,7 @@ it('saves a persona variant with its login override through the real dialog and 
         response.ok(),
     );
     await page.getByRole('button', { name: 'Start selected campaign', exact: true }).click();
-    const record = ((await (await saved).json()) as unknown) as Campaign;
+    const record = (await (await saved).json()) as unknown as Campaign;
     expect(record.variants).toEqual([
       {
         key: 'alternate-persona',

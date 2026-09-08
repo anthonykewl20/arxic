@@ -542,9 +542,7 @@ document.addEventListener('submit', async (event) => {
       })
       .filter((variant) => {
         if (variant.kind === 'persona')
-          return (
-            variant.label || variant.persona.emailRef || variant.persona.passwordRef
-          );
+          return variant.label || variant.persona.emailRef || variant.persona.passwordRef;
         if (variant.kind === 'flag') return variant.label || Object.keys(variant.flags).length > 0;
         return variant.label;
       });

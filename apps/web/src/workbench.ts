@@ -65,10 +65,7 @@ export function variantEnvironment(
  */
 function variantScopePayload(
   variant: NonNullable<Campaign['variants']>[number],
-): Pick<
-  NonNullable<Run['workflowScope']>,
-  'variantFlags' | 'variantState' | 'variantLogin'
-> {
+): Pick<NonNullable<Run['workflowScope']>, 'variantFlags' | 'variantState' | 'variantLogin'> {
   if (variant.kind === 'flag') return { variantFlags: { ...variant.flags } };
   if (variant.kind === 'state') return { variantState: 'anonymous' };
   return {
@@ -142,7 +139,13 @@ function validateCampaignVariants(input: unknown): NonNullable<Campaign['variant
     if (!payloadKey) throw new HttpError(400, 'Unsupported variant kind');
     // `login` is a persona-only key: on flag/state entries it falls through to
     // the same foreign-payload 400 as every other misplaced key.
-    const allowedKeys = ['key', 'label', 'kind', payloadKey, ...(kind === 'persona' ? ['login'] : [])];
+    const allowedKeys = [
+      'key',
+      'label',
+      'kind',
+      payloadKey,
+      ...(kind === 'persona' ? ['login'] : []),
+    ];
     if (Object.keys(entry).some((key) => !allowedKeys.includes(key)))
       throw new HttpError(400, 'Campaign variants must be a list of variant definitions');
     const key = entry.key;
@@ -178,8 +181,8 @@ function validateCampaignVariants(input: unknown): NonNullable<Campaign['variant
           !raw ||
           typeof raw !== 'object' ||
           Array.isArray(raw) ||
-          Object.keys(raw).some((name) =>
-            !['route', 'emailLabel', 'passwordLabel', 'submitLabel'].includes(name),
+          Object.keys(raw).some(
+            (name) => !['route', 'emailLabel', 'passwordLabel', 'submitLabel'].includes(name),
           )
         )
           throw new HttpError(400, 'A variant login override must be a login form declaration');
