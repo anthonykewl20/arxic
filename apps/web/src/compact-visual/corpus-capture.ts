@@ -1,9 +1,10 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
-import { join } from 'node:path';
+import { access, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { extname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
+import http from 'node:http';
 import { chromium, type Locator, type Page } from 'playwright';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import {
@@ -68,6 +69,127 @@ type StartedFamily = { surface: FamilySurface; stop: () => Promise<void> };
 
 const THIRD_PARTY_ROOT =
   process.env.ARXIC_VISUAL_THIRD_PARTY ?? '/home/soultransit/devtony/thirdparty-dg';
+
+const PUBLIC_FAMILIES_ROOT =
+  process.env.ARXIC_VISUAL_PUBLIC_FAMILIES ?? `${THIRD_PARTY_ROOT}/public-families`;
+
+/**
+ * Static open-source application families served read-only from local clones
+ * under PUBLIC_FAMILIES_ROOT (commit-pinned; local-only, never committed).
+ * todomvc's vanilla app has no button role, so its input is the control; the
+ * admin templates expose login pages whose submit button is the control.
+ */
+export const STATIC_FAMILY_CONFIG: Record<
+  string,
+  {
+    docroot: string;
+    path: string;
+    button: string;
+    buttonExact: boolean;
+    buttonSelector?: string;
+    vendorRoutes?: Record<string, string>;
+  }
+> = {
+  todomvc: {
+    // The monorepo root must be the docroot: the app loads per-example
+    // node_modules assets that the shallow clone does not ship, so those
+    // requests route to the local todomvc-vendor clones instead.
+    docroot: 'todomvc',
+    path: '/examples/javascript-es5/',
+    button: '',
+    buttonExact: true,
+    buttonSelector: 'input.new-todo',
+    vendorRoutes: {
+      '/examples/javascript-es5/node_modules/todomvc-common/': 'todomvc-vendor/todomvc-common',
+      '/examples/javascript-es5/node_modules/todomvc-app-css/': 'todomvc-vendor/todomvc-app-css',
+    },
+  },
+  gentelella: {
+    docroot: 'gentelella/production',
+    path: '/index.html',
+    button: '',
+    buttonExact: true,
+    buttonSelector: 'div.page-actions button.btn-outline',
+  },
+  'sb-admin': {
+    docroot: 'sb-admin/dist',
+    path: '/login.html',
+    button: '',
+    buttonExact: true,
+    buttonSelector: 'a.btn.btn-primary',
+  },
+  adminlte: {
+    // The OSS dist's index pages keep every real button below the fold at this
+    // viewport; the starter page's card button is visible without scrolling.
+    docroot: 'adminlte',
+    path: '/starter.html',
+    button: '',
+    buttonExact: true,
+    buttonSelector: ':nth-match(a.btn.btn-primary, 1)',
+  },
+};
+
+const CONTENT_TYPES: Record<string, string> = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+};
+
+/** Read-only static file server for one public-family docroot on an
+ * ephemeral loopback port. Serves nothing outside the docroot or an explicit
+ * vendor route. */
+export async function startStaticFamily(config: {
+  docroot: string;
+  /** Exact path-prefix routes for vendored assets the app expects but the
+   * clone does not ship (todomvc's per-example node_modules). */
+  vendorRoutes?: Record<string, string>;
+}): Promise<StartedFamily> {
+  const root = resolve(PUBLIC_FAMILIES_ROOT, config.docroot);
+  await access(join(root, 'index.html'));
+  const vendorRoots = Object.entries(config.vendorRoutes ?? {}).map(
+    ([prefix, dir]) => [prefix, resolve(PUBLIC_FAMILIES_ROOT, dir)] as const,
+  );
+  const server = http.createServer(async (request, response) => {
+    try {
+      const url = new URL(request.url ?? '/', 'http://127.0.0.1');
+      let pathname = decodeURIComponent(url.pathname);
+      if (pathname.endsWith('/')) pathname += 'index.html';
+      const vendor = vendorRoots.find(([prefix]) => pathname.startsWith(prefix));
+      const base = vendor ? vendor[1] : root;
+      const relative = vendor ? pathname.slice(vendor[0].length) : pathname;
+      const file = resolve(base, `.${relative.startsWith('/') ? relative : `/${relative}`}`);
+      if (!file.startsWith(base + '/') && file !== base) throw new Error('outside-docroot');
+      const bytes = await readFile(file);
+      response.writeHead(200, {
+        'content-type': CONTENT_TYPES[extname(file)] ?? 'application/octet-stream',
+      });
+      response.end(bytes);
+    } catch {
+      response.writeHead(404, { 'content-type': 'text/plain' });
+      response.end('not-found');
+    }
+  });
+  await new Promise<void>((resolveListen) => server.listen(0, '127.0.0.1', resolveListen));
+  const origin = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+  return {
+    surface: { origin, path: '/', button: '', buttonExact: true },
+    stop: () =>
+      new Promise<void>((resolveClose) => {
+        // Chromium keeps idle keep-alive sockets open; closeIdleConnections
+        // lets the server actually finish instead of waiting out their lifetime.
+        server.closeIdleConnections();
+        server.close(() => resolveClose());
+      }),
+  };
+}
 
 async function bootDockerFamily(config: {
   image: string;
@@ -228,6 +350,35 @@ export async function startFamily(root: string, family: string): Promise<Started
     });
     return {
       surface: { ...started.surface, path: '/admin', button: 'Sign In', buttonExact: false },
+      stop: started.stop,
+    };
+  }
+  if (family === 'mailpit') {
+    const started = await bootDockerFamily({
+      image: 'axllent/mailpit:v1.30.0',
+      containerPrefix: 'mailpit-visual-corpus',
+      containerPort: 8025,
+      mounts: [],
+      args: ['axllent/mailpit:v1.30.0'],
+      healthPath: '/',
+    });
+    return {
+      // The SPA's accessible button names carry a leading space; exact matching misses them.
+      surface: { ...started.surface, button: 'Delete all', buttonExact: false },
+      stop: started.stop,
+    };
+  }
+  const staticFamily = STATIC_FAMILY_CONFIG[family];
+  if (staticFamily) {
+    const started = await startStaticFamily(staticFamily);
+    return {
+      surface: {
+        ...started.surface,
+        path: staticFamily.path,
+        button: staticFamily.button,
+        buttonExact: staticFamily.buttonExact,
+        buttonSelector: staticFamily.buttonSelector,
+      },
       stop: started.stop,
     };
   }
