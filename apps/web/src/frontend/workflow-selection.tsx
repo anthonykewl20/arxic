@@ -118,7 +118,8 @@ export function WorkflowSelection({
             <legend>Persona variants</legend>
             <p className="muted">
               Optional: each selected workflow additionally runs once per persona variant, using the
-              variant's ARXIC_SECRET_ credential references (up to 4). Variant campaigns run once.
+              variant's ARXIC_SECRET_ credential references (up to 4). Each scheduled fire repeats
+              the full fan-out.
             </p>
             {variantDrafts.map((draft, index) => (
               <div className="variant-fields" key={draft.id}>

@@ -508,11 +508,6 @@ export class Workbench {
     const nextFireAt = cron === undefined ? undefined : nextSlot(cron);
     if (cron !== undefined && !nextFireAt)
       throw new HttpError(400, 'Use a five-field cron expression in UTC');
-    if (cron !== undefined && variants.length)
-      throw new HttpError(
-        400,
-        'Variant campaigns run once; recurring variants are not implemented yet',
-      );
     // Variant fan-out multiplies the whole-campaign capacity reservation.
     const slots = selected.length * (1 + variants.length);
     if (this.store.activeCount() + slots > 20)
@@ -653,12 +648,6 @@ export class Workbench {
 
   /** Rebind-first drift handling; stopDriftedSchedules stays the honest fallback. */
   private async startRebindOrStop(campaign: Campaign, project: Project) {
-    // Slice-1 fallback: rebind-by-variant identity is slice 1b; a variant
-    // campaign stops honestly instead of rebinding onto a default-only remap.
-    if (campaign.variants?.length) {
-      this.stopRebind(campaign, 'campaign.rebind-failed');
-      return;
-    }
     let discoveryRunId: string | undefined;
     if (project.execution) {
       try {
@@ -710,12 +699,6 @@ export class Workbench {
   }
 
   private async rebindCampaign(campaign: Campaign, discovery: Run) {
-    // Slice-1 fallback (same guard as startRebindOrStop): variant campaigns
-    // never reach the inventory remap work.
-    if (campaign.variants?.length) {
-      this.stopRebind(campaign, 'campaign.rebind-failed');
-      return;
-    }
     const inventory = discovery.result?.inventory;
     const project = this.store.project(campaign.projectId);
     if (!inventory || !project?.execution) {
@@ -746,7 +729,9 @@ export class Workbench {
       this.stopRebind(campaign, 'campaign.rebind-exhausted');
       return;
     }
-    if (this.store.activeCount() + survivors.length > 20) return; // deferred; retried on a later drain
+    // Variant fan-out multiplies the remap's whole-campaign capacity reservation.
+    if (this.store.activeCount() + survivors.length * (1 + (campaign.variants?.length ?? 0)) > 20)
+      return; // deferred; retried on a later drain
     const nextFireAt = campaign.cron ? nextSlot(campaign.cron) : null;
     const survivorIds = new Set(survivors.map((row) => row.inventoryRowId!));
     this.store.db.transaction(() => {
@@ -766,15 +751,33 @@ export class Workbench {
         },
       };
       for (const row of survivors) {
-        const run = this.store.enqueue(project, 'agent')!;
-        run.workflowScope = {
+        // Same fan-out shape as queueCampaign: default run first, then one run
+        // per variant in declared order with variantKey set on the scope.
+        const defaultRun = this.store.enqueue(project, 'agent')!;
+        defaultRun.workflowScope = {
           campaignId: campaign.id,
           inventoryRowId: row.inventoryRowId!,
           sourceCommit: current.commit,
         };
-        this.store.saveRun(run);
-        rebound.runIds.push(run.id);
-        rebound.rows.find((item) => item.inventoryRowId === row.inventoryRowId)!.runId = run.id;
+        this.store.saveRun(defaultRun);
+        rebound.runIds.push(defaultRun.id);
+        rebound.rows.find((item) => item.inventoryRowId === row.inventoryRowId)!.runId =
+          defaultRun.id;
+        for (const variant of campaign.variants ?? []) {
+          const variantRun = this.store.enqueue(project, 'agent')!;
+          variantRun.workflowScope = {
+            campaignId: campaign.id,
+            inventoryRowId: row.inventoryRowId!,
+            sourceCommit: current.commit,
+            variantKey: variant.key,
+          };
+          this.store.saveRun(variantRun);
+          rebound.runIds.push(variantRun.id);
+          const reboundRow = rebound.rows.find(
+            (item) => item.inventoryRowId === row.inventoryRowId,
+          )!;
+          reboundRow.runIds = [...(reboundRow.runIds ?? []), variantRun.id];
+        }
       }
       this.store.saveCampaign(rebound);
       this.store.audit('campaign.rebound', campaign.id);
@@ -828,7 +831,9 @@ export class Workbench {
         // discovery rows stay out of the slot's cost and queue capacity.
         const rows = source.rows.filter((row) => row.inventoryRowId && row.runId);
         // Deferred, not dropped: the slot stays due and retries on the next tick.
-        if (this.store.activeCount() + rows.length > 20) continue;
+        // Variant fan-out multiplies the fire's whole-campaign capacity reservation.
+        if (this.store.activeCount() + rows.length * (1 + (source.variants?.length ?? 0)) > 20)
+          continue;
         const fired: Campaign = {
           id: randomUUID(),
           projectId: source.projectId,
@@ -837,18 +842,40 @@ export class Workbench {
           sourceCommit: source.sourceCommit,
           createdAt: now.toISOString(),
           runIds: [],
-          rows: source.rows.map((row) => ({ ...row, runId: undefined })),
+          // Strip BOTH ids: the spread would silently keep the source row's
+          // stale runIds from the creation fan-out, corrupting per-fire attribution.
+          rows: source.rows.map((row) => ({ ...row, runId: undefined, runIds: undefined })),
+          // LOAD-BEARING: drain resolves a fired variant run's credentials via
+          // store.campaign(run.workflowScope.campaignId) — the fired record must
+          // carry the variants or every fired variant run would block as
+          // unresolvable.
+          ...(source.variants?.length ? { variants: source.variants } : {}),
         };
         for (const row of rows) {
-          const run = this.store.enqueue(scheduledProject, 'agent')!;
-          run.workflowScope = {
+          // Same fan-out shape as queueCampaign: default run first, then one run
+          // per variant in declared order with variantKey set on the scope.
+          const firedRow = fired.rows.find((item) => item.inventoryRowId === row.inventoryRowId)!;
+          const defaultRun = this.store.enqueue(scheduledProject, 'agent')!;
+          defaultRun.workflowScope = {
             campaignId: fired.id,
             inventoryRowId: row.inventoryRowId!,
             sourceCommit: source.sourceCommit,
           };
-          this.store.saveRun(run);
-          fired.runIds.push(run.id);
-          fired.rows.find((item) => item.inventoryRowId === row.inventoryRowId)!.runId = run.id;
+          this.store.saveRun(defaultRun);
+          fired.runIds.push(defaultRun.id);
+          firedRow.runId = defaultRun.id;
+          for (const variant of source.variants ?? []) {
+            const variantRun = this.store.enqueue(scheduledProject, 'agent')!;
+            variantRun.workflowScope = {
+              campaignId: fired.id,
+              inventoryRowId: row.inventoryRowId!,
+              sourceCommit: source.sourceCommit,
+              variantKey: variant.key,
+            };
+            this.store.saveRun(variantRun);
+            fired.runIds.push(variantRun.id);
+            firedRow.runIds = [...(firedRow.runIds ?? []), variantRun.id];
+          }
         }
         this.store.saveCampaign({ ...source, nextFireAt: nextSlot(source.cron, now) });
         this.store.saveCampaign(fired);
