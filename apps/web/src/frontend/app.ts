@@ -323,6 +323,7 @@ function render() {
         selectedId: selectedCampaign,
         projectId: selectedProject,
         pages: campaignPages,
+        runs: state.runs ?? [],
       },
       admin: { onChanged: refresh },
     });

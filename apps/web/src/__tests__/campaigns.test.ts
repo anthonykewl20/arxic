@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it } from 'vitest';
 import { Workbench } from '../workbench';
+import type { Campaign } from '../types';
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
 
 const cleanups: Array<() => Promise<void>> = [];
@@ -269,3 +270,76 @@ it('cannot delete discovery evidence while a campaign is being created', async (
     await wb.idle();
   }
 }, 60_000);
+
+/** Full campaign record for view-derivation unit cases; children are passed separately. */
+function viewCampaign(overrides: Partial<Campaign> = {}): Campaign {
+  return {
+    id: 'view-campaign',
+    projectId: 'project',
+    projectName: 'Rebind view',
+    discoveryRunId: 'discovery',
+    sourceCommit: 'a'.repeat(40),
+    createdAt: '2026-09-05T00:00:00Z',
+    runIds: ['child'],
+    rows: [
+      {
+        key: 'GET /login',
+        method: 'GET',
+        path: '/login',
+        disposition: 'extracted',
+        reason: '',
+        inventoryRowId: 'inv:page:GET:7db4b8bf2d28',
+        runId: 'child',
+      },
+    ],
+    ...overrides,
+  };
+}
+
+const finishedChild = {
+  state: 'completed' as const,
+  result: { outcome: 'verified' as const, summary: 'ok' },
+};
+
+it('surfaces a rebinding campaign as rebinding while its rebind discovery runs', async () => {
+  const { campaignView } = await import('../campaigns');
+  const view = campaignView(viewCampaign({ rebinding: { discoveryRunId: 'discovery-rebind' } }), [
+    finishedChild,
+  ]);
+  expect(view.state).toBe('rebinding');
+  expect(view.counts).toMatchObject({ selected: 1, verified: 1, pending: 0 });
+  // The raw marker flows through the view JSON so the panel can carry the
+  // discovery run's live state without widening any payload.
+  expect(view.rebinding).toEqual({ discoveryRunId: 'discovery-rebind' });
+});
+
+it('keeps cancelled precedence over an in-flight rebind marker', async () => {
+  const { campaignView } = await import('../campaigns');
+  const view = campaignView(
+    viewCampaign({
+      cancelledAt: '2026-09-06T00:00:00Z',
+      rebinding: { discoveryRunId: 'discovery-rebind' },
+    }),
+    [finishedChild],
+  );
+  expect(view.state).toBe('cancelled');
+});
+
+it('presents a disarmed recurring schedule as the stopped state it is', async () => {
+  const { campaignView } = await import('../campaigns');
+  // Exhausted/failed rebind fallbacks clear `rebinding` and leave the cron slot
+  // disarmed (nextFireAt null): the campaign stopped, it did not complete.
+  const stopped = campaignView(viewCampaign({ cron: '0 0 1 1 *', nextFireAt: null }), [
+    finishedChild,
+  ]);
+  expect(stopped.state).toBe('blocked');
+  // An armed recurring schedule is not stopped: it reads as completed.
+  const armed = campaignView(
+    viewCampaign({ cron: '0 0 1 1 *', nextFireAt: '2027-01-01T00:00:00.000Z' }),
+    [finishedChild],
+  );
+  expect(armed.state).toBe('completed');
+  // One-shot campaigns (no cron) are unaffected either way.
+  const oneShot = campaignView(viewCampaign(), [finishedChild]);
+  expect(oneShot.state).toBe('completed');
+});

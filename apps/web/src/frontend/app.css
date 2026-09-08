@@ -679,7 +679,8 @@
   }
   .pill.hypothesized,
   .pill.queued,
-  .pill.running {
+  .pill.running,
+  .pill.rebinding {
     background: var(--info-soft);
     border-color: transparent;
     color: var(--primary);
