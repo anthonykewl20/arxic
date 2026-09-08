@@ -120,6 +120,13 @@ export type Campaign = {
   /** Five-field UTC cron; when set, each slot re-executes the selected rows into a fresh campaign. */
   cron?: string;
   nextFireAt?: string | null;
+  /**
+   * Phase (b) drift rebind in flight: a fresh discovery is running and, on
+   * completion, remaps this campaign onto the new commit by inventoryRowId
+   * identity. While set, the schedule is disarmed (nextFireAt null) and never
+   * fires; the campaign id itself is unchanged across the rebind.
+   */
+  rebinding?: { discoveryRunId: string };
   runIds: string[];
   rows: Array<{
     key: string;

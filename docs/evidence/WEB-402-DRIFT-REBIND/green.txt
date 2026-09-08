@@ -1,0 +1,12 @@
+
+ ✓ apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts (4 tests) 43175ms
+   ✓ rebinds a commit-drifted recurring campaign by row identity and keeps firing on the new source  11399ms
+   ✓ stops with rebind-exhausted when the drifted inventory no longer contains the selection  7989ms
+   ✓ rebinds partially: survivors remap and fire while dropped rows stop and stay audited  18089ms
+   ✓ stops with rebind-failed when the rebind discovery cannot complete  5696ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  09:27:38
+   Duration  46.77s (transform 1.46s, setup 0ms, import 3.47s, tests 43.17s, environment 0ms)
+

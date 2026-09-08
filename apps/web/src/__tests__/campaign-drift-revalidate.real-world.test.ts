@@ -67,11 +67,24 @@ async function openCampaignWorkbench() {
         (entry) =>
           entry.action === 'campaign.schedule-drift-stopped' && entry.subject === campaign.id,
       );
-  return { wb, repo, project, campaign, rowRuns, driftStops };
+  const rebindStarts = () =>
+    wb.store
+      .auditLog()
+      .filter(
+        (entry) => entry.action === 'campaign.rebind-started' && entry.subject === campaign.id,
+      );
+  return { wb, repo, project, campaign, rowRuns, driftStops, rebindStarts };
 }
 
-it('stops a commit-drifted recurring campaign at the fire boundary with zero doomed runs', async () => {
-  const { wb, repo, project, campaign, rowRuns, driftStops } = await openCampaignWorkbench();
+// PHASE (b) RE-SPECIFICATION (refs #402): a drifted recurring campaign no longer
+// stops by default — the guard starts a rebind (fresh discovery; the campaign is
+// remapped onto the new commit by inventoryRowId identity on completion). These
+// journeys now assert the rebind outcome; the zero-doomed-runs invariant stays
+// load-bearing. Stop remains only as the fallback (covered by the dedicated
+// campaign-drift-rebind.real-world.test.ts journeys).
+
+it('rebinds a commit-drifted recurring campaign at the fire boundary with zero doomed runs', async () => {
+  const { wb, repo, campaign, rowRuns, driftStops, rebindStarts } = await openCampaignWorkbench();
   const afterCreation = rowRuns().length;
   expect(afterCreation).toBeGreaterThan(0);
 
@@ -90,14 +103,33 @@ it('stops a commit-drifted recurring campaign at the fire boundary with zero doo
   // journey — not wall-clock luck — decides when the guarded fire happens.
   const slot2 = new Date(wb.store.campaign(campaign.id)!.nextFireAt!);
   await wb.guardDueCampaigns(slot2);
+  const drifting = wb.store.campaign(campaign.id)!;
+  expect(drifting.rebinding?.discoveryRunId).toBeTruthy();
+  expect(drifting.nextFireAt).toBeNull();
+  expect(rebindStarts()).toHaveLength(1);
+
+  // A rebinding campaign must not fire: zero doomed runs (still load-bearing).
+  // Nothing executes against the drifted pin — the only new row-scoped run is
+  // the rebind's own survivor execution on the NEW commit.
   wb.tick(slot2);
   await wb.idle();
-
-  expect(rowRuns()).toHaveLength(afterCreation + 1);
-  expect(wb.store.campaign(campaign.id)?.nextFireAt).toBeNull();
-  expect(driftStops()).toHaveLength(1);
-  const projectCampaigns = wb.store.campaigns().filter((item) => item.projectId === project.id);
-  expect(projectCampaigns).toHaveLength(2);
+  const scoped = rowRuns();
+  expect(
+    scoped.filter((run) => run.workflowScope?.sourceCommit === campaign.sourceCommit),
+  ).toHaveLength(afterCreation + 1);
+  expect(
+    scoped.filter((run) => run.workflowScope?.sourceCommit !== campaign.sourceCommit),
+  ).toHaveLength(1);
+  expect(scoped[0]?.result?.summary).not.toBe(
+    'Source changed since campaign discovery; commit changes and start a new campaign',
+  );
+  expect(driftStops()).toHaveLength(0);
+  // The campaign rebinds in place: same id, remapped onto the new commit.
+  const rebound = wb.store.campaign(campaign.id)!;
+  expect(rebound.id).toBe(campaign.id);
+  expect(rebound.rebinding).toBeUndefined();
+  expect(rebound.sourceCommit).not.toBe(campaign.sourceCommit);
+  expect(rebound.nextFireAt).toBeTruthy();
   expect(wb.store.runs().filter((run) => ['queued', 'running'].includes(run.state))).toHaveLength(
     0,
   );
@@ -133,8 +165,8 @@ it('still fires a clean-source recurring campaign after the per-fire guard runs'
   expect(wb.store.campaigns().filter((item) => item.projectId === project.id)).toHaveLength(3);
 }, 240_000);
 
-it('stops a dirty-tree recurring campaign at the fire boundary with zero doomed runs', async () => {
-  const { wb, repo, project, campaign, rowRuns, driftStops } = await openCampaignWorkbench();
+it('stops a dirty-tree recurring campaign after its rebind cannot pin the dirty source', async () => {
+  const { wb, repo, campaign, rowRuns, driftStops, rebindStarts } = await openCampaignWorkbench();
   const afterCreation = rowRuns().length;
 
   const slot1 = new Date(wb.store.campaign(campaign.id)!.nextFireAt!);
@@ -147,13 +179,31 @@ it('stops a dirty-tree recurring campaign at the fire boundary with zero doomed 
 
   const slot2 = new Date(wb.store.campaign(campaign.id)!.nextFireAt!);
   await wb.guardDueCampaigns(slot2);
+  // The guard starts a rebind even for dirty-tree drift...
+  expect(wb.store.campaign(campaign.id)?.rebinding?.discoveryRunId).toBeTruthy();
+  expect(wb.store.campaign(campaign.id)?.nextFireAt).toBeNull();
+  expect(rebindStarts()).toHaveLength(1);
+
+  // ...and the slot must not fire while rebinding: zero doomed runs.
   wb.tick(slot2);
   await wb.idle();
 
+  // The discovery completed against the dirty tree, but a dirty source cannot
+  // be pinned (every run on it would hit the 409 backstop): stop is the fallback.
   expect(rowRuns()).toHaveLength(afterCreation + 1);
   expect(wb.store.campaign(campaign.id)?.nextFireAt).toBeNull();
-  expect(driftStops()).toHaveLength(1);
-  expect(wb.store.campaigns().filter((item) => item.projectId === project.id)).toHaveLength(2);
+  expect(wb.store.campaign(campaign.id)?.rebinding).toBeUndefined();
+  expect(driftStops()).toHaveLength(0);
+  expect(
+    wb.store
+      .auditLog()
+      .filter(
+        (entry) => entry.action === 'campaign.rebind-failed' && entry.subject === campaign.id,
+      ),
+  ).toHaveLength(1);
+  expect(wb.store.campaigns().filter((item) => item.projectId === campaign.projectId)).toHaveLength(
+    2,
+  );
   expect(wb.store.runs().filter((run) => ['queued', 'running'].includes(run.state))).toHaveLength(
     0,
   );
