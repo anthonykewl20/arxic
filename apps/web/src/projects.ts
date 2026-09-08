@@ -68,6 +68,7 @@ export async function validateProject(
     'recordVideo',
     'maxPages',
     'maxDepth',
+    'visualChangeRatio',
     'login',
     'configPath',
     'execution',
@@ -205,6 +206,15 @@ export async function validateProject(
   };
   const maxPages = bounded('maxPages', 50, 1, 200);
   const maxDepth = bounded('maxDepth', 3, 1, 5);
+  // Unlike `bounded`, the visual change ratio is a fraction, not a whole number.
+  const visualChangeRatio = input.visualChangeRatio === undefined ? 0 : input.visualChangeRatio;
+  if (
+    typeof visualChangeRatio !== 'number' ||
+    !Number.isFinite(visualChangeRatio) ||
+    visualChangeRatio < 0 ||
+    visualChangeRatio > 0.5
+  )
+    throw new HttpError(400, 'visualChangeRatio must be a number from 0 to 0.5');
   let login: Project['login'];
   if (input.login !== undefined && input.login !== null) {
     const value = input.login;
@@ -278,6 +288,7 @@ export async function validateProject(
     recordVideo: input.recordVideo === true,
     maxPages,
     maxDepth,
+    visualChangeRatio,
     ...(login ? { login } : {}),
     configPath,
     ...(execution ? { execution } : {}),

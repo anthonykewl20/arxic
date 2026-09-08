@@ -794,6 +794,9 @@ export class Workbench {
         const code = await this.active.finished;
         if (code !== 0) throw new Error('Interrupted engine');
         result = JSON.parse(await readFile(output, 'utf8')) as RunResult;
+        // Fraction of differing pixels an operator tolerates before a capture counts as changed.
+        // 0 (the default) keeps the pixel-exact behavior: ratio > 0 ⇔ at least one pixel changed.
+        const ratioGate = run.project.visualChangeRatio ?? 0;
         if (result.captures)
           for (const capture of result.captures) {
             if (capture.status === 'unstable') continue;
@@ -815,7 +818,7 @@ export class Workbench {
               capture.environment?.deviceScaleFactor ?? 1,
             );
             Object.assign(capture, compared, {
-              status: compared.changedPixels ? 'changed' : 'unchanged',
+              status: compared.ratio > ratioGate ? 'changed' : 'unchanged',
               baselineRunId: baseline.run_id,
               baselineFile: previous.file,
               diffFile,
