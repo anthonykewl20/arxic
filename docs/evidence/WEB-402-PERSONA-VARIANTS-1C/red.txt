@@ -1,0 +1,39 @@
+   ✓ fires a recurring variant campaign with the full fan-out and per-fire run attribution  4755ms
+   ✓ defers a recurring variant fire without dropping it when the queue cannot fit the fan-out  41512ms
+   ✓ rebinds a drifted recurring variant campaign by row identity with a variant-aware fan-out  5175ms
+   ✓ blocks a fired variant run on its unset secret while the fired default run fails at the model stage  8780ms
+   × carries a flag variant payload through recurring fires and drift rebinds 491ms
+   × fans a mixed persona/flag/state campaign out in declared order and diverges the real engine-config snapshots 582ms
+   × rejects every invalid flag/state variant shape with its distinct 400 before enqueueing anything 511ms
+   × accepts a state variant when the project default persona is not anonymous 489ms
+   × blocks a persona variant on its unset secret while flag/state variants reach the engine with their payload 519ms
+   ✓ returns the unmerged execution environment for default (non-variant) runs 2ms
+   ✓ merges the variant persona credentials over the execution environment for variant runs 0ms
+   ✓ keeps credential values out of the run record — only ref names are serialized 0ms
+   ✓ refuses to fall back to the default persona when the variant cannot be resolved 1ms
+   ✓ refuses the run when a variant credential is unset in the environment 0ms
+   × gives flag variant runs the unmodified base environment — no persona env keys 3ms
+   × gives state variant runs the unmodified base environment — no persona env keys 0ms
+   ✓ still refuses to run flag and state variants that cannot be resolved 0ms
+ FAIL  apps/web/src/__tests__/persona-variants-1c.real-world.test.ts > fans a mixed persona/flag/state campaign out in declared order and diverges the real engine-config snapshots
+ FAIL  apps/web/src/__tests__/persona-variants-1c.real-world.test.ts > accepts a state variant when the project default persona is not anonymous
+ FAIL  apps/web/src/__tests__/persona-variants-1c.real-world.test.ts > blocks a persona variant on its unset secret while flag/state variants reach the engine with their payload
+ FAIL  apps/web/src/__tests__/persona-variants-recurring.real-world.test.ts > carries a flag variant payload through recurring fires and drift rebinds
+ FAIL  apps/web/src/__tests__/persona-variants-1c.real-world.test.ts > rejects every invalid flag/state variant shape with its distinct 400 before enqueueing anything
+AssertionError: expected [Function] to throw error matching /1–30 named boolean flags/u but got 'Campaign variants must be a list of p…'
+- Expected:
++ Received:
+ FAIL  apps/web/src/__tests__/persona-variants.test.ts > gives flag variant runs the unmodified base environment — no persona env keys
+TypeError: Cannot read properties of undefined (reading 'emailRef')
+ FAIL  apps/web/src/__tests__/persona-variants.test.ts > gives state variant runs the unmodified base environment — no persona env keys
+TypeError: Cannot read properties of undefined (reading 'emailRef')
+ Test Files  3 failed (3)
+      Tests  7 failed | 10 passed (17)
+
+=== persona-variants-ui.real-world.test.ts (RED, run alongside implementation start) ===
+ FAIL  apps/web/src/__tests__/persona-variants-ui.real-world.test.ts > creates a mixed persona/flag variant campaign through the real dialog and attributes outcomes per variant
+TimeoutError: locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('button', { name: 'Add variant' })
+ Test Files  1 failed (1)
+      Tests  1 failed | 0 passed (1)

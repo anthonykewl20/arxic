@@ -482,29 +482,53 @@ document.addEventListener('submit', async (event) => {
   );
   if (!release) return;
   try {
-    const data = new FormData(form);
-    const labels = data.getAll('variant-label').map(String);
-    const emails = data.getAll('variant-email').map(String);
-    const passwords = data.getAll('variant-password').map(String);
-    // Variant key: deterministic slug of the label (lowercase letters, digits,
-    // dashes); the server validates the final shape and surfaces its 400s.
-    const variants = labels
-      .map((label, index) => ({
-        label: label.trim(),
-        key: label
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/gu, '-')
-          .replace(/^-+|-+$/gu, ''),
-        kind: 'persona',
-        persona: {
-          emailRef: (emails[index] ?? '').trim(),
-          passwordRef: (passwords[index] ?? '').trim(),
-        },
-      }))
-      .filter(
-        (variant) => variant.label || variant.persona.emailRef || variant.persona.passwordRef,
-      );
+    // Variant rows are collected per DOM row (not per field name): conditional
+    // per-kind inputs would misalign FormData.getAll indexes across mixed kinds.
+    const slug = (label: string) =>
+      label
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/gu, '-')
+        .replace(/^-+|-+$/gu, '');
+    const valueOf = (row: Element, name: string) =>
+      (row.querySelector(`[name="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)
+        ?.value ?? '';
+    const variants: NonNullable<import('../types').Campaign['variants']> = [
+      ...form.querySelectorAll('.variant-fields'),
+    ]
+      .map((row): NonNullable<import('../types').Campaign['variants']>[number] => {
+        const label = valueOf(row, 'variant-label').trim();
+        const kind = valueOf(row, 'variant-kind') || 'persona';
+        // Variant key: deterministic slug of the label; the server validates
+        // the final shape and surfaces its 400s.
+        const key = slug(label);
+        if (kind === 'flag') {
+          const flagName = valueOf(row, 'variant-flag-name').trim();
+          return {
+            label,
+            key,
+            kind: 'flag',
+            // The dashboard exposes one flag per variant row; the API accepts up to 30.
+            flags: { [flagName]: valueOf(row, 'variant-flag-value') === 'true' },
+          };
+        }
+        if (kind === 'state') return { label, key, kind: 'state', state: 'anonymous' };
+        return {
+          label,
+          key,
+          kind: 'persona',
+          persona: {
+            emailRef: valueOf(row, 'variant-email').trim(),
+            passwordRef: valueOf(row, 'variant-password').trim(),
+          },
+        };
+      })
+      .filter((variant) => {
+        if (variant.kind === 'persona')
+          return variant.label || variant.persona.emailRef || variant.persona.passwordRef;
+        if (variant.kind === 'flag') return variant.label || Object.keys(variant.flags).length > 0;
+        return variant.label;
+      });
     const campaign = await api(`/projects/${form.dataset.project}/campaigns`, 'POST', {
       discoveryRunId: form.dataset.discovery,
       inventoryRowIds: [...(workflowSelections.get(form.dataset.discovery!) ?? [])],

@@ -125,7 +125,7 @@ it('rejects every invalid variant configuration with its distinct message before
       /at most 4 variants/u,
     ],
     [{ ...base, variants: [{ ...TWO_PERSONAS[0], key: 'Persona_A' }] }, /lowercase/u],
-    [{ ...base, variants: [{ ...TWO_PERSONAS[0], kind: 'flag' }] }, /Unsupported variant kind/u],
+    [{ ...base, variants: [{ ...TWO_PERSONAS[0], kind: 'region' }] }, /Unsupported variant kind/u],
     [
       {
         ...base,

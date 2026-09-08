@@ -42,6 +42,9 @@ export function variantEnvironment(
       400,
       `Campaign variant could not be resolved: ${variantKey}; refusing to run as the default persona`,
     );
+  // Flag and state variants carry no credential payload: the unmodified base
+  // environment (their divergence happens in the child's engine config).
+  if (variant.kind !== 'persona') return base;
   return {
     ...base,
     ...secretEnvironment(
@@ -52,6 +55,19 @@ export function variantEnvironment(
       env,
     ),
   };
+}
+
+/**
+ * Non-secret variant payload stamped next to variantKey on the workflow scope:
+ * flag variants record their boolean overrides, state variants record the
+ * anonymous switch; persona entries stay variantKey-only (credentials env-only).
+ */
+function variantScopePayload(
+  variant: NonNullable<Campaign['variants']>[number],
+): Pick<NonNullable<Run['workflowScope']>, 'variantFlags' | 'variantState'> {
+  if (variant.kind === 'flag') return { variantFlags: { ...variant.flags } };
+  if (variant.kind === 'state') return { variantState: 'anonymous' };
+  return {};
 }
 
 /** Campaign copy with the transient rebind marker removed once a rebind settles. */
@@ -92,52 +108,73 @@ const sourceDriftRefusal =
 
 /**
  * Sad-path-first variant validation; each refusal is a distinct 400 fired
- * before anything is enqueued. Returns the normalized variant list.
+ * before anything is enqueued. Entries are a persona | flag | state union
+ * (mixed-kind lists allowed); returns the normalized variant list.
  */
 function validateCampaignVariants(input: unknown): NonNullable<Campaign['variants']> {
   if (input === undefined) return [];
   if (!Array.isArray(input))
-    throw new HttpError(400, 'Campaign variants must be a list of persona definitions');
+    throw new HttpError(400, 'Campaign variants must be a list of variant definitions');
   if (input.length > 4) throw new HttpError(400, 'A campaign supports at most 4 variants');
   const variants: NonNullable<Campaign['variants']> = [];
   for (const item of input) {
-    if (
-      !item ||
-      typeof item !== 'object' ||
-      Array.isArray(item) ||
-      Object.keys(item).some((key) => !['key', 'label', 'kind', 'persona'].includes(key)) ||
-      !item.persona ||
-      typeof item.persona !== 'object' ||
-      Array.isArray(item.persona) ||
-      Object.keys(item.persona).some((key) => !['emailRef', 'passwordRef'].includes(key))
-    )
-      throw new HttpError(400, 'Campaign variants must be a list of persona definitions');
-    const key = (item as { key?: unknown }).key;
-    const label = (item as { label?: unknown }).label;
-    const kind = (item as { kind?: unknown }).kind;
-    const persona = item.persona as { emailRef?: unknown; passwordRef?: unknown };
+    if (!item || typeof item !== 'object' || Array.isArray(item))
+      throw new HttpError(400, 'Campaign variants must be a list of variant definitions');
+    const entry = item as Record<string, unknown>;
+    const kind = entry.kind;
+    const payloadKey =
+      kind === 'flag' ? 'flags' : kind === 'state' ? 'state' : kind === 'persona' ? 'persona' : '';
+    if (!payloadKey) throw new HttpError(400, 'Unsupported variant kind');
+    if (Object.keys(entry).some((key) => !['key', 'label', 'kind', payloadKey].includes(key)))
+      throw new HttpError(400, 'Campaign variants must be a list of variant definitions');
+    const key = entry.key;
+    const label = entry.label;
     if (typeof key !== 'string' || !/^[a-z0-9-]+$/u.test(key))
       throw new HttpError(400, 'Variant keys use lowercase letters, digits and dashes');
-    if (kind !== 'persona') throw new HttpError(400, 'Unsupported variant kind');
-    if (
-      typeof label !== 'string' ||
-      !label.trim() ||
-      label.trim().length > 100 ||
-      typeof persona.emailRef !== 'string' ||
-      !persona.emailRef.startsWith('ARXIC_SECRET_') ||
-      typeof persona.passwordRef !== 'string' ||
-      !persona.passwordRef.startsWith('ARXIC_SECRET_')
-    )
-      throw new HttpError(
-        400,
-        'Variant credentials must reference ARXIC_SECRET_ environment names',
-      );
-    variants.push({
-      key,
-      label: label.trim(),
-      kind: 'persona',
-      persona: { emailRef: persona.emailRef, passwordRef: persona.passwordRef },
-    });
+    if (typeof label !== 'string' || !label.trim() || label.trim().length > 100)
+      throw new HttpError(400, 'Variant labels must be non-empty text of at most 100 characters');
+    if (kind === 'persona') {
+      const persona = entry.persona as { emailRef?: unknown; passwordRef?: unknown } | undefined;
+      if (
+        !persona ||
+        typeof persona !== 'object' ||
+        Array.isArray(persona) ||
+        Object.keys(persona).some((name) => !['emailRef', 'passwordRef'].includes(name)) ||
+        typeof persona.emailRef !== 'string' ||
+        !persona.emailRef.startsWith('ARXIC_SECRET_') ||
+        typeof persona.passwordRef !== 'string' ||
+        !persona.passwordRef.startsWith('ARXIC_SECRET_')
+      )
+        throw new HttpError(
+          400,
+          'Variant credentials must reference ARXIC_SECRET_ environment names',
+        );
+      variants.push({
+        key,
+        label: label.trim(),
+        kind: 'persona',
+        persona: { emailRef: persona.emailRef, passwordRef: persona.passwordRef },
+      });
+    } else if (kind === 'flag') {
+      const flags = entry.flags;
+      if (
+        !flags ||
+        typeof flags !== 'object' ||
+        Array.isArray(flags) ||
+        Object.keys(flags).length < 1 ||
+        Object.keys(flags).length > 30
+      )
+        throw new HttpError(400, 'Flag variants must declare 1–30 named boolean flags');
+      if (Object.keys(flags).some((name) => !/^[A-Za-z][A-Za-z0-9_.-]{0,99}$/u.test(name)))
+        throw new HttpError(400, 'Flag names use letters, digits, dot, dash or underscore');
+      if (Object.values(flags).some((value) => typeof value !== 'boolean'))
+        throw new HttpError(400, 'Flag values must be booleans');
+      variants.push({ key, label: label.trim(), kind: 'flag', flags: { ...flags } });
+    } else if (entry.state !== 'anonymous') {
+      throw new HttpError(400, 'The only supported state variant is anonymous');
+    } else {
+      variants.push({ key, label: label.trim(), kind: 'state', state: 'anonymous' });
+    }
   }
   if (new Set(variants.map((variant) => variant.key)).size !== variants.length)
     throw new HttpError(400, 'Variant keys must be unique');
@@ -515,6 +552,16 @@ export class Workbench {
     const project = this.store.project(projectId);
     if (!project?.execution)
       throw new HttpError(400, 'Campaigns require saved guided AI execution settings');
+    // An anonymous state variant against an anonymous default persona would be a
+    // duplicate of the default run — refuse instead of charging for a no-op.
+    if (
+      variants.some((variant) => variant.kind === 'state') &&
+      project.execution.persona.mode === 'anonymous'
+    )
+      throw new HttpError(
+        400,
+        'An anonymous state variant is identical to this project\u2019s default persona',
+      );
     const current = await sourceRevision(project.folder);
     const discovered = toProposalConsumerInventory(
       discovery.result.inventory as DomainInventory,
@@ -563,6 +610,7 @@ export class Workbench {
             inventoryRowId,
             sourceCommit: current.commit,
             variantKey: variant.key,
+            ...variantScopePayload(variant),
           };
           this.store.saveRun(variantRun);
           campaign.runIds.push(variantRun.id);
@@ -770,6 +818,7 @@ export class Workbench {
             inventoryRowId: row.inventoryRowId!,
             sourceCommit: current.commit,
             variantKey: variant.key,
+            ...variantScopePayload(variant),
           };
           this.store.saveRun(variantRun);
           rebound.runIds.push(variantRun.id);
@@ -871,6 +920,7 @@ export class Workbench {
               inventoryRowId: row.inventoryRowId!,
               sourceCommit: source.sourceCommit,
               variantKey: variant.key,
+              ...variantScopePayload(variant),
             };
             this.store.saveRun(variantRun);
             fired.runIds.push(variantRun.id);

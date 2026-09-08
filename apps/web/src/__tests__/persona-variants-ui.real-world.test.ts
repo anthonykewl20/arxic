@@ -10,7 +10,7 @@ import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
 import { startWorkbench } from './workbench-runtime';
 
-it('creates a persona variant campaign through the real dialog and attributes outcomes per variant', async () => {
+it('creates a mixed persona/flag variant campaign through the real dialog and attributes outcomes per variant', async () => {
   const root = resolve(import.meta.dirname, '../../../..');
   const sourceCommit = (
     await promisify(execFile)('git', ['rev-parse', 'HEAD'], { cwd: root })
@@ -89,7 +89,7 @@ it('creates a persona variant campaign through the real dialog and attributes ou
 
     // Variants editor: add two persona variants through the real dialog inputs.
     for (const [index, label] of ['Persona A', 'Persona B'].entries()) {
-      await page.getByRole('button', { name: 'Add persona variant' }).click();
+      await page.getByRole('button', { name: 'Add variant' }).click();
       await page.getByLabel('Variant label').nth(index).fill(label);
       await page
         .getByLabel('Variant email secret reference')
@@ -100,21 +100,30 @@ it('creates a persona variant campaign through the real dialog and attributes ou
         .nth(index)
         .fill(`ARXIC_SECRET_PERSONA_${index === 0 ? 'A' : 'B'}_PASSWORD`);
     }
+    // Mixed kinds in one campaign: a feature-flag variant (kind select + one
+    // flag name/value pair — the dashboard exposes one flag per variant row).
+    await page.getByRole('button', { name: 'Add variant' }).click();
+    await page.getByLabel('Variant label').nth(2).fill('Checkout Flag');
+    await page.getByLabel('Variant kind').nth(2).selectOption('flag');
+    await page.getByLabel('Flag name', { exact: true }).fill('new-checkout');
+    // A select wrapped in its label folds the option texts into the accessible
+    // name, so exact matching would miss it.
+    await page.getByLabel('Flag value').selectOption('true');
     await page.locator('.workflow-selection').scrollIntoViewIfNeeded();
     await capture(
       '01-variant-editor',
-      'Two persona variants entered with ARXIC_SECRET_ ref names only',
+      'Two persona variants plus a flag variant entered; ref names and flag names only',
     );
 
     // Sad path through the real error alert flow: a label that slugs to an
     // empty variant key is refused by the server's 400, surfaced verbatim.
-    await page.getByRole('button', { name: 'Add persona variant' }).click();
-    await page.getByLabel('Variant label').nth(2).fill('!!!');
+    await page.getByRole('button', { name: 'Add variant' }).click();
+    await page.getByLabel('Variant label').nth(3).fill('!!!');
     await page.getByRole('button', { name: 'Start selected campaign', exact: true }).click();
     await expect
       .poll(() => page.locator('#notice').textContent())
       .toContain('Variant keys use lowercase letters, digits and dashes');
-    await page.getByRole('button', { name: 'Remove persona variant' }).nth(2).click();
+    await page.getByRole('button', { name: 'Remove variant' }).nth(3).click();
     await capture(
       '02-variant-key-rejected',
       'Server 400 for an unusable variant key surfaces through the existing error alert',
@@ -126,12 +135,14 @@ it('creates a persona variant campaign through the real dialog and attributes ou
       .poll(() => page.locator('.campaign-detail').textContent(), { timeout: 120_000 })
       .toContain('Persona A');
     const detail = page.locator('.campaign-detail');
+    // The server accepted the mixed-kind campaign (label + slug survive the API round trip).
+    await expect.poll(() => detail.textContent()).toContain('Checkout Flag');
     // Per-variant outcome attribution: one deterministic element per variant key,
     // ending in a settled (non-queued) state alongside the default run.
     await expect
       .poll(async () => page.locator('[data-variant-outcome]').count(), { timeout: 120_000 })
-      .toBe(2);
-    for (const key of ['persona-a', 'persona-b'])
+      .toBe(3);
+    for (const key of ['persona-a', 'persona-b', 'checkout-flag'])
       await expect
         .poll(
           async () =>
