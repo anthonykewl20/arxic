@@ -1,0 +1,23 @@
+GREEN stage — after configurationOmissions + the actions dimension + the panel
+block (same commands):
+
+ ✓ apps/web/src/__tests__/config-omissions.test.ts (2 tests) 1344ms
+   ✓ exposes flag, persona and action omissions fusing real settings with the real discovery stack
+   ✓ derives the same omissions over the raw discovery adapters
+ ✓ apps/web/src/__tests__/config-omissions-ui.real-world.test.ts (1 test) 12967ms
+   ✓ renders configuration omissions beside the route coverage section
+ ✓ apps/web/src/__tests__/route-coverage.test.ts (1 test) — dimension order now
+   six entries incl. actions; route-coverage-ui.real-world.test.ts 1/1 after
+   the panel honesty-wording extension ("conditional states and interactive
+   actions").
+ Tests  5 passed across the four lanes after prettier.
+
+Real-data facts pinned (Workbench discovery on the real fixture + overlays):
+- flag:newCheckout aligned (evidence app/billing/page.tsx:<line>), flag:orphanFlag
+  declared-unreferenced, flag:NEXT_PUBLIC_BETA_UI referenced-undeclared.
+- persona:login-route referenced for /login; missing for a /portal persona;
+  persona:seed-endpoint referenced via the real app/api/%5F%5Farxic/seed/route.ts
+  declarations under seed-api mode.
+- actions referenced on / (real logout form), absent on a static overlay route.
+Gates: typecheck (root+packages+web) ✓, lint ✓, full-repo format
+"All matched files use Prettier code style!" ✓.
