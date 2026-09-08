@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "koel-1024-clip-full",
+  "group": "koel",
+  "revision": "b076dce9640a378c1c5b16e07be1fce41e89b01e",
+  "consent": true,
+  "context": {
+    "width": 1024,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clip-full"
+  },
+  "before": {
+    "path": "koel-1024-clip-full-before.png",
+    "sha256": "cad057417ceb50cc4ddca372c0d6023bf6179d169db1f1ede0f85f84bb87fe8c"
+  },
+  "current": {
+    "path": "koel-1024-clip-full-current.png",
+    "sha256": "8e3e669878ca97b62d53f8746f556986745120b5c7dad494e17024c3c3fced50"
+  },
+  "beforePrivacy": {
+    "path": "koel-1024-clip-full-before.png.privacy.json",
+    "sha256": "082b9c19ff0be01cd82fa055ad9d06436a48e319eb7ef52fa41f7cd3b4803023"
+  },
+  "currentPrivacy": {
+    "path": "koel-1024-clip-full-current.png.privacy.json",
+    "sha256": "092ce5d9bae7070574f05e7fc4066047528832326ac4195198518e83d79090f6"
+  },
+  "scene": {
+    "path": "koel-1024-clip-full-scene.json",
+    "sha256": "7317d1044bc530eb1a507f6d299d774f9d5dce9d61c72ce42f86ba4ec1879b8d"
+  },
+  "timeline": {
+    "path": "koel-1024-clip-full-timeline.json",
+    "sha256": "b3940328da992806be6401f8fa25680dd1f9c1bd10d4f44fa3e83955f27f78b4"
+  },
+  "timelineProvenance": {
+    "path": "koel-1024-clip-full-timeline.sanitization.json",
+    "sha256": "2c4c33a5ca77e88efe634f6be2ae1030c9a31a9950000f2a3a8f844dfe7cdd59"
+  }
+}

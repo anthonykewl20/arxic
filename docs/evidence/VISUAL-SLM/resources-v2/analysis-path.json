@@ -1,0 +1,14 @@
+{
+  "scope": "PNG-evidence-to-native-shadow-report plus Node driver; no browser/server/OS",
+  "jobs": 10,
+  "case": "koel-360-clip-full.json",
+  "processPerJob": true,
+  "p50Ms": 1204.9828785,
+  "p95Ms": 1314.0274630000001,
+  "memoryPeakBytes": 105009152,
+  "memoryMax": "268435456",
+  "swapMax": "0",
+  "cpuMax": "100000 100000",
+  "memoryEvents": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+  "vpsQualified": false
+}

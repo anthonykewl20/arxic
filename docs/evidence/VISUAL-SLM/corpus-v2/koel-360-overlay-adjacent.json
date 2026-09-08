@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "koel-360-overlay-adjacent",
+  "group": "koel",
+  "revision": "b076dce9640a378c1c5b16e07be1fce41e89b01e",
+  "consent": true,
+  "context": {
+    "width": 360,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-overlay-adjacent"
+  },
+  "before": {
+    "path": "koel-360-overlay-adjacent-before.png",
+    "sha256": "fd5125516ac3dc58924118338f3e8ea0b80f11eb22330e41bfb4f0ccf41cbf1f"
+  },
+  "current": {
+    "path": "koel-360-overlay-adjacent-current.png",
+    "sha256": "12fe6b6a794fefb5329dceecf7f3875a5c43bff9d507a99b0624e4d269f4eb10"
+  },
+  "beforePrivacy": {
+    "path": "koel-360-overlay-adjacent-before.png.privacy.json",
+    "sha256": "e84c04db1b7cb7363f157635de4c40f1b90e26b2da922120abf2947e987f96ac"
+  },
+  "currentPrivacy": {
+    "path": "koel-360-overlay-adjacent-current.png.privacy.json",
+    "sha256": "8bcbb65a446540105b3e731482b573724462f57f534241b377ff647e635c5d25"
+  },
+  "scene": {
+    "path": "koel-360-overlay-adjacent-scene.json",
+    "sha256": "b48a070bc7df70b9c305490365e2d40fd01f223723fc2de08bd05a3734b78d70"
+  },
+  "timeline": {
+    "path": "koel-360-overlay-adjacent-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "koel-360-overlay-adjacent-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}

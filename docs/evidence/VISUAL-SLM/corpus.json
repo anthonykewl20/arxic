@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "manifest": "next-640-clean.json",
+      "split": "train",
+      "label": 0
+    },
+    {
+      "manifest": "next-640-clipped.json",
+      "split": "train",
+      "label": 1
+    },
+    {
+      "manifest": "next-800-clean.json",
+      "split": "train",
+      "label": 0
+    },
+    {
+      "manifest": "next-800-clipped.json",
+      "split": "train",
+      "label": 1
+    },
+    {
+      "manifest": "next-1024-clean.json",
+      "split": "train",
+      "label": 0
+    },
+    {
+      "manifest": "next-1024-clipped.json",
+      "split": "train",
+      "label": 1
+    },
+    {
+      "manifest": "next-1280-clean.json",
+      "split": "train",
+      "label": 0
+    },
+    {
+      "manifest": "next-1280-clipped.json",
+      "split": "train",
+      "label": 1
+    },
+    {
+      "manifest": "express-640-clean.json",
+      "split": "calibration",
+      "label": 0
+    },
+    {
+      "manifest": "express-640-clipped.json",
+      "split": "calibration",
+      "label": 1
+    },
+    {
+      "manifest": "express-800-clean.json",
+      "split": "calibration",
+      "label": 0
+    },
+    {
+      "manifest": "express-800-clipped.json",
+      "split": "calibration",
+      "label": 1
+    },
+    {
+      "manifest": "express-1024-clean.json",
+      "split": "calibration",
+      "label": 0
+    },
+    {
+      "manifest": "express-1024-clipped.json",
+      "split": "calibration",
+      "label": 1
+    },
+    {
+      "manifest": "express-1280-clean.json",
+      "split": "calibration",
+      "label": 0
+    },
+    {
+      "manifest": "express-1280-clipped.json",
+      "split": "calibration",
+      "label": 1
+    },
+    {
+      "manifest": "arxic-640-clean.json",
+      "split": "test",
+      "label": 0
+    },
+    {
+      "manifest": "arxic-640-clipped.json",
+      "split": "test",
+      "label": 1
+    },
+    {
+      "manifest": "arxic-800-clean.json",
+      "split": "test",
+      "label": 0
+    },
+    {
+      "manifest": "arxic-800-clipped.json",
+      "split": "test",
+      "label": 1
+    },
+    {
+      "manifest": "arxic-1024-clean.json",
+      "split": "test",
+      "label": 0
+    },
+    {
+      "manifest": "arxic-1024-clipped.json",
+      "split": "test",
+      "label": 1
+    },
+    {
+      "manifest": "arxic-1280-clean.json",
+      "split": "test",
+      "label": 0
+    },
+    {
+      "manifest": "arxic-1280-clipped.json",
+      "split": "test",
+      "label": 1
+    }
+  ],
+  "provenance": "Controlled viewport-clipping regressions on actual Next, Express and Arxic; three independent application groups; smoke corpus only."
+}

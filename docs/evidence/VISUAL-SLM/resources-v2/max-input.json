@@ -1,0 +1,21 @@
+{
+  "scope": "max-accepted-input bounds through the real review path; synthetic geometry; no browser/server/OS",
+  "inputPair": [
+    "2048x1024",
+    "2048x1024"
+  ],
+  "compressedBytes": [
+    44071,
+    44071
+  ],
+  "regions": 128,
+  "elapsedMs": 1457,
+  "modelStatus": "observed",
+  "diagnostic": null,
+  "coverage": "supplied-regions-only",
+  "memoryPeakBytes": 149639168,
+  "memoryMax": "268435456",
+  "cpuMax": "100000 100000",
+  "memoryEvents": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+  "vpsQualified": false
+}

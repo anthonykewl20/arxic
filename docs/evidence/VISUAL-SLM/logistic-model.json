@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "featureSchema": "arxic-visual-features-v1",
+  "artifact": {
+    "path": "training/logistic.bin",
+    "sha256": "fb35fda66b6272fac1a049fb6334f6065a610c05de6e2913f5848f1b829a1f24"
+  },
+  "thresholds": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "supported": [
+    true,
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "experimental": true,
+  "datasetSha256": "259ca3df72ca375fd54a0dd584b67edff74a587c3794277812639f21dedf4fde"
+}

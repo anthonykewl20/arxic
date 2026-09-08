@@ -1,0 +1,19 @@
+{
+  "scope": "intake-admission-journal-queue-mechanics; no-op executor; not the analysis path",
+  "idempotentSubmissions": 12,
+  "idempotentAdmissionMsP50": 0.0018029999999953361,
+  "idempotentSingleJob": true,
+  "distinctAccepted": 4,
+  "backpressureReason": "backpressure",
+  "activeJobStarted": true,
+  "drainMsForFiveJobs": 47,
+  "deadlineOutcomes": [
+    "failed:deadline-exceeded",
+    "failed:deadline-exceeded"
+  ],
+  "memoryPeakBytes": 67420160,
+  "memoryMax": "268435456",
+  "cpuMax": "100000 100000",
+  "memoryEvents": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+  "vpsQualified": false
+}
