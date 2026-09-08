@@ -1,6 +1,6 @@
 # POLL-WINDOW-525 — staged doc updates (charter §10.2)
 
-Issue: #525 · PR: <to-fill> · Disposition: observed (remedy 1's red is reproduced CI evidence on identical content; remedy 2's red is observed missing-artifact lists; the underlying suite-duration growth is deliberately left to remedy 3)
+Issue: #525 · PR: #526 · Disposition: observed (remedy 1's red is reproduced CI evidence on identical content; remedy 2's red is observed missing-artifact lists; the underlying suite-duration growth is deliberately left to remedy 3)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
@@ -17,7 +17,7 @@ Issue: #525 · PR: <to-fill> · Disposition: observed (remedy 1's red is reprodu
 ## 3. `CHANGELOG.md` — entry under `## [Unreleased]` → `### fixed`
 
 ```
-- POLL-WINDOW-525 release-path diagnostics (#525, #<PR>): every navigation-bridging URL poll in the real-world dashboard journeys carries an explicit 30s timeout instead of vitest's 1s default, which tripped under the unsharded release-test ubuntu cells (reproduced 2/2 across two heads while windows/macos and the sharded `ci` matrix passed identical content); and the `package` job now uploads the packed human-flow evidence with `if: always()`, so a failed packed phase preserves its per-case progress journal instead of dying with the runner.
+- POLL-WINDOW-525 release-path diagnostics (#525, #526): every navigation-bridging URL poll in the real-world dashboard journeys carries an explicit 30s timeout instead of vitest's 1s default, which tripped under the unsharded release-test ubuntu cells (reproduced 2/2 across two heads while windows/macos and the sharded `ci` matrix passed identical content); and the `package` job now uploads the packed human-flow evidence with `if: always()`, so a failed packed phase preserves its per-case progress journal instead of dying with the runner.
 ```
 
 ## 4. `VERSION` bump required?
