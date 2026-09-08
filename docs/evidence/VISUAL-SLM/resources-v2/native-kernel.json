@@ -1,0 +1,14 @@
+{
+  "scope": "native-kernel-and-python-driver-only; excludes-PNG-browser-server-OS",
+  "jobs": 1000,
+  "processPerJob": true,
+  "p50Ms": 1.0236524976789951,
+  "p95Ms": 2.419270924292505,
+  "maxMs": 16.733012977056205,
+  "memoryPeakBytes": 20008960,
+  "memoryMax": "268435456",
+  "swapMax": "0",
+  "cpuMax": "100000 100000",
+  "memoryEvents": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+  "vpsQualified": false
+}

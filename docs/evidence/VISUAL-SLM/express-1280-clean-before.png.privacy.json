@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "screenshotSha256": "cee84c7da82be4687eaff90c63531dd33731e17e025b7f729ec35b0d97c4cb06",
+  "mode": "input-masked",
+  "masks": [
+    {
+      "x": 50.21875,
+      "y": 126.78125,
+      "width": 205,
+      "height": 21
+    },
+    {
+      "x": 324.5625,
+      "y": 126.78125,
+      "width": 205,
+      "height": 21
+    },
+    {
+      "x": 50.21875,
+      "y": 235.59375,
+      "width": 205,
+      "height": 21
+    },
+    {
+      "x": 51.765625,
+      "y": 323.40625,
+      "width": 205,
+      "height": 21
+    },
+    {
+      "x": 359.421875,
+      "y": 323.40625,
+      "width": 205,
+      "height": 21
+    }
+  ],
+  "rawTraceRetained": false
+}

@@ -1,0 +1,1848 @@
+{
+  "version": 1,
+  "plan": {
+    "version": 1,
+    "families": [
+      "next",
+      "express",
+      "arxic",
+      "koel",
+      "directus"
+    ],
+    "viewports": [
+      360,
+      640,
+      1024,
+      1280
+    ],
+    "variants": [
+      "clean",
+      "clip-full",
+      "clip-right-75",
+      "clip-right-50",
+      "clip-right-25",
+      "clip-bottom-50",
+      "content-change",
+      "overlay-adjacent",
+      "style-tweak"
+    ],
+    "allocationSeed": 423,
+    "criterion": "required-submit-inside-viewport",
+    "allocation": {
+      "train": [
+        "express",
+        "directus",
+        "arxic"
+      ],
+      "calibration": [
+        "next"
+      ],
+      "test": [
+        "koel"
+      ]
+    },
+    "frozenAllocationHash": "9487ffb49b3f92d520ba9057596bf0571ca89de41b84a86d290afa812927e287"
+  },
+  "revision": "b076dce9640a378c1c5b16e07be1fce41e89b01e",
+  "skipped": [
+    {
+      "family": "arxic",
+      "viewport": 360,
+      "variant": "content-change",
+      "reason": "unstable-case"
+    }
+  ],
+  "cases": [
+    {
+      "manifest": "next-360-clean.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clean",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-360-clip-full.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-full",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "next-360-clip-right-75.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "next-360-clip-right-50.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "next-360-clip-right-25.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "next-360-clip-bottom-50.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "next-360-content-change.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "content-change",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-360-overlay-adjacent.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-360-style-tweak.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-640-clean.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clean",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-640-clip-full.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-full",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "next-640-clip-right-75.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "next-640-clip-right-50.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "next-640-clip-right-25.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "next-640-clip-bottom-50.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "next-640-content-change.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "content-change",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-640-overlay-adjacent.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-640-style-tweak.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-1024-clean.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clean",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-1024-clip-full.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "next-1024-clip-right-75.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "next-1024-clip-right-50.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "next-1024-clip-right-25.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "next-1024-clip-bottom-50.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "next-1024-content-change.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "content-change",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-1024-overlay-adjacent.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-1024-style-tweak.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-1280-clean.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clean",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-1280-clip-full.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "next-1280-clip-right-75.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "next-1280-clip-right-50.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "next-1280-clip-right-25.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "next-1280-clip-bottom-50.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "next-1280-content-change.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "content-change",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-1280-overlay-adjacent.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "next-1280-style-tweak.json",
+      "family": "next",
+      "split": "calibration",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-360-clean.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-360-clip-full.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "express-360-clip-right-75.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "express-360-clip-right-50.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "express-360-clip-right-25.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "express-360-clip-bottom-50.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "express-360-content-change.json",
+      "family": "express",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-360-overlay-adjacent.json",
+      "family": "express",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-360-style-tweak.json",
+      "family": "express",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-640-clean.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-640-clip-full.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "express-640-clip-right-75.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "express-640-clip-right-50.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "express-640-clip-right-25.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "express-640-clip-bottom-50.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "express-640-content-change.json",
+      "family": "express",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-640-overlay-adjacent.json",
+      "family": "express",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-640-style-tweak.json",
+      "family": "express",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-1024-clean.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-1024-clip-full.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "express-1024-clip-right-75.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "express-1024-clip-right-50.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "express-1024-clip-right-25.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "express-1024-clip-bottom-50.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "express-1024-content-change.json",
+      "family": "express",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-1024-overlay-adjacent.json",
+      "family": "express",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-1024-style-tweak.json",
+      "family": "express",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-1280-clean.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-1280-clip-full.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "express-1280-clip-right-75.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "express-1280-clip-right-50.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "express-1280-clip-right-25.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "express-1280-clip-bottom-50.json",
+      "family": "express",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "express-1280-content-change.json",
+      "family": "express",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-1280-overlay-adjacent.json",
+      "family": "express",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "express-1280-style-tweak.json",
+      "family": "express",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-360-clean.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-360-clip-full.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "arxic-360-clip-right-75.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "arxic-360-clip-right-50.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "arxic-360-clip-right-25.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "arxic-360-clip-bottom-50.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "arxic-360-overlay-adjacent.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-360-style-tweak.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-640-clean.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-640-clip-full.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "arxic-640-clip-right-75.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "arxic-640-clip-right-50.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "arxic-640-clip-right-25.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "arxic-640-clip-bottom-50.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "arxic-640-content-change.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-640-overlay-adjacent.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-640-style-tweak.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-1024-clean.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-1024-clip-full.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "arxic-1024-clip-right-75.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "arxic-1024-clip-right-50.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "arxic-1024-clip-right-25.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "arxic-1024-clip-bottom-50.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "arxic-1024-content-change.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-1024-overlay-adjacent.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-1024-style-tweak.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-1280-clean.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-1280-clip-full.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "arxic-1280-clip-right-75.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "arxic-1280-clip-right-50.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "arxic-1280-clip-right-25.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "arxic-1280-clip-bottom-50.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "arxic-1280-content-change.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-1280-overlay-adjacent.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "arxic-1280-style-tweak.json",
+      "family": "arxic",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-360-clean.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clean",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-360-clip-full.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-full",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "koel-360-clip-right-75.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "koel-360-clip-right-50.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "koel-360-clip-right-25.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "koel-360-clip-bottom-50.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "koel-360-content-change.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "content-change",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-360-overlay-adjacent.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-360-style-tweak.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-640-clean.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clean",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-640-clip-full.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-full",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "koel-640-clip-right-75.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "koel-640-clip-right-50.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "koel-640-clip-right-25.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "koel-640-clip-bottom-50.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "koel-640-content-change.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "content-change",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-640-overlay-adjacent.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-640-style-tweak.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-1024-clean.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clean",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-1024-clip-full.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "koel-1024-clip-right-75.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "koel-1024-clip-right-50.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "koel-1024-clip-right-25.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "koel-1024-clip-bottom-50.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "koel-1024-content-change.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "content-change",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-1024-overlay-adjacent.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-1024-style-tweak.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-1280-clean.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clean",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-1280-clip-full.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "koel-1280-clip-right-75.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "koel-1280-clip-right-50.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "koel-1280-clip-right-25.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "koel-1280-clip-bottom-50.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "koel-1280-content-change.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "content-change",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-1280-overlay-adjacent.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "koel-1280-style-tweak.json",
+      "family": "koel",
+      "split": "test",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-360-clean.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-360-clip-full.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "directus-360-clip-right-75.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "directus-360-clip-right-50.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "directus-360-clip-right-25.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "directus-360-clip-bottom-50.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "directus-360-content-change.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-360-overlay-adjacent.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-360-style-tweak.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-640-clean.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-640-clip-full.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "directus-640-clip-right-75.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "directus-640-clip-right-50.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "directus-640-clip-right-25.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "directus-640-clip-bottom-50.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 640,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "directus-640-content-change.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-640-overlay-adjacent.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-640-style-tweak.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 640,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-1024-clean.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-1024-clip-full.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "directus-1024-clip-right-75.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "directus-1024-clip-right-50.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "directus-1024-clip-right-25.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "directus-1024-clip-bottom-50.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 1024,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "directus-1024-content-change.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-1024-overlay-adjacent.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-1024-style-tweak.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 1024,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-1280-clean.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-1280-clip-full.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0
+    },
+    {
+      "manifest": "directus-1280-clip-right-75.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75
+    },
+    {
+      "manifest": "directus-1280-clip-right-50.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "directus-1280-clip-right-25.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25
+    },
+    {
+      "manifest": "directus-1280-clip-bottom-50.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "label": 1,
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5
+    },
+    {
+      "manifest": "directus-1280-content-change.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-1280-overlay-adjacent.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    },
+    {
+      "manifest": "directus-1280-style-tweak.json",
+      "family": "directus",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "label": 0,
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1
+    }
+  ],
+  "provenance": "Controlled viewport-clipping regressions plus negative controls across application families; groups never split across train/calibration/test; allocation frozen before training with seed 423."
+}

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "next-1024-clean",
+  "group": "next",
+  "revision": "d06c2f9263094378960d0a7d5d5324e4ba66fe53",
+  "consent": true,
+  "context": {
+    "width": 1024,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit"
+  },
+  "before": {
+    "path": "next-1024-clean-before.png",
+    "sha256": "e50cea47a2a45d27aca2d30ddf9d94ec0f610ffd3d390caa765b0f2f78955434"
+  },
+  "current": {
+    "path": "next-1024-clean-current.png",
+    "sha256": "e50cea47a2a45d27aca2d30ddf9d94ec0f610ffd3d390caa765b0f2f78955434"
+  },
+  "beforePrivacy": {
+    "path": "next-1024-clean-before.png.privacy.json",
+    "sha256": "ea81e07ed6d38eb5bfabb8f0fddb168eae9e25032e86a26faa7b6312febd3897"
+  },
+  "currentPrivacy": {
+    "path": "next-1024-clean-current.png.privacy.json",
+    "sha256": "ea81e07ed6d38eb5bfabb8f0fddb168eae9e25032e86a26faa7b6312febd3897"
+  },
+  "scene": {
+    "path": "next-1024-clean-scene.json",
+    "sha256": "fb97e4d593d80009bb96b935fc43eb465b8155cb2acb8387ddd19248d9df2ca7"
+  },
+  "timeline": {
+    "path": "next-1024-clean-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "next-1024-clean-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}
