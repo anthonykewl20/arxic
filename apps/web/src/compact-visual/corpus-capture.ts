@@ -65,7 +65,13 @@ type FamilySurface = {
   /** Locators that Chromium's a11y tree cannot name (koel's label-wrapped submit, #383) bind by unique css instead. */
   buttonSelector?: string;
 };
-type StartedFamily = { surface: FamilySurface; stop: () => Promise<void> };
+type StartedFamily = {
+  surface: FamilySurface;
+  /** Design viewport override: wide dashboards scroll horizontally at 800px,
+   * which would contradict the overflow oracle on unmutated pages. */
+  viewport?: number;
+  stop: () => Promise<void>;
+};
 
 const THIRD_PARTY_ROOT =
   process.env.ARXIC_VISUAL_THIRD_PARTY ?? '/home/soultransit/devtony/thirdparty-dg';
@@ -88,6 +94,7 @@ export const STATIC_FAMILY_CONFIG: Record<
     buttonExact: boolean;
     buttonSelector?: string;
     vendorRoutes?: Record<string, string>;
+    viewport?: number;
   }
 > = {
   todomvc: {
@@ -110,6 +117,7 @@ export const STATIC_FAMILY_CONFIG: Record<
     button: '',
     buttonExact: true,
     buttonSelector: 'div.page-actions button.btn-outline',
+    viewport: 1280,
   },
   'sb-admin': {
     docroot: 'sb-admin/dist',
@@ -121,11 +129,14 @@ export const STATIC_FAMILY_CONFIG: Record<
   adminlte: {
     // The OSS dist's index pages keep every real button below the fold at this
     // viewport; the starter page's card button is visible without scrolling.
+    // 1280 is the design width: at 800 the dashboard scrolls horizontally and
+    // unmutated pages would contradict the overflow oracle.
     docroot: 'adminlte',
     path: '/starter.html',
     button: '',
     buttonExact: true,
     buttonSelector: ':nth-match(a.btn.btn-primary, 1)',
+    viewport: 1280,
   },
 };
 
@@ -379,6 +390,7 @@ export async function startFamily(root: string, family: string): Promise<Started
         buttonExact: staticFamily.buttonExact,
         buttonSelector: staticFamily.buttonSelector,
       },
+      viewport: staticFamily.viewport,
       stop: started.stop,
     };
   }
@@ -611,14 +623,31 @@ export async function captureCorpusV2(
   const browser = await chromium.launch({ headless: true });
   try {
     for (const family of frozen.families) {
-      const started = await startFamily(root, family);
+      // A family whose boot or control seam fails skips loudly instead of
+      // aborting the whole capture: the skip is recorded with its reason and
+      // the remaining families still contribute their cases.
+      let started: StartedFamily;
+      try {
+        started = await startFamily(root, family);
+      } catch (error) {
+        manifest.skipped.push({
+          family,
+          viewport: 0,
+          variant: '*',
+          reason: `family-boot-failed: ${String(error).slice(0, 160)}`,
+        });
+        continue;
+      }
       const split = frozen.allocation.train.includes(family)
         ? 'train'
         : frozen.allocation.calibration.includes(family)
           ? 'calibration'
           : 'test';
       try {
-        for (const width of viewports)
+        // A family viewport override captures that family only at its design
+        // width; other families contribute every planned viewport.
+        const widths = started.viewport ? [started.viewport] : viewports;
+        for (const width of widths)
           for (const variantId of variants) {
             const height = 800,
               id = `${family}-${width}-${variantId}`;
@@ -705,8 +734,13 @@ export async function captureCorpusV2(
                 requiredMasks: [],
               });
               if (controlRemoved) {
-                // Stability for a removed control is absence, not box equality.
-                if ((await button.count()) !== 0) {
+                // Stability for a removed control is absence, not box equality;
+                // the privacy mask layout must still be identical so training's
+                // evidence contract (incompatible-masks) accepts the case.
+                if (
+                  (await button.count()) !== 0 ||
+                  JSON.stringify(beforeMasks) !== JSON.stringify(currentMasks)
+                ) {
                   manifest.skipped.push({
                     family,
                     viewport: width,
@@ -867,6 +901,15 @@ export async function captureCorpusV2(
                 labelOrigin: VARIANT_REGISTRY[variantId]!.labelOrigin,
                 measuredClip: currentMeasurement.clip ?? null,
                 measuredOverflowX: currentMeasurement.overflowX ?? 0,
+              });
+            } catch (error) {
+              // Case-level failures (control never visible, navigation timeout)
+              // skip loudly with the reason instead of aborting the family.
+              manifest.skipped.push({
+                family,
+                viewport: width,
+                variant: variantId,
+                reason: `case-error: ${String(error).slice(0, 160)}`,
               });
             } finally {
               await context.close();

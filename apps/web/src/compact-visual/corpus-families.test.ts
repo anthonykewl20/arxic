@@ -32,6 +32,10 @@ it('configures the four static public families with read-only docroots and stabl
   expect(STATIC_FAMILY_CONFIG.gentelella.buttonSelector).toBe(
     'div.page-actions button.btn-outline',
   );
+  // Wide dashboards scroll horizontally at 800px, which would contradict the
+  // overflow oracle on unmutated pages; both capture at their design width.
+  expect(STATIC_FAMILY_CONFIG.gentelella.viewport).toBe(1280);
   expect(STATIC_FAMILY_CONFIG.adminlte.path).toBe('/starter.html');
   expect(STATIC_FAMILY_CONFIG.adminlte.buttonSelector).toBe(':nth-match(a.btn.btn-primary, 1)');
+  expect(STATIC_FAMILY_CONFIG.adminlte.viewport).toBe(1280);
 });

@@ -1,0 +1,317 @@
+{
+ "capturedAt": "2026-09-08T15:27:32.385Z",
+ "cases": 178,
+ "skipped": [
+  {
+   "family": "arxic",
+   "viewport": 800,
+   "variant": "missing-element",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "arxic",
+   "viewport": 800,
+   "variant": "text-truncate",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "arxic",
+   "viewport": 1280,
+   "variant": "missing-element",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "arxic",
+   "viewport": 1280,
+   "variant": "text-truncate",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "koel",
+   "viewport": 800,
+   "variant": "clip-bottom-50",
+   "reason": "case-error: TimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('form button[type=\"submit\"]') to be visible\n"
+  },
+  {
+   "family": "koel",
+   "viewport": 800,
+   "variant": "missing-element",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "koel",
+   "viewport": 800,
+   "variant": "text-truncate",
+   "reason": "no-text-element"
+  },
+  {
+   "family": "koel",
+   "viewport": 1280,
+   "variant": "clip-right-75",
+   "reason": "case-error: TimeoutError: locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('form button[type=\"submit\"]') to be visible\n"
+  },
+  {
+   "family": "koel",
+   "viewport": 1280,
+   "variant": "missing-element",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "koel",
+   "viewport": 1280,
+   "variant": "text-truncate",
+   "reason": "no-text-element"
+  },
+  {
+   "family": "directus",
+   "viewport": 800,
+   "variant": "overflow-x",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "directus",
+   "viewport": 800,
+   "variant": "missing-element",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "directus",
+   "viewport": 800,
+   "variant": "text-truncate",
+   "reason": "text-truncation-oracle-failed"
+  },
+  {
+   "family": "directus",
+   "viewport": 1280,
+   "variant": "overflow-x",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "directus",
+   "viewport": 1280,
+   "variant": "missing-element",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "directus",
+   "viewport": 1280,
+   "variant": "text-truncate",
+   "reason": "text-truncation-oracle-failed"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 800,
+   "variant": "clip-full",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 800,
+   "variant": "clip-right-75",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 800,
+   "variant": "clip-right-50",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 800,
+   "variant": "clip-right-25",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 800,
+   "variant": "clip-bottom-50",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 800,
+   "variant": "missing-element",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 800,
+   "variant": "layout-shift",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 1280,
+   "variant": "clip-full",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 1280,
+   "variant": "clip-right-75",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 1280,
+   "variant": "clip-right-50",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 1280,
+   "variant": "clip-right-25",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 1280,
+   "variant": "clip-bottom-50",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 1280,
+   "variant": "missing-element",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "todomvc",
+   "viewport": 1280,
+   "variant": "layout-shift",
+   "reason": "unstable-case"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "clean",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "clip-full",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "clip-right-75",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "clip-right-50",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "clip-right-25",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "clip-bottom-50",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "content-change",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "overlay-adjacent",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "style-tweak",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "occlusion-overlay",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "missing-element",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "text-truncate",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "gentelella",
+   "viewport": 1280,
+   "variant": "layout-shift",
+   "reason": "overflow-oracle-failed"
+  },
+  {
+   "family": "sb-admin",
+   "viewport": 800,
+   "variant": "text-truncate",
+   "reason": "no-text-element"
+  },
+  {
+   "family": "sb-admin",
+   "viewport": 1280,
+   "variant": "text-truncate",
+   "reason": "no-text-element"
+  },
+  {
+   "family": "adminlte",
+   "viewport": 1280,
+   "variant": "missing-element",
+   "reason": "unstable-case"
+  }
+ ],
+ "allocation": {
+  "train": [
+   "express",
+   "directus",
+   "adminlte",
+   "arxic",
+   "gentelella"
+  ],
+  "calibration": [
+   "sb-admin",
+   "next"
+  ],
+  "test": [
+   "todomvc",
+   "koel"
+  ]
+ },
+ "rows": 178,
+ "supported": [
+  true,
+  true,
+  true,
+  true,
+  true,
+  true
+ ],
+ "thresholds": [
+  null,
+  0.7991402162200648,
+  0.7485838672809413,
+  0.8680660072524323,
+  null,
+  null
+ ],
+ "parityMaximumError": 2.256168387393398e-7
+}
