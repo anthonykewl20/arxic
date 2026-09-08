@@ -1,9 +1,17 @@
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
 import {
+  addressedHeads,
   allocateSplits,
+  DEFECT_HEADS,
+  evaluateLayoutShiftOracle,
+  evaluateMissingOracle,
+  evaluateOcclusionOracle,
   evaluateOracle,
   evaluateOverflowOracle,
+  evaluateTextTruncationOracle,
+  LAYOUT_SHIFT_MIN_PX,
+  TEXT_TRUNCATION_TOLERANCE_PX,
   validateCorpusPlan,
   VARIANT_IDS,
   VARIANT_REGISTRY,
@@ -56,15 +64,20 @@ it('keeps every variant registry entry internally consistent across heads', () =
   for (const id of VARIANT_IDS) {
     const variant = VARIANT_REGISTRY[id];
     expect(variant.id).toBe(id);
-    expect(variant.labels).toHaveLength(6);
-    // The clipping head and the overflow head are the two labeled heads.
-    expect([0, 1]).toContain(variant.labels[0]);
-    expect([0, 1]).toContain(variant.labels[3]);
-    expect(variant.labels.slice(1, 3)).toEqual([null, null]);
-    expect(variant.labels.slice(4)).toEqual([null, null]);
+    expect(variant.labels).toHaveLength(DEFECT_HEADS.length);
+    // Heads that cannot be measured for a case (e.g. clipping when the control
+    // is removed) stay null = not applicable; every addressed head is labeled.
     expect(variant.labelOrigin).toMatch(/^controlled-(regression|negative)$/);
-    // A clipping regression must move the required control; a negative must not.
-    expect(Boolean(variant.moveControl)).toBe(variant.labels[0] === 1);
+    // A clipping regression or a layout-shift regression moves the required
+    // control; every other variant must leave it in place (or remove it whole).
+    expect(Boolean(variant.moveControl)).toBe(
+      variant.labels[0] === 1 || variant.labels[5] === 1,
+    );
+    // Every variant addresses at least one head; addressed heads are labeled 0/1.
+    expect(addressedHeads(id).length).toBeGreaterThanOrEqual(1);
+    for (const head of addressedHeads(id)) {
+      expect([0, 1]).toContain(variant.labels[head]);
+    }
   }
   // Graded partial clips, negatives, and at least one overflow regression exist.
   expect(VARIANT_IDS.filter((id) => id.startsWith('clip-')).length).toBeGreaterThanOrEqual(4);
@@ -74,6 +87,108 @@ it('keeps every variant registry entry internally consistent across heads', () =
   expect(
     VARIANT_IDS.filter((id) => VARIANT_REGISTRY[id].labels[3] === 1).length,
   ).toBeGreaterThanOrEqual(1);
+});
+
+it('labels all six defect heads with a positive and a negative variant each', () => {
+  expect(DEFECT_HEADS).toEqual([
+    'clipping',
+    'occlusion',
+    'missing_element',
+    'overflow',
+    'text_truncation',
+    'layout_shift',
+  ]);
+  for (const head of DEFECT_HEADS.keys()) {
+    expect(
+      VARIANT_IDS.filter((id) => VARIANT_REGISTRY[id].labels[head] === 1).length,
+      `head ${DEFECT_HEADS[head]} needs a controlled regression`,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      VARIANT_IDS.filter((id) => VARIANT_REGISTRY[id].labels[head] === 0).length,
+      `head ${DEFECT_HEADS[head]} needs a controlled negative`,
+    ).toBeGreaterThanOrEqual(1);
+  }
+  // The four new-head regressions label every other measurable head negative.
+  expect(VARIANT_REGISTRY['occlusion-overlay'].labels).toEqual([0, 1, 0, 0, 0, 0]);
+  expect(VARIANT_REGISTRY['missing-element'].labels).toEqual([null, null, 1, 0, 0, null]);
+  expect(VARIANT_REGISTRY['text-truncate'].labels).toEqual([0, 0, 0, 0, 1, 0]);
+  expect(VARIANT_REGISTRY['layout-shift'].labels).toEqual([0, 0, 0, 0, 0, 1]);
+});
+
+it('classifies measured occlusion hit-tests against the occlusion oracle independently', () => {
+  expect(evaluateOcclusionOracle('occlusion-overlay', true)).toEqual({
+    verdict: 'fail',
+    ok: true,
+  });
+  expect(evaluateOcclusionOracle('occlusion-overlay', false)).toEqual({
+    verdict: 'pass',
+    ok: false,
+    reason: 'occlusion-oracle-failed',
+  });
+  expect(evaluateOcclusionOracle('clean', false)).toEqual({ verdict: 'pass', ok: true });
+  expect(evaluateOcclusionOracle('clean', true)).toEqual({
+    verdict: 'fail',
+    ok: false,
+    reason: 'occlusion-oracle-failed',
+  });
+  expect(() => evaluateOcclusionOracle('spin', false)).toThrow('unknown-variant');
+});
+
+it('classifies control presence against the missing-element oracle independently', () => {
+  expect(evaluateMissingOracle('missing-element', false)).toEqual({ verdict: 'fail', ok: true });
+  expect(evaluateMissingOracle('missing-element', true)).toEqual({
+    verdict: 'pass',
+    ok: false,
+    reason: 'missing-oracle-failed',
+  });
+  expect(evaluateMissingOracle('clean', true)).toEqual({ verdict: 'pass', ok: true });
+  expect(evaluateMissingOracle('clean', false)).toEqual({
+    verdict: 'fail',
+    ok: false,
+    reason: 'missing-oracle-failed',
+  });
+});
+
+it('classifies measured text overflow beyond the truncation tolerance independently', () => {
+  expect(evaluateTextTruncationOracle('text-truncate', TEXT_TRUNCATION_TOLERANCE_PX + 1)).toEqual({
+    verdict: 'fail',
+    ok: true,
+  });
+  // At or below the tolerance no truncation is measured: for a regression
+  // variant that means the mutation did not take, which is an oracle failure.
+  expect(evaluateTextTruncationOracle('text-truncate', TEXT_TRUNCATION_TOLERANCE_PX)).toEqual({
+    verdict: 'pass',
+    ok: false,
+    reason: 'text-truncation-oracle-failed',
+  });
+  expect(evaluateTextTruncationOracle('clean', 0)).toEqual({ verdict: 'pass', ok: true });
+  expect(evaluateTextTruncationOracle('clean', 40)).toEqual({
+    verdict: 'fail',
+    ok: false,
+    reason: 'text-truncation-oracle-failed',
+  });
+});
+
+it('classifies measured control-box movement against the layout-shift oracle independently', () => {
+  expect(evaluateLayoutShiftOracle('layout-shift', LAYOUT_SHIFT_MIN_PX, 0)).toEqual({
+    verdict: 'fail',
+    ok: true,
+  });
+  expect(evaluateLayoutShiftOracle('layout-shift', 0, LAYOUT_SHIFT_MIN_PX + 5)).toEqual({
+    verdict: 'fail',
+    ok: true,
+  });
+  expect(evaluateLayoutShiftOracle('layout-shift', LAYOUT_SHIFT_MIN_PX - 1, 2)).toEqual({
+    verdict: 'pass',
+    ok: false,
+    reason: 'layout-shift-oracle-failed',
+  });
+  expect(evaluateLayoutShiftOracle('clean', 0, 0)).toEqual({ verdict: 'pass', ok: true });
+  expect(evaluateLayoutShiftOracle('clean', 30, 30)).toEqual({
+    verdict: 'fail',
+    ok: false,
+    reason: 'layout-shift-oracle-failed',
+  });
 });
 
 it('classifies measured scrollport overflow against the overflow oracle independently', () => {
