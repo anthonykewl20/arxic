@@ -3,6 +3,7 @@ import { Badge } from './components';
 import { Input } from './components';
 import { WorkflowSelection } from './workflow-selection';
 import type { RowHistory } from '../campaigns';
+import { routeStateCoverage, type RouteCoverageDimensionName } from '../route-coverage';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { IntentLedger } from '../../../../packages/intent/src/ledger';
@@ -258,6 +259,73 @@ function SurfaceInventory({
   );
 }
 
+const dimensionLabels: Record<RouteCoverageDimensionName, string> = {
+  'state:loading': 'loading',
+  'state:error': 'error',
+  'state:empty': 'empty',
+  tests: 'tests',
+  docs: 'docs',
+};
+
+/** Per-route omission chips derived from the run's own discovery artifacts. */
+function RouteOmissionCoverage({
+  inventory,
+  frontend,
+}: {
+  inventory: DomainInventory;
+  frontend: FrontendInventory;
+}) {
+  const coverage = routeStateCoverage(inventory, frontend);
+  if (!coverage.length) return null;
+  return (
+    <section className="route-coverage" data-route-coverage>
+      <div className="section-heading">
+        <h2>Route omission coverage</h2>
+        <small>{coverage.length} routes · source-reference exposure</small>
+      </div>
+      <p className="scope-note">
+        Per route: which conditional states its own source files reference, and whether any test or
+        documentation declaration covers them. An absent marker is an omission signal to investigate
+        — not proof of absent behavior.
+      </p>
+      <ul>
+        {coverage.slice(0, 50).map((route) => (
+          <li key={`${route.method} ${route.path}`} data-route={route.path}>
+            <code>
+              {route.method} {route.path}
+            </code>{' '}
+            {route.dimensions.map((dimension) => (
+              <span
+                key={dimension.name}
+                className={
+                  dimension.status === 'referenced' ? 'coverage-referenced' : 'coverage-absent'
+                }
+              >
+                {dimensionLabels[dimension.name]}{' '}
+                {dimension.status === 'referenced' ? (
+                  <small>
+                    referenced
+                    {dimension.evidence[0]
+                      ? ` (${dimension.evidence[0].path}:${dimension.evidence[0].startLine})`
+                      : ''}
+                  </small>
+                ) : (
+                  <small>absent</small>
+                )}
+              </span>
+            ))}
+          </li>
+        ))}
+      </ul>
+      {coverage.length > 50 && (
+        <p className="scope-note">
+          First 50 routes shown; the complete inventory JSON preserves every route.
+        </p>
+      )}
+    </section>
+  );
+}
+
 function matchingDeclarations(inventory: FrontendInventory, kind: string, search: string) {
   return inventory.rows.filter(
     (row) =>
@@ -367,6 +435,14 @@ function FrontendDeclarations({
           Complete inventory JSON
         </a>
       </div>
+      {(() => {
+        const routeInventory = run.result?.inventory as DomainInventory | undefined;
+        return (
+          routeInventory && (
+            <RouteOmissionCoverage inventory={routeInventory} frontend={inventory} />
+          )
+        );
+      })()}
       <details data-detail-key={`${run.id}-gaps`}>
         <summary>Coverage gaps</summary>
         <p>
