@@ -19,9 +19,22 @@ export type RedactionResult = Readonly<{
 /** Stable token used when a known runtime-only value reaches a persisted payload. */
 export const PERSIST_REDACTION_PLACEHOLDER = '__ARXIC_REDACTED_PERSONA__';
 
+/**
+ * Stable token replacing a recorded control `label` value that matched a
+ * pattern class (issue #474): the DG-297 label-first chain persists UI copy —
+ * aria-label → label text → INPUT PLACEHOLDER → text content — as the label,
+ * and real-world apps ubiquitously put `you@example.com`-style placeholders on
+ * email inputs. Labels are display text, not user data, so a pattern hit there
+ * is masked whole (never a partial-secret substring), while every pattern-class
+ * match outside a label value keeps the fail-closed refusal.
+ */
+export const PERSIST_REDACTED_LABEL = '__ARXIC_REDACTED_LABEL__';
+
 export type PersistenceRedactionResult = Readonly<{
   text: string;
   diagnostics: readonly Diagnostic[];
+  /** Pattern classes whose only occurrences were masked inside label values. */
+  maskedLabelClasses?: readonly string[];
 }>;
 
 /** Controls whether class-pattern checks are meaningful for a persisted payload. */
@@ -122,13 +135,37 @@ export function scanPersistedPayloadForSecrets(
   ];
 }
 
+/** A `"label":"…"` JSON property in serialized stage/evidence payloads. */
+const labelProperty = /"label":"(?:[^"\\]|\\.)*"/gu;
+
+/**
+ * Masks pattern-class matches inside recorded label values (UI copy). Runs
+ * AFTER exact known-value redaction, so replay-persona literals keep the
+ * persona placeholder; returns the classes it masked for attribution.
+ */
+function maskLabelUiCopy(text: string): { text: string; maskedClasses: string[] } {
+  const masked = new Set<string>();
+  const maskedText = text.replace(labelProperty, (property) => {
+    const { label } = JSON.parse(`{${property}}`) as { label: string };
+    const hits = patterns.filter((pattern) => matches(pattern, label));
+    for (const { name } of hits) masked.add(name);
+    return hits.length ? `"label":"${PERSIST_REDACTED_LABEL}"` : property;
+  });
+  return { text: maskedText, maskedClasses: [...masked].sort() };
+}
+
 /** Redact known runtime values, then apply the scoped write-time secret sweep. */
 export function redactAndScanPersistedPayload(
   text: string,
   options: PersistedPayloadScanOptions,
 ): PersistenceRedactionResult {
   const clean = redactTextForPersistence(text, options.knownValues);
-  return { text: clean, diagnostics: scanPersistedPayloadForSecrets(clean, options) };
+  const masked = maskLabelUiCopy(clean);
+  return {
+    text: masked.text,
+    diagnostics: scanPersistedPayloadForSecrets(masked.text, options),
+    ...(masked.maskedClasses.length ? { maskedLabelClasses: masked.maskedClasses } : {}),
+  };
 }
 
 function matches(pattern: (typeof patterns)[number], content: string): boolean {
