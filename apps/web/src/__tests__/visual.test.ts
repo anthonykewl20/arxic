@@ -86,6 +86,18 @@ it('blocks unapproved capture, then detects a real frontend regression without r
     assessmentSha256: string;
   };
   expect(measured.assessmentFile).toBe('checkpoint-1.assessment.json');
+  // WEB-506: the real regression carries a deterministic, hash-bound explanation.
+  const explanation = result.captures![0].diffExplanation;
+  expect(explanation).toBeDefined();
+  expect(explanation!.assessmentSha256).toBe(measured.assessmentSha256);
+  expect(explanation!.deviceScaleFactor).toBe(1);
+  expect(explanation!.documentChecks.map((check) => check.id)).toContain(
+    'document-horizontal-overflow',
+  );
+  expect(explanation!.regions).toHaveLength(result.captures![0].diffRegions!.length);
+  expect(
+    explanation!.regions.some((region) => !region.unexplained && region.elements.length > 0),
+  ).toBe(true);
   const artifact = await wb.artifact(third.id, measured.assessmentFile);
   const report = JSON.parse(artifact.bytes.toString());
   expect(report.assessment).toMatchObject({

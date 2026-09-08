@@ -46,7 +46,16 @@ export async function fetchAttestation(
     redirect: 'manual',
     signal: AbortSignal.timeout(timeoutMs),
   });
-  if (!response.ok) throw new Error(`Attestation endpoint returned HTTP ${response.status}`);
+  if (!response.ok)
+    // Actionable refusal (#473): name the exact path tried and the remedy —
+    // auth middleware redirecting the well-known path to login is the most
+    // common live shape, and "HTTP 307" alone told the operator nothing.
+    throw new Error(
+      `Attestation endpoint returned HTTP ${response.status} for ${attestationPath}` +
+        ` (fetch was configured to never follow redirects); serve the attestation document` +
+        ` at this path without redirecting, or set attestationPath to the route the app` +
+        ` actually serves — route recipe: docs/attestation-for-your-app.md`,
+    );
   let payload: unknown;
   try {
     payload = await response.json();

@@ -967,6 +967,10 @@ function SettingsStep({
                   name="exec_attestationPath"
                   defaultValue={exec?.attestationPath ?? '/.well-known/arxic-test-target.json'}
                 />
+                <small>
+                  The running app must serve the attestation document at this path without
+                  redirecting; route recipe: docs/attestation-for-your-app.md.
+                </small>
               </Label>
               <Label>
                 Feature flag declarations

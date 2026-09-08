@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/flake-captures-502
+
+ ✓ apps/web/src/__tests__/capture-reason.real-world.test.ts (2 tests) 5055ms
+   ✓ records the observed navigation error on a blocked zero-capture run  4762ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  23:45:54
+   Duration  9.27s (transform 1.74s, setup 0ms, import 4.06s, tests 5.05s, environment 0ms)
+

@@ -1,0 +1,20 @@
+GREEN stage — after the two changes (service.ts diagnostic + wizard note).
+
+Engine lane:
+ ✓ packages/environment/src/__tests__/attestation-redirect-hint.real-world.test.ts (3 tests) 103ms
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+
+UI lane (real Chromium through the real dashboard workbench; full project
+onboarding + discovery + settings-dialog journey, 9.1 s):
+ ✓ apps/web/src/__tests__/attestation-hint-ui.real-world.test.ts (1 test) 9136ms
+   ✓ documents the target-attestation prerequisite next to the attestation path setting 9135ms
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+
+The persisted diagnostic for the 307 shape now reads:
+"Could not fetch or validate target attestation: Attestation endpoint returned
+HTTP 307 for /.well-known/arxic-test-target.json (fetch was configured to never
+follow redirects); serve the attestation document at this path without
+redirecting, or set attestationPath to the route the app actually serves —
+route recipe: docs/attestation-for-your-app.md"

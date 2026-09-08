@@ -248,16 +248,31 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
     const historicalState = await mkdtemp(join(tmpdir(), 'historical-inventory-ui-'));
     let historicalApp: Awaited<ReturnType<typeof startWorkbench>> | undefined;
     try {
+      // The pre-#460 identity format hashed [source, kind, label]; generic
+      // same-line condition labels made those ids collide naturally (seven
+      // duplicates in this fixture). WEB-402-ROUTE-OMISSIONS enriched
+      // condition labels with their source text, so natural collisions
+      // disappeared — the historical duplicate is manufactured explicitly
+      // (the first condition row re-uses the last condition row's id),
+      // preserving exactly the property this journey pins: rendering and
+      // filtering a restored inventory whose row ids collide.
+      const oldIdentityOf = (row: (typeof inventory.rows)[number]) =>
+        createHash('sha256')
+          .update(JSON.stringify([row.source, row.kind, row.label]))
+          .digest('hex');
+      const conditionIndexes = inventory.rows.flatMap((row, index) =>
+        row.kind === 'condition' ? [index] : [],
+      );
+      expect(conditionIndexes.length).toBeGreaterThan(1);
+      const duplicateIdentity = oldIdentityOf(inventory.rows[conditionIndexes.at(-1)!]);
       const historical = {
         ...inventory,
-        rows: inventory.rows.map((row) => ({
+        rows: inventory.rows.map((row, index) => ({
           ...row,
-          id: createHash('sha256')
-            .update(JSON.stringify([row.source, row.kind, row.label]))
-            .digest('hex'),
+          id: index === conditionIndexes[0] ? duplicateIdentity : oldIdentityOf(row),
         })),
       };
-      expect(new Set(historical.rows.map((row) => row.id)).size).toBe(historical.rows.length - 7);
+      expect(new Set(historical.rows.map((row) => row.id)).size).toBe(historical.rows.length - 1);
       const store = await Store.open(historicalState);
       let historicalId: string;
       try {

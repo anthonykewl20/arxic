@@ -235,10 +235,15 @@ function extractFrontend(
       )
         emit('component', name);
     }
+    // Condition labels carry their bounded collapsed source text after the
+    // syntax kind ("ternary expression (source condition): error ? …"): the
+    // text is what lets consumers classify state references per route while
+    // the kind prefix keeps the machine-parseable node-type shape.
+    const conditionText = `${node.text.replace(/\s+/gu, ' ').trim().slice(0, 120)}`;
     if (['if_statement', 'ternary_expression', 'switch_statement'].includes(node.type))
-      emit('condition', `${node.type.replaceAll('_', ' ')} (source condition)`);
+      emit('condition', `${node.type.replaceAll('_', ' ')} (source condition): ${conditionText}`);
     if (node.type === 'binary_expression' && ['&&', '||', '??'].includes(named('operator') ?? ''))
-      emit('condition', `conditional expression ${named('operator')}`);
+      emit('condition', `conditional expression ${named('operator')}: ${conditionText}`);
     if (node.type === 'call_expression') {
       const callee = named('function') ?? '';
       if (/^(?:React\.)?use(?:State|Reducer|Effect|Context|SyncExternalStore)$/u.test(callee))
