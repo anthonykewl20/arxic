@@ -1,0 +1,30 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/persona-paths-402
+
+ ✓ apps/web/src/__tests__/persona-variants-1d.real-world.test.ts (5 tests) 52605ms
+   ✓ authenticates a seeded user through the real /login/alternate fixture route  14042ms
+   ✓ fans a distinct-login-path persona campaign out and diverges the real engine-config snapshots  10947ms
+   ✓ rejects every invalid variant login override with its distinct 400 before enqueueing anything  834ms
+   ✓ carries a variant login override through recurring fires and drift rebinds  18013ms
+   ✓ saves a persona variant with its login override through the real dialog and API  8767ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  18:24:11
+   Duration  58.45s (transform 2.66s, setup 0ms, import 5.67s, tests 52.60s, environment 0ms)
+
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/persona-paths-402
+
+ ✓ apps/web/src/__tests__/persona-variants-1d.real-world.test.ts (5 tests) 51824ms
+   ✓ authenticates a seeded user through the real /login/alternate fixture route  7894ms
+   ✓ fans a distinct-login-path persona campaign out and diverges the real engine-config snapshots  12345ms
+   ✓ rejects every invalid variant login override with its distinct 400 before enqueueing anything  1061ms
+   ✓ carries a variant login override through recurring fires and drift rebinds  20994ms
+   ✓ saves a persona variant with its login override through the real dialog and API  9528ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  18:25:10
+   Duration  56.07s (transform 1.73s, setup 0ms, import 4.09s, tests 51.82s, environment 0ms)
+

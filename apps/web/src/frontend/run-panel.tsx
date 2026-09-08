@@ -1,5 +1,7 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { captureFailureMessage } from './capture-failure';
 import { CaptureGallery } from './capture-gallery';
+import { DiffViewer } from './diff-viewer';
 import { WorkflowCheckpoints } from './workflow-checkpoints';
 import { AssessmentPanel } from './assessment-panel';
 import type { RunHistoryPage } from '../run-history';
@@ -147,33 +149,64 @@ export function RunPanel(props: RunPanelProps) {
     </>
   );
 }
-function CaptureFigure({
-  label,
-  runId,
-  file,
-  empty,
-}: {
-  label: string;
-  runId?: string;
-  file?: string;
-  empty: string;
-}) {
-  const url = file ? `/api/runs/${runId}/artifacts/${encodeURIComponent(file)}` : '';
-  return (
-    <figure>
-      <figcaption>{label}</figcaption>
-      {file ? (
-        <a href={url} target="_blank" rel="noopener">
-          <img alt={label} src={url} loading="lazy" decoding="async" />
-        </a>
-      ) : (
-        <div className="placeholder">{empty}</div>
-      )}
-    </figure>
-  );
-}
 function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: Run }) {
   const result = run.result;
+  const changedIds = useMemo(
+    () =>
+      (result?.captures ?? [])
+        .filter((capture) => capture.status === 'changed')
+        .map((capture) => capture.id),
+    [result],
+  );
+  const [activeReview, setActiveReview] = useState<string | null>(null);
+  const loop = useRef({ changedIds, activeReview });
+  loop.current = { changedIds, activeReview };
+  useEffect(() => {
+    function review(event: KeyboardEvent) {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      )
+        return;
+      const { changedIds: ids, activeReview: active } = loop.current;
+      if (event.key === 'a') {
+        const card = active
+          ? document.querySelector(`[data-capture-id="${CSS.escape(active)}"]`)
+          : null;
+        const approve = card?.querySelector<HTMLButtonElement>('[data-approve]');
+        if (approve && !approve.disabled) {
+          event.preventDefault();
+          approve.click();
+        }
+        return;
+      }
+      if ((event.key !== 'j' && event.key !== 'k') || !ids.length) return;
+      event.preventDefault();
+      const current = active ? ids.indexOf(active) : -1;
+      const next =
+        current === -1
+          ? event.key === 'j'
+            ? 0
+            : ids.length - 1
+          : event.key === 'j'
+            ? (current + 1) % ids.length
+            : (current - 1 + ids.length) % ids.length;
+      setActiveReview(ids[next]);
+    }
+    window.addEventListener('keydown', review);
+    return () => window.removeEventListener('keydown', review);
+  }, []);
+  useEffect(() => {
+    if (!activeReview) return;
+    document
+      .querySelector(`[data-capture-id="${CSS.escape(activeReview)}"]`)
+      ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [activeReview]);
   const canEditCapture =
     run.mode === 'visual' &&
     result?.findings?.some(
@@ -305,13 +338,24 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
           </ul>
         </section>
       )}
+      {!!changedIds.length && (
+        <p className="muted" data-review-loop-hint>
+          Review changed captures from the keyboard: j next · k previous · a approve focused.
+        </p>
+      )}
       <CaptureGallery key={run.id} captures={result?.captures ?? []}>
         {(capture) => {
           const approved = state.baselines.some(
             (item) => item.run_id === run.id && item.capture_id === capture.id,
           );
+          const reviewing = capture.id === activeReview;
           return (
-            <article className="capture" key={capture.id}>
+            <article
+              className={reviewing ? 'capture capture-reviewing' : 'capture'}
+              data-capture-id={capture.id}
+              aria-current={reviewing ? 'true' : undefined}
+              key={capture.id}
+            >
               <div className="capture-head">
                 <div>
                   <h3>
@@ -357,44 +401,17 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                   )
                 )}
               </div>
-              <div className="compare">
-                <CaptureFigure
-                  label="Baseline used for this run"
-                  runId={capture.baselineRunId}
-                  file={capture.baselineFile}
-                  empty={
-                    capture.status === 'needs-baseline'
-                      ? 'No baseline existed when this run was captured.'
-                      : 'Baseline image unavailable for this run.'
-                  }
-                />
-                <CaptureFigure
-                  label="Capture from this run"
-                  runId={run.id}
-                  file={capture.file}
-                  empty="Capture image unavailable for this run."
-                />
-                <CaptureFigure
-                  label="Pixel difference"
-                  runId={run.id}
-                  file={capture.diffFile}
-                  empty={
-                    capture.status === 'needs-baseline'
-                      ? 'No comparison was made because this run had no prior baseline.'
-                      : 'Difference image unavailable for this run.'
-                  }
-                />
-                {capture.videoFile && (
-                  <figure>
-                    <video
-                      controls
-                      preload="metadata"
-                      src={`/api/runs/${run.id}/artifacts/${encodeURIComponent(capture.videoFile)}`}
-                    />
-                    <figcaption>Session video · unmasked, inspect before sharing</figcaption>
-                  </figure>
-                )}
-              </div>
+              <DiffViewer runId={run.id} capture={capture} />
+              {capture.videoFile && (
+                <figure className="capture-video">
+                  <video
+                    controls
+                    preload="metadata"
+                    src={`/api/runs/${run.id}/artifacts/${encodeURIComponent(capture.videoFile)}`}
+                  />
+                  <figcaption>Session video · unmasked, inspect before sharing</figcaption>
+                </figure>
+              )}
               <AssessmentPanel
                 key={capture.assessmentSha256 ?? capture.id}
                 runId={run.id}

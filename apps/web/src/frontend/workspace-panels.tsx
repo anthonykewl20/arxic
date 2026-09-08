@@ -5,8 +5,9 @@ import { time } from './display';
 import { InventoryPanel, type InventoryPanelProps } from './inventory-panel';
 import { CampaignPanel, type CampaignPanelProps } from './campaign-panel';
 import { createRoot, type Root } from 'react-dom/client';
+import { useState } from 'react';
 import { FolderGit2, ArrowUpRight, Clock3, ShieldCheck, FolderLock, Plus } from 'lucide-react';
-import { Button, Card, CardContent, StatusDot, toneOf } from './components';
+import { Button, Card, CardContent, Input, StatusDot, toneOf } from './components';
 import type { Workbench } from '../workbench';
 
 type State = ReturnType<Workbench['state']>;
@@ -173,7 +174,84 @@ function Schedules({ state }: { state: State }) {
     </>
   );
 }
-function Administration({ state }: { state: State }) {
+async function rootsRequest(method: 'POST' | 'DELETE', path: string) {
+  const response = await fetch('/api/roots', {
+    method,
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ path }),
+  });
+  const body = (await response.json().catch(() => ({}))) as { error?: unknown };
+  if (!response.ok)
+    throw new Error(typeof body.error === 'string' ? body.error : 'Workspace root request failed');
+}
+function WorkspaceRoots({ state, onChanged }: { state: State; onChanged?: () => Promise<void> }) {
+  const [path, setPath] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  async function apply(action: () => Promise<void>, message: string) {
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      await action();
+      setNotice(message);
+      await onChanged?.();
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Workspace root request failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <>
+      {state.roots.map((root) => (
+        <p key={root} className="folder">
+          {root}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-button"
+            disabled={busy}
+            onClick={() => {
+              void apply(() => rootsRequest('DELETE', root), 'Workspace root removed');
+            }}
+          >
+            Remove
+          </Button>
+        </p>
+      ))}
+      <form
+        className="form-stack"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const value = path;
+          if (!value) return;
+          void apply(async () => rootsRequest('POST', value), 'Workspace root added').then(() =>
+            setPath(''),
+          );
+        }}
+      >
+        <Input
+          value={path}
+          onChange={(event) => setPath(event.target.value)}
+          placeholder="/absolute/path/on/this/server"
+          aria-label="Workspace root path"
+        />
+        <Button type="submit" size="sm" disabled={busy || !path}>
+          <Plus size={14} /> Add root
+        </Button>
+      </form>
+      {error ? <p className="scope-note">{error}</p> : null}
+      {notice ? <p className="muted">{notice}</p> : null}
+      <p className="muted">
+        Folders are resolved on the server, including symlinks. Added roots persist across restarts;
+        a root with a connected project cannot be removed.
+      </p>
+    </>
+  );
+}
+function Administration({ state, onChanged }: { state: State; onChanged?: () => Promise<void> }) {
   return (
     <>
       <div className="project-grid">
@@ -193,15 +271,7 @@ function Administration({ state }: { state: State }) {
           <FolderLock size={20} />
           <p className="eyebrow">ALLOWED PROJECT ROOTS</p>
           <h2>Server workspace</h2>
-          {state.roots.map((root) => (
-            <p key={root} className="folder">
-              {root}
-            </p>
-          ))}
-          <p className="muted">
-            Folders are resolved on the server, including symlinks. Change the root allow-list in
-            server configuration.
-          </p>
+          <WorkspaceRoots state={state} onChanged={onChanged} />
         </Card>
       </div>
       <RetentionPanel />
@@ -240,12 +310,14 @@ export function mountWorkspacePanel(
     campaign,
     inventory,
     runPanel,
+    admin,
   }: {
     section: 'overview' | 'schedules' | 'admin' | 'campaigns' | 'intents' | 'runs';
     state: State;
     campaign: CampaignPanelProps;
     inventory: InventoryPanelProps;
     runPanel: RunPanelProps;
+    admin?: { onChanged?: () => Promise<void> };
   },
 ) {
   let root = roots.get(element);
@@ -266,7 +338,7 @@ export function mountWorkspacePanel(
     return;
   }
   const Component = { overview: Overview, schedules: Schedules, admin: Administration }[section];
-  root.render(<Component state={state} />);
+  root.render(<Component state={state} onChanged={admin?.onChanged} />);
 }
 export function unmountWorkspacePanel(element: Element) {
   roots.get(element)?.unmount();

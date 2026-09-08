@@ -28,7 +28,10 @@ export async function allowedFolder(folder: string, roots: readonly string[]): P
     throw new HttpError(400, 'Project folder must exist on this server');
   }
   if (!roots.some((root) => inside(root, actual)))
-    throw new HttpError(400, 'Project folder is outside the configured workspace roots');
+    throw new HttpError(
+      400,
+      'Project folder is outside the configured workspace roots; add its folder under Administration → Workspace roots',
+    );
   return actual;
 }
 export function inside(root: string, path: string): boolean {
@@ -65,6 +68,7 @@ export async function validateProject(
     'recordVideo',
     'maxPages',
     'maxDepth',
+    'visualChangeRatio',
     'login',
     'configPath',
     'execution',
@@ -202,6 +206,15 @@ export async function validateProject(
   };
   const maxPages = bounded('maxPages', 50, 1, 200);
   const maxDepth = bounded('maxDepth', 3, 1, 5);
+  // Unlike `bounded`, the visual change ratio is a fraction, not a whole number.
+  const visualChangeRatio = input.visualChangeRatio === undefined ? 0 : input.visualChangeRatio;
+  if (
+    typeof visualChangeRatio !== 'number' ||
+    !Number.isFinite(visualChangeRatio) ||
+    visualChangeRatio < 0 ||
+    visualChangeRatio > 0.5
+  )
+    throw new HttpError(400, 'visualChangeRatio must be a number from 0 to 0.5');
   let login: Project['login'];
   if (input.login !== undefined && input.login !== null) {
     const value = input.login;
@@ -275,6 +288,7 @@ export async function validateProject(
     recordVideo: input.recordVideo === true,
     maxPages,
     maxDepth,
+    visualChangeRatio,
     ...(login ? { login } : {}),
     configPath,
     ...(execution ? { execution } : {}),

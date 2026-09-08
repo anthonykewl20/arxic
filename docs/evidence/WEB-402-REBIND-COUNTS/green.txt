@@ -1,0 +1,17 @@
+# GREEN run — WEB-402-REBIND-COUNTS (implementation present)
+
+## pnpm vitest run apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  12:48:28
+   Duration  34.77s (transform 935ms, setup 0ms, import 2.42s, tests 32.23s, environment 0ms)
+
+
+## pnpm vitest run apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  12:49:03
+   Duration  50.14s (transform 951ms, setup 0ms, import 2.43s, tests 47.61s, environment 0ms)
+

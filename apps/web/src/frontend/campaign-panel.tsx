@@ -10,9 +10,35 @@ export type CampaignPanelProps = {
   selectedId: string;
   projectId: string;
   pages: Map<string, number>;
+  /** Run summaries carrying the rebind discovery's live state. */
+  runs: Array<{ id: string; state: string }>;
 };
 
-export function CampaignPanel({ campaigns, selectedId, projectId, pages }: CampaignPanelProps) {
+/** In-flight drift rebind: the campaign card carries the discovery run's live state. */
+function RebindingBadge({
+  campaign,
+  runs,
+}: {
+  campaign: CampaignSummary;
+  runs: CampaignPanelProps['runs'];
+}) {
+  const discoveryRunId = campaign.rebinding?.discoveryRunId;
+  if (!discoveryRunId) return null;
+  const state = runs.find((run) => run.id === discoveryRunId)?.state;
+  return (
+    <Badge variant="outline" className="pill rebinding" data-rebinding="true">
+      {state ? `Rebinding — discovery run ${state}` : 'Rebinding'}
+    </Badge>
+  );
+}
+
+export function CampaignPanel({
+  campaigns,
+  selectedId,
+  projectId,
+  pages,
+  runs,
+}: CampaignPanelProps) {
   const selected = campaigns.find((campaign) => campaign.id === selectedId);
   const visible = campaigns.filter((campaign) => !projectId || campaign.projectId === projectId);
   return (
@@ -30,6 +56,7 @@ export function CampaignPanel({ campaigns, selectedId, projectId, pages }: Campa
               <Badge variant="outline" className={`pill ${campaign.state}`}>
                 {campaign.state}
               </Badge>
+              <RebindingBadge campaign={campaign} runs={runs} />
               <p>
                 {campaign.counts.verified}/{campaign.counts.selected} selected workflows verified ·{' '}
                 {campaign.counts.pending} pending
@@ -48,7 +75,9 @@ export function CampaignPanel({ campaigns, selectedId, projectId, pages }: Campa
           <p>No campaigns yet.</p>
         )}
       </div>
-      {selected?.rows && <CampaignDetail campaign={selected as CampaignView} pages={pages} />}
+      {selected?.rows && (
+        <CampaignDetail campaign={selected as CampaignView} pages={pages} runs={runs} />
+      )}
     </>
   );
 }
@@ -56,9 +85,11 @@ export function CampaignPanel({ campaigns, selectedId, projectId, pages }: Campa
 function CampaignDetail({
   campaign,
   pages,
+  runs,
 }: {
   campaign: CampaignView;
   pages: Map<string, number>;
+  runs: CampaignPanelProps['runs'];
 }) {
   const { counts, rows } = campaign;
   const pageSize = 50;
@@ -80,6 +111,7 @@ function CampaignDetail({
         <Badge variant="outline" className={`pill ${campaign.state}`}>
           {campaign.state}
         </Badge>
+        <RebindingBadge campaign={campaign} runs={runs} />
         <p className="campaign-counts">
           {counts.selected} selected · {counts.verified} verified · {counts.contradicted}{' '}
           contradicted · {counts.blocked} blocked · {counts.uncovered} uncovered · {counts.pending}{' '}
@@ -90,6 +122,18 @@ function CampaignDetail({
           {rows.length} total source surfaces
         </p>
         <p className="folder">Source commit: {campaign.sourceCommit}</p>
+        {(() => {
+          // Narrowed to a local first: inline optional chains in JSX ternaries
+          // trip TS2322 narrowing here (#482).
+          const rebound = campaign.rebound;
+          if (!rebound) return null;
+          return (
+            <p className="rebound-outcome" data-rebound={`${rebound.survivors}/${rebound.dropped}`}>
+              Rebound — carried over {rebound.survivors} of {rebound.survivors + rebound.dropped}{' '}
+              selected, dropped {rebound.dropped}
+            </p>
+          );
+        })()}
         <p className="muted">
           Each verified workflow passed its deterministic verifier. Source surfaces are not a count
           of all business states, personas or feature flags.
@@ -109,11 +153,38 @@ function CampaignDetail({
                 </strong>
                 <small>
                   {run
-                    ? `${run.state} · ${run.outcome ?? 'awaiting execution'}`
+                    ? `${run.state} · ${run.outcome ?? 'awaiting execution'}${
+                        run.history
+                          ? ` · ${run.history.verified} verified of ${run.history.executions} executions on this surface`
+                          : ''
+                      }`
                     : row.inventoryRowId
                       ? 'unselected'
                       : row.disposition}
                 </small>
+                {(() => {
+                  // Per-variant outcome attribution; optional fields narrowed
+                  // into locals before JSX (TS2322 lesson, #482/#489).
+                  const runIds = row.runIds;
+                  if (!runIds?.length) return null;
+                  const variants = campaign.variants;
+                  return runIds.map((id) => {
+                    const workflow = campaign.workflows.find((item) => item.id === id);
+                    const key = workflow?.variantKey ?? '';
+                    const label = variants?.find((item) => item.key === key)?.label ?? key;
+                    const state = workflow?.state ?? 'blocked';
+                    const outcome = workflow?.outcome;
+                    return (
+                      <small
+                        key={id}
+                        className="variant-outcome"
+                        data-variant-outcome={`${key}:${state}`}
+                      >
+                        {label}: {state} · {outcome ?? 'awaiting execution'}
+                      </small>
+                    );
+                  });
+                })()}
                 {row.reason && <small>{row.reason}</small>}
               </div>
               {run && (

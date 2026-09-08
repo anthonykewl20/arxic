@@ -99,6 +99,18 @@ Capture results label the comparison at capture time separately from current
 baseline approval. Historical image references and results remain unchanged after
 approval or replacement; unavailable baseline/difference images explain why.
 
+Baseline approvals are recorded in an immutable, append-only ledger. Every
+approval stores the approving administrator, a UTC timestamp, the approved
+capture's SHA-256 and the approval it supersedes, exposed as
+`baselineApprovals` in the workbench state (single-administrator identity
+today; structured for individual identities later). Superseding an approval
+never rewrites earlier rows, and deleting or auto-expiring any run referenced
+by an approval — current or superseded — is refused, because superseded
+baselines are still approval history. Pointer rows that predate the ledger are
+listed as `legacy` entries with no fabricated approver or timestamp; the
+legacy marker disappears once an attributable approval covers that baseline
+spec, and its run then loses deletion protection.
+
 ## Find captures in a run
 
 **Captured pages** combines path search with browser, theme, pixel density, viewport and historical
@@ -115,13 +127,13 @@ Dashboard readability checks exercise user text spacing and 200% mounted text en
 
 [Readability evidence](../../docs/evidence/WEB-445-READABILITY/summary.md) retains the three-engine source results, measured defects, corrected screenshots and explicit limits. Successful sign-in preserves bookmarked run selection while clearing unsent session drafts and consent. PR #446 tracks required installed CI and the explicit 1/65536 CSS pixel text measurement resolution; general early-reload diagnostics remain in #447. Full release acceptance is pending.
 
-Dashboard validation follow-up: source CI 34075361763 retained five of six required healthy-page gallery captures. Per-cell failure evidence is now retained; the original cause remains tracked in [#448](https://github.com/anthonykewl20/arxic/issues/448), and a later local pass does not discharge it.
+Dashboard validation follow-up: source CI 34075361763 retained five of six required healthy-page gallery captures. That loss is now root-caused to the environment-level partial-result-discard class and fixed red-to-green in [#448](https://github.com/anthonykewl20/arxic/issues/448); any recurrence self-identifies with a closed finding phase and attributed cell reason.
 
-Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof; the original five-of-six CI capture loss remains unresolved in #448. No raw errors, retries or privacy waivers are added.
+Capture failures now carry a bounded failed-operation diagnostic and grouped browser/page recovery guidance. Navigation and missing required-mask refusals have real six-cell matrix and desktop/mobile proof. The original five-of-six CI capture loss is root-caused to the environment-level partial-result-discard class and fixed: a failed environment timeline write now retains that environment's completed captures with a `timeline-write-failed` finding and attributed cell reason, the run-level read-back no longer discards a faulty environment, and mid-matrix context/page failures record a per-page `environment` phase ([proof](../../docs/evidence/WEB-448-CAPTURE-DIAGNOSTICS/summary.md)). No raw errors, retries or privacy waivers are added.
 
 Blocked visual runs link directly to their current project capture settings. The real recovery journey checks saving a corrected required mask, successful rerun and preservation of the original blocked snapshot; it is included in the shared installed-dashboard contract (24 tests /14 files).
 
-The [WebKit navigation investigation](../../docs/evidence/WEB-447-NAVIGATION/summary.md) is closed by corroboration: the shared `trackDashboardErrors` check classifies a fetch-load driver event as outgoing-document evidence only under exact message shape, known endpoint, teardown marker, no same-endpoint non-cancellation request failure and no native exception. Active refusals, thrown look-alikes and native errors stay hard on every engine; no production error waiver or blanket suppression exists. The main dashboard journey asserts the classified hard list, and installed acceptance now includes this journey among eighteen required dashboard files.
+The [WebKit navigation investigation](../../docs/evidence/WEB-447-NAVIGATION/summary.md) is closed by corroboration: the shared `trackDashboardErrors` check classifies a fetch-load driver event as outgoing-document evidence only under exact message shape, known endpoint, teardown marker, no same-endpoint non-cancellation request failure and no native exception. Active refusals, thrown look-alikes and native errors stay hard on every engine; no production error waiver or blanket suppression exists. The main dashboard journey asserts the classified hard list, and installed acceptance now includes this journey among nineteen required dashboard files.
 
 Native 1×/2×/3× capture selection and density filtering shipped in PR #455. High-density Chromium uses full Chromium headless with an explicit renderer identity. Required [CI 34091854414](https://github.com/anthonykewl20/arxic/actions/runs/34091854414) passed the source and installed Chromium/Firefox/WebKit journeys on `c64003b0` before merge. This is scoped acceptance, not full production-readiness proof.
 
@@ -130,11 +142,11 @@ Visual matrix authentication performs one GUI sign-in per browser family per run
 Installed-dashboard acceptance now retains incremental case progress and bounded
 process-exit facts with provenance, so interruption cannot erase which tests
 finished. Test names, assertion values and exception bodies are excluded. The
-900-second command limit, 25-minute job limit and per-test assertions remain unchanged. Installed Firefox/WebKit CI uses two required exhaustive partitions of the same eighteen files; this increases aggregate execution capacity per browser without omitting or duplicating a file. Default local and packed Chromium runs still execute all eighteen files.
+900-second command limit, 25-minute job limit and per-test assertions remain unchanged. Installed Firefox/WebKit CI uses two required exhaustive partitions of the same nineteen files; this increases aggregate execution capacity per browser without omitting or duplicating a file. Default local and packed Chromium runs still execute all nineteen files.
 The density slice's [first installed Firefox gate failed](../../docs/evidence/WEB-454-DENSITY/ci-34086989767/summary.md); subsequent exact-head CI 34091854414 passed before merge. Historical failed evidence remains retained.
 Project settings place the scope explanation before Back and Save so the actions remain together on mobile. Dialog-footer buttons have a 44-pixel minimum height at tablet and desktop widths too. The [footer audit](../../docs/evidence/WEB-456-FOOTER/action-row/summary.md) retains the original layout/target failures; incomplete automated contrast checks remain explicit.
 
-Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among eighteen required dashboard files.
+Capture filenames reserve one ordinal per attempted checkpoint. After an evidence-write failure, later pages use distinct destinations; healthy captures remain available beside explicit blocked coverage. Repair storage before starting a new run; historical results remain unchanged. Installed acceptance now includes this journey among nineteen required dashboard files.
 
 Literal HTML/HTM and EJS control discovery includes source lines and hashes, with explicit gaps for unevaluated template code. Repeated same-line declarations receive distinct identities so fresh scan results filter correctly. [Template discovery proof](../../docs/evidence/WEB-460-TEMPLATES/summary.md) records actual reference-page and dashboard checks. Historical inventories are immutable and render every persisted declaration without rediscovery; rows whose earlier identities duplicate are keyed by immutable inventory position, leaving saved evidence unchanged ([navigation proof](../../docs/evidence/WEB-462-NAVIGATION/summary.md)).
 

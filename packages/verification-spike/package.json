@@ -1,6 +1,6 @@
 {
   "name": "@arxic/verification-spike",
-  "version": "0.0.300",
+  "version": "0.0.302",
   "private": true,
   "type": "module",
   "main": "src/index.ts",

@@ -244,6 +244,15 @@ async function captureEnvironment(
   const findings: NonNullable<RunResult['findings']> = [];
   let blocked = false;
   const timeline: Timeline = [];
+  // A failed timeline destination must classify the evidence loss without
+  // discarding this environment's already-completed captures (#448).
+  let timelineWriteFailed = false;
+  const timelineWriteFinding = {
+    path: '*',
+    kind: 'timeline-write-failed',
+    count: 1,
+    failurePhase: 'evidence-write' as const,
+  };
   const writeTimeline = async () => {
     const bytes = JSON.stringify(timeline);
     await writeFile(join(directory, `${prefix}timeline.json`), bytes, { mode: 0o600 });
@@ -259,6 +268,13 @@ async function captureEnvironment(
       { mode: 0o600 },
     );
   };
+  const writeTimelineSafely = async () => {
+    try {
+      await writeTimeline();
+    } catch {
+      timelineWriteFailed = true;
+    }
+  };
   let storageState: StorageState | undefined;
   let discoveredPaths: string[] | undefined;
   let paths = project.paths;
@@ -267,11 +283,14 @@ async function captureEnvironment(
       const email = process.env[project.login.emailRef];
       const password = process.env[project.login.passwordRef];
       if (!email || !password) {
-        await writeTimeline();
+        await writeTimelineSafely();
         return {
           outcome: 'blocked',
           summary: `Sign-in secrets ${project.login.emailRef} and ${project.login.passwordRef} must be set in the server environment.`,
-          findings: [{ path: project.login.loginPath, kind: 'login-secrets-missing', count: 1 }],
+          findings: [
+            { path: project.login.loginPath, kind: 'login-secrets-missing', count: 1 },
+            ...(timelineWriteFailed ? [timelineWriteFinding] : []),
+          ],
         };
       }
       let outcome = signIns.get(environment.browser);
@@ -288,11 +307,14 @@ async function captureEnvironment(
       }
       if ('reason' in outcome) {
         if (!reused) timeline.push({ action: 'sign-in-form', checkpoint: 0, result: 'failed' });
-        await writeTimeline();
+        await writeTimelineSafely();
         return {
           outcome: 'blocked',
           summary: `Sign-in failed: ${outcome.reason}`,
-          findings: [{ path: project.login.loginPath, kind: 'login-failed', count: 1 }],
+          findings: [
+            { path: project.login.loginPath, kind: 'login-failed', count: 1 },
+            ...(timelineWriteFailed ? [timelineWriteFinding] : []),
+          ],
         };
       }
       storageState = outcome.state;
@@ -315,23 +337,29 @@ async function captureEnvironment(
     for (const viewport of project.viewports)
       for (const path of paths) {
         const checkpoint = nextCheckpoint++;
-        const { context, counters } = await openContext(browser, project, viewport, {
-          storageState,
-          colorScheme: environment.colorScheme,
-          deviceScaleFactor: environment.deviceScaleFactor,
-        });
-        let networkErrors = 0;
-        let scriptErrors = 0;
-        const page = await context.newPage();
-        page.setDefaultTimeout(15_000);
-        page.on('pageerror', () => {
-          scriptErrors++;
-        });
-        page.on('response', (response) => {
-          if (response.status() >= 400) networkErrors++;
-        });
-        let failurePhase: CaptureFailurePhase = 'navigation';
+        // Context/page creation sits inside the per-page guard: an environment
+        // infrastructure failure classifies this checkpoint without discarding
+        // the environment's already-completed captures (#448).
+        let context: Awaited<ReturnType<typeof openContext>>['context'] | undefined;
+        let failurePhase: CaptureFailurePhase = 'environment';
         try {
+          const { context: opened, counters } = await openContext(browser, project, viewport, {
+            storageState,
+            colorScheme: environment.colorScheme,
+            deviceScaleFactor: environment.deviceScaleFactor,
+          });
+          context = opened;
+          let networkErrors = 0;
+          let scriptErrors = 0;
+          const page = await context.newPage();
+          page.setDefaultTimeout(15_000);
+          page.on('pageerror', () => {
+            scriptErrors++;
+          });
+          page.on('response', (response) => {
+            if (response.status() >= 400) networkErrors++;
+          });
+          failurePhase = 'navigation';
           timeline.push({ action: 'navigate', checkpoint });
           const response = await page.goto(`${project.origin}${path}`, {
             waitUntil: 'load',
@@ -508,18 +536,21 @@ async function captureEnvironment(
             result: 'blocked',
           });
         } finally {
-          await context.close();
+          await context?.close();
         }
       }
-    await writeTimeline();
+    await writeTimelineSafely();
+    if (timelineWriteFailed) findings.push(timelineWriteFinding);
     return {
       outcome:
-        blocked || captures.some((capture) => capture.status === 'unstable')
+        blocked || timelineWriteFailed || captures.some((capture) => capture.status === 'unstable')
           ? 'blocked'
           : 'observed',
       summary: `${captures.length} viewport checkpoints captured across ${paths.length} pages${
         storageState ? ' after sign-in' : ''
-      }${discoveredPaths ? `; crawl found ${discoveredPaths.length} additional pages` : ''}. Visual baseline review is separate from business-logic verification.`,
+      }${discoveredPaths ? `; crawl found ${discoveredPaths.length} additional pages` : ''}${
+        timelineWriteFailed ? '; environment timeline evidence was not written' : ''
+      }. Visual baseline review is separate from business-logic verification.`,
       captures,
       ...(discoveredPaths ? { discoveredPaths } : {}),
       findings,
@@ -549,16 +580,22 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
     try {
       result = await captureEnvironment(run, directory, environment, pageBudget, prefix, signIns);
       if (run.project.origin && run.project.captureConsent && !run.project.recordVideo) {
-        const steps = JSON.parse(
-          await readFile(join(directory, `${prefix}timeline.json`), 'utf8'),
-        ) as Timeline;
-        timeline.push(...steps.map((step) => ({ ...step, environment })));
+        try {
+          const steps = JSON.parse(
+            await readFile(join(directory, `${prefix}timeline.json`), 'utf8'),
+          ) as Timeline;
+          timeline.push(...steps.map((step) => ({ ...step, environment })));
+        } catch {
+          // The environment already recorded its timeline evidence loss as a
+          // classified finding; a missing/unreadable per-environment timeline
+          // must not discard its completed captures (#448).
+        }
       }
     } catch {
       result = {
         outcome: 'blocked',
         summary:
-          'Environment could not start or complete. Check the installed Playwright browser and system dependencies.',
+          'Environment could not start; no checkpoint was attempted. Check the installed Playwright browser and system dependencies.',
       };
       timeline.push({
         action: 'environment-refused',
@@ -639,5 +676,81 @@ export async function compareCapture(
       .toBuffer(),
     { mode: 0o600 },
   );
-  return { changedPixels, ratio: changedPixels / (width * height) };
+  return {
+    changedPixels,
+    ratio: changedPixels / (width * height),
+    diffRegions: changedRegionBoxes(baseline.data, current.data, width, height),
+  };
+}
+
+/**
+ * Viewer navigation metadata only: bounding boxes over areas whose pixels moved
+ * by a plain RGB distance. pixelmatch keeps owning the comparison verdict; these
+ * boxes just tell a reviewer where to look.
+ */
+export function changedRegionBoxes(
+  baseline: Uint8Array,
+  current: Uint8Array,
+  width: number,
+  height: number,
+): Array<{ x: number; y: number; width: number; height: number }> {
+  const bridge = 3;
+  const minSide = 4;
+  const mask = new Uint8Array(width * height);
+  for (let pixel = 0, offset = 0; pixel < mask.length; pixel++, offset += 4) {
+    if (
+      Math.abs(baseline[offset] - current[offset]) +
+        Math.abs(baseline[offset + 1] - current[offset + 1]) +
+        Math.abs(baseline[offset + 2] - current[offset + 2]) >
+      48
+    )
+      mask[pixel] = 1;
+  }
+  type Open = { x0: number; x1: number; y0: number; y1: number };
+  const closed: Open[] = [];
+  let open: Open[] = [];
+  for (let y = 0; y < height; y++) {
+    const runs: Array<[number, number]> = [];
+    let start = -1;
+    let gap = 0;
+    for (let x = 0; x <= width; x++) {
+      const marked = x < width && mask[y * width + x] === 1;
+      if (marked) {
+        if (start < 0) start = x;
+        gap = 0;
+      } else if (start >= 0) {
+        if (++gap > bridge || x === width) {
+          runs.push([start, x - gap]);
+          start = -1;
+          gap = 0;
+        }
+      }
+    }
+    const next: Open[] = [];
+    for (const box of open) {
+      const run = runs.find(([from, to]) => from <= box.x1 + bridge && to >= box.x0 - bridge);
+      if (run) {
+        box.x0 = Math.min(box.x0, run[0]);
+        box.x1 = Math.max(box.x1, run[1]);
+        box.y1 = y;
+        next.push(box);
+      } else closed.push(box);
+    }
+    for (const [from, to] of runs)
+      if (!next.some((box) => from <= box.x1 + bridge && to >= box.x0 - bridge))
+        next.push({ x0: from, x1: to, y0: y, y1: y });
+    open = next;
+  }
+  closed.push(...open);
+  return closed
+    .filter((box) => box.x1 - box.x0 + 1 >= minSide && box.y1 - box.y0 + 1 >= minSide)
+    .map((box) => ({
+      x: box.x0,
+      y: box.y0,
+      width: box.x1 - box.x0 + 1,
+      height: box.y1 - box.y0 + 1,
+    }))
+    .sort((a, b) => b.width * b.height - a.width * a.height)
+    .slice(0, 200)
+    .sort((a, b) => a.y - b.y || a.x - b.x);
 }

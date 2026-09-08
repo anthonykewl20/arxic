@@ -1,0 +1,12 @@
+# WEB-402-PROVIDER-SECRETS — final local gates (2026-09-07)
+
+## provider-secrets.real-world.test.ts (3× repeated during development; final run below)
+      Tests  4 passed (4)
+   Start at  23:42:01
+   Duration  18.37s (transform 4.57s, setup 0ms, import 9.64s, tests 8.49s, environment 0ms)
+
+
+## provider-ui.real-world.test.ts (real browser, after UI slice)
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)

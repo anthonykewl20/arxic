@@ -50,6 +50,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
       "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
     );
     void handle(request, response).catch((error: unknown) => {
+      if (!(error instanceof HttpError)) console.error(error);
       if (!response.headersSent)
         json(response, error instanceof HttpError ? error.status : 500, {
           error: error instanceof HttpError ? error.message : 'Request could not be completed',
@@ -129,12 +130,12 @@ export async function startWorkbench(options: WorkbenchOptions) {
       return json(response, 200, { ok: true });
     }
     if (path === '/api/state' && request.method === 'GET') {
-      refreshDueModelCatalogs();
+      refreshDueModelCatalogs(workbench.effectiveEnv());
       return json(response, 200, {
         ...workbench.state(),
         version: ARXIC_VERSION,
         versionLabel: ARXIC_VERSION_LABEL,
-        modelConnections: modelConnections(),
+        modelConnections: modelConnections(workbench.effectiveEnv()),
         providerSetup,
       });
     }
@@ -158,9 +159,13 @@ export async function startWorkbench(options: WorkbenchOptions) {
       );
     const catalogRoute = /^\/api\/model-connections\/([a-z][a-z0-9-]{0,39})\/refresh$/u.exec(path);
     if ((catalogRoute || path === '/api/model-connections/refresh') && request.method === 'POST') {
-      await refreshModelCatalog(catalogRoute?.[1] ?? '');
-      return json(response, 200, { modelConnections: modelConnections() });
+      await refreshModelCatalog(catalogRoute?.[1] ?? '', workbench.effectiveEnv());
+      return json(response, 200, { modelConnections: modelConnections(workbench.effectiveEnv()) });
     }
+    if (path === '/api/provider-secrets' && request.method === 'POST')
+      return json(response, 201, await workbench.saveProviderSecret(await readJson(request)));
+    if (path === '/api/provider-secrets' && request.method === 'DELETE')
+      return json(response, 200, await workbench.removeProviderSecret(await readJson(request)));
     if (path === '/api/workspace/folders' && request.method === 'GET') {
       const query = new URL(request.url ?? '/', origin).searchParams.get('query') ?? '';
       if (query.length > 100) throw new HttpError(400, 'Query too long');
@@ -176,6 +181,10 @@ export async function startWorkbench(options: WorkbenchOptions) {
       workbench.store.audit('workspace.cloned', folder.folder);
       return json(response, 201, await detectProject(folder.folder, workbench.roots));
     }
+    if (path === '/api/roots' && request.method === 'POST')
+      return json(response, 201, await workbench.addWorkspaceRoot(await readJson(request)));
+    if (path === '/api/roots' && request.method === 'DELETE')
+      return json(response, 200, await workbench.removeWorkspaceRoot(await readJson(request)));
     if (path === '/api/projects' && request.method === 'POST')
       return json(response, 201, await workbench.saveProject(await readJson(request)));
     const projectRoute = /^\/api\/projects\/([a-f0-9-]+)$/u.exec(path);

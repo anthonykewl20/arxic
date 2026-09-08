@@ -47,7 +47,7 @@ it('previews the whole persisted history with a bounded batch and explicit refer
       result: { outcome: 'observed', summary: 'History fixture' },
     });
   }
-  wb.store.approve(project.id, 'reference', ids[0], 'checkpoint-1');
+  wb.store.approve(project.id, 'reference', ids[0], 'checkpoint-1', 'retention-sha256');
   const reviewer = wb.store.run(ids[1])!;
   wb.store.saveRun({ ...reviewer, visualReview: { sourceRunId: ids[2] } as never });
   wb.store.saveCampaign({

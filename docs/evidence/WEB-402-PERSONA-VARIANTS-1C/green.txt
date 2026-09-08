@@ -1,0 +1,42 @@
+=== GREEN RUN 1 ===
+ ✓ apps/web/src/__tests__/persona-variants-recurring.real-world.test.ts (5 tests) 74674ms
+   ✓ fires a recurring variant campaign with the full fan-out and per-fire run attribution  4726ms
+   ✓ defers a recurring variant fire without dropping it when the queue cannot fit the fan-out  41486ms
+   ✓ rebinds a drifted recurring variant campaign by row identity with a variant-aware fan-out  5334ms
+   ✓ blocks a fired variant run on its unset secret while the fired default run fails at the model stage  9179ms
+   ✓ carries a flag variant payload through recurring fires and drift rebinds  13948ms
+ ✓ apps/web/src/__tests__/persona-variants-1c.real-world.test.ts (4 tests) 18355ms
+   ✓ fans a mixed persona/flag/state campaign out in declared order and diverges the real engine-config snapshots  8630ms
+   ✓ rejects every invalid flag/state variant shape with its distinct 400 before enqueueing anything  566ms
+   ✓ accepts a state variant when the project default persona is not anonymous  4579ms
+   ✓ blocks a persona variant on its unset secret while flag/state variants reach the engine with their payload  4579ms
+ ✓ apps/web/src/__tests__/persona-variants-ui.real-world.test.ts (1 test) 13205ms
+   ✓ creates a mixed persona/flag variant campaign through the real dialog and attributes outcomes per variant  13204ms
+ ✓ apps/web/src/__tests__/persona-variants.real-world.test.ts (3 tests) 8211ms
+   ✓ fans a one-shot campaign out into a default run plus one agent run per declared variant, durably  2772ms
+   ✓ rejects every invalid variant configuration with its distinct message before enqueueing anything  526ms
+   ✓ blocks the variant run — not the default run — when a variant credential is unset  4911ms
+ ✓ apps/web/src/__tests__/persona-variants.test.ts (8 tests) 5ms
+ Test Files  5 passed (5)
+      Tests  21 passed (21)
+=== GREEN RUN 2 ===
+ ✓ apps/web/src/__tests__/persona-variants-recurring.real-world.test.ts (5 tests) 74864ms
+   ✓ fires a recurring variant campaign with the full fan-out and per-fire run attribution  4803ms
+   ✓ defers a recurring variant fire without dropping it when the queue cannot fit the fan-out  42010ms
+   ✓ rebinds a drifted recurring variant campaign by row identity with a variant-aware fan-out  5124ms
+   ✓ blocks a fired variant run on its unset secret while the fired default run fails at the model stage  9864ms
+   ✓ carries a flag variant payload through recurring fires and drift rebinds  13062ms
+ ✓ apps/web/src/__tests__/persona-variants-1c.real-world.test.ts (4 tests) 18368ms
+   ✓ fans a mixed persona/flag/state campaign out in declared order and diverges the real engine-config snapshots  8638ms
+   ✓ rejects every invalid flag/state variant shape with its distinct 400 before enqueueing anything  499ms
+   ✓ accepts a state variant when the project default persona is not anonymous  4613ms
+   ✓ blocks a persona variant on its unset secret while flag/state variants reach the engine with their payload  4616ms
+ ✓ apps/web/src/__tests__/persona-variants-ui.real-world.test.ts (1 test) 13120ms
+   ✓ creates a mixed persona/flag variant campaign through the real dialog and attributes outcomes per variant  13119ms
+ ✓ apps/web/src/__tests__/persona-variants.real-world.test.ts (3 tests) 7668ms
+   ✓ fans a one-shot campaign out into a default run plus one agent run per declared variant, durably  2599ms
+   ✓ rejects every invalid variant configuration with its distinct message before enqueueing anything  492ms
+   ✓ blocks the variant run — not the default run — when a variant credential is unset  4576ms
+ ✓ apps/web/src/__tests__/persona-variants.test.ts (8 tests) 6ms
+ Test Files  5 passed (5)
+      Tests  21 passed (21)

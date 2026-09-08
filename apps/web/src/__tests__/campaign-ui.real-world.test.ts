@@ -294,10 +294,8 @@ it('lets an administrator select and verify two real workflows with honest campa
     await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
     const loginSurface = page
-      .locator('#content .table')
-      .first()
-      .getByRole('row')
-      .filter({ hasText: 'GET /login' });
+      .locator('#content tr')
+      .filter({ has: page.locator('[data-row-ledger="GET /login"]') });
     await expect.poll(() => loginSurface.textContent()).toContain('app/login/page.tsx');
     await loginSurface.scrollIntoViewIfNeeded();
     expect(

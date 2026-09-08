@@ -1,0 +1,31 @@
+=== GREEN run 1: unit + journey (post-implementation) ===
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  10:49:12
+   Duration  6.37s (transform 1.11s, setup 0ms, import 2.75s, tests 3.52s, environment 0ms)
+
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/rebind-ui-402
+stdout | apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts > surfaces the rebinding state on the campaign panel and clears it when the rebind lands
+[rebind-ui] rebinding badge observed live in the browser: "Rebinding — discovery run queued"
+ ✓ apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts (2 tests) 50891ms
+   ✓ surfaces the rebinding state on the campaign panel and clears it when the rebind lands  45224ms
+   ✓ presents an exhausted rebind as the stopped campaign it is, not a stuck rebinding one  5666ms
+      Tests  2 passed (2)
+   Duration  53.95s (transform 1.28s, setup 0ms, import 2.95s, tests 50.89s, environment 0ms)
+
+=== GREEN run 2 (repeat) ===
+      Tests  10 passed (10)
+   Start at  10:50:14
+   Duration  5.86s (transform 941ms, setup 0ms, import 2.49s, tests 3.27s, environment 0ms)
+
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/rebind-ui-402
+stdout | apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts > surfaces the rebinding state on the campaign panel and clears it when the rebind lands
+[rebind-ui] rebinding badge observed live in the browser: "Rebinding — discovery run queued"
+ ✓ apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts (2 tests) 50773ms
+   ✓ surfaces the rebinding state on the campaign panel and clears it when the rebind lands  45177ms
+   ✓ presents an exhausted rebind as the stopped campaign it is, not a stuck rebinding one  5594ms
+      Tests  2 passed (2)
+   Duration  53.41s (transform 1.04s, setup 0ms, import 2.54s, tests 50.77s, environment 0ms)

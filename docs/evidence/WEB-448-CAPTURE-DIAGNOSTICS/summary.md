@@ -80,3 +80,42 @@ four original engine timelines and100 hash-checked machine artifacts**.
 The shared installed-dashboard runner now includes this journey:24 tests in
 14 files for every selected browser. Final-head installed CI remains required.
 The original five-of-six capture-loss cause and #447 classification remain open.
+
+## Partial-result loss root-caused and fixed (2026-09-07)
+
+The original five-of-six CI loss is now explained at the mechanism level: the
+only code paths that yield exactly N−1 healthy captures with **no per-page
+finding or failure phase** were the environment-level throws in
+`captureVisual` — browser launch, context/page creation, or the environment's
+timeline write/read-back. The bare per-environment catch discarded that
+environment's already-completed captures and recorded only a generic
+environment-refused reason, which is precisely the unattributed signature CI
+printed (run 34075361763, `3afd1dd`).
+
+Deterministic red proof (`partial-loss/`): an EISDIR storage fault injected at
+the firefox-light timeline destination — the same real filesystem-injection
+technique as the #458 slice — discards firefox-light's completed healthy `/`
+capture under the old code (expected 2, actual 1; zero findings; see
+`red.txt`). The fix keeps every classified behavior: timeline writes are
+non-discarding (`timeline-write-failed` finding, `evidence-write` phase,
+blocked outcome with an attributed cell reason), the run-level timeline
+read-back no longer discards an environment whose timeline is missing, and
+context/page creation moved inside the per-page guard with a new
+`environment` failure phase so a mid-matrix infrastructure failure records
+that checkpoint without discarding completed siblings. The environment-level
+catch now only covers launch-before-any-checkpoint and says so.
+
+Green: chromium 7.68 s, firefox 11.68 s, webkit 7.98 s — both healthy captures
+retained, the loss attributed to the firefox cell, the chromium sibling
+observed. Regressions: the #458 write-isolation journey (chromium 11.00 s),
+the capture-failures diagnostic journey (32.86 s) and the original
+capture-gallery light/dark journeys (61.67 s / 60.70 s) pass unchanged; the
+six-capture assertions were not widened. Installed acceptance grows to
+nineteen dashboard files.
+
+Honest limits: the specific one-run CI trigger cannot be re-observed — every
+path of its class is now non-discarding and self-identifying on recurrence
+(cell reason + closed finding phase). Storage injection covered the timeline
+write/read-back deterministically; a mid-run context-open or launch failure
+uses the same retention architecture but has no deterministic real injection
+(explicit gap). No human inspection is claimed.

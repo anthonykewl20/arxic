@@ -5,10 +5,10 @@ import { readWorkflowArtifact } from './workflow-captures';
 import { hostname } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, realpath, rm, unlink, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 import { HttpError } from './errors';
 import { Store } from './store';
-import { allowedFolder, nextSlot, runMode, validateProject } from './projects';
+import { allowedFolder, inside, nextSlot, runMode, validateProject } from './projects';
 import { launchJob, stopProcess } from './process';
 import type { Campaign, Project, Run, RunResult } from './types';
 
@@ -18,6 +18,76 @@ export function loginEnvironment(login: NonNullable<Project['login']>, env: Node
   for (const key of [login.emailRef, login.passwordRef]) if (env[key]) overrides[key] = env[key];
   return overrides;
 }
+
+/**
+ * Execution environment for a campaign agent run: the base execution settings
+ * for default runs, plus the variant persona's credential overrides for
+ * variant runs. Credential VALUES are read from the process environment here
+ * and only here — they never enter project/run JSON, just the launch env.
+ * An unresolvable variant or unset secret throws, which lands the run in the
+ * blocked outcome rather than silently running as the default persona.
+ */
+export function variantEnvironment(
+  run: Pick<Run, 'workflowScope'>,
+  campaign: Campaign | undefined,
+  settings: ExecutionSettings,
+  env: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+  const base = executionEnvironment(settings, env);
+  const variantKey = run.workflowScope?.variantKey;
+  if (!variantKey) return base;
+  const variant = campaign?.variants?.find((item) => item.key === variantKey);
+  if (!variant)
+    throw new HttpError(
+      400,
+      `Campaign variant could not be resolved: ${variantKey}; refusing to run as the default persona`,
+    );
+  // Flag and state variants carry no credential payload: the unmodified base
+  // environment (their divergence happens in the child's engine config).
+  if (variant.kind !== 'persona') return base;
+  return {
+    ...base,
+    ...secretEnvironment(
+      [
+        [variant.persona.emailRef, 'ARXIC_INPUT_PERSONA_EMAIL'],
+        [variant.persona.passwordRef, 'ARXIC_INPUT_PERSONA_PASSWORD'],
+      ],
+      env,
+    ),
+  };
+}
+
+/**
+ * Non-secret variant payload stamped next to variantKey on the workflow scope:
+ * flag variants record their boolean overrides, state variants record the
+ * anonymous switch, persona variants with a login override record that form
+ * declaration (route + labels; credentials stay env-only).
+ */
+function variantScopePayload(
+  variant: NonNullable<Campaign['variants']>[number],
+): Pick<NonNullable<Run['workflowScope']>, 'variantFlags' | 'variantState' | 'variantLogin'> {
+  if (variant.kind === 'flag') return { variantFlags: { ...variant.flags } };
+  if (variant.kind === 'state') return { variantState: 'anonymous' };
+  return {
+    ...(variant.login
+      ? {
+          variantLogin: {
+            route: variant.login.route,
+            ...(variant.login.emailLabel ? { emailLabel: variant.login.emailLabel } : {}),
+            ...(variant.login.passwordLabel ? { passwordLabel: variant.login.passwordLabel } : {}),
+            ...(variant.login.submitLabel ? { submitLabel: variant.login.submitLabel } : {}),
+          },
+        }
+      : {}),
+  };
+}
+
+/** Campaign copy with the transient rebind marker removed once a rebind settles. */
+function withoutRebinding(campaign: Campaign): Campaign {
+  const copy: Campaign = { ...campaign };
+  delete copy.rebinding;
+  return copy;
+}
 /** Five minutes plus a per-capture allowance; crawl, sign-in and stability retries need headroom. */
 export function visualRuntimeLimit(project: Project) {
   const pages = project.pageMode === 'discover' ? project.maxPages : project.paths.length;
@@ -26,12 +96,149 @@ export function visualRuntimeLimit(project: Project) {
   return Math.min(60 * 60_000, 5 * 60_000 + captures * 6_000);
 }
 import { compareCapture, digest } from './visual';
-import { executionEnvironment, secretRef } from './execution';
-import { modelEnvironment, validateConnection } from './model-connections';
+import {
+  executionEnvironment,
+  secretEnvironment,
+  secretRef,
+  type ExecutionSettings,
+} from './execution';
+import {
+  connectionCredentialRef,
+  modelConnections,
+  modelEnvironment,
+  validateConnection,
+} from './model-connections';
+import { SecretStore } from './secret-store';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
-import { campaignRows, campaignView } from './campaigns';
+import { campaignRows, campaignView, rowHistoryOf, type RowHistory } from './campaigns';
 import { reviewImage, type VisualReviewScope } from './visual-review';
+
+/** Single source of truth for the workflow-scope drift refusal (throw site, run record, schedule stop). */
+const sourceDriftRefusal =
+  'Source changed since campaign discovery; commit changes and start a new campaign';
+
+/**
+ * Sad-path-first variant validation; each refusal is a distinct 400 fired
+ * before anything is enqueued. Entries are a persona | flag | state union
+ * (mixed-kind lists allowed); returns the normalized variant list.
+ */
+function validateCampaignVariants(input: unknown): NonNullable<Campaign['variants']> {
+  if (input === undefined) return [];
+  if (!Array.isArray(input))
+    throw new HttpError(400, 'Campaign variants must be a list of variant definitions');
+  if (input.length > 4) throw new HttpError(400, 'A campaign supports at most 4 variants');
+  const variants: NonNullable<Campaign['variants']> = [];
+  for (const item of input) {
+    if (!item || typeof item !== 'object' || Array.isArray(item))
+      throw new HttpError(400, 'Campaign variants must be a list of variant definitions');
+    const entry = item as Record<string, unknown>;
+    const kind = entry.kind;
+    const payloadKey =
+      kind === 'flag' ? 'flags' : kind === 'state' ? 'state' : kind === 'persona' ? 'persona' : '';
+    if (!payloadKey) throw new HttpError(400, 'Unsupported variant kind');
+    // `login` is a persona-only key: on flag/state entries it falls through to
+    // the same foreign-payload 400 as every other misplaced key.
+    const allowedKeys = [
+      'key',
+      'label',
+      'kind',
+      payloadKey,
+      ...(kind === 'persona' ? ['login'] : []),
+    ];
+    if (Object.keys(entry).some((key) => !allowedKeys.includes(key)))
+      throw new HttpError(400, 'Campaign variants must be a list of variant definitions');
+    const key = entry.key;
+    const label = entry.label;
+    if (typeof key !== 'string' || !/^[a-z0-9-]+$/u.test(key))
+      throw new HttpError(400, 'Variant keys use lowercase letters, digits and dashes');
+    if (typeof label !== 'string' || !label.trim() || label.trim().length > 100)
+      throw new HttpError(400, 'Variant labels must be non-empty text of at most 100 characters');
+    if (kind === 'persona') {
+      const persona = entry.persona as { emailRef?: unknown; passwordRef?: unknown } | undefined;
+      if (
+        !persona ||
+        typeof persona !== 'object' ||
+        Array.isArray(persona) ||
+        Object.keys(persona).some((name) => !['emailRef', 'passwordRef'].includes(name)) ||
+        typeof persona.emailRef !== 'string' ||
+        !persona.emailRef.startsWith('ARXIC_SECRET_') ||
+        typeof persona.passwordRef !== 'string' ||
+        !persona.passwordRef.startsWith('ARXIC_SECRET_')
+      )
+        throw new HttpError(
+          400,
+          'Variant credentials must reference ARXIC_SECRET_ environment names',
+        );
+      // Optional non-secret login override: a route plus at most three short
+      // form labels; absent fields keep the project login surface's values.
+      let login:
+        | { route: string; emailLabel?: string; passwordLabel?: string; submitLabel?: string }
+        | undefined;
+      if (entry.login !== undefined) {
+        const raw = entry.login as Record<string, unknown> | undefined;
+        if (
+          !raw ||
+          typeof raw !== 'object' ||
+          Array.isArray(raw) ||
+          Object.keys(raw).some(
+            (name) => !['route', 'emailLabel', 'passwordLabel', 'submitLabel'].includes(name),
+          )
+        )
+          throw new HttpError(400, 'A variant login override must be a login form declaration');
+        if (typeof raw.route !== 'string' || !raw.route)
+          throw new HttpError(400, 'A variant login override requires a route');
+        if (!raw.route.startsWith('/'))
+          throw new HttpError(400, 'A variant login route must start with /');
+        if (
+          ['emailLabel', 'passwordLabel', 'submitLabel'].some(
+            (name) =>
+              raw[name] !== undefined &&
+              (typeof raw[name] !== 'string' || !raw[name].trim() || raw[name].trim().length > 100),
+          )
+        )
+          throw new HttpError(400, 'Variant login labels must be short non-empty text');
+        login = {
+          route: raw.route,
+          ...(typeof raw.emailLabel === 'string' ? { emailLabel: raw.emailLabel.trim() } : {}),
+          ...(typeof raw.passwordLabel === 'string'
+            ? { passwordLabel: raw.passwordLabel.trim() }
+            : {}),
+          ...(typeof raw.submitLabel === 'string' ? { submitLabel: raw.submitLabel.trim() } : {}),
+        };
+      }
+      variants.push({
+        key,
+        label: label.trim(),
+        kind: 'persona',
+        persona: { emailRef: persona.emailRef, passwordRef: persona.passwordRef },
+        ...(login ? { login } : {}),
+      });
+    } else if (kind === 'flag') {
+      const flags = entry.flags;
+      if (
+        !flags ||
+        typeof flags !== 'object' ||
+        Array.isArray(flags) ||
+        Object.keys(flags).length < 1 ||
+        Object.keys(flags).length > 30
+      )
+        throw new HttpError(400, 'Flag variants must declare 1–30 named boolean flags');
+      if (Object.keys(flags).some((name) => !/^[A-Za-z][A-Za-z0-9_.-]{0,99}$/u.test(name)))
+        throw new HttpError(400, 'Flag names use letters, digits, dot, dash or underscore');
+      if (Object.values(flags).some((value) => typeof value !== 'boolean'))
+        throw new HttpError(400, 'Flag values must be booleans');
+      variants.push({ key, label: label.trim(), kind: 'flag', flags: { ...flags } });
+    } else if (entry.state !== 'anonymous') {
+      throw new HttpError(400, 'The only supported state variant is anonymous');
+    } else {
+      variants.push({ key, label: label.trim(), kind: 'state', state: 'anonymous' });
+    }
+  }
+  if (new Set(variants.map((variant) => variant.key)).size !== variants.length)
+    throw new HttpError(400, 'Variant keys must be unique');
+  return variants;
+}
 
 export class Workbench {
   private maintenance = false;
@@ -43,22 +250,74 @@ export class Workbench {
   private queueError: string | null = null;
   private mutationTail: Promise<unknown> = Promise.resolve();
   private timer: ReturnType<typeof setInterval>;
+  private readonly providerSecrets: SecretStore;
   private constructor(
     readonly store: Store,
-    readonly roots: string[],
+    startupRoots: string[],
     readonly directory: string,
     private readonly retention: Retention,
   ) {
     this.store.recover();
+    const deltas = this.store.setting<{ added: string[]; removed: string[] }>(
+      'workspace.roots',
+    ) ?? { added: [], removed: [] };
+    this.roots = [
+      ...startupRoots.filter((root) => !deltas.removed.includes(root)),
+      ...deltas.added,
+    ];
+    this.providerSecrets = new SecretStore(store.db);
     this.timer = setInterval(() => {
-      try {
-        this.tick();
-      } catch {
-        /* Leave the durable slot due for the next tick. */
-      }
+      void this.guardDueCampaigns()
+        .then(() => this.tick())
+        .catch(() => {
+          /* Leave the durable slot due for the next tick. */
+        });
     }, 1000);
     this.timer.unref();
     this.kick();
+  }
+  /** Operator-widened allow-list: re-executes the startup list plus durable deltas. */
+  roots: string[];
+  async addWorkspaceRoot(input: unknown) {
+    const resolved = await this.requestedRoot(input);
+    if (this.roots.some((root) => inside(root, resolved) || inside(resolved, root)))
+      throw new HttpError(409, 'Workspace root overlaps a configured root');
+    const deltas = this.store.setting<{ added: string[]; removed: string[] }>(
+      'workspace.roots',
+    ) ?? { added: [], removed: [] };
+    deltas.added = [...deltas.added.filter((root) => root !== resolved), resolved];
+    deltas.removed = deltas.removed.filter((root) => root !== resolved);
+    this.store.saveSetting('workspace.roots', deltas);
+    this.roots = [...this.roots, resolved];
+    this.store.audit('workspace.root-added', resolved);
+    return { roots: this.roots };
+  }
+  async removeWorkspaceRoot(input: unknown) {
+    const resolved = await this.requestedRoot(input);
+    if (!this.roots.includes(resolved))
+      throw new HttpError(404, 'Workspace root is not configured');
+    const dependent = this.store
+      .projects()
+      .find((project) => project.folder === resolved || inside(resolved, project.folder));
+    if (dependent)
+      throw new HttpError(409, `Project ${dependent.name} still uses this workspace root`);
+    const deltas = this.store.setting<{ added: string[]; removed: string[] }>(
+      'workspace.roots',
+    ) ?? { added: [], removed: [] };
+    deltas.removed = [...deltas.removed.filter((root) => root !== resolved), resolved];
+    deltas.added = deltas.added.filter((root) => root !== resolved);
+    this.store.saveSetting('workspace.roots', deltas);
+    this.roots = this.roots.filter((root) => root !== resolved);
+    this.store.audit('workspace.root-removed', resolved);
+    return { roots: this.roots };
+  }
+  private async requestedRoot(input: unknown) {
+    const path = (input as { path?: unknown } | null)?.path;
+    if (typeof path !== 'string' || !isAbsolute(path))
+      throw new HttpError(400, 'Workspace root must be an absolute folder path');
+    return realpath(path).catch(() => {
+      throw new HttpError(400, 'Workspace root must exist on this server');
+    });
   }
   static async open(directory: string, roots: string[]) {
     const resolved = await Promise.all(roots.map((root) => realpath(root)));
@@ -105,6 +364,39 @@ export class Workbench {
       throw error;
     }
   }
+  /**
+   * Surface-keyed execution ledger: every campaign-scoped run of a row unions
+   * across the project's campaigns (originals and recurring fires), keyed by
+   * the inventory row key the intents panel renders.
+   */
+  rowOutcomes(): Record<string, Record<string, RowHistory>> {
+    const outcomes: Record<string, Record<string, RowHistory>> = {};
+    const campaignsByProject = new Map<string, Campaign[]>();
+    for (const campaign of this.store.campaigns()) {
+      const list = campaignsByProject.get(campaign.projectId) ?? [];
+      list.push(campaign);
+      campaignsByProject.set(campaign.projectId, list);
+    }
+    for (const [projectId, campaigns] of campaignsByProject) {
+      const keyByRowId = new Map<string, string>();
+      for (const campaign of campaigns)
+        for (const row of campaign.rows)
+          if (row.inventoryRowId) keyByRowId.set(row.inventoryRowId, row.key);
+      if (!keyByRowId.size) continue;
+      const runsByKey = new Map<string, Run[]>();
+      for (const run of this.store.scopedRuns(projectId)) {
+        const key = keyByRowId.get(run.workflowScope?.inventoryRowId ?? '');
+        if (!key) continue;
+        const list = runsByKey.get(key) ?? [];
+        list.push(run);
+        runsByKey.set(key, list);
+      }
+      if (!runsByKey.size) continue;
+      const project = (outcomes[projectId] ??= {});
+      for (const [key, runs] of runsByKey) project[key] = rowHistoryOf(runs);
+    }
+    return outcomes;
+  }
   state() {
     return {
       projects: this.store.projects(),
@@ -112,7 +404,9 @@ export class Workbench {
       roots: this.roots,
       audit: this.store.auditLog(),
       baselines: this.store.baselines(),
+      baselineApprovals: this.store.approvalHistory(),
       queueError: this.queueError,
+      outcomes: this.rowOutcomes(),
       campaigns: this.store.campaigns().map((item) => {
         return { ...this.campaign(item.id), rows: undefined };
       }),
@@ -120,6 +414,36 @@ export class Workbench {
   }
   retentionState() {
     return this.retention.state();
+  }
+  /** Runtime-entered credentials complete the environment; explicit operator env keeps precedence. */
+  effectiveEnv(): NodeJS.ProcessEnv {
+    const merged: NodeJS.ProcessEnv = this.providerSecrets.all();
+    for (const [key, value] of Object.entries(process.env))
+      if (value !== undefined) merged[key] = value;
+    return merged;
+  }
+  async saveProviderSecret(input: unknown) {
+    return this.mutate(async () => {
+      const record = input as { connection?: unknown; value?: unknown } | null;
+      const ref = connectionCredentialRef(record?.connection, this.effectiveEnv());
+      const value = typeof record?.value === 'string' ? record.value.trim() : '';
+      if (!value || value.length > 5000)
+        throw new HttpError(400, 'Provide the provider key as text between 1 and 5000 characters');
+      this.providerSecrets.set(ref, value);
+      this.store.audit('provider.secret-set', ref);
+      return { modelConnections: modelConnections(this.effectiveEnv()) };
+    });
+  }
+  async removeProviderSecret(input: unknown) {
+    return this.mutate(async () => {
+      const ref = connectionCredentialRef(
+        (input as { connection?: unknown } | null)?.connection,
+        this.effectiveEnv(),
+      );
+      this.providerSecrets.remove(ref);
+      this.store.audit('provider.secret-removed', ref);
+      return { modelConnections: modelConnections(this.effectiveEnv()) };
+    });
   }
   async saveRetention(input: unknown) {
     return this.mutate(async () => this.retention.save(input));
@@ -261,7 +585,9 @@ export class Workbench {
     const rows = toProposalConsumerInventory(discovery.result.inventory as DomainInventory).rows;
     const selected = input.inventoryRowIds;
     if (
-      Object.keys(input).some((key) => !['discoveryRunId', 'inventoryRowIds'].includes(key)) ||
+      Object.keys(input).some(
+        (key) => !['discoveryRunId', 'inventoryRowIds', 'cron', 'variants'].includes(key),
+      ) ||
       !Array.isArray(selected) ||
       !selected.length ||
       selected.length > 20 ||
@@ -272,11 +598,30 @@ export class Workbench {
         400,
         'Campaign selection must contain 1–20 unique discovered source rows',
       );
-    if (this.store.activeCount() + selected.length > 20)
+    const variants = validateCampaignVariants(input.variants);
+    if (input.cron !== undefined && typeof input.cron !== 'string')
+      throw new HttpError(400, 'Campaign recurrence cron must be a string');
+    const cron = input.cron as string | undefined;
+    const nextFireAt = cron === undefined ? undefined : nextSlot(cron);
+    if (cron !== undefined && !nextFireAt)
+      throw new HttpError(400, 'Use a five-field cron expression in UTC');
+    // Variant fan-out multiplies the whole-campaign capacity reservation.
+    const slots = selected.length * (1 + variants.length);
+    if (this.store.activeCount() + slots > 20)
       throw new HttpError(429, 'Insufficient queue capacity for the whole campaign');
     const project = this.store.project(projectId);
     if (!project?.execution)
       throw new HttpError(400, 'Campaigns require saved guided AI execution settings');
+    // An anonymous state variant against an anonymous default persona would be a
+    // duplicate of the default run — refuse instead of charging for a no-op.
+    if (
+      variants.some((variant) => variant.kind === 'state') &&
+      project.execution.persona.mode === 'anonymous'
+    )
+      throw new HttpError(
+        400,
+        'An anonymous state variant is identical to this project\u2019s default persona',
+      );
     const current = await sourceRevision(project.folder);
     const discovered = toProposalConsumerInventory(
       discovery.result.inventory as DomainInventory,
@@ -296,14 +641,19 @@ export class Workbench {
       createdAt: new Date().toISOString(),
       runIds: [],
       rows: campaignRows(discovery.result.inventory as DomainInventory),
+      ...(variants.length ? { variants } : {}),
+      ...(nextFireAt && cron ? { cron, nextFireAt } : {}),
     };
     this.store.db.transaction(() => {
-      this.requireQueueCapacity(selected.length);
+      this.requireQueueCapacity(slots);
       if (JSON.stringify(this.store.project(projectId)) !== JSON.stringify(project))
         throw new HttpError(409, 'Project settings changed; review the campaign again');
       if (!this.store.run(discovery.id))
         throw new HttpError(409, 'Discovery was deleted; discover again');
       for (const inventoryRowId of selected as string[]) {
+        // Default run first (exactly the pre-variants shape), then one run per
+        // variant in declared order with variantKey set on the workflow scope.
+        const row = campaign.rows.find((item) => item.inventoryRowId === inventoryRowId)!;
         const run = this.store.enqueue(project, 'agent')!;
         run.workflowScope = {
           campaignId: campaign.id,
@@ -312,7 +662,20 @@ export class Workbench {
         };
         this.store.saveRun(run);
         campaign.runIds.push(run.id);
-        campaign.rows.find((row) => row.inventoryRowId === inventoryRowId)!.runId = run.id;
+        row.runId = run.id;
+        for (const variant of variants) {
+          const variantRun = this.store.enqueue(project, 'agent')!;
+          variantRun.workflowScope = {
+            campaignId: campaign.id,
+            inventoryRowId,
+            sourceCommit: current.commit,
+            variantKey: variant.key,
+            ...variantScopePayload(variant),
+          };
+          this.store.saveRun(variantRun);
+          campaign.runIds.push(variantRun.id);
+          row.runIds = [...(row.runIds ?? []), variantRun.id];
+        }
       }
       this.store.saveCampaign(campaign);
       this.store.audit('campaign.queued', campaign.id);
@@ -335,6 +698,7 @@ export class Workbench {
     return campaignView(
       campaign,
       campaign.runIds.map((runId) => this.store.run(runId)),
+      (inventoryRowId) => rowHistoryOf(this.store.rowRuns(campaign.projectId, inventoryRowId)),
     );
   }
   async cancelCampaign(id: string) {
@@ -361,6 +725,184 @@ export class Workbench {
     })();
     if (interrupt && this.active) await stopProcess(this.active.child);
   }
+  /**
+   * Per-fire source-drift re-validation: every due recurring schedule is checked
+   * against the real source BEFORE tick() fires it, so a drifted campaign (dirty
+   * tree or HEAD moved vs the pinned sourceCommit) never fires doomed runs.
+   * Phase (b): the standard drift outcome is a REBIND — the guard enqueues a
+   * fresh real discovery and disarms the slot; when the discovery completes,
+   * drain()'s completion hook remaps the campaign onto the new commit by
+   * inventoryRowId identity. Stop (phase (a)) is the fallback when rebinding is
+   * impossible right now: no execution settings, or the queue cannot take the
+   * discovery. Fail-soft: an unreadable source is drift by definition; one bad
+   * campaign never blocks the others or the tick.
+   */
+  async guardDueCampaigns(now = new Date()) {
+    for (const campaign of this.store.campaigns()) {
+      if (!campaign.cron || campaign.cancelledAt || !campaign.nextFireAt) continue;
+      if (campaign.rebinding) continue; // a rebind discovery is already in flight
+      if (new Date(campaign.nextFireAt) > now) continue;
+      try {
+        const project = this.store.project(campaign.projectId);
+        if (!project) continue;
+        const current = await sourceRevision(project.folder);
+        if (current.dirty || current.commit !== campaign.sourceCommit)
+          await this.startRebindOrStop(campaign, project);
+      } catch {
+        this.stopDriftedSchedules(campaign.projectId, campaign.sourceCommit);
+      }
+    }
+  }
+
+  /** Rebind-first drift handling; stopDriftedSchedules stays the honest fallback. */
+  private async startRebindOrStop(campaign: Campaign, project: Project) {
+    let discoveryRunId: string | undefined;
+    if (project.execution) {
+      try {
+        discoveryRunId = this.enqueue(project.id, 'discovery').id;
+      } catch {
+        discoveryRunId = undefined;
+      }
+    }
+    if (!discoveryRunId) {
+      this.stopDriftedSchedules(campaign.projectId, campaign.sourceCommit);
+      return;
+    }
+    this.store.db.transaction(() => {
+      // The campaign id is unchanged; the slot is disarmed until the rebind lands.
+      this.store.saveCampaign({ ...campaign, nextFireAt: null, rebinding: { discoveryRunId } });
+      this.store.audit('campaign.rebind-started', campaign.id);
+    })();
+  }
+
+  /**
+   * Rebind completion, driven from drain() after each recorded run: a campaign
+   * with a finished rebind discovery is remapped onto the new commit. Survivors
+   * (selected inventoryRowIds still present in the fresh inventory) re-acquire
+   * per-row executions and the cron slot re-arms; dropped selections are
+   * audited per row. Stop is the fallback: failed discovery, unpinnable source,
+   * or selection exhausted. Capacity follows queueCampaign's whole-campaign
+   * rule — when the surviving rows cannot fit, the rebind stays pending and
+   * retries on the next drain completion (never a partial remap).
+   */
+  private async processRebinds() {
+    for (const campaign of this.store.campaigns()) {
+      if (campaign.cancelledAt || !campaign.rebinding) continue;
+      const discovery = this.store.run(campaign.rebinding.discoveryRunId);
+      if (
+        !discovery ||
+        discovery.projectId !== campaign.projectId ||
+        discovery.mode !== 'discovery'
+      ) {
+        this.stopRebind(campaign, 'campaign.rebind-failed');
+        continue;
+      }
+      if (['queued', 'running'].includes(discovery.state)) continue;
+      if (discovery.state !== 'completed' || !discovery.result?.inventory) {
+        this.stopRebind(campaign, 'campaign.rebind-failed');
+        continue;
+      }
+      await this.rebindCampaign(campaign, discovery);
+    }
+  }
+
+  private async rebindCampaign(campaign: Campaign, discovery: Run) {
+    const inventory = discovery.result?.inventory;
+    const project = this.store.project(campaign.projectId);
+    if (!inventory || !project?.execution) {
+      this.stopRebind(campaign, 'campaign.rebind-failed');
+      return;
+    }
+    let current: Awaited<ReturnType<typeof sourceRevision>>;
+    try {
+      current = await sourceRevision(project.folder);
+    } catch {
+      this.stopRebind(campaign, 'campaign.rebind-failed');
+      return;
+    }
+    // A dirty tree cannot be pinned: firing on it would doom every run to the
+    // drain()'s 409 backstop, so rebinding onto it is refused.
+    if (current.dirty) {
+      this.stopRebind(campaign, 'campaign.rebind-failed');
+      return;
+    }
+    const selected = new Set(
+      campaign.rows
+        .filter((row) => row.inventoryRowId && row.runId)
+        .map((row) => row.inventoryRowId!),
+    );
+    const rows = campaignRows(inventory as DomainInventory);
+    const survivors = rows.filter((row) => row.inventoryRowId && selected.has(row.inventoryRowId));
+    if (!survivors.length) {
+      this.stopRebind(campaign, 'campaign.rebind-exhausted');
+      return;
+    }
+    // Variant fan-out multiplies the remap's whole-campaign capacity reservation.
+    if (this.store.activeCount() + survivors.length * (1 + (campaign.variants?.length ?? 0)) > 20)
+      return; // deferred; retried on a later drain
+    const nextFireAt = campaign.cron ? nextSlot(campaign.cron) : null;
+    const survivorIds = new Set(survivors.map((row) => row.inventoryRowId!));
+    this.store.db.transaction(() => {
+      // Same identity, new source: rows come fresh from the NEW inventory and
+      // only survivors carry runId (the fire path executes rows with a runId).
+      const rebound: Campaign = {
+        ...withoutRebinding(campaign),
+        discoveryRunId: discovery.id,
+        sourceCommit: current.commit,
+        nextFireAt,
+        runIds: [],
+        rows,
+        rebound: {
+          survivors: survivors.length,
+          dropped: selected.size - survivorIds.size,
+          at: new Date().toISOString(),
+        },
+      };
+      for (const row of survivors) {
+        // Same fan-out shape as queueCampaign: default run first, then one run
+        // per variant in declared order with variantKey set on the scope.
+        const defaultRun = this.store.enqueue(project, 'agent')!;
+        defaultRun.workflowScope = {
+          campaignId: campaign.id,
+          inventoryRowId: row.inventoryRowId!,
+          sourceCommit: current.commit,
+        };
+        this.store.saveRun(defaultRun);
+        rebound.runIds.push(defaultRun.id);
+        rebound.rows.find((item) => item.inventoryRowId === row.inventoryRowId)!.runId =
+          defaultRun.id;
+        for (const variant of campaign.variants ?? []) {
+          const variantRun = this.store.enqueue(project, 'agent')!;
+          variantRun.workflowScope = {
+            campaignId: campaign.id,
+            inventoryRowId: row.inventoryRowId!,
+            sourceCommit: current.commit,
+            variantKey: variant.key,
+            ...variantScopePayload(variant),
+          };
+          this.store.saveRun(variantRun);
+          rebound.runIds.push(variantRun.id);
+          const reboundRow = rebound.rows.find(
+            (item) => item.inventoryRowId === row.inventoryRowId,
+          )!;
+          reboundRow.runIds = [...(reboundRow.runIds ?? []), variantRun.id];
+        }
+      }
+      this.store.saveCampaign(rebound);
+      this.store.audit('campaign.rebound', campaign.id);
+      for (const id of selected)
+        if (!survivorIds.has(id))
+          this.store.audit('campaign.rebound-row-dropped', `${campaign.id}/${id}`);
+    })();
+  }
+
+  /** Disarm a rebinding campaign for good; the schedule stops without firing again. */
+  private stopRebind(campaign: Campaign, action: string) {
+    this.store.db.transaction(() => {
+      this.store.saveCampaign({ ...withoutRebinding(campaign), nextFireAt: null });
+      this.store.audit(action, campaign.id);
+    })();
+  }
   tick(now = new Date()) {
     if (this.closed || this.queueError) return;
     this.store.db.transaction(() => {
@@ -375,6 +917,79 @@ export class Workbench {
         this.store.enqueue(project, project.scheduleMode, `${project.id}:${project.nextRunAt}`);
         this.store.saveProject({ ...project, nextRunAt: nextSlot(project.cron, now) });
         this.store.audit('schedule.enqueued', project.id);
+      }
+      for (const source of this.store.campaigns()) {
+        if (
+          !source.cron ||
+          source.cancelledAt ||
+          !source.nextFireAt ||
+          new Date(source.nextFireAt) > now
+        )
+          continue;
+        const scheduledProject = this.store.project(source.projectId);
+        if (
+          !scheduledProject?.execution ||
+          !this.store.run(source.discoveryRunId) ||
+          !source.rows.some((row) => row.inventoryRowId)
+        ) {
+          this.store.saveCampaign({ ...source, nextFireAt: null });
+          this.store.audit('campaign.schedule-stopped', source.id);
+          continue;
+        }
+        // Recurring fires re-execute the campaign's selected rows only — unselected
+        // discovery rows stay out of the slot's cost and queue capacity.
+        const rows = source.rows.filter((row) => row.inventoryRowId && row.runId);
+        // Deferred, not dropped: the slot stays due and retries on the next tick.
+        // Variant fan-out multiplies the fire's whole-campaign capacity reservation.
+        if (this.store.activeCount() + rows.length * (1 + (source.variants?.length ?? 0)) > 20)
+          continue;
+        const fired: Campaign = {
+          id: randomUUID(),
+          projectId: source.projectId,
+          projectName: source.projectName,
+          discoveryRunId: source.discoveryRunId,
+          sourceCommit: source.sourceCommit,
+          createdAt: now.toISOString(),
+          runIds: [],
+          // Strip BOTH ids: the spread would silently keep the source row's
+          // stale runIds from the creation fan-out, corrupting per-fire attribution.
+          rows: source.rows.map((row) => ({ ...row, runId: undefined, runIds: undefined })),
+          // LOAD-BEARING: drain resolves a fired variant run's credentials via
+          // store.campaign(run.workflowScope.campaignId) — the fired record must
+          // carry the variants or every fired variant run would block as
+          // unresolvable.
+          ...(source.variants?.length ? { variants: source.variants } : {}),
+        };
+        for (const row of rows) {
+          // Same fan-out shape as queueCampaign: default run first, then one run
+          // per variant in declared order with variantKey set on the scope.
+          const firedRow = fired.rows.find((item) => item.inventoryRowId === row.inventoryRowId)!;
+          const defaultRun = this.store.enqueue(scheduledProject, 'agent')!;
+          defaultRun.workflowScope = {
+            campaignId: fired.id,
+            inventoryRowId: row.inventoryRowId!,
+            sourceCommit: source.sourceCommit,
+          };
+          this.store.saveRun(defaultRun);
+          fired.runIds.push(defaultRun.id);
+          firedRow.runId = defaultRun.id;
+          for (const variant of source.variants ?? []) {
+            const variantRun = this.store.enqueue(scheduledProject, 'agent')!;
+            variantRun.workflowScope = {
+              campaignId: fired.id,
+              inventoryRowId: row.inventoryRowId!,
+              sourceCommit: source.sourceCommit,
+              variantKey: variant.key,
+              ...variantScopePayload(variant),
+            };
+            this.store.saveRun(variantRun);
+            fired.runIds.push(variantRun.id);
+            firedRow.runIds = [...(firedRow.runIds ?? []), variantRun.id];
+          }
+        }
+        this.store.saveCampaign({ ...source, nextFireAt: nextSlot(source.cron, now) });
+        this.store.saveCampaign(fired);
+        this.store.audit('campaign.scheduled', fired.id);
       }
     })();
     this.kick();
@@ -414,10 +1029,7 @@ export class Workbench {
         if (run.workflowScope) {
           const current = await sourceRevision(run.project.folder);
           if (current.dirty || current.commit !== run.workflowScope.sourceCommit)
-            throw new HttpError(
-              409,
-              'Source changed since campaign discovery; commit changes and start a new campaign',
-            );
+            throw new HttpError(409, sourceDriftRefusal);
         }
         const directory = join(this.directory, 'runs', run.id);
         await mkdir(directory, { recursive: true, mode: 0o700 });
@@ -429,16 +1041,21 @@ export class Workbench {
           throw new Error('Run cancelled before launch');
         const overrides =
           run.mode === 'agent' && run.project.execution
-            ? executionEnvironment(run.project.execution, process.env)
+            ? variantEnvironment(
+                run,
+                run.workflowScope ? this.store.campaign(run.workflowScope.campaignId) : undefined,
+                run.project.execution,
+                this.effectiveEnv(),
+              )
             : run.mode === 'review'
               ? modelEnvironment(
                   run.visualReview!.modelConnection,
                   run.visualReview!.model,
                   run.visualReview!.modelSecretRef,
-                  process.env,
+                  this.effectiveEnv(),
                 )
               : run.mode === 'visual' && run.project.login
-                ? loginEnvironment(run.project.login, process.env)
+                ? loginEnvironment(run.project.login, this.effectiveEnv())
                 : undefined;
         this.active = launchJob(input, output, overrides);
         timeout = setTimeout(
@@ -454,6 +1071,9 @@ export class Workbench {
         const code = await this.active.finished;
         if (code !== 0) throw new Error('Interrupted engine');
         result = JSON.parse(await readFile(output, 'utf8')) as RunResult;
+        // Fraction of differing pixels an operator tolerates before a capture counts as changed.
+        // 0 (the default) keeps the pixel-exact behavior: ratio > 0 ⇔ at least one pixel changed.
+        const ratioGate = run.project.visualChangeRatio ?? 0;
         if (result.captures)
           for (const capture of result.captures) {
             if (capture.status === 'unstable') continue;
@@ -475,7 +1095,7 @@ export class Workbench {
               capture.environment?.deviceScaleFactor ?? 1,
             );
             Object.assign(capture, compared, {
-              status: compared.changedPixels ? 'changed' : 'unchanged',
+              status: compared.ratio > ratioGate ? 'changed' : 'unchanged',
               baselineRunId: baseline.run_id,
               baselineFile: previous.file,
               diffFile,
@@ -498,8 +1118,24 @@ export class Workbench {
         });
       }
       if (this.store.run(run.id)?.state !== 'cancelled') this.store.finish(run, result);
+      if (run.workflowScope && result.summary === sourceDriftRefusal)
+        this.stopDriftedSchedules(run.projectId, run.workflowScope.sourceCommit);
+      // Every recorded run is a rebind retry opportunity: the discovery that
+      // completes a rebind, or a finished run that freed queue capacity.
+      await this.processRebinds();
       this.runningId = null;
     }
+  }
+  /** A refused workflow-scope run proves the pinned discovery is stale: recurring schedules on that commit stop firing. */
+  private stopDriftedSchedules(projectId: string, sourceCommit: string) {
+    this.store.db.transaction(() => {
+      for (const source of this.store.campaigns()) {
+        if (!source.cron || source.cancelledAt || !source.nextFireAt) continue;
+        if (source.projectId !== projectId || source.sourceCommit !== sourceCommit) continue;
+        this.store.saveCampaign({ ...source, nextFireAt: null });
+        this.store.audit('campaign.schedule-drift-stopped', source.id);
+      }
+    })();
   }
   async idle() {
     await this.pending;
@@ -517,7 +1153,7 @@ export class Workbench {
       )
         throw new HttpError(409, 'Capture integrity check failed');
       this.store.db.transaction(() => {
-        this.store.approve(run.projectId, capture.specHash, runId, captureId);
+        this.store.approve(run.projectId, capture.specHash, runId, captureId, capture.sha256);
         this.store.audit('baseline.approved', `${runId}/${captureId}`);
       })();
     });

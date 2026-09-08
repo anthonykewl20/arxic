@@ -316,13 +316,16 @@ function render() {
         declarationPages,
         selections: workflowSelections,
         workflowPages,
+        outcomes: state.outcomes ?? {},
       },
       campaign: {
         campaigns: state.campaigns ?? [],
         selectedId: selectedCampaign,
         projectId: selectedProject,
         pages: campaignPages,
+        runs: state.runs ?? [],
       },
+      admin: { onChanged: refresh },
     });
     return;
   }
@@ -333,6 +336,8 @@ function render() {
       connections: state.modelConnections ?? [],
       setup: state.providerSetup ?? [],
       onRefresh: refreshModels,
+      onConnectSecret: saveProviderSecret,
+      onDisconnectSecret: removeProviderSecret,
     });
     return;
   }
@@ -477,9 +482,74 @@ document.addEventListener('submit', async (event) => {
   );
   if (!release) return;
   try {
+    // Variant rows are collected per DOM row (not per field name): conditional
+    // per-kind inputs would misalign FormData.getAll indexes across mixed kinds.
+    const slug = (label: string) =>
+      label
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/gu, '-')
+        .replace(/^-+|-+$/gu, '');
+    const valueOf = (row: Element, name: string) =>
+      (row.querySelector(`[name="${name}"]`) as HTMLInputElement | HTMLSelectElement | null)
+        ?.value ?? '';
+    const variants: NonNullable<import('../types').Campaign['variants']> = [
+      ...form.querySelectorAll('.variant-fields'),
+    ]
+      .map((row): NonNullable<import('../types').Campaign['variants']>[number] => {
+        const label = valueOf(row, 'variant-label').trim();
+        const kind = valueOf(row, 'variant-kind') || 'persona';
+        // Variant key: deterministic slug of the label; the server validates
+        // the final shape and surfaces its 400s.
+        const key = slug(label);
+        if (kind === 'flag') {
+          const flagName = valueOf(row, 'variant-flag-name').trim();
+          return {
+            label,
+            key,
+            kind: 'flag',
+            // The dashboard exposes one flag per variant row; the API accepts up to 30.
+            flags: { [flagName]: valueOf(row, 'variant-flag-value') === 'true' },
+          };
+        }
+        if (kind === 'state') return { label, key, kind: 'state', state: 'anonymous' };
+        // Login override: collected only when a route is present — a routeless
+        // row keeps the project login surface; labels left blank keep the
+        // project values server-side.
+        const loginRoute = valueOf(row, 'variant-login-route').trim();
+        const emailLabel = valueOf(row, 'variant-login-email-label').trim();
+        const passwordLabel = valueOf(row, 'variant-login-password-label').trim();
+        const submitLabel = valueOf(row, 'variant-login-submit-label').trim();
+        return {
+          label,
+          key,
+          kind: 'persona',
+          persona: {
+            emailRef: valueOf(row, 'variant-email').trim(),
+            passwordRef: valueOf(row, 'variant-password').trim(),
+          },
+          ...(loginRoute
+            ? {
+                login: {
+                  route: loginRoute,
+                  ...(emailLabel ? { emailLabel } : {}),
+                  ...(passwordLabel ? { passwordLabel } : {}),
+                  ...(submitLabel ? { submitLabel } : {}),
+                },
+              }
+            : {}),
+        };
+      })
+      .filter((variant) => {
+        if (variant.kind === 'persona')
+          return variant.label || variant.persona.emailRef || variant.persona.passwordRef;
+        if (variant.kind === 'flag') return variant.label || Object.keys(variant.flags).length > 0;
+        return variant.label;
+      });
     const campaign = await api(`/projects/${form.dataset.project}/campaigns`, 'POST', {
       discoveryRunId: form.dataset.discovery,
       inventoryRowIds: [...(workflowSelections.get(form.dataset.discovery!) ?? [])],
+      ...(variants.length ? { variants } : {}),
     });
     selectedCampaign = campaign.id;
     section = 'campaigns';
@@ -619,6 +689,24 @@ async function refreshModels(id: string) {
   } catch (error) {
     notice((error as Error).message);
   }
+}
+async function saveProviderSecret(id: string, value: string) {
+  const epoch = sessionEpoch;
+  const result = await api('/provider-secrets', 'POST', { connection: id, value });
+  if (epoch !== sessionEpoch || signingOut) return;
+  state.modelConnections = result.modelConnections;
+  updateModelCatalogs(state.modelConnections);
+  if (section === 'providers') render();
+  if (agentDialog().open) renderAgentWizard();
+}
+async function removeProviderSecret(id: string) {
+  const epoch = sessionEpoch;
+  const result = await api('/provider-secrets', 'DELETE', { connection: id });
+  if (epoch !== sessionEpoch || signingOut) return;
+  state.modelConnections = result.modelConnections;
+  updateModelCatalogs(state.modelConnections);
+  if (section === 'providers') render();
+  if (agentDialog().open) renderAgentWizard();
 }
 setInterval(() => {
   if (document.hidden || $('#app').hidden) return;

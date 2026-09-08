@@ -35,6 +35,12 @@ export type Project = {
   /** Crawl budget for AI discovery: pages captured and link depth followed from configured paths. */
   maxPages: number;
   maxDepth: number;
+  /**
+   * Fraction of pixels (0–0.5) allowed to differ from the baseline before a capture counts as
+   * changed. 0 or unset keeps the pixel-exact behavior: any differing pixel flags the capture.
+   * The diff image, changed pixels and regions stay recorded even for sub-threshold captures.
+   */
+  visualChangeRatio?: number;
   login?: VisualLogin;
   configPath: string;
   execution?: import('./execution').ExecutionSettings;
@@ -59,11 +65,33 @@ export type Capture = {
   baselineRunId?: string;
   baselineFile?: string;
   diffFile?: string;
+  diffRegions?: Array<{ x: number; y: number; width: number; height: number }>;
   videoFile?: string;
   authenticated?: boolean;
   assessmentFile?: string;
   assessmentSha256?: string;
 };
+/** Immutable baseline approval record; `legacy` marks pointers predating the ledger. */
+export type BaselineApprovalEntry =
+  | {
+      kind: 'approval';
+      id: number;
+      projectId: string;
+      spec: string;
+      runId: string;
+      captureId: string;
+      captureSha256: string;
+      approvedAt: string;
+      approvedBy: string;
+      supersedes: number | null;
+    }
+  | {
+      kind: 'legacy';
+      projectId: string;
+      spec: string;
+      runId: string;
+      captureId: string;
+    };
 export type RunResult = {
   visualEnvironments?: Array<
     VisualEnvironment & {
@@ -106,7 +134,24 @@ export type Run = {
   project: Project;
   result: RunResult | null;
   visualReview?: import('./visual-review').VisualReviewScope;
-  workflowScope?: { campaignId: string; inventoryRowId: string; sourceCommit: string };
+  workflowScope?: {
+    campaignId: string;
+    inventoryRowId: string;
+    sourceCommit: string;
+    /** Set on variant fan-out runs; undefined means the campaign's default persona. */
+    variantKey?: string;
+    /** Non-secret flag overrides recorded on kind:'flag' variant fan-out runs. */
+    variantFlags?: Record<string, boolean>;
+    /** Persona-state override recorded on kind:'state' variant fan-out runs. */
+    variantState?: 'anonymous';
+    /** Non-secret login-surface override recorded on persona variant fan-out runs with a login declaration. */
+    variantLogin?: {
+      route: string;
+      emailLabel?: string;
+      passwordLabel?: string;
+      submitLabel?: string;
+    };
+  };
 };
 export type Campaign = {
   id: string;
@@ -116,6 +161,46 @@ export type Campaign = {
   sourceCommit: string;
   createdAt: string;
   cancelledAt?: string;
+  /** Five-field UTC cron; when set, each slot re-executes the selected rows into a fresh campaign. */
+  cron?: string;
+  nextFireAt?: string | null;
+  /**
+   * Phase (b) drift rebind in flight: a fresh discovery is running and, on
+   * completion, remaps this campaign onto the new commit by inventoryRowId
+   * identity. While set, the schedule is disarmed (nextFireAt null) and never
+   * fires; the campaign id itself is unchanged across the rebind.
+   */
+  rebinding?: { discoveryRunId: string };
+  /**
+   * Latest rebind outcome — survivors re-acquired per-row executions on the
+   * new commit, dropped selections were audited per row; overwritten by any
+   * later rebind; historical, survives until the campaign is deleted.
+   */
+  rebound?: { survivors: number; dropped: number; at: string };
+  /**
+   * Execution variants: each selected row fans out into one extra agent run per
+   * variant. Persona variants carry ARXIC_SECRET_ ref NAMES (values never enter
+   * this record); their optional login override is a NON-SECRET form declaration
+   * (route + labels) that swaps the project login surface for that variant;
+   * flag variants carry non-secret boolean overrides; state variants switch the
+   * run to the anonymous persona.
+   */
+  variants?: Array<
+    | {
+        key: string;
+        label: string;
+        kind: 'persona';
+        persona: { emailRef: string; passwordRef: string };
+        login?: {
+          route: string;
+          emailLabel?: string;
+          passwordLabel?: string;
+          submitLabel?: string;
+        };
+      }
+    | { key: string; label: string; kind: 'flag'; flags: Record<string, boolean> }
+    | { key: string; label: string; kind: 'state'; state: 'anonymous' }
+  >;
   runIds: string[];
   rows: Array<{
     key: string;
@@ -124,10 +209,12 @@ export type Campaign = {
     disposition: string;
     reason: string;
     inventoryRowId?: string;
+    /** The DEFAULT variant's run; `runIds` carries the per-variant run ids in declared order. */
     runId?: string;
+    runIds?: string[];
   }>;
 };
 
 /** Last attempted capture operation; never inferred from raw exception text. */
 export type CaptureFailurePhase =
-  'navigation' | 'readiness' | 'measurement' | 'privacy-capture' | 'evidence-write';
+  'environment' | 'navigation' | 'readiness' | 'measurement' | 'privacy-capture' | 'evidence-write';

@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3';
 /** One reference projection serves individual deletion and whole-history retention. */
 export const runReferenceCtes = `baseline_refs AS (
  SELECT run_id AS id FROM baselines UNION
+ SELECT run_id AS id FROM baseline_approvals UNION
  SELECT json_extract(capture.value, '$.baselineRunId') FROM runs, json_each(runs.data, '$.result.captures') AS capture WHERE json_extract(capture.value, '$.baselineRunId') IS NOT NULL
 ), review_refs AS (
  SELECT DISTINCT json_extract(data, '$.visualReview.sourceRunId') AS id FROM runs WHERE json_extract(data, '$.visualReview.sourceRunId') IS NOT NULL

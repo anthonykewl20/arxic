@@ -2,6 +2,7 @@ import { Button } from './components';
 import { Badge } from './components';
 import { Input } from './components';
 import { WorkflowSelection } from './workflow-selection';
+import type { RowHistory } from '../campaigns';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { IntentLedger } from '../../../../packages/intent/src/ledger';
@@ -16,6 +17,8 @@ export type InventoryPanelProps = {
   declarationPages: Map<string, number>;
   selections: Map<string, Set<string>>;
   workflowPages: Map<string, number>;
+  /** Surface-keyed union of every campaign execution, from the workbench ledger. */
+  outcomes: Record<string, Record<string, RowHistory>>;
 };
 
 export function InventoryPanel(props: InventoryPanelProps) {
@@ -108,7 +111,11 @@ export function InventoryPanel(props: InventoryPanelProps) {
           <section key={project.id}>
             {run ? (
               <>
-                <SurfaceInventory project={project} run={run} />
+                <SurfaceInventory
+                  project={project}
+                  run={run}
+                  outcomes={props.outcomes[project.id] ?? {}}
+                />
                 <WorkflowSelection
                   key={`workflows:${discovery?.id ?? 'missing'}`}
                   project={project}
@@ -146,7 +153,15 @@ export function InventoryPanel(props: InventoryPanelProps) {
   );
 }
 
-function SurfaceInventory({ project, run }: { project: Project; run: Run }) {
+function SurfaceInventory({
+  project,
+  run,
+  outcomes,
+}: {
+  project: Project;
+  run: Run;
+  outcomes: Record<string, RowHistory>;
+}) {
   // Typed views over the server-produced persisted artifacts.
   // Their source references have distinct shapes; project them explicitly.
   const ledger = run.result?.ledger as IntentLedger | undefined;
@@ -184,40 +199,58 @@ function SurfaceInventory({ project, run }: { project: Project; run: Run }) {
               <th>SURFACE</th>
               <th>DOMAIN / INTENT</th>
               <th>DISPOSITION</th>
+              <th>EXECUTION LEDGER</th>
               <th>EVIDENCE / GAP</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row.key}>
-                <td data-label="SURFACE">
-                  {row.method} {row.path}
-                </td>
-                <td data-label="DOMAIN / INTENT">
-                  {row.domain}
-                  {row.intents?.map((intent) => (
-                    <small key={intent.proposalId}>
-                      {intent.intent} · {intent.truthState}
-                    </small>
-                  ))}
-                </td>
-                <td data-label="DISPOSITION">
-                  <Badge variant="outline" className={`pill ${row.truthState}`}>
-                    {row.truthState}
-                  </Badge>
-                  <small>{row.disposition}</small>
-                </td>
-                <td data-label="EVIDENCE / GAP">
-                  {row.reason}
-                  {row.sourceRefs.slice(0, 3).map((ref, index) => (
-                    <small key={`${ref.path}:${ref.startLine}:${index}`}>
-                      {ref.path}:{ref.startLine}
-                    </small>
-                  ))}
-                  {row.intents?.length === 0 && <small>No intent proposal for this surface.</small>}
-                </td>
-              </tr>
-            ))}
+            {rows.map((row) => {
+              const ledger = outcomes[row.key];
+              return (
+                <tr key={row.key}>
+                  <td data-label="SURFACE">
+                    {row.method} {row.path}
+                  </td>
+                  <td data-label="DOMAIN / INTENT">
+                    {row.domain}
+                    {row.intents?.map((intent) => (
+                      <small key={intent.proposalId}>
+                        {intent.intent} · {intent.truthState}
+                      </small>
+                    ))}
+                  </td>
+                  <td data-label="DISPOSITION">
+                    <Badge variant="outline" className={`pill ${row.truthState}`}>
+                      {row.truthState}
+                    </Badge>
+                    <small>{row.disposition}</small>
+                  </td>
+                  <td data-label="EXECUTION LEDGER" data-row-ledger={row.key}>
+                    {ledger ? (
+                      <small>
+                        {ledger.verified} verified of {ledger.executions} executions across
+                        campaigns
+                        {ledger.contradicted ? ` · ${ledger.contradicted} contradicted` : ''}
+                        {ledger.blocked ? ` · ${ledger.blocked} blocked` : ''}
+                      </small>
+                    ) : (
+                      <small>Not selected for a campaign yet.</small>
+                    )}
+                  </td>
+                  <td data-label="EVIDENCE / GAP">
+                    {row.reason}
+                    {row.sourceRefs.slice(0, 3).map((ref, index) => (
+                      <small key={`${ref.path}:${ref.startLine}:${index}`}>
+                        {ref.path}:{ref.startLine}
+                      </small>
+                    ))}
+                    {row.intents?.length === 0 && (
+                      <small>No intent proposal for this surface.</small>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

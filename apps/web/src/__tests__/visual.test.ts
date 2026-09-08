@@ -24,13 +24,18 @@ it('blocks unapproved capture, then detects a real frontend regression without r
     await rm(target.runtimeDirectory, { recursive: true, force: true });
   });
   let changed = false;
+  let noise = false;
   const proxy = createServer(async (_req, res) => {
     const html = await (await fetch(target.origin)).text();
     res.setHeader('Content-Type', 'text/html');
     res.end(
       html.replace(
         '</head>',
-        `<style>body { background: ${changed ? '#c00030' : '#ffffff'}; ${changed ? 'min-width: 1800px;' : ''} } h1 { color: ${changed ? '#c00031' : '#000000'}; }</style></head>`,
+        `<style>body { background: ${changed ? '#c00030' : '#ffffff'}; ${changed ? 'min-width: 1800px;' : ''} } h1 { color: ${changed ? '#c00031' : '#000000'}; }${
+          noise
+            ? ' body::after { content: ""; position: fixed; left: 0; top: 0; width: 8px; height: 8px; background: #00c800; }'
+            : ''
+        }</style></head>`,
       ),
     );
   });
@@ -154,6 +159,44 @@ it('blocks unapproved capture, then detects a real frontend regression without r
   ).toBe(409);
   await expect(wb.approveBaseline(third.id, result.captures![0].id)).rejects.toThrow('integrity');
   expect(wb.store.baseline(project.id, capture.specHash)?.run_id).toBe(first.id);
+  // WEB-402: a tiny real mutation (an 8x8 px patch on a 800x600 viewport) is a genuine but
+  // sub-threshold change. Today it still flips the capture to 'changed'.
+  changed = false;
+  noise = true;
+  const noiseRun = wb.enqueue(project.id, 'visual');
+  await wb.idle();
+  const noiseCapture = wb.store.run(noiseRun.id)!.result!.captures![0];
+  expect(noiseCapture.status).toBe('changed');
+  expect(noiseCapture.changedPixels).toBeGreaterThan(0);
+  expect(noiseCapture.changedPixels!).toBeLessThan(2_400);
+  expect(noiseCapture.ratio).toBeGreaterThan(0);
+  // Raising the project's visual change ratio to EXACTLY the measured ratio reclassifies the
+  // same noise as 'unchanged' — the comparison is strictly `ratio > gate` — without hiding a
+  // single diff artifact; anything above the measured ratio follows a fortiori.
+  await wb.saveProject(
+    { ...config, captureConsent: true, visualChangeRatio: noiseCapture.ratio },
+    project.id,
+  );
+  const gated = wb.enqueue(project.id, 'visual');
+  await wb.idle();
+  const gatedCapture = wb.store.run(gated.id)!.result!.captures![0];
+  expect(gatedCapture.status).toBe('unchanged');
+  expect(gatedCapture.changedPixels).toBeGreaterThan(0);
+  expect(gatedCapture.ratio).toBe(noiseCapture.ratio);
+  expect(gatedCapture.ratio!).toBeLessThan(0.005);
+  expect(gatedCapture.diffFile).toBeTruthy();
+  expect((await wb.artifact(gated.id, gatedCapture.diffFile!)).bytes.length).toBeGreaterThan(0);
+  expect(gatedCapture.diffRegions?.length).toBeGreaterThan(0);
+  // A real layout regression still classifies 'changed' under the raised gate.
+  noise = false;
+  changed = true;
+  const gatedBig = wb.enqueue(project.id, 'visual');
+  await wb.idle();
+  expect(wb.store.run(gatedBig.id)?.result?.captures?.[0]).toMatchObject({
+    status: 'changed',
+    baselineRunId: first.id,
+  });
+  expect(wb.store.run(gatedBig.id)!.result!.captures![0].changedPixels).toBeGreaterThan(100_000);
   await wb.saveProject(
     { ...config, captureConsent: true, masks: ['[data-private-does-not-exist]'] },
     project.id,
@@ -161,4 +204,19 @@ it('blocks unapproved capture, then detects a real frontend regression without r
   const unmasked = wb.enqueue(project.id, 'visual');
   await wb.idle();
   expect(wb.store.run(unmasked.id)?.result).toMatchObject({ outcome: 'blocked' });
-}, 120_000);
+  // WEB-496: a second real approval supersedes the first through the immutable
+  // ledger; superseded baseline runs stay undeletable as approval history.
+  const repeatCapture = wb.store.run(second.id)!.result!.captures![0];
+  await wb.approveBaseline(second.id, repeatCapture.id);
+  const approvals = wb.state().baselineApprovals.filter((entry) => entry.kind === 'approval');
+  expect(approvals).toHaveLength(2);
+  expect(approvals[0]).toMatchObject({
+    runId: first.id,
+    captureSha256: capture.sha256,
+    approvedBy: 'administrator',
+    supersedes: null,
+  });
+  expect(approvals[1]).toMatchObject({ runId: second.id, supersedes: approvals[0].id });
+  expect(wb.store.baseline(project.id, capture.specHash)?.run_id).toBe(second.id);
+  await expect(wb.deleteRun(first.id)).rejects.toThrow('approved baselines');
+}, 240_000);

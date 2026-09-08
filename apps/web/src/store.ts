@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import { randomUUID } from 'node:crypto';
 import { chmod, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { Campaign, Project, Run, RunResult } from './types';
+import type { BaselineApprovalEntry, Campaign, Project, Run, RunResult } from './types';
 
 const summaryProjection =
   "json_remove(data, '$.result.inventory', '$.result.workflowRows', '$.result.frontend', '$.result.manifest', '$.result.ledger', '$.result.engineRun', '$.result.diagnostics')";
@@ -21,16 +21,46 @@ export class Store {
     db.exec(`CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, data TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, project_id TEXT NOT NULL, state TEXT NOT NULL, slot TEXT UNIQUE, data TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS baselines (project_id TEXT NOT NULL, spec TEXT NOT NULL, run_id TEXT NOT NULL, capture_id TEXT NOT NULL, PRIMARY KEY(project_id, spec));
+      CREATE TABLE IF NOT EXISTS baseline_approvals (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id TEXT NOT NULL, spec TEXT NOT NULL, run_id TEXT NOT NULL, capture_id TEXT NOT NULL, capture_sha256 TEXT NOT NULL, approved_at TEXT NOT NULL, approved_by TEXT NOT NULL, supersedes INTEGER);
+      CREATE INDEX IF NOT EXISTS baseline_approvals_by_spec ON baseline_approvals(project_id, spec, id);
       CREATE TABLE IF NOT EXISTS audit (id INTEGER PRIMARY KEY, at TEXT NOT NULL, action TEXT NOT NULL, subject TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS campaigns (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS instance_settings (key TEXT PRIMARY KEY, data TEXT NOT NULL);
       CREATE INDEX IF NOT EXISTS run_state ON runs(state);`);
     return new Store(db);
   }
   projects(): Project[] {
     return this.documents<Project>('SELECT data FROM projects ORDER BY rowid DESC');
   }
+  setting<T>(key: string): T | undefined {
+    const row = this.db.prepare('SELECT data FROM instance_settings WHERE key = ?').get(key) as
+      { data: string } | undefined;
+    return row ? (JSON.parse(row.data) as T) : undefined;
+  }
+  saveSetting(key: string, value: unknown) {
+    this.db
+      .prepare(
+        'INSERT INTO instance_settings VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET data=excluded.data',
+      )
+      .run(key, JSON.stringify(value));
+  }
   runs(): Run[] {
     return this.documents<Run>('SELECT data FROM runs ORDER BY rowid DESC LIMIT 200');
+  }
+  /** Row executions are queried directly, not through the 200-capped run list, so multi-week recurring histories stay complete. */
+  rowRuns(projectId: string, inventoryRowId: string): Run[] {
+    return this.documents<Run>(
+      `SELECT data FROM runs WHERE project_id = ? AND json_extract(data,'$.workflowScope.inventoryRowId') = ? ORDER BY rowid DESC`,
+      projectId,
+      inventoryRowId,
+    );
+  }
+  /** Campaign-scoped executions of every row, uncapped, for the project-wide surface ledger. */
+  scopedRuns(projectId: string): Run[] {
+    return this.documents<Run>(
+      `SELECT data FROM runs WHERE project_id = ? AND json_extract(data,'$.workflowScope.inventoryRowId') IS NOT NULL ORDER BY rowid DESC`,
+      projectId,
+    );
   }
   summaries(): Array<Run & { hasInventory: boolean; hasLedger: boolean }> {
     return this.documents(
@@ -175,7 +205,34 @@ export class Store {
   deleteRun(runId: string) {
     this.db.prepare('DELETE FROM runs WHERE id=?').run(runId);
   }
-  approve(projectId: string, spec: string, runId: string, captureId: string) {
+  /** Appends the immutable approval-ledger row, then moves the pointer. Runs inside the caller's transaction. */
+  approve(
+    projectId: string,
+    spec: string,
+    runId: string,
+    captureId: string,
+    captureSha256: string,
+    approvedBy = 'administrator',
+  ) {
+    const previous = this.db
+      .prepare(
+        'SELECT id FROM baseline_approvals WHERE project_id=? AND spec=? ORDER BY id DESC LIMIT 1',
+      )
+      .get(projectId, spec) as { id: number } | undefined;
+    this.db
+      .prepare(
+        'INSERT INTO baseline_approvals (project_id, spec, run_id, capture_id, capture_sha256, approved_at, approved_by, supersedes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      )
+      .run(
+        projectId,
+        spec,
+        runId,
+        captureId,
+        captureSha256,
+        new Date().toISOString(),
+        approvedBy,
+        previous?.id ?? null,
+      );
     this.db
       .prepare(
         'INSERT INTO baselines VALUES (?, ?, ?, ?) ON CONFLICT(project_id, spec) DO UPDATE SET run_id=excluded.run_id, capture_id=excluded.capture_id',
@@ -201,8 +258,33 @@ export class Store {
       )
       .all();
   }
-  private documents<T>(query: string): T[] {
-    return (this.db.prepare(query).all() as Array<{ data: string }>).map(
+  /**
+   * Approval history: ledger rows in append order, plus one `legacy` entry per
+   * pointer that predates the ledger (no fabricated approver or timestamp — the
+   * marker disappears once an attributable approval covers the spec).
+   */
+  approvalHistory(): BaselineApprovalEntry[] {
+    const entries: BaselineApprovalEntry[] = (
+      this.db
+        .prepare(
+          'SELECT id, project_id AS projectId, spec, run_id AS runId, capture_id AS captureId, capture_sha256 AS captureSha256, approved_at AS approvedAt, approved_by AS approvedBy, supersedes FROM baseline_approvals ORDER BY id',
+        )
+        .all() as Array<Omit<Extract<BaselineApprovalEntry, { kind: 'approval' }>, 'kind'>>
+    ).map((row) => ({ kind: 'approval' as const, ...row }));
+    const covered = new Set(entries.map((entry) => `${entry.projectId} ${entry.spec}`));
+    for (const pointer of this.baselines())
+      if (!covered.has(`${pointer.project_id} ${pointer.spec}`))
+        entries.push({
+          kind: 'legacy',
+          projectId: pointer.project_id,
+          spec: pointer.spec,
+          runId: pointer.run_id,
+          captureId: pointer.capture_id,
+        });
+    return entries;
+  }
+  private documents<T>(query: string, ...args: string[]): T[] {
+    return (this.db.prepare(query).all(...args) as Array<{ data: string }>).map(
       (row) => JSON.parse(row.data) as T,
     );
   }

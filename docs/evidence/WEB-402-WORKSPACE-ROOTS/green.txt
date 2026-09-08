@@ -1,0 +1,24 @@
+WEB-402-WORKSPACE-ROOTS — gate evidence (updated 2026-09-07 after CI regression fix)
+
+Regression caught by first CI run on the PR head (dashboard x4 + package jobs):
+the slice's `settings` table (key,data) collided with the retention repository's
+`settings` table (key,value); RetentionRepository.write raised
+`SqliteError: no such column: excluded.value` -> POST /api/retention 500.
+Red proof (before rename):
+  pnpm vitest run apps/web/src/__tests__/retention*.test.ts apps/web/src/__tests__/workspace*.test.ts
+  Test Files  5 failed (5)
+       Tests  7 failed (7)
+Green proof (after rename to instance_settings, same command set):
+  Test Files  7 passed (7)  [retention x5, workspace-roots.real-world, workspace]
+       Tests  14 passed (14)
+Packed-distribution probe (npm pack apps/cli -> clean-room npm install -> installed CLI):
+  before fix: retention POST: 500  body: {"error":"Request could not be completed"}
+              SqliteError: no such column: excluded.value
+  after fix:  state: 401 / login: 200 / retention POST: 200
+              body: {"policy":{"enabled":false,"maxAgeDays":17,"keepLatest":7},"pendingDeletions":0}
+Gates: apps/web typecheck exit 0; pnpm lint clean;
+pnpm format:check last line: "All matched files use Prettier code style!"
+Known local gate gap (disclosed): full 4-shard vitest run and the dashboard
+human-flow replica were attempted locally but the dev box was oversubscribed
+(load average 40+, vitest starved at 0 CPU); CI's uncontended test shards and
+dashboard/package jobs on the PR head are the authoritative gate for the full suite.

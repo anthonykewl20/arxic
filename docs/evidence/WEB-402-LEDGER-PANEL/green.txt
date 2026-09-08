@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/ledger-panel-402
+
+ ✓ apps/web/src/__tests__/inventory-ledger-ui.real-world.test.ts (1 test) 9350ms
+   ✓ shows the cross-campaign execution ledger on inventory rows in the real dashboard  9349ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  07:24:07
+   Duration  11.97s (transform 1.04s, setup 0ms, import 2.52s, tests 9.35s, environment 0ms)
+

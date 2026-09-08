@@ -1,0 +1,112 @@
+# WEB-402-THRESHOLD-EDITOR — red phase (before implementation)
+
+Branch: threshold-editor-402, worktree .worktrees/threshold-editor-402, base 234e06fd.
+
+Measured sub-threshold mutation (from a temporary instrumented red run): the 8x8 px
+`body::after` patch on the 800x600 viewport produces `changedPixels: 64`,
+`ratio: 0.00013333333333333334` — an exact 8x8 block, no antialiasing bleed. Gate 0.005
+(= 2400 px on this viewport) clears the measured ratio by ~37x. An earlier red iteration
+with a debug artifact dump also confirmed the patch paints at the top-left corner
+(#00c800 at 5,5).
+
+## A — apps/web/src/__tests__/visual.test.ts
+
+```
+ ❯ apps/web/src/__tests__/visual.test.ts (1 test | 1 failed) 5528ms
+   × blocks unapproved capture, then detects a real frontend regression without replacing the approved baseline 5527ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/visual.test.ts > blocks unapproved capture, then detects a real frontend regression without replacing the approved baseline
+Error: Unknown project setting
+ ❯ validateProject apps/web/src/projects.ts:79:11
+     77|   ];
+     78|   if (Object.keys(input).some((key) => !allowed.includes(key)))
+     79|     throw new HttpError(400, 'Unknown project setting');
+     80|   const text = (key: string, fallback = '', limit = 2048) => {
+     81|     const value = input[key] ?? fallback;
+     82|     if (typeof value !== 'string' || value.length > limit)
+ ❯ Workbench.saveProject apps/web/src/workbench.ts:269:27
+ ❯ apps/web/src/__tests__/visual.test.ts:175:12
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  11:37:52
+   Duration  8.18s (transform 1.01s, setup 0ms, import 2.55s, tests 5.53s, environment 0ms)
+```
+
+Red reason: the new noise run passes today's pixel-exact classification assertions
+(status 'changed', 64 changed pixels < 2400) and the journey then fails at
+`wb.saveProject({ ...config, captureConsent: true, visualChangeRatio: 0.005 })` —
+400 'Unknown project setting'.
+
+## B — apps/web/src/__tests__/projects.test.ts
+
+```
+ FAIL  apps/web/src/__tests__/projects.test.ts > refuses unsupported visual change ratio -0.1
+ FAIL  apps/web/src/__tests__/projects.test.ts > refuses unsupported visual change ratio 0.6
+ FAIL  apps/web/src/__tests__/projects.test.ts > refuses unsupported visual change ratio 1.5
+ FAIL  apps/web/src/__tests__/projects.test.ts > refuses unsupported visual change ratio "abc"
+ FAIL  apps/web/src/__tests__/projects.test.ts > refuses unsupported visual change ratio null
+AssertionError: expected [Function] to throw error including 'visualChangeRatio must be a number fr…' but got 'Unknown project setting'
+
+Expected: "visualChangeRatio must be a number from 0 to 0.5"
+Received: "Unknown project setting"
+
+ Test Files  1 failed (1)
+      Tests  10 failed | 1 passed (11)
+   Start at  11:35:18
+   Duration  888ms (transform 365ms, setup 0ms, import 749ms, tests 18ms, environment 0ms)
+```
+
+Red reason: every new default/admit/refuse case fails because `visualChangeRatio` is not
+in the project whitelist ('Unknown project setting'); the only passing case is the
+pre-existing whitelist-rejection guard.
+
+## C — apps/web/src/__tests__/threshold-editor-ui.real-world.test.ts
+
+```
+   × edits the per-project visual change ratio through the real project settings dialog 12271ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/threshold-editor-ui.real-world.test.ts > edits the per-project visual change ratio through the real project settings dialog
+TimeoutError: locator.inputValue: Timeout 10000ms exceeded.
+Call log:
+  - waiting for getByLabel('Visual change ratio')
+
+ ❯ apps/web/src/__tests__/threshold-editor-ui.real-world.test.ts:33:24
+     31|     await page.getByRole('button', { name: 'Settings', exact: true }).…
+     32|     const ratio = page.getByLabel('Visual change ratio');
+     33|     expect(await ratio.inputValue()).toBe('0');
+       |                        ^
+     34|     await ratio.fill('0.005');
+     35|     await page.getByRole('button', { name: 'Save project' }).click();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  11:38:38
+   Duration  14.91s (transform 1.01s, setup 0ms, import 2.54s, tests 12.27s, environment 0ms)
+```
+
+Red reason: login and the real project settings dialog work, but the dialog has no
+'Visual change ratio' input.
+
+## Post-red test refinements (disclosed, no assertion loosened)
+
+Between the red runs above and green, the journey test was refined twice:
+
+1. The first red iteration set `noise = true` but forgot to reset `changed = false`, so the
+   noise run captured the big-flip page and measured 445,697 changed pixels. Fixed before
+   implementation; the honest measured mutation is 64 changed pixels (ratio 1.33e-4).
+2. The raised-gate save changed from `visualChangeRatio: 0.005` to
+   `visualChangeRatio: noiseCapture.ratio` (the exact measured ratio) so the journey pins the
+   STRICT `ratio > gate` boundary: at gate == measured ratio the capture is 'unchanged'
+   (strict-gate sad-path row), and any gate above the measured ratio follows a fortiori.
+   The red-phase failure reason ('Unknown project setting' at saveProject) is identical for
+   both versions; `changedPixels > 0`, diff-file and diff-region retention assertions are
+   unchanged. A debug-only artifact dump used to diagnose (1) was removed before green.

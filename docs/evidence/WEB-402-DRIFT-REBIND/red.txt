@@ -1,0 +1,40 @@
+true
+
++ Received:
+undefined
+
+ ❯ apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts:202:69
+    200|   const slot2 = new Date(campaign.nextFireAt!);
+    201|   await wb.guardDueCampaigns(slot2);
+    202|   expect(wb.store.campaign(campaign.id)?.rebinding?.discoveryRunId).to…
+       |                                                                     ^
+    203|   wb.tick(slot2);
+    204|   expect(rowRuns(ROW)).toHaveLength(afterCreation.row + 1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts > stops with rebind-failed when the rebind discovery cannot complete
+AssertionError: expected undefined to be truthy
+
+- Expected:
+true
+
++ Received:
+undefined
+
+ ❯ apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts:249:69
+    247|   const slot2 = new Date(campaign.nextFireAt!);
+    248|   await wb.guardDueCampaigns(slot2);
+    249|   expect(wb.store.campaign(campaign.id)?.rebinding?.discoveryRunId).to…
+       |                                                                     ^
+    250|
+    251|   // The workspace vanishes before the discovery engine can run: a rea…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  09:07:05
+   Duration  28.40s (transform 952ms, setup 0ms, import 2.47s, tests 25.83s, environment 0ms)
+
