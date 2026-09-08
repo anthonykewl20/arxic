@@ -1,6 +1,6 @@
 # FLAKE-CAPTURES-502 — staged doc updates (charter §10.2)
 
-Issue: #502 · PR: <to-fill> · Disposition: mixed (diagnosability shipped and proven; the transient environment trigger itself is now self-identifying for whoever meets it next)
+Issue: #502 · PR: #515 · Disposition: mixed (diagnosability shipped and proven; the transient environment trigger itself is now self-identifying for whoever meets it next)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
