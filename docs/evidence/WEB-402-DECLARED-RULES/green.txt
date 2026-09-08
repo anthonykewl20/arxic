@@ -1,0 +1,22 @@
+GREEN stage — after declaredRouteRules, unionIntentCoverage,
+Workbench.intentOutcomes and the panel chips:
+
+ ✓ apps/web/src/__tests__/declared-rules.test.ts (3 tests)
+   ✓ inventories declared validation and authorization rules per route with evidence 1986ms
+   ✓ unions ledger rows across runs with truth ranking and exposes intent omissions
+   ✓ fuses real validated ledgers onto route surfaces through the workbench 1419ms
+ ✓ apps/web/src/__tests__/declared-rules-ui.real-world.test.ts (1 test) 13623ms
+   ✓ renders declared rule chips and intent omission next to route coverage
+ Tests  4 passed (4)
+
+Real-data facts pinned:
+- /login: rule:validation evidence in app/login/page.tsx (required inputs) and
+  rule:authorization evidence naming csrf + the rate-limit/lockout conditions
+  in app/login/actions.ts (the #509 condition-text enrichment carrying them).
+- /: authorization via the session ternary ("Logged out"); no validation.
+- Static overlay /about: omission true.
+- Real validated ledger (validateIntentLedger ACCEPT) seeded onto a finished
+  agent run: intentOutcomes() carries GET /login (2 intents, hypothesized) and
+  GET /forgot-password (1, observed); GET /about absent.
+- Dashboard: validation/authorization chips + 'no intent proposal yet' beside
+  the origin-unreachable runtime gap note.

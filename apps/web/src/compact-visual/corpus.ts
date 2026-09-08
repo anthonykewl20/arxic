@@ -10,7 +10,7 @@ import { sha256 } from '@arxic/contracts';
  */
 export type Variant = {
   id: string;
-  /** Per-head controlled labels: index 0 = clipping, index 3 = overflow; null = not addressed. */
+  /** Per-head controlled labels in DEFECT_HEADS order; null = not applicable (unmeasurable). */
   labels: (0 | 1 | null)[];
   labelOrigin: 'controlled-regression' | 'controlled-negative';
   /** Whether the mutation moves the required control (clipping regressions do; negatives must not). */
@@ -21,13 +21,24 @@ export type Variant = {
   clipFull?: boolean;
 };
 
-const CLIP_NEGATIVE: (0 | 1 | null)[] = [0, null, null, 0, null, null];
+/** Canonical defect-head order shared with evidence.ts and scripts/visual-slm/train.py. */
+export const DEFECT_HEADS = [
+  'clipping',
+  'occlusion',
+  'missing_element',
+  'overflow',
+  'text_truncation',
+  'layout_shift',
+] as const;
+
 const clip = (label: 0 | 1) => [label, null, null, 0, null, null] as (0 | 1 | null)[];
+/** Negatives measured clean on every head. */
+const FULL_NEGATIVE: (0 | 1 | null)[] = [0, 0, 0, 0, 0, 0];
 
 export const VARIANT_REGISTRY: Record<string, Variant> = {
   clean: {
     id: 'clean',
-    labels: CLIP_NEGATIVE,
+    labels: FULL_NEGATIVE,
     labelOrigin: 'controlled-negative',
     moveControl: false,
   },
@@ -74,28 +85,60 @@ export const VARIANT_REGISTRY: Record<string, Variant> = {
   'overflow-x': {
     id: 'overflow-x',
     // Layout-neutral overflow regression: the required control stays put while
-    // the document scrollport overflows horizontally; clipping stays negative.
-    labels: [0, null, null, 1, null, null],
+    // the document scrollport overflows horizontally; every other head stays clean.
+    labels: [0, 0, 0, 1, 0, 0],
     labelOrigin: 'controlled-regression',
     moveControl: false,
   },
   'content-change': {
     id: 'content-change',
-    labels: CLIP_NEGATIVE,
+    labels: FULL_NEGATIVE,
     labelOrigin: 'controlled-negative',
     moveControl: false,
   },
   'overlay-adjacent': {
     id: 'overlay-adjacent',
-    labels: CLIP_NEGATIVE,
+    labels: FULL_NEGATIVE,
     labelOrigin: 'controlled-negative',
     moveControl: false,
   },
   'style-tweak': {
     id: 'style-tweak',
-    labels: CLIP_NEGATIVE,
+    labels: FULL_NEGATIVE,
     labelOrigin: 'controlled-negative',
     moveControl: false,
+  },
+  'occlusion-overlay': {
+    id: 'occlusion-overlay',
+    // An opaque overlay exactly covering the control: the control box itself is
+    // unmoved, present and untruncated — only the hit-test is intercepted.
+    labels: [0, 1, 0, 0, 0, 0],
+    labelOrigin: 'controlled-regression',
+    moveControl: false,
+  },
+  'missing-element': {
+    id: 'missing-element',
+    // The required control is removed: box-dependent heads (clipping, occlusion,
+    // layout shift) become not applicable because there is no box to measure.
+    labels: [null, null, 1, 0, 0, null],
+    labelOrigin: 'controlled-regression',
+    moveControl: false,
+  },
+  'text-truncate': {
+    id: 'text-truncate',
+    // Ellipsis + constrained width on a text-bearing non-control element; the
+    // control itself stays present, visible and unmoved.
+    labels: [0, 0, 0, 0, 1, 0],
+    labelOrigin: 'controlled-regression',
+    moveControl: false,
+  },
+  'layout-shift': {
+    id: 'layout-shift',
+    // The control translates within the viewport: fully visible (clipping
+    // negative), unoccluded, present, no scrollport overflow — only its box moves.
+    labels: [0, 0, 0, 0, 0, 1],
+    labelOrigin: 'controlled-regression',
+    moveControl: true,
   },
 };
 export const VARIANT_IDS = Object.keys(VARIANT_REGISTRY);
@@ -205,5 +248,74 @@ export function evaluateOverflowOracle(
   const verdict = failed ? 'fail' : 'pass';
   if (failed !== (variant.labels[3] === 1))
     return { verdict, ok: false, reason: 'overflow-oracle-failed' };
+  return { verdict, ok: true };
+}
+
+/** Head indices a variant labels (non-null); the capture layer runs exactly these oracles. */
+export function addressedHeads(variantId: string): number[] {
+  const variant = VARIANT_REGISTRY[variantId];
+  if (!variant) throw new Error('unknown-variant');
+  return variant.labels.flatMap((label, head) => (label === null ? [] : [head]));
+}
+
+/**
+ * Independent oracle for the occlusion criterion: the measured hit-test at the
+ * control's center decides (the element there is neither the control nor its
+ * descendant), never the mutation intent.
+ */
+export function evaluateOcclusionOracle(variantId: string, hitBlocked: boolean): OracleOutcome {
+  const variant = VARIANT_REGISTRY[variantId];
+  if (!variant) throw new Error('unknown-variant');
+  const verdict = hitBlocked ? 'fail' : 'pass';
+  if (hitBlocked !== (variant.labels[1] === 1))
+    return { verdict, ok: false, reason: 'occlusion-oracle-failed' };
+  return { verdict, ok: true };
+}
+
+/** Independent oracle for the required-control-presence criterion. */
+export function evaluateMissingOracle(variantId: string, controlPresent: boolean): OracleOutcome {
+  const variant = VARIANT_REGISTRY[variantId];
+  if (!variant) throw new Error('unknown-variant');
+  const verdict = controlPresent ? 'pass' : 'fail';
+  if (!controlPresent !== (variant.labels[2] === 1))
+    return { verdict, ok: false, reason: 'missing-oracle-failed' };
+  return { verdict, ok: true };
+}
+
+/** Text truncation only counts beyond this measured sub-pixel slack (scrollWidth − clientWidth). */
+export const TEXT_TRUNCATION_TOLERANCE_PX = 1;
+
+/**
+ * Independent oracle for the text-truncation criterion: the measured hidden
+ * text overflow on the designated text element decides.
+ */
+export function evaluateTextTruncationOracle(variantId: string, overflowPx: number): OracleOutcome {
+  const variant = VARIANT_REGISTRY[variantId];
+  if (!variant) throw new Error('unknown-variant');
+  const failed = overflowPx > TEXT_TRUNCATION_TOLERANCE_PX;
+  const verdict = failed ? 'fail' : 'pass';
+  if (failed !== (variant.labels[4] === 1))
+    return { verdict, ok: false, reason: 'text-truncation-oracle-failed' };
+  return { verdict, ok: true };
+}
+
+/** Control-box movement smaller than this is not a layout shift (sub-pixel/rounding slack). */
+export const LAYOUT_SHIFT_MIN_PX = 8;
+
+/**
+ * Independent oracle for the layout-shift criterion: the measured movement of
+ * the control's box center versus its pre-mutation position decides.
+ */
+export function evaluateLayoutShiftOracle(
+  variantId: string,
+  shiftX: number,
+  shiftY: number,
+): OracleOutcome {
+  const variant = VARIANT_REGISTRY[variantId];
+  if (!variant) throw new Error('unknown-variant');
+  const failed = Math.max(Math.abs(shiftX), Math.abs(shiftY)) >= LAYOUT_SHIFT_MIN_PX;
+  const verdict = failed ? 'fail' : 'pass';
+  if (failed !== (variant.labels[5] === 1))
+    return { verdict, ok: false, reason: 'layout-shift-oracle-failed' };
   return { verdict, ok: true };
 }
