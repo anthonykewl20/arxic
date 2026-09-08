@@ -10,19 +10,47 @@ it('captures a reduced multi-family corpus with a frozen allocation and trains w
   const root = resolve(import.meta.dirname, '../../../..');
   const directory = await mkdtemp(join(tmpdir(), 'visual-corpus-live-'));
   try {
-    const variants = ['clean', 'clip-full', 'clip-right-50', 'content-change', 'overflow-x'];
+    const variants = [
+      'clean',
+      'clip-full',
+      'clip-right-50',
+      'content-change',
+      'overflow-x',
+      'occlusion-overlay',
+      'missing-element',
+      'text-truncate',
+      'layout-shift',
+    ];
     const manifest = await captureCorpusV2(root, directory, ['next', 'express'], [800], variants);
-    expect(manifest.cases).toHaveLength(10);
+    expect(manifest.cases).toHaveLength(18);
     expect(manifest.skipped).toHaveLength(0);
     // The overflow regression really overflowed its scrollport; negatives did not.
     const overflowCase = manifest.cases.find((c) => c.variant === 'overflow-x')!;
     expect(overflowCase.measuredOverflowX).toBeGreaterThan(0.5);
-    expect(overflowCase.overflowLabel).toBe(1);
+    expect(overflowCase.labels[3]).toBe(1);
     expect(
       manifest.cases
         .filter((c) => c.variant !== 'overflow-x')
         .every((c) => c.measuredOverflowX === 0),
     ).toBe(true);
+    // The four new heads carry their exact controlled label vectors.
+    expect(manifest.cases.find((c) => c.variant === 'occlusion-overlay')!.labels).toEqual([
+      0, 1, 0, 0, 0, 0,
+    ]);
+    expect(manifest.cases.find((c) => c.variant === 'missing-element')!.labels).toEqual([
+      null,
+      null,
+      1,
+      0,
+      0,
+      null,
+    ]);
+    expect(manifest.cases.find((c) => c.variant === 'text-truncate')!.labels).toEqual([
+      0, 0, 0, 0, 1, 0,
+    ]);
+    expect(manifest.cases.find((c) => c.variant === 'layout-shift')!.labels).toEqual([
+      0, 0, 0, 0, 0, 1,
+    ]);
 
     // The captured allocation must equal an independently re-derived freeze of
     // the same plan (deterministic sha256 order, seed 423, families together).
@@ -49,21 +77,30 @@ it('captures a reduced multi-family corpus with a frozen allocation and trains w
           ? 'controlled-negative'
           : 'controlled-regression',
       );
-      // Direction comes from the independent measurement, never the intent.
-      expect(entry.measuredClip < 1).toBe(entry.label === 1);
-      expect(entry.measuredOverflowX > 0 === (entry.overflowLabel === 1)).toBe(true);
+      // Direction comes from the independent measurement, never the intent;
+      // heads that are not applicable (null) make no claim.
+      if (entry.labels[0] !== null) expect(entry.measuredClip! < 1).toBe(entry.labels[0] === 1);
+      if (entry.labels[0] === null) expect(entry.measuredClip).toBeNull();
+      expect(entry.measuredOverflowX > 0 === (entry.labels[3] === 1)).toBe(true);
     }
 
     const report = await trainCorpusV2(root, directory, manifest);
-    expect(report.rows).toBe(10);
-    // Both labeled heads trained and calibrated on this reduced corpus.
-    expect(report.training.models.mlp.training.supported[3]).toBe(true);
-    expect(report.training.models.mlp.positiveThresholds[3]).not.toBeNull();
+    expect(report.rows).toBe(18);
+    // All six heads carry positives and negatives on this corpus, so every
+    // head trains. Calibration is a different question: the new-head rows are
+    // hard negatives for clipping (moved/occluded/removed controls), and a
+    // reduced two-family corpus cannot separate them — those heads honestly
+    // stay disabled (null threshold) instead of shipping a miscalibrated one.
+    // Training is seeded, so the qualifying set is deterministic here.
+    expect(report.training.models.mlp.training.supported.every((s: boolean) => s)).toBe(true);
+    const thresholds = report.training.models.mlp.positiveThresholds as (number | null)[];
+    for (const head of [1, 2, 3]) expect(thresholds[head]).not.toBeNull();
+    for (const head of [0, 4, 5]) expect(thresholds[head]).toBeNull();
     expect(report.parityMaximumError).toBeLessThanOrEqual(1e-5);
     expect(report.promotion).toBe('blocked-experimental-model');
     expect(report.reviews.every((r) => r.overallPass === false)).toBe(true);
     // Graded and full clips keep their deterministic hard failures in every review.
-    const clipReviews = manifest.cases.filter((c) => c.label === 1);
+    const clipReviews = manifest.cases.filter((c) => c.labels[0] === 1);
     for (const clip of clipReviews) {
       const review = report.reviews.find((r) => r.caseId === clip.manifest.replace('.json', ''));
       expect(review?.hardChecks.some((h) => h.verdict === 'fail')).toBe(true);
