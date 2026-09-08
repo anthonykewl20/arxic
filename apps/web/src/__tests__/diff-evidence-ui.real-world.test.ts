@@ -89,11 +89,20 @@ it('renders deterministic region evidence for a real changed element in the diff
     // The evidence list names measured element kinds for the changed regions.
     const text = (await evidence.allTextContents()).join(' ');
     expect(text).toMatch(/Heading \d+%/);
-    // The heading region is explained: at least one region is attributed, and
-    // any unexplained region says so honestly instead of staying silent.
-    const unexplained = await viewer.locator('[data-region-evidence][data-unexplained="true"]');
-    const unexplainedCount = await unexplained.count();
-    expect(unexplainedCount).toBeLessThanOrEqual(await evidence.count());
+    // Server-UI consistency: every rendered region entry mirrors the stored
+    // explanation's unexplained flag for the same region index.
+    const rendered = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-region-evidence]')].map((element) => ({
+        index: Number((element as HTMLElement).dataset.regionEvidence),
+        unexplained: (element as HTMLElement).dataset.unexplained,
+      })),
+    );
+    expect(rendered.length).toBeGreaterThan(0);
+    const stored = compared!.diffExplanation!;
+    for (const entry of rendered) {
+      expect(stored.regions[entry.index]).toBeDefined();
+      expect(String(stored.regions[entry.index].unexplained)).toBe(entry.unexplained);
+    }
     expect(errors).toEqual([]);
   } finally {
     await browser.close();

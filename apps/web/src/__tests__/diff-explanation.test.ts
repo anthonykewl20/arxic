@@ -184,3 +184,74 @@ it('orders elements deterministically: deepest, then coverage, then node id', ()
     expect.closeTo(1, 5),
   ]);
 });
+
+it('is deterministic: repeated invocation and shuffled node input give identical output', () => {
+  const nodes: VisualScene['nodes'] = [
+    { id: 0, parent: null, kind: 7, x: 0, y: 0, width: 480, height: 600 },
+    { id: 1, parent: 0, kind: 5, x: 20, y: 20, width: 200, height: 40 },
+    { id: 2, parent: 1, kind: 1, x: 30, y: 25, width: 60, height: 20 },
+    { id: 3, parent: 0, kind: 3, x: 20, y: 80, width: 180, height: 30 },
+    { id: 4, parent: 0, kind: 2, x: 240, y: 20, width: 120, height: 60 },
+    { id: 5, parent: null, kind: 4, x: 300, y: 300, width: 90, height: 90 },
+  ];
+  const input = {
+    diffRegions: [
+      { x: 40, y: 40, width: 200, height: 100 },
+      { x: 600, y: 600, width: 180, height: 180 },
+    ],
+    deviceScaleFactor: 2 as const,
+    scene: scene(nodes),
+    checks: [
+      {
+        id: 'text-contrast-1',
+        kind: 'hard' as const,
+        verdict: 'fail' as const,
+        expected: '>= 4.5',
+        measurementIds: ['tp-1'],
+        reason: '2.2 < 4.5',
+        region: { x: 30, y: 25, width: 50, height: 20 },
+      },
+    ],
+    assessmentSha256: 'c'.repeat(64),
+  };
+  const first = explainDiffRegions(input);
+  expect(explainDiffRegions(input)).toEqual(first);
+  expect(explainDiffRegions({ ...input, scene: scene([...nodes].reverse()) })).toEqual(first);
+});
+
+it('excludes shared-edge contact and includes a one-pixel overlap with honest coverage', () => {
+  const touching = explainDiffRegions({
+    diffRegions: [{ x: 100, y: 0, width: 100, height: 50 }],
+    deviceScaleFactor: 1,
+    scene: scene([{ id: 0, parent: null, kind: 1, x: 0, y: 0, width: 100, height: 50 }]),
+    checks: [],
+  });
+  // The node ends exactly where the region begins: zero-area contact is not intersection.
+  expect(touching.regions[0].elements).toEqual([]);
+  expect(touching.regions[0].unexplained).toBe(true);
+  const onePixel = explainDiffRegions({
+    diffRegions: [{ x: 99, y: 0, width: 100, height: 50 }],
+    deviceScaleFactor: 1,
+    scene: scene([{ id: 0, parent: null, kind: 1, x: 0, y: 0, width: 100, height: 50 }]),
+    checks: [],
+  });
+  expect(onePixel.regions[0].unexplained).toBe(false);
+  expect(onePixel.regions[0].elements[0].coverage).toBe(0.01); // (1*50) / (100*50)
+});
+
+it('bounds and rounds coverage: containment is exactly 1 and awkward ratios round to 3 decimals', () => {
+  const contained = explainDiffRegions({
+    diffRegions: [{ x: 50, y: 50, width: 40, height: 40 }],
+    deviceScaleFactor: 1,
+    scene: scene([{ id: 0, parent: null, kind: 7, x: 0, y: 0, width: 800, height: 600 }]),
+    checks: [],
+  });
+  expect(contained.regions[0].elements[0].coverage).toBe(1);
+  const awkward = explainDiffRegions({
+    diffRegions: [{ x: 0, y: 0, width: 300, height: 50 }],
+    deviceScaleFactor: 1,
+    scene: scene([{ id: 0, parent: null, kind: 5, x: 0, y: 0, width: 100, height: 50 }]),
+    checks: [],
+  });
+  expect(awkward.regions[0].elements[0].coverage).toBe(0.333);
+});
