@@ -8,7 +8,35 @@ import { runAction } from '../../cli/src/run';
 import { validateIntentLedger } from '../../../packages/intent/src/ledger';
 import { inside } from './projects';
 import { executionConfig } from './execution';
+import type { ExecutionSettings } from './execution';
 import type { Run, RunResult } from './types';
+
+/**
+ * Per-run execution settings for variant fan-out runs: flag variants merge
+ * their overrides over the project flags; the anonymous state variant switches
+ * persona mode with the persona secret refs cleared (the validated anonymous
+ * shape — anonymous mode must not carry persona secret refs). Returns the
+ * project settings untouched for default and persona-variant runs; the single
+ * executionConfig(...) call site below stays the only config builder.
+ */
+function variantExecution(execution: ExecutionSettings, run: Run): ExecutionSettings {
+  const flags = run.workflowScope?.variantFlags;
+  const withFlags =
+    flags && Object.keys(flags).length
+      ? { ...execution, featureFlags: { ...execution.featureFlags, ...flags } }
+      : execution;
+  if (run.workflowScope?.variantState !== 'anonymous') return withFlags;
+  return {
+    ...withFlags,
+    persona: {
+      ...withFlags.persona,
+      mode: 'anonymous',
+      emailRef: '',
+      passwordRef: '',
+      newPasswordRef: '',
+    },
+  };
+}
 
 export async function runAgent(run: Run, directory: string): Promise<RunResult> {
   if (!run.project.configPath && !run.project.execution)
@@ -21,7 +49,11 @@ export async function runAgent(run: Run, directory: string): Promise<RunResult> 
   if (run.project.execution) {
     loaded = {
       ok: true as const,
-      value: executionConfig(run.project.execution, run.project.folder, run.project.origin),
+      value: executionConfig(
+        variantExecution(run.project.execution, run),
+        run.project.folder,
+        run.project.origin,
+      ),
     };
   } else {
     const configPath = await realpath(run.project.configPath);

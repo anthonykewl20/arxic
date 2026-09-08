@@ -119,6 +119,10 @@ export type Run = {
     sourceCommit: string;
     /** Set on variant fan-out runs; undefined means the campaign's default persona. */
     variantKey?: string;
+    /** Non-secret flag overrides recorded on kind:'flag' variant fan-out runs. */
+    variantFlags?: Record<string, boolean>;
+    /** Persona-state override recorded on kind:'state' variant fan-out runs. */
+    variantState?: 'anonymous';
   };
 };
 export type Campaign = {
@@ -146,17 +150,21 @@ export type Campaign = {
    */
   rebound?: { survivors: number; dropped: number; at: string };
   /**
-   * Persona execution variants (slice 1, one-shot campaigns only): each
-   * selected row fans out into one extra agent run per variant, executed with
-   * the variant's credential refs. Values never enter this record — only the
-   * ARXIC_SECRET_ ref names do.
+   * Execution variants: each selected row fans out into one extra agent run per
+   * variant. Persona variants carry ARXIC_SECRET_ ref NAMES (values never enter
+   * this record); flag variants carry non-secret boolean overrides; state
+   * variants switch the run to the anonymous persona.
    */
-  variants?: Array<{
-    key: string;
-    label: string;
-    kind: 'persona';
-    persona: { emailRef: string; passwordRef: string };
-  }>;
+  variants?: Array<
+    | {
+        key: string;
+        label: string;
+        kind: 'persona';
+        persona: { emailRef: string; passwordRef: string };
+      }
+    | { key: string; label: string; kind: 'flag'; flags: Record<string, boolean> }
+    | { key: string; label: string; kind: 'state'; state: 'anonymous' }
+  >;
   runIds: string[];
   rows: Array<{
     key: string;

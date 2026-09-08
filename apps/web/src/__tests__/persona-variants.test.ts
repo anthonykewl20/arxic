@@ -47,6 +47,8 @@ const campaign: Campaign = {
         passwordRef: 'ARXIC_SECRET_PERSONA_A_PASSWORD',
       },
     },
+    { key: 'flag-b', label: 'Flag B', kind: 'flag', flags: { 'new-checkout': true } },
+    { key: 'state-c', label: 'State C', kind: 'state', state: 'anonymous' },
   ],
   rows: [],
 };
@@ -111,5 +113,36 @@ it('refuses to fall back to the default persona when the variant cannot be resol
 it('refuses the run when a variant credential is unset in the environment', () => {
   expect(() => variantEnvironment(agentRun('persona-a'), campaign, settings, {})).toThrow(
     'A selected secret reference is not available on this server',
+  );
+});
+
+it('gives flag variant runs the unmodified base environment — no persona env keys', () => {
+  const env = {
+    ARXIC_SECRET_PERSONA_A_EMAIL: 'persona-a@example.test',
+    ARXIC_SECRET_PERSONA_A_PASSWORD: 'PersonaASecret9!',
+  };
+  const overrides = variantEnvironment(agentRun('flag-b'), campaign, settings, env);
+  expect(overrides).toEqual(executionEnvironment(settings, env));
+  expect(overrides.ARXIC_INPUT_PERSONA_EMAIL).toBeUndefined();
+  expect(overrides.ARXIC_INPUT_PERSONA_PASSWORD).toBeUndefined();
+});
+
+it('gives state variant runs the unmodified base environment — no persona env keys', () => {
+  const env = {
+    ARXIC_SECRET_PERSONA_A_EMAIL: 'persona-a@example.test',
+    ARXIC_SECRET_PERSONA_A_PASSWORD: 'PersonaASecret9!',
+  };
+  const overrides = variantEnvironment(agentRun('state-c'), campaign, settings, env);
+  expect(overrides).toEqual(executionEnvironment(settings, env));
+  expect(overrides.ARXIC_INPUT_PERSONA_EMAIL).toBeUndefined();
+});
+
+it('still refuses to run flag and state variants that cannot be resolved', () => {
+  const missing = { ...campaign, variants: [] as NonNullable<Campaign['variants']> };
+  expect(() => variantEnvironment(agentRun('flag-b'), missing, settings, {})).toThrow(
+    /variant could not be resolved/u,
+  );
+  expect(() => variantEnvironment(agentRun('state-c'), undefined, settings, {})).toThrow(
+    /variant could not be resolved/u,
   );
 });

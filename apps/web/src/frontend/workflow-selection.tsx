@@ -5,8 +5,13 @@ import { campaignRequestKey, usePendingRequest } from './pending-requests';
 import type { Project, Run } from '../types';
 
 let variantDraftSeed = 0;
-/** Persona variant drafts: ref NAMES only; credential values never enter the browser form. */
-type VariantDraft = { id: number };
+/**
+ * Variant drafts: persona rows carry ref NAMES only (credential values never
+ * enter the browser form); flag rows carry one named boolean; state rows are a
+ * fixed anonymous switch.
+ */
+type VariantKind = 'persona' | 'flag' | 'state';
+type VariantDraft = { id: number; kind: VariantKind };
 
 export function WorkflowSelection({
   project,
@@ -115,58 +120,116 @@ export function WorkflowSelection({
             deployment settings.
           </p>
           <fieldset className="variant-editor">
-            <legend>Persona variants</legend>
+            <legend>Execution variants</legend>
             <p className="muted">
-              Optional: each selected workflow additionally runs once per persona variant, using the
-              variant's ARXIC_SECRET_ credential references (up to 4). Each scheduled fire repeats
-              the full fan-out.
+              Optional: each selected workflow additionally runs once per variant (up to 4, mixed
+              kinds allowed). Persona variants use ARXIC_SECRET_ credential references; feature flag
+              variants override one named boolean flag per row; a state variant reruns the workflow
+              anonymously. Each scheduled fire repeats the full fan-out.
             </p>
-            {variantDrafts.map((draft, index) => (
-              <div className="variant-fields" key={draft.id}>
-                <label>
-                  Variant label
-                  <input name="variant-label" maxLength={100} autoComplete="off" />
-                </label>
-                <label>
-                  Variant email secret reference
-                  <input
-                    name="variant-email"
-                    placeholder="ARXIC_SECRET_PERSONA_EMAIL"
-                    autoComplete="off"
-                  />
-                </label>
-                <label>
-                  Variant password secret reference
-                  <input
-                    name="variant-password"
-                    placeholder="ARXIC_SECRET_PERSONA_PASSWORD"
-                    autoComplete="off"
-                  />
-                </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="secondary"
-                  data-remove-variant={index}
-                  onClick={() =>
-                    setVariantDrafts((drafts) => drafts.filter((item) => item.id !== draft.id))
-                  }
-                >
-                  Remove persona variant
-                </Button>
-                <small>
-                  Variant {index + 1} of {variantDrafts.length}
-                </small>
-              </div>
-            ))}
+            {variantDrafts.map((draft, index) => {
+              // Narrow the draft kind into a local const before the JSX —
+              // inline optional chaining in JSX ternaries trips TS2322 here.
+              const kind = draft.kind;
+              return (
+                <div className="variant-fields" key={draft.id}>
+                  <label>
+                    Variant label
+                    <input name="variant-label" maxLength={100} autoComplete="off" />
+                  </label>
+                  <label>
+                    Variant kind
+                    <select
+                      name="variant-kind"
+                      value={kind}
+                      onChange={(event) =>
+                        setVariantDrafts((drafts) =>
+                          drafts.map((item) =>
+                            item.id === draft.id
+                              ? { ...item, kind: event.target.value as VariantKind }
+                              : item,
+                          ),
+                        )
+                      }
+                    >
+                      <option value="persona">Persona</option>
+                      <option value="flag">Feature flag</option>
+                      <option value="state">State</option>
+                    </select>
+                  </label>
+                  {kind === 'persona' && (
+                    <>
+                      <label>
+                        Variant email secret reference
+                        <input
+                          name="variant-email"
+                          placeholder="ARXIC_SECRET_PERSONA_EMAIL"
+                          autoComplete="off"
+                        />
+                      </label>
+                      <label>
+                        Variant password secret reference
+                        <input
+                          name="variant-password"
+                          placeholder="ARXIC_SECRET_PERSONA_PASSWORD"
+                          autoComplete="off"
+                        />
+                      </label>
+                    </>
+                  )}
+                  {kind === 'flag' && (
+                    <>
+                      <label>
+                        Flag name
+                        <input
+                          name="variant-flag-name"
+                          placeholder="new-checkout"
+                          maxLength={100}
+                          autoComplete="off"
+                        />
+                      </label>
+                      <label>
+                        Flag value
+                        <select name="variant-flag-value" defaultValue="true">
+                          <option value="true">true</option>
+                          <option value="false">false</option>
+                        </select>
+                      </label>
+                    </>
+                  )}
+                  {kind === 'state' && (
+                    <small>Runs this workflow with the anonymous persona (no extra fields).</small>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="secondary"
+                    data-remove-variant={index}
+                    onClick={() =>
+                      setVariantDrafts((drafts) => drafts.filter((item) => item.id !== draft.id))
+                    }
+                  >
+                    Remove variant
+                  </Button>
+                  <small>
+                    Variant {index + 1} of {variantDrafts.length}
+                  </small>
+                </div>
+              );
+            })}
             <Button
               type="button"
               variant="outline"
               className="secondary"
               disabled={variantDrafts.length >= 4}
-              onClick={() => setVariantDrafts((drafts) => [...drafts, { id: ++variantDraftSeed }])}
+              onClick={() =>
+                setVariantDrafts((drafts) => [
+                  ...drafts,
+                  { id: ++variantDraftSeed, kind: 'persona' },
+                ])
+              }
             >
-              Add persona variant
+              Add variant
             </Button>
           </fieldset>
           <Button type="submit" className="primary" disabled={selected.size === 0}>

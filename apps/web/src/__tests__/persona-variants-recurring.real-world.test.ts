@@ -56,7 +56,9 @@ const TWO_PERSONAS = [
 const variantKeysOf = (wb: Workbench, campaign: Campaign) =>
   campaign.runIds.map((id) => wb.store.run(id)!).map((run) => run.workflowScope?.variantKey);
 
-async function openRecurringVariantWorkbench() {
+async function openRecurringVariantWorkbench(
+  variants: readonly NonNullable<Campaign['variants']>[number][] = TWO_PERSONAS,
+) {
   const repo = await makeRepository('reference-auth-app');
   const directory = await mkdtemp(join(tmpdir(), 'arxic-web-persona-variants-recurring-'));
   cleanups.push(
@@ -81,7 +83,7 @@ async function openRecurringVariantWorkbench() {
     discoveryRunId: discovery.id,
     inventoryRowIds: [ROW],
     cron: YEARLY,
-    variants: TWO_PERSONAS,
+    variants: [...variants],
   });
   await wb.idle();
   return { wb, repo, project, campaign };
@@ -213,3 +215,43 @@ it('blocks a fired variant run on its unset secret while the fired default run f
     );
   }
 }, 120_000);
+
+it('carries a flag variant payload through recurring fires and drift rebinds', async () => {
+  const FLAG_VARIANT = {
+    key: 'flag-b',
+    label: 'Flag B',
+    kind: 'flag',
+    flags: { 'new-checkout': true },
+  } as const;
+  const { wb, repo, campaign } = await openRecurringVariantWorkbench([FLAG_VARIANT]);
+
+  // Fire: the fired record's variant run carries the non-secret flag payload.
+  const due = new Date(wb.store.campaign(campaign.id)!.nextFireAt!);
+  wb.tick(due);
+  await wb.idle();
+  const fired = wb.store.campaigns().find((item) => item.id !== campaign.id)!;
+  expect(variantKeysOf(wb, fired)).toEqual([undefined, 'flag-b']);
+  const firedVariantRun = wb.store.run(fired.runIds[1])!;
+  expect(firedVariantRun.workflowScope?.variantFlags).toEqual({ 'new-checkout': true });
+  expect(firedVariantRun.workflowScope?.variantState).toBeUndefined();
+
+  // REAL drift: a real git commit moves HEAD past the pin; the rebind lands and
+  // the rebound variant run carries the same payload.
+  const path = join(repo.root, 'app/page.tsx');
+  await appendFile(path, '\n// drift: flag variant payload survives rebind\n');
+  await execute('git', ['add', '-A'], { cwd: repo.root, env: { ...process.env, ...GIT_IDENTITY } });
+  await git(repo.root, 'commit', '-m', 'drift: flag variant payload');
+  const { stdout } = await git(repo.root, 'rev-parse', 'HEAD');
+  const newCommit = stdout.trim();
+
+  const slot = new Date(wb.store.campaign(campaign.id)!.nextFireAt!);
+  await wb.guardDueCampaigns(slot);
+  await wb.idle();
+  const rebound = wb.store.campaign(campaign.id)!;
+  expect(rebound.rebinding).toBeUndefined();
+  expect(rebound.sourceCommit).toBe(newCommit);
+  expect(rebound.variants).toEqual([FLAG_VARIANT]);
+  expect(variantKeysOf(wb, rebound)).toEqual([undefined, 'flag-b']);
+  const reboundVariantRun = wb.store.run(rebound.runIds[1])!;
+  expect(reboundVariantRun.workflowScope?.variantFlags).toEqual({ 'new-checkout': true });
+}, 240_000);
