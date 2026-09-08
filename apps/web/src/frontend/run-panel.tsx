@@ -292,6 +292,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                   {item.failurePhase && (
                     <>
                       <p>{captureFailureMessage(item.failurePhase)}</p>
+                      {item.reason && <p>Observed: {item.reason}</p>}
                       <small>
                         {item.count} failed checkpoint{item.count === 1 ? '' : 's'}
                       </small>
