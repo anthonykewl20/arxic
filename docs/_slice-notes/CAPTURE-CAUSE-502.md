@@ -1,6 +1,6 @@
 # CAPTURE-CAUSE-502 — staged doc updates (charter §10.2)
 
-Issue: #502 · PR: <to-fill> · Disposition: observed (red→green demonstrated on both journeys with a real engine and real browser; the underlying environment transient itself is not eliminated)
+Issue: #502 · PR: #522 · Disposition: observed (red→green demonstrated on both journeys with a real engine and real browser; the underlying environment transient itself is not eliminated)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
@@ -17,7 +17,7 @@ Issue: #502 · PR: <to-fill> · Disposition: observed (red→green demonstrated 
 ## 3. `CHANGELOG.md` — entry under `## [Unreleased]` → `### fixed`
 
 ```
-- CAPTURE-CAUSE-502 journey setup runs name the engine's cause (#<PR>): `changed-regions-ui` and `diff-viewer-ui` real-world journeys read their setup visual runs through a shared `requireCompletedRun` helper, so a blocked or cancelled run fails the journey with the terminal state, the engine summary and the retained per-finding reasons instead of the cause-free "produced no captures" / `expected undefined to be 'changed'` assertions. Proven red→green against a deterministic accept-and-destroy socket with real Chromium (`docs/evidence/WEB-502-CAPTURE-CAUSE/`), clean 2/2 on the untouched paths.
+- CAPTURE-CAUSE-502 journey setup runs name the engine's cause (#522): `changed-regions-ui` and `diff-viewer-ui` real-world journeys read their setup visual runs through a shared `requireCompletedRun` helper, so a blocked or cancelled run fails the journey with the terminal state, the engine summary and the retained per-finding reasons instead of the cause-free "produced no captures" / `expected undefined to be 'changed'` assertions. Proven red→green against a deterministic accept-and-destroy socket with real Chromium (`docs/evidence/WEB-502-CAPTURE-CAUSE/`), clean 2/2 on the untouched paths.
 ```
 
 ## 4. `VERSION` bump required?
