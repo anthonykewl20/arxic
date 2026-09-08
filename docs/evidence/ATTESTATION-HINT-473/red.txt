@@ -1,0 +1,38 @@
+RED stage — recorded on main (7bb767df) before the fix, worktree
+.worktrees/attestation-hint-473, 2026-09-08 local.
+
+Engine lane (packages/environment/src/__tests__/attestation-redirect-hint.real-world.test.ts):
+
+ ❯ packages/environment/src/__tests__/attestation-redirect-hint.real-world.test.ts (3 tests | 3 failed) 148ms
+     × names the exact attestation path and the remedy when auth middleware 307-redirects it to login 127ms
+     × sad path: a plain 404 keeps the refusal and carries the same actionable hint 13ms
+     × honors a configured attestationPath by naming that exact path in the hint 6ms
+ FAIL … > names the exact attestation path …
+     54|     expect(message).toContain('/.well-known/arxic-test-target.json');
+     55|     expect(message).toContain('HTTP 307');
+ FAIL … > sad path: a plain 404 …
+     75|     expect(message).toContain('/.well-known/arxic-test-target.json');
+ FAIL … > honors a configured attestationPath …
+     94|     expect(message).toContain('/health/attestation');
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+
+The real 307 server reproduced the live shape: auth middleware redirecting
+/.well-known/arxic-test-target.json to /login; the diagnostic only said
+"Could not fetch or validate target attestation: Attestation endpoint returned
+HTTP 307" — no path, no remedy (the exact #473 observation).
+
+UI lane (apps/web/src/__tests__/attestation-hint-ui.real-world.test.ts), with
+the wizard note stashed away (harness re-run after fixing the summary-locator;
+the first red run had failed on the harness bug, not the assertion):
+
+ ❯ apps/web/src/__tests__/attestation-hint-ui.real-world.test.ts (1 test | 1 failed) 39165ms
+   × documents the target-attestation prerequisite next to the attestation path setting 39164ms
+TimeoutError: locator.waitFor: Timeout 30000ms exceeded.
+     58|     await attestationNote.waitFor();
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+
+(The stashed-red run above predates the final locator rewrite; the same
+assertion — the note text absent without the change — is what failed. The
+green run below uses the shipped test.)
