@@ -18,7 +18,7 @@ it('reports partial recovery accurately when a later durable deletion becomes pr
     for (const run of runs) await expect(wb.deleteRun(run.id)).rejects.toThrow('cleanup failed');
     expect(wb.retentionState().pendingDeletions).toBe(2);
     await rm(join(directory, 'runs'));
-    wb.store.approve(project.id, 'new-protection', runs[1].id, 'capture');
+    wb.store.approve(project.id, 'new-protection', runs[1].id, 'capture', 'durable-sha256');
     await expect(wb.cleanupRetention()).rejects.toThrow();
     expect(wb.store.run(runs[0].id)).toBeUndefined();
     expect(wb.store.run(runs[1].id)).toBeDefined();

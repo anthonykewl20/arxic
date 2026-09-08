@@ -99,6 +99,18 @@ Capture results label the comparison at capture time separately from current
 baseline approval. Historical image references and results remain unchanged after
 approval or replacement; unavailable baseline/difference images explain why.
 
+Baseline approvals are recorded in an immutable, append-only ledger. Every
+approval stores the approving administrator, a UTC timestamp, the approved
+capture's SHA-256 and the approval it supersedes, exposed as
+`baselineApprovals` in the workbench state (single-administrator identity
+today; structured for individual identities later). Superseding an approval
+never rewrites earlier rows, and deleting or auto-expiring any run referenced
+by an approval — current or superseded — is refused, because superseded
+baselines are still approval history. Pointer rows that predate the ledger are
+listed as `legacy` entries with no fabricated approver or timestamp; the
+legacy marker disappears once an attributable approval covers that baseline
+spec, and its run then loses deletion protection.
+
 ## Find captures in a run
 
 **Captured pages** combines path search with browser, theme, pixel density, viewport and historical

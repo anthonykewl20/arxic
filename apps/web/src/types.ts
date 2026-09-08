@@ -71,6 +71,27 @@ export type Capture = {
   assessmentFile?: string;
   assessmentSha256?: string;
 };
+/** Immutable baseline approval record; `legacy` marks pointers predating the ledger. */
+export type BaselineApprovalEntry =
+  | {
+      kind: 'approval';
+      id: number;
+      projectId: string;
+      spec: string;
+      runId: string;
+      captureId: string;
+      captureSha256: string;
+      approvedAt: string;
+      approvedBy: string;
+      supersedes: number | null;
+    }
+  | {
+      kind: 'legacy';
+      projectId: string;
+      spec: string;
+      runId: string;
+      captureId: string;
+    };
 export type RunResult = {
   visualEnvironments?: Array<
     VisualEnvironment & {

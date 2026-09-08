@@ -204,4 +204,19 @@ it('blocks unapproved capture, then detects a real frontend regression without r
   const unmasked = wb.enqueue(project.id, 'visual');
   await wb.idle();
   expect(wb.store.run(unmasked.id)?.result).toMatchObject({ outcome: 'blocked' });
+  // WEB-496: a second real approval supersedes the first through the immutable
+  // ledger; superseded baseline runs stay undeletable as approval history.
+  const repeatCapture = wb.store.run(second.id)!.result!.captures![0];
+  await wb.approveBaseline(second.id, repeatCapture.id);
+  const approvals = wb.state().baselineApprovals.filter((entry) => entry.kind === 'approval');
+  expect(approvals).toHaveLength(2);
+  expect(approvals[0]).toMatchObject({
+    runId: first.id,
+    captureSha256: capture.sha256,
+    approvedBy: 'administrator',
+    supersedes: null,
+  });
+  expect(approvals[1]).toMatchObject({ runId: second.id, supersedes: approvals[0].id });
+  expect(wb.store.baseline(project.id, capture.specHash)?.run_id).toBe(second.id);
+  await expect(wb.deleteRun(first.id)).rejects.toThrow('approved baselines');
 }, 240_000);
