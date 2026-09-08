@@ -113,7 +113,13 @@ export type Run = {
   project: Project;
   result: RunResult | null;
   visualReview?: import('./visual-review').VisualReviewScope;
-  workflowScope?: { campaignId: string; inventoryRowId: string; sourceCommit: string };
+  workflowScope?: {
+    campaignId: string;
+    inventoryRowId: string;
+    sourceCommit: string;
+    /** Set on variant fan-out runs; undefined means the campaign's default persona. */
+    variantKey?: string;
+  };
 };
 export type Campaign = {
   id: string;
@@ -139,6 +145,18 @@ export type Campaign = {
    * later rebind; historical, survives until the campaign is deleted.
    */
   rebound?: { survivors: number; dropped: number; at: string };
+  /**
+   * Persona execution variants (slice 1, one-shot campaigns only): each
+   * selected row fans out into one extra agent run per variant, executed with
+   * the variant's credential refs. Values never enter this record — only the
+   * ARXIC_SECRET_ ref names do.
+   */
+  variants?: Array<{
+    key: string;
+    label: string;
+    kind: 'persona';
+    persona: { emailRef: string; passwordRef: string };
+  }>;
   runIds: string[];
   rows: Array<{
     key: string;
@@ -147,7 +165,9 @@ export type Campaign = {
     disposition: string;
     reason: string;
     inventoryRowId?: string;
+    /** The DEFAULT variant's run; `runIds` carries the per-variant run ids in declared order. */
     runId?: string;
+    runIds?: string[];
   }>;
 };
 

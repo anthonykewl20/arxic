@@ -1,0 +1,14 @@
+ Test Files  3 passed (3)
+      Tests  10 passed (10)
+   Start at  14:06:01
+   Duration  28.26s (transform 1.01s, setup 0ms, import 3.40s, tests 24.55s, environment 0ms)
+
+ Test Files  3 passed (3)
+      Tests  10 passed (10)
+   Start at  14:06:35
+   Duration  25.55s (transform 982ms, setup 0ms, import 3.39s, tests 21.87s, environment 0ms)
+
+      Tests  10 passed (10)
+   Start at  14:12:25
+   Duration  28.12s (transform 985ms, setup 0ms, import 3.44s, tests 24.38s, environment 0ms)
+

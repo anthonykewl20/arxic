@@ -19,6 +19,41 @@ export function loginEnvironment(login: NonNullable<Project['login']>, env: Node
   return overrides;
 }
 
+/**
+ * Execution environment for a campaign agent run: the base execution settings
+ * for default runs, plus the variant persona's credential overrides for
+ * variant runs. Credential VALUES are read from the process environment here
+ * and only here — they never enter project/run JSON, just the launch env.
+ * An unresolvable variant or unset secret throws, which lands the run in the
+ * blocked outcome rather than silently running as the default persona.
+ */
+export function variantEnvironment(
+  run: Pick<Run, 'workflowScope'>,
+  campaign: Campaign | undefined,
+  settings: ExecutionSettings,
+  env: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv {
+  const base = executionEnvironment(settings, env);
+  const variantKey = run.workflowScope?.variantKey;
+  if (!variantKey) return base;
+  const variant = campaign?.variants?.find((item) => item.key === variantKey);
+  if (!variant)
+    throw new HttpError(
+      400,
+      `Campaign variant could not be resolved: ${variantKey}; refusing to run as the default persona`,
+    );
+  return {
+    ...base,
+    ...secretEnvironment(
+      [
+        [variant.persona.emailRef, 'ARXIC_INPUT_PERSONA_EMAIL'],
+        [variant.persona.passwordRef, 'ARXIC_INPUT_PERSONA_PASSWORD'],
+      ],
+      env,
+    ),
+  };
+}
+
 /** Campaign copy with the transient rebind marker removed once a rebind settles. */
 function withoutRebinding(campaign: Campaign): Campaign {
   const copy: Campaign = { ...campaign };
@@ -33,7 +68,12 @@ export function visualRuntimeLimit(project: Project) {
   return Math.min(60 * 60_000, 5 * 60_000 + captures * 6_000);
 }
 import { compareCapture, digest } from './visual';
-import { executionEnvironment, secretRef } from './execution';
+import {
+  executionEnvironment,
+  secretEnvironment,
+  secretRef,
+  type ExecutionSettings,
+} from './execution';
 import {
   connectionCredentialRef,
   modelConnections,
@@ -49,6 +89,60 @@ import { reviewImage, type VisualReviewScope } from './visual-review';
 /** Single source of truth for the workflow-scope drift refusal (throw site, run record, schedule stop). */
 const sourceDriftRefusal =
   'Source changed since campaign discovery; commit changes and start a new campaign';
+
+/**
+ * Sad-path-first variant validation; each refusal is a distinct 400 fired
+ * before anything is enqueued. Returns the normalized variant list.
+ */
+function validateCampaignVariants(input: unknown): NonNullable<Campaign['variants']> {
+  if (input === undefined) return [];
+  if (!Array.isArray(input))
+    throw new HttpError(400, 'Campaign variants must be a list of persona definitions');
+  if (input.length > 4) throw new HttpError(400, 'A campaign supports at most 4 variants');
+  const variants: NonNullable<Campaign['variants']> = [];
+  for (const item of input) {
+    if (
+      !item ||
+      typeof item !== 'object' ||
+      Array.isArray(item) ||
+      Object.keys(item).some((key) => !['key', 'label', 'kind', 'persona'].includes(key)) ||
+      !item.persona ||
+      typeof item.persona !== 'object' ||
+      Array.isArray(item.persona) ||
+      Object.keys(item.persona).some((key) => !['emailRef', 'passwordRef'].includes(key))
+    )
+      throw new HttpError(400, 'Campaign variants must be a list of persona definitions');
+    const key = (item as { key?: unknown }).key;
+    const label = (item as { label?: unknown }).label;
+    const kind = (item as { kind?: unknown }).kind;
+    const persona = item.persona as { emailRef?: unknown; passwordRef?: unknown };
+    if (typeof key !== 'string' || !/^[a-z0-9-]+$/u.test(key))
+      throw new HttpError(400, 'Variant keys use lowercase letters, digits and dashes');
+    if (kind !== 'persona') throw new HttpError(400, 'Unsupported variant kind');
+    if (
+      typeof label !== 'string' ||
+      !label.trim() ||
+      label.trim().length > 100 ||
+      typeof persona.emailRef !== 'string' ||
+      !persona.emailRef.startsWith('ARXIC_SECRET_') ||
+      typeof persona.passwordRef !== 'string' ||
+      !persona.passwordRef.startsWith('ARXIC_SECRET_')
+    )
+      throw new HttpError(
+        400,
+        'Variant credentials must reference ARXIC_SECRET_ environment names',
+      );
+    variants.push({
+      key,
+      label: label.trim(),
+      kind: 'persona',
+      persona: { emailRef: persona.emailRef, passwordRef: persona.passwordRef },
+    });
+  }
+  if (new Set(variants.map((variant) => variant.key)).size !== variants.length)
+    throw new HttpError(400, 'Variant keys must be unique');
+  return variants;
+}
 
 export class Workbench {
   private maintenance = false;
@@ -395,7 +489,7 @@ export class Workbench {
     const selected = input.inventoryRowIds;
     if (
       Object.keys(input).some(
-        (key) => !['discoveryRunId', 'inventoryRowIds', 'cron'].includes(key),
+        (key) => !['discoveryRunId', 'inventoryRowIds', 'cron', 'variants'].includes(key),
       ) ||
       !Array.isArray(selected) ||
       !selected.length ||
@@ -407,13 +501,21 @@ export class Workbench {
         400,
         'Campaign selection must contain 1–20 unique discovered source rows',
       );
+    const variants = validateCampaignVariants(input.variants);
     if (input.cron !== undefined && typeof input.cron !== 'string')
       throw new HttpError(400, 'Campaign recurrence cron must be a string');
     const cron = input.cron as string | undefined;
     const nextFireAt = cron === undefined ? undefined : nextSlot(cron);
     if (cron !== undefined && !nextFireAt)
       throw new HttpError(400, 'Use a five-field cron expression in UTC');
-    if (this.store.activeCount() + selected.length > 20)
+    if (cron !== undefined && variants.length)
+      throw new HttpError(
+        400,
+        'Variant campaigns run once; recurring variants are not implemented yet',
+      );
+    // Variant fan-out multiplies the whole-campaign capacity reservation.
+    const slots = selected.length * (1 + variants.length);
+    if (this.store.activeCount() + slots > 20)
       throw new HttpError(429, 'Insufficient queue capacity for the whole campaign');
     const project = this.store.project(projectId);
     if (!project?.execution)
@@ -437,15 +539,19 @@ export class Workbench {
       createdAt: new Date().toISOString(),
       runIds: [],
       rows: campaignRows(discovery.result.inventory as DomainInventory),
+      ...(variants.length ? { variants } : {}),
       ...(nextFireAt && cron ? { cron, nextFireAt } : {}),
     };
     this.store.db.transaction(() => {
-      this.requireQueueCapacity(selected.length);
+      this.requireQueueCapacity(slots);
       if (JSON.stringify(this.store.project(projectId)) !== JSON.stringify(project))
         throw new HttpError(409, 'Project settings changed; review the campaign again');
       if (!this.store.run(discovery.id))
         throw new HttpError(409, 'Discovery was deleted; discover again');
       for (const inventoryRowId of selected as string[]) {
+        // Default run first (exactly the pre-variants shape), then one run per
+        // variant in declared order with variantKey set on the workflow scope.
+        const row = campaign.rows.find((item) => item.inventoryRowId === inventoryRowId)!;
         const run = this.store.enqueue(project, 'agent')!;
         run.workflowScope = {
           campaignId: campaign.id,
@@ -454,7 +560,19 @@ export class Workbench {
         };
         this.store.saveRun(run);
         campaign.runIds.push(run.id);
-        campaign.rows.find((row) => row.inventoryRowId === inventoryRowId)!.runId = run.id;
+        row.runId = run.id;
+        for (const variant of variants) {
+          const variantRun = this.store.enqueue(project, 'agent')!;
+          variantRun.workflowScope = {
+            campaignId: campaign.id,
+            inventoryRowId,
+            sourceCommit: current.commit,
+            variantKey: variant.key,
+          };
+          this.store.saveRun(variantRun);
+          campaign.runIds.push(variantRun.id);
+          row.runIds = [...(row.runIds ?? []), variantRun.id];
+        }
       }
       this.store.saveCampaign(campaign);
       this.store.audit('campaign.queued', campaign.id);
@@ -535,6 +653,12 @@ export class Workbench {
 
   /** Rebind-first drift handling; stopDriftedSchedules stays the honest fallback. */
   private async startRebindOrStop(campaign: Campaign, project: Project) {
+    // Slice-1 fallback: rebind-by-variant identity is slice 1b; a variant
+    // campaign stops honestly instead of rebinding onto a default-only remap.
+    if (campaign.variants?.length) {
+      this.stopRebind(campaign, 'campaign.rebind-failed');
+      return;
+    }
     let discoveryRunId: string | undefined;
     if (project.execution) {
       try {
@@ -586,6 +710,12 @@ export class Workbench {
   }
 
   private async rebindCampaign(campaign: Campaign, discovery: Run) {
+    // Slice-1 fallback (same guard as startRebindOrStop): variant campaigns
+    // never reach the inventory remap work.
+    if (campaign.variants?.length) {
+      this.stopRebind(campaign, 'campaign.rebind-failed');
+      return;
+    }
     const inventory = discovery.result?.inventory;
     const project = this.store.project(campaign.projectId);
     if (!inventory || !project?.execution) {
@@ -774,7 +904,12 @@ export class Workbench {
           throw new Error('Run cancelled before launch');
         const overrides =
           run.mode === 'agent' && run.project.execution
-            ? executionEnvironment(run.project.execution, this.effectiveEnv())
+            ? variantEnvironment(
+                run,
+                run.workflowScope ? this.store.campaign(run.workflowScope.campaignId) : undefined,
+                run.project.execution,
+                this.effectiveEnv(),
+              )
             : run.mode === 'review'
               ? modelEnvironment(
                   run.visualReview!.modelConnection,

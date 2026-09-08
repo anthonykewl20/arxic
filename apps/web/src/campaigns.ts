@@ -95,6 +95,7 @@ export function campaignView(
     workflows: children.map((run, index) => ({
       id: campaign.runIds[index],
       inventoryRowId: run?.workflowScope?.inventoryRowId,
+      variantKey: run?.workflowScope?.variantKey,
       state: run?.state ?? 'blocked',
       outcome: run?.result?.outcome,
       summary: run?.result?.summary,

@@ -482,9 +482,33 @@ document.addEventListener('submit', async (event) => {
   );
   if (!release) return;
   try {
+    const data = new FormData(form);
+    const labels = data.getAll('variant-label').map(String);
+    const emails = data.getAll('variant-email').map(String);
+    const passwords = data.getAll('variant-password').map(String);
+    // Variant key: deterministic slug of the label (lowercase letters, digits,
+    // dashes); the server validates the final shape and surfaces its 400s.
+    const variants = labels
+      .map((label, index) => ({
+        label: label.trim(),
+        key: label
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/gu, '-')
+          .replace(/^-+|-+$/gu, ''),
+        kind: 'persona',
+        persona: {
+          emailRef: (emails[index] ?? '').trim(),
+          passwordRef: (passwords[index] ?? '').trim(),
+        },
+      }))
+      .filter(
+        (variant) => variant.label || variant.persona.emailRef || variant.persona.passwordRef,
+      );
     const campaign = await api(`/projects/${form.dataset.project}/campaigns`, 'POST', {
       discoveryRunId: form.dataset.discovery,
       inventoryRowIds: [...(workflowSelections.get(form.dataset.discovery!) ?? [])],
+      ...(variants.length ? { variants } : {}),
     });
     selectedCampaign = campaign.id;
     section = 'campaigns';
