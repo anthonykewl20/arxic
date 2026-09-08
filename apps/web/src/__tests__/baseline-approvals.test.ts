@@ -175,8 +175,9 @@ it('labels pre-ledger pointer rows as legacy without fabricating an approver or 
     runId: 'legacy-run-id',
     captureId: 'legacy-capture-id',
   });
-  expect(legacy!.approvedBy).toBeUndefined();
-  expect(legacy!.approvedAt).toBeUndefined();
+  // No fabricated provenance: the union's legacy variant carries neither field.
+  expect(legacy).not.toHaveProperty('approvedBy');
+  expect(legacy).not.toHaveProperty('approvedAt');
 
   const seeded = await seedCompletedVisualRun(
     wb,

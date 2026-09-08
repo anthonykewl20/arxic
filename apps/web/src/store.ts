@@ -264,7 +264,7 @@ export class Store {
    * marker disappears once an attributable approval covers the spec).
    */
   approvalHistory(): BaselineApprovalEntry[] {
-    const entries = (
+    const entries: BaselineApprovalEntry[] = (
       this.db
         .prepare(
           'SELECT id, project_id AS projectId, spec, run_id AS runId, capture_id AS captureId, capture_sha256 AS captureSha256, approved_at AS approvedAt, approved_by AS approvedBy, supersedes FROM baseline_approvals ORDER BY id',
