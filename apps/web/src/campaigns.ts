@@ -73,13 +73,21 @@ export function campaignView(
   }
   const state = campaign.cancelledAt
     ? 'cancelled'
-    : counts.pending
-      ? children.every((run) => run?.state === 'queued')
-        ? 'queued'
-        : 'running'
-      : counts.blocked
-        ? 'blocked'
-        : 'completed';
+    : campaign.rebinding?.discoveryRunId
+      ? // Display-only rebind state: a drifted recurring campaign whose fresh
+        // discovery is in flight. Cancelled keeps precedence above.
+        'rebinding'
+      : campaign.cron && !campaign.nextFireAt
+        ? // A disarmed recurring schedule is a stopped campaign (drift stop,
+          // exhausted/failed rebind), not a completed one.
+          'blocked'
+        : counts.pending
+          ? children.every((run) => run?.state === 'queued')
+            ? 'queued'
+            : 'running'
+          : counts.blocked
+            ? 'blocked'
+            : 'completed';
   return {
     ...campaign,
     state,

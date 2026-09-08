@@ -1,0 +1,53 @@
+=== RED unit: pnpm vitest run apps/web/src/__tests__/campaigns.test.ts (pre-implementation) ===
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  apps/web/src/__tests__/campaigns.test.ts > presents a disarmed recurring schedule as the stopped state it is
+AssertionError: expected 'completed' to be 'blocked' // Object.is equality
+
+Expected: "blocked"
+Received: "completed"
+
+ ❯ apps/web/src/__tests__/campaigns.test.ts:332:25
+    330|     finishedChild,
+    331|   ]);
+    332|   expect(stopped.state).toBe('blocked');
+       |                         ^
+    333|   // An armed recurring schedule is not stopped: it reads as completed.
+    334|   const armed = campaignView(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 8 passed (10)
+   Start at  10:44:35
+   Duration  6.24s (transform 1.08s, setup 0ms, import 2.72s, tests 3.39s, environment 0ms)
+
+
+=== RED journey: pnpm vitest run apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts (pre-implementation) ===
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts > surfaces the rebinding state on the campaign panel and clears it when the rebind lands
+AssertionError: expected 'blocked' to be 'rebinding' // Object.is equality
+
+Expected: "rebinding"
+Received: "blocked"
+
+ ❯ apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts:138:42
+    136|
+    137|   // The workbench-level view reports the in-flight rebind before any …
+    138|   expect(wb.campaign(campaign.id).state).toBe('rebinding');
+       |                                          ^
+    139|
+    140|   // The discovery must still be QUEUED here: the backlog holds the dr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  10:44:42
+   Duration  15.44s (transform 987ms, setup 0ms, import 2.52s, tests 12.81s, environment 0ms)
+

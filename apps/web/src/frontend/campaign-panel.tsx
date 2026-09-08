@@ -10,9 +10,35 @@ export type CampaignPanelProps = {
   selectedId: string;
   projectId: string;
   pages: Map<string, number>;
+  /** Run summaries carrying the rebind discovery's live state. */
+  runs: Array<{ id: string; state: string }>;
 };
 
-export function CampaignPanel({ campaigns, selectedId, projectId, pages }: CampaignPanelProps) {
+/** In-flight drift rebind: the campaign card carries the discovery run's live state. */
+function RebindingBadge({
+  campaign,
+  runs,
+}: {
+  campaign: CampaignSummary;
+  runs: CampaignPanelProps['runs'];
+}) {
+  const discoveryRunId = campaign.rebinding?.discoveryRunId;
+  if (!discoveryRunId) return null;
+  const state = runs.find((run) => run.id === discoveryRunId)?.state;
+  return (
+    <Badge variant="outline" className="pill rebinding" data-rebinding="true">
+      {state ? `Rebinding — discovery run ${state}` : 'Rebinding'}
+    </Badge>
+  );
+}
+
+export function CampaignPanel({
+  campaigns,
+  selectedId,
+  projectId,
+  pages,
+  runs,
+}: CampaignPanelProps) {
   const selected = campaigns.find((campaign) => campaign.id === selectedId);
   const visible = campaigns.filter((campaign) => !projectId || campaign.projectId === projectId);
   return (
@@ -30,6 +56,7 @@ export function CampaignPanel({ campaigns, selectedId, projectId, pages }: Campa
               <Badge variant="outline" className={`pill ${campaign.state}`}>
                 {campaign.state}
               </Badge>
+              <RebindingBadge campaign={campaign} runs={runs} />
               <p>
                 {campaign.counts.verified}/{campaign.counts.selected} selected workflows verified ·{' '}
                 {campaign.counts.pending} pending
@@ -48,7 +75,9 @@ export function CampaignPanel({ campaigns, selectedId, projectId, pages }: Campa
           <p>No campaigns yet.</p>
         )}
       </div>
-      {selected?.rows && <CampaignDetail campaign={selected as CampaignView} pages={pages} />}
+      {selected?.rows && (
+        <CampaignDetail campaign={selected as CampaignView} pages={pages} runs={runs} />
+      )}
     </>
   );
 }
@@ -56,9 +85,11 @@ export function CampaignPanel({ campaigns, selectedId, projectId, pages }: Campa
 function CampaignDetail({
   campaign,
   pages,
+  runs,
 }: {
   campaign: CampaignView;
   pages: Map<string, number>;
+  runs: CampaignPanelProps['runs'];
 }) {
   const { counts, rows } = campaign;
   const pageSize = 50;
@@ -80,6 +111,7 @@ function CampaignDetail({
         <Badge variant="outline" className={`pill ${campaign.state}`}>
           {campaign.state}
         </Badge>
+        <RebindingBadge campaign={campaign} runs={runs} />
         <p className="campaign-counts">
           {counts.selected} selected · {counts.verified} verified · {counts.contradicted}{' '}
           contradicted · {counts.blocked} blocked · {counts.uncovered} uncovered · {counts.pending}{' '}
