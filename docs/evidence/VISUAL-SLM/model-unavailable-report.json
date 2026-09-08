@@ -1,0 +1,25 @@
+{
+  "sourceCommit": "db1101b",
+  "test": "missing-model-with-unavailable-native-executable",
+  "result": {
+    "caseId": "arxic-800-clipped",
+    "manifestSha256": "d9fef17fa37aa8894a86a3ae6f3ffaa692f243f1cd085f25b2831ca0b571f3a8",
+    "modelSha256": null,
+    "modelStatus": "blocked",
+    "diagnostic": "model-unavailable-or-invalid",
+    "changedPixels": 12437,
+    "coverage": "supplied-regions-only",
+    "hardChecks": [
+      {
+        "id": "viewport-clip",
+        "head": "clipping",
+        "verdict": "fail",
+        "region": "viewport"
+      }
+    ],
+    "predictions": [],
+    "modelAuthority": "hypothesis-only",
+    "overallPass": false,
+    "promotion": "blocked-experimental-model"
+  }
+}

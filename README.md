@@ -19,6 +19,8 @@ boundary. Dashboard version labels use `v0.0.200`; canonical package versions ar
 
 The [full visual-auditor contract](docs/visual-oracle.md) defines the requested discovery, state, geometry, typography, accessibility, heuristic and platform scope. Visual captures now retain numeric layout assessments with explicit unverified families; this is the evidence foundation, not complete visual-audit coverage.
 
+The [compact visual-model experiment](scripts/visual-slm/README.md) now provides real-app evidence extraction, CPU training and native shadow inference under the [full specification](docs/visual-small-model-spec.md). Its initial learned detector failed the held-out app test; deterministic checks remain authoritative. A 512 MiB deployment is still an unproven target. Codex builds the foundation before any optional GLM teaching.
+
 The dashboard reviews explicitly inspected and authorized screenshots with AI, preserving proposed regions, reproduction, independent criteria and model provenance. Findings remain hypotheses. HTTP and configured host agents receive bounded, hash-checked PNGs.
 
 Test runs now searches all stored history with project/type/status filters and bookmarkable URLs. Within a run, the capture gallery combines path/browser/theme/pixel-density/viewport/comparison filters and six-capture pagination. Capture details expose numeric measurements, solid-paint text contrast, screenshot regions and explicit coverage gaps. The dashboard includes responsive themes, keyboard navigation and [real-browser UX audit evidence](docs/evidence/WEB-402-DASHBOARD-UX/summary.md). Continuous unmasked video is unavailable; masked screenshots and sanitized action timelines provide recording evidence.

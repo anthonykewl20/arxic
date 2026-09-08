@@ -1,0 +1,366 @@
+{
+  "version": 1,
+  "datasetSha256": "259ca3df72ca375fd54a0dd584b67edff74a587c3794277812639f21dedf4fde",
+  "evidence": [
+    {
+      "id": "next-640-clean-viewport",
+      "manifest": "next-640-clean.json",
+      "manifestSha256": "f127b014bf4959ada0df506a6447608991823e70c1538bddc225ff0ef73ace92",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-640-clipped-viewport",
+      "manifest": "next-640-clipped.json",
+      "manifestSha256": "394908056f9e4961bec901c852a23d1c88de4ce1333d93ab9493bcb7f863a451",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-800-clean-viewport",
+      "manifest": "next-800-clean.json",
+      "manifestSha256": "0e5f6df3b41a1a61be401493774895d24e10f9432c364c49533732de9fbecbee",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-800-clipped-viewport",
+      "manifest": "next-800-clipped.json",
+      "manifestSha256": "2297e42ad53660985902098549f0903b92cf9fc3621a59eaa5151998e52f2e38",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clean-viewport",
+      "manifest": "next-1024-clean.json",
+      "manifestSha256": "5f36f08bf4c6c34a84da5ff32452674537cd00f63130fef67467da714ca4f810",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1024-clipped-viewport",
+      "manifest": "next-1024-clipped.json",
+      "manifestSha256": "a7622ba84f0bb0fbe061261f0ddd8a7f4791436d2b14e6015ddce86d7cb790f3",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clean-viewport",
+      "manifest": "next-1280-clean.json",
+      "manifestSha256": "8789e64c9b1f5144b2d092514469d5f2dff4617d9b8eb834192da473a46c3ed9",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "next-1280-clipped-viewport",
+      "manifest": "next-1280-clipped.json",
+      "manifestSha256": "d0961cc0084e5c1c8a5470c360d90ab47229af5f6cfe5e842416fe887eb27d2f",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clean-viewport",
+      "manifest": "express-640-clean.json",
+      "manifestSha256": "0857ae740fca60c4f14c8816b3ddd26a19ae00b499704c330f40859237c6c5fe",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-640-clipped-viewport",
+      "manifest": "express-640-clipped.json",
+      "manifestSha256": "f2d643faec52e576f408ddd1659bfebeaa6e4948fdeea10aac22fe0220e437aa",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-800-clean-viewport",
+      "manifest": "express-800-clean.json",
+      "manifestSha256": "b3eb63e50936b28e5ebb3e67f8cfc90041b264e01488eb439ac8a3458a9b21e1",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-800-clipped-viewport",
+      "manifest": "express-800-clipped.json",
+      "manifestSha256": "a10b184b1f443b50489ee37b0c304fe019fc2e1ce9c75c8a9bd8e6a0cb3d66b1",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clean-viewport",
+      "manifest": "express-1024-clean.json",
+      "manifestSha256": "5e6eb02f94e6db063cd7f02b9bfa544660ccd0fdc1d3b1dccdd72d094d158532",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1024-clipped-viewport",
+      "manifest": "express-1024-clipped.json",
+      "manifestSha256": "5bfc2a11948836f3c615dc065059656ae890100687ada9bd9f4c4d3275a43abd",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clean-viewport",
+      "manifest": "express-1280-clean.json",
+      "manifestSha256": "f16e1447972f96a439a9f0afaa06ec50c055e75a4827f8eb688f37dfdcbb5d0a",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "express-1280-clipped-viewport",
+      "manifest": "express-1280-clipped.json",
+      "manifestSha256": "87eb0bb3832f107f983a3be4d8fd4dd56b261eeffbe22a81064c7870714efccb",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clean-viewport",
+      "manifest": "arxic-640-clean.json",
+      "manifestSha256": "eed384e165591b078ce602f94612a388b864e33e33447199f86eff180cc975a4",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-640-clipped-viewport",
+      "manifest": "arxic-640-clipped.json",
+      "manifestSha256": "b361cf220225061d78b594edb67b3c4e051b002d9360628779cc69af5af9f3a9",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-800-clean-viewport",
+      "manifest": "arxic-800-clean.json",
+      "manifestSha256": "04d60b67b108bb0197d5783f72bf4438b9f66a94c733d65d174afd06d3461f0a",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-800-clipped-viewport",
+      "manifest": "arxic-800-clipped.json",
+      "manifestSha256": "d9fef17fa37aa8894a86a3ae6f3ffaa692f243f1cd085f25b2831ca0b571f3a8",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clean-viewport",
+      "manifest": "arxic-1024-clean.json",
+      "manifestSha256": "d6faac838613c02e494144750e3ca4c218ffc4d6e048a0e093610fbb7636ee6f",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1024-clipped-viewport",
+      "manifest": "arxic-1024-clipped.json",
+      "manifestSha256": "10af60373e568ef8e3fc10c0414798262019cebc4535721d33040b1be56d1d9a",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clean-viewport",
+      "manifest": "arxic-1280-clean.json",
+      "manifestSha256": "5d01a01f410bec39654e66c870a05bf7d3f847ece42468f6f3f524841cf12d26",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ]
+    },
+    {
+      "id": "arxic-1280-clipped-viewport",
+      "manifest": "arxic-1280-clipped.json",
+      "manifestSha256": "5632b23e84aef9a894e4260ce462f3e5fde73a76e8bab02b5c54fec3cb6398ea",
+      "criterion": "required-submit-inside-viewport",
+      "labelOrigin": "controlled-regression-independent-viewport-measurement",
+      "hardChecks": [
+        {
+          "id": "viewport-clip",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ]
+    }
+  ]
+}

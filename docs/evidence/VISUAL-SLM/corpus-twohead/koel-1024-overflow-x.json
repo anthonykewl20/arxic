@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "koel-1024-overflow-x",
+  "group": "koel",
+  "revision": "a28b226169e5a86f27160d493a547f1ba35b3dea",
+  "consent": true,
+  "context": {
+    "width": 1024,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-overflow-x"
+  },
+  "before": {
+    "path": "koel-1024-overflow-x-before.png",
+    "sha256": "cb3be6ce57afbdc6c25547fbfdc05b7233d042eab49a21f82dc021cb8b865d64"
+  },
+  "current": {
+    "path": "koel-1024-overflow-x-current.png",
+    "sha256": "d7b3473f7cc17df61def724be19168bf29dbc05399951eb5402ae76455f49c2a"
+  },
+  "beforePrivacy": {
+    "path": "koel-1024-overflow-x-before.png.privacy.json",
+    "sha256": "40d56790b03a3c255261e7ed9fa31ba02055af158fef02762df98262500bed9c"
+  },
+  "currentPrivacy": {
+    "path": "koel-1024-overflow-x-current.png.privacy.json",
+    "sha256": "a9ef4ea625272ad7df9cc6ca9b16289040e62ecf529bb6bf9900c33653504c08"
+  },
+  "scene": {
+    "path": "koel-1024-overflow-x-scene.json",
+    "sha256": "51024fa790d6f2fd2fbd6bb54fab690dd3cc57a06363fe1a4b29c4bf9a446cc0"
+  },
+  "timeline": {
+    "path": "koel-1024-overflow-x-timeline.json",
+    "sha256": "b3940328da992806be6401f8fa25680dd1f9c1bd10d4f44fa3e83955f27f78b4"
+  },
+  "timelineProvenance": {
+    "path": "koel-1024-overflow-x-timeline.sanitization.json",
+    "sha256": "2c4c33a5ca77e88efe634f6be2ae1030c9a31a9950000f2a3a8f844dfe7cdd59"
+  }
+}

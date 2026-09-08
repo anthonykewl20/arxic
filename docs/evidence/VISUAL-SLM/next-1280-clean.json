@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "next-1280-clean",
+  "group": "next",
+  "revision": "d06c2f9263094378960d0a7d5d5324e4ba66fe53",
+  "consent": true,
+  "context": {
+    "width": 1280,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit"
+  },
+  "before": {
+    "path": "next-1280-clean-before.png",
+    "sha256": "e0b2953d7ded9710ccf4a2a3b4392e33b0bc2a9a9384352831c7acde22a067c9"
+  },
+  "current": {
+    "path": "next-1280-clean-current.png",
+    "sha256": "e0b2953d7ded9710ccf4a2a3b4392e33b0bc2a9a9384352831c7acde22a067c9"
+  },
+  "beforePrivacy": {
+    "path": "next-1280-clean-before.png.privacy.json",
+    "sha256": "c170f057cb0bf5d9e3d81468b60f0bc646870c8310b6b279c7d4c052ee511028"
+  },
+  "currentPrivacy": {
+    "path": "next-1280-clean-current.png.privacy.json",
+    "sha256": "c170f057cb0bf5d9e3d81468b60f0bc646870c8310b6b279c7d4c052ee511028"
+  },
+  "scene": {
+    "path": "next-1280-clean-scene.json",
+    "sha256": "6d188e1ac7273046364bff2dd08140b841327821afe6e266d8de65ee78147884"
+  },
+  "timeline": {
+    "path": "next-1280-clean-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "next-1280-clean-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "actions": [
+    "capture-before",
+    "apply-controlled-regression",
+    "capture-current",
+    "measure",
+    "assert-pass"
+  ]
+}

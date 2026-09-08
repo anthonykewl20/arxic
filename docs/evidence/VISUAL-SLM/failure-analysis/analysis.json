@@ -1,0 +1,424 @@
+{
+  "version": 1,
+  "date": "2026-09-06",
+  "refs": "#423",
+  "question": "Why did the calibrated MLP detect 0/4 held-out Arxic clipping positives while deterministic viewport checks caught all four?",
+  "corpus": {
+    "datasetSha256": "259ca3df72ca375fd54a0dd584b67edff74a587c3794277812639f21dedf4fde",
+    "rows": 24,
+    "groups": {
+      "train": [
+        "next"
+      ],
+      "calibration": [
+        "express"
+      ],
+      "test": [
+        "arxic"
+      ]
+    },
+    "determinism": "fresh capture+train reproduced retained evidence byte-identically (dataset sha, all scores, thresholds, parity 1.7532656138019576e-7)"
+  },
+  "method": "Feature-lane ablation via scripts/visual-slm/ablate.py (seed 423, 30 epochs, unchanged recipe/thresholds); one lane masked per run.",
+  "experiments": {
+    "repro": {
+      "logistic": {
+        "threshold": null,
+        "testTp": 0,
+        "testFp": 0,
+        "testUnresolvedPositive": 4,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.4178,
+              0.4279
+            ],
+            "clean": [
+              0.5336,
+              0.5506
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.9313,
+              0.9586
+            ],
+            "clean": [
+              0.9587,
+              0.9731
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.0202,
+              0.6278
+            ],
+            "clean": [
+              0.0355,
+              0.7324
+            ]
+          }
+        }
+      },
+      "mlp": {
+        "threshold": 0.892112793897706,
+        "testTp": 0,
+        "testFp": 0,
+        "testUnresolvedPositive": 4,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.3224,
+              0.4477
+            ],
+            "clean": [
+              0.2998,
+              0.4122
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.8921,
+              0.9166
+            ],
+            "clean": [
+              0.8586,
+              0.8771
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.1662,
+              0.2942
+            ],
+            "clean": [
+              0.1343,
+              0.2297
+            ]
+          }
+        }
+      }
+    },
+    "geometry": {
+      "logistic": {
+        "threshold": null,
+        "testTp": 0,
+        "testFp": 0,
+        "testUnresolvedPositive": 4,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.4258,
+              0.4394
+            ],
+            "clean": [
+              0.5524,
+              0.5699
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.9325,
+              0.9595
+            ],
+            "clean": [
+              0.9605,
+              0.9742
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.0196,
+              0.623
+            ],
+            "clean": [
+              0.034,
+              0.7258
+            ]
+          }
+        }
+      },
+      "mlp": {
+        "threshold": 0.8835359715985783,
+        "testTp": 0,
+        "testFp": 0,
+        "testUnresolvedPositive": 4,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.408,
+              0.5076
+            ],
+            "clean": [
+              0.3486,
+              0.4294
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.8835,
+              0.9094
+            ],
+            "clean": [
+              0.8437,
+              0.883
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.1894,
+              0.3738
+            ],
+            "clean": [
+              0.1601,
+              0.2785
+            ]
+          }
+        }
+      }
+    },
+    "image": {
+      "logistic": {
+        "threshold": null,
+        "testTp": 0,
+        "testFp": 0,
+        "testUnresolvedPositive": 4,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.4911,
+              0.4946
+            ],
+            "clean": [
+              0.4894,
+              0.492
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.4994,
+              0.5018
+            ],
+            "clean": [
+              0.4991,
+              0.5017
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.5075,
+              0.5102
+            ],
+            "clean": [
+              0.512,
+              0.5181
+            ]
+          }
+        }
+      },
+      "mlp": {
+        "threshold": null,
+        "testTp": 0,
+        "testFp": 0,
+        "testUnresolvedPositive": 4,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.4987,
+              0.5037
+            ],
+            "clean": [
+              0.4959,
+              0.5011
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.4943,
+              0.4976
+            ],
+            "clean": [
+              0.4946,
+              0.4983
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.4942,
+              0.5012
+            ],
+            "clean": [
+              0.4832,
+              0.4869
+            ]
+          }
+        }
+      }
+    },
+    "clip-only": {
+      "logistic": {
+        "threshold": null,
+        "testTp": 0,
+        "testFp": 0,
+        "testUnresolvedPositive": 4,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.4644,
+              0.4644
+            ],
+            "clean": [
+              0.5456,
+              0.5456
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.4644,
+              0.4644
+            ],
+            "clean": [
+              0.5456,
+              0.5456
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.4644,
+              0.4644
+            ],
+            "clean": [
+              0.5456,
+              0.5456
+            ]
+          }
+        }
+      },
+      "mlp": {
+        "threshold": 0.5870290605086392,
+        "testTp": 4,
+        "testFp": 0,
+        "testUnresolvedPositive": 0,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.587,
+              0.587
+            ],
+            "clean": [
+              0.3418,
+              0.3418
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.587,
+              0.587
+            ],
+            "clean": [
+              0.3418,
+              0.3418
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.587,
+              0.587
+            ],
+            "clean": [
+              0.3418,
+              0.3418
+            ]
+          }
+        }
+      }
+    },
+    "current-geometry": {
+      "logistic": {
+        "threshold": null,
+        "testTp": 0,
+        "testFp": 0,
+        "testUnresolvedPositive": 4,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.4033,
+              0.4756
+            ],
+            "clean": [
+              0.5205,
+              0.5748
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.8934,
+              0.9039
+            ],
+            "clean": [
+              0.9308,
+              0.9335
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.0572,
+              0.0748
+            ],
+            "clean": [
+              0.0864,
+              0.1149
+            ]
+          }
+        }
+      },
+      "mlp": {
+        "threshold": 0.8413910985587593,
+        "testTp": 0,
+        "testFp": 0,
+        "testUnresolvedPositive": 4,
+        "scoreBands": {
+          "next": {
+            "clipped": [
+              0.7752,
+              0.8031
+            ],
+            "clean": [
+              0.1924,
+              0.2073
+            ]
+          },
+          "express": {
+            "clipped": [
+              0.8414,
+              0.9014
+            ],
+            "clean": [
+              0.581,
+              0.5972
+            ]
+          },
+          "arxic": {
+            "clipped": [
+              0.5377,
+              0.695
+            ],
+            "clean": [
+              0.2518,
+              0.3697
+            ]
+          }
+        }
+      }
+    }
+  },
+  "conclusions": [
+    "Not an implementation defect: extraction, labels, app grouping, native parity all consistent; failure is exactly reproducible and deterministic.",
+    "Data coverage (primary): one training application (8 rows) for 8,486 parameters; normalization fitted on that application only; calibration on a second single application.",
+    "Representation (contributing): geometry features mix the transferable oracle (current clip fraction) with per-app fingerprints (box position/size distributions).",
+    "Calibration (proximate): a single-app absolute threshold cannot transfer when per-app score offsets (~0.3-0.7) dwarf within-app margins.",
+    "Optimization (secondary): the logistic baseline failed to learn even the feature sign within 30 epochs on clip-only input (clean scored above clipped); epoch budget is insufficient at this data scale.",
+    "The clip-fraction feature alone transfers perfectly (4/4 recall, 0 false positives) because it is identical across applications - it IS the deterministic measurement. For this criterion family the deterministic check remains strictly preferable; learned incremental value must be sought on harder evidence (partial clipping, other heads, automatic candidates), not by loosening thresholds.",
+    "Minimum next experiment: >=5 application families (3 train + 1 calibration + 1 test) to test cross-app calibration at all; spec pilot target remains 10 families / 1,000 adjudicated regions."
+  ]
+}
