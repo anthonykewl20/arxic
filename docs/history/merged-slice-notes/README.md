@@ -1,13 +1,14 @@
 # Historical merged slice notes
 
-The release audit (refs #398) moved these 64 notes out of the active staging
-area required by charter §10.2. They were already tracked on main at
-`16a3b2f9b7d594fa575d548f7cf203ca974fec71`; their dated claims are historical,
-not current release sign-offs. The current state is in `docs/SYNC.md`,
+These 99 merged slice notes are archived out of the active staging area
+required by charter §10.2. The release audit (refs #398) moved the first 64
+here; subsequent integrator folds appended the rest. Their dated claims are
+historical, not current release sign-offs. The current state is in `docs/SYNC.md`,
 `CHANGELOG.md`, and the release audit report. The original notes are retained
 unchanged for provenance.
 
 - [ADR008-wave1-amendments.md](./ADR008-wave1-amendments.md)
+- [CFG-452-FIXTURE-PROVIDERS.md](./CFG-452-FIXTURE-PROVIDERS.md)
 - [CI-377-lean-workflow.md](./CI-377-lean-workflow.md)
 - [DG-01-language-pack-spi.md](./DG-01-language-pack-spi.md)
 - [DG-02-domain-inventory.md](./DG-02-domain-inventory.md)
@@ -66,6 +67,40 @@ unchanged for provenance.
 - [FIX-393-retained-zip-provenance.md](./FIX-393-retained-zip-provenance.md)
 - [FIX-395-compiler-staging-isolation.md](./FIX-395-compiler-staging-isolation.md)
 - [SEC-371-fasturi-qs.md](./SEC-371-fasturi-qs.md)
+- [WEB-402-CHANGED-REGIONS.md](./WEB-402-CHANGED-REGIONS.md)
+- [WEB-402-CONTRAST.md](./WEB-402-CONTRAST.md)
+- [WEB-402-DASHBOARD.md](./WEB-402-DASHBOARD.md)
+- [WEB-402-DIFF-VIEWER.md](./WEB-402-DIFF-VIEWER.md)
+- [WEB-402-DRIFT-REBIND.md](./WEB-402-DRIFT-REBIND.md)
+- [WEB-402-DRIFT-REVALIDATE.md](./WEB-402-DRIFT-REVALIDATE.md)
+- [WEB-402-LEDGER-PANEL.md](./WEB-402-LEDGER-PANEL.md)
+- [WEB-402-ORACLE.md](./WEB-402-ORACLE.md)
+- [WEB-402-PROVIDER-SECRETS.md](./WEB-402-PROVIDER-SECRETS.md)
+- [WEB-402-RECURRING-CAMPAIGNS.md](./WEB-402-RECURRING-CAMPAIGNS.md)
+- [WEB-402-RECURRING-DRIFT.md](./WEB-402-RECURRING-DRIFT.md)
+- [WEB-402-REVIEW-LOOP.md](./WEB-402-REVIEW-LOOP.md)
+- [WEB-402-ROW-HISTORY.md](./WEB-402-ROW-HISTORY.md)
+- [WEB-402-WORKSPACE-ROOTS.md](./WEB-402-WORKSPACE-ROOTS.md)
+- [WEB-422-REPLAY.md](./WEB-422-REPLAY.md)
+- [WEB-427-CHECKPOINTS.md](./WEB-427-CHECKPOINTS.md)
+- [WEB-429-ELEMENTS.md](./WEB-429-ELEMENTS.md)
+- [WEB-431-RETENTION.md](./WEB-431-RETENTION.md)
+- [WEB-433-BASELINE-HISTORY.md](./WEB-433-BASELINE-HISTORY.md)
+- [WEB-435-DISTRIBUTION.md](./WEB-435-DISTRIBUTION.md)
+- [WEB-437-ELEMENT-KINDS.md](./WEB-437-ELEMENT-KINDS.md)
+- [WEB-439-MATRIX.md](./WEB-439-MATRIX.md)
+- [WEB-441-GALLERY.md](./WEB-441-GALLERY.md)
+- [WEB-443-DASHBOARD-BROWSERS.md](./WEB-443-DASHBOARD-BROWSERS.md)
+- [WEB-445-READABILITY.md](./WEB-445-READABILITY.md)
+- [WEB-447-CLASSIFIER.md](./WEB-447-CLASSIFIER.md)
+- [WEB-447-NAVIGATION.md](./WEB-447-NAVIGATION.md)
+- [WEB-448-CAPTURE-DIAGNOSTICS.md](./WEB-448-CAPTURE-DIAGNOSTICS.md)
+- [WEB-448-PARTIAL-LOSS.md](./WEB-448-PARTIAL-LOSS.md)
+- [WEB-454-DENSITY.md](./WEB-454-DENSITY.md)
+- [WEB-456-FOOTER.md](./WEB-456-FOOTER.md)
+- [WEB-458-WRITE-ISOLATION.md](./WEB-458-WRITE-ISOLATION.md)
+- [WEB-460-TEMPLATES.md](./WEB-460-TEMPLATES.md)
+- [WEB-462-NAVIGATION.md](./WEB-462-NAVIGATION.md)
 - [issue-196-charter-gate.md](./issue-196-charter-gate.md)
 - [issue-196-closure.md](./issue-196-closure.md)
 - [issue-278-fixture-lockfile-refresh.md](./issue-278-fixture-lockfile-refresh.md)
