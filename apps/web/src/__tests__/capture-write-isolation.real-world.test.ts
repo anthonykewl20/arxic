@@ -178,7 +178,11 @@ it.each(['chromium', 'firefox', 'webkit'] as const)(
         // Repair the real filesystem boundary; only a subsequent explicit GUI run recaptures pages.
         await rm(join(directory, 'checkpoint-2.png'), { recursive: true });
         await page.getByRole('button', { name: 'Run again', exact: true }).click();
-        await expect.poll(() => new URL(page.url()).searchParams.get('run')).not.toBe(run.id);
+        // The enqueue POST round-trip can exceed vitest's 1 s poll default under
+        // non-sharded load (observed in release-test ubuntu cells, #525).
+        await expect
+          .poll(() => new URL(page.url()).searchParams.get('run'), { timeout: 30_000 })
+          .not.toBe(run.id);
         await expect.poll(() => page.locator('.capture').count(), { timeout: 30000 }).toBe(3);
         const recovered = await proof.audit(
           '02-manual-recovery',
