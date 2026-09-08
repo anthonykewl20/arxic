@@ -122,6 +122,18 @@ function CampaignDetail({
           {rows.length} total source surfaces
         </p>
         <p className="folder">Source commit: {campaign.sourceCommit}</p>
+        {(() => {
+          // Narrowed to a local first: inline optional chains in JSX ternaries
+          // trip TS2322 narrowing here (#482).
+          const rebound = campaign.rebound;
+          if (!rebound) return null;
+          return (
+            <p className="rebound-outcome" data-rebound={`${rebound.survivors}/${rebound.dropped}`}>
+              Rebound — carried over {rebound.survivors} of {rebound.survivors + rebound.dropped}{' '}
+              selected, dropped {rebound.dropped}
+            </p>
+          );
+        })()}
         <p className="muted">
           Each verified workflow passed its deterministic verifier. Source surfaces are not a count
           of all business states, personas or feature flags.

@@ -1,0 +1,85 @@
+# RED run — WEB-402-REBIND-COUNTS (assertions written first, implementation absent)
+
+## pnpm vitest run apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/rebind-counts-402
+
+ ❯ apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts (4 tests | 2 failed) 28780ms
+   × rebinds a commit-drifted recurring campaign by row identity and keeps firing on the new source 7714ms
+   ✓ stops with rebind-exhausted when the drifted inventory no longer contains the selection  5012ms
+   × rebinds partially: survivors remap and fire while dropped rows stop and stay audited 11167ms
+   ✓ stops with rebind-failed when the rebind discovery cannot complete  4886ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts > rebinds a commit-drifted recurring campaign by row identity and keeps firing on the new source
+AssertionError: expected undefined to be defined
+ ❯ apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts:144:30
+    142|   // campaign record — one survivor, nothing dropped.
+    143|   const freshHappy = wb.store.campaign(campaign.id)!;
+    144|   expect(freshHappy.rebound).toBeDefined();
+       |                              ^
+    145|   expect(freshHappy.rebound!.survivors).toBe(1);
+    146|   expect(freshHappy.rebound!.dropped).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts > rebinds partially: survivors remap and fire while dropped rows stop and stay audited
+AssertionError: expected undefined to be defined
+ ❯ apps/web/src/__tests__/campaign-drift-rebind.real-world.test.ts:240:32
+    238|   // FRESH read: the partial outcome is recorded exactly — one survivo…
+    239|   const freshPartial = wb.store.campaign(campaign.id)!;
+    240|   expect(freshPartial.rebound).toBeDefined();
+       |                                ^
+    241|   expect(freshPartial.rebound!.survivors).toBe(1);
+    242|   expect(freshPartial.rebound!.dropped).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 passed (4)
+   Start at  12:46:32
+   Duration  31.31s (transform 897ms, setup 0ms, import 2.42s, tests 28.78s, environment 0ms)
+
+
+## pnpm vitest run apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts
+
+ RUN  v4.1.11 /home/soultransit/devtony/arxic/.worktrees/rebind-counts-402
+
+stdout | apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts > surfaces the rebinding state on the campaign panel and clears it when the rebind lands
+[rebind-ui] rebinding badge observed live in the browser: "Rebinding — discovery run queued"
+
+ ❯ apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts (2 tests | 1 failed) 48681ms
+   × surfaces the rebinding state on the campaign panel and clears it when the rebind lands 43228ms
+   ✓ presents an exhausted rebind as the stopped campaign it is, not a stuck rebinding one  5452ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts > surfaces the rebinding state on the campaign panel and clears it when the rebind lands
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts:200:48
+    198|   // The rebind outcome is surfaced on the detail card: one survivor, …
+    199|   const reboundLine = page.locator('.campaign-detail [data-rebound]');
+    200|   await expect.poll(() => reboundLine.count()).toBe(1);
+       |                                                ^
+    201|   expect(await reboundLine.getAttribute('data-rebound')).toBe('1/0');
+    202|   const reboundText = (await reboundLine.textContent()) ?? '';
+
+Caused by: Error: Matcher did not succeed in time.
+ ❯ apps/web/src/__tests__/campaign-rebind-ui.real-world.test.ts:200:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  12:47:04
+   Duration  51.33s (transform 1.06s, setup 0ms, import 2.55s, tests 48.68s, environment 0ms)
+

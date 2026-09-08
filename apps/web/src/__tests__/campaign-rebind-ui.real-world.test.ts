@@ -194,6 +194,14 @@ it('surfaces the rebinding state on the campaign panel and clears it when the re
   expect(await page.locator('[data-rebinding="true"]').count()).toBe(0);
   expect(await detail.textContent()).toContain(`Source commit: ${newCommit}`);
   expect(await page.locator('.campaign-detail .pill').textContent()).not.toBe('rebinding');
+
+  // The rebind outcome is surfaced on the detail card: one survivor, zero dropped.
+  const reboundLine = page.locator('.campaign-detail [data-rebound]');
+  await expect.poll(() => reboundLine.count()).toBe(1);
+  expect(await reboundLine.getAttribute('data-rebound')).toBe('1/0');
+  const reboundText = (await reboundLine.textContent()) ?? '';
+  expect(reboundText).toContain('carried over');
+  expect(reboundText).toContain('dropped');
   expect(errors).toEqual([]);
 }, 300_000);
 
