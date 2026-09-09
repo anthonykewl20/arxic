@@ -6,7 +6,7 @@ import { reviewCase } from './model';
 const [command, directory, ...args] = process.argv.slice(2);
 if (!directory)
   throw new Error(
-    'Usage: cli.ts demo|capture|extract|review|train|corpus DIRECTORY [...] | activate DIRECTORY MODEL MODELS_DIR NATIVE [REPORT] | rollback MODELS_DIR',
+    'Usage: cli.ts demo|capture|extract|review|train|corpus|corpus-evaluate DIRECTORY [...] | activate DIRECTORY MODEL MODELS_DIR NATIVE [REPORT] | rollback MODELS_DIR',
   );
 const root = resolve(import.meta.dirname, '../../../..');
 const output = resolve(directory);
@@ -38,6 +38,20 @@ if (command === 'capture') {
     root,
     output,
     JSON.parse(await readFile(resolve(output, 'corpus.json'), 'utf8')),
+  );
+} else if (command === 'corpus-evaluate') {
+  const { evaluateCorpusV2 } = await import('./corpus-evaluate');
+  const families = args[0] ? args[0].split(',').filter(Boolean) : undefined;
+  const viewports = args[1] ? args[1].split(',').filter(Boolean).map(Number) : undefined;
+  const variants = args[2] ? args[2].split(',').filter(Boolean) : undefined;
+  const report = await evaluateCorpusV2(root, output, { families, viewports, variants });
+  console.log(
+    JSON.stringify({
+      rows: report.rows,
+      heads: report.heads,
+      models: report.models,
+      report: 'corpus-evaluation.json',
+    }),
   );
 } else if (command === 'corpus') {
   const { captureCorpusV2, trainCorpusV2 } = await import('./corpus-capture');

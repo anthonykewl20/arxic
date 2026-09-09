@@ -926,7 +926,12 @@ export async function captureCorpusV2(
   return manifest;
 }
 
-export async function trainCorpusV2(root: string, output: string, manifest: CorpusV2Manifest) {
+/**
+ * Turn captured corpus cases into adjudicated, oracle-checked rows — the
+ * shared labeling service for training (which persists dataset.json) and for
+ * evaluate-only scoring (which must not write anything the trainer owns).
+ */
+export async function buildLabeledRows(output: string, manifest: CorpusV2Manifest) {
   const rows: TrainingRow[] = [];
   const evidence = [];
   for (const entry of manifest.cases) {
@@ -985,6 +990,11 @@ export async function trainCorpusV2(root: string, output: string, manifest: Corp
       });
     }
   }
+  return { rows, evidence };
+}
+
+export async function trainCorpusV2(root: string, output: string, manifest: CorpusV2Manifest) {
+  const { rows, evidence } = await buildLabeledRows(output, manifest);
   const dataset = await save(output, 'dataset.json', rows);
   await save(output, 'dataset-provenance.json', {
     version: 1,
