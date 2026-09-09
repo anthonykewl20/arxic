@@ -1,4 +1,5 @@
 import { inspectCapturedElements } from './element-inspector-proof';
+import { openInventoryTab } from './inventory-tabs';
 import { inspectLegacyElementKinds } from './element-kind-legacy-proof';
 import sharp from 'sharp';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
@@ -192,6 +193,7 @@ it.each(['light', 'dark'] as const)(
         .poll(() => page.locator('.run-detail').textContent(), { timeout: 30_000 })
         .toContain('source surfaces');
       await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+      await openInventoryTab(page, 'Declarations');
       await expect.poll(() => page.locator('#content').textContent()).toContain('POST /login');
       await page.getByRole('heading', { name: 'Frontend declarations' }).waitFor({ timeout: 5000 });
       await page.getByLabel('Declaration kind').selectOption('requirement');
@@ -513,6 +515,7 @@ it.each(['light', 'dark'] as const)(
       await capture('07-mobile-overview', 'Mobile dashboard fits its viewport');
       await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
       await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+      await openInventoryTab(page, 'Declarations');
       await page.getByRole('heading', { name: 'Frontend declarations' }).waitFor();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,

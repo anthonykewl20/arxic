@@ -1,7 +1,11 @@
 import { useState } from 'react';
+import { ScanSearch } from 'lucide-react';
 import {
   Badge,
   Button,
+  EmptyState,
+  TabPanel,
+  Tabs,
   DataTable,
   Input,
   Pagination,
@@ -42,6 +46,7 @@ export type InventoryPanelProps = {
 
 export function InventoryPanel(props: InventoryPanelProps) {
   const { projects, runs, projectId, kind, search } = props;
+  const [tab, setTab] = useState('surfaces');
   const latest = projects
     .filter((project) => !projectId || project.id === projectId)
     .map((project) => ({
@@ -51,6 +56,21 @@ export function InventoryPanel(props: InventoryPanelProps) {
       ),
       discovery: runs.find((run) => run.projectId === project.id && run.result?.frontend),
     }));
+  // Counts on the tab strip, so the size of each dimension is visible without
+  // opening it.
+  const surfaceCount = latest.reduce((total, { run }) => {
+    const ledger = run?.result?.ledger as { rows?: unknown[] } | undefined;
+    const inventory = run?.result?.inventory as { rows?: unknown[] } | undefined;
+    return total + (ledger?.rows?.length ?? inventory?.rows?.length ?? 0);
+  }, 0);
+  const declarationCount = latest.reduce(
+    (total, { discovery }) =>
+      total +
+      (discovery?.result?.frontend
+        ? matchingDeclarations(discovery.result.frontend, kind, search).length
+        : 0),
+    0,
+  );
   return (
     <>
       <div className="toolbar">
@@ -107,9 +127,14 @@ export function InventoryPanel(props: InventoryPanelProps) {
                     href={`#declarations-${discovery.id}`}
                     onClick={(event) => {
                       event.preventDefault();
-                      const heading = document.getElementById(`declarations-${discovery.id}`);
-                      heading?.focus({ preventScroll: true });
-                      heading?.scrollIntoView({ block: 'start', behavior: 'instant' });
+                      // A link that counts declarations should land on them:
+                      // open their tab first, then move focus once rendered.
+                      setTab('declarations');
+                      requestAnimationFrame(() => {
+                        const heading = document.getElementById(`declarations-${discovery.id}`);
+                        heading?.focus({ preventScroll: true });
+                        heading?.scrollIntoView({ block: 'start', behavior: 'instant' });
+                      });
                     }}
                   >
                     {matchingDeclarations(discovery.result.frontend, kind, search).length} matching
@@ -126,48 +151,69 @@ export function InventoryPanel(props: InventoryPanelProps) {
         outcomes. Unseen personas, states, flags, and pages remain uncovered.
       </p>
       {latest.length ? (
-        latest.map(({ project, run, discovery }) => (
-          <section key={project.id}>
-            {run ? (
-              <>
-                <SurfaceInventory
-                  project={project}
-                  run={run}
-                  outcomes={props.outcomes[project.id] ?? {}}
-                />
-                <WorkflowSelection
-                  key={`workflows:${discovery?.id ?? 'missing'}`}
-                  project={project}
-                  discovery={discovery}
-                  selections={props.selections}
-                  pages={props.workflowPages}
-                />
-                {discovery && (
-                  <FrontendDeclarations
-                    key={`declarations:${discovery.id}`}
-                    run={discovery}
-                    kind={kind}
-                    search={search}
-                    pages={props.declarationPages}
-                    intentOutcomes={props.intentOutcomes[project.id] ?? {}}
+        <>
+          {/*
+            Three dimensions of one inventory, not three things to scroll past.
+            Stacked, a project with a real discovery put every surface, every
+            workflow and every declaration on one page — sixteen thousand pixels
+            of it. The operator picks the dimension instead.
+          */}
+          <Tabs
+            label="Intent inventory sections"
+            value={tab}
+            onValueChange={setTab}
+            items={[
+              { id: 'surfaces', label: 'Surfaces', count: surfaceCount },
+              { id: 'workflows', label: 'Workflows' },
+              { id: 'declarations', label: 'Declarations', count: declarationCount },
+            ]}
+          />
+          {latest.map(({ project, run, discovery }) =>
+            run ? (
+              <section key={project.id} className="flex flex-col gap-4">
+                <TabPanel id="surfaces" value={tab}>
+                  <SurfaceInventory
+                    project={project}
+                    run={run}
+                    outcomes={props.outcomes[project.id] ?? {}}
                   />
-                )}
-              </>
+                </TabPanel>
+                <TabPanel id="workflows" value={tab}>
+                  <WorkflowSelection
+                    key={`workflows:${discovery?.id ?? 'missing'}`}
+                    project={project}
+                    discovery={discovery}
+                    selections={props.selections}
+                    pages={props.workflowPages}
+                  />
+                </TabPanel>
+                <TabPanel id="declarations" value={tab}>
+                  {discovery && (
+                    <FrontendDeclarations
+                      key={`declarations:${discovery.id}`}
+                      run={discovery}
+                      kind={kind}
+                      search={search}
+                      pages={props.declarationPages}
+                      intentOutcomes={props.intentOutcomes[project.id] ?? {}}
+                    />
+                  )}
+                </TabPanel>
+              </section>
             ) : (
-              <div className="empty">
-                <h2>{project.name}</h2>
-                <p className="muted">No inventory yet.</p>
-                <Button className="primary" data-start="discovery" data-project={project.id}>
+              <EmptyState key={project.id} icon={ScanSearch} title={project.name}>
+                <p>No inventory yet.</p>
+                <Button className="primary mt-2" data-start="discovery" data-project={project.id}>
                   Discover intents
                 </Button>
-              </div>
-            )}
-          </section>
-        ))
+              </EmptyState>
+            ),
+          )}
+        </>
       ) : (
-        <div className="empty">
-          <h2>No connected projects</h2>
-        </div>
+        <EmptyState icon={ScanSearch} title="No connected projects">
+          Connect a project and run source discovery to build its intent inventory.
+        </EmptyState>
       )}
     </>
   );

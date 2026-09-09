@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { openInventoryTab } from './inventory-tabs';
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -140,6 +141,7 @@ it('lets an administrator select and verify two real workflows with honest campa
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 30_000 })
       .toContain('source surfaces');
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await openInventoryTab(page, 'Workflows');
     await expect
       .poll(() => page.locator('#content').textContent())
       .toContain('Save guided AI settings to start a campaign');
@@ -209,6 +211,7 @@ it('lets an administrator select and verify two real workflows with honest campa
       ).toBe(true);
       await page.getByRole('button', { name: 'Overview', exact: false }).click();
       await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+      await openInventoryTab(page, 'Workflows');
       expect(await start.isDisabled()).toBe(true);
       expect(
         await page.getByRole('checkbox', { name: 'Select GET /login', exact: true }).isDisabled(),
@@ -293,6 +296,8 @@ it('lets an administrator select and verify two real workflows with honest campa
     );
     await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    // This step reads the per-surface execution ledger, which lives on Surfaces.
+    await openInventoryTab(page, 'Surfaces');
     const loginSurface = page
       .locator('#content tr')
       .filter({ has: page.locator('[data-row-ledger="GET /login"]') });
@@ -310,6 +315,8 @@ it('lets an administrator select and verify two real workflows with honest campa
       '05-ledger-source-evidence',
       'AI execution inventory retains line-anchored source evidence from its intent ledger',
     );
+    // Back to Workflows: the campaign selection form lives with them.
+    await openInventoryTab(page, 'Workflows');
     const selectionForm = page.locator('[data-campaign-form]');
     const priorDiscovery = await selectionForm.getAttribute('data-discovery');
     const selectedProject = await selectionForm.getAttribute('data-project');

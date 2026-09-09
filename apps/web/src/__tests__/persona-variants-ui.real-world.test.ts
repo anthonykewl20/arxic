@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { openInventoryTab } from './inventory-tabs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -75,6 +76,7 @@ it('creates a mixed persona/flag variant campaign through the real dialog and at
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await openInventoryTab(page, 'Workflows');
     await expect
       .poll(() => page.locator('#content').textContent())
       .toContain('Save guided AI settings to start a campaign');

@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { openInventoryTab } from './inventory-tabs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -137,6 +138,7 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
         ),
       );
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await openInventoryTab(page, 'Declarations');
     await page.getByLabel('Declaration kind').selectOption('control');
     await page.getByLabel('Search declarations').fill('src/views/index.ejs');
     await page
@@ -292,6 +294,7 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
       await page.goto(`${historicalApp.origin}?view=intents`);
       await page.getByLabel('Administrator token').fill('frontend-template-test-administrator');
       await page.getByRole('button', { name: 'Open workbench' }).click();
+      await openInventoryTab(page, 'Declarations');
       await page.locator('[data-frontend-rows]').waitFor();
       await page.getByLabel('Declaration kind').selectOption('control');
       await page.getByLabel('Search declarations').fill('src/views/index.ejs');

@@ -1517,13 +1517,7 @@
     margin: var(--space-4) 0;
   }
   .workflow-choices,
-  .campaign-rows {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .workflow-choices li,
-  .campaign-rows li {
+  .workflow-choices li {
     padding: 10px 0;
     border-bottom: 1px solid var(--border-subtle);
     overflow-wrap: anywhere;
@@ -1535,13 +1529,6 @@
     font-weight: 400;
     color: var(--foreground);
   }
-  .campaign-rows li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--space-4);
-  }
-  .campaign-rows small,
   .workflow-choices small {
     display: block;
     margin-top: 4px;
