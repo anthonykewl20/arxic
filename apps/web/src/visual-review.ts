@@ -1,4 +1,5 @@
 import { readFile, stat } from 'node:fs/promises';
+import { sha256 } from '@arxic/contracts';
 import { join } from 'node:path';
 import {
   ModelImageDimensionsError,
@@ -287,11 +288,7 @@ export async function reviewVisual(run: Run, runsDirectory: string): Promise<Run
     try {
       const assessmentPath = join(runsDirectory, scope.sourceRunId, scope.capture.assessmentFile);
       const assessmentBytes = await readFile(assessmentPath, 'utf8');
-      const { createHash } = await import('node:crypto');
-      if (
-        createHash('sha256').update(assessmentBytes).digest('hex') ===
-        scope.capture.assessmentSha256
-      ) {
+      if (sha256(assessmentBytes) === scope.capture.assessmentSha256) {
         const assessment = JSON.parse(assessmentBytes) as {
           scene?: { maskedRects?: Rect[] };
           assessment?: { checks?: Array<{ id: string; verdict: string; region?: Rect }> };
