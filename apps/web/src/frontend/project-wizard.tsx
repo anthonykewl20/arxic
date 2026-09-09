@@ -549,6 +549,25 @@ function SettingsStep({
                 : 'One path per line, up to 200. Read-only checkpoints.'}
             </small>
           </Label>
+          <Label>
+            State checkpoints
+            <Textarea
+              name="stateCheckpoints"
+              rows={3}
+              placeholder="/login error error=Invalid%20request"
+              defaultValue={(
+                (project?.stateCaptures ?? []) as NonNullable<Project['stateCaptures']>
+              )
+                .map((capture) =>
+                  [capture.path, capture.state, capture.query].filter(Boolean).join(' '),
+                )
+                .join('\n')}
+            />
+            <small>
+              One /path state [query] triple per line — how each loading, error or empty state is
+              provoked; each becomes an independently baselined checkpoint.
+            </small>
+          </Label>
         </div>
         <fieldset
           className="form-stack"

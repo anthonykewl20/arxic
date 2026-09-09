@@ -8,6 +8,7 @@ import {
   declaredRouteRules,
   routeStateCoverage,
   runtimeStateMap,
+  stateCheckpointCoverage,
   type RouteCoverageDimensionName,
   type SurfaceIntentSummary,
 } from '../route-coverage';
@@ -297,6 +298,11 @@ function RouteOmissionCoverage({
   const coverage = routeStateCoverage(inventory, frontend);
   const configOmissions = configurationOmissions(project, inventory, frontend);
   const runtimeMapping = runtimeStates ? runtimeStateMap(coverage, runtimeStates) : undefined;
+  const checkpointMatrix = stateCheckpointCoverage(
+    inventory,
+    frontend,
+    project.stateCaptures ?? [],
+  );
   const rulesByPath = new Map(
     declaredRouteRules(inventory, frontend).map((route) => [
       `${route.method} ${route.path}`,
@@ -407,6 +413,42 @@ function RouteOmissionCoverage({
                     ))}
                 </li>
               ))}
+          </ul>
+        </div>
+      )}
+      {checkpointMatrix.length > 0 && (
+        <div className="state-checkpoints" data-state-checkpoints>
+          <h3>State checkpoints</h3>
+          <p className="scope-note">
+            Per route and state: whether the source declares it, and whether a declared state
+            checkpoint captures it. Declared states without checkpoints are the capturable omissions
+            — plain navigation may never provoke them.
+          </p>
+          <ul>
+            {checkpointMatrix.map((route) => (
+              <li key={`${route.method} ${route.path}`} data-route={route.path}>
+                <code>
+                  {route.method} {route.path}
+                </code>{' '}
+                {route.dimensions
+                  .filter((cell) => cell.declared || cell.checkpoint)
+                  .map((cell) => (
+                    <span
+                      key={cell.name}
+                      className={cell.checkpoint ? 'coverage-referenced' : 'coverage-absent'}
+                    >
+                      {dimensionLabels[cell.name]}{' '}
+                      <small>
+                        {cell.checkpoint
+                          ? 'checkpoint'
+                          : cell.declared
+                            ? 'declared, no checkpoint'
+                            : 'checkpoint only'}
+                      </small>
+                    </span>
+                  ))}
+              </li>
+            ))}
           </ul>
         </div>
       )}
