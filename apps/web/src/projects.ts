@@ -271,6 +271,8 @@ export async function validateProject(
       'emailLabel',
       'passwordLabel',
       'submitLabel',
+      'emailPlaceholder',
+      'passwordPlaceholder',
     ];
     if (
       !value ||
@@ -294,6 +296,12 @@ export async function validateProject(
     if (!emailRef || !passwordRef)
       throw new HttpError(400, 'Sign-in requires email and password secret references');
     if (!origin) throw new HttpError(400, 'Sign-in requires a running test app origin');
+    const optionalField = (key: string) => {
+      if (record[key] === undefined || record[key] === null) return undefined;
+      return field(key, '') || undefined;
+    };
+    const emailPlaceholder = optionalField('emailPlaceholder');
+    const passwordPlaceholder = optionalField('passwordPlaceholder');
     login = {
       loginPath,
       emailRef,
@@ -301,6 +309,8 @@ export async function validateProject(
       emailLabel: field('emailLabel', 'Email') || 'Email',
       passwordLabel: field('passwordLabel', 'Password') || 'Password',
       submitLabel: field('submitLabel', 'Sign in') || 'Sign in',
+      ...(emailPlaceholder ? { emailPlaceholder } : {}),
+      ...(passwordPlaceholder ? { passwordPlaceholder } : {}),
     };
   }
   let configPath = text('configPath');

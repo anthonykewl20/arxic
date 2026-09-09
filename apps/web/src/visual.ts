@@ -168,20 +168,35 @@ async function signIn(
     });
     if (!response?.ok())
       return { reason: `Login page returned ${response?.status() ?? 'no response'}` };
-    const locate = async (labelled: ReturnType<Page['getByLabel']>, fallback: string) => {
+    const locate = async (
+      labelled: ReturnType<Page['getByLabel']>,
+      fallback: string,
+      placeholder?: ReturnType<Page['getByPlaceholder']>,
+    ) => {
       const byLabel = labelled.locator('visible=true');
       if ((await byLabel.count()) > 0) return { locator: byLabel.first(), how: 'label' };
       const byType = page.locator(fallback).locator('visible=true');
       if ((await byType.count()) > 0) return { locator: byType.first(), how: 'type' };
+      if (placeholder) {
+        const byPlaceholder = placeholder.locator('visible=true');
+        if ((await byPlaceholder.count()) > 0)
+          return { locator: byPlaceholder.first(), how: 'placeholder' };
+      }
       return null;
     };
     const email = await locate(
       page.getByLabel(login.emailLabel, { exact: false }),
       'input[type="email"], input[autocomplete="username"], input[name*="email" i], input[name*="user" i]',
+      login.emailPlaceholder
+        ? page.getByPlaceholder(login.emailPlaceholder, { exact: true })
+        : undefined,
     );
     const password = await locate(
       page.getByLabel(login.passwordLabel, { exact: false }),
       'input[type="password"]',
+      login.passwordPlaceholder
+        ? page.getByPlaceholder(login.passwordPlaceholder, { exact: true })
+        : undefined,
     );
     if (!email || !password)
       return { reason: 'Email or password field not found on the login page' };
@@ -200,8 +215,19 @@ async function signIn(
       .catch(() => undefined);
     await page.waitForLoadState('load').catch(() => undefined);
     const landed = new URL(page.url());
-    if (landed.origin !== project.origin || landed.pathname.startsWith(login.loginPath))
+    if (landed.origin !== project.origin)
       return { reason: 'Still on the login page after submitting; check the secrets and labels' };
+    if (landed.pathname.startsWith(login.loginPath)) {
+      // Hash-routed SPAs (e.g. koel) never leave the pathname on success —
+      // sign-in state moves into the hash and the DOM, so the bounded honest
+      // success signal is the login form itself disappearing.
+      const formGone = await email.locator.waitFor({ state: 'hidden', timeout: 5_000 }).then(
+        () => true,
+        () => false,
+      );
+      if (!formGone)
+        return { reason: 'Still on the login page after submitting; check the secrets and labels' };
+    }
     timeline.push({
       action: 'sign-in-form',
       checkpoint: 0,
@@ -393,6 +419,16 @@ async function captureEnvironment(
           failurePhase = 'readiness';
           await page.locator('body').waitFor({ state: 'visible' });
           await page.evaluate(() => document.fonts.ready.then(() => undefined));
+          // Privacy masks are declarations about the captured surface, not
+          // optional hints: SPAs mount those regions after load, so give them
+          // a bounded window to appear. A mask that never mounts still refuses
+          // the capture in privacy-capture phase with its honest finding.
+          for (const mask of project.masks)
+            await page
+              .locator(mask)
+              .first()
+              .waitFor({ state: 'attached', timeout: 15_000 })
+              .catch(() => {});
           failurePhase = 'measurement';
           const defects = await page.evaluate(() => ({
             brokenImages: [...document.images].filter(
