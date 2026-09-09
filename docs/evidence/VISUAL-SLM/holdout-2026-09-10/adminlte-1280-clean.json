@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "adminlte-1280-clean",
+  "group": "adminlte",
+  "revision": "587feec12b072f749b60814af57eb0f9ff897890",
+  "consent": true,
+  "context": {
+    "width": 1280,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clean"
+  },
+  "before": {
+    "path": "adminlte-1280-clean-before.png",
+    "sha256": "8a5eb2921bebdfe1254b2f2110f8fe9524ec30103f6fd9572363ad6f75216502"
+  },
+  "current": {
+    "path": "adminlte-1280-clean-current.png",
+    "sha256": "8a5eb2921bebdfe1254b2f2110f8fe9524ec30103f6fd9572363ad6f75216502"
+  },
+  "beforePrivacy": {
+    "path": "adminlte-1280-clean-before.png.privacy.json",
+    "sha256": "14fbf14e47104e8b79ffb58ae12c4031a7bde5a16bda4048e6334faff9669423"
+  },
+  "currentPrivacy": {
+    "path": "adminlte-1280-clean-current.png.privacy.json",
+    "sha256": "14fbf14e47104e8b79ffb58ae12c4031a7bde5a16bda4048e6334faff9669423"
+  },
+  "scene": {
+    "path": "adminlte-1280-clean-scene.json",
+    "sha256": "08f1b4f1a4ccb2d613cec20331d9174eef34e12b7d4726e0f6c46a0a40e623c5"
+  },
+  "timeline": {
+    "path": "adminlte-1280-clean-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "adminlte-1280-clean-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}

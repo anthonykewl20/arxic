@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "directus-1280-clean",
+  "group": "directus",
+  "revision": "587feec12b072f749b60814af57eb0f9ff897890",
+  "consent": true,
+  "context": {
+    "width": 1280,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clean"
+  },
+  "before": {
+    "path": "directus-1280-clean-before.png",
+    "sha256": "2c99430d6ef527d17a30328fb19a78742e4321be13676baf2f88a92bdcd5586f"
+  },
+  "current": {
+    "path": "directus-1280-clean-current.png",
+    "sha256": "a7c6078caa938d4a68c52b5d830a7bf33a56125214924f27f839c97cbf9f8b9d"
+  },
+  "beforePrivacy": {
+    "path": "directus-1280-clean-before.png.privacy.json",
+    "sha256": "719f571913fcb66cc9db3f482b5b23cd54b1aeb30286651e7efcc2a8552c70b3"
+  },
+  "currentPrivacy": {
+    "path": "directus-1280-clean-current.png.privacy.json",
+    "sha256": "51608ce863665fe26dc3cd17fc2f9631fc4fcfc86886be7234e314a1aa7ba006"
+  },
+  "scene": {
+    "path": "directus-1280-clean-scene.json",
+    "sha256": "23d29d99d8bafeb7bdfed01551c5a2d54ba2b0dc9f948f6d8916793fc2ad4fe7"
+  },
+  "timeline": {
+    "path": "directus-1280-clean-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "directus-1280-clean-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}
