@@ -29,7 +29,7 @@ No — CI/release-infrastructure only; no shipped artifact behavior changes.
 - Red (a) — cap kill: `docs/evidence/WEB-525-RELEASE-CAP/red-ubuntu-cells.txt` — job timings, step outcomes, verbatim log tail of job 102126843868 (last suite files passing at 15:59:38–16:00:02Z, runner orphan-process termination at 16:00:05Z, 25m16s after start).
 - Red (b) — masked browser gap: `docs/evidence/WEB-525-RELEASE-CAP/red-webkit-browsers.txt` — run 34288844027 on this PR: cap held (~57m to summary), `browserType.launch: Executable doesn't exist at .../webkit-2336/pw_run.sh` in both cells, cascaded blocked-run assertion failures, suite summaries 11/321 (Node 22) and 10/322 (Node 24), required ci 34288844037 green on the same head.
 - Sizing cross-check: required-ci run 34284745131 test shards 15m40s/16m05s/17m15s/10m19s.
-- Green (this PR): release-test matrix run with both fixes on this branch — ubuntu cells must reach a vitest summary and `success` under the 90-minute cap with all three browsers installed. Recorded here at merge time.
+- Green (this PR): release-test run 34293209848 on head `0ed805b6` — all six cells `success`: ubuntu Node 22 **58m56s**, ubuntu Node 24 **55m44s** (both under the 90-minute cap, >2× the old kill point, full vitest summaries), windows/macos 3m39s–8m48s. The Node 22 cell first flaked on the known `scripts/dashboard-progress.test.mjs` interrupt race (1 file failed | 331 passed — same test that raced on #522's cycle 2; Node 24 passed it in the same run; disclosed on the PR) and passed on a failed-jobs rerun. Required ci 34293209832 green on the same head (all 19 checks).
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
