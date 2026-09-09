@@ -105,8 +105,11 @@ export async function evaluateCorpusV2(
       const predicted = scores[i]![head]! >= model.thresholds[head]! ? 1 : 0;
       const tally = heads[head]!;
       tally.cases += 1;
-      if (actual === 1) predicted === 1 ? (tally.truePositives += 1) : (tally.falseNegatives += 1);
-      else predicted === 1 ? (tally.falsePositives += 1) : (tally.trueNegatives += 1);
+      if (actual === 1) {
+        if (predicted === 1) tally.truePositives += 1;
+        else tally.falseNegatives += 1;
+      } else if (predicted === 1) tally.falsePositives += 1;
+      else tally.trueNegatives += 1;
     }
   }
   const report = {
