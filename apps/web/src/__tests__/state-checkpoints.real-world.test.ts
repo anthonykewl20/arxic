@@ -8,6 +8,7 @@ import {
   referenceAuthApp,
 } from '../../../../packages/real-world-testkit/src';
 import { Workbench } from '../workbench';
+import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
 import { stateCheckpointCoverage } from '../route-coverage';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import type { DomainInventory } from '@arxic/domain-inventory';
@@ -28,13 +29,18 @@ afterEach(async () => {
 it('captures and independently identities a declared error-state checkpoint', async () => {
   const target = await bootFixtureApp(root, referenceAuthApp, 'web-state-checkpoints');
   cleanups.push(() => stopApp(target.child));
+  // Discovery scans a full git copy: CI checkouts are shallow clones, which
+  // the source adapter refuses (ARXIC-SOURCE-SHALLOW-CLONE) — found through
+  // the CI diagnostic this test carried while root-causing.
+  const repo = await makeRepository('reference-auth-app');
+  cleanups.push(() => rm(repo.root, { recursive: true, force: true }));
   const state = await mkdtemp(join(tmpdir(), 'arxic-state-checkpoints-'));
   cleanups.push(() => rm(state, { recursive: true, force: true }));
-  const wb = await Workbench.open(state, [root]);
+  const wb = await Workbench.open(state, [root, repo.root]);
   cleanups.push(() => wb.close());
   const project = await wb.saveProject({
     name: 'State checkpoints',
-    folder: join(root, 'test-fixtures/reference-auth-app'),
+    folder: repo.root,
     origin: target.origin,
     paths: ['/login'],
     viewports: [{ width: 800, height: 600 }],
