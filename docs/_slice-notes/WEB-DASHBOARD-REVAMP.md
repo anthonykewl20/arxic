@@ -90,9 +90,16 @@ capture).
   to refusing, which is what proves the sign-in was reading the vault. The value
   appears in neither `/api/secrets`, `/api/state` nor the rendered page, and no
   file anywhere in the state directory contains it in the clear.
+- Perceptual comparison: `perceptual-diff.test.ts` — a whole-page tint touches
+  strictly more pixels than a localised edit yet scores structurally closer,
+  which is the distinction the measure exists to make.
+- Baseline store: `baseline-store.test.ts` — a baseline survives deletion of the
+  run that produced it, identical pixels are stored once, a corrupted entry is
+  treated as absent rather than compared against, and an external root keeps
+  nothing in the state directory.
 - Gates: typecheck ☑ · lint ☑ · format ☑ (full repo) · full `vitest run` ☐
-  (running at time of writing) · license gate ☐ (no dependency added — the
-  primitives are built on native elements precisely to avoid one)
+  (running at time of writing) · license gate ☐ (no dependency added — every
+  new module is built on native APIs precisely to avoid one)
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
@@ -121,33 +128,29 @@ capture).
 
 Read this before trusting the summary.
 
-- **`app.css` did not shrink.** 2,185 → 2,204 lines. Twenty-two dead rule blocks
-  and one duplicated mobile-stacking implementation came out; the new chrome
-  (command palette, confirm dialog, stat strip, attention band, tabs, shared
-  table stacking) cost slightly more than that. Two table systems became one and
-  ten bespoke class families became primitives, so the standardization is real —
-  the line count is honestly a small increase. A consolidation of the nineteen
-  remaining raw `scope-note` usages onto the `Note` primitive was attempted,
-  broke two files, and was reverted rather than risk the build for a line count.
-- **Two panels were examined and deliberately left alone.** The diff viewer's
-  comparison modes are a toggle group with `aria-pressed`; the element
-  inspector's list is a picker. Both are the correct pattern for what they do,
-  and converting them to `Tabs` and `DataTable` would trade correct semantics for
-  uniformity. Models & accounts keeps its master-detail layout: adding a
-  split-panel primitive used by exactly one screen is the over-engineering the
-  brief asked to avoid.
-- **The imperative action layer survives.** `app.ts` still dispatches roughly
-  twenty `data-*` attributes through one delegated `document` click listener.
-  Overview, Schedules and the credential panel pass real React handlers, and
-  `data-start` was deduplicated onto `startRun()`, but the pattern is intact.
-- **No visual baseline was captured for the redesign itself.** Every screen
-  changed, so the product's own baselines for its own dashboard are stale.
-- **Baselines are still local rows.** Phase 6's promotion to an immutable
-  external store (Git LFS, an object bucket keyed by commit) is not built; the
-  approval ledger remains in the workbench database.
-- **No SSIM or perceptual colour metric.** pixelmatch's default already excludes
-  anti-aliased pixels, so the brief's anti-aliasing filter is in place, but the
-  comparison is still an RGB threshold rather than perceptual.
+- **No visual baseline exists for the redesign itself, and this slice must not
+  create one.** Every dashboard screen changed, so the product's own baselines
+  for its own dashboard are stale. Approving a baseline is a human judgement
+  about whether a change is intended — ADR §2 forbids an LLM assigning
+  `verified`, and the same reasoning applies here. The operator approves them
+  after reviewing the redesign; nothing automated should.
+- **Two panels were examined and deliberately left on their existing patterns.**
+  The diff viewer's comparison modes are a toggle group with `aria-pressed`; the
+  element inspector's list is a picker. Both are correct for what they do, and
+  converting them to `Tabs` and `DataTable` would trade correct semantics for
+  uniformity. Models & accounts keeps its master-detail layout: a split-panel
+  primitive used by exactly one screen is the over-engineering the brief asked
+  to avoid.
+- **Isolated component captures are declared, not discovered.** Overlays and
+  portals are found automatically; components require a selector in project
+  settings. Deriving them from the measured scene would mean the tool choosing
+  what counts as a component, which is a product decision, not an inference.
+- **The induced-fault list is closed.** Ten statuses, no arbitrary bodies and no
+  latency or partial-response injection. A checkpoint is a declaration about the
+  product's own error handling, not a general-purpose fault harness.
+- **SSIM is reported, not enforced.** It never changes whether a capture counts
+  as changed; the changed-pixel ratio still decides, and `visualChangeRatio`
+  remains the only gate an operator can set.
 - **Three decluttering decisions were reverted or reworked, all for one reason.**
   A per-dimension capture filter and a per-project adaptive primary action each
   made a control's presence depend on the data; moving Settings into the overflow
@@ -157,3 +160,23 @@ Read this before trusting the summary.
   many) but never on the _values_ in it; and the way to remove a button is to
   give its job to something already on screen — the project name now opens
   project settings — not to bury it a click deeper.
+
+## 8. Gaps closed after the first pass
+
+Recorded because the earlier revision of this note listed them as outstanding.
+
+- **`app.css` is level with main** at 2,185 lines, after adding a command
+  palette, confirm dialog, toast region, stat strip, attention band, tabs and a
+  shared table with its own mobile stacking — and removing thirty dead rule
+  blocks, two competing table systems and a duplicated stacking implementation.
+- **The delegated click dispatcher is gone.** Eighteen `data-*` branches became
+  per-control actions behind one registry; the attributes remain for journeys to
+  address, but nothing reads them at runtime.
+- **Baselines are no longer pointers into run directories.** They are
+  content-addressed, immutable, deduplicated, survive deletion of the run that
+  produced them, and can live on external storage via `ARXIC_BASELINE_STORE`.
+- **Structural similarity is measured** alongside the pixel count, separating a
+  page-wide tint from one changed component — two results the changed-pixel
+  count alone reports identically.
+- **The vault is verified**, not merely observed: a browser journey types a
+  password into Administration and a real run signs in with it.
