@@ -512,7 +512,7 @@ function VisualReviewPanel({ run }: { run: Run }) {
       </p>
       {review.findings.length ? (
         review.findings.map((finding, index) => (
-          <article className="review-finding" key={finding.id}>
+          <article className="review-finding" key={finding.id} data-finding={finding.id}>
             <h4>
               {index + 1}. {finding.title} <Status value={finding.truthState} />
             </h4>
@@ -524,6 +524,39 @@ function VisualReviewPanel({ run }: { run: Run }) {
               {finding.severity} · region {finding.region.x}, {finding.region.y},{' '}
               {finding.region.width} × {finding.region.height}
             </small>
+            {/* Server-stamped grounding (refs #402): every asserted defect
+                links its screenshot and reproduction recipe itself; findings
+                from older records without stamps render without the block. */}
+            {finding.evidence && (
+              <p className="finding-grounding" data-finding-grounding>
+                <a href={url} target="_blank" rel="noopener">
+                  Screenshot evidence
+                </a>{' '}
+                <small>
+                  Reproduce: {finding.evidence.reproduction.path} ·{' '}
+                  {finding.evidence.reproduction.viewport.width} ×{' '}
+                  {finding.evidence.reproduction.viewport.height}
+                  {finding.evidence.reproduction.environment
+                    ? ` · ${finding.evidence.reproduction.environment.browser}/${finding.evidence.reproduction.environment.colorScheme}`
+                    : ''}
+                  {finding.evidence.reproduction.deviceScaleFactor !== 1
+                    ? ` · ${finding.evidence.reproduction.deviceScaleFactor}×`
+                    : ''}{' '}
+                  · {finding.evidence.reproduction.browserVersion}
+                </small>
+              </p>
+            )}
+            <p data-finding-acceptance>
+              <strong>Independent acceptance:</strong>{' '}
+              {finding.acceptance?.source === 'administrator' ? (
+                finding.acceptance.independent
+              ) : (
+                <small>
+                  No independent acceptance criterion covers this finding; the suggested check is a
+                  model proposal, not confirmation.
+                </small>
+              )}
+            </p>
           </article>
         ))
       ) : (
