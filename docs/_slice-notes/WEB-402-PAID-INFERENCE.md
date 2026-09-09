@@ -1,6 +1,6 @@
 # WEB-402-PAID-INFERENCE — staged doc updates (charter §10.2)
 
-Issue: #402 · PR: #<PR> · Disposition: verified (the deterministic verifier assigned it; no LLM did)
+Issue: #402 · PR: #532 · Disposition: verified (the deterministic verifier assigned it; no LLM did)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
