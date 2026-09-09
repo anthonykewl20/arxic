@@ -12,6 +12,7 @@ import { Workbench } from '../workbench';
 import { startWorkbench } from './workbench-runtime';
 import type { Run } from '../types';
 import { dashboardProof } from './dashboard-proof';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it.each(['light', 'dark'] as const)(
   'distinguishes historical comparison from current baseline approval (%s)',
@@ -35,7 +36,10 @@ it.each(['light', 'dark'] as const)(
         : undefined,
     );
     let stage = 'setup';
-    const errors: Array<{ stage: string; kind: string; endpoint: string }> = [];
+    // The verdict is the #447 corroborated classification; the stage-tagged
+    // record stays as diagnosis-only provenance and decides nothing.
+    const errors = trackDashboardErrors(page);
+    const observed: Array<{ stage: string; kind: string; endpoint: string }> = [];
     // Closed categories only: browser errors can contain credentials, URLs or response data.
     const endpoint = (value: string) =>
       ['/api/state', '/api/session', '/api/runs', '/api/baselines'].find((path) =>
@@ -48,7 +52,7 @@ it.each(['light', 'dark'] as const)(
         kind: text.startsWith('Fetch API cannot load') ? 'fetch-load' : 'other-page-error',
         endpoint: endpoint(text),
       };
-      errors.push(diagnostic);
+      observed.push(diagnostic);
       console.info('Baseline history page error', diagnostic);
     });
     page.on('requestfailed', (request) => {
@@ -62,7 +66,11 @@ it.each(['light', 'dark'] as const)(
       await page.locator('.capture-head').scrollIntoViewIfNeeded();
       stage = name;
       const result = await proof.audit(name, action, [
-        { id: 'no-page-errors', passed: errors.length === 0, values: { count: errors.length } },
+        {
+          id: 'no-page-errors',
+          passed: errors.hard().length === 0,
+          values: { count: errors.hard().length, observed: observed.length },
+        },
       ]);
       expect(result.details).toEqual([]);
       expect(result.overflow).toBe(0);
@@ -165,7 +173,7 @@ it.each(['light', 'dark'] as const)(
         '00-login-reload',
         'Repeated real login and reload preserves the completed run without page errors',
       );
-      expect(errors).toEqual([]);
+      expect(errors.hard()).toEqual([]);
       await page.route('**/baselines', (route) =>
         route.fulfill({ status: 503, json: { error: 'Baseline approval unavailable' } }),
       );
@@ -237,7 +245,7 @@ it.each(['light', 'dark'] as const)(
         '06-mobile-history',
         'Mobile history distinguishes no prior baseline from current approval after replacement',
       );
-      expect(errors).toEqual([]);
+      expect(errors.hard()).toEqual([]);
     } finally {
       await proof.finish();
       await browser.close();

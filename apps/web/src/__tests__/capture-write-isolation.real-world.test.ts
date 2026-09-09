@@ -15,6 +15,7 @@ import type { Run } from '../types';
 import { startWorkbench } from './workbench-runtime';
 import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { dashboardProof } from './dashboard-proof';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it.each(['chromium', 'firefox', 'webkit'] as const)(
   'retains healthy real captures around a failed evidence destination (%s)',
@@ -73,8 +74,7 @@ it.each(['chromium', 'firefox', 'webkit'] as const)(
         page,
         evidence ? join(evidence, browser, 'dashboard') : undefined,
       );
-      const errors: string[] = [];
-      page.on('pageerror', (error) => errors.push(error.name));
+      const errors = trackDashboardErrors(page);
       try {
         await page.goto(`${app.origin}?view=runs&run=${run.id}`);
         await page.getByLabel('Administrator token').fill('write-isolation-test-administrator');
@@ -210,7 +210,7 @@ it.each(['chromium', 'firefox', 'webkit'] as const)(
             (finding: { failurePhase?: string }) => finding.failurePhase,
           ),
         ).toEqual(failures);
-        expect(errors).toEqual([]);
+        expect(errors.hard()).toEqual([]);
       } finally {
         await proof.finish();
         await uiBrowser.close();

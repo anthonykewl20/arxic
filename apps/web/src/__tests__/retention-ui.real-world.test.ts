@@ -11,6 +11,7 @@ import {
 import { Workbench } from '../workbench';
 import { startWorkbench } from './workbench-runtime';
 import { dashboardProof } from './dashboard-proof';
+import { trackDashboardErrors } from './dashboard-errors';
 it.each(['light', 'dark'] as const)(
   'previews and cleans real expired evidence through the dashboard (%s)',
   async (theme) => {
@@ -32,8 +33,7 @@ it.each(['light', 'dark'] as const)(
         ? join(process.env.ARXIC_RETENTION_EVIDENCE_DIR, theme)
         : undefined,
     );
-    const errors: string[] = [];
-    page.on('pageerror', (error) => errors.push(error.name));
+    const errors = trackDashboardErrors(page);
     async function audit(name: string, action: string) {
       const result = await proof.audit(name, action);
       expect(result.details).toEqual([]);
@@ -155,7 +155,7 @@ it.each(['light', 'dark'] as const)(
           Promise.all(images.map((image) => (image as HTMLImageElement).decode())),
         );
       await audit('05-baseline', 'Approved real screenshot remains accessible after retention');
-      expect(errors).toEqual([]);
+      expect(errors.hard()).toEqual([]);
       await app.close();
       app = undefined;
       wb = await Workbench.open(directory, [root]);

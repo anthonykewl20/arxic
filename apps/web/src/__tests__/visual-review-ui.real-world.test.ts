@@ -13,6 +13,7 @@ import {
   stopApp,
 } from '../../../../packages/real-world-testkit/src';
 import { startWorkbench } from './workbench-runtime';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it.each([1, 2] as const)(
   'lets an administrator inspect pixels, request a bounded AI review and inspect hypotheses on mobile (density=%s)',
@@ -146,8 +147,7 @@ it.each([1, 2] as const)(
         ),
       );
     };
-    const errors: string[] = [];
-    page.on('pageerror', (e) => errors.push(e.name));
+    const errors = trackDashboardErrors(page);
     try {
       const denied = await fetch(
         app.origin + '/api/runs/00000000-0000-0000-0000-000000000000/reviews',
@@ -356,7 +356,7 @@ it.each([1, 2] as const)(
         '07-expired-session-consent',
         'An invalidated session clears unsent image consent before a new administrator session',
       );
-      expect(errors).toEqual([]);
+      expect(errors.hard()).toEqual([]);
       if (evidence) {
         const bytes = JSON.stringify(timeline, null, 2);
         await writeFile(join(evidence, 'timeline.json'), bytes);

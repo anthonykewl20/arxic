@@ -16,6 +16,7 @@ import { Store } from '../store';
 import type { Run } from '../types';
 import { launchDashboardBrowser, resizeDashboard, settleDashboard } from './dashboard-browser';
 import { dashboardProof } from './dashboard-proof';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it('shows source-bound EJS controls in the real dashboard and corroborates the reference page without promoting source truth', async () => {
   const root = resolve(import.meta.dirname, '../../../..');
@@ -41,8 +42,7 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
       ? join(process.env.ARXIC_WEB_EVIDENCE_DIR, 'frontend-template')
       : undefined);
   const proof = dashboardProof(page, evidence);
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.name));
+  const errors = trackDashboardErrors(page);
   try {
     const targetContext = await browser.newContext({
       viewport: { width: 900, height: 900 },
@@ -320,7 +320,7 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
       await historicalApp?.close();
       await rm(historicalState, { recursive: true, force: true });
     }
-    expect(errors).toEqual([]);
+    expect(errors.hard()).toEqual([]);
   } finally {
     await proof.finish();
     await browser.close();
