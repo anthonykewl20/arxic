@@ -1,4 +1,4 @@
-import { lstat, rm } from 'node:fs/promises';
+import { lstat, readdir, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { RetentionRepository, type RetentionRow } from './retention-store';
 import { HttpError } from './errors';
@@ -7,15 +7,22 @@ export interface RetentionPolicy {
   enabled: boolean;
   maxAgeDays: number;
   keepLatest: number;
+  diskQuotaMb: number;
 }
-export const defaultRetention: RetentionPolicy = { enabled: false, maxAgeDays: 30, keepLatest: 20 };
+export const defaultRetention: RetentionPolicy = {
+  enabled: false,
+  maxAgeDays: 30,
+  keepLatest: 20,
+  diskQuotaMb: 0,
+};
 export function retentionPolicy(value: unknown, requireConsent = false): RetentionPolicy {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new HttpError(400, 'Invalid retention policy');
   const input = value as Record<string, unknown>;
   if (
     Object.keys(input).some(
-      (key) => !['enabled', 'maxAgeDays', 'keepLatest', 'confirmDeletion'].includes(key),
+      (key) =>
+        !['enabled', 'maxAgeDays', 'keepLatest', 'diskQuotaMb', 'confirmDeletion'].includes(key),
     ) ||
     typeof input.enabled !== 'boolean' ||
     typeof input.maxAgeDays !== 'number' ||
@@ -26,12 +33,25 @@ export function retentionPolicy(value: unknown, requireConsent = false): Retenti
     !Number.isInteger(input.keepLatest) ||
     input.keepLatest < 1 ||
     input.keepLatest > 1000 ||
-    (input.confirmDeletion !== undefined && typeof input.confirmDeletion !== 'boolean')
+    (input.confirmDeletion !== undefined && typeof input.confirmDeletion !== 'boolean') ||
+    (input.diskQuotaMb !== undefined &&
+      (typeof input.diskQuotaMb !== 'number' ||
+        !Number.isInteger(input.diskQuotaMb) ||
+        input.diskQuotaMb < 0 ||
+        input.diskQuotaMb > 1_048_576))
   )
-    throw new HttpError(400, 'Retention requires 1–3650 days and 1–1000 newest runs per project');
+    throw new HttpError(
+      400,
+      'Retention requires 1–3650 days, 1–1000 newest runs per project and a disk quota of 0–1048576 MB',
+    );
   if (requireConsent && input.enabled && input.confirmDeletion !== true)
     throw new HttpError(400, 'Confirm automatic evidence deletion before enabling retention');
-  return { enabled: input.enabled, maxAgeDays: input.maxAgeDays, keepLatest: input.keepLatest };
+  return {
+    enabled: input.enabled,
+    maxAgeDays: input.maxAgeDays,
+    keepLatest: input.keepLatest,
+    diskQuotaMb: input.diskQuotaMb ?? 0,
+  };
 }
 
 const batchLimit = 50;
@@ -74,7 +94,7 @@ export class Retention {
     })();
     return this.state();
   }
-  preview(value: unknown = this.state().policy, now = new Date()) {
+  async preview(value: unknown = this.state().policy, now = new Date()) {
     const policy = retentionPolicy(value),
       cutoff = now.getTime() - policy.maxAgeDays * 86400000;
     const protectedCounts = {
@@ -88,6 +108,9 @@ export class Retention {
       pending: 0,
     };
     const candidates: Array<
+      Pick<RetentionRow, 'id' | 'projectName' | 'mode'> & { finishedAt: string }
+    > = [];
+    const quotaRows: Array<
       Pick<RetentionRow, 'id' | 'projectName' | 'mode'> & { finishedAt: string }
     > = [];
     let total = 0,
@@ -110,6 +133,16 @@ export class Retention {
                 : undefined);
       if (reason) {
         protectedCounts[reason]++;
+        // Quota pressure may also reclaim young runs the age rule spares:
+        // same eligibility floor (unprotected, valid, beyond keepLatest),
+        // oldest-finished-first. Old unprotected rows are age candidates below.
+        if (reason === 'age')
+          quotaRows.push({
+            id: row.id,
+            projectName: row.projectName,
+            mode: row.mode,
+            finishedAt: timestamp,
+          });
         continue;
       }
       candidateCount++;
@@ -121,7 +154,53 @@ export class Retention {
           finishedAt: timestamp,
         });
     }
-    return { policy, total, candidateCount, candidates, protected: protectedCounts, batchLimit };
+    let quota;
+    if (policy.diskQuotaMb > 0) {
+      let measuredBytes = 0;
+      for (const row of this.repository.rows()) measuredBytes += await this.measureRun(row.id);
+      quota = {
+        limitMb: policy.diskQuotaMb,
+        measuredBytes,
+        over: measuredBytes > policy.diskQuotaMb * 1048576,
+        candidates: quotaRows
+          .sort((a, b) => Date.parse(a.finishedAt) - Date.parse(b.finishedAt))
+          .slice(0, batchLimit),
+      };
+    }
+    return {
+      policy,
+      total,
+      candidateCount,
+      candidates,
+      protected: protectedCounts,
+      batchLimit,
+      quota,
+    };
+  }
+  /** Real bytes under `runs/<id>/`; missing directories measure as zero, symlinks are not followed. */
+  private async measureRun(id: string): Promise<number> {
+    const root = join(this.directory, 'runs', id);
+    let info;
+    try {
+      info = await lstat(root);
+    } catch {
+      return 0;
+    }
+    if (!info.isDirectory() || info.isSymbolicLink()) return 0;
+    let total = 0;
+    const walk = async (directory: string): Promise<void> => {
+      for (const entry of await readdir(directory, { withFileTypes: true })) {
+        if (entry.isSymbolicLink()) continue;
+        const path = join(directory, entry.name);
+        if (entry.isDirectory()) {
+          await walk(path);
+          continue;
+        }
+        total += (await stat(path)).size;
+      }
+    };
+    await walk(root);
+    return total;
   }
   async deleteRun(id: string) {
     if (!uuid(id)) throw new HttpError(404, 'Run not found');
@@ -189,13 +268,36 @@ export class Retention {
     if (!this.state().policy.enabled && !this.state().pendingDeletions)
       throw new HttpError(409, 'Automatic retention is disabled');
     let deleted = await this.recover();
+    const policy = this.state().policy;
     try {
-      if (this.state().policy.enabled)
-        for (const row of this.preview().candidates) {
+      const preview = await this.preview();
+      const quotaActive = policy.diskQuotaMb > 0;
+      let freed = 0;
+      if (policy.enabled)
+        for (const row of preview.candidates) {
+          if (quotaActive) freed += await this.measureRun(row.id);
           await this.deleteRun(row.id);
           deleted++;
         }
-      const result: CleanupResult = { outcome: 'completed', at: new Date().toISOString(), deleted };
+      let stillOverQuota: boolean | undefined;
+      if (quotaActive) {
+        const limit = policy.diskQuotaMb * 1048576;
+        let measured = preview.quota!.measuredBytes - freed;
+        for (const row of preview.quota!.candidates) {
+          if (measured <= limit) break;
+          const freed = await this.measureRun(row.id);
+          await this.deleteRun(row.id);
+          measured -= freed;
+          deleted++;
+        }
+        stillOverQuota = measured > limit;
+      }
+      const result: CleanupResult = {
+        outcome: 'completed',
+        at: new Date().toISOString(),
+        deleted,
+        ...(stillOverQuota !== undefined ? { stillOverQuota } : {}),
+      };
       this.repository.write('retention-last', result);
       return result;
     } catch {

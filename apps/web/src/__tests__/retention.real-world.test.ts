@@ -54,7 +54,7 @@ it('keeps failed deletion visible, recovers its durable intent, and preserves ac
   }
   const policy = { enabled: true, maxAgeDays: 30, keepLatest: 1, confirmDeletion: true };
   await wb.saveRetention(policy);
-  const preview = wb.previewRetention();
+  const preview = await wb.previewRetention();
   expect(preview.candidates.map((row: { id: string }) => row.id)).toEqual([candidate.id]);
   expect(preview.protected.baseline).toBe(1);
   expect(preview.protected.recent).toBe(1);
@@ -73,7 +73,12 @@ it('keeps failed deletion visible, recovers its durable intent, and preserves ac
   await rename(backup, evidenceRoot);
   await wb.close();
   wb = await Workbench.open(state, [root]);
-  expect(wb.retentionState().policy).toEqual({ enabled: true, maxAgeDays: 30, keepLatest: 1 });
+  expect(wb.retentionState().policy).toEqual({
+    enabled: true,
+    maxAgeDays: 30,
+    keepLatest: 1,
+    diskQuotaMb: 0,
+  });
   expect(wb.retentionState().pendingDeletions).toBe(0);
   expect(wb.store.run(candidate.id)).toBeUndefined();
   expect(wb.store.run(newest.id)).toBeDefined();

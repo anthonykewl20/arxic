@@ -91,6 +91,7 @@ it.each(['light', 'dark'] as const)(
       const enabled = panel.getByLabel('Automatically delete expired runs');
       expect(await enabled.isChecked()).toBe(false);
       await panel.getByLabel('Keep newest runs per project').fill('1');
+      await panel.getByLabel('Evidence disk quota (MB, 0 disables)').fill('1');
       await enabled.check();
       await page.route('**/api/retention/preview', (route) =>
         route.fulfill({ status: 503, json: { error: 'Retention preview unavailable' } }),
@@ -103,6 +104,7 @@ it.each(['light', 'dark'] as const)(
       await page.unroute('**/api/retention/preview');
       await panel.getByRole('button', { name: 'Preview retention' }).click();
       await panel.getByText(expired.id, { exact: true }).waitFor();
+      await panel.getByText(/Evidence on disk: \d+(\.\d+)? MB of a 1 MB quota/).waitFor();
       expect(await panel.getByRole('button', { name: 'Save retention policy' }).isEnabled()).toBe(
         false,
       );

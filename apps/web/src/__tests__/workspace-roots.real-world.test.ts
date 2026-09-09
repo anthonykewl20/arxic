@@ -119,6 +119,7 @@ it('adds a workspace root at runtime, connects a project under it, and persists 
     enabled: false,
     maxAgeDays: 17,
     keepLatest: 7,
+    diskQuotaMb: 0,
   });
 
   // The added root survives a server restart on the same state directory.

@@ -16,7 +16,12 @@ async function open() {
 }
 it('refuses cleanup by default and refuses invalid or unconfirmed automatic deletion policies', async () => {
   const wb = await open();
-  expect(wb.retentionState().policy).toEqual({ enabled: false, maxAgeDays: 30, keepLatest: 20 });
+  expect(wb.retentionState().policy).toEqual({
+    enabled: false,
+    maxAgeDays: 30,
+    keepLatest: 20,
+    diskQuotaMb: 0,
+  });
   await expect(wb.cleanupRetention()).rejects.toThrow('disabled');
   for (const input of [
     null,
@@ -60,7 +65,7 @@ it('previews the whole persisted history with a bounded batch and explicit refer
     runIds: [ids[4]],
     rows: [],
   });
-  const preview = wb.previewRetention({ enabled: false, maxAgeDays: 30, keepLatest: 1 });
+  const preview = await wb.previewRetention({ enabled: false, maxAgeDays: 30, keepLatest: 1 });
   expect(wb.store.runs()).toHaveLength(200);
   expect(preview).toMatchObject({
     total: 251,
@@ -74,7 +79,7 @@ it('previews the whole persisted history with a bounded batch and explicit refer
   ).toBe(false);
   await wb.saveRetention({ enabled: true, maxAgeDays: 30, keepLatest: 1, confirmDeletion: true });
   expect(await wb.cleanupRetention()).toMatchObject({ outcome: 'completed', deleted: 50 });
-  expect(wb.previewRetention().total).toBe(201);
+  expect((await wb.previewRetention()).total).toBe(201);
   for (const id of [ids[0], ids[2], ids[3], ids[4], ids[250]])
     expect(wb.store.run(id)).toBeDefined();
 });

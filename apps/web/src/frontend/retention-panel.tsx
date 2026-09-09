@@ -4,7 +4,7 @@ import { time } from './display';
 import type { Workbench } from '../workbench';
 
 type State = ReturnType<Workbench['retentionState']>;
-type Preview = ReturnType<Workbench['previewRetention']>;
+type Preview = Awaited<ReturnType<Workbench['previewRetention']>>;
 async function request<T>(path: string, value?: unknown): Promise<T> {
   const response = await fetch(
     `/api/retention${path}`,
@@ -27,20 +27,29 @@ export function RetentionPanel() {
   const [enabled, setEnabled] = useState(false);
   const [days, setDays] = useState('30');
   const [keep, setKeep] = useState('20');
+  const [quota, setQuota] = useState('0');
   const [consent, setConsent] = useState(false);
   const [preview, setPreview] = useState<Preview>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const alive = useRef(true);
-  const policy = { enabled, maxAgeDays: Number(days), keepLatest: Number(keep) };
+  const policy = {
+    enabled,
+    maxAgeDays: Number(days),
+    keepLatest: Number(keep),
+    diskQuotaMb: Number(quota),
+  };
   const valid =
     Number.isInteger(policy.maxAgeDays) &&
     policy.maxAgeDays >= 1 &&
     policy.maxAgeDays <= 3650 &&
     Number.isInteger(policy.keepLatest) &&
     policy.keepLatest >= 1 &&
-    policy.keepLatest <= 1000;
+    policy.keepLatest <= 1000 &&
+    Number.isInteger(policy.diskQuotaMb) &&
+    policy.diskQuotaMb >= 0 &&
+    policy.diskQuotaMb <= 1_048_576;
   const dirty = state && JSON.stringify(policy) !== JSON.stringify(state.policy);
   async function perform(action: () => Promise<void>) {
     setBusy(true);
@@ -63,6 +72,7 @@ export function RetentionPanel() {
       setEnabled(next.policy.enabled);
       setDays(String(next.policy.maxAgeDays));
       setKeep(String(next.policy.keepLatest));
+      setQuota(String(next.policy.diskQuotaMb));
     });
   }
   useEffect(() => {
@@ -145,10 +155,24 @@ export function RetentionPanel() {
                   }}
                 />
               </Label>
+              <Label>
+                Evidence disk quota (MB, 0 disables)
+                <Input
+                  type="number"
+                  min={0}
+                  max={1048576}
+                  value={quota}
+                  onChange={(event) => {
+                    setQuota(event.target.value);
+                    changed();
+                  }}
+                />
+              </Label>
             </div>
             <p className="muted">
               Active runs, baselines, and evidence used by reviews or campaigns stay protected. The
-              newest runs per project are kept even when expired.
+              newest runs per project are kept even when expired. With a quota set, cleanup also
+              reclaims the oldest unprotected runs while evidence exceeds the limit.
             </p>
             <div>
               <Button
@@ -171,6 +195,15 @@ export function RetentionPanel() {
                   {preview.total} runs. Each cleanup removes at most {preview.batchLimit} eligible
                   runs.
                 </p>
+                {preview.quota && (
+                  <p>
+                    Evidence on disk: {(preview.quota.measuredBytes / 1048576).toFixed(1)} MB of a{' '}
+                    {preview.quota.limitMb} MB quota —{' '}
+                    {preview.quota.over
+                      ? 'over quota; cleanup reclaims the oldest unprotected runs beyond the kept newest.'
+                      : 'within quota.'}
+                  </p>
+                )}
                 <details>
                   <summary>Why other runs are kept</summary>
                   <ul>
@@ -246,9 +279,12 @@ export function RetentionPanel() {
                 disabled={busy || !!dirty || (!state.policy.enabled && !state.pendingDeletions)}
                 onClick={() =>
                   void perform(async () => {
-                    let result: { deleted: number };
+                    let result: { deleted: number; stillOverQuota?: boolean };
                     try {
-                      result = await request<{ deleted: number }>('/cleanup', {});
+                      result = await request<{ deleted: number; stillOverQuota?: boolean }>(
+                        '/cleanup',
+                        {},
+                      );
                     } catch (failure) {
                       // Keep the original cleanup failure even if refreshing status also fails.
                       try {
@@ -261,7 +297,10 @@ export function RetentionPanel() {
                     }
                     if (!alive.current) return;
                     setNotice(
-                      `Deleted ${result.deleted} ${result.deleted === 1 ? 'run' : 'runs'}.`,
+                      `Deleted ${result.deleted} ${result.deleted === 1 ? 'run' : 'runs'}.` +
+                        (result.stillOverQuota
+                          ? ' Still over the disk quota; protected and newest runs stay.'
+                          : ''),
                     );
                     const next = await request<State>('');
                     if (!alive.current) return;
