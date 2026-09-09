@@ -242,10 +242,9 @@ function Schedules({ state, actions }: { state: State; actions: ProjectActions }
           ))}
         </div>
       ) : (
-        <div className="empty">
-          <Clock3 size={25} />
-          <h2>Add a project to schedule tests</h2>
-        </div>
+        <EmptyState icon={Clock3} title="Add a project to schedule tests">
+          A connected project can run on a recurring UTC slot.
+        </EmptyState>
       )}
     </>
   );

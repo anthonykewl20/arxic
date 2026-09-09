@@ -56,9 +56,11 @@ export function CampaignPanel({
         source surfaces; passing selected workflows does not prove all frontend behavior. Latest 100
         campaigns shown; full records persist.
       </Note>
-      <div className="project-grid">
-        {visible.length ? (
-          visible.map((campaign) => (
+      {/* The empty state is not a grid item: inside the card grid it would be
+          boxed into one column and read as a missing card. */}
+      {visible.length ? (
+        <div className="project-grid">
+          {visible.map((campaign) => (
             <Card className="card" key={campaign.id}>
               <h2>{campaign.projectName}</h2>
               <Badge variant="outline" className={`pill ${campaign.state}`}>
@@ -78,14 +80,14 @@ export function CampaignPanel({
                 </Button>
               </p>
             </Card>
-          ))
-        ) : (
-          <EmptyState icon={Layers} title="No campaigns yet">
-            Discover a project&rsquo;s intents, select the workflows worth executing, and start a
-            campaign from Intent inventory.
-          </EmptyState>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState icon={Layers} title="No campaigns yet">
+          Discover a project&rsquo;s intents, select the workflows worth executing, and start a
+          campaign from Intent inventory.
+        </EmptyState>
+      )}
       {selected?.rows && (
         <CampaignDetail campaign={selected as CampaignView} pages={pages} runs={runs} />
       )}

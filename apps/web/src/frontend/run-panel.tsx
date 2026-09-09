@@ -5,7 +5,7 @@ import { DiffViewer } from './diff-viewer';
 import { WorkflowCheckpoints } from './workflow-checkpoints';
 import { AssessmentPanel } from './assessment-panel';
 import type { RunHistoryPage } from '../run-history';
-import { Button, Input } from './components';
+import { Button, EmptyState, Input } from './components';
 import { RunTable, Status } from './run-table';
 import { ReviewForm, reviewDraftKey, type ReviewRequest } from './review-form';
 import { time } from './display';
@@ -125,10 +125,9 @@ export function RunPanel(props: RunPanelProps) {
           </Button>
         </div>
       ) : history?.total === 0 && filtered ? (
-        <div className="empty" role="status">
-          <h2>No matching runs</h2>
-          <p>Try a project name, part of a run ID, or clear the filters.</p>
-        </div>
+        <EmptyState title="No matching runs" role="status">
+          Try a project name, part of a run ID, or clear the filters.
+        </EmptyState>
       ) : (
         <RunTable
           runs={
