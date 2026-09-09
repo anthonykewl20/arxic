@@ -1,20 +1,34 @@
-/* Single source of truth for color, type, spacing and radius. Every component and screen reads these. */
+/*
+ * Single source of truth for colour, type, spacing, radius, motion and density.
+ * Every component and screen reads these; nothing hard-codes a colour.
+ *
+ * Each palette value is declared ONCE with light-dark(): the light value first,
+ * the dark value second. `color-scheme` decides which side applies, so the
+ * three-way duplication (light block / prefers-color-scheme block / [data-theme]
+ * block) collapses into one declaration per token. theme.ts sets data-theme;
+ * absent, the root follows the operating system.
+ */
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
+
   --font-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Type scale. 13px is the reading size; 11px is the smallest we ship. */
   --text-xs: 11px;
   --text-sm: 12px;
   --text-md: 13px;
   --text-lg: 14px;
   --text-xl: 16px;
   --text-2xl: 20px;
-  --text-3xl: 24px;
+  --text-3xl: 28px;
+
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
-  --radius-xl: 10px;
+  --radius-xl: 12px;
+
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -22,115 +36,89 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
+  --space-10: 40px;
+
+  /* Control heights are minimums: text must be free to wrap at 200% size. */
   --control-sm: 28px;
   --control-md: 32px;
   --control-lg: 36px;
+
   --sidebar-width: 224px;
   --topbar-height: 48px;
-  --shadow-sm: 0 1px 2px rgb(28 28 34 / 0.04);
-  --shadow-lg: 0 16px 48px rgb(28 28 34 / 0.12);
-  --background: #fafafa;
-  --surface: #ffffff;
-  --surface-muted: #f5f5f7;
-  --surface-hover: #f0f0f4;
-  --surface-active: #e9e9ef;
-  --border: #e6e6eb;
-  --border-strong: #dcdce3;
-  --border-subtle: #ececf0;
-  --foreground: #1c1c22;
-  --foreground-secondary: #3d3d47;
-  --foreground-muted: #656570;
-  --foreground-faint: #656570;
-  --foreground-placeholder: #656570;
-  --primary: #5e5ce6;
-  --primary-hover: #4f4dd1;
-  --primary-foreground: #ffffff;
-  --primary-soft: #f3f3ff;
-  --ring: rgb(94 92 230 / 0.25);
-  --success: #3ba776;
-  --success-foreground: #2f8a5f;
-  --success-soft: #f2faf5;
-  --success-border: #d7ecdf;
-  --warning: #d9822b;
-  --warning-foreground: #b3541e;
-  --warning-soft: #fff6ec;
-  --warning-border: #f2dec9;
-  --danger: #b42a3d;
-  --danger-soft: #fff1f3;
-  --danger-border: #f4d3d9;
-  --info: #5e5ce6;
-  --info-soft: #eeedff;
-  --backdrop: rgb(28 28 34 / 0.4);
+  /* Reading measure for prose. Data surfaces span the full column. */
+  --measure: 72ch;
+
+  /* Table density: one row height, one cell inset, applied by every table. */
+  --row-height: 36px;
+  --row-inset: 12px;
+
+  /* Motion. Every transition reads these; reduced-motion zeroes them below. */
+  --ease: cubic-bezier(0.2, 0, 0.13, 1);
+  --duration-fast: 90ms;
+  --duration-base: 140ms;
+
+  /* Surfaces, in elevation order: the page ground, panels on it, insets in them. */
+  --background: light-dark(#fafafb, #0d0d10);
+  --surface: light-dark(#ffffff, #141418);
+  --surface-muted: light-dark(#f4f4f6, #1a1a1f);
+  --surface-hover: light-dark(#f0f0f3, #212127);
+  --surface-active: light-dark(#e8e8ee, #2a2a31);
+  /* Floating layer: menus, popovers, dialogs. Reads above --surface in both themes. */
+  --surface-raised: light-dark(#ffffff, #1b1b21);
+
+  /* Hairlines. --border is the default rule; --border-strong outlines controls. */
+  --border: light-dark(#e9e9ef, #242429);
+  --border-strong: light-dark(#d9d9e0, #32323a);
+  --border-subtle: light-dark(#f0f0f4, #1d1d22);
+
+  /* Text, in descending emphasis. All four clear 4.5:1 on --surface and --surface-muted. */
+  --foreground: light-dark(#15151a, #ededf1);
+  --foreground-secondary: light-dark(#3a3a44, #c6c6cf);
+  --foreground-muted: light-dark(#61616b, #94949f);
+  --foreground-faint: light-dark(#61616b, #94949f);
+  --foreground-placeholder: light-dark(#61616b, #94949f);
+
+  --primary: light-dark(#5b5bd6, #7c7cf5);
+  --primary-hover: light-dark(#4e4ec4, #9090f8);
+  --primary-foreground: light-dark(#ffffff, #0d0d10);
+  --primary-soft: light-dark(#f1f1fe, #1e1e32);
+  --ring: light-dark(rgb(91 91 214 / 0.28), rgb(124 124 245 / 0.36));
+
+  --success: light-dark(#3ba776, #6ace97);
+  --success-foreground: light-dark(#2f8a5f, #6ace97);
+  --success-soft: light-dark(#f2faf5, #16261e);
+  --success-border: light-dark(#d7ecdf, #234d38);
+
+  --warning: light-dark(#d9822b, #ffc080);
+  --warning-foreground: light-dark(#b3541e, #ffc080);
+  --warning-soft: light-dark(#fff6ec, #2b2015);
+  --warning-border: light-dark(#f2dec9, #5a3d1e);
+
+  --danger: light-dark(#b42a3d, #f38a98);
+  --danger-soft: light-dark(#fff1f3, #2c181c);
+  --danger-border: light-dark(#f4d3d9, #5b2731);
+
+  --info: light-dark(#5b5bd6, #9b99ff);
+  --info-soft: light-dark(#eeedff, #1e1e32);
+
+  --backdrop: light-dark(rgb(21 21 26 / 0.32), rgb(0 0 0 / 0.6));
+  /* Shadows carry a light-dark() colour; only floating layers use them. */
+  --shadow-sm: 0 1px 2px light-dark(rgb(21 21 26 / 0.05), rgb(0 0 0 / 0.4));
+  --shadow-md: 0 4px 12px light-dark(rgb(21 21 26 / 0.08), rgb(0 0 0 / 0.45));
+  --shadow-lg: 0 16px 48px light-dark(rgb(21 21 26 / 0.12), rgb(0 0 0 / 0.5));
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    color-scheme: dark;
-    --background: #121216;
-    --surface: #17171c;
-    --surface-muted: #1d1d23;
-    --surface-hover: #24242b;
-    --surface-active: #2b2b33;
-    --border: #2a2a32;
-    --border-strong: #35353e;
-    --border-subtle: #24242b;
-    --foreground: #ececf0;
-    --foreground-secondary: #c9c9d1;
-    --foreground-muted: #9a9aa6;
-    --foreground-faint: #9a9aa6;
-    --foreground-placeholder: #9a9aa6;
-    --primary: #7b79f0;
-    --primary-foreground: #121216;
-    --primary-hover: #8f8df4;
-    --primary-soft: #23233a;
-    --ring: rgb(123 121 240 / 0.35);
-    --success: #6ace97;
-    --success-foreground: #6ace97;
-    --warning-foreground: #ffc080;
-    --danger: #f38a98;
-    --info: #9b99ff;
-    --success-soft: #16261e;
-    --success-border: #234d38;
-    --warning-soft: #2b2015;
-    --warning-border: #5a3d1e;
-    --danger-soft: #2c181c;
-    --danger-border: #5b2731;
-    --info-soft: #23233a;
-    --backdrop: rgb(0 0 0 / 0.6);
-    --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.5);
-  }
+
+/* An explicit choice pins the scheme; light-dark() resolves against it. */
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --background: #121216;
-  --surface: #17171c;
-  --surface-muted: #1d1d23;
-  --surface-hover: #24242b;
-  --surface-active: #2b2b33;
-  --border: #2a2a32;
-  --border-strong: #35353e;
-  --border-subtle: #24242b;
-  --foreground: #ececf0;
-  --foreground-secondary: #c9c9d1;
-  --foreground-muted: #9a9aa6;
-  --foreground-faint: #9a9aa6;
-  --foreground-placeholder: #9a9aa6;
-  --primary: #7b79f0;
-  --primary-foreground: #121216;
-  --primary-hover: #8f8df4;
-  --primary-soft: #23233a;
-  --ring: rgb(123 121 240 / 0.35);
-  --success: #6ace97;
-  --success-foreground: #6ace97;
-  --warning-foreground: #ffc080;
-  --danger: #f38a98;
-  --info: #9b99ff;
-  --success-soft: #16261e;
-  --success-border: #234d38;
-  --warning-soft: #2b2015;
-  --warning-border: #5a3d1e;
-  --danger-soft: #2c181c;
-  --danger-border: #5b2731;
-  --info-soft: #23233a;
-  --backdrop: rgb(0 0 0 / 0.6);
-  --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
 }

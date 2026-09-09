@@ -1,6 +1,14 @@
-import { Button } from './components';
-import { Badge } from './components';
-import { Input } from './components';
+import { useState } from 'react';
+import {
+  Badge,
+  Button,
+  DataTable,
+  Input,
+  Pagination,
+  Section,
+  TableScroll,
+  type Column,
+} from './components';
 import { WorkflowSelection } from './workflow-selection';
 import type { RowHistory } from '../campaigns';
 import {
@@ -165,6 +173,9 @@ export function InventoryPanel(props: InventoryPanelProps) {
   );
 }
 
+/** Surfaces are paged in the client: a discovery can carry thousands of rows. */
+const SURFACE_PAGE = 25;
+
 function SurfaceInventory({
   project,
   run,
@@ -174,6 +185,7 @@ function SurfaceInventory({
   run: Run;
   outcomes: Record<string, RowHistory>;
 }) {
+  const [offset, setOffset] = useState(0);
   // Typed views over the server-produced persisted artifacts.
   // Their source references have distinct shapes; project them explicitly.
   const ledger = run.result?.ledger as IntentLedger | undefined;
@@ -195,78 +207,135 @@ function SurfaceInventory({
         truthState: 'hypothesized',
         intents: undefined,
       }));
+  const start = Math.min(offset, Math.max(0, rows.length - 1));
+  const page = rows.slice(start, start + SURFACE_PAGE);
+  type Row = (typeof rows)[number];
+  const columns: ReadonlyArray<Column<Row>> = [
+    {
+      key: 'surface',
+      header: 'Surface',
+      width: '24%',
+      cell: (row) => (
+        <code className="text-[12px] text-[var(--foreground)]">
+          {row.method} {row.path}
+        </code>
+      ),
+    },
+    {
+      key: 'domain',
+      header: 'Domain',
+      cell: (row) => (
+        <span className="flex flex-col gap-0.5">
+          <span>{row.domain}</span>
+          {row.intents?.map((intent) => (
+            <small key={intent.proposalId} className="text-[11px] text-[var(--foreground-muted)]">
+              {intent.intent} · {intent.truthState}
+            </small>
+          ))}
+        </span>
+      ),
+    },
+    {
+      key: 'disposition',
+      header: 'Disposition',
+      cell: (row) => (
+        // Badge and disposition sit on one line: stacked, they set the row
+        // height for every surface in the table.
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <Badge variant="outline" className={`pill ${row.truthState} shrink-0`}>
+            {row.truthState}
+          </Badge>
+          <small className="text-[11px] text-[var(--foreground-muted)]">{row.disposition}</small>
+        </span>
+      ),
+    },
+    {
+      key: 'ledger',
+      header: 'Executions',
+      width: '18%',
+      // The execution history is stated in the cell, not hidden behind a title:
+      // a tooltip is not reachable by keyboard or reliably announced, and
+      // "never executed" is exactly what an operator scanning for gaps needs.
+      cell: (row) => {
+        const history = outcomes[row.key];
+        return (
+          <span data-row-ledger={row.key}>
+            {history ? (
+              <small>
+                {history.verified} verified of {history.executions} executions across campaigns
+                {history.contradicted ? ` · ${history.contradicted} contradicted` : ''}
+                {history.blocked ? ` · ${history.blocked} blocked` : ''}
+              </small>
+            ) : (
+              <small className="text-[var(--foreground-muted)]">
+                Not selected for a campaign yet.
+              </small>
+            )}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'evidence',
+      header: 'Evidence',
+      width: '30%',
+      truncate: true,
+      cell: (row) => {
+        // The first reference is the one an operator opens; the rest stay
+        // reachable on the title rather than costing two more lines per row.
+        const [first, ...rest] = row.sourceRefs;
+        const all = row.sourceRefs.map((ref) => `${ref.path}:${ref.startLine}`).join('\n');
+        return (
+          <span className="flex flex-col gap-0.5">
+            <span>{row.reason}</span>
+            {first && (
+              <small className="flex items-baseline gap-1 text-[11px]" title={all}>
+                <span className="min-w-0 truncate">
+                  {first.path}:{first.startLine}
+                </span>
+                {rest.length > 0 && (
+                  <span className="shrink-0 tabular-nums text-[var(--foreground-muted)]">
+                    +{rest.length}
+                  </span>
+                )}
+              </small>
+            )}
+            {row.intents?.length === 0 && (
+              <small className="text-[11px] text-[var(--foreground-muted)]">
+                No intent proposal for this surface.
+              </small>
+            )}
+          </span>
+        );
+      },
+    },
+  ];
   return (
-    <>
-      <div className="section-heading">
-        <h2>{project.name}</h2>
-        <small>
-          {rows.length} known surfaces · {run.mode} ·{' '}
-          {new Date(run.createdAt).toISOString().slice(0, 19).replace('T', ' ')} UTC
-        </small>
-      </div>
-      <div className="panel">
-        <table className="table surface-inventory">
-          <thead>
-            <tr>
-              <th>SURFACE</th>
-              <th>DOMAIN / INTENT</th>
-              <th>DISPOSITION</th>
-              <th>EXECUTION LEDGER</th>
-              <th>EVIDENCE / GAP</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => {
-              const ledger = outcomes[row.key];
-              return (
-                <tr key={row.key}>
-                  <td data-label="SURFACE">
-                    {row.method} {row.path}
-                  </td>
-                  <td data-label="DOMAIN / INTENT">
-                    {row.domain}
-                    {row.intents?.map((intent) => (
-                      <small key={intent.proposalId}>
-                        {intent.intent} · {intent.truthState}
-                      </small>
-                    ))}
-                  </td>
-                  <td data-label="DISPOSITION">
-                    <Badge variant="outline" className={`pill ${row.truthState}`}>
-                      {row.truthState}
-                    </Badge>
-                    <small>{row.disposition}</small>
-                  </td>
-                  <td data-label="EXECUTION LEDGER" data-row-ledger={row.key}>
-                    {ledger ? (
-                      <small>
-                        {ledger.verified} verified of {ledger.executions} executions across
-                        campaigns
-                        {ledger.contradicted ? ` · ${ledger.contradicted} contradicted` : ''}
-                        {ledger.blocked ? ` · ${ledger.blocked} blocked` : ''}
-                      </small>
-                    ) : (
-                      <small>Not selected for a campaign yet.</small>
-                    )}
-                  </td>
-                  <td data-label="EVIDENCE / GAP">
-                    {row.reason}
-                    {row.sourceRefs.slice(0, 3).map((ref, index) => (
-                      <small key={`${ref.path}:${ref.startLine}:${index}`}>
-                        {ref.path}:{ref.startLine}
-                      </small>
-                    ))}
-                    {row.intents?.length === 0 && (
-                      <small>No intent proposal for this surface.</small>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </>
+    <Section
+      title={project.name}
+      meta={`${rows.length} known surfaces · ${run.mode} · ${new Date(run.createdAt).toISOString().slice(0, 19).replace('T', ' ')} UTC`}
+    >
+      <DataTable
+        className="surface-inventory"
+        caption={`Discovered surfaces for ${project.name}`}
+        columns={columns}
+        rows={page}
+        rowKey={(row) => row.key}
+      />
+      {rows.length > SURFACE_PAGE && (
+        <Pagination
+          offset={start}
+          count={page.length}
+          total={rows.length}
+          unit="surfaces"
+          onPage={(direction) =>
+            setOffset((value) =>
+              Math.max(0, Math.min(value + direction * SURFACE_PAGE, rows.length - 1)),
+            )
+          }
+        />
+      )}
+    </Section>
   );
 }
 
@@ -507,7 +576,7 @@ function FrontendDeclarations({
   // never collide as React keys and retained evidence stays unchanged.
   const rowKeys = new Map(inventory.rows.map((row, index) => [row, `${index}:${row.id}`]));
   const matches = matchingDeclarations(inventory, kind, search);
-  const pageSize = 100;
+  const pageSize = 25;
   const page = Math.min(
     pages.get(run.id) ?? 0,
     Math.max(0, Math.ceil(matches.length / pageSize) - 1),
@@ -529,27 +598,55 @@ function FrontendDeclarations({
         scan. Source revision: <code>{inventory.revision.commit}</code>
         {inventory.revision.dirty && ' · Uncommitted files excluded'}.
       </div>
-      <div className="panel">
-        <table className="table" data-frontend-rows>
-          <thead>
+      <TableScroll>
+        <table
+          className="table data-table w-full border-collapse text-left text-[13px]"
+          data-frontend-rows
+        >
+          <caption className="sr-only">Frontend declarations</caption>
+          <thead className="[&_th]:border-b [&_th]:border-[var(--border)]">
             <tr>
-              <th>KIND</th>
-              <th>DECLARATION</th>
-              <th>SOURCE EVIDENCE</th>
+              <th
+                scope="col"
+                className="h-9 px-3 text-[12px] font-medium text-[var(--foreground-muted)]"
+              >
+                Kind
+              </th>
+              <th
+                scope="col"
+                className="h-9 px-3 text-[12px] font-medium text-[var(--foreground-muted)]"
+              >
+                Declaration
+              </th>
+              <th
+                scope="col"
+                className="h-9 px-3 text-[12px] font-medium text-[var(--foreground-muted)]"
+              >
+                Source evidence
+              </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="[&_tr:not(:last-child)_td]:border-b [&_td]:border-[var(--border-subtle)]">
             {matches.length ? (
               matches.slice(page * pageSize, (page + 1) * pageSize).map((row) => (
                 <tr key={rowKeys.get(row) ?? row.id}>
-                  <td data-label="KIND">
+                  <td data-label="Kind" className="px-3 py-1.5 align-top whitespace-nowrap">
                     {row.kind}
-                    <small>{row.basis} · hypothesized</small>
+                    <small className="block text-[11px] text-[var(--foreground-muted)]">
+                      {row.basis} · hypothesized
+                    </small>
                   </td>
-                  <td data-label="DECLARATION">{row.label}</td>
-                  <td data-label="SOURCE EVIDENCE">
-                    {row.source.path}:{row.source.startLine}–{row.source.endLine}
-                    <small title={row.source.blobSha256}>
+                  <td data-label="Declaration" className="px-3 py-1.5 align-top">
+                    {row.label}
+                  </td>
+                  <td data-label="Source evidence" className="px-3 py-1.5 align-top">
+                    <span className="folder block truncate" title={row.source.path}>
+                      {row.source.path}:{row.source.startLine}–{row.source.endLine}
+                    </span>
+                    <small
+                      className="block text-[11px] text-[var(--foreground-muted)]"
+                      title={row.source.blobSha256}
+                    >
                       SHA-256 {row.source.blobSha256.slice(0, 12)}
                     </small>
                   </td>
@@ -557,12 +654,14 @@ function FrontendDeclarations({
               ))
             ) : (
               <tr>
-                <td colSpan={3}>No declarations match these filters.</td>
+                <td colSpan={3} className="px-3 py-4 text-[var(--foreground-muted)]">
+                  No declarations match these filters.
+                </td>
               </tr>
             )}
           </tbody>
         </table>
-      </div>
+      </TableScroll>
       <div className="toolbar">
         <Button
           variant="outline"

@@ -12,8 +12,10 @@ import {
   Menu,
   X,
   Plus,
+  Search,
 } from 'lucide-react';
-import { Button, Input, Label, ThemeSwitch } from './components';
+import { Button, Input, Label, ThemeSwitch, Toaster, ConfirmHost } from './components';
+import { CommandBar } from './command-registry';
 
 function Mark({ size = 14 }: { size?: number }) {
   return (
@@ -31,6 +33,11 @@ function Mark({ size = 14 }: { size?: number }) {
       <path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M4 12h16" />
     </svg>
   );
+}
+/** Apple keyboards label the palette shortcut ⌘K; every other platform reads Ctrl K. */
+function shortcutHint() {
+  const apple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/u.test(navigator.platform);
+  return apple ? '⌘K' : 'Ctrl K';
 }
 export const sections = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -148,6 +155,19 @@ function WorkspaceShell() {
               <span id="breadcrumb">Overview</span>
             </span>
             <div className="topbar-actions">
+              {/* Named explicitly: the visible label is hidden on narrow
+                  viewports, and the icon and shortcut hint are decorative. */}
+              <button
+                type="button"
+                className="command-trigger"
+                id="open-command-palette"
+                aria-label="Search the workspace"
+                title={`Search the workspace (${shortcutHint()})`}
+              >
+                <Search aria-hidden="true" />
+                <span>Search</span>
+                <kbd aria-hidden="true">{shortcutHint()}</kbd>
+              </button>
               <Button
                 id="connect-agent"
                 aria-label="Connect agent"
@@ -170,7 +190,6 @@ function WorkspaceShell() {
             </div>
           </header>
           <div className="page">
-            <div id="notice" role="status" hidden></div>
             <div className="page-heading">
               <h1 id="page-title" tabIndex={-1}>
                 Workspace overview
@@ -189,6 +208,9 @@ function WorkspaceShell() {
       <dialog id="agent-dialog">
         <div id="agent-wizard-root"></div>
       </dialog>
+      <CommandBar />
+      <ConfirmHost />
+      <Toaster />
     </>
   );
 }

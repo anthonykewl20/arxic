@@ -267,7 +267,7 @@ export class Workbench {
       ...startupRoots.filter((root) => !deltas.removed.includes(root)),
       ...deltas.added,
     ];
-    this.providerSecrets = new SecretStore(store.db);
+    this.providerSecrets = new SecretStore(store.db, directory);
     this.timer = setInterval(() => {
       void this.guardDueCampaigns()
         .then(() => this.tick())
@@ -448,6 +448,78 @@ export class Workbench {
     for (const [key, value] of Object.entries(process.env))
       if (value !== undefined) merged[key] = value;
     return merged;
+  }
+  /**
+   * Every ARXIC_SECRET_ reference the workspace actually uses, with where it is
+   * used and whether it currently resolves. Names and resolution status only —
+   * a credential VALUE never leaves the server, not even to the administrator
+   * who entered it.
+   *
+   * `environment` wins over `vault` because effectiveEnv() gives the operator's
+   * own process environment precedence; saying so stops an operator debugging a
+   * stored value that is being shadowed.
+   */
+  credentialInventory() {
+    const stored = new Set(this.providerSecrets.refs());
+    const uses = new Map<string, string[]>();
+    const add = (ref: string | undefined, where: string) => {
+      if (!ref) return;
+      uses.set(ref, [...(uses.get(ref) ?? []), where]);
+    };
+    for (const project of this.store.projects()) {
+      if (project.login) {
+        add(project.login.emailRef, `${project.name} · sign-in email`);
+        add(project.login.passwordRef, `${project.name} · sign-in password`);
+      }
+      add(project.execution?.modelSecretRef, `${project.name} · AI model key`);
+    }
+    for (const campaign of this.store.campaigns())
+      for (const variant of campaign.variants ?? [])
+        if (variant.kind === 'persona') {
+          add(variant.persona.emailRef, `${campaign.projectName} · ${variant.label} email`);
+          add(variant.persona.passwordRef, `${campaign.projectName} · ${variant.label} password`);
+        }
+    return {
+      keySource: this.providerSecrets.keySource,
+      keyPath: this.providerSecrets.keyPath,
+      credentials: [...uses.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([ref, where]) => ({
+          ref,
+          uses: [...new Set(where)],
+          status: process.env[ref]
+            ? ('environment' as const)
+            : stored.has(ref)
+              ? ('vault' as const)
+              : ('missing' as const),
+        })),
+      // Stored refs nothing references any more: dead credentials the operator
+      // can clear. Provider connection keys are managed on their own screen.
+      orphaned: [...stored].filter((ref) => !uses.has(ref)).sort(),
+    };
+  }
+  /** Store a sign-in credential under an ARXIC_SECRET_ reference. Write-only: never read back. */
+  async saveSecret(input: unknown) {
+    return this.mutate(async () => {
+      const record = input as { ref?: unknown; value?: unknown } | null;
+      const ref = secretRef(record?.ref);
+      if (!ref) throw new HttpError(400, 'Name the ARXIC_SECRET_ reference to store');
+      const value = typeof record?.value === 'string' ? record.value : '';
+      if (!value || value.length > 5000)
+        throw new HttpError(400, 'Provide the credential as text between 1 and 5000 characters');
+      this.providerSecrets.set(ref, value);
+      this.store.audit('secret.set', ref);
+      return this.credentialInventory();
+    });
+  }
+  async removeSecret(input: unknown) {
+    return this.mutate(async () => {
+      const ref = secretRef((input as { ref?: unknown } | null)?.ref);
+      if (!ref) throw new HttpError(400, 'Name the ARXIC_SECRET_ reference to remove');
+      this.providerSecrets.remove(ref);
+      this.store.audit('secret.removed', ref);
+      return this.credentialInventory();
+    });
   }
   async saveProviderSecret(input: unknown) {
     return this.mutate(async () => {

@@ -36,6 +36,9 @@ export function RunPanel(props: RunPanelProps) {
   );
   return (
     <>
+      {chosen && !props.loading && !props.error && (
+        <RunDetail {...props} key={chosen.id} run={chosen} />
+      )}
       <div className="toolbar">
         <select
           id="project-filter"
@@ -142,9 +145,6 @@ export function RunPanel(props: RunPanelProps) {
             Next runs
           </Button>
         </div>
-      )}
-      {chosen && !props.loading && !props.error && (
-        <RunDetail {...props} key={chosen.id} run={chosen} />
       )}
     </>
   );

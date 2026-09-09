@@ -75,7 +75,7 @@ function ProviderPanel({
       </div>
       <div className="provider-layout">
         <nav className="provider-list" aria-label="Model providers">
-          <div className="provider-list-label">CONNECTIONS</div>
+          <div className="provider-list-label">Connections</div>
           {available.map((item) => (
             <button
               key={item.id}
@@ -113,7 +113,7 @@ function ProviderPanel({
           <div className="provider-detail">
             <div className="provider-detail-heading">
               <div>
-                <p className="provider-kicker">MODEL CONNECTION</p>
+                <p className="provider-kicker">Model connection</p>
                 <h2>{active.label}</h2>
               </div>
               <Badge variant="secondary">

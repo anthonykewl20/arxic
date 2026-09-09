@@ -12,3 +12,21 @@ export { Stepper } from './ui/stepper';
 export { Callout } from './ui/callout';
 export { DialogHeading, DialogBody, DialogFooter } from './ui/dialog';
 export { ThemeSwitch } from './ui/theme-switch';
+export {
+  Table,
+  TableScroll,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeader,
+  TableCell,
+  DataTable,
+  type Column,
+} from './ui/table';
+export { Section, EmptyState, Note, Stat } from './ui/page';
+export { Toolbar, SearchField, FilterSelect, Pagination } from './ui/toolbar';
+export { Menu, type MenuItem } from './ui/menu';
+export { Toaster, toast, clearToasts, dismissToast, type Toast } from './ui/toast';
+export { ConfirmHost, confirmAction } from './ui/confirm';
+export { CommandPalette, matchCommands, type Command } from './ui/command-palette';
+export { Tabs, TabPanel, type TabItem } from './ui/tabs';

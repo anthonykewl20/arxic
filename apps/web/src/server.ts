@@ -162,6 +162,12 @@ export async function startWorkbench(options: WorkbenchOptions) {
       await refreshModelCatalog(catalogRoute?.[1] ?? '', workbench.effectiveEnv());
       return json(response, 200, { modelConnections: modelConnections(workbench.effectiveEnv()) });
     }
+    if (path === '/api/secrets' && request.method === 'GET')
+      return json(response, 200, workbench.credentialInventory());
+    if (path === '/api/secrets' && request.method === 'POST')
+      return json(response, 200, await workbench.saveSecret(await readJson(request)));
+    if (path === '/api/secrets' && request.method === 'DELETE')
+      return json(response, 200, await workbench.removeSecret(await readJson(request)));
     if (path === '/api/provider-secrets' && request.method === 'POST')
       return json(response, 201, await workbench.saveProviderSecret(await readJson(request)));
     if (path === '/api/provider-secrets' && request.method === 'DELETE')

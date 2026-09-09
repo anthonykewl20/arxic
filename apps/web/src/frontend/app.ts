@@ -9,6 +9,19 @@ import { updateModelCatalogs } from './model-controls';
 import { reviewDrafts, reviewDraftKey } from './review-form';
 import { clearPendingRequests, beginPendingRequest, campaignRequestKey } from './pending-requests';
 import { initTheme } from './theme';
+import { toast, clearToasts, confirmAction, type Command } from './components';
+import { updateCommands } from './command-registry';
+import {
+  LayoutDashboard,
+  ScanSearch,
+  Play,
+  Layers,
+  CalendarClock,
+  Bot,
+  Settings2,
+  Plus,
+  FolderGit2,
+} from 'lucide-react';
 
 initTheme();
 mountWorkspaceShell(document.querySelector('#workspace-root')!);
@@ -45,7 +58,6 @@ let runOffset = 0;
 const workflowSelections = new Map<string, Set<string>>();
 const workflowPages = new Map<string, number>();
 const campaignPages = new Map<string, number>();
-let noticeTimer: ReturnType<typeof setTimeout>;
 let sessionEpoch = 0;
 let refreshSequence = 0;
 let signingOut = false;
@@ -153,6 +165,8 @@ function clearSession() {
   if (workspacePanel) unmountWorkspacePanel(workspacePanel);
   if (providerPanel) unmountProviderPanel(providerPanel);
   reviewDrafts.clear();
+  clearToasts();
+  updateCommands([]);
   clearPendingRequests();
   workflowSelections.clear();
   updateModelCatalogs([]);
@@ -162,13 +176,9 @@ function clearSession() {
   $('#app').hidden = true;
   $('#login').hidden = false;
 }
+/** One announcement channel for the whole dashboard; the Toaster owns presentation. */
 function notice(message: string) {
-  $('#notice').textContent = message;
-  $('#notice').hidden = false;
-  clearTimeout(noticeTimer);
-  noticeTimer = setTimeout(() => {
-    $('#notice').hidden = true;
-  }, 10_000);
+  toast(message);
 }
 async function refresh() {
   if (signingOut) return;
@@ -270,6 +280,7 @@ function project(id: string) {
 }
 function render() {
   writeLocation();
+  publishCommands();
   $('#page-title').textContent = titles[section];
   $('#breadcrumb').textContent = titles[section];
   $('#page-description').textContent = descriptions[section];
@@ -327,6 +338,11 @@ function render() {
         runs: state.runs ?? [],
       },
       admin: { onChanged: refresh },
+      actions: {
+        onRun: (projectId: string, mode: string) => void startRun(projectId, mode),
+        onEdit: (id: string) => editProject(id),
+        onGo: goToSection,
+      },
     });
     return;
   }
@@ -343,6 +359,112 @@ function render() {
     return;
   }
   if (providerRoot) unmountProviderPanel(providerRoot);
+}
+/** Navigate to a section the same way a sidebar click does, from anywhere. */
+function goToSection(next: string) {
+  if (!Object.hasOwn(titles, next)) return;
+  section = next;
+  writeLocation();
+  void refresh()
+    .then(() => $('#page-title').focus())
+    .catch((error) => notice(error.message));
+}
+const sectionIcons: Record<string, Command['icon']> = {
+  overview: LayoutDashboard,
+  intents: ScanSearch,
+  runs: Play,
+  campaigns: Layers,
+  schedules: CalendarClock,
+  providers: Bot,
+  admin: Settings2,
+};
+/**
+ * Rebuilt from the workspace on every render so the palette can reach whatever
+ * exists right now — not just the fixed navigation. A project is one keystroke
+ * from being discovered, tested or configured; a recent run is one from being
+ * opened.
+ */
+function publishCommands() {
+  const commands: Command[] = [
+    ...Object.keys(titles).map((id) => ({
+      id: `go:${id}`,
+      label: titles[id]!,
+      group: 'Go to',
+      icon: sectionIcons[id],
+      keywords: descriptions[id],
+      run: () => goToSection(id),
+    })),
+    {
+      id: 'action:new-project',
+      label: 'Connect project',
+      group: 'Actions',
+      icon: Plus,
+      keywords: 'add repository folder github source',
+      run: () => editProject(),
+    },
+    {
+      id: 'action:connect-agent',
+      label: 'Connect agent',
+      group: 'Actions',
+      icon: Bot,
+      keywords: 'model provider ai',
+      run: () => connectAgent(),
+    },
+  ];
+  for (const item of state.projects as Array<{ id: string; name: string }>) {
+    commands.push(
+      {
+        id: `project:settings:${item.id}`,
+        label: `Settings — ${item.name}`,
+        group: 'Projects',
+        icon: FolderGit2,
+        keywords: 'configure edit project',
+        run: () => editProject(item.id),
+      },
+      ...(['discovery', 'visual', 'agent'] as const).map((mode) => ({
+        id: `project:${mode}:${item.id}`,
+        label: `${runModeLabels[mode]} — ${item.name}`,
+        group: 'Projects',
+        icon: Play,
+        keywords: `run start ${mode}`,
+        run: () => void startRun(item.id, mode),
+      })),
+    );
+  }
+  for (const run of (state.runs as Array<Record<string, string>>).slice(0, 8)) {
+    const owner = project(run.projectId!);
+    commands.push({
+      id: `run:${run.id}`,
+      label: `${owner?.name ?? 'Run'} — ${runModeLabels[run.mode!] ?? run.mode}`,
+      group: 'Recent runs',
+      icon: Play,
+      hint: run.id!.slice(0, 8),
+      keywords: `${run.id} ${run.state}`,
+      run: () => {
+        selectedRun = run.id!;
+        goToSection('runs');
+      },
+    });
+  }
+  updateCommands(commands);
+}
+const runModeLabels: Record<string, string> = {
+  discovery: 'Discover intents',
+  visual: 'Visual test',
+  agent: 'AI E2E',
+  review: 'AI visual review',
+};
+/** Queue a run and land on it, from a row button or the palette alike. */
+async function startRun(projectId: string, mode: string) {
+  try {
+    const run = await api(`/projects/${projectId}/runs`, 'POST', { mode });
+    selectedRun = run.id;
+    section = 'runs';
+    writeLocation();
+    await refresh();
+  } catch (error) {
+    notice((error as Error).message);
+  }
 }
 function editProject(id = '') {
   mountProjectWizard($('#project-wizard-root'), {
@@ -621,13 +743,7 @@ document.addEventListener('click', async (event) => {
     if (button.dataset.edit) editProject(button.dataset.edit);
     if (button.dataset.start) {
       disableForRequest();
-      const run = await api(`/projects/${button.dataset.project}/runs`, 'POST', {
-        mode: button.dataset.start,
-      });
-      selectedRun = run.id;
-      section = 'runs';
-      writeLocation();
-      await refresh();
+      await startRun(button.dataset.project!, button.dataset.start);
     }
     if (button.dataset.openRun) {
       selectedRun = button.dataset.openRun;
@@ -638,7 +754,12 @@ document.addEventListener('click', async (event) => {
     }
     if (
       button.dataset.deleteRun &&
-      window.confirm('Delete this run and its artifacts? Approved baselines are protected.')
+      (await confirmAction({
+        title: 'Delete this run?',
+        body: 'Its captures, diffs and timeline are removed from this server. Baselines you already approved are kept.',
+        confirmLabel: 'Delete run',
+        destructive: true,
+      }))
     ) {
       await api(`/runs/${button.dataset.deleteRun}`, 'DELETE', {});
       selectedRun = '';
