@@ -105,21 +105,34 @@ that state, and several of these exist precisely because a machine cannot.
   no candidate threshold meets the precision/recall gates on 178 rows, and
   shipping a miscalibrated threshold is prohibited.
 
-### C4. #423 — chronological holdout
+### C4. #423 — chronological holdout — **ANSWERED 2026-09-10 (observed: no cross-time generalization)**
 
-- The merged corpus and its holdout share a capture window, so nothing yet shows
-  the reviewer generalizing across **time** rather than only across families.
-- A genuinely later capture became possible today (the corpus is dated
-  2026-09-08). The data side is **not** the blocker: the third-party roots are
-  present on this host — `koel`, `directus` and all five public families
-  (`adminlte`, `gentelella`, `sb-admin`, `todomvc`, `todomvc-vendor`) under the
-  path `ARXIC_VISUAL_THIRD_PARTY` resolves to. Verified 2026-09-09.
-- The blocker is a **missing evaluate-only path**. `cli.ts corpus` runs
-  `captureCorpusV2` and then `trainCorpusV2`, which retrains; there is no mode
-  that captures fresh cases and scores them against the _already trained_
-  artifact, which is exactly what a chronological holdout has to do. Building
-  that mode plus running the capture is a slice of its own.
-- Not attempted here, and not worked around. Recorded unmet.
+Recorded here as unmet while the evaluate-only path was missing; answered by
+[#553](https://github.com/anthonykewl20/arxic/issues/553) once that path
+shipped (#554) and the holdout ran against the retained trained artifact.
+Kept in place so the register shows what was actually run and found.
+
+- The evaluate-only mode (`cli.ts corpus-evaluate`, #554) scores fresh
+  captures against the _already trained_ artifact with no retraining; a
+  hash/mtime assertion over the trained artifacts proves the side-effect-free
+  path, and the report binds results to the exact manifest/bin sha256s.
+- **The holdout (2026-09-10, two days after the 2026-09-08 corpus):** fresh
+  capture across the third-party roots (`koel`, `directus` via the rehearsal
+  containers; `adminlte`, `gentelella`, `sb-admin`, `todomvc` +
+  `todomvc-vendor` under `ARXIC_VISUAL_THIRD_PARTY`) — 252 planned cases, 66
+  oracle-honest skips, 186 scored rows, artifact integrity sha-verified
+  before the run.
+- **Observed result for the artifact's only trained head (`clipping`,
+  threshold 0.892): 0/65 recall (all controlled clipping regressions
+  missed), 117/117 specificity on clean pages.** The reviewer does not
+  generalize across time; the blocker was data-and-mechanism, and once both
+  existed the measurement answered negatively. `promotion:
+blocked-experimental-model` stays correct — see C5.
+- Evidence: `docs/evidence/VISUAL-SLM/holdout-2026-09-10/` (sanitized: every
+  PNG carries a privacy sidecar, leak-pattern grep over the retained set is
+  zero-hit). Truth states: all numbers **observed**; `verified` stays with
+  the human review gates, and independent human visual inspection of
+  retained screenshots is still owed.
 
 ### C5. #423 — model promotion
 

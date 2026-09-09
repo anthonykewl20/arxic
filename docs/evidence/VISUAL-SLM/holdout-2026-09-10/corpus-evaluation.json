@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "basis": "mlp-model.json",
+  "rows": 186,
+  "models": {
+    "logisticSha256": "fb35fda66b6272fac1a049fb6334f6065a610c05de6e2913f5848f1b829a1f24",
+    "mlpSha256": "3a8675a05d98011228c6252c0e6b89a2cf5ac10def7dae2fc431de861bef8a13",
+    "datasetSha256": "259ca3df72ca375fd54a0dd584b67edff74a587c3794277812639f21dedf4fde"
+  },
+  "corpusManifestSha256": "6b8645f2a31bd78775ff7d51e63a58a75bd866ecf5d51b99aa9e6a61fd1f8fa2",
+  "heads": [
+    {
+      "head": "clipping",
+      "scoreable": true,
+      "cases": 182,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "trueNegatives": 117,
+      "falseNegatives": 65,
+      "accuracy": 0.6428571428571429
+    },
+    {
+      "head": "occlusion",
+      "scoreable": false,
+      "cases": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "trueNegatives": 0,
+      "falseNegatives": 0,
+      "accuracy": null
+    },
+    {
+      "head": "missing_element",
+      "scoreable": false,
+      "cases": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "trueNegatives": 0,
+      "falseNegatives": 0,
+      "accuracy": null
+    },
+    {
+      "head": "overflow",
+      "scoreable": false,
+      "cases": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "trueNegatives": 0,
+      "falseNegatives": 0,
+      "accuracy": null
+    },
+    {
+      "head": "text_truncation",
+      "scoreable": false,
+      "cases": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "trueNegatives": 0,
+      "falseNegatives": 0,
+      "accuracy": null
+    },
+    {
+      "head": "layout_shift",
+      "scoreable": false,
+      "cases": 0,
+      "truePositives": 0,
+      "falsePositives": 0,
+      "trueNegatives": 0,
+      "falseNegatives": 0,
+      "accuracy": null
+    }
+  ]
+}
