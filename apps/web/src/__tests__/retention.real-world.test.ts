@@ -73,7 +73,12 @@ it('keeps failed deletion visible, recovers its durable intent, and preserves ac
   await rename(backup, evidenceRoot);
   await wb.close();
   wb = await Workbench.open(state, [root]);
-  expect(wb.retentionState().policy).toEqual({ enabled: true, maxAgeDays: 30, keepLatest: 1 });
+  expect(wb.retentionState().policy).toEqual({
+    enabled: true,
+    maxAgeDays: 30,
+    keepLatest: 1,
+    diskQuotaMb: 0,
+  });
   expect(wb.retentionState().pendingDeletions).toBe(0);
   expect(wb.store.run(candidate.id)).toBeUndefined();
   expect(wb.store.run(newest.id)).toBeDefined();
