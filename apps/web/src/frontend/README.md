@@ -60,6 +60,17 @@ letter/word spacing. Two rules follow:
 - Controls set a minimum height and let text wrap; they never fix a height that
   clips text at 200%.
 
+## Regression capture
+
+The capture engine lives outside this directory but its evidence surfaces here.
+`determinism.ts` makes a page reproducible before it is captured,
+`state-induction.ts` provokes the error and validation states plain navigation
+never reaches, `element-capture.ts` isolates overlays and declared components so
+a component is compared against itself, and `structural-diff.ts` decides whether
+a changed region is new content, a layout shift or paint. `run-panel.tsx` states
+that conclusion in words — "Layout moved: elements changed position or size" —
+rather than the category name.
+
 ## Credentials
 
 `credentials-panel.tsx` manages the `ARXIC_SECRET_` references a project signs in
