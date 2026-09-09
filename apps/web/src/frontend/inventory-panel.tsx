@@ -426,7 +426,7 @@ function RouteOmissionCoverage({
           </p>
           <ul>
             {checkpointMatrix.map((route) => (
-              <li key={`${route.method} ${route.path}`} data-route={route.path}>
+              <li key={`${route.method} ${route.path}`} data-checkpoint-route={route.path}>
                 <code>
                   {route.method} {route.path}
                 </code>{' '}

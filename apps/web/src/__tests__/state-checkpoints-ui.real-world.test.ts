@@ -49,7 +49,7 @@ it('saves a state checkpoint through the wizard and renders the coverage matrix'
     await expect.poll(text, { timeout: 30_000 }).toContain('State checkpoints');
     const loginRow = async () =>
       (await block
-        .locator('[data-route="/login"]')
+        .locator('[data-checkpoint-route="/login"]')
         .textContent()
         .catch(() => null)) ?? '';
     await expect.poll(loginRow).toContain('error');
