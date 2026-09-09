@@ -185,7 +185,8 @@ async function signIn(
           : []),
       ];
       for (const { matcher, how } of strategies) {
-        const matched = await matcher.first()
+        const matched = await matcher
+          .first()
           .waitFor({ state: 'visible', timeout: 5_000 })
           .then(
             () => true,
