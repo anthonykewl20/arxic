@@ -48,7 +48,11 @@ it('recovers failed deletion across server restart without losing real captures 
           run = (await (await request(`/api/runs/${queued.id}`)).json()) as Run;
           return run.state;
         },
-        { timeout: 30_000 },
+        // A real browser capture, bounded like the same wait in
+        // visual-matrix-ui.real-world.test.ts:91. The previous 30s encoded an
+        // assumption about machine speed, not about the property under test,
+        // and red at 31,983ms on a contended shard (refs #549).
+        { timeout: 90_000 },
       )
       .toBe('completed');
     expect(run.result?.captures?.length).toBeGreaterThan(0);
@@ -149,7 +153,9 @@ it('recovers failed deletion across server restart without losing real captures 
     });
     await expect
       .poll(async () => (await (await request(`/api/runs/${queued.id}`)).json()).state, {
-        timeout: 30_000,
+        // This window has to cover a full workbench teardown and reopen BEFORE
+        // the capture even starts, so it was the tighter-specified of the two.
+        timeout: 90_000,
       })
       .toBe('completed');
     expect((await (await request(`/api/runs/${queued.id}`)).json()).result.captures[0].status).toBe(
