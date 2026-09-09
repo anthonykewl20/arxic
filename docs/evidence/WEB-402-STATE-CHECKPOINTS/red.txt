@@ -1,0 +1,20 @@
+RED stage — recorded on origin/main (448ff76b) before implementation, worktree
+.worktrees/state-checkpoints-402, 2026-09-09 local.
+
+apps/web/src/__tests__/state-checkpoints.real-world.test.ts:
+
+ × captures and independently identities a declared error-state checkpoint 604ms
+ × refuses malformed state checkpoint declarations with distinct 400s 11ms
+ Tests  2 failed (2)
+
+(stateCaptures is an unknown project property; stateCheckpointCoverage does
+not exist.)
+
+Design corrections during the run (recorded):
+- the first draft targeted the vulnerable fixture, which has NO GET /login
+  (its login is a POST endpoint) — both captures failed navigation; switched
+  to the real reference app whose /login really renders `?error=` (the
+  fixture's own behavior; this slice pins the identity contract);
+- the single-environment summary path (singleSummary) also needed the state
+  checkpoint count, not only the multi-environment branch;
+- a missing state name needed its own 400 before the slug-pattern check.
