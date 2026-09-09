@@ -29,7 +29,13 @@ it('scores a corpus against the already-trained artifact without retraining anyt
   const directory = await mkdtemp(join(tmpdir(), 'visual-evaluate-live-'));
   try {
     const variants = ['clean', 'overflow-x', 'missing-element'];
-    const manifest = await captureCorpusV2(root, directory, ['next'], [800], variants);
+    const manifest = await captureCorpusV2(
+      root,
+      directory,
+      ['next', 'express'],
+      [800],
+      variants,
+    );
     await trainCorpusV2(root, directory, manifest);
     const before = {
       dataset: await sha256(join(directory, 'dataset.json')),
@@ -50,12 +56,23 @@ it('scores a corpus against the already-trained artifact without retraining anyt
     // The result binds to the exact artifact that produced the scores.
     expect(evaluation.models.logisticSha256).toBe(before.logistic);
     expect(evaluation.models.mlpSha256).toBe(before.mlp);
-    // Per-head confusion metrics over the adjudicated deterministic labels.
-    expect(evaluation.heads.length).toBeGreaterThan(0);
+    // All six heads are reported; only heads the artifact can score (trained
+    // threshold + supported) carry cases. This minimal corpus trains
+    // thresholds solely for the heads whose variants produce positive
+    // examples (overflow-x, missing-element), so the other four must be
+    // reported unscored — never fabricated as zero-accuracy results.
+    expect(evaluation.heads).toHaveLength(6);
     for (const head of evaluation.heads) {
-      expect(head.cases).toBeGreaterThan(0);
-      expect(head.cases).toBe(head.truePositives + head.falsePositives + head.trueNegatives + head.falseNegatives);
+      expect(head.cases).toBe(
+        head.truePositives + head.falsePositives + head.trueNegatives + head.falseNegatives,
+      );
+      if (!head.scoreable) expect(head.cases).toBe(0);
+      if (head.cases > 0) expect(head.accuracy).not.toBeNull();
     }
+    const scored = evaluation.heads.filter((head) => head.scoreable);
+    expect(scored.length).toBeGreaterThan(0);
+    expect(scored.map((head) => head.head)).toEqual(['missing_element', 'overflow']);
+    for (const head of scored) expect(head.cases).toBeGreaterThan(0);
     expect(evaluation.corpusManifestSha256).toMatch(/^[a-f0-9]{64}$/);
   } finally {
     await rm(directory, { recursive: true, force: true });
