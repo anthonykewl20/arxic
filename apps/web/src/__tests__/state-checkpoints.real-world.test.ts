@@ -80,8 +80,21 @@ it('captures and independently identities a declared error-state checkpoint', as
     discoveryResult.frontend as FrontendInventory,
     project.stateCaptures ?? [],
   );
-  const login = matrix.find((entry) => entry.path === '/login')!;
-  expect(login.dimensions).toEqual([
+  const login = matrix.find((entry) => entry.path === '/login');
+  if (!login)
+    console.log(
+      'MATRIX-DIAG:',
+      JSON.stringify({
+        inventoryPaths: (discoveryResult.inventory as DomainInventory).rows.map((row) => row.path),
+        matrixPaths: matrix.map((entry) => entry.path),
+        stateCaptures: project.stateCaptures,
+        loginConditions: (discoveryResult.frontend as FrontendInventory).rows
+          .filter((row) => row.source.path.startsWith('app/login'))
+          .slice(0, 8)
+          .map((row) => [row.kind, row.label.slice(0, 60)]),
+      }),
+    );
+  expect(login?.dimensions).toEqual([
     { name: 'state:loading', declared: false, checkpoint: false },
     { name: 'state:error', declared: true, checkpoint: true },
     { name: 'state:empty', declared: false, checkpoint: false },
