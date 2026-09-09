@@ -100,7 +100,7 @@ it('flushes case-start evidence before a real running test process is interrupte
     );
     await writeFile(
       join(directory, 'sample.test.mjs'),
-      `import {it} from ${JSON.stringify(pathToFileURL(resolve('node_modules/vitest/dist/index.js')).href)};it('private-running-name',()=>new Promise(()=>{}),10000);`,
+      `import {it} from ${JSON.stringify(pathToFileURL(resolve('node_modules/vitest/dist/index.js')).href)};it('private-running-name',()=>new Promise(()=>{}),120000);`,
     );
     child = spawn(
       process.execPath,
@@ -119,8 +119,14 @@ it('flushes case-start evidence before a real running test process is interrupte
       },
     );
     const exited = new Promise((resolveExit) => child.once('exit', resolveExit));
-    // The window is startup latency, not the property: a contended machine can
-    // take well over 10s to cold-start the vitest child before it emits anything.
+    // The poll tolerates slow child cold-starts (observed >10s on CI and
+    // locally), and vitest's per-test timeout clock starts before the body
+    // runs, so a cold boot once converted the fixture's own 10s timeout into
+    // exactly the pre-interrupt case-result this test refuses (boot 10.17s,
+    // reportedTimeoutMs 10000 fired 2ms after case-start; CI run
+    // 34355455688). The fixture hang now outlives the 60s poll bound plus the
+    // observer delay, and the outer timeout below caps the whole test, so the
+    // SIGTERM interrupt always lands before any timeout result can exist.
     await expect
       .poll(async () => readFile(output, 'utf8').catch(() => ''), { timeout: 60000 })
       .toContain('case-start');
@@ -137,7 +143,7 @@ it('flushes case-start evidence before a real running test process is interrupte
     if (child && child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
     await rm(directory, { recursive: true, force: true });
   }
-}, 20000);
+}, 90000);
 
 it('distinguishes a real output-bound failure from a signalled child', async () => {
   const { commandFailureFacts } = await import('./command-failure.mjs');
