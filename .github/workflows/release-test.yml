@@ -47,10 +47,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # Native dependencies are installed by pnpm above; explicitly installing
-      # Chromium makes browser availability a tested property of every cell.
-      - name: Install Playwright Chromium (Linux)
+      # the browsers makes browser availability a tested property of every
+      # cell. The ubuntu cell runs the full unsharded core suite, so it needs
+      # the same browser matrix as the required ci shards (chromium firefox
+      # webkit): with chromium alone the suite's WebKit journeys died on
+      # `browserType.launch: Executable doesn't exist` and their workbench
+      # runs ended blocked (run 34288844027 on #529, #525) — failures the
+      # old 25-minute cap had been masking before the suite ever reached them.
+      - name: Install Playwright browser matrix (Linux)
         if: runner.os == 'Linux'
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
 
       - name: Install Playwright Chromium (macOS and Windows)
         if: runner.os != 'Linux'
