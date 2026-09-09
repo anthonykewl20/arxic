@@ -2,7 +2,7 @@ import { mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promise
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import Database from 'better-sqlite3';
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { SecretStore } from '../secret-store';
 
 const cleanup: Array<() => Promise<void>> = [];
@@ -198,4 +198,54 @@ it('refuses a reference that is not an ARXIC_SECRET_ name, and an empty value', 
   await expect(wb.saveSecret({ ref: 'ARXIC_SECRET_OK', value: '' })).rejects.toThrow(
     /between 1 and 5000/,
   );
+});
+
+it('does not let an empty environment variable shadow a stored credential', async () => {
+  const { wb } = await workbench();
+  await wb.saveSecret({ ref: 'ARXIC_SECRET_SHADOWED', value: 'kept-in-the-vault' });
+  // A shell profile exporting the name with no value must not erase the vault
+  // entry and send the operator looking for a server-environment problem.
+  vi.stubEnv('ARXIC_SECRET_SHADOWED', '');
+  expect(wb.effectiveEnv().ARXIC_SECRET_SHADOWED).toBe('kept-in-the-vault');
+  // A real value still wins, which is the documented precedence.
+  vi.stubEnv('ARXIC_SECRET_SHADOWED', 'from-the-environment');
+  expect(wb.effectiveEnv().ARXIC_SECRET_SHADOWED).toBe('from-the-environment');
+});
+
+it('reports a credential as vault-backed when the environment names it but leaves it empty', async () => {
+  const { wb, root } = await workbench();
+  await wb.saveProject({
+    name: 'Shadowed project',
+    folder: root,
+    origin: 'http://127.0.0.1:1',
+    paths: ['/'],
+    viewports: [{ width: 800, height: 600 }],
+    masks: [],
+    captureConsent: true,
+    pageMode: 'manual',
+    recordVideo: false,
+    maxPages: 5,
+    maxDepth: 1,
+    configPath: '',
+    cron: '',
+    scheduleMode: 'discovery',
+    paused: false,
+    login: {
+      loginPath: '/login',
+      emailRef: 'ARXIC_SECRET_SHADOW_EMAIL',
+      passwordRef: 'ARXIC_SECRET_SHADOW_PASSWORD',
+      emailLabel: 'Email',
+      passwordLabel: 'Password',
+      submitLabel: 'Sign in',
+    },
+  });
+  await wb.saveSecret({ ref: 'ARXIC_SECRET_SHADOW_PASSWORD', value: 'kept-in-the-vault' });
+  const status = (ref: string) =>
+    wb.credentialInventory().credentials.find((item) => item.ref === ref)?.status;
+
+  vi.stubEnv('ARXIC_SECRET_SHADOW_PASSWORD', '');
+  expect(status('ARXIC_SECRET_SHADOW_PASSWORD')).toBe('vault');
+  vi.stubEnv('ARXIC_SECRET_SHADOW_PASSWORD', 'from-the-environment');
+  expect(status('ARXIC_SECRET_SHADOW_PASSWORD')).toBe('environment');
+  expect(status('ARXIC_SECRET_SHADOW_EMAIL')).toBe('missing');
 });

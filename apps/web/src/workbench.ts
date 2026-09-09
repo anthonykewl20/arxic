@@ -443,11 +443,23 @@ export class Workbench {
   retentionState() {
     return this.retention.state();
   }
-  /** Runtime-entered credentials complete the environment; explicit operator env keeps precedence. */
+  /**
+   * Runtime-entered credentials complete the environment; an explicit operator
+   * variable keeps precedence.
+   *
+   * An EMPTY variable is not an override. A shell profile that exports
+   * `ARXIC_SECRET_X=` would otherwise shadow a credential stored in the vault
+   * with nothing at all, and the run would refuse with "set it in the server
+   * environment" — pointing the operator away from the value they had just
+   * entered in the dashboard.
+   */
   effectiveEnv(): NodeJS.ProcessEnv {
     const merged: NodeJS.ProcessEnv = this.providerSecrets.all();
-    for (const [key, value] of Object.entries(process.env))
-      if (value !== undefined) merged[key] = value;
+    for (const [key, value] of Object.entries(process.env)) {
+      if (value === undefined) continue;
+      if (value === '' && merged[key]) continue;
+      merged[key] = value;
+    }
     return merged;
   }
   /**
