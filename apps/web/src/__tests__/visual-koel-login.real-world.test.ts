@@ -202,7 +202,7 @@ it('classifies a wrong koel password as a blocked sign-in, then captures the rea
     const run = wb.enqueue(project.id, 'visual');
     await wb.idle();
     const result = wb.store.run(run.id)!.result!;
-    expect(result.outcome).toBe('observed');
+    expect(result.outcome, JSON.stringify(result)).toBe('observed');
     expect(result.captures).toHaveLength(1);
     expect(result.captures![0]).toMatchObject({ authenticated: true, status: 'needs-baseline' });
     const directory = join(state, 'runs', run.id);

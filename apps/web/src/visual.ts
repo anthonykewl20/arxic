@@ -168,19 +168,30 @@ async function signIn(
     });
     if (!response?.ok())
       return { reason: `Login page returned ${response?.status() ?? 'no response'}` };
+    // SPA login forms mount asynchronously after load (koel's form is an
+    // async component), so each resolution strategy waits a bounded window
+    // for a visible match before falling through to the next one; a surface
+    // no strategy can resolve stays an honest bounded failure.
     const locate = async (
       labelled: ReturnType<Page['getByLabel']>,
       fallback: string,
       placeholder?: ReturnType<Page['getByPlaceholder']>,
     ) => {
-      const byLabel = labelled.locator('visible=true');
-      if ((await byLabel.count()) > 0) return { locator: byLabel.first(), how: 'label' };
-      const byType = page.locator(fallback).locator('visible=true');
-      if ((await byType.count()) > 0) return { locator: byType.first(), how: 'type' };
-      if (placeholder) {
-        const byPlaceholder = placeholder.locator('visible=true');
-        if ((await byPlaceholder.count()) > 0)
-          return { locator: byPlaceholder.first(), how: 'placeholder' };
+      const strategies = [
+        { matcher: labelled.locator('visible=true'), how: 'label' as const },
+        { matcher: page.locator(fallback).locator('visible=true'), how: 'type' as const },
+        ...(placeholder
+          ? [{ matcher: placeholder.locator('visible=true'), how: 'placeholder' as const }]
+          : []),
+      ];
+      for (const { matcher, how } of strategies) {
+        const matched = await matcher.first()
+          .waitFor({ state: 'visible', timeout: 5_000 })
+          .then(
+            () => true,
+            () => false,
+          );
+        if (matched) return { locator: matcher.first(), how };
       }
       return null;
     };
@@ -420,15 +431,25 @@ async function captureEnvironment(
           await page.locator('body').waitFor({ state: 'visible' });
           await page.evaluate(() => document.fonts.ready.then(() => undefined));
           // Privacy masks are declarations about the captured surface, not
-          // optional hints: SPAs mount those regions after load, so give them
-          // a bounded window to appear. A mask that never mounts still refuses
-          // the capture in privacy-capture phase with its honest finding.
-          for (const mask of project.masks)
-            await page
-              .locator(mask)
-              .first()
-              .waitFor({ state: 'attached', timeout: 15_000 })
-              .catch(() => {});
+          // optional hints. After a real sign-in, an SPA boots through its
+          // session handshake before identity regions mount, so authenticated
+          // captures give declared masks a bounded shared window (per
+          // checkpoint, across all masks) to appear; a mask that never mounts
+          // still refuses the capture in privacy-capture phase with its honest
+          // finding. Unauthenticated pages render their masks with the
+          // document, so those refusals stay prompt.
+          if (storageState) {
+            const maskDeadline = Date.now() + 15_000;
+            for (const mask of project.masks) {
+              const remaining = maskDeadline - Date.now();
+              if (remaining <= 0) break;
+              await page
+                .locator(mask)
+                .first()
+                .waitFor({ state: 'attached', timeout: remaining })
+                .catch(() => {});
+            }
+          }
           failurePhase = 'measurement';
           const defects = await page.evaluate(() => ({
             brokenImages: [...document.images].filter(
