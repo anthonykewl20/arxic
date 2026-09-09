@@ -7,14 +7,11 @@
  * credential is read in-process from the live workbench's secret store and
  * never printed or written. Evidence output is sanitized JSON.
  */
-import { execFile, spawn, type ChildProcess } from 'node:child_process';
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
-import { promisify } from 'node:util';
 
-const execute = promisify(execFile);
 const root = resolve(import.meta.dirname, '..');
 
 // --- funded credential: read in-process, never logged ----------------------
