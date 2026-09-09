@@ -1,6 +1,6 @@
 # DISK-QUOTA-534 — staged doc updates (charter §10.2)
 
-Issue: #534 · PR: (filled at PR creation) · Disposition: observed — every planned proof ran green against the real engine, real fixture app and real Chromium; per ADR §2 the `verified` assignment stays with the human screenshot-inspection gate that remains owed on #402.
+Issue: #534 · PR: #535 · Disposition: observed — every planned proof ran green against the real engine, real fixture app and real Chromium; per ADR §2 the `verified` assignment stays with the human screenshot-inspection gate that remains owed on #402.
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
