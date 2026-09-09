@@ -1,4 +1,5 @@
 import { once } from 'node:events';
+import { openInventoryTab } from './inventory-tabs';
 import { createServer, type RequestListener, type Server } from 'node:http';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -200,6 +201,7 @@ describe('runtime state mapping in the real dashboard', () => {
         .poll(() => page.locator('.run-detail').textContent(), { timeout: 180_000 })
         .toContain('source surfaces');
       await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+      await openInventoryTab(page, 'Declarations');
 
       const block = page.locator('[data-runtime-mapping]');
       const text = async () => (await block.textContent().catch(() => null)) ?? '';

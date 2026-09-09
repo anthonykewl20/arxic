@@ -1,4 +1,5 @@
 import { mkdtemp, rm } from 'node:fs/promises';
+import { openInventoryTab } from './inventory-tabs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
@@ -43,6 +44,7 @@ it('saves a state checkpoint through the wizard and renders the coverage matrix'
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await openInventoryTab(page, 'Declarations');
 
     const block = page.locator('[data-state-checkpoints]');
     const text = async () => (await block.textContent().catch(() => null)) ?? '';

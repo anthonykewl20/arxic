@@ -1,4 +1,5 @@
 import { mkdtemp, rm } from 'node:fs/promises';
+import { openInventoryTab } from './inventory-tabs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
@@ -41,6 +42,7 @@ it('documents the target-attestation prerequisite next to the attestation path s
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await openInventoryTab(page, 'Workflows');
     await expect
       .poll(() => page.locator('#content').textContent())
       .toContain('Save guided AI settings to start a campaign');

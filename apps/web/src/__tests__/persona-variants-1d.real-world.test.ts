@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { openInventoryTab } from './inventory-tabs';
 import { appendFile, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -367,6 +368,7 @@ it('saves a persona variant with its login override through the real dialog and 
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
     await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await openInventoryTab(page, 'Workflows');
     await expect
       .poll(() => page.locator('#content').textContent())
       .toContain('Save guided AI settings to start a campaign');
