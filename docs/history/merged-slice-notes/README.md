@@ -1,6 +1,6 @@
 # Historical merged slice notes
 
-These 116 merged slice notes are archived out of the active staging area
+These 117 merged slice notes are archived out of the active staging area
 required by charter §10.2. The release audit (refs #398) moved the first 64
 here; subsequent integrator folds appended the rest. Their dated claims are
 historical, not current release sign-offs. The current state is in `docs/SYNC.md`,
