@@ -1,0 +1,22 @@
+RED stage — recorded on origin/main (2e20a8f7) before implementation, worktree
+.worktrees/finding-determination-402, 2026-09-09 local.
+
+apps/web/src/__tests__/finding-determination.test.ts:
+ × refutes findings whose region sits on masked pixels
+ × does not refute when the masked overlap is partial
+ × confirms findings corroborated by a failed deterministic check
+ × ignores passing checks and failed checks outside the region
+ (+2 passing cases that only needed the type)
+apps/web/src/__tests__/finding-determination.real-world.test.ts:
+ × determines real findings from the retained mask geometry and assessment
+ (determineFinding does not exist; scenes carry no maskedRects.)
+
+Design corrections during the run (recorded):
+- the service now filters check verdicts ITSELF (a passing check list can
+  never confirm anything — defensive contract, not caller trust);
+- the first real-harness draft fed FRACTIONAL DOM rects into the review
+  schema (integers required) — regions are rounded; the diagnostic is
+  retained in this file's history via the PR discussion;
+- the mask-coverage arithmetic is relative to the FINDING's area — the
+  first unit expectations got their own geometry wrong and were corrected
+  (coverage 1.0 for a fully-covered finding).

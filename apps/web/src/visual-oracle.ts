@@ -20,6 +20,14 @@ export type VisualScene = {
   }>;
   truncated: boolean;
   textPaint?: TextPaint[];
+  /**
+   * Numeric geometry of the capture's privacy-masked elements (refs #402
+   * finding determination): the automatic + required mask selectors' element
+   * rects, collected host-side at capture time and persisted inside the
+   * hash-covered assessment — the deterministic source for refuting findings
+   * placed on mask pixels. Never text, attributes or values.
+   */
+  maskedRects?: Array<{ x: number; y: number; width: number; height: number }>;
 };
 export type VisualVerdict = 'pass' | 'fail' | 'unverified';
 export type VisualCheck = {
@@ -205,4 +213,39 @@ export function assessVisualScene(
     checks,
     coverage: { state: 'initial', complete: false, gaps },
   };
+}
+
+/** Collect the privacy-mask rects for the given selectors (bounded, numeric). */
+export async function collectMaskedRects(
+  page: Page,
+  selectors: readonly string[],
+): Promise<NonNullable<VisualScene['maskedRects']>> {
+  const rects = await page.evaluate(
+    (sources) => {
+      const seen = new Set<Element>();
+      for (const selector of sources)
+        for (const element of document.querySelectorAll(selector)) seen.add(element);
+      const output: Array<{ x: number; y: number; width: number; height: number }> = [];
+      for (const element of seen) {
+        if (output.length >= 100) break;
+        const box = element.getBoundingClientRect();
+        if (box.width <= 0 || box.height <= 0) continue;
+        output.push({ x: box.x, y: box.y, width: box.width, height: box.height });
+      }
+      return output;
+    },
+    [...selectors],
+  );
+  if (
+    !Array.isArray(rects) ||
+    rects.some(
+      (rect) =>
+        typeof rect?.x !== 'number' ||
+        typeof rect?.y !== 'number' ||
+        typeof rect?.width !== 'number' ||
+        typeof rect?.height !== 'number',
+    )
+  )
+    throw new Error('Invalid masked rect evidence');
+  return rects.sort((left, right) => left.y - right.y || left.x - right.x);
 }
