@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { RefreshCw, Search, ArrowUpRight, Plug, Check, AlertCircle, Terminal } from 'lucide-react';
-import { Button, Badge, Input } from './components';
+import { Badge, Button, EmptyState, Input, Note } from './components';
 
 type Connection = {
   id: string;
@@ -277,27 +277,28 @@ function ProviderPanel({
                   </div>
                 ))}
               {active.models.length === 0 && (
-                <div className="provider-empty">
-                  <Plug size={24} />
-                  <h3>
-                    {active.catalog?.error
+                <EmptyState
+                  icon={Plug}
+                  title={
+                    active.catalog?.error
                       ? 'Connection needs attention'
-                      : 'Discover this provider’s models'}
-                  </h3>
-                  <p>
-                    Refresh the catalog after connecting your account on this server. Custom model
-                    IDs are available in project and review settings.
-                  </p>
-                </div>
+                      : 'Discover this provider’s models'
+                  }
+                >
+                  Refresh the catalog after connecting your account on this server. Custom model IDs
+                  are available in project and review settings.
+                </EmptyState>
               )}
             </div>
-            <p className="provider-footnote">
+            <Note>
               Catalogs refresh every five minutes while in use. Access and usage limits are
               controlled by your provider; a listed model does not guarantee account entitlement.
-            </p>
+            </Note>
           </div>
         ) : (
-          <div className="provider-empty">No provider connections configured.</div>
+          <EmptyState icon={Plug} title="No provider connections configured">
+            Connect a subscription or an API key to discover the models it offers.
+          </EmptyState>
         )}
       </div>
     </section>

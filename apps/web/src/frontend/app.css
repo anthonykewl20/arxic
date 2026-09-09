@@ -1494,23 +1494,6 @@
     max-height: 420px;
     overflow: auto;
   }
-  .provider-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 32px 20px;
-    gap: 10px;
-    color: var(--foreground-muted);
-  }
-  .provider-empty p {
-    max-width: 360px;
-    font-size: var(--text-sm);
-  }
-  .provider-footnote {
-    font-size: var(--text-xs);
-    color: var(--foreground-faint);
-  }
 
   /* Inventory, campaigns, review (migrated panels) */
   .workflow-selection {
