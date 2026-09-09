@@ -1,0 +1,24 @@
+GREEN stage — after the server-side stamping and the per-finding rendering:
+
+ ✓ apps/web/src/__tests__/finding-evidence.real-world.test.ts (1 test) 7701ms
+   ✓ stamps every finding with screenshot evidence, reproduction and acceptance status
+ ✓ apps/web/src/__tests__/finding-evidence-ui.real-world.test.ts (1 test) 18040ms
+   ✓ renders per-finding screenshot, reproduction and acceptance links
+ Tests  2 passed (2)
+
+Real-data facts pinned (real vulnerable-auth-app, real Chromium capture,
+real review through a local HTTP provider):
+- finding.evidence.screenshot === the exact authorized capture (runId,
+  captureId, file, sha256, environment, viewport).
+- finding.evidence.reproduction === {path, viewport, environment,
+  deviceScaleFactor, browserVersion} from the real capture.
+- acceptance {source:'administrator', independent:<criterion>} with a
+  criterion; {source:'none', independent:null} with '' — explicit gap, never
+  silence; suggestedCheck stays model-attributed in both.
+- ANTI-SLOP PIN: a provider response injecting its own `evidence` into a
+  finding is REFUSED by the closed schema (additionalProperties:false) — the
+  run blocks and the forged value never serializes.
+- Secrets never serialize (canary checks).
+- Dashboard: each finding renders its Screenshot evidence link, the
+  Reproduce line (path · 800 × 600 · browser/theme · version) and its
+  Independent acceptance status (administrator criterion text here).

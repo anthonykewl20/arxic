@@ -1,0 +1,29 @@
+# RED evidence — remedy 1: 1s-default URL poll tripping in release-test ubuntu cells
+
+Failing journey: apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts — its URL poll
+(`expect.poll(() => new URL(page.url()).searchParams.get('run'))`) had vitest's 1 s default;
+the enqueue POST round-trip exceeded it under the unsharded ubuntu cell. windows/macos cells
+and the sharded ci.yml matrix passed the same file on identical content.
+
+Verbatim failure lines (ANSI stripped):
+
+Release test (ubuntu-latest, Node 22)  run 34245658145  job 102126843868  (#512 original head):
+> ❯ apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts (2 tests | 2 failed) 6284ms
+>    × finds real matrix captures and preserves exact evidence actions (light) 3172ms
+>    × finds real matrix captures and preserves exact evidence actions (dark) 3111ms
+
+Release test (ubuntu-latest, Node 22)  run 34276464363  job 102230586371  (#512 updated head =
+current main content + action bump; step "Core test suite (Ubuntu only)" = full unsharded pnpm test):
+> ❯ apps/web/src/__tests__/capture-gallery-ui.real-world.test.ts (2 tests | 2 failed) 6579ms
+
+Both jobs were then cancelled at the 25-minute job cap (`##[error]The operation was canceled.`),
+4/4 ubuntu-cell timeouts across the two runs — the suite-duration side of this is remedy 3 on #525
+and is intentionally not addressed here.
+
+# RED evidence — remedy 2: progress journal absent from failed-run artifacts
+
+`gh api repos/anthonykewl20/arxic/actions/runs/{34271337618,34276464364}/artifacts` lists only
+web-dashboard-* and installed-dashboard-* artifacts; `packed-human-flow-evidence` is missing from
+both failed runs because its upload step lacked `if: always()`. The phase summaries in the job logs
+(`phase=packed-web-browser-failed durationMs=864316` / `900014`) are the only surviving record of
+which suite failed — the per-case journal died with the runner.

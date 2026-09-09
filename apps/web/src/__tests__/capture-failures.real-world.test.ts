@@ -182,7 +182,11 @@ it('retains healthy matrix siblings and distinguishes navigation from required-m
       await page.getByRole('button', { name: 'Save project', exact: true }).click();
       await expect.poll(() => page.locator('#project-dialog').isVisible()).toBe(false);
       await page.getByRole('button', { name: 'Run again', exact: true }).click();
-      await expect.poll(() => new URL(page.url()).searchParams.get('run')).not.toBe(masked.id);
+      // The enqueue POST round-trip can exceed vitest's 1 s poll default under
+      // non-sharded load (observed in release-test ubuntu cells, #525).
+      await expect
+        .poll(() => new URL(page.url()).searchParams.get('run'), { timeout: 30_000 })
+        .not.toBe(masked.id);
       const recoveredId = new URL(page.url()).searchParams.get('run')!;
       const read = async (id: string) => {
         const response = await page.request.get(`${app!.origin}/api/runs/${id}`);

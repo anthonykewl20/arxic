@@ -80,7 +80,11 @@ it.each(['light', 'dark'] as const)(
     async function nextRun(previous: string) {
       stage = 'run-again';
       await page.getByRole('button', { name: 'Run again', exact: true }).click();
-      await expect.poll(() => new URL(page.url()).searchParams.get('run')).not.toBe(previous);
+      // The enqueue POST round-trip can exceed vitest's 1 s poll default under
+      // non-sharded load (observed in release-test ubuntu cells, #525).
+      await expect
+        .poll(() => new URL(page.url()).searchParams.get('run'), { timeout: 30_000 })
+        .not.toBe(previous);
       const id = new URL(page.url()).searchParams.get('run')!;
       await expect
         .poll(async () => (await readRun(id)).state, { timeout: 30000 })

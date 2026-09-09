@@ -1,0 +1,27 @@
+GREEN stage — after types/validation, the visual-lane targets, the wizard
+editor and the coverage matrix:
+
+ ✓ apps/web/src/__tests__/state-checkpoints.real-world.test.ts (2 tests) 18004ms
+   ✓ captures and independently identities a declared error-state checkpoint 17985ms
+   ✓ refuses malformed state checkpoint declarations with distinct 400s
+ ✓ apps/web/src/__tests__/state-checkpoints-ui.real-world.test.ts (1 test) 6833ms
+   ✓ saves a state checkpoint through the wizard and renders the coverage matrix
+ Tests  3 passed (3)
+
+Real-data facts pinned:
+- REAL reference app (real build, real Chromium): the plain /login capture
+  and the /login#error checkpoint (query error=Invalid%20credentials) both
+  capture; their specHashes differ (independent versioned baselines through
+  the unchanged machinery) and their PNG bytes differ (the error paragraph
+  really renders under the query — the fixture's own behavior).
+- Capture records carry stateVariant; the run summary names the state
+  checkpoint count (single- and multi-environment branches).
+- Validation matrix: path-without-slash, path-with-query, bad state slug,
+  missing state name, duplicate triples, >20 budget — each a distinct 400.
+- stateCheckpointCoverage: /login error declared + checkpointed (matrix
+  exact); stable ordering.
+- Dashboard: the wizard's State checkpoints editor saves through the real
+  API; the intent inventory renders the State checkpoints matrix with the
+  honesty wording ("plain navigation may never provoke them").
+- Visual regressions 11/11 (visual-review, visual, visual-auth) after the
+  capture-loop refactor; root+packages typecheck, lint clean.
