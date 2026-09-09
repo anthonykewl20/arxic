@@ -61,6 +61,22 @@ but they do not prove pixel secrecy; valid PNG image data can still contain
 unexpected content. The human inspection complements those controls and is not
 a substitute for them.
 
+## Machine pre-pass (optional, discharges nothing)
+
+A machine pre-pass may be recorded to narrow what the inspector must look
+hardest at. It is **not** a step of this gate and it cannot substitute for any
+step above: an LLM cannot certify pixels secret-free, which is why this gate
+exists. A pre-pass may only (a) machine-verify the PNG/`.privacy.json` pairing,
+which is a precondition anyway, and (b) raise **candidates** for the inspector.
+Its truth state stays `observed`; it never reaches `verified`.
+
+The first such record is
+[`docs/evidence/WEB-402-CENSUS-PRESCREEN/summary.md`](../evidence/WEB-402-CENSUS-PRESCREEN/summary.md)
+(2026-09-09): 344/344 retained PNGs under `docs/evidence/WEB-402-*` rendered and
+read, 344/344 provenance pairing machine-verified with zero orphans, no
+credential/token/session/PII observed, two non-credential findings raised for
+owner decision. Steps 2-6 remain owed in full.
+
 **Provenance:** screenshot retention and the irreducible visual-review boundary
 are documented in `docs/evidence/README.md:17-27`,
 `docs/evidence/M1-SCREENSHOT-PRIVACY/README.md:13-29`, and

@@ -49,7 +49,7 @@ import { randomUUID } from 'node:crypto';
 import { cp, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { createServer as createHttpServer, type Server } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
@@ -254,7 +254,9 @@ function parseTarget(args: readonly string[]): TargetName {
 }
 
 function koelClonePath(): string {
-  return process.env.ARXIC_SURFACE005_KOEL_REPO ?? '/home/soultransit/devtony/thirdparty-dg/koel';
+  return (
+    process.env.ARXIC_SURFACE005_KOEL_REPO ?? join(homedir(), 'devtony', 'thirdparty-dg', 'koel')
+  );
 }
 
 async function bootTarget(target: TargetName, tempDir: string): Promise<BootedTarget> {

@@ -2,7 +2,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { access, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { extname, join, resolve } from 'node:path';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import http from 'node:http';
 import { chromium, type Locator, type Page } from 'playwright';
@@ -74,7 +74,7 @@ type StartedFamily = {
 };
 
 const THIRD_PARTY_ROOT =
-  process.env.ARXIC_VISUAL_THIRD_PARTY ?? '/home/soultransit/devtony/thirdparty-dg';
+  process.env.ARXIC_VISUAL_THIRD_PARTY ?? join(homedir(), 'devtony', 'thirdparty-dg');
 
 const PUBLIC_FAMILIES_ROOT =
   process.env.ARXIC_VISUAL_PUBLIC_FAMILIES ?? `${THIRD_PARTY_ROOT}/public-families`;

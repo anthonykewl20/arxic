@@ -8,17 +8,23 @@
  * never printed or written. Evidence output is sanitized JSON.
  */
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 
 const root = resolve(import.meta.dirname, '..');
 
 // --- funded credential: read in-process, never logged ----------------------
+// Resolved from this script's own location, never an operator-absolute path:
+// better-sqlite3 is declared by @arxic/web, not the workspace root, so the bare
+// specifier does not resolve from here (refs #402 census finding F2).
+const workspaceModule = (path: string) => pathToFileURL(join(root, path)).href;
 const Database = (
-  await import('/home/soultransit/devtony/arxic/node_modules/.pnpm/better-sqlite3@13.0.3/node_modules/better-sqlite3/lib/index.js')
+  await import(workspaceModule('apps/web/node_modules/better-sqlite3/lib/index.js'))
 ).default as typeof import('better-sqlite3');
-const live = new Database('/home/soultransit/.arxic/web/workbench.sqlite', { readonly: true });
+const livePath = process.env.ARXIC_WEB_STATE_DIR ?? join(homedir(), '.arxic', 'web');
+const live = new Database(join(livePath, 'workbench.sqlite'), { readonly: true });
 const row = live
   .prepare('SELECT value FROM provider_secrets WHERE ref = ?')
   .get('ARXIC_SECRET_GLM_CODING_KEY') as { value: string } | undefined;
@@ -31,8 +37,9 @@ console.log(
 );
 
 // --- real target ------------------------------------------------------------
-const { bootFixtureApp, referenceAuthApp, seedFixture, stopApp } =
-  await import('/home/soultransit/devtony/arxic/packages/real-world-testkit/src/index.ts');
+const { bootFixtureApp, referenceAuthApp, seedFixture, stopApp } = await import(
+  workspaceModule('packages/real-world-testkit/src/index.ts')
+);
 const app = await bootFixtureApp(root, referenceAuthApp, 'paid-inference-proof');
 const PERSONA = {
   email: 'paid-proof@example.test',
@@ -44,13 +51,13 @@ console.log('target:', app.origin);
 
 const state = await mkdtemp(join(tmpdir(), 'arxic-paid-proof-'));
 const repo = await (
-  await import('/home/soultransit/devtony/arxic/packages/source-ua-adapter/src/__tests__/test-repo.ts')
+  await import(workspaceModule('packages/source-ua-adapter/src/__tests__/test-repo.ts'))
 ).makeRepository('reference-auth-app');
 
 process.env.ARXIC_SECRET_PAID_PERSONA_EMAIL = PERSONA.email;
 process.env.ARXIC_SECRET_PAID_PERSONA_PASSWORD = PERSONA.password;
 
-const { Workbench } = await import('/home/soultransit/devtony/arxic/apps/web/src/workbench.ts');
+const { Workbench } = await import(workspaceModule('apps/web/src/workbench.ts'));
 const wb = await Workbench.open(state, [repo.root]);
 try {
   const project = await wb.saveProject({
@@ -76,8 +83,7 @@ try {
   });
   const discovery = wb.enqueue(project.id, 'discovery');
   await wb.idle();
-  const { campaignRows } =
-    await import('/home/soultransit/devtony/arxic/apps/web/src/campaigns.ts');
+  const { campaignRows } = await import(workspaceModule('apps/web/src/campaigns.ts'));
   const inventory = wb.store.run(discovery.id)?.result?.inventory as Parameters<
     typeof campaignRows
   >[0];

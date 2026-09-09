@@ -212,3 +212,35 @@ coordinates. High-density Chromium uses explicitly identified full headless
 rendering. Local native-repeat, authenticated eighteen-cell and responsive dashboard
 proof passes; exact-head installed CI remains pending. See the
 [density follow-up](../evidence/WEB-454-DENSITY/followup.md).
+
+## Screenshot census — machine pre-pass (2026-09-09)
+
+Every retained PNG under `docs/evidence/WEB-402-*` — **344 files** — was rendered
+into 66 contact sheets and read, and the PNG/`.privacy.json` pairing was
+machine-verified exhaustively: **344 PNGs, 344 provenance files, zero orphans in
+either direction**. No credential, token, API key, session value or personal
+datum was observed. Capture-time masking is visibly applied and consistent, and
+secret configuration fields render environment-variable **reference names**, not
+values.
+
+Two non-credential findings were raised, both `observed`, both for owner
+decision: the operator's absolute home path is rendered in the `WEB-402-INSTALL`
+captures and the `WEB-402-DASHBOARD-UX` admin captures, and the same path appears
+in 305 tracked files repo-wide. The four **source** literals that emitted it are
+fixed and a guard test now rejects new ones; the already-published evidence and
+doc occurrences are not rewritten. Full record:
+[`WEB-402-CENSUS-PRESCREEN`](../evidence/WEB-402-CENSUS-PRESCREEN/summary.md).
+
+**This does not discharge the human screenshot-inspection gate.** Per
+`docs/release-gates/screenshot-inspection.md`, an LLM cannot; steps 2-6 remain
+owed, and only the 344 `WEB-402-*` PNGs were pre-screened out of 1,460 in the
+wider `docs/evidence/` tree.
+
+## Tracker disposition (2026-09-09)
+
+Issue #402 is closed as a work item. Every acceptance row it still carried that
+is genuinely un-discharged is recorded, with who can discharge it and what would
+count as proof, in
+[`docs/release-gates/undischarged-gates.md`](../release-gates/undischarged-gates.md).
+Closing the tracker authorizes no release tag or publication — unchanged from
+while it was open.
