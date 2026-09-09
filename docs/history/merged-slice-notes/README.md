@@ -66,6 +66,7 @@ unchanged for provenance.
 - [FIX-379-fallback-text-race.md](./FIX-379-fallback-text-race.md)
 - [FIX-393-retained-zip-provenance.md](./FIX-393-retained-zip-provenance.md)
 - [FIX-395-compiler-staging-isolation.md](./FIX-395-compiler-staging-isolation.md)
+- [KOEL-LOGIN-538.md](./KOEL-LOGIN-538.md)
 - [SEC-371-fasturi-qs.md](./SEC-371-fasturi-qs.md)
 - [WEB-402-CHANGED-REGIONS.md](./WEB-402-CHANGED-REGIONS.md)
 - [WEB-402-CONTRAST.md](./WEB-402-CONTRAST.md)
