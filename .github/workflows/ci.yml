@@ -162,7 +162,21 @@ jobs:
             ${{ runner.os }}-playwright-matrix-
 
       - name: Install Playwright browser matrix
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
+        run: |
+          set -euo pipefail
+          # Keep an unrelated third party's apt publish state off this gate: the
+          # runner image ships Google's Chrome apt repository, `playwright
+          # install --with-deps` runs `apt-get update`, and apt exits non-zero if ANY
+          # configured source fails — however irrelevant. Playwright brings its
+          # own browsers; these are Ubuntu libraries. Observed 2026-09-09: that
+          # repository served an index disagreeing with its own Release file
+          # (declared 233e56de…, served bc1428ab…), taking down every
+          # browser-installing job. Reproduced independently off-CI.
+          # Removes no Ubuntu source and relaxes nothing: if the libraries
+          # cannot be installed, this step still fails.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list \
+                     /etc/apt/sources.list.d/google-chrome.sources
+          pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
 
       # Same fallback Mailpit the monolithic Test step had. The suite leaves
       # ARXIC_MAILPIT_* unset, so tests provision their own per-run
@@ -263,7 +277,21 @@ jobs:
         run: node scripts/tarball-smoke.mjs
 
       - name: Install browser system dependencies for packed replay
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install-deps chromium firefox webkit
+        run: |
+          set -euo pipefail
+          # Keep an unrelated third party's apt publish state off this gate: the
+          # runner image ships Google's Chrome apt repository, `playwright
+          # install-deps` runs `apt-get update`, and apt exits non-zero if ANY
+          # configured source fails — however irrelevant. Playwright brings its
+          # own browsers; these are Ubuntu libraries. Observed 2026-09-09: that
+          # repository served an index disagreeing with its own Release file
+          # (declared 233e56de…, served bc1428ab…), taking down every
+          # browser-installing job. Reproduced independently off-CI.
+          # Removes no Ubuntu source and relaxes nothing: if the libraries
+          # cannot be installed, this step still fails.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list \
+                     /etc/apt/sources.list.d/google-chrome.sources
+          pnpm --filter @arxic/playwright-agent-adapter exec playwright install-deps chromium firefox webkit
 
       - name: Packed CLI and dashboard release regression
         run: node scripts/human-flow-e2e.mjs --evidence-dir artifacts/human-flow
@@ -316,7 +344,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Install target and dashboard browser dependencies
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
+        run: |
+          set -euo pipefail
+          # Keep an unrelated third party's apt publish state off this gate: the
+          # runner image ships Google's Chrome apt repository, `playwright
+          # install --with-deps` runs `apt-get update`, and apt exits non-zero if ANY
+          # configured source fails — however irrelevant. Playwright brings its
+          # own browsers; these are Ubuntu libraries. Observed 2026-09-09: that
+          # repository served an index disagreeing with its own Release file
+          # (declared 233e56de…, served bc1428ab…), taking down every
+          # browser-installing job. Reproduced independently off-CI.
+          # Removes no Ubuntu source and relaxes nothing: if the libraries
+          # cannot be installed, this step still fails.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list \
+                     /etc/apt/sources.list.d/google-chrome.sources
+          pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
       - name: Installed dashboard journeys
         run: node scripts/human-flow-e2e.mjs --dashboard-only --dashboard-shard ${{ matrix.shard }} --evidence-dir artifacts/dashboard
         env:

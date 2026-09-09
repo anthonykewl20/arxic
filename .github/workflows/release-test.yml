@@ -56,7 +56,21 @@ jobs:
       # old 25-minute cap had been masking before the suite ever reached them.
       - name: Install Playwright browser matrix (Linux)
         if: runner.os == 'Linux'
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
+        run: |
+          set -euo pipefail
+          # Keep an unrelated third party's apt publish state off this gate: the
+          # runner image ships Google's Chrome apt repository, `playwright
+          # install --with-deps` runs `apt-get update`, and apt exits non-zero if ANY
+          # configured source fails — however irrelevant. Playwright brings its
+          # own browsers; these are Ubuntu libraries. Observed 2026-09-09: that
+          # repository served an index disagreeing with its own Release file
+          # (declared 233e56de…, served bc1428ab…), taking down every
+          # browser-installing job. Reproduced independently off-CI.
+          # Removes no Ubuntu source and relaxes nothing: if the libraries
+          # cannot be installed, this step still fails.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list \
+                     /etc/apt/sources.list.d/google-chrome.sources
+          pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
 
       - name: Install Playwright Chromium (macOS and Windows)
         if: runner.os != 'Linux'
