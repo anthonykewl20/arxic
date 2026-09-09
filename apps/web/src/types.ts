@@ -52,7 +52,19 @@ export type Project = {
    * loading/error/empty/authenticated state is provoked (query parameters),
    * captured as first-class checkpoints with independent baselines.
    */
-  stateCaptures?: Array<{ path: string; state: string; query?: string }>;
+  stateCaptures?: Array<{
+    path: string;
+    state: string;
+    query?: string;
+    /**
+     * Answer the page's own data requests with this status instead of letting
+     * them through, so error banners and boundary fallbacks render. Document
+     * navigation is untouched.
+     */
+    fault?: { status: number; path?: string };
+    /** Submit the page's forms with empty fields to provoke inline validation. */
+    submitEmptyForms?: boolean;
+  }>;
   configPath: string;
   execution?: import('./execution').ExecutionSettings;
   cron: string;
@@ -83,6 +95,18 @@ export type Capture = {
   authenticated?: boolean;
   /** Which declared state this checkpoint captures (e.g. 'error'); absent = the plain path. */
   stateVariant?: string;
+  /**
+   * Alerts, live regions and dialogs visible when an induced checkpoint was
+   * captured. Geometry only — the text belongs to the target application.
+   * Absent on a checkpoint that induced nothing.
+   */
+  transientRegions?: Array<{
+    role: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
   assessmentFile?: string;
   assessmentSha256?: string;
 };

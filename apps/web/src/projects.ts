@@ -5,6 +5,7 @@ import { CronExpressionParser } from 'cron-parser';
 import { HttpError } from './errors';
 import type { Project, RunMode } from './types';
 import { secretRef, validateExecution } from './execution';
+import { INDUCIBLE_STATUSES, isInducibleStatus } from './state-induction';
 
 export function nextSlot(cron: string, now = new Date()): string | null {
   if (!cron) return null;
@@ -136,7 +137,9 @@ export async function validateProject(
           !item ||
           typeof item !== 'object' ||
           Array.isArray(item) ||
-          Object.keys(item).some((name) => !['path', 'state', 'query'].includes(name)),
+          Object.keys(item).some(
+            (name) => !['path', 'state', 'query', 'fault', 'submitEmptyForms'].includes(name),
+          ),
       )
     )
       throw new HttpError(400, 'A project supports at most 20 state checkpoints');
@@ -157,10 +160,42 @@ export async function validateProject(
         throw new HttpError(400, 'State checkpoint names use lowercase letters, digits and dashes');
       if (item.query !== undefined && (typeof item.query !== 'string' || item.query.length > 500))
         throw new HttpError(400, 'State checkpoint queries are short URL query strings');
+      if (item.fault !== undefined) {
+        const fault = item.fault as Record<string, unknown> | null;
+        if (
+          !fault ||
+          typeof fault !== 'object' ||
+          Array.isArray(fault) ||
+          Object.keys(fault).some((name) => !['status', 'path'].includes(name)) ||
+          !isInducibleStatus(fault.status)
+        )
+          throw new HttpError(
+            400,
+            `An induced fault names one of these statuses: ${INDUCIBLE_STATUSES.join(', ')}`,
+          );
+        if (
+          fault.path !== undefined &&
+          (typeof fault.path !== 'string' || !fault.path.length || fault.path.length > 200)
+        )
+          throw new HttpError(400, 'An induced fault path is a short request-path fragment');
+      }
+      if (item.submitEmptyForms !== undefined && typeof item.submitEmptyForms !== 'boolean')
+        throw new HttpError(400, 'Invalid state checkpoint form submission flag');
     }
     const identities = new Set(
-      (rawStateCaptures as Array<{ path: string; state: string; query?: string }>).map(
-        (item) => `${item.path}#${item.state}?${item.query ?? ''}`,
+      (
+        rawStateCaptures as Array<{
+          path: string;
+          state: string;
+          query?: string;
+          fault?: { status: number; path?: string };
+          submitEmptyForms?: boolean;
+        }>
+      ).map(
+        (item) =>
+          `${item.path}#${item.state}?${item.query ?? ''}` +
+          `!${item.fault ? `${item.fault.status}:${item.fault.path ?? ''}` : ''}` +
+          `+${item.submitEmptyForms ? 'forms' : ''}`,
       ),
     );
     if (identities.size !== rawStateCaptures.length)
@@ -170,6 +205,15 @@ export async function validateProject(
     path: item.path,
     state: item.state,
     ...(item.query ? { query: item.query } : {}),
+    ...(item.fault
+      ? {
+          fault: {
+            status: item.fault.status,
+            ...(item.fault.path ? { path: item.fault.path } : {}),
+          },
+        }
+      : {}),
+    ...(item.submitEmptyForms ? { submitEmptyForms: true } : {}),
   }));
   const selection = (key: string, choices: readonly string[], fallback: string[]) => {
     const value = input[key] === undefined ? fallback : input[key];
