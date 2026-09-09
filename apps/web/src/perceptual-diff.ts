@@ -20,14 +20,18 @@ const C2 = 58.5225;
 const WINDOW = 8;
 
 /**
- * Rec. 709 luma. SSIM is defined on luminance; comparing channels separately
- * would report a hue-only change three times over.
+ * Rec. 709 luma for one pixel.
+ *
+ * Computed where it is used rather than precomputed into a buffer. A capture
+ * may be up to 16 million pixels, so two luminance planes would allocate a few
+ * hundred megabytes transiently inside the comparison; windows overlap by half,
+ * so inline costs roughly four multiply-adds per pixel instead and allocates
+ * nothing. SSIM is defined on luminance — comparing channels separately would
+ * report a hue-only change three times over.
  */
-function luma(rgba: Uint8Array, width: number, height: number): Float64Array {
-  const out = new Float64Array(width * height);
-  for (let i = 0, p = 0; i < out.length; i++, p += 4)
-    out[i] = 0.2126 * rgba[p]! + 0.7152 * rgba[p + 1]! + 0.0722 * rgba[p + 2]!;
-  return out;
+function lumaAt(rgba: Uint8Array, index: number): number {
+  const p = index * 4;
+  return 0.2126 * rgba[p]! + 0.7152 * rgba[p + 1]! + 0.0722 * rgba[p + 2]!;
 }
 
 export type PerceptualComparison = {
@@ -59,8 +63,6 @@ export function comparePerceptual(
   height: number,
 ): PerceptualComparison {
   if (width < WINDOW || height < WINDOW) return {};
-  const a = luma(baseline, width, height);
-  const b = luma(current, width, height);
   const step = WINDOW / 2;
   let total = 0;
   let windows = 0;
@@ -76,8 +78,8 @@ export function comparePerceptual(
       for (let y = top; y < top + WINDOW; y++) {
         const row = y * width;
         for (let x = left; x < left + WINDOW; x++) {
-          const va = a[row + x]!;
-          const vb = b[row + x]!;
+          const va = lumaAt(baseline, row + x);
+          const vb = lumaAt(current, row + x);
           sumA += va;
           sumB += vb;
           sumAA += va * va;

@@ -19,28 +19,54 @@ export type Box = { x: number; y: number; width: number; height: number };
 export type SceneNode = VisualScene['nodes'][number];
 
 /**
- * Identity for matching a node across two captures.
+ * Identity for matching nodes across two captures, for every node at once.
  *
  * Node ids are array positions and shift the moment anything is inserted, so
  * they cannot be matched on. The path from the root — each step recording the
  * node's kind and its position among siblings of that kind — survives unrelated
  * edits elsewhere in the tree, which is what matching needs.
+ *
+ * Built in one pass rather than per node. A scene holds up to 2,000 nodes, and
+ * deriving each key independently means rebuilding the parent index and
+ * rescanning every sibling list for each one: quadratic in the node count and
+ * multiplied by depth, which is seconds of blocking work per comparison, paid
+ * twice — once per side.
  */
-export function nodeKey(scene: VisualScene, node: SceneNode): string {
-  const byId = new Map(scene.nodes.map((item) => [item.id, item]));
-  const steps: string[] = [];
-  let current: SceneNode | undefined = node;
-  const guard = new Set<number>();
-  while (current && !guard.has(current.id)) {
-    guard.add(current.id);
-    const parent: SceneNode | undefined =
-      current.parent === null ? undefined : byId.get(current.parent);
-    const siblings = scene.nodes.filter((item) => item.parent === current!.parent);
-    const ofKind = siblings.filter((item) => item.kind === current!.kind);
-    steps.push(`${current.kind ?? 'node'}[${ofKind.indexOf(current)}]`);
-    current = parent;
+function keyEveryNode(scene: VisualScene): Map<number, string> {
+  const children = new Map<number | null, SceneNode[]>();
+  for (const node of scene.nodes) {
+    const siblings = children.get(node.parent);
+    if (siblings) siblings.push(node);
+    else children.set(node.parent, [node]);
   }
-  return steps.reverse().join('/');
+  // Position among siblings sharing this node's kind, counted once per family.
+  const step = new Map<number, string>();
+  for (const siblings of children.values()) {
+    const seen = new Map<string, number>();
+    for (const node of siblings) {
+      const kind = String(node.kind ?? 'node');
+      const index = seen.get(kind) ?? 0;
+      seen.set(kind, index + 1);
+      step.set(node.id, `${kind}[${index}]`);
+    }
+  }
+  // Top-down from the roots, so a parent's key is known before its children's.
+  // A node unreachable from any root — a parent id absent from the scene, which
+  // truncation can produce — keeps its own step rather than being dropped.
+  const keys = new Map<number, string>();
+  const walk = (node: SceneNode, prefix: string) => {
+    const key = prefix ? `${prefix}/${step.get(node.id)!}` : step.get(node.id)!;
+    keys.set(node.id, key);
+    for (const child of children.get(node.id) ?? []) walk(child, key);
+  };
+  for (const root of children.get(null) ?? []) walk(root, '');
+  for (const node of scene.nodes) if (!keys.has(node.id)) keys.set(node.id, step.get(node.id)!);
+  return keys;
+}
+
+/** One node's key. Convenience over `keyEveryNode`; prefer that for a whole scene. */
+export function nodeKey(scene: VisualScene, node: SceneNode): string {
+  return keyEveryNode(scene).get(node.id) ?? '';
 }
 
 export type LayoutDelta = {
@@ -86,9 +112,10 @@ const box = (node: SceneNode): Box => ({
  */
 export function structuralDiff(baseline: VisualScene, current: VisualScene): StructuralDiff {
   const keyed = (scene: VisualScene) => {
+    const keys = keyEveryNode(scene);
     const map = new Map<string, SceneNode>();
     for (const node of scene.nodes) {
-      const key = nodeKey(scene, node);
+      const key = keys.get(node.id)!;
       // A duplicate key means two siblings the path cannot tell apart; keep the
       // first and let the rest fall out as added/removed rather than mismatch.
       if (!map.has(key)) map.set(key, node);

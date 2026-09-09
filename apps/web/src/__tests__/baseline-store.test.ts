@@ -112,3 +112,17 @@ it('deduplicates identical pixels across projects', async () => {
   const entries = await readdir(join(directory, 'baselines', sha.slice(0, 2)));
   expect(entries).toEqual([`${sha}.png`]);
 });
+
+it('reports a corrupted entry as present, so a caller fails loudly instead of falling back', async () => {
+  // `read` refuses corrupt bytes; `has` deliberately does not. A comparison
+  // that finds a present-but-corrupt baseline must surface the storage fault,
+  // not quietly compare against a copy from somewhere else.
+  const { store } = await open();
+  const bytes = pixels('will-be-corrupted');
+  const sha = digest(bytes);
+  const { path } = await store.promote(bytes, sha);
+  await writeFile(path, pixels('replaced'));
+  expect(await store.has(sha)).toBe(true);
+  expect(await store.read(sha)).toBeUndefined();
+  expect(store.pathFor(sha)).toBe(path);
+});

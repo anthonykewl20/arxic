@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { sha256 as digest } from '@arxic/contracts';
 
@@ -31,8 +31,14 @@ export class BaselineStore {
     this.root = supplied || join(stateDirectory, 'baselines');
   }
 
-  /** Two-level fan-out: a flat directory of tens of thousands of files is slow to list. */
-  private path(sha256: string) {
+  /**
+   * Where a digest lives. Two-level fan-out: a flat directory of tens of
+   * thousands of files is slow to list.
+   *
+   * Public because a caller that has already read the bytes needs the path
+   * without paying for another read.
+   */
+  pathFor(sha256: string) {
     return join(this.root, sha256.slice(0, 2), `${sha256}.png`);
   }
 
@@ -47,7 +53,7 @@ export class BaselineStore {
   async promote(bytes: Buffer, sha256: string): Promise<{ stored: boolean; path: string }> {
     if (digest(bytes) !== sha256)
       throw new Error('Baseline bytes do not match the digest they were offered under');
-    const target = this.path(sha256);
+    const target = this.pathFor(sha256);
     if (await this.has(sha256)) return { stored: false, path: target };
     await mkdir(join(this.root, sha256.slice(0, 2)), { recursive: true, mode: 0o700 });
     const temporary = `${target}.${process.pid}.partial`;
@@ -56,10 +62,18 @@ export class BaselineStore {
     return { stored: true, path: target };
   }
 
+  /**
+   * Whether an entry exists. Stats rather than reads: a baseline is megabytes,
+   * and existence is checked on every comparison.
+   *
+   * Deliberately does NOT verify the digest, unlike `read`. A file present but
+   * corrupt is a storage fault, and a caller that finds one should fail loudly
+   * rather than quietly fall back to some other copy — hiding a corrupt
+   * immutable store is how it stays corrupt.
+   */
   async has(sha256: string): Promise<boolean> {
     try {
-      await readFile(this.path(sha256));
-      return true;
+      return (await stat(this.pathFor(sha256))).isFile();
     } catch {
       return false;
     }
@@ -74,7 +88,7 @@ export class BaselineStore {
    */
   async read(sha256: string): Promise<Buffer | undefined> {
     try {
-      const bytes = await readFile(this.path(sha256));
+      const bytes = await readFile(this.pathFor(sha256));
       return digest(bytes) === sha256 ? bytes : undefined;
     } catch {
       return undefined;

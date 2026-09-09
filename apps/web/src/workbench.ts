@@ -1202,13 +1202,14 @@ export class Workbench {
             // The store first; the producing run second, for approvals recorded
             // before baselines were promoted. Either way the bytes must hash to
             // what the approval recorded.
-            const promoted = await this.baselineStore.read(previous.sha256);
+            // The store first; the producing run second, for approvals recorded
+            // before baselines were promoted. `read` already re-verified the
+            // digest, so only the fallback path needs checking here.
+            const promoted = await this.baselineStore.has(previous.sha256);
             const baselinePath = promoted
-              ? await this.baselineStore
-                  .promote(promoted, previous.sha256)
-                  .then((result) => result.path)
+              ? this.baselineStore.pathFor(previous.sha256)
               : join(this.directory, 'runs', baseline.run_id, previous.file);
-            if (!promoted && digest(await readFile(baselinePath)) !== previous.sha256)
+            if (digest(await readFile(baselinePath)) !== previous.sha256)
               throw new Error('Baseline integrity failed');
             const diffFile = `${capture.id}.diff.png`;
             const compared = await compareCapture(

@@ -264,3 +264,37 @@ it('does not classify a capture that has no changed regions', async () => {
     ),
   ).toEqual({});
 });
+
+it('keys a full-sized scene in linear time, not quadratic', () => {
+  // A scene is capped at 2,000 nodes. Deriving each key independently rebuilt
+  // the parent index and rescanned every sibling list per node, which is
+  // seconds of blocking work inside the comparison path — paid twice, once per
+  // side, for every compared capture.
+  const wide: Array<Partial<Node> & Pick<Node, 'id' | 'parent'>> = [
+    { id: 0, parent: null, kind: REGION },
+  ];
+  for (let i = 1; i < 2000; i++)
+    wide.push({ id: i, parent: i < 40 ? 0 : (i % 40) + 1, kind: i % 3 ? REGION : HEADING });
+  const built = scene(wide);
+  const started = performance.now();
+  const diff = structuralDiff(built, built);
+  const elapsed = performance.now() - started;
+  expect(diff.matched).toBe(2000);
+  expect(diff.unchangedBoxes).toBe(2000);
+  // Generous by two orders of magnitude against the linear implementation, and
+  // far under what the per-node version cost.
+  expect(elapsed).toBeLessThan(1000);
+});
+
+it('keeps a node whose parent is missing from a truncated scene', () => {
+  // Truncation can drop a parent while keeping its child; the child must still
+  // get a key rather than vanishing from the comparison entirely.
+  const orphaned = scene([
+    { id: 0, parent: null, kind: REGION },
+    { id: 9, parent: 404, kind: HEADING, x: 5, y: 5, width: 30, height: 30 },
+  ]);
+  const diff = structuralDiff(orphaned, orphaned);
+  expect(diff.matched).toBe(2);
+  expect(diff.added).toEqual([]);
+  expect(diff.removed).toEqual([]);
+});
