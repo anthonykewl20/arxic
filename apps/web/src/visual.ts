@@ -21,7 +21,7 @@ import type {
   RunResult,
   VisualEnvironment,
 } from './types';
-import { collectVisualScene, assessVisualScene } from './visual-oracle';
+import { collectMaskedRects, collectVisualScene, assessVisualScene } from './visual-oracle';
 
 export { digest };
 
@@ -422,6 +422,13 @@ async function captureEnvironment(
             'input,textarea,[contenteditable="true"]',
             ...project.masks,
           ]);
+          // The mask geometry for finding determinations: the same selectors
+          // the privacy pipeline masks, as numeric rects in the assessment.
+          failurePhase = 'measurement';
+          const maskedRects = await collectMaskedRects(page, [
+            'input:not([type="hidden"]):not([type="submit"]):not([type="button"]),textarea,[contenteditable="true"]',
+            ...project.masks,
+          ]);
           for (let attempt = 0; attempt < 6; attempt++) {
             failurePhase = 'measurement';
             const before = await collectVisualScene(page, [
@@ -512,7 +519,7 @@ async function captureEnvironment(
             checkpoint: id,
             browserVersion: browser.version(),
             environment,
-            scene,
+            scene: { ...scene, maskedRects },
             assessment,
           });
           failurePhase = 'evidence-write';

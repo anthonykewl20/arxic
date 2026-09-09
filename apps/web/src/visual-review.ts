@@ -63,7 +63,71 @@ export type StampedFinding = Finding & {
   truthState: 'hypothesized';
   evidence: FindingEvidence;
   acceptance: FindingAcceptance;
+  determination: FindingDetermination;
 };
+export type Rect = { x: number; y: number; width: number; height: number };
+export type FindingDetermination =
+  | { determination: 'refuted'; reason: 'masked-region'; coverage: number }
+  | {
+      determination: 'confirmed';
+      reason: 'deterministic-check';
+      checkIds: string[];
+      overlap: number;
+    }
+  | { determination: 'unconfirmed'; reason: 'no-deterministic-corroboration' }
+  | { determination: 'unavailable'; reason: 'assessment-evidence-missing' };
+
+export type DeterminationCheck = { id: string; verdict: string; region?: Rect };
+
+const intersectionArea = (a: Rect, b: Rect): number => {
+  const width = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+  const height = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
+  return width > 0 && height > 0 ? width * height : 0;
+};
+
+/**
+ * Deterministic finding determination (refs #402) over retained evidence:
+ * findings placed on privacy-mask pixels are REFUTED by the retained mask
+ * geometry (the model's prompt forbids diagnosing masks; this catches
+ * violations); findings overlapping a FAILED deterministic check are
+ * CONFIRMED by that hash-verified evidence; anything else is explicitly
+ * UNCONFIRMED — never silently promoted. Missing evidence is fail-closed.
+ */
+export function determineFinding(
+  region: Rect,
+  maskedRects: readonly Rect[] | undefined,
+  checks: readonly DeterminationCheck[] | undefined,
+): FindingDetermination {
+  if (!maskedRects || !checks)
+    return { determination: 'unavailable', reason: 'assessment-evidence-missing' };
+  // Only FAILING checks corroborate; the service filters defensively so a
+  // passing check list can never confirm anything.
+  const failedChecks = checks.filter((check) => check.verdict === 'fail');
+  const area = region.width * region.height;
+  if (area <= 0) return { determination: 'unconfirmed', reason: 'no-deterministic-corroboration' };
+  const maskedCoverage =
+    maskedRects.reduce((sum, rect) => sum + intersectionArea(region, rect), 0) / area;
+  if (maskedCoverage >= 0.6)
+    return { determination: 'refuted', reason: 'masked-region', coverage: maskedCoverage };
+  const checkIds: string[] = [];
+  let bestOverlap = 0;
+  for (const check of failedChecks) {
+    if (!check.region) continue;
+    const overlap = intersectionArea(region, check.region) / area;
+    if (overlap >= 0.25) {
+      checkIds.push(check.id);
+      bestOverlap = Math.max(bestOverlap, overlap);
+    }
+  }
+  if (checkIds.length)
+    return {
+      determination: 'confirmed',
+      reason: 'deterministic-check',
+      checkIds: [...new Set(checkIds)].sort(),
+      overlap: bestOverlap,
+    };
+  return { determination: 'unconfirmed', reason: 'no-deterministic-corroboration' };
+}
 export type VisualReviewResult = VisualReviewScope & {
   findings: StampedFinding[];
   runRecord: ModelRunRecord;
@@ -216,38 +280,63 @@ export async function reviewVisual(run: Run, runsDirectory: string): Promise<Run
       summary: 'The model proposed a region outside the screenshot; review output was discarded.',
       diagnostics: { runRecord: response.runRecord },
     };
+  // Deterministic determinations from the retained, hash-verified assessment.
+  let maskedRects: readonly Rect[] | undefined;
+  let failedChecks: readonly DeterminationCheck[] | undefined;
+  if (scope.capture.assessmentFile && scope.capture.assessmentSha256) {
+    try {
+      const assessmentPath = join(runsDirectory, scope.sourceRunId, scope.capture.assessmentFile);
+      const assessmentBytes = await readFile(assessmentPath, 'utf8');
+      const { createHash } = await import('node:crypto');
+      if (
+        createHash('sha256').update(assessmentBytes).digest('hex') ===
+        scope.capture.assessmentSha256
+      ) {
+        const assessment = JSON.parse(assessmentBytes) as {
+          scene?: { maskedRects?: Rect[] };
+          assessment?: { checks?: Array<{ id: string; verdict: string; region?: Rect }> };
+        };
+        maskedRects = assessment.scene?.maskedRects ?? [];
+        failedChecks = assessment.assessment?.checks ?? [];
+      }
+    } catch {
+      // Fail closed: no determination without verifiable evidence.
+    }
+  }
+  const stamped: StampedFinding[] = findings.map((f, i): StampedFinding => ({
+    ...f,
+    id: `finding-${i + 1}`,
+    truthState: 'hypothesized',
+    determination: determineFinding(f.region, maskedRects, failedChecks),
+    evidence: {
+      screenshot: {
+        runId: scope.sourceRunId,
+        captureId: scope.capture.id,
+        file: scope.capture.file,
+        sha256: scope.capture.sha256,
+        environment: scope.capture.environment,
+        viewport: scope.capture.viewport,
+      },
+      reproduction: {
+        path: scope.capture.path,
+        viewport: scope.capture.viewport,
+        environment: scope.capture.environment,
+        deviceScaleFactor: scope.capture.environment?.deviceScaleFactor ?? 1,
+        browserVersion: scope.capture.browserVersion,
+      },
+    },
+    acceptance: {
+      source: scope.acceptanceCriterion ? 'administrator' : 'none',
+      independent: scope.acceptanceCriterion || null,
+      suggestedCheck: f.suggestedCheck,
+    },
+  }));
   return {
     outcome: 'hypothesized',
     summary: `${findings.length} visual hypotheses for this retained viewport. Independent confirmation is required; unreported areas remain uncovered.`,
     review: {
       ...scope,
-      findings: findings.map((f, i): StampedFinding => ({
-        ...f,
-        id: `finding-${i + 1}`,
-        truthState: 'hypothesized',
-        evidence: {
-          screenshot: {
-            runId: scope.sourceRunId,
-            captureId: scope.capture.id,
-            file: scope.capture.file,
-            sha256: scope.capture.sha256,
-            environment: scope.capture.environment,
-            viewport: scope.capture.viewport,
-          },
-          reproduction: {
-            path: scope.capture.path,
-            viewport: scope.capture.viewport,
-            environment: scope.capture.environment,
-            deviceScaleFactor: scope.capture.environment?.deviceScaleFactor ?? 1,
-            browserVersion: scope.capture.browserVersion,
-          },
-        },
-        acceptance: {
-          source: scope.acceptanceCriterion ? 'administrator' : 'none',
-          independent: scope.acceptanceCriterion || null,
-          suggestedCheck: f.suggestedCheck,
-        },
-      })),
+      findings: stamped,
       runRecord: response.runRecord,
       estimatedCostUsd,
       coverage:
