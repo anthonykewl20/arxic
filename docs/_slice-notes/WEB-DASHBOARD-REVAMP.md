@@ -97,9 +97,26 @@ capture).
   run that produced it, identical pixels are stored once, a corrupted entry is
   treated as absent rather than compared against, and an external root keeps
   nothing in the state directory.
-- Gates: typecheck ☑ · lint ☑ · format ☑ (full repo) · full `vitest run` ☐
-  (running at time of writing) · license gate ☐ (no dependency added — every
-  new module is built on native APIs precisely to avoid one)
+- Gates: typecheck ☑ · lint ☑ · format ☑ (full repo) · test ☑ · license gate ☐
+  (no dependency added — every new module is built on native APIs precisely to
+  avoid one)
+
+  All 350 test files in the repository ran green: 2,385 tests, zero failures.
+  Run in batches rather than one invocation — `vitest.config.ts` sets
+  `fileParallelism: false`, so a single pass walks every file in one worker
+  whose heap grows the whole way, and on a host already holding ~49GB in
+  unrelated services that pass is killed before it finishes. Each batch is its
+  own process and returns its memory before the next begins:
+
+  | Set                   | Files | Tests |
+  | --------------------- | ----- | ----- |
+  | `apps/web` light      | 51    | 277   |
+  | `apps/web` real-world | 64    | 125   |
+  | other light           | 174   | 1,748 |
+  | other real-world      | 61    | 235   |
+
+  Only `apps/web` is touched by this branch; the other 235 files were run to
+  confirm that rather than assert it.
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
