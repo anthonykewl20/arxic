@@ -15,6 +15,11 @@ export type VisualLogin = {
   emailLabel: string;
   passwordLabel: string;
   submitLabel: string;
+  /** Placeholder-only forms (e.g. koel) render no <label>; these non-secret
+   * surface declarations are resolved against the live DOM after labels and
+   * input types miss. */
+  emailPlaceholder?: string;
+  passwordPlaceholder?: string;
 };
 export type Project = {
   id: string;

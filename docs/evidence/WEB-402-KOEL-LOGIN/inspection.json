@@ -1,0 +1,52 @@
+{
+  "sourceCommit": "70a6f698e576642042950006ebe1f26344c072cc",
+  "screenshots": [
+    {
+      "path": "run/checkpoint-1.png",
+      "sha256": "e75414ff1b0eaf769f9e1461befa0390897c81ae28c51cfc80b60ac6d58f5ba2",
+      "inspection": "agent-inspected; human release inspection not performed"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "run/timeline.json",
+      "sha256": "8202dad5b5292c2f13416637387a8baeefa1ff91e681a505350d0e36102db782"
+    },
+    {
+      "path": "run/timeline.sanitization.json",
+      "sha256": "e0033da77c582315eb41d551bead18889440f1d8216e0adba6be73b71ec1fb9c"
+    },
+    {
+      "path": "run/result.json",
+      "sha256": "c81d7da43a6d3c5456a009e6a5ecebe752952dd29a7d8708df234c45432c5ac4"
+    },
+    {
+      "path": "run/input.json",
+      "sha256": "07ecf6b25ea6d52b6d5fb79ad134c622827c92e42c24a1053a793bf866b828da"
+    },
+    {
+      "path": "run/checkpoint-1.png.privacy.json",
+      "sha256": "4bd7f20e7d0730cc4067bdf3c468a65d1737b62e3de8f0d5aebcf44dd1294820"
+    },
+    {
+      "path": "run/checkpoint-1.assessment.json",
+      "sha256": "9ad9f66348089fc388b72d0b39a209f3b1b17379f7474b7a91eba6019ee34f71"
+    },
+    {
+      "path": "blocked-run/result.json",
+      "sha256": "c352f65bae24bf01cadb14b49c44d2ba51149fbb9dd122af83ac090c67a22333"
+    },
+    {
+      "path": "blocked-run/timeline.json",
+      "sha256": "ba8c146445fe7e85781be3d008337f12f5ef95d7155934906dffa7be1535aaec"
+    },
+    {
+      "path": "blocked-run/timeline.sanitization.json",
+      "sha256": "6e7566bbcc513df0234611cfbbb4369a25e6101d40fb9697a17d6409c44342c7"
+    },
+    {
+      "path": "blocked-run/input.json",
+      "sha256": "489d5dabde65442f0bd5d4fdf826f39642902ba871f34c3540b4cdb7ffe9c57f"
+    }
+  ]
+}
