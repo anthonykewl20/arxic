@@ -17,6 +17,7 @@ import {
 } from '../../../../packages/real-world-testkit/src';
 import { makeRepository } from '../../../../packages/source-ua-adapter/src/__tests__/test-repo';
 import { startWorkbench } from './workbench-runtime';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it('lets an administrator select and verify two real workflows with honest campaign coverage', async () => {
   const root = resolve(import.meta.dirname, '../../../..');
@@ -94,8 +95,7 @@ it('lets an administrator select and verify two real workflows with honest campa
     await promisify(execFile)('git', ['status', '--porcelain'], { cwd: root })
   ).stdout.trim();
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  const errors: string[] = [];
-  page.on('pageerror', (e) => errors.push(e.name));
+  const errors = trackDashboardErrors(page);
   const evidence = process.env.ARXIC_CAMPAIGN_EVIDENCE_DIR;
   const timeline: Array<{ action: string; result: 'passed' }> = [];
   const capture = async (name: string, action: string) => {
@@ -325,7 +325,7 @@ it('lets an administrator select and verify two real workflows with honest campa
     await expect
       .poll(
         () => {
-          expect(errors).toEqual([]);
+          expect(errors.hard()).toEqual([]);
           return selectionForm.getAttribute('data-discovery');
         },
         { timeout: 30_000 },
@@ -340,7 +340,7 @@ it('lets an administrator select and verify two real workflows with honest campa
       '06-new-discovery-selection',
       'A new discovery resets old workflow selections while the inventory remains open',
     );
-    expect(errors).toEqual([]);
+    expect(errors.hard()).toEqual([]);
     if (evidence) {
       const bytes = JSON.stringify(timeline, null, 2);
       await writeFile(join(evidence, 'timeline.json'), bytes);

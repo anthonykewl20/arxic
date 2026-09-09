@@ -6,6 +6,7 @@ import { dashboardProof } from './dashboard-proof';
 import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it } from 'vitest';
 import { startWorkbench } from './workbench-runtime';
+import { trackDashboardErrors } from './dashboard-errors';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 
 it('keeps navigation reachable by URL, refresh, back and keyboard', async () => {
@@ -23,8 +24,7 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
     reducedMotion: 'reduce',
   });
   const page = await context.newPage();
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.name));
+  const errors = trackDashboardErrors(page);
   const proof = dashboardProof(page, process.env.ARXIC_UX_EVIDENCE_DIR);
   try {
     await page.goto(app.origin);
@@ -186,7 +186,7 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
     expect(darkInk, 'dark sign-in paint in forced-colors profile').toBeGreaterThan(20);
     expect(lightInk, 'light sign-in paint in forced-colors profile').toBeGreaterThan(20);
 
-    expect(errors).toEqual([]);
+    expect(errors.hard()).toEqual([]);
     const expired = await proof.audit(
       'expired-search-session',
       '401 search response returns to login without stale dashboard or script errors',

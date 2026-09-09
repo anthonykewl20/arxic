@@ -11,6 +11,7 @@ import { Workbench } from '../workbench';
 import { startWorkbench } from './workbench-runtime';
 import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { dashboardProof } from './dashboard-proof';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it('retains healthy matrix siblings and distinguishes navigation from required-mask refusal', async () => {
   const root = resolve(import.meta.dirname, '../../../..');
@@ -29,8 +30,7 @@ it('retains healthy matrix siblings and distinguishes navigation from required-m
       ? join(process.env.ARXIC_WEB_EVIDENCE_DIR, 'capture-failures')
       : undefined);
   const proof = dashboardProof(page, evidence);
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.name));
+  const errors = trackDashboardErrors(page);
   async function audit(...args: Parameters<typeof proof.audit>) {
     const report = await proof.audit(...args);
     expect(report.violations).toEqual([]);
@@ -221,7 +221,7 @@ it('retains healthy matrix siblings and distinguishes navigation from required-m
         '07-original-refusal-preserved',
         'The original blocked run remains immutable after a successful corrected run',
       );
-      expect(errors).toEqual([]);
+      expect(errors.hard()).toEqual([]);
     } finally {
       await second.close();
     }

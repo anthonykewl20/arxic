@@ -96,6 +96,68 @@ it('classifies outgoing-document fetch diagnostics without waiving active failur
       expect(errors.hard()).toEqual([]);
     }
 
+    // Detail-endpoint teardown: `refresh()` polls `/api/runs/<id>` whenever a
+    // run row is selected, and `/api/campaigns/<id>` for a selected campaign —
+    // the shape the capture-gallery journey drives every time it navigates to
+    // `?view=runs&run=<id>`. The classifier must recognize those pathnames too;
+    // recognizing only the collection paths leaves the detail poll unclassified
+    // and reds the run. The id shape is the server's own route regex; a teardown
+    // fetch fails synchronously before dispatch, so whether the run exists
+    // cannot reach this mechanism.
+    await page.waitForTimeout(2100); // clear the corroboration window
+    const waivedBeforeDetail = errors.waived().length;
+    let detailReproduced = 0;
+    for (let round = 0; round < 12 && detailReproduced === 0; round++) {
+      const before = errors.events().length;
+      await page.evaluate(() => {
+        let tick = 0;
+        const timer = setInterval(() => {
+          if (++tick > 400) clearInterval(timer);
+          else void fetch(`/api/runs/0000000000000000000000000000000${tick % 10}`).catch(() => {});
+        }, 4);
+        setTimeout(() => location.reload(), 60);
+      });
+      await page.locator('#app').waitFor();
+      await page.waitForTimeout(200);
+      detailReproduced = errors
+        .events()
+        .slice(before)
+        .filter(
+          (event) =>
+            event.kind === 'outgoing-document-fetch' ||
+            (event.kind === 'hard' && isFetchLoadShape(event.name, event.message)),
+        ).length;
+    }
+    const waivedAfterDetail = errors.waived().length;
+    const detailHard = errors
+      .hard()
+      .filter((event) => isFetchLoadShape(event.name, event.message)).length;
+    await proof.audit(
+      '02b-detail-endpoint-teardown',
+      'The polled run-detail endpoint is classified by the same corroboration as the collection paths',
+      [
+        {
+          id: engine === 'webkit' ? 'detail-diagnostic-classified' : 'detail-teardown-silent',
+          passed: engine === 'webkit' ? detailReproduced > 0 : detailReproduced === 0,
+          values: {
+            reproduced: detailReproduced,
+            waived: waivedAfterDetail - waivedBeforeDetail,
+          },
+        },
+      ],
+    );
+    if (engine === 'webkit') {
+      expect(
+        detailReproduced,
+        'non-reproducing WebKit run is inconclusive, not a pass',
+      ).toBeGreaterThan(0);
+      expect(detailHard).toBe(0);
+      expect(waivedAfterDetail).toBeGreaterThan(waivedBeforeDetail);
+    } else {
+      expect(detailReproduced).toBe(0);
+      expect(errors.hard()).toEqual([]);
+    }
+
     // Lifecycle: the reloaded document still serves real navigation and data.
     await page.getByRole('button', { name: 'Test runs', exact: true }).click();
     await page.getByRole('heading', { name: 'No runs yet' }).waitFor();
@@ -130,7 +192,7 @@ it('classifies outgoing-document fetch diagnostics without waiving active failur
     if (engine === 'webkit') expect(refusalEvents.length).toBeGreaterThan(0);
     else expect(refusalEvents.length).toBe(0);
     const waivedAfterRefusal = errors.waived().length;
-    expect(waivedAfterRefusal).toBe(waivedAfterStimulus);
+    expect(waivedAfterRefusal).toBe(waivedAfterDetail);
     await page.getByRole('button', { name: 'Overview', exact: true }).click();
     await page.getByRole('button', { name: 'Test runs', exact: true }).click();
     await page.getByRole('heading', { name: 'No runs yet' }).waitFor();
@@ -158,7 +220,7 @@ it('classifies outgoing-document fetch diagnostics without waiving active failur
         values: { lookalikeHard: 1 },
       },
     ]);
-    expect(errors.waived().length).toBe(waivedAfterStimulus);
+    expect(errors.waived().length).toBe(waivedAfterDetail);
 
     // Plain native canary: unrelated to fetch shape, always hard.
     await page.evaluate(() => {
@@ -172,7 +234,7 @@ it('classifies outgoing-document fetch diagnostics without waiving active failur
       )
       .toBeGreaterThan(0);
     await proof.audit('05-native-canary', 'An unrelated native error stays hard');
-    expect(errors.waived().length).toBe(waivedAfterStimulus);
+    expect(errors.waived().length).toBe(waivedAfterDetail);
   } finally {
     if (evidence) {
       await mkdir(evidence, { recursive: true });

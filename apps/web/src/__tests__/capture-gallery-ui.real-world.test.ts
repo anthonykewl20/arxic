@@ -14,6 +14,7 @@ import { Workbench } from '../workbench';
 import type { Run } from '../types';
 import { startWorkbench } from './workbench-runtime';
 import { dashboardProof } from './dashboard-proof';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it.each(['light', 'dark'] as const)(
   'finds real matrix captures and preserves exact evidence actions (%s)',
@@ -52,8 +53,7 @@ it.each(['light', 'dark'] as const)(
         ? join(process.env.ARXIC_WEB_EVIDENCE_DIR, 'gallery')
         : undefined);
     const proof = dashboardProof(page, galleryEvidence ? join(galleryEvidence, theme) : undefined);
-    const errors: string[] = [];
-    page.on('pageerror', (error) => errors.push(error.name));
+    const errors = trackDashboardErrors(page);
     let app: Awaited<ReturnType<typeof startWorkbench>> | undefined;
     async function readRun(id: string): Promise<Run> {
       const response = await page.request.get(`${app!.origin}/api/runs/${id}`);
@@ -382,7 +382,7 @@ it.each(['light', 'dark'] as const)(
       expect(
         await page.getByRole('button', { name: 'Approve as baseline', exact: true }).count(),
       ).toBe(0);
-      expect(errors).toEqual([]);
+      expect(errors.hard()).toEqual([]);
       if (galleryEvidence) {
         await writeFile(
           join(galleryEvidence, theme, 'measurements.json'),
@@ -402,7 +402,8 @@ it.each(['light', 'dark'] as const)(
               unchangedLight: regression.result!.captures!.filter(
                 (c) => c.environment?.colorScheme === 'light' && c.status === 'unchanged',
               ).length,
-              pageErrors: errors.length,
+              pageErrors: errors.hard().length,
+              waivedOutgoingDocumentDiagnostics: errors.waived().length,
               blockedEnvironments: blockedRun.result!.visualEnvironments!.filter(
                 (cell) => cell.outcome === 'blocked',
               ).length,

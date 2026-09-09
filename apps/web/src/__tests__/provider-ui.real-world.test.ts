@@ -8,6 +8,7 @@ import { launchDashboardBrowser, resizeDashboard } from './dashboard-browser';
 import { expect, it, vi } from 'vitest';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import { startWorkbench } from './workbench-runtime';
+import { trackDashboardErrors } from './dashboard-errors';
 
 it('refreshes provider-owned models in a real browser and preserves search and stale status', async () => {
   let revision = 1;
@@ -41,8 +42,13 @@ it('refreshes provider-owned models in a real browser and preserves search and s
   });
   const browser = await launchDashboardBrowser({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
+  const errors = trackDashboardErrors(page);
+  /** Fail the readiness poll with the real diagnostic instead of a bare timeout. */
+  const hardText = () =>
+    errors
+      .hard()
+      .map((event) => `${event.name}: ${event.message}`)
+      .join('; ');
 
   const timeline: Array<{ action: string; result: 'passed' }> = [];
   const evidence = process.env.ARXIC_PROVIDER_EVIDENCE_DIR;
@@ -81,7 +87,7 @@ it('refreshes provider-owned models in a real browser and preserves search and s
     await page.getByRole('button', { name: 'Open workbench' }).click();
     await expect
       .poll(
-        async () => (errors.length ? errors.join('; ') : await page.locator('#app').isVisible()),
+        async () => (errors.hard().length ? hardText() : await page.locator('#app').isVisible()),
         { timeout: 10_000 },
       )
       .toBe(true);
@@ -89,8 +95,8 @@ it('refreshes provider-owned models in a real browser and preserves search and s
     await expect
       .poll(
         async () =>
-          errors.length
-            ? errors.join('; ')
+          errors.hard().length
+            ? hardText()
             : (await page.locator('#notice').isVisible())
               ? await page.locator('#notice').textContent()
               : await page.getByRole('button', { name: 'Refresh models', exact: true }).count(),
@@ -184,7 +190,7 @@ it('refreshes provider-owned models in a real browser and preserves search and s
       '06-default-provider-management',
       'Models and accounts manages the same server-default catalog as project model controls',
     );
-    expect(errors).toEqual([]);
+    expect(errors.hard()).toEqual([]);
     if (evidence) {
       const bytes =
         JSON.stringify({ schemaVersion: 'arxic-ui-timeline-v1', actions: timeline }, null, 2) +
@@ -247,8 +253,13 @@ it('connects and removes a provider key in a real browser without displaying it'
   });
   const browser = await launchDashboardBrowser({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
+  const errors = trackDashboardErrors(page);
+  /** Fail the readiness poll with the real diagnostic instead of a bare timeout. */
+  const hardText = () =>
+    errors
+      .hard()
+      .map((event) => `${event.name}: ${event.message}`)
+      .join('; ');
   const evidence = process.env.ARXIC_PROVIDER_EVIDENCE_DIR;
   const browserIdentity = { name: browser.browserType().name(), version: browser.version() };
   const dirty = !!execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
@@ -286,7 +297,7 @@ it('connects and removes a provider key in a real browser without displaying it'
     await page.getByRole('button', { name: 'Open workbench' }).click();
     await expect
       .poll(
-        async () => (errors.length ? errors.join('; ') : await page.locator('#app').isVisible()),
+        async () => (errors.hard().length ? hardText() : await page.locator('#app').isVisible()),
         {
           timeout: 10_000,
         },
@@ -315,7 +326,7 @@ it('connects and removes a provider key in a real browser without displaying it'
     await page.getByRole('button', { name: 'Remove credential', exact: true }).click();
     await page.getByLabel('API key or token').waitFor();
     await capture('03-provider-key-removed', 'Removal returns the connect input');
-    expect(errors).toEqual([]);
+    expect(errors.hard()).toEqual([]);
     if (evidence) {
       const bytes =
         JSON.stringify({ schemaVersion: 'arxic-ui-timeline-v1', actions: timeline }, null, 2) +

@@ -36,7 +36,36 @@ import type { Page } from 'playwright';
 const FETCH_LOAD_SHAPE =
   /^Fetch API cannot load (https?:\/\/[^\s]+) due to access control checks\.$/;
 const KNOWN_API_PATHS = ['/api/state', '/api/session', '/api/runs'] as const;
+/**
+ * Detail endpoints the dashboard polls alongside the collection paths: the
+ * 2.5s `refresh()` fetches `/api/runs/<id>` for the selected run and
+ * `/api/campaigns/<id>` for the selected campaign, so any journey that keeps a
+ * row selected tears those down too. The id shape mirrors the server's own
+ * route regex; the endpoint label drops the id so no run or campaign
+ * identifier reaches retained evidence, and every `/api/runs/<id>` collapses to
+ * one endpoint for corroboration condition 4 — a coarser, strictly more
+ * conservative match. Nested action paths (`.../cancel`, `.../artifacts/<name>`)
+ * are not polled GETs and stay unrecognized.
+ */
+const DETAIL_API_PATHS = [
+  { prefix: '/api/runs/', endpoint: '/api/runs/:id' },
+  { prefix: '/api/campaigns/', endpoint: '/api/campaigns/:id' },
+] as const;
+const DETAIL_ID = /^[a-f0-9-]+$/u;
 const CORROBORATION_WINDOW_MS = 2000;
+
+/** Closed recognition of the dashboard GET endpoints the poll can tear down. */
+export function dashboardEndpointOf(pathname: string): string | undefined {
+  const collection = KNOWN_API_PATHS.find(
+    (path) => pathname === path || pathname.startsWith(`${path}?`),
+  );
+  if (collection) return collection;
+  for (const { prefix, endpoint } of DETAIL_API_PATHS) {
+    if (!pathname.startsWith(prefix)) continue;
+    if (DETAIL_ID.test(pathname.slice(prefix.length))) return endpoint;
+  }
+  return undefined;
+}
 
 /**
  * Playwright's WebKit driver splits the console text into `name`/`message` at
@@ -96,8 +125,7 @@ export function trackDashboardErrors(page: Page): DashboardErrors {
   const rawErrors: RawPageError[] = [];
   const markers: Marker[] = [];
   const failedRequests: FailedRequest[] = [];
-  const endpointOf = (pathname: string) =>
-    KNOWN_API_PATHS.find((path) => pathname === path || pathname.startsWith(`${path}?`));
+  const endpointOf = dashboardEndpointOf;
 
   page.on('console', (message) => {
     const marker = message.text().split(':')[0] ?? '';
