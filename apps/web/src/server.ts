@@ -144,7 +144,7 @@ export async function startWorkbench(options: WorkbenchOptions) {
     if (path === '/api/retention' && request.method === 'POST')
       return json(response, 200, await workbench.saveRetention(await readJson(request)));
     if (path === '/api/retention/preview' && request.method === 'POST')
-      return json(response, 200, workbench.previewRetention(await readJson(request)));
+      return json(response, 200, await workbench.previewRetention(await readJson(request)));
     if (path === '/api/retention/cleanup' && request.method === 'POST') {
       const input = await readJson(request);
       if (Object.keys(input).length)

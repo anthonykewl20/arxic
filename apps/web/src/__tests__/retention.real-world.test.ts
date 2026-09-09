@@ -54,7 +54,7 @@ it('keeps failed deletion visible, recovers its durable intent, and preserves ac
   }
   const policy = { enabled: true, maxAgeDays: 30, keepLatest: 1, confirmDeletion: true };
   await wb.saveRetention(policy);
-  const preview = wb.previewRetention();
+  const preview = await wb.previewRetention();
   expect(preview.candidates.map((row: { id: string }) => row.id)).toEqual([candidate.id]);
   expect(preview.protected.baseline).toBe(1);
   expect(preview.protected.recent).toBe(1);
