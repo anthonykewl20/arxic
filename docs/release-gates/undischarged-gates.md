@@ -128,33 +128,32 @@ that state, and several of these exist precisely because a machine cannot.
 
 ---
 
-### C6. #402 — clean-install fresh live-provider campaign acceptance
+### C6. #402 — clean-install fresh live-provider campaign acceptance — **DISCHARGED 2026-09-09**
 
-Out of numeric order on purpose: [#546](https://github.com/anthonykewl20/arxic/issues/546)
-was filed four minutes after this register was authored, and renumbering would
-strand the `§C4` references already merged in
-`docs/history/merged-slice-notes/WEB-402-CLOSURE.md` and posted on #423.
+Recorded here as un-discharged earlier the same day; closed by
+[#546](https://github.com/anthonykewl20/arxic/issues/546) with an owner-authorized
+live run. Kept in place rather than deleted so the register shows what was
+actually closed and how.
 
-- **Already discharged, separately:** the packed clean-install server/worker
-  distribution proof runs in required CI on every qualifying merge — the
-  `package` job clean-room-installs the packed CLI tarball and drives the
-  installed-dashboard matrix through the packed `arxic web`, including a campaign
-  journey that launches a real selected campaign against the real
-  reference-auth-app and asserts the real engine outcome. Separately, a dev-mode
-  current-head paid campaign reached outcome `verified` (bounded $0.025, model
-  glm-4.7; sanitized record staged at
-  `docs/evidence/WEB-402-HEAD-CAMPAIGN/campaign-record.json`).
-- **Still owed:** those two halves have never been proven _together_. Nothing yet
-  shows a **packed clean-room install** whose live provider is configured through
-  the **product surface** (Models & accounts / the provider-secrets API) rather
-  than a server environment variable or the developer workbench's own SQLite,
-  driving a real campaign to `verified` with two verifier replays. That
-  combination is what an operator actually performs on a fresh machine, and it is
-  the boundary the distribution-proof row in
-  `docs/reviews/web-product-progress-402.md` states verbatim.
-- **Blocker:** it spends against the owner's funded credential, so it must run in
-  a session where the owner has authorized that spend. Recorded here; not
-  machine-dischargeable on an agent's own authority.
+- **Proof:** `docs/evidence/WEB-402-CLEAN-INSTALL-LIVE/` — a packed
+  `arxic-0.0.401.tgz` clean-room-installed into an empty directory with its own
+  `HOME` and a fresh per-run SQLite; the funded credential **deleted from the
+  server's environment before spawn** and supplied only through
+  `POST /api/provider-secrets` (the Models & accounts surface); one bounded
+  campaign on the single `GET /login` row reaching `result.outcome: "verified"`.
+- **Replays are measured, not inferred:** `ledger.verification` records
+  `{"outcome":"verified","passedRuns":2,"runs":2}`. All thirteen executed engine
+  stages completed and all eight gates passed.
+- **Sad path proven first:** with no credential configured, the identical
+  campaign on the identical discovery settled `blocked`/`blocked` (stage 5 failed
+  closed). The runner treats a credential-less `verified` as a failure of the
+  proof.
+- **Credential never retained:** independently verified after the run — neither
+  the value nor any 8-character prefix of it appears in the record; zero
+  redaction substitutions were needed because it never entered the payload.
+- **What this does not claim:** one row, one campaign — a path proof, not a
+  coverage claim. Seven other extracted rows were not attempted and remain in the
+  ledger. Limits are recorded in that directory's `summary.md`.
 
 ## How to reopen
 
