@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { actions } from './dashboard-actions';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import {
@@ -130,6 +131,7 @@ function WorkspaceShell() {
                 type="button"
                 data-nav={id}
                 className={`nav-item${id === 'overview' ? ' active' : ''}`}
+                onClick={() => actions().navigate(id)}
               >
                 <Icon aria-hidden="true" />
                 {label}

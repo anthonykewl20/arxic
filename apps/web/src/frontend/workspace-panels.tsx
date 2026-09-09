@@ -1,3 +1,4 @@
+import { actions } from './dashboard-actions';
 import { RetentionPanel } from './retention-panel';
 import { CredentialsPanel } from './credentials-panel';
 import { RunPanel, type RunPanelProps } from './run-panel';
@@ -47,13 +48,7 @@ function projectHealth(state: State, id: string) {
   if (changed) return { tone: 'warning' as const, label: 'Visual changes' };
   return { tone: toneOf(outcome), label: outcome.charAt(0).toUpperCase() + outcome.slice(1) };
 }
-type ProjectActions = {
-  onRun: (projectId: string, mode: 'discovery' | 'visual' | 'agent') => void;
-  onEdit: (projectId: string) => void;
-  onGo: (section: string) => void;
-};
-
-function Overview({ state, actions }: { state: State; actions: ProjectActions }) {
+function Overview({ state }: { state: State }) {
   const active = state.runs.filter((run) => ['queued', 'running'].includes(run.state));
   const changed = state.runs.filter((run) =>
     run.result?.captures?.some((capture) => capture.status === 'changed'),
@@ -77,7 +72,7 @@ function Overview({ state, actions }: { state: State; actions: ProjectActions })
               type="button"
               data-edit={item.id}
               className="rounded-sm text-left text-[var(--foreground)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
-              onClick={() => actions.onEdit(item.id)}
+              onClick={() => actions().editProject(item.id)}
             >
               {item.name}
             </button>
@@ -115,20 +110,24 @@ function Overview({ state, actions }: { state: State; actions: ProjectActions })
       // "Visual test" would be a button on one row and a menu entry on the next.
       cell: (item) => (
         <span className="flex items-center justify-end gap-1">
-          <Button variant="outline" size="sm" onClick={() => actions.onRun(item.id, 'discovery')}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => actions().startRun(item.id, 'discovery')}
+          >
             Discover intents
           </Button>
-          <Button variant="outline" size="sm" onClick={() => actions.onRun(item.id, 'visual')}>
+          <Button variant="outline" size="sm" onClick={() => actions().startRun(item.id, 'visual')}>
             Visual test
           </Button>
           <Menu
             label={`More actions for ${item.name}`}
             items={[
-              { label: 'AI E2E', icon: Bot, onSelect: () => actions.onRun(item.id, 'agent') },
+              { label: 'AI E2E', icon: Bot, onSelect: () => actions().startRun(item.id, 'agent') },
               {
                 label: 'Project settings',
                 icon: Settings2,
-                onSelect: () => actions.onEdit(item.id),
+                onSelect: () => actions().editProject(item.id),
               },
             ]}
           />
@@ -139,7 +138,7 @@ function Overview({ state, actions }: { state: State; actions: ProjectActions })
   return (
     <>
       {changed.length > 0 && (
-        <button type="button" className="attention" onClick={() => actions.onGo('runs')}>
+        <button type="button" className="attention" onClick={() => actions().navigate('runs')}>
           <span className="attention-mark" aria-hidden="true">
             <AlertTriangle size={14} />
           </span>
@@ -178,7 +177,7 @@ function Overview({ state, actions }: { state: State; actions: ProjectActions })
               icon={FolderGit2}
               title="Connect your first project"
               action={
-                <Button data-add onClick={() => actions.onEdit('')}>
+                <Button data-add onClick={() => actions().addProject()}>
                   <Plus /> Connect project
                 </Button>
               }
@@ -192,7 +191,12 @@ function Overview({ state, actions }: { state: State; actions: ProjectActions })
       <Section
         title="Recent runs"
         actions={
-          <Button variant="ghost" size="sm" data-go="runs" onClick={() => actions.onGo('runs')}>
+          <Button
+            variant="ghost"
+            size="sm"
+            data-go="runs"
+            onClick={() => actions().navigate('runs')}
+          >
             All test runs
           </Button>
         }
@@ -207,7 +211,7 @@ function Overview({ state, actions }: { state: State; actions: ProjectActions })
     </>
   );
 }
-function Schedules({ state, actions }: { state: State; actions: ProjectActions }) {
+function Schedules({ state }: { state: State }) {
   return (
     <>
       <div className="scope-note">
@@ -232,7 +236,7 @@ function Schedules({ state, actions }: { state: State; actions: ProjectActions }
                     variant="outline"
                     size="sm"
                     data-edit={item.id}
-                    onClick={() => actions.onEdit(item.id)}
+                    onClick={() => actions().editProject(item.id)}
                   >
                     Configure
                   </Button>
@@ -397,7 +401,6 @@ export function mountWorkspacePanel(
     inventory,
     runPanel,
     admin,
-    actions,
   }: {
     section: 'overview' | 'schedules' | 'admin' | 'campaigns' | 'intents' | 'runs';
     state: State;
@@ -405,7 +408,6 @@ export function mountWorkspacePanel(
     inventory: InventoryPanelProps;
     runPanel: RunPanelProps;
     admin?: { onChanged?: () => Promise<void> };
-    actions: ProjectActions;
   },
 ) {
   let root = roots.get(element);
@@ -426,11 +428,11 @@ export function mountWorkspacePanel(
     return;
   }
   if (section === 'overview') {
-    root.render(<Overview state={state} actions={actions} />);
+    root.render(<Overview state={state} />);
     return;
   }
   if (section === 'schedules') {
-    root.render(<Schedules state={state} actions={actions} />);
+    root.render(<Schedules state={state} />);
     return;
   }
   root.render(<Administration state={state} onChanged={admin?.onChanged} />);

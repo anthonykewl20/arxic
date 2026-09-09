@@ -1,3 +1,4 @@
+import { actions } from './dashboard-actions';
 import { useState } from 'react';
 import { ScanSearch } from 'lucide-react';
 import {
@@ -203,7 +204,12 @@ export function InventoryPanel(props: InventoryPanelProps) {
             ) : (
               <EmptyState key={project.id} icon={ScanSearch} title={project.name}>
                 <p>No inventory yet.</p>
-                <Button className="primary mt-2" data-start="discovery" data-project={project.id}>
+                <Button
+                  className="primary mt-2"
+                  data-start="discovery"
+                  data-project={project.id}
+                  onClick={() => actions().startRun(project.id, 'discovery')}
+                >
                   Discover intents
                 </Button>
               </EmptyState>
@@ -715,6 +721,7 @@ function FrontendDeclarations({
           data-declaration-page={run.id}
           data-direction="-1"
           disabled={page === 0}
+          onClick={() => actions().pageDeclarations(run.id, -1)}
         >
           Previous declarations
         </Button>
@@ -727,6 +734,7 @@ function FrontendDeclarations({
           className="secondary"
           data-declaration-page={run.id}
           data-direction="1"
+          onClick={() => actions().pageDeclarations(run.id, 1)}
           disabled={(page + 1) * pageSize >= matches.length}
         >
           Next declarations

@@ -1,4 +1,5 @@
 import { Activity } from 'lucide-react';
+import { actions } from './dashboard-actions';
 import { Badge, Button, DataTable, EmptyState, StatusDot, toneOf, type Column } from './components';
 import type { Run } from '../types';
 import { time } from './display';
@@ -70,7 +71,12 @@ export function RunTable({ runs }: { runs: Run[] }) {
       bare: true,
       cell: (run) => (
         <span className="flex justify-end">
-          <Button variant="ghost" size="sm" data-open-run={run.id}>
+          <Button
+            variant="ghost"
+            size="sm"
+            data-open-run={run.id}
+            onClick={() => actions().openRun(run.id)}
+          >
             View result
           </Button>
         </span>

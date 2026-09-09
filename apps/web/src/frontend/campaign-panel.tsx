@@ -1,3 +1,4 @@
+import { actions } from './dashboard-actions';
 import {
   Badge,
   Button,
@@ -75,7 +76,12 @@ export function CampaignPanel({
                 {new Date(campaign.createdAt).toISOString().slice(0, 19).replace('T', ' ')} UTC
               </small>
               <p>
-                <Button variant="outline" className="secondary" data-open-campaign={campaign.id}>
+                <Button
+                  variant="outline"
+                  className="secondary"
+                  data-open-campaign={campaign.id}
+                  onClick={() => actions().openCampaign(campaign.id)}
+                >
                   View campaign
                 </Button>
               </p>
@@ -116,7 +122,12 @@ function CampaignDetail({
         title={`${campaign.projectName} / campaign`}
         actions={
           counts.pending > 0 ? (
-            <Button variant="destructive" className="danger" data-cancel-campaign={campaign.id}>
+            <Button
+              variant="destructive"
+              className="danger"
+              data-cancel-campaign={campaign.id}
+              onClick={() => actions().cancelCampaign(campaign.id)}
+            >
               Cancel campaign
             </Button>
           ) : undefined
@@ -165,6 +176,7 @@ function CampaignDetail({
           data-campaign-page={campaign.id}
           data-direction="-1"
           disabled={page === 0}
+          onClick={() => actions().pageCampaign(campaign.id, -1)}
         >
           Previous surfaces
         </Button>
@@ -178,6 +190,7 @@ function CampaignDetail({
           data-campaign-page={campaign.id}
           data-direction="1"
           disabled={(page + 1) * pageSize >= rows.length}
+          onClick={() => actions().pageCampaign(campaign.id, 1)}
         >
           Next surfaces
         </Button>
@@ -272,7 +285,13 @@ function SurfaceRows({ campaign, rows }: { campaign: CampaignView; rows: Campaig
         if (!run) return null;
         return (
           <span className="flex justify-end">
-            <Button variant="outline" size="sm" className="secondary" data-open-run={run.id}>
+            <Button
+              variant="outline"
+              size="sm"
+              className="secondary"
+              data-open-run={run.id}
+              onClick={() => actions().openRun(run.id)}
+            >
               Workflow result
             </Button>
           </span>

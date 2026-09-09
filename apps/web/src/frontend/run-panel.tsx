@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { actions } from './dashboard-actions';
 import { captureFailureMessage } from './capture-failure';
 import { CaptureGallery } from './capture-gallery';
 import { DiffViewer } from './diff-viewer';
@@ -119,7 +120,11 @@ export function RunPanel(props: RunPanelProps) {
           ))}
         </select>
         {filtered && (
-          <Button variant="ghost" data-clear-run-filters>
+          <Button
+            variant="ghost"
+            data-clear-run-filters
+            onClick={() => actions().clearRunFilters()}
+          >
             Clear run filters
           </Button>
         )}
@@ -129,7 +134,11 @@ export function RunPanel(props: RunPanelProps) {
       ) : props.error ? (
         <div>
           <p role="alert">{props.error}</p>
-          <Button variant="outline" data-retry-run-history>
+          <Button
+            variant="outline"
+            data-retry-run-history
+            onClick={() => actions().retryRunHistory()}
+          >
             Retry run history
           </Button>
         </div>
@@ -152,13 +161,19 @@ export function RunPanel(props: RunPanelProps) {
               : '0'}{' '}
             runs · All stored history
           </small>
-          <Button variant="outline" data-run-page="-1" disabled={!history.offset}>
+          <Button
+            variant="outline"
+            data-run-page="-1"
+            disabled={!history.offset}
+            onClick={() => actions().pageRuns(-1)}
+          >
             Previous runs
           </Button>
           <Button
             variant="outline"
             data-run-page="1"
             disabled={history.offset + history.limit >= history.total}
+            onClick={() => actions().pageRuns(1)}
           >
             Next runs
           </Button>
@@ -241,7 +256,12 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
           <small>{run.id}</small>
         </div>
         {['running', 'queued'].includes(run.state) ? (
-          <Button variant="destructive" className="danger" data-cancel={run.id}>
+          <Button
+            variant="destructive"
+            className="danger"
+            data-cancel={run.id}
+            onClick={() => actions().cancelRun(run.id)}
+          >
             Cancel run
           </Button>
         ) : run.visualReview ? (
@@ -249,6 +269,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             variant="outline"
             className="secondary"
             data-open-run={run.visualReview.sourceRunId}
+            onClick={() => actions().openRun(run.visualReview!.sourceRunId)}
           >
             View source capture
           </Button>
@@ -257,6 +278,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             variant="outline"
             className="secondary"
             data-open-campaign={run.workflowScope.campaignId}
+            onClick={() => actions().openCampaign(run.workflowScope!.campaignId)}
           >
             View campaign
           </Button>
@@ -266,6 +288,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             className="secondary"
             data-start={run.mode}
             data-project={run.projectId}
+            onClick={() => actions().startRun(run.projectId, run.mode)}
           >
             Run again
           </Button>
@@ -281,7 +304,11 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             <div className="section-heading">
               <h3>Findings and capture diagnostics</h3>
               {canEditCapture && (
-                <Button variant="outline" data-edit={run.projectId}>
+                <Button
+                  variant="outline"
+                  data-edit={run.projectId}
+                  onClick={() => actions().editProject(run.projectId)}
+                >
                   Edit capture settings
                 </Button>
               )}
@@ -433,6 +460,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                       className="secondary"
                       data-approve={capture.id}
                       data-run={run.id}
+                      onClick={() => actions().approveBaseline(run.id, capture.id)}
                     >
                       Approve as baseline
                     </Button>
@@ -478,7 +506,12 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
       ) : (
         !['queued', 'running'].includes(run.state) && (
           <p className="section-heading">
-            <Button variant="destructive" className="danger" data-delete-run={run.id}>
+            <Button
+              variant="destructive"
+              className="danger"
+              data-delete-run={run.id}
+              onClick={() => actions().deleteRun(run.id)}
+            >
               Delete run and artifacts
             </Button>
           </p>
@@ -507,7 +540,12 @@ function VisualReviewPanel({ run }: { run: Run }) {
     <section className="panel visual-review-result">
       <h3>AI visual hypotheses</h3>
       <p>{review.coverage}</p>
-      <Button variant="ghost" className="text-button" data-open-run={review.sourceRunId}>
+      <Button
+        variant="ghost"
+        className="text-button"
+        data-open-run={review.sourceRunId}
+        onClick={() => actions().openRun(review.sourceRunId)}
+      >
         View source capture and reproduction →
       </Button>
       <p>

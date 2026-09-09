@@ -11,6 +11,7 @@ import { clearPendingRequests, beginPendingRequest, campaignRequestKey } from '.
 import { initTheme } from './theme';
 import { toast, clearToasts, confirmAction, type Command } from './components';
 import { updateCommands } from './command-registry';
+import { setDashboardActions } from './dashboard-actions';
 import {
   LayoutDashboard,
   ScanSearch,
@@ -338,11 +339,6 @@ function render() {
         runs: state.runs ?? [],
       },
       admin: { onChanged: refresh },
-      actions: {
-        onRun: (projectId: string, mode: string) => void startRun(projectId, mode),
-        onEdit: (id: string) => editProject(id),
-        onGo: goToSection,
-      },
     });
     return;
   }
@@ -685,105 +681,96 @@ document.addEventListener('submit', async (event) => {
     release();
   }
 });
-document.addEventListener('click', async (event) => {
-  const button = (event.target as Element).closest('button');
-  if (!button || button.closest('dialog')) return;
-  let disabledForRequest = false;
-  const disableForRequest = () => {
-    disabledForRequest = true;
-    button.disabled = true;
+/**
+ * The action set every dashboard control calls.
+ *
+ * Replaces a delegated `document` click listener that read ~18 `data-*`
+ * attributes: a control's behaviour now lives on the control, and an element
+ * carrying a matching attribute somewhere else in the tree can no longer fire
+ * an action by accident. The attributes stay — journeys address controls by
+ * them — but nothing reads them at runtime any more.
+ *
+ * Each entry reports its own failure through the announcement channel; a click
+ * handler must never leave a rejected promise unobserved.
+ */
+function guard<A extends unknown[]>(run: (...args: A) => Promise<unknown>) {
+  return (...args: A) => {
+    void run(...args).catch((error) => notice((error as Error).message));
   };
-  try {
-    if (button.hasAttribute('data-retry-run-history')) await refreshRunHistory();
-    if (button.hasAttribute('data-clear-run-filters')) {
-      runSearch = '';
-      runModeFilter = '';
-      runStatusFilter = '';
-      selectedProject = '';
-      runOffset = 0;
-      await refreshRunHistory();
-    }
-    if (button.dataset.runPage) {
-      runOffset = Math.max(0, runOffset + Number(button.dataset.runPage) * 25);
-      await refreshRunHistory();
-    }
-    if (button.dataset.openCampaign) {
-      selectedCampaign = button.dataset.openCampaign;
-      section = 'campaigns';
-      writeLocation();
-      await refresh();
-    }
-    if (button.dataset.cancelCampaign) {
-      disableForRequest();
-      await api(`/campaigns/${button.dataset.cancelCampaign}/cancel`, 'POST', {});
-      await refresh();
-    }
-    if (button.dataset.workflowPage || button.dataset.campaignPage) {
-      const pages = button.dataset.workflowPage ? workflowPages : campaignPages;
-      const id = (button.dataset.workflowPage ?? button.dataset.campaignPage)!;
-      pages.set(id, Math.max(0, (pages.get(id) ?? 0) + Number(button.dataset.direction)));
-      render();
-    }
-    if (button.dataset.declarationPage) {
-      const id = button.dataset.declarationPage;
-      declarationPages.set(
-        id,
-        Math.max(0, (declarationPages.get(id) ?? 0) + Number(button.dataset.direction)),
-      );
-      render();
-    }
-    if (button.dataset.nav || button.dataset.go) {
-      section = (button.dataset.nav ?? button.dataset.go)!;
-      writeLocation();
-      await refresh();
-      $('#page-title').focus();
-    }
-    if (button.hasAttribute('data-add')) editProject();
-    if (button.hasAttribute('data-connect-agent')) connectAgent();
-    if (button.dataset.edit) editProject(button.dataset.edit);
-    if (button.dataset.start) {
-      disableForRequest();
-      await startRun(button.dataset.project!, button.dataset.start);
-    }
-    if (button.dataset.openRun) {
-      selectedRun = button.dataset.openRun;
-      section = 'runs';
-      writeLocation();
-      await refresh();
-      $('.run-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+}
+setDashboardActions({
+  navigate: goToSection,
+  addProject: () => editProject(),
+  editProject: (id: string) => editProject(id),
+  startRun: guard(async (projectId: string, mode: string) => startRun(projectId, mode)),
+  openRun: guard(async (id: string) => {
+    selectedRun = id;
+    section = 'runs';
+    writeLocation();
+    await refresh();
+    $('.run-detail')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }),
+  cancelRun: guard(async (id: string) => {
+    await api(`/runs/${id}/cancel`, 'POST', {});
+    await refresh();
+  }),
+  deleteRun: guard(async (id: string) => {
     if (
-      button.dataset.deleteRun &&
-      (await confirmAction({
+      !(await confirmAction({
         title: 'Delete this run?',
         body: 'Its captures, diffs and timeline are removed from this server. Baselines you already approved are kept.',
         confirmLabel: 'Delete run',
         destructive: true,
       }))
-    ) {
-      await api(`/runs/${button.dataset.deleteRun}`, 'DELETE', {});
-      selectedRun = '';
-      await refresh();
-      notice('Run deleted.');
-    }
-    if (button.dataset.cancel) {
-      await api(`/runs/${button.dataset.cancel}/cancel`, 'POST', {});
-      await refresh();
-    }
-    if (button.dataset.approve) {
-      disableForRequest();
-      await api(`/runs/${button.dataset.run}/baselines`, 'POST', {
-        captureId: button.dataset.approve,
-      });
-      await refresh();
-      notice('Baseline approved. Future comparisons use these captured pixels.');
-    }
-  } catch (error) {
-    notice((error as Error).message);
-  } finally {
-    if (disabledForRequest) button.disabled = false;
-  }
+    )
+      return;
+    await api(`/runs/${id}`, 'DELETE', {});
+    selectedRun = '';
+    await refresh();
+    notice('Run deleted.');
+  }),
+  approveBaseline: guard(async (runId: string, captureId: string) => {
+    await api(`/runs/${runId}/baselines`, 'POST', { captureId });
+    await refresh();
+    notice('Baseline approved. Future comparisons use these captured pixels.');
+  }),
+  openCampaign: guard(async (id: string) => {
+    selectedCampaign = id;
+    section = 'campaigns';
+    writeLocation();
+    await refresh();
+  }),
+  cancelCampaign: guard(async (id: string) => {
+    await api(`/campaigns/${id}/cancel`, 'POST', {});
+    await refresh();
+  }),
+  retryRunHistory: guard(async () => refreshRunHistory()),
+  clearRunFilters: guard(async () => {
+    runSearch = '';
+    runModeFilter = '';
+    runStatusFilter = '';
+    selectedProject = '';
+    runOffset = 0;
+    await refreshRunHistory();
+  }),
+  pageRuns: guard(async (direction: number) => {
+    runOffset = Math.max(0, runOffset + direction * 25);
+    await refreshRunHistory();
+  }),
+  pageWorkflows: (id: string, direction: number) => {
+    workflowPages.set(id, Math.max(0, (workflowPages.get(id) ?? 0) + direction));
+    render();
+  },
+  pageCampaign: (id: string, direction: number) => {
+    campaignPages.set(id, Math.max(0, (campaignPages.get(id) ?? 0) + direction));
+    render();
+  },
+  pageDeclarations: (id: string, direction: number) => {
+    declarationPages.set(id, Math.max(0, (declarationPages.get(id) ?? 0) + direction));
+    render();
+  },
 });
+
 void refresh().catch(() => {});
 setInterval(() => {
   if (!$('#app').hidden && !projectDialog().open)

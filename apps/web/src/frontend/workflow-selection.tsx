@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { actions } from './dashboard-actions';
 import { Button } from './components';
 import { Card } from './components';
 import { campaignRequestKey, usePendingRequest } from './pending-requests';
@@ -34,7 +35,12 @@ export function WorkflowSelection({
       <Card className="workflow-selection card">
         <h2>Select workflows</h2>
         <p>Save guided AI settings to start a campaign.</p>
-        <Button variant="outline" className="secondary" data-edit={project.id}>
+        <Button
+          variant="outline"
+          className="secondary"
+          data-edit={project.id}
+          onClick={() => actions().editProject(project.id)}
+        >
           Configure campaign settings
         </Button>
       </Card>
@@ -95,6 +101,7 @@ export function WorkflowSelection({
               data-workflow-page={discovery.id}
               data-direction="-1"
               disabled={page === 0}
+              onClick={() => actions().pageWorkflows(discovery.id, -1)}
             >
               Previous surfaces
             </Button>
@@ -109,6 +116,7 @@ export function WorkflowSelection({
               data-workflow-page={discovery.id}
               data-direction="1"
               disabled={(page + 1) * pageSize >= rows.length}
+              onClick={() => actions().pageWorkflows(discovery.id, 1)}
             >
               Next surfaces
             </Button>
