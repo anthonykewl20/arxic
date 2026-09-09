@@ -18,7 +18,14 @@ jobs:
   release-test:
     name: Release test (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 25
+    # Ubuntu cells run the full unsharded core suite after install, Chromium,
+    # lint, typecheck, build and provenance steps; the flat 25-minute cap
+    # killed both of them mid-suite with zero failing tests (runs 34245658145
+    # and 34276464363, cancelled at 25m16s, #525). The same suite in the
+    # required ci workflow shards into four jobs summing ~59 minutes of wall
+    # time, so the unsharded cell needs the larger cap; windows/macos keep
+    # the observed 4-18 minute envelope.
+    timeout-minutes: ${{ matrix.os == 'ubuntu-latest' && 90 || 25 }}
     strategy:
       fail-fast: false
       matrix:
@@ -40,10 +47,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # Native dependencies are installed by pnpm above; explicitly installing
-      # Chromium makes browser availability a tested property of every cell.
-      - name: Install Playwright Chromium (Linux)
+      # the browsers makes browser availability a tested property of every
+      # cell. The ubuntu cell runs the full unsharded core suite, so it needs
+      # the same browser matrix as the required ci shards (chromium firefox
+      # webkit): with chromium alone the suite's WebKit journeys died on
+      # `browserType.launch: Executable doesn't exist` and their workbench
+      # runs ended blocked (run 34288844027 on #529, #525) — failures the
+      # old 25-minute cap had been masking before the suite ever reached them.
+      - name: Install Playwright browser matrix (Linux)
         if: runner.os == 'Linux'
-        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium
+        run: pnpm --filter @arxic/playwright-agent-adapter exec playwright install --with-deps chromium firefox webkit
 
       - name: Install Playwright Chromium (macOS and Windows)
         if: runner.os != 'Linux'
