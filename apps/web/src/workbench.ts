@@ -97,6 +97,7 @@ export function visualRuntimeLimit(project: Project) {
 }
 import { compareCapture, digest } from './visual';
 import { explainFromAssessment } from './diff-explanation';
+import { classifyAgainstBaseline } from './structural-diff';
 import {
   executionEnvironment,
   secretEnvironment,
@@ -1202,6 +1203,27 @@ export class Workbench {
               // assessment bytes; missing/unverifiable evidence leaves the
               // capture without an explanation rather than guessing.
               ...(await explainFromAssessment(directory, capture, compared.diffRegions)),
+              // Whether the change is a layout shift, new content or paint —
+              // from the two captures' own measured scenes, both hash-verified.
+              ...(await classifyAgainstBaseline(
+                (path) => readFile(path),
+                digest,
+                {
+                  path: join(directory, capture.assessmentFile ?? ''),
+                  sha256: capture.assessmentSha256,
+                },
+                {
+                  path: join(
+                    this.directory,
+                    'runs',
+                    baseline.run_id,
+                    previous.assessmentFile ?? '',
+                  ),
+                  sha256: previous.assessmentSha256,
+                },
+                compared.diffRegions,
+                capture.environment?.deviceScaleFactor ?? 1,
+              )),
             });
           }
       } catch (error) {

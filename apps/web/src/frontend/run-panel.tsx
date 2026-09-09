@@ -27,6 +27,16 @@ export type RunPanelProps = {
   onRefresh: RefreshModels;
   onReview: (request: ReviewRequest) => Promise<void>;
 };
+/**
+ * What each classification means for the person deciding whether this is a
+ * defect. The wording is the conclusion, not the category name.
+ */
+const classificationLabels: Record<string, string> = {
+  'layout-shift': 'Layout moved: elements changed position or size',
+  'content-change': 'Content changed: elements appeared or disappeared',
+  'visual-change': 'Appearance only: every element kept its position and size',
+  unclassified: 'Unattributed: no measured element sits under the change',
+};
 export function RunPanel(props: RunPanelProps) {
   const { state, selectedId, projectId } = props;
   const history = props.history;
@@ -385,6 +395,19 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                       </>
                     )}
                   </small>
+                  {capture.classification && (
+                    <small data-classification={capture.classification.summary}>
+                      {classificationLabels[capture.classification.summary]}
+                      {capture.classification.layoutShifts > 0 &&
+                        ` · ${capture.classification.layoutShifts} elements moved or resized`}
+                      {capture.classification.addedElements > 0 &&
+                        ` · ${capture.classification.addedElements} appeared`}
+                      {capture.classification.removedElements > 0 &&
+                        ` · ${capture.classification.removedElements} disappeared`}
+                      {capture.classification.truncated &&
+                        ' · scene truncated, so absent elements are not proof of removal'}
+                    </small>
+                  )}
                 </div>
                 {approved ? (
                   <Status value="current approved baseline" />

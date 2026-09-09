@@ -24,6 +24,13 @@ import type {
 import { collectMaskedRects, collectVisualScene, assessVisualScene } from './visual-oracle';
 import { applyDeterminism, launchArgs, DECODE_IMAGES_SCRIPT } from './determinism';
 import {
+  cropCapture,
+  deviceBox,
+  componentTargetsScript,
+  OVERLAY_TARGETS_SCRIPT,
+  type IsolatedTarget,
+} from './element-capture';
+import {
   installFault,
   SUBMIT_FORMS_SCRIPT,
   TRANSIENT_REGIONS_SCRIPT,
@@ -664,6 +671,69 @@ async function captureEnvironment(
             ...(storageState ? { authenticated: true } : {}),
             ...(transientRegions.length ? { transientRegions } : {}),
           });
+          // Isolated regions: each becomes its own capture record, so the
+          // existing comparison, baseline and approval machinery applies to it
+          // unchanged and a component is compared only against itself.
+          failurePhase = 'measurement';
+          const isolated: IsolatedTarget[] = [
+            ...((await page.evaluate(OVERLAY_TARGETS_SCRIPT)) as IsolatedTarget[]),
+            ...(project.componentCaptures?.length
+              ? ((await page.evaluate(
+                  componentTargetsScript(project.componentCaptures),
+                )) as IsolatedTarget[])
+              : []),
+          ];
+          for (const [index, region] of isolated.entries()) {
+            const cropBox = deviceBox(region.box, viewport, environment.deviceScaleFactor ?? 1);
+            if (!cropBox) continue;
+            const regionId = `${id}-region-${index + 1}`;
+            const regionFile = `${regionId}.png`;
+            failurePhase = 'privacy-capture';
+            // A crop of already-masked pixels; no second screenshot is taken,
+            // so the region cannot disclose more than the page capture did.
+            const regionBytes = await cropCapture(bytes, cropBox);
+            failurePhase = 'evidence-write';
+            await writeFile(join(directory, regionFile), regionBytes, { mode: 0o600 });
+            await writeFile(
+              join(directory, `${regionFile}.privacy.json`),
+              JSON.stringify({
+                schemaVersion: 1,
+                screenshotSha256: digest(regionBytes),
+                captureMode: 'isolated-region-cropped-from-masked-viewport',
+                derivedFrom: digest(bytes),
+                region: { key: region.key, kind: region.kind, ...cropBox },
+                pngNormalization: 'cropped-from-normalized-viewport-capture',
+                authenticated: !!storageState,
+                automaticMasks: ['input', 'textarea', '[contenteditable="true"]'],
+                additionalMasks: project.masks,
+                humanInspection: 'required-before-external-sharing',
+                rawTraceRetained: false,
+              }),
+              { mode: 0o600 },
+            );
+            captures.push({
+              id: regionId,
+              path,
+              ...(target.stateVariant ? { stateVariant: target.stateVariant } : {}),
+              viewport: { width: cropBox.width, height: cropBox.height },
+              file: regionFile,
+              sha256: digest(regionBytes),
+              // Region identity joins the page's identity, so a component's
+              // baseline is never compared against another page's crop.
+              specHash: digest(JSON.stringify({ page: specHash, region: region.key })),
+              browserVersion: browser.version(),
+              environment,
+              status: stable ? 'needs-baseline' : 'unstable',
+              ...(storageState ? { authenticated: true } : {}),
+              isolatedRegion: { key: region.key, kind: region.kind },
+            });
+          }
+          if (isolated.length)
+            timeline.push({
+              action: 'capture-isolated-regions',
+              checkpoint,
+              result: `${isolated.length} regions`,
+            });
           timeline.push({
             action: 'capture-input-masked-viewport',
             checkpoint,

@@ -60,6 +60,7 @@ export async function validateProject(
     'origin',
     'paths',
     'stateCaptures',
+    'componentCaptures',
     'viewports',
     'browsers',
     'colorSchemes',
@@ -215,6 +216,20 @@ export async function validateProject(
       : {}),
     ...(item.submitEmptyForms ? { submitEmptyForms: true } : {}),
   }));
+  const rawComponentCaptures = input.componentCaptures;
+  if (
+    rawComponentCaptures !== undefined &&
+    (!Array.isArray(rawComponentCaptures) ||
+      rawComponentCaptures.length > 20 ||
+      rawComponentCaptures.some(
+        (item) => typeof item !== 'string' || !item.trim() || item.length > 200,
+      ))
+  )
+    throw new HttpError(400, 'A project isolates at most 20 component selectors');
+  const componentCaptures = (rawComponentCaptures as string[] | undefined)
+    ?.map((item) => item.trim())
+    .filter((item, index, all) => all.indexOf(item) === index);
+
   const selection = (key: string, choices: readonly string[], fallback: string[]) => {
     const value = input[key] === undefined ? fallback : input[key];
     if (
@@ -379,6 +394,7 @@ export async function validateProject(
     origin,
     paths,
     ...(stateCaptures?.length ? { stateCaptures } : {}),
+    ...(componentCaptures?.length ? { componentCaptures } : {}),
     viewports,
     browsers,
     colorSchemes,

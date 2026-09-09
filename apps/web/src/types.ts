@@ -65,6 +65,12 @@ export type Project = {
     /** Submit the page's forms with empty fields to provoke inline validation. */
     submitEmptyForms?: boolean;
   }>;
+  /**
+   * CSS selectors captured in isolation alongside each page, so a component is
+   * compared against its own baseline and a sibling's height change does not
+   * report it as altered.
+   */
+  componentCaptures?: string[];
   configPath: string;
   execution?: import('./execution').ExecutionSettings;
   cron: string;
@@ -91,6 +97,11 @@ export type Capture = {
   diffRegions?: Array<{ x: number; y: number; width: number; height: number }>;
   /** Deterministic fusion of the diff regions with measured scene elements and check verdicts. */
   diffExplanation?: import('./diff-explanation').DiffExplanation;
+  /**
+   * Whether each changed region is a layout shift, new content or paint only,
+   * derived from the baseline's and this capture's own measured scenes.
+   */
+  classification?: import('./structural-diff').CaptureClassification;
   videoFile?: string;
   authenticated?: boolean;
   /** Which declared state this checkpoint captures (e.g. 'error'); absent = the plain path. */
@@ -107,6 +118,8 @@ export type Capture = {
     width: number;
     height: number;
   }>;
+  /** Set on a capture cropped out of its page: which region, and why it was isolated. */
+  isolatedRegion?: { key: string; kind: 'component' | 'overlay' };
   assessmentFile?: string;
   assessmentSha256?: string;
 };
