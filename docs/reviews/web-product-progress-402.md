@@ -244,3 +244,30 @@ count as proof, in
 [`docs/release-gates/undischarged-gates.md`](../release-gates/undischarged-gates.md).
 Closing the tracker authorizes no release tag or publication — unchanged from
 while it was open.
+
+## Clean-install fresh live-provider campaign acceptance — discharged (2026-09-09, #546)
+
+The distribution-proof section above states its boundary verbatim: it is the
+clean-install server/worker distribution proof, **not** a fresh live-provider
+campaign. That boundary is now closed.
+
+A packed `arxic-0.0.401.tgz` was clean-room-installed into an empty directory
+with its own `HOME` and a fresh per-run SQLite. The funded credential was
+**deleted from the server's environment before spawn** and reached the install
+only through `POST /api/provider-secrets` — the same endpoint the Models &
+accounts screen uses. One bounded campaign (single `GET /login` row,
+per-pass-login persona, model `glm-4.7`, budget $0.025) reached
+`result.outcome: "verified"`, with `ledger.verification` recording
+`{"outcome":"verified","passedRuns":2,"runs":2}` — the replay count is measured,
+not inferred. All thirteen executed engine stages completed; all eight gates
+passed.
+
+Sad path proven first: with no credential configured, the identical campaign on
+the identical discovery settled `blocked`/`blocked`, stage 5 failing closed. The
+runner asserts that a credential-less `verified` is a failure of the proof.
+
+The credential was never retained — verified independently after the run, neither
+the value nor any 8-character prefix appears in the record. Evidence and its
+honest limits (one row is a path proof, not coverage):
+[`WEB-402-CLEAN-INSTALL-LIVE`](../evidence/WEB-402-CLEAN-INSTALL-LIVE/summary.md).
+Runner: `scripts/clean-install-live-campaign.mts`.

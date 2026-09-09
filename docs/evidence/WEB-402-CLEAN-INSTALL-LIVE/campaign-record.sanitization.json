@@ -1,0 +1,6 @@
+{
+  "sha256": "9d6b64ef3704b09beaf90af24f6c508b14f2f879c46b4e910c5135e309a07f6a",
+  "method": "exact-value replacement of the provider credential, persona passwords and the administrator token",
+  "retained": "campaign record, step observations, engine outcome",
+  "neverRetained": "provider credential value, raw traces, persona passwords, administrator token"
+}

@@ -1,0 +1,1523 @@
+{
+  "schemaVersion": 1,
+  "issue": 546,
+  "capturedAt": "2026-09-09T16:49:31.829Z",
+  "sourceCommit": "45d708283c33621257773f86a7d1f79caa9af106",
+  "provider": {
+    "connection": "glm-coding",
+    "credentialRef": "ARXIC_SECRET_GLM_CODING_KEY",
+    "fingerprint": "7694ef46cce6",
+    "configuredThrough": "POST /api/provider-secrets (product surface)",
+    "serverEnvironmentCarriedCredential": false
+  },
+  "model": "glm-4.7",
+  "modelBudgetUsd": 0.025,
+  "installation": {
+    "packedTarball": true,
+    "cleanRoom": true,
+    "inheritedState": false
+  },
+  "sadPath": {
+    "kind": "blocked-at-execution",
+    "detail": "blocked/blocked"
+  },
+  "steps": [
+    {
+      "step": "funded credential located in the live store",
+      "observed": "ARXIC_SECRET_GLM_CODING_KEY fingerprint 7694ef46cce6"
+    },
+    {
+      "step": "packed tarball clean-room installed",
+      "observed": "arxic-0.0.401.tgz into an empty install directory, chromium provisioned in-room"
+    },
+    {
+      "step": "real target booted and persona seeded",
+      "observed": "reference-auth-app at http://127.0.0.1:36077"
+    },
+    {
+      "step": "installed server started",
+      "observed": "packed arxic web on http://127.0.0.1:38585, empty per-run sqlite"
+    },
+    {
+      "step": "project created through the product surface",
+      "observed": "connection glm-coding, model glm-4.7, budget $0.025"
+    },
+    {
+      "step": "discovery completed on the installed server",
+      "observed": "GET /login row inv:page…"
+    },
+    {
+      "step": "sad path proven with no credential configured",
+      "observed": "blocked-at-execution (blocked/blocked)"
+    },
+    {
+      "step": "live provider configured through the product surface",
+      "observed": "POST /api/provider-secrets connection=glm-coding (value withheld)"
+    },
+    {
+      "step": "campaign settled",
+      "observed": "completed / verified"
+    }
+  ],
+  "run": {
+    "id": "9395708d-d03f-488f-aa49-bcab07b04743",
+    "state": "completed"
+  },
+  "result": {
+    "outcome": "verified",
+    "summary": "The existing deterministic verifier passed this candidate. Inspect the intent ledger for remaining coverage gaps.",
+    "diagnostics": [
+      {
+        "code": "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+        "severity": "observed",
+        "subject": "framework:nextjs",
+        "message": "framework 'nextjs' 16.3.3 (manifest evidence) is inside pack nextjs-auth@0.2.0 range >=15 <17"
+      },
+      {
+        "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "severity": "blocked",
+        "subject": ".gitignore",
+        "message": "No language is identified for .gitignore; the file is outside scan policy."
+      },
+      {
+        "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "severity": "blocked",
+        "subject": "app/globals.css",
+        "message": "No language is identified for app/globals.css; the file is outside scan policy."
+      },
+      {
+        "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "severity": "blocked",
+        "subject": "package.json",
+        "message": "No language is identified for package.json; the file is outside scan policy."
+      },
+      {
+        "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "severity": "blocked",
+        "subject": "tsconfig.json",
+        "message": "No language is identified for tsconfig.json; the file is outside scan policy."
+      },
+      {
+        "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "message": "No language is identified for .gitignore; the file is outside scan policy.",
+        "severity": "blocked",
+        "subject": ".gitignore"
+      },
+      {
+        "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "message": "No language is identified for app/globals.css; the file is outside scan policy.",
+        "severity": "blocked",
+        "subject": "app/globals.css"
+      },
+      {
+        "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "message": "No language is identified for package.json; the file is outside scan policy.",
+        "severity": "blocked",
+        "subject": "package.json"
+      },
+      {
+        "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+        "message": "No language is identified for tsconfig.json; the file is outside scan policy.",
+        "severity": "blocked",
+        "subject": "tsconfig.json"
+      },
+      {
+        "code": "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+        "severity": "observed",
+        "subject": "framework:nextjs",
+        "message": "framework 'nextjs' 16.3.3 (manifest evidence) is inside pack nextjs-auth@0.2.0 range >=15 <17"
+      },
+      {
+        "code": "ARXIC-SURFACE-002",
+        "severity": "blocked",
+        "subject": "http://127.0.0.1:36077/change-password",
+        "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy)."
+      },
+      {
+        "code": "ARXIC-SURFACE-002",
+        "severity": "blocked",
+        "subject": "http://127.0.0.1:36077/forgot-password",
+        "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy)."
+      },
+      {
+        "code": "ARXIC-SURFACE-002",
+        "severity": "blocked",
+        "subject": "http://127.0.0.1:36077/login",
+        "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy)."
+      },
+      {
+        "code": "ARXIC-SURFACE-002",
+        "severity": "blocked",
+        "subject": "http://127.0.0.1:36077/logout",
+        "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy)."
+      },
+      {
+        "code": "ARXIC-SURFACE-002",
+        "severity": "blocked",
+        "subject": "http://127.0.0.1:36077/mfa/enroll",
+        "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy)."
+      },
+      {
+        "code": "ARXIC-ORCH-POSTCRAWL-REPROPOSAL",
+        "severity": "observed",
+        "subject": "run:9395708d-d03f-488f-aa49-bcab07b04743",
+        "message": "Post-crawl re-proposal skipped: the crawl observed no form-backed inventory row"
+      },
+      {
+        "code": "ARXIC-ORCH-HEALING-DEFERRED",
+        "severity": "observed",
+        "subject": "stage-11",
+        "message": "Healing is deferred to M2; no repair was attempted"
+      }
+    ],
+    "engineRun": {
+      "artifactHashes": [
+        {
+          "id": "stage:0",
+          "sha256": "fcb1fa1aef1e4b3962f77f487b0fe2346b7bbf5d0894176eba7768173bf9d903"
+        },
+        {
+          "id": "stage:1",
+          "sha256": "d7fd52be48aabd86dcf077433aabadd2dbce4a81fd09e9eea698b724260bee45"
+        },
+        {
+          "id": "stage:2",
+          "sha256": "0897372eb47152a9d321f2343367e27a47d410ab20af29cbd9c5bae3c28ad39a"
+        },
+        {
+          "id": "stage:3",
+          "sha256": "c43231c52203420d4b2ded7a13fe5487d02584ac216c9ae1f77d9b990fc950ec"
+        },
+        {
+          "id": "stage:4",
+          "sha256": "d1b99b07add42f95c4d6bfc6a8df141bc74ca0c570de1ef3687aacb797dabbb8"
+        },
+        {
+          "id": "stage:5",
+          "sha256": "adbfbe5c7fc6d790ddf8d77954740ed9a90381383c16fc6cf5c7d19e01887c11"
+        },
+        {
+          "id": "stage:6",
+          "sha256": "3b390a9e82fd9b948e6676f616b2eab025774c28727e25803b3a769146e04530"
+        },
+        {
+          "id": "stage:7",
+          "sha256": "5f2573b47a0f08610bb9d822957af5362c48f325acf3688cac2f938d1e4dab20"
+        },
+        {
+          "id": "stage:8",
+          "sha256": "543a9ef4abe54c74907511d18e2871a4a205a22c3357ba1451534fc9b18f090d"
+        },
+        {
+          "id": "stage:9",
+          "sha256": "6be9f00e9df167a772fa891af43f59fe4477165307f19af5c31b9a0a817e6051"
+        },
+        {
+          "id": "stage:10",
+          "sha256": "2b0feea6de521e5bd3dba293cbbe39b6af7055cdcc26f3cd6dfdc446c6140619"
+        },
+        {
+          "id": "stage:11",
+          "sha256": "f716a8fcc984d470da1e299d048448ab3609d93bbf9a2c84ae352a3d91bbeff8"
+        },
+        {
+          "id": "stage:12",
+          "sha256": "2286bef1da5afaa9a14b25aa4b3a968e08ad7721e0d56977f1e52ed11a49a91d"
+        },
+        {
+          "id": "stage:13",
+          "sha256": "b50413f61ce31b3b3eae0be9821b99c39847fbdd3154069f04749e9677731bd0"
+        }
+      ],
+      "config": {
+        "fixtures": {
+          "replayPersona": {
+            "login": {
+              "fields": [
+                {
+                  "inputRef": "persona.email",
+                  "label": "Email"
+                },
+                {
+                  "inputRef": "persona.password",
+                  "label": "Password"
+                }
+              ],
+              "route": "/login",
+              "submit": {
+                "label": "Login"
+              }
+            },
+            "mode": "per-pass-login"
+          }
+        },
+        "models": {
+          "provider": "glm-4.7",
+          "sourceRetention": "disabled"
+        },
+        "policy": {
+          "externalNetwork": "deny",
+          "humanApproval": [
+            "destructive",
+            "external-side-effect"
+          ],
+          "maxDepth": 2,
+          "maxRuntimeMinutes": 10,
+          "maxUrls": 20,
+          "mutation": "leased-fixtures-only",
+          "requiredVerificationRuns": 2,
+          "screenshots": "transition-checkpoints",
+          "trace": "retain"
+        },
+        "scope": {
+          "browsers": [
+            "chromium"
+          ],
+          "domains": [
+            "authentication"
+          ],
+          "featureFlags": {},
+          "frameworks": [
+            "nextjs"
+          ],
+          "inventoryRowIds": [
+            "inv:page:GET:7db4b8bf2d28"
+          ],
+          "personas": [
+            "anonymous",
+            "registered-user"
+          ]
+        },
+        "source": {
+          "languages": [
+            "typescript",
+            "javascript"
+          ],
+          "repository": "/tmp/arxic-source-ua-CPQOh1",
+          "revision": "976e9ad3a6fb84f154502da5ff01296cefdf3c27"
+        },
+        "target": {
+          "allowedOrigins": [
+            "http://127.0.0.1:36077"
+          ],
+          "attestationPath": "/.well-known/arxic-test-target.json",
+          "environmentClass": "local-test",
+          "origin": "http://127.0.0.1:36077"
+        },
+        "version": 1
+      },
+      "decisions": [
+        "Target attestation satisfies policy",
+        "Reused immutable stage-1 normalized output; source was not rescanned",
+        "Stage numbering: id 13 is the next available id; position is after structural extraction (2 → 13 → 3); ids 0–12 unchanged (ADR-008 Consequences, decision recorded at DG-06)",
+        "No provider-include gaps to compose",
+        "Inventory denominator: 9 rows (8 extracted, 0 unsupported, 0 unsafe, 1 unextracted-with-reason)",
+        "Workflow proposals are limited to 1 of 8 source consumer rows; the full inventory and unattempted rows remain in the ledger",
+        "Coverage denominator derived from the runtime-fused domain inventory (14 rows)",
+        "Post-crawl re-proposal skipped: the crawl observed no form-backed inventory row",
+        "Provisioned 1 disposable fixture leases",
+        "Observed \"observe route /login\" at http://127.0.0.1:36077/login (a11y sha256 11e80aef26dc)",
+        "Observed \"fill Email\" at http://127.0.0.1:36077/login (a11y sha256 b1ae6aa32945)",
+        "Observed \"fill Password\" at http://127.0.0.1:36077/login (a11y sha256 3c6019a18cb2)",
+        "Observed \"submit Enable a visitor to view the sign-in entry point of the application via Login\" at http://127.0.0.1:36077/ (a11y sha256 34cd4631cfb3)",
+        "Omitted 1 ambiguous post-action heading from the observation (name collision on the page would compile to a strict-mode-violating text assertion); the url assertion still binds",
+        "Workflow compiled",
+        "Healing deferred to M2; no repair was attempted"
+      ],
+      "diagnostics": [
+        {
+          "code": "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+          "message": "framework 'nextjs' 16.3.3 (manifest evidence) is inside pack nextjs-auth@0.2.0 range >=15 <17",
+          "severity": "observed",
+          "subject": "framework:nextjs"
+        },
+        {
+          "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "message": "No language is identified for .gitignore; the file is outside scan policy.",
+          "severity": "blocked",
+          "subject": ".gitignore"
+        },
+        {
+          "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "message": "No language is identified for app/globals.css; the file is outside scan policy.",
+          "severity": "blocked",
+          "subject": "app/globals.css"
+        },
+        {
+          "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "message": "No language is identified for package.json; the file is outside scan policy.",
+          "severity": "blocked",
+          "subject": "package.json"
+        },
+        {
+          "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "message": "No language is identified for tsconfig.json; the file is outside scan policy.",
+          "severity": "blocked",
+          "subject": "tsconfig.json"
+        },
+        {
+          "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "message": "No language is identified for .gitignore; the file is outside scan policy.",
+          "severity": "blocked",
+          "subject": ".gitignore"
+        },
+        {
+          "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "message": "No language is identified for app/globals.css; the file is outside scan policy.",
+          "severity": "blocked",
+          "subject": "app/globals.css"
+        },
+        {
+          "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "message": "No language is identified for package.json; the file is outside scan policy.",
+          "severity": "blocked",
+          "subject": "package.json"
+        },
+        {
+          "code": "ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "message": "No language is identified for tsconfig.json; the file is outside scan policy.",
+          "severity": "blocked",
+          "subject": "tsconfig.json"
+        },
+        {
+          "code": "ARXIC-RULES-FRAMEWORK-ACCEPTED",
+          "message": "framework 'nextjs' 16.3.3 (manifest evidence) is inside pack nextjs-auth@0.2.0 range >=15 <17",
+          "severity": "observed",
+          "subject": "framework:nextjs"
+        },
+        {
+          "code": "ARXIC-SURFACE-002",
+          "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy).",
+          "severity": "blocked",
+          "subject": "http://127.0.0.1:36077/change-password"
+        },
+        {
+          "code": "ARXIC-SURFACE-002",
+          "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy).",
+          "severity": "blocked",
+          "subject": "http://127.0.0.1:36077/forgot-password"
+        },
+        {
+          "code": "ARXIC-SURFACE-002",
+          "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy).",
+          "severity": "blocked",
+          "subject": "http://127.0.0.1:36077/login"
+        },
+        {
+          "code": "ARXIC-SURFACE-002",
+          "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy).",
+          "severity": "blocked",
+          "subject": "http://127.0.0.1:36077/logout"
+        },
+        {
+          "code": "ARXIC-SURFACE-002",
+          "message": "Breadth discovery observed a POST form and did not submit it (default-deny mutation policy).",
+          "severity": "blocked",
+          "subject": "http://127.0.0.1:36077/mfa/enroll"
+        },
+        {
+          "code": "ARXIC-ORCH-POSTCRAWL-REPROPOSAL",
+          "message": "Post-crawl re-proposal skipped: the crawl observed no form-backed inventory row",
+          "severity": "observed",
+          "subject": "run:9395708d-d03f-488f-aa49-bcab07b04743"
+        },
+        {
+          "code": "ARXIC-ORCH-HEALING-DEFERRED",
+          "message": "Healing is deferred to M2; no repair was attempted",
+          "severity": "observed",
+          "subject": "stage-11"
+        }
+      ],
+      "finishedAt": "2026-09-09T16:49:31.544Z",
+      "gateResults": [
+        {
+          "gate": "attestation",
+          "passed": true
+        },
+        {
+          "gate": "inventory-completeness",
+          "passed": true
+        },
+        {
+          "gate": "fixtures",
+          "passed": true
+        },
+        {
+          "gate": "exploration-approval",
+          "passed": true
+        },
+        {
+          "gate": "compile",
+          "passed": true
+        },
+        {
+          "gate": "verify",
+          "passed": true
+        },
+        {
+          "gate": "intent-ledger",
+          "passed": true
+        },
+        {
+          "gate": "promotion",
+          "passed": true
+        }
+      ],
+      "generator": {
+        "id": "@arxic/cli",
+        "version": "0.0.401"
+      },
+      "outcome": "verified",
+      "receipt": {
+        "checksumSha256": "7275648bd110100bf5254001b815fd693c23bd19caef26b2455b9df5564f09d3",
+        "location": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/promoted/9395708d-d03f-488f-aa49-bcab07b04743.bundle.json",
+        "manifest": {
+          "appBuildDigest": "a125168a41ba759d20e70e21797775821776bc21cf6653f9e8d6c207f286681f",
+          "bundleVersion": 1,
+          "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+          "coverage": {
+            "blocked": 0,
+            "contradicted": 0,
+            "denominator": 1,
+            "uncovered": 0,
+            "verified": 1
+          },
+          "environment": {
+            "browser": "chromium",
+            "class": "local-test",
+            "persona": "unauthenticated visitor"
+          },
+          "fileHashes": [
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/9395708d-d03f-488f-aa49-bcab07b04743/tests/workflow.spec.ts",
+              "sha256": "d21bfd9f9c884a60b4901b789b9b3daa23c4fae92482cc4c36a01696343a08bb"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/9395708d-d03f-488f-aa49-bcab07b04743/fixtures/workflow.fixture.ts",
+              "sha256": "960d35e48c534e3080611c3e043de54c32565544477fa6fac22335708d9af90e"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/9395708d-d03f-488f-aa49-bcab07b04743/fixtures/transition-receipts.ts",
+              "sha256": "5423dcc19b3d27ec5dd37e09a6e55dff558809232028ebdf9040d572bfdff4d2"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/9395708d-d03f-488f-aa49-bcab07b04743/fixtures/screenshot-privacy.ts",
+              "sha256": "0bbd41a4894f5415c6a1d13da737b0767ea120be75b943ade64b06effb191238"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/9395708d-d03f-488f-aa49-bcab07b04743/plan.md",
+              "sha256": "ad7ee7c146a8fddafc791ab2da5a8f484b76d1b4742491070936984dc22bd349"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/9395708d-d03f-488f-aa49-bcab07b04743/playwright.config.ts",
+              "sha256": "b530848f2bfc36b90adcfd35be709ed77b2625c427f516fa8364bb9725683735"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/9395708d-d03f-488f-aa49-bcab07b04743/intents.json",
+              "sha256": "678175848583371f008b2596b22a6fbdf2778ef6ddd44f99500e10dc718ca677"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/verification-artifacts/verification/run-1/trace-001.zip",
+              "sha256": "da24bcef32389384cd0f66c85175bbe535704d754ab109cedeefb38f4564d64b"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/verification-artifacts/verification/run-1/trace-001.zip.sanitization.json",
+              "sha256": "d088df3541b0da37f1703564da8d4474e02b9aa5a443a3dd1fd1981aa3e38965"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/verification-artifacts/verification/run-1/001-step-1-login-page-home.png",
+              "sha256": "ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/verification-artifacts/verification/run-1/001-step-1-login-page-home.png.privacy.json",
+              "sha256": "c8f5320b0ce4eb4c84d633c5f8b69396a0da0b6be101da2d2b185acb65139232"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/verification-artifacts/verification/run-2/trace-001.zip",
+              "sha256": "c552368c4861cbd80d7a0e312b5ed1fd896389391334c6d676944331d94465c0"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/verification-artifacts/verification/run-2/trace-001.zip.sanitization.json",
+              "sha256": "e7c0b330b959ab8be1d66635a8ba4b0b3ea2c7cd9d71865e5f59fd04920c0b0d"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/verification-artifacts/verification/run-2/001-step-1-login-page-home.png",
+              "sha256": "ecb5f146bb3154085fd8baddd75d35e161836609ebe2db6338ad0bbe93c8d2c1"
+            },
+            {
+              "path": "/tmp/arxic-clean-install-live-i0HUGt/state/runs/9395708d-d03f-488f-aa49-bcab07b04743/engine/verification-artifacts/verification/run-2/001-step-1-login-page-home.png.privacy.json",
+              "sha256": "e5055a1ca2fbbc3f53a550841d2f4be22d85c4e42250598c775662565ea34c7b"
+            }
+          ],
+          "gateResults": [
+            {
+              "gate": "compile",
+              "passed": true
+            },
+            {
+              "gate": "policy",
+              "passed": true
+            },
+            {
+              "gate": "verify",
+              "passed": true
+            }
+          ],
+          "generator": {
+            "id": "@arxic/playwright-compiler",
+            "version": "0.0.401"
+          },
+          "repository": "file:///tmp/arxic-source-ua-CPQOh1",
+          "runId": "9395708d-d03f-488f-aa49-bcab07b04743",
+          "schemaVersion": 1,
+          "verification": {
+            "requiredRuns": 2,
+            "runs": [
+              {
+                "finishedAt": "2026-09-09T16:49:31.246Z",
+                "passed": true,
+                "startedAt": "2026-09-09T16:49:31.246Z"
+              },
+              {
+                "finishedAt": "2026-09-09T16:49:31.246Z",
+                "passed": true,
+                "startedAt": "2026-09-09T16:49:31.246Z"
+              }
+            ]
+          },
+          "workflow": {
+            "id": "prop:455b8503247396ab",
+            "status": "verified"
+          }
+        },
+        "promotedAt": "2026-09-09T16:49:31.532Z"
+      },
+      "redaction": {
+        "passed": true,
+        "redactedFields": []
+      },
+      "runId": "9395708d-d03f-488f-aa49-bcab07b04743",
+      "schemaVersion": 1,
+      "stages": [
+        {
+          "adapter": {
+            "name": "@arxic/environment",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:0",
+              "sha256": "fcb1fa1aef1e4b3962f77f487b0fe2346b7bbf5d0894176eba7768173bf9d903"
+            }
+          ],
+          "decisions": [
+            "Target attestation satisfies policy"
+          ],
+          "finishedAt": "2026-09-09T16:49:03.882Z",
+          "gateResults": [
+            {
+              "gate": "attestation",
+              "passed": true
+            }
+          ],
+          "name": "attestation",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 0,
+          "startedAt": "2026-09-09T16:49:03.871Z",
+          "status": "completed",
+          "toolVersions": {}
+        },
+        {
+          "adapter": {
+            "name": "@arxic/source-ua-adapter",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:1",
+              "sha256": "d7fd52be48aabd86dcf077433aabadd2dbce4a81fd09e9eea698b724260bee45"
+            }
+          ],
+          "decisions": [],
+          "finishedAt": "2026-09-09T16:49:04.112Z",
+          "gateResults": [],
+          "name": "deterministic-scanning",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 1,
+          "startedAt": "2026-09-09T16:49:03.886Z",
+          "status": "completed",
+          "toolVersions": {
+            "tree-sitter": "0.25.1",
+            "tree-sitter-javascript": "0.25.0",
+            "tree-sitter-php": "0.24.2",
+            "tree-sitter-typescript": "0.23.2"
+          }
+        },
+        {
+          "adapter": {
+            "name": "@arxic/source-ua-adapter",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:2",
+              "sha256": "0897372eb47152a9d321f2343367e27a47d410ab20af29cbd9c5bae3c28ad39a"
+            }
+          ],
+          "decisions": [
+            "Reused immutable stage-1 normalized output; source was not rescanned"
+          ],
+          "finishedAt": "2026-09-09T16:49:04.154Z",
+          "gateResults": [],
+          "name": "structural-extraction",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 2,
+          "startedAt": "2026-09-09T16:49:04.115Z",
+          "status": "completed",
+          "toolVersions": {
+            "tree-sitter": "0.25.1",
+            "tree-sitter-javascript": "0.25.0",
+            "tree-sitter-php": "0.24.2",
+            "tree-sitter-typescript": "0.23.2"
+          }
+        },
+        {
+          "adapter": {
+            "name": "@arxic/domain-inventory",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:13",
+              "sha256": "b50413f61ce31b3b3eae0be9821b99c39847fbdd3154069f04749e9677731bd0"
+            }
+          ],
+          "decisions": [
+            "Stage numbering: id 13 is the next available id; position is after structural extraction (2 → 13 → 3); ids 0–12 unchanged (ADR-008 Consequences, decision recorded at DG-06)",
+            "No provider-include gaps to compose",
+            "Inventory denominator: 9 rows (8 extracted, 0 unsupported, 0 unsafe, 1 unextracted-with-reason)"
+          ],
+          "finishedAt": "2026-09-09T16:49:04.322Z",
+          "gateResults": [
+            {
+              "gate": "inventory-completeness",
+              "passed": true
+            }
+          ],
+          "name": "domain-inventory",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 13,
+          "startedAt": "2026-09-09T16:49:04.176Z",
+          "status": "completed",
+          "toolVersions": {
+            "@arxic/domain-inventory": "0.0.401"
+          }
+        },
+        {
+          "adapter": {
+            "name": "@arxic/ast-grep-adapter",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:3",
+              "sha256": "c43231c52203420d4b2ded7a13fe5487d02584ac216c9ae1f77d9b990fc950ec"
+            }
+          ],
+          "decisions": [],
+          "finishedAt": "2026-09-09T16:49:04.695Z",
+          "gateResults": [],
+          "name": "framework-rules",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 3,
+          "startedAt": "2026-09-09T16:49:04.325Z",
+          "status": "completed",
+          "toolVersions": {
+            "nextjs-auth": "0.2.0"
+          }
+        },
+        {
+          "adapter": {
+            "name": "@arxic/orchestrator-langgraph:inference",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:4",
+              "sha256": "d1b99b07add42f95c4d6bfc6a8df141bc74ca0c570de1ef3687aacb797dabbb8"
+            }
+          ],
+          "decisions": [
+            "Workflow proposals are limited to 1 of 8 source consumer rows; the full inventory and unattempted rows remain in the ledger"
+          ],
+          "finishedAt": "2026-09-09T16:49:22.424Z",
+          "gateResults": [],
+          "modelRequestId": "intent-proposer-9395708d-d03f-488f-aa49-bcab07b04743",
+          "name": "inference-orchestration",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 4,
+          "startedAt": "2026-09-09T16:49:04.697Z",
+          "status": "completed",
+          "toolVersions": {}
+        },
+        {
+          "adapter": {
+            "name": "@arxic/crawlee-adapter",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:5",
+              "sha256": "adbfbe5c7fc6d790ddf8d77954740ed9a90381383c16fc6cf5c7d19e01887c11"
+            }
+          ],
+          "decisions": [],
+          "finishedAt": "2026-09-09T16:49:24.793Z",
+          "gateResults": [],
+          "name": "bounded-discovery",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 5,
+          "startedAt": "2026-09-09T16:49:22.427Z",
+          "status": "completed",
+          "toolVersions": {}
+        },
+        {
+          "adapter": {
+            "name": "@arxic/reconciler:seam",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:6",
+              "sha256": "3b390a9e82fd9b948e6676f616b2eab025774c28727e25803b3a769146e04530"
+            }
+          ],
+          "decisions": [
+            "Coverage denominator derived from the runtime-fused domain inventory (14 rows)",
+            "Post-crawl re-proposal skipped: the crawl observed no form-backed inventory row"
+          ],
+          "finishedAt": "2026-09-09T16:49:24.808Z",
+          "gateResults": [],
+          "name": "reconciliation",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 6,
+          "startedAt": "2026-09-09T16:49:24.796Z",
+          "status": "completed",
+          "toolVersions": {}
+        },
+        {
+          "adapter": {
+            "name": "@arxic/fixture-adapters:seam",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:7",
+              "sha256": "5f2573b47a0f08610bb9d822957af5362c48f325acf3688cac2f938d1e4dab20"
+            }
+          ],
+          "decisions": [
+            "Provisioned 1 disposable fixture leases"
+          ],
+          "finishedAt": "2026-09-09T16:49:24.813Z",
+          "gateResults": [
+            {
+              "gate": "fixtures",
+              "passed": true
+            }
+          ],
+          "name": "fixture-prep",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 7,
+          "startedAt": "2026-09-09T16:49:24.811Z",
+          "status": "completed",
+          "toolVersions": {}
+        },
+        {
+          "adapter": {
+            "name": "@arxic/targeted-exploration:seam",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:8",
+              "sha256": "543a9ef4abe54c74907511d18e2871a4a205a22c3357ba1451534fc9b18f090d"
+            }
+          ],
+          "decisions": [
+            "Observed \"observe route /login\" at http://127.0.0.1:36077/login (a11y sha256 11e80aef26dc)",
+            "Observed \"fill Email\" at http://127.0.0.1:36077/login (a11y sha256 b1ae6aa32945)",
+            "Observed \"fill Password\" at http://127.0.0.1:36077/login (a11y sha256 3c6019a18cb2)",
+            "Observed \"submit Enable a visitor to view the sign-in entry point of the application via Login\" at http://127.0.0.1:36077/ (a11y sha256 34cd4631cfb3)",
+            "Omitted 1 ambiguous post-action heading from the observation (name collision on the page would compile to a strict-mode-violating text assertion); the url assertion still binds"
+          ],
+          "finishedAt": "2026-09-09T16:49:25.932Z",
+          "gateResults": [
+            {
+              "gate": "exploration-approval",
+              "passed": true
+            }
+          ],
+          "name": "targeted-exploration",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 8,
+          "startedAt": "2026-09-09T16:49:24.816Z",
+          "status": "completed",
+          "toolVersions": {}
+        },
+        {
+          "adapter": {
+            "name": "@arxic/playwright-agent-adapter",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:9",
+              "sha256": "6be9f00e9df167a772fa891af43f59fe4477165307f19af5c31b9a0a817e6051"
+            }
+          ],
+          "decisions": [
+            "Workflow compiled"
+          ],
+          "finishedAt": "2026-09-09T16:49:26.029Z",
+          "gateResults": [
+            {
+              "gate": "compile",
+              "passed": true
+            }
+          ],
+          "name": "workflow-compiler",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 9,
+          "startedAt": "2026-09-09T16:49:25.935Z",
+          "status": "completed",
+          "toolVersions": {}
+        },
+        {
+          "adapter": {
+            "name": "@arxic/verifier:seam",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:10",
+              "sha256": "2b0feea6de521e5bd3dba293cbbe39b6af7055cdcc26f3cd6dfdc446c6140619"
+            }
+          ],
+          "decisions": [],
+          "finishedAt": "2026-09-09T16:49:31.282Z",
+          "gateResults": [
+            {
+              "gate": "verify",
+              "passed": true
+            },
+            {
+              "gate": "intent-ledger",
+              "passed": true
+            }
+          ],
+          "name": "verification",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 10,
+          "startedAt": "2026-09-09T16:49:26.033Z",
+          "status": "completed",
+          "toolVersions": {}
+        },
+        {
+          "adapter": {
+            "name": "@arxic/orchestrator-langgraph",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:11",
+              "sha256": "f716a8fcc984d470da1e299d048448ab3609d93bbf9a2c84ae352a3d91bbeff8"
+            }
+          ],
+          "decisions": [
+            "Healing deferred to M2; no repair was attempted"
+          ],
+          "finishedAt": "2026-09-09T16:49:31.285Z",
+          "gateResults": [],
+          "name": "healing",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 11,
+          "startedAt": "2026-09-09T16:49:31.284Z",
+          "status": "deferred",
+          "toolVersions": {}
+        },
+        {
+          "adapter": {
+            "name": "@arxic/bundle-promoter",
+            "version": "0.0.401"
+          },
+          "approvals": [],
+          "artifacts": [
+            {
+              "id": "stage:12",
+              "sha256": "2286bef1da5afaa9a14b25aa4b3a968e08ad7721e0d56977f1e52ed11a49a91d"
+            }
+          ],
+          "decisions": [],
+          "finishedAt": "2026-09-09T16:49:31.537Z",
+          "gateResults": [
+            {
+              "gate": "promotion",
+              "passed": true
+            }
+          ],
+          "name": "promotion",
+          "orchestratorVersion": "0.0.401",
+          "redaction": {
+            "passed": true,
+            "redactedFields": []
+          },
+          "stage": 12,
+          "startedAt": "2026-09-09T16:49:31.287Z",
+          "status": "completed",
+          "toolVersions": {}
+        }
+      ],
+      "startedAt": "2026-09-09T16:49:03.717Z",
+      "status": "completed",
+      "target": {
+        "environmentClass": "local-test",
+        "origin": "http://127.0.0.1:36077"
+      },
+      "toolVersions": {
+        "@arxic/domain-inventory": "0.0.401",
+        "nextjs-auth": "0.2.0",
+        "tree-sitter": "0.25.1",
+        "tree-sitter-javascript": "0.25.0",
+        "tree-sitter-php": "0.24.2",
+        "tree-sitter-typescript": "0.23.2"
+      }
+    },
+    "ledger": {
+      "candidate": {
+        "workflowId": "prop:455b8503247396ab"
+      },
+      "generatedAt": "2026-09-09T16:49:31.182Z",
+      "inventory": {
+        "byDisposition": {
+          "extracted": 8,
+          "unextracted-with-reason": 1,
+          "unsafe": 0,
+          "unsupported": 0
+        },
+        "totalRows": 9
+      },
+      "rows": [
+        {
+          "disposition": "unextracted-with-reason",
+          "domain": "uncategorized",
+          "evidence": {
+            "runtimeForms": [],
+            "runtimeObservationCount": 0,
+            "runtimeUrls": [],
+            "sourceRefs": []
+          },
+          "intents": [],
+          "inventoryKey": "* source-scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "oracleKinds": [
+            "observed-only"
+          ],
+          "reason": "source-scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE",
+          "replayStatus": "not-attempted",
+          "surface": {
+            "kind": "unknown",
+            "method": "*",
+            "path": "<scan-diagnostic:ARXIC-SOURCE-UNSUPPORTED-LANGUAGE>"
+          },
+          "truthState": "observed",
+          "verbs": []
+        },
+        {
+          "disposition": "extracted",
+          "domain": "root",
+          "evidence": {
+            "runtimeForms": [],
+            "runtimeObservationCount": 0,
+            "runtimeUrls": [],
+            "sourceRefs": [
+              {
+                "blobSha256": "48274a4887c44ffbe18c63e649aec56e3b22670139417d8ff63b474984e0daa6",
+                "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+                "endLine": 23,
+                "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+                "kind": "source",
+                "path": "app/page.tsx",
+                "repo": "file:///tmp/arxic-source-ua-CPQOh1",
+                "ruleId": "route:GET /",
+                "startLine": 1
+              }
+            ]
+          },
+          "intents": [],
+          "inventoryKey": "GET /",
+          "inventoryRowId": "inv:page:GET:c767025d0edc",
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "reason": "",
+          "replayStatus": "not-attempted",
+          "surface": {
+            "kind": "page",
+            "method": "GET",
+            "path": "/"
+          },
+          "truthState": "observed",
+          "verbs": [
+            "read-list"
+          ]
+        },
+        {
+          "disposition": "extracted",
+          "domain": "change-password",
+          "evidence": {
+            "runtimeForms": [],
+            "runtimeObservationCount": 0,
+            "runtimeUrls": [],
+            "sourceRefs": [
+              {
+                "blobSha256": "8d8351a42f6f42f1e70f464e9773249358637c97b72a0db274e55b94e950aac6",
+                "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+                "endLine": 23,
+                "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+                "kind": "source",
+                "path": "app/change-password/page.tsx",
+                "repo": "file:///tmp/arxic-source-ua-CPQOh1",
+                "ruleId": "route:GET /change-password",
+                "startLine": 1
+              }
+            ]
+          },
+          "intents": [],
+          "inventoryKey": "GET /change-password",
+          "inventoryRowId": "inv:page:GET:c955dc4bd456",
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "reason": "",
+          "replayStatus": "not-attempted",
+          "surface": {
+            "kind": "page",
+            "method": "GET",
+            "path": "/change-password"
+          },
+          "truthState": "observed",
+          "verbs": [
+            "read-list"
+          ]
+        },
+        {
+          "disposition": "extracted",
+          "domain": "forgot-password",
+          "evidence": {
+            "runtimeForms": [],
+            "runtimeObservationCount": 0,
+            "runtimeUrls": [],
+            "sourceRefs": [
+              {
+                "blobSha256": "1c50747b8f893d31d7ead1ca5c72f9c0f19c87e8c43bb5a06e0c49112cf3354b",
+                "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+                "endLine": 18,
+                "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+                "kind": "source",
+                "path": "app/forgot-password/page.tsx",
+                "repo": "file:///tmp/arxic-source-ua-CPQOh1",
+                "ruleId": "route:GET /forgot-password",
+                "startLine": 1
+              }
+            ]
+          },
+          "intents": [],
+          "inventoryKey": "GET /forgot-password",
+          "inventoryRowId": "inv:page:GET:17251c2c0bbc",
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "reason": "",
+          "replayStatus": "not-attempted",
+          "surface": {
+            "kind": "page",
+            "method": "GET",
+            "path": "/forgot-password"
+          },
+          "truthState": "observed",
+          "verbs": [
+            "read-list"
+          ]
+        },
+        {
+          "disposition": "extracted",
+          "domain": "login",
+          "evidence": {
+            "runtimeForms": [],
+            "runtimeObservationCount": 0,
+            "runtimeUrls": [],
+            "sourceRefs": [
+              {
+                "blobSha256": "d019d940829e5f092314b0652fca15ff664c66dd9708472bdcba6978865aea6a",
+                "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+                "endLine": 23,
+                "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+                "kind": "source",
+                "path": "app/login/page.tsx",
+                "repo": "file:///tmp/arxic-source-ua-CPQOh1",
+                "ruleId": "route:GET /login",
+                "startLine": 1
+              }
+            ]
+          },
+          "intents": [
+            {
+              "action": "Render the login page for anonymous visitors",
+              "domain": "login",
+              "evidenceRefIds": [
+                "src:app-login-page.tsx:1-23"
+              ],
+              "fromState": "visitorNotAuthenticated",
+              "intent": "Enable a visitor to view the sign-in entry point of the application",
+              "isCandidate": true,
+              "oracleKinds": [
+                "repository-specification"
+              ],
+              "persona": "unauthenticated visitor",
+              "proposalId": "prop:455b8503247396ab",
+              "replayStatus": "attempted:passed",
+              "toState": "loginFormDisplayed",
+              "truthState": "verified"
+            },
+            {
+              "action": "Offer recovery paths such as password reset or account recovery from the login page",
+              "domain": "login",
+              "evidenceRefIds": [
+                "src:app-login-page.tsx:1-23"
+              ],
+              "fromState": "loginFormDisplayed",
+              "intent": "Help a user recover access when credentials cannot be provided",
+              "isCandidate": false,
+              "oracleKinds": [
+                "repository-specification"
+              ],
+              "persona": "user with lost credentials",
+              "proposalId": "prop:5e80098a6bcba2a8",
+              "replayStatus": "not-attempted",
+              "toState": "recoveryPathInitiated",
+              "truthState": "hypothesized"
+            },
+            {
+              "action": "Collect and submit user credentials from the login page",
+              "domain": "login",
+              "evidenceRefIds": [
+                "src:app-login-page.tsx:1-23"
+              ],
+              "fromState": "loginFormDisplayed",
+              "intent": "Allow a user to submit credentials to establish an authenticated session",
+              "isCandidate": false,
+              "oracleKinds": [
+                "repository-specification"
+              ],
+              "persona": "registered user",
+              "proposalId": "prop:75ae7e34d2d6a365",
+              "replayStatus": "not-attempted",
+              "toState": "credentialsSubmitted",
+              "truthState": "hypothesized"
+            },
+            {
+              "action": "Redirect the user after a successful login attempt",
+              "domain": "login",
+              "evidenceRefIds": [
+                "src:app-login-page.tsx:1-23"
+              ],
+              "fromState": "credentialsSubmitted",
+              "intent": "Guide a user back to their intended destination after successful sign-in",
+              "isCandidate": false,
+              "oracleKinds": [
+                "repository-specification"
+              ],
+              "persona": "registered user",
+              "proposalId": "prop:892e7fd80871236a",
+              "replayStatus": "not-attempted",
+              "toState": "userRedirectedAfterLogin",
+              "truthState": "hypothesized"
+            },
+            {
+              "action": "perform GET /login",
+              "domain": "authentication",
+              "evidenceRefIds": [
+                "src:app-login-page.tsx:1-23"
+              ],
+              "fromState": "signed-out",
+              "intent": "log in with credentials",
+              "isCandidate": false,
+              "oracleKinds": [
+                "repository-specification"
+              ],
+              "persona": "registered-user",
+              "proposalId": "prop:e6e950dffee0587a",
+              "replayStatus": "not-attempted",
+              "toState": "signed-in",
+              "truthState": "hypothesized"
+            }
+          ],
+          "inventoryKey": "GET /login",
+          "inventoryRowId": "inv:page:GET:7db4b8bf2d28",
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "reason": "",
+          "replayStatus": "attempted:passed",
+          "surface": {
+            "kind": "page",
+            "method": "GET",
+            "path": "/login"
+          },
+          "truthState": "verified",
+          "verbs": [
+            "login",
+            "read-list"
+          ]
+        },
+        {
+          "disposition": "extracted",
+          "domain": "login",
+          "evidence": {
+            "runtimeForms": [],
+            "runtimeObservationCount": 0,
+            "runtimeUrls": [],
+            "sourceRefs": [
+              {
+                "blobSha256": "2869262734b2bf3386a72333fe2bfb83c6b6a08e535d11a3b5dd64fc09e5d3a8",
+                "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+                "endLine": 26,
+                "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+                "kind": "source",
+                "path": "app/login/alternate/page.tsx",
+                "repo": "file:///tmp/arxic-source-ua-CPQOh1",
+                "ruleId": "route:GET /login/alternate",
+                "startLine": 1
+              }
+            ]
+          },
+          "intents": [],
+          "inventoryKey": "GET /login/alternate",
+          "inventoryRowId": "inv:page:GET:fff3a29701c0",
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "reason": "",
+          "replayStatus": "not-attempted",
+          "surface": {
+            "kind": "page",
+            "method": "GET",
+            "path": "/login/alternate"
+          },
+          "truthState": "observed",
+          "verbs": [
+            "login",
+            "read-list"
+          ]
+        },
+        {
+          "disposition": "extracted",
+          "domain": "mfa",
+          "evidence": {
+            "runtimeForms": [],
+            "runtimeObservationCount": 0,
+            "runtimeUrls": [],
+            "sourceRefs": [
+              {
+                "blobSha256": "29cddcce6442b8fe75c0049a923792e463074472db2ce536f6851a8b0c33f022",
+                "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+                "endLine": 21,
+                "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+                "kind": "source",
+                "path": "app/mfa/challenge/page.tsx",
+                "repo": "file:///tmp/arxic-source-ua-CPQOh1",
+                "ruleId": "route:GET /mfa/challenge",
+                "startLine": 1
+              }
+            ]
+          },
+          "intents": [],
+          "inventoryKey": "GET /mfa/challenge",
+          "inventoryRowId": "inv:page:GET:0372447ee3e5",
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "reason": "",
+          "replayStatus": "not-attempted",
+          "surface": {
+            "kind": "page",
+            "method": "GET",
+            "path": "/mfa/challenge"
+          },
+          "truthState": "observed",
+          "verbs": [
+            "read-list"
+          ]
+        },
+        {
+          "disposition": "extracted",
+          "domain": "mfa",
+          "evidence": {
+            "runtimeForms": [],
+            "runtimeObservationCount": 0,
+            "runtimeUrls": [],
+            "sourceRefs": [
+              {
+                "blobSha256": "488780599506fffb5daf7bb6e3749da9a1d59c2fd570ac7068e31874c076f628",
+                "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+                "endLine": 44,
+                "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+                "kind": "source",
+                "path": "app/mfa/enroll/page.tsx",
+                "repo": "file:///tmp/arxic-source-ua-CPQOh1",
+                "ruleId": "route:GET /mfa/enroll",
+                "startLine": 1
+              }
+            ]
+          },
+          "intents": [],
+          "inventoryKey": "GET /mfa/enroll",
+          "inventoryRowId": "inv:page:GET:55026674d5f5",
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "reason": "",
+          "replayStatus": "not-attempted",
+          "surface": {
+            "kind": "page",
+            "method": "GET",
+            "path": "/mfa/enroll"
+          },
+          "truthState": "observed",
+          "verbs": [
+            "read-list"
+          ]
+        },
+        {
+          "disposition": "extracted",
+          "domain": "reset-password",
+          "evidence": {
+            "runtimeForms": [],
+            "runtimeObservationCount": 0,
+            "runtimeUrls": [],
+            "sourceRefs": [
+              {
+                "blobSha256": "6b987deb254705f9f637fc1a74d5772734fe0a1881130d19dcdb1d29c2bd0fe4",
+                "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+                "endLine": 18,
+                "extractor": "source-ua-adapter/nextjs-file-conventions@0.0.0",
+                "kind": "source",
+                "path": "app/reset-password/page.tsx",
+                "repo": "file:///tmp/arxic-source-ua-CPQOh1",
+                "ruleId": "route:GET /reset-password",
+                "startLine": 1
+              }
+            ]
+          },
+          "intents": [],
+          "inventoryKey": "GET /reset-password",
+          "inventoryRowId": "inv:page:GET:bee58dc19ca9",
+          "oracleKinds": [
+            "repository-specification"
+          ],
+          "reason": "",
+          "replayStatus": "not-attempted",
+          "surface": {
+            "kind": "page",
+            "method": "GET",
+            "path": "/reset-password"
+          },
+          "truthState": "observed",
+          "verbs": [
+            "read-list"
+          ]
+        }
+      ],
+      "schemaVersion": "arxic-intent-ledger-v1",
+      "source": {
+        "commit": "976e9ad3a6fb84f154502da5ff01296cefdf3c27",
+        "repository": "file:///tmp/arxic-source-ua-CPQOh1"
+      },
+      "verification": {
+        "outcome": "verified",
+        "passedRuns": 2,
+        "runs": 2
+      }
+    }
+  },
+  "engineArtifacts": {
+    "run.json": null,
+    "intents.json": null,
+    "diagnostics.json": null
+  }
+}
