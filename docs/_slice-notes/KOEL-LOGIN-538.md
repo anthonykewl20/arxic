@@ -1,6 +1,6 @@
 # KOEL-LOGIN-538 — staged doc updates (charter §10.2)
 
-Issue: #538 · PR: #<fill> · Disposition: observed (red→green demonstrated against a real dockerized koel with a real browser engine; CI skips the koel suite because the rehearsal clone/image are local-only, so the third-party proof itself remains local-observed, not CI-verified)
+Issue: #538 · PR: #539 · Disposition: observed (red→green demonstrated against a real dockerized koel with a real browser engine; CI skips the koel suite because the rehearsal clone/image are local-only, so the third-party proof itself remains local-observed, not CI-verified)
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
@@ -17,7 +17,7 @@ Issue: #538 · PR: #<fill> · Disposition: observed (red→green demonstrated ag
 ## 3. `CHANGELOG.md` — entry under `## [Unreleased]` → `### added`
 
 ```
-- KOEL-LOGIN-538 real SPA sign-in for visual runs (#<fill>): visual projects can declare placeholder-only login surfaces (`emailPlaceholder`/`passwordPlaceholder`, non-secret like the labels), the sign-in engine resolves fields label→type→placeholder with the resolution method recorded in the sanitized timeline, treats the bounded disappearance of the login form as the success signal for hash-routed SPAs, and gives declared privacy masks a bounded mount window before refusing a capture. Proven against a real dockerized koel: wrong password → blocked `login-failed` with the retained observed engine error and one bounded attempt; valid sign-in → authenticated masked capture (`docs/evidence/WEB-402-KOEL-LOGIN/`). Provider account-logins remain owner-blocked.
+- KOEL-LOGIN-538 real SPA sign-in for visual runs (#539): visual projects can declare placeholder-only login surfaces (`emailPlaceholder`/`passwordPlaceholder`, non-secret like the labels), the sign-in engine resolves fields label→type→placeholder with the resolution method recorded in the sanitized timeline, treats the bounded disappearance of the login form as the success signal for hash-routed SPAs, and gives declared privacy masks a bounded mount window before refusing a capture. Proven against a real dockerized koel: wrong password → blocked `login-failed` with the retained observed engine error and one bounded attempt; valid sign-in → authenticated masked capture (`docs/evidence/WEB-402-KOEL-LOGIN/`). Provider account-logins remain owner-blocked.
 ```
 
 ## 4. `VERSION` bump required?
