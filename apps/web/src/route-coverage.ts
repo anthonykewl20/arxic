@@ -503,3 +503,54 @@ export function unionIntentCoverage(
   }
   return union;
 }
+
+/** One route × state dimension in the state-checkpoint coverage matrix. */
+export type StateCheckpointCell = {
+  name: RuntimeStateDimensionName;
+  /** The route's source declares the state (#509). */
+  declared: boolean;
+  /** A declared state checkpoint covers it for this route. */
+  checkpoint: boolean;
+};
+export type StateCheckpointCoverage = {
+  method: string;
+  path: string;
+  dimensions: StateCheckpointCell[];
+};
+
+/**
+ * State-checkpoint coverage (refs #402): per route × state dimension, whether
+ * the source declares the state and whether an operator-declared state
+ * checkpoint covers it. Declared-without-checkpoint cells are the capturable
+ * omissions — exactly the states #518 may never observe by plain navigation.
+ */
+export function stateCheckpointCoverage(
+  inventory: DomainInventory,
+  frontend: FrontendInventory,
+  stateCaptures: ReadonlyArray<{ path: string; state: string }>,
+): StateCheckpointCoverage[] {
+  const dimensionOf: Record<string, RuntimeStateDimensionName> = {
+    loading: 'state:loading',
+    error: 'state:error',
+    empty: 'state:empty',
+  };
+  const covered = new Set(
+    stateCaptures.flatMap((capture) => {
+      const dimension = dimensionOf[capture.state];
+      return dimension ? [`${capture.path}#${dimension}`] : [];
+    }),
+  );
+  return routeStateCoverage(inventory, frontend)
+    .filter((route) => route.dimensions.some(({ name }) => name.startsWith('state:')))
+    .map((route) => ({
+      method: route.method,
+      path: route.path,
+      dimensions: (['state:loading', 'state:error', 'state:empty'] as const).map((name) => ({
+        name,
+        declared:
+          route.dimensions.find((dimension) => dimension.name === name)?.status === 'referenced',
+        checkpoint: covered.has(`${route.path}#${name}`),
+      })),
+    }))
+    .filter((route) => route.dimensions.some((cell) => cell.declared || cell.checkpoint));
+}
