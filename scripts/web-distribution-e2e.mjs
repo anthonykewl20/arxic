@@ -132,7 +132,7 @@ try {
     return response.headers.get('set-cookie').split(';')[0];
   }
   const cookie = await login();
-  const policy = { enabled: false, maxAgeDays: 17, keepLatest: 7 };
+  const policy = { enabled: false, maxAgeDays: 17, keepLatest: 7, diskQuotaMb: 0 };
   const saved = await fetch(app.origin + '/api/retention', {
     method: 'POST',
     headers: { cookie, origin: app.origin, 'content-type': 'application/json' },
