@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { access, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { expect, it } from 'vitest';
@@ -18,7 +18,7 @@ const exec = promisify(execFile);
  * never mounted and never written.
  */
 const THIRD_PARTY_ROOT =
-  process.env.ARXIC_VISUAL_THIRD_PARTY ?? '/home/soultransit/devtony/thirdparty-dg';
+  process.env.ARXIC_VISUAL_THIRD_PARTY ?? join(homedir(), 'devtony', 'thirdparty-dg');
 const KOEL_ROOT = join(THIRD_PARTY_ROOT, 'koel');
 const KOEL_IMAGE = 'koel-php83:rehearsal';
 // koel's upstream first-admin seed constants (public OSS defaults, not Arxic
