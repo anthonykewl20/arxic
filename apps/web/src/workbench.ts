@@ -111,6 +111,7 @@ import {
   validateConnection,
 } from './model-connections';
 import { SecretStore } from './secret-store';
+import { BaselineStore } from './baseline-store';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
 import { campaignRows, campaignView, rowHistoryOf, type RowHistory } from './campaigns';
@@ -254,6 +255,7 @@ export class Workbench {
   private mutationTail: Promise<unknown> = Promise.resolve();
   private timer: ReturnType<typeof setInterval>;
   private readonly providerSecrets: SecretStore;
+  private readonly baselineStore: BaselineStore;
   private constructor(
     readonly store: Store,
     startupRoots: string[],
@@ -269,6 +271,7 @@ export class Workbench {
       ...deltas.added,
     ];
     this.providerSecrets = new SecretStore(store.db, directory);
+    this.baselineStore = new BaselineStore(directory);
     this.timer = setInterval(() => {
       void this.guardDueCampaigns()
         .then(() => this.tick())
@@ -1196,8 +1199,16 @@ export class Workbench {
               (item) => item.id === baseline.capture_id,
             );
             if (!previous) throw new Error('Baseline metadata unavailable');
-            const baselinePath = join(this.directory, 'runs', baseline.run_id, previous.file);
-            if (digest(await readFile(baselinePath)) !== previous.sha256)
+            // The store first; the producing run second, for approvals recorded
+            // before baselines were promoted. Either way the bytes must hash to
+            // what the approval recorded.
+            const promoted = await this.baselineStore.read(previous.sha256);
+            const baselinePath = promoted
+              ? await this.baselineStore
+                  .promote(promoted, previous.sha256)
+                  .then((result) => result.path)
+              : join(this.directory, 'runs', baseline.run_id, previous.file);
+            if (!promoted && digest(await readFile(baselinePath)) !== previous.sha256)
               throw new Error('Baseline integrity failed');
             const diffFile = `${capture.id}.diff.png`;
             const compared = await compareCapture(
@@ -1285,10 +1296,12 @@ export class Workbench {
       const capture = run?.result?.captures?.find((item) => item.id === captureId);
       if (!run || run.state !== 'completed' || !capture || capture.status === 'unstable')
         throw new HttpError(409, 'Only a completed, stable capture can become a baseline');
-      if (
-        digest(await readFile(join(this.directory, 'runs', runId, capture.file))) !== capture.sha256
-      )
+      const bytes = await readFile(join(this.directory, 'runs', runId, capture.file));
+      if (digest(bytes) !== capture.sha256)
         throw new HttpError(409, 'Capture integrity check failed');
+      // Promote before recording: an approval must never name bytes the store
+      // does not hold.
+      await this.baselineStore.promote(bytes, capture.sha256);
       this.store.db.transaction(() => {
         this.store.approve(run.projectId, capture.specHash, runId, captureId, capture.sha256);
         this.store.audit('baseline.approved', `${runId}/${captureId}`);

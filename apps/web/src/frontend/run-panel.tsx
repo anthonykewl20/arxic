@@ -28,6 +28,15 @@ export type RunPanelProps = {
   onReview: (request: ReviewRequest) => Promise<void>;
 };
 /**
+ * The shape of a pixel difference, said as a reviewer would want to hear it.
+ * A count of changed pixels alone cannot tell these apart.
+ */
+const differenceShapeLabels: Record<string, string> = {
+  uniform: 'Spread thinly across the page — a tint or token change, not a structural one',
+  localised: 'Concentrated in a small area — something specific changed',
+  substantial: 'Widespread and structural — much of the page is different',
+};
+/**
  * What each classification means for the person deciding whether this is a
  * defect. The wording is the conclusion, not the category name.
  */
@@ -394,6 +403,12 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                       </>
                     )}
                   </small>
+                  {capture.differenceShape && (
+                    <small data-difference-shape={capture.differenceShape}>
+                      {differenceShapeLabels[capture.differenceShape]}
+                      {capture.ssim !== undefined && ` · structural similarity ${capture.ssim}`}
+                    </small>
+                  )}
                   {capture.classification && (
                     <small data-classification={capture.classification.summary}>
                       {classificationLabels[capture.classification.summary]}

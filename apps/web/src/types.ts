@@ -91,6 +91,17 @@ export type Capture = {
   status: 'needs-baseline' | 'unchanged' | 'changed' | 'unstable';
   changedPixels?: number;
   ratio?: number;
+  /**
+   * Structural similarity against the baseline: 1 is identical. `minSsim` is
+   * the least similar window and `degradedWindows` the fraction scoring below
+   * 0.9, which together separate a page-wide tint from one changed component.
+   * Evidence only — the changed-pixel ratio still decides the status.
+   */
+  ssim?: number;
+  minSsim?: number;
+  degradedWindows?: number;
+  /** How the difference is shaped: wide and shallow, narrow and deep, or both. */
+  differenceShape?: import('./perceptual-diff').DifferenceShape;
   baselineRunId?: string;
   baselineFile?: string;
   diffFile?: string;

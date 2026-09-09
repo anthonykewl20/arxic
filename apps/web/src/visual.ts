@@ -12,6 +12,7 @@ import {
 } from 'playwright';
 import sharp from 'sharp';
 import { comparePixels } from './visual-pixels';
+import { comparePerceptual, describeDifference } from './perceptual-diff';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import type {
   Capture,
@@ -895,6 +896,10 @@ export async function compareCapture(
     throw new Error('Baseline dimensions changed');
   const { width, height } = current.info;
   const { diff, changedPixels } = comparePixels(baseline.data, current.data, width, height);
+  // Structural similarity alongside the pixel count: pixelmatch keeps the
+  // verdict, this says whether the difference is wide and shallow or narrow and
+  // deep. Evidence for the reviewer, never a gate.
+  const perceptual = comparePerceptual(baseline.data, current.data, width, height);
   await writeFile(
     outputPath,
     await sharp(diff, { raw: { width, height, channels: 4 } })
@@ -902,9 +907,13 @@ export async function compareCapture(
       .toBuffer(),
     { mode: 0o600 },
   );
+  const ratio = changedPixels / (width * height);
+  const shape = describeDifference(perceptual, ratio);
   return {
     changedPixels,
-    ratio: changedPixels / (width * height),
+    ratio,
+    ...perceptual,
+    ...(shape ? { differenceShape: shape } : {}),
     diffRegions: changedRegionBoxes(baseline.data, current.data, width, height),
   };
 }
