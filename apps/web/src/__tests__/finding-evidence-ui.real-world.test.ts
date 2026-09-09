@@ -130,6 +130,12 @@ it('renders per-finding screenshot, reproduction and acceptance links', async ()
     await expect.poll(groundingText).toContain('Reproduce:');
     await expect.poll(groundingText).toContain('800 × 600');
     expect(await grounding.getByRole('link', { name: 'Screenshot evidence' }).count()).toBe(1);
+    // The deterministic determination renders: the stub's finding sits over
+    // clean pixels on the real page — explicitly unconfirmed.
+    const determination = finding.locator('[data-finding-determination]');
+    await expect
+      .poll(async () => (await determination.textContent().catch(() => null)) ?? '')
+      .toContain('unconfirmed — no deterministic corroboration');
     // The administrator criterion is the independent acceptance for this finding.
     const acceptance = finding.locator('[data-finding-acceptance]');
     const acceptanceText = async () => (await acceptance.textContent().catch(() => null)) ?? '';

@@ -546,6 +546,30 @@ function VisualReviewPanel({ run }: { run: Run }) {
                 </small>
               </p>
             )}
+            <p data-finding-determination>
+              <strong>Determination:</strong>{' '}
+              {finding.determination ? (
+                finding.determination.determination === 'refuted' ? (
+                  <span className="determination-refuted">
+                    refuted — the region sits on privacy-masked pixels
+                  </span>
+                ) : finding.determination.determination === 'confirmed' ? (
+                  <span className="determination-confirmed">
+                    confirmed by deterministic checks ({finding.determination.checkIds.join(', ')})
+                  </span>
+                ) : finding.determination.determination === 'unavailable' ? (
+                  <span className="determination-unavailable">
+                    unavailable — assessment evidence missing
+                  </span>
+                ) : (
+                  <span className="determination-unconfirmed">
+                    unconfirmed — no deterministic corroboration
+                  </span>
+                )
+              ) : (
+                <small>older finding without a determination</small>
+              )}
+            </p>
             <p data-finding-acceptance>
               <strong>Independent acceptance:</strong>{' '}
               {finding.acceptance?.source === 'administrator' ? (

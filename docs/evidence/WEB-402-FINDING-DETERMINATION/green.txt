@@ -1,0 +1,27 @@
+GREEN stage — after maskedRects collection, determineFinding, review wiring
+and the panel chip:
+
+ ✓ apps/web/src/__tests__/finding-determination.test.ts (6 tests)
+   (full truth table: refuted ≥60% mask coverage / confirmed by failed
+   checks ≥25% overlap / unconfirmed / unavailable fail-closed / refutation
+   precedence / passing checks never confirm)
+ ✓ apps/web/src/__tests__/finding-determination.real-world.test.ts (1 test) 3417ms
+ ✓ apps/web/src/__tests__/finding-evidence-ui.real-world.test.ts (1 test) — extended with the
+   determination chip assertion ('unconfirmed — no deterministic corroboration' on the real page)
+ ✓ apps/web/src/__tests__/finding-evidence.real-world.test.ts (1 test) — unchanged, green
+ ✓ apps/web/src/__tests__/visual-review.test.ts (9 tests) — regressions green
+ Tests  18 passed across the five files.
+
+Real-data facts pinned:
+- The REAL capture's assessment now carries scene.maskedRects (the automatic
+  + required mask selectors' element rects, numeric, capped, hash-covered).
+- A provider finding placed on a REAL masked input's rect (read from the
+  retained assessment in the test) is deterministically REFUTED
+  (masked-region) — the model's prompt forbids diagnosing masks; the lane
+  catches violations from geometry alone.
+- A finding over clean passing pixels is explicitly UNCONFIRMED — never
+  silently promoted.
+- Determinations are stamped server-side from sha-verified assessment bytes;
+  a missing/tampered assessment yields 'unavailable' (fail-closed), and the
+  determination field is outside the model's closed schema (model-authored
+  determinations remain impossible).
