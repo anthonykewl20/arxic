@@ -72,7 +72,8 @@ Issue #402 remains in progress. The remaining feature/proof rows above and the
 [human screenshot-inspection gate](../release-gates/screenshot-inspection.md) must
 be satisfied before public release. Selected campaigns and explicitly configured authenticated checkpoint galleries
 are implemented. Remaining work includes broader state/persona/flag coverage,
-runtime/server-distribution proof and storage quotas and the human release gate.
+runtime/server-distribution proof and the human release gate; the storage-quota
+row is discharged by the evidence disk quota (#534).
 
 ## Dashboard production audit (2026-09-06)
 
@@ -111,8 +112,14 @@ explicit consent, protected bounded deletion and restart recovery. The new dashb
 flow covers settings/preview/storage failures and retry in light/dark and mobile
 layouts. Real Chromium captures exercise cleanup while preserving original baseline
 bytes; the database-scale supplement covers history beyond the 200-row state view.
-No disk quota, campaign deletion or complete runtime management is claimed.
-Evidence and gate revisions are recorded in the WEB-431-RETENTION slice note.
+The evidence disk quota (#534, `5551273e`) adds an opt-in `diskQuotaMb`
+reclamation path: preview measures real evidence bytes (symlinks never followed),
+quota candidates are exactly the too-young unprotected runs beyond `keepLatest`
+(oldest-first, batch-capped), cleanup subtracts freed bytes while deleting and
+reports `stillOverQuota` honestly when protection keeps storage over quota; proven
+with real Chromium captures under 1.2 MB injected pressure and a byte-identical
+surviving baseline (DISK-QUOTA-534 slice note). Campaign deletion and complete
+runtime management remain unclaimed.
 
 ### Baseline history clarity (refs #433)
 
