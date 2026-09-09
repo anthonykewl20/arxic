@@ -83,13 +83,11 @@ export async function evaluateCorpusV2(
   const scores: number[][] = [];
   for (let start = 0; start < rows.length; start += 128) {
     scores.push(
-      ...(
-        await nativeScores(
-          trained.native,
-          trained.bins.mlp,
-          rows.slice(start, start + 128).map((row) => row.features),
-        )
-      ),
+      ...(await nativeScores(
+        trained.native,
+        trained.bins.mlp,
+        rows.slice(start, start + 128).map((row) => row.features),
+      )),
     );
   }
   const heads = DEFECT_HEADS.map((head, index) => ({

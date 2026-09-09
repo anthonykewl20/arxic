@@ -7,7 +7,9 @@ import { captureCorpusV2, trainCorpusV2 } from './corpus-capture';
 import { evaluateCorpusV2 } from './corpus-evaluate';
 
 const sha256 = async (path: string) =>
-  createHash('sha256').update(await readFile(path)).digest('hex');
+  createHash('sha256')
+    .update(await readFile(path))
+    .digest('hex');
 
 it('fails closed before capturing or writing when no trained artifact exists', async () => {
   const root = resolve(import.meta.dirname, '../../../..');
@@ -29,13 +31,7 @@ it('scores a corpus against the already-trained artifact without retraining anyt
   const directory = await mkdtemp(join(tmpdir(), 'visual-evaluate-live-'));
   try {
     const variants = ['clean', 'overflow-x', 'missing-element'];
-    const manifest = await captureCorpusV2(
-      root,
-      directory,
-      ['next', 'express'],
-      [800],
-      variants,
-    );
+    const manifest = await captureCorpusV2(root, directory, ['next', 'express'], [800], variants);
     await trainCorpusV2(root, directory, manifest);
     const before = {
       dataset: await sha256(join(directory, 'dataset.json')),

@@ -42,9 +42,7 @@ if (command === 'capture') {
 } else if (command === 'corpus-evaluate') {
   const { evaluateCorpusV2 } = await import('./corpus-evaluate');
   const families = args[0] ? args[0].split(',').filter(Boolean) : undefined;
-  const viewports = args[1]
-    ? args[1].split(',').filter(Boolean).map(Number)
-    : undefined;
+  const viewports = args[1] ? args[1].split(',').filter(Boolean).map(Number) : undefined;
   const variants = args[2] ? args[2].split(',').filter(Boolean) : undefined;
   const report = await evaluateCorpusV2(root, output, { families, viewports, variants });
   console.log(

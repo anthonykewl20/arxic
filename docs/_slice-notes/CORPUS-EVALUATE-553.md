@@ -32,7 +32,7 @@ no — no product/runtime behavior changes for existing users; the new command i
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
-| Trigger | Expected disposition | Test |
-| ------- | -------------------- | ---- |
-| Evaluate into a directory with no trained artifact (`training/*`, model manifests, `visual-native` missing) | refuse `no-trained-artifact (<file> missing)` before any capture or write | `fails closed before capturing or writing when no trained artifact exists` — observed (hypothesized→observed; machine-verified in-suite) |
-| Artifact lacks thresholds/supported for a head (no positive examples in training corpus) | head reported `scoreable: false` with `cases: 0` — never fabricated as a scored zero | round-trip test asserts the four untrained heads unscored and the two trained heads exercised |
+| Trigger                                                                                                     | Expected disposition                                                                 | Test                                                                                                                                     |
+| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Evaluate into a directory with no trained artifact (`training/*`, model manifests, `visual-native` missing) | refuse `no-trained-artifact (<file> missing)` before any capture or write            | `fails closed before capturing or writing when no trained artifact exists` — observed (hypothesized→observed; machine-verified in-suite) |
+| Artifact lacks thresholds/supported for a head (no positive examples in training corpus)                    | head reported `scoreable: false` with `cases: 0` — never fabricated as a scored zero | round-trip test asserts the four untrained heads unscored and the two trained heads exercised                                            |
