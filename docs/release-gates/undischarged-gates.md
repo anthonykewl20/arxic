@@ -128,6 +128,34 @@ that state, and several of these exist precisely because a machine cannot.
 
 ---
 
+### C6. #402 — clean-install fresh live-provider campaign acceptance
+
+Out of numeric order on purpose: [#546](https://github.com/anthonykewl20/arxic/issues/546)
+was filed four minutes after this register was authored, and renumbering would
+strand the `§C4` references already merged in
+`docs/history/merged-slice-notes/WEB-402-CLOSURE.md` and posted on #423.
+
+- **Already discharged, separately:** the packed clean-install server/worker
+  distribution proof runs in required CI on every qualifying merge — the
+  `package` job clean-room-installs the packed CLI tarball and drives the
+  installed-dashboard matrix through the packed `arxic web`, including a campaign
+  journey that launches a real selected campaign against the real
+  reference-auth-app and asserts the real engine outcome. Separately, a dev-mode
+  current-head paid campaign reached outcome `verified` (bounded $0.025, model
+  glm-4.7; sanitized record staged at
+  `docs/evidence/WEB-402-HEAD-CAMPAIGN/campaign-record.json`).
+- **Still owed:** those two halves have never been proven _together_. Nothing yet
+  shows a **packed clean-room install** whose live provider is configured through
+  the **product surface** (Models & accounts / the provider-secrets API) rather
+  than a server environment variable or the developer workbench's own SQLite,
+  driving a real campaign to `verified` with two verifier replays. That
+  combination is what an operator actually performs on a fresh machine, and it is
+  the boundary the distribution-proof row in
+  `docs/reviews/web-product-progress-402.md` states verbatim.
+- **Blocker:** it spends against the owner's funded credential, so it must run in
+  a session where the owner has authorized that spend. Recorded here; not
+  machine-dischargeable on an agent's own authority.
+
 ## How to reopen
 
 Any item here can be re-filed as its own issue when the blocking access,
