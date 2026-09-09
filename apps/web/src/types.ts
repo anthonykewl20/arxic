@@ -42,6 +42,12 @@ export type Project = {
    */
   visualChangeRatio?: number;
   login?: VisualLogin;
+  /**
+   * Operator-declared state checkpoints (refs #402): how a route's
+   * loading/error/empty/authenticated state is provoked (query parameters),
+   * captured as first-class checkpoints with independent baselines.
+   */
+  stateCaptures?: Array<{ path: string; state: string; query?: string }>;
   configPath: string;
   execution?: import('./execution').ExecutionSettings;
   cron: string;
@@ -70,6 +76,8 @@ export type Capture = {
   diffExplanation?: import('./diff-explanation').DiffExplanation;
   videoFile?: string;
   authenticated?: boolean;
+  /** Which declared state this checkpoint captures (e.g. 'error'); absent = the plain path. */
+  stateVariant?: string;
   assessmentFile?: string;
   assessmentSha256?: string;
 };

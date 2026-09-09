@@ -338,10 +338,21 @@ async function captureEnvironment(
       });
       paths = paths.slice(0, budget);
     }
+    // State checkpoints (refs #402): operator-declared state provocations ride
+    // the same matrix with their own navigation target and capture identity.
+    const targets: Array<{ path: string; url: string; stateVariant?: string }> = [
+      ...paths.map((path) => ({ path, url: path })),
+      ...(project.stateCaptures ?? []).map((capture) => ({
+        path: capture.path,
+        url: capture.query ? `${capture.path}?${capture.query}` : capture.path,
+        stateVariant: capture.state,
+      })),
+    ];
     // Reserve identity per attempted checkpoint; a failed write must not poison the next page.
     let nextCheckpoint = 0;
     for (const viewport of project.viewports)
-      for (const path of paths) {
+      for (const target of targets) {
+        const { path } = target;
         const checkpoint = nextCheckpoint++;
         // Context/page creation sits inside the per-page guard: an environment
         // infrastructure failure classifies this checkpoint without discarding
@@ -367,7 +378,7 @@ async function captureEnvironment(
           });
           failurePhase = 'navigation';
           timeline.push({ action: 'navigate', checkpoint });
-          const response = await page.goto(`${project.origin}${path}`, {
+          const response = await page.goto(`${project.origin}${target.url}`, {
             waitUntil: 'load',
             timeout: 20_000,
           });
@@ -441,6 +452,7 @@ async function captureEnvironment(
             JSON.stringify({
               origin: project.origin,
               path,
+              ...(target.stateVariant ? { stateVariant: target.stateVariant } : {}),
               viewport,
               masks: project.masks,
               browser: browser.version(),
@@ -510,6 +522,7 @@ async function captureEnvironment(
             assessmentSha256: digest(assessmentBytes),
             id,
             path,
+            ...(target.stateVariant ? { stateVariant: target.stateVariant } : {}),
             viewport,
             file,
             sha256: digest(bytes),
@@ -554,6 +567,10 @@ async function captureEnvironment(
           ? 'blocked'
           : 'observed',
       summary: `${captures.length} viewport checkpoints captured across ${paths.length} pages${
+        project.stateCaptures?.length
+          ? `; ${project.stateCaptures.length} state checkpoint${project.stateCaptures.length === 1 ? '' : 's'}`
+          : ''
+      }${
         storageState ? ' after sign-in' : ''
       }${discoveredPaths ? `; crawl found ${discoveredPaths.length} additional pages` : ''}${
         timelineWriteFailed ? '; environment timeline evidence was not written' : ''
@@ -648,7 +665,7 @@ export async function captureVisual(run: Run, directory: string): Promise<RunRes
     summary:
       environments.length === 1
         ? singleSummary
-        : `${captures.length} viewport checkpoints captured across ${environments.length} ${environments.some((cell) => cell.deviceScaleFactor) ? 'browser/theme/pixel-density' : 'browser/theme'} environments. Visual baseline review is separate from business-logic verification.`,
+        : `${captures.length} viewport checkpoints captured across ${environments.length} ${environments.some((cell) => cell.deviceScaleFactor) ? 'browser/theme/pixel-density' : 'browser/theme'} environments${run.project.stateCaptures?.length ? `; ${run.project.stateCaptures.length} state checkpoint${run.project.stateCaptures.length === 1 ? '' : 's'}` : ''}. Visual baseline review is separate from business-logic verification.`,
     captures,
     findings,
     visualEnvironments,

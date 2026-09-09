@@ -58,6 +58,7 @@ export async function validateProject(
     'folder',
     'origin',
     'paths',
+    'stateCaptures',
     'viewports',
     'browsers',
     'colorSchemes',
@@ -125,6 +126,51 @@ export async function validateProject(
     )
   )
     throw new HttpError(400, 'Use 1–200 relative page paths without query strings or fragments');
+  const rawStateCaptures = input.stateCaptures;
+  if (rawStateCaptures !== undefined) {
+    if (
+      !Array.isArray(rawStateCaptures) ||
+      rawStateCaptures.length > 20 ||
+      rawStateCaptures.some(
+        (item) =>
+          !item ||
+          typeof item !== 'object' ||
+          Array.isArray(item) ||
+          Object.keys(item).some((name) => !['path', 'state', 'query'].includes(name)),
+      )
+    )
+      throw new HttpError(400, 'A project supports at most 20 state checkpoints');
+    for (const item of rawStateCaptures as Array<Record<string, unknown>>) {
+      const path = item.path;
+      if (
+        typeof path !== 'string' ||
+        !path.startsWith('/') ||
+        path.startsWith('//') ||
+        /[\s]/u.test(path) ||
+        new URL(path, 'https://target.invalid').origin !== 'https://target.invalid' ||
+        /[?#]/u.test(path)
+      )
+        throw new HttpError(400, 'State checkpoints use relative page paths without query strings');
+      if (item.state === undefined)
+        throw new HttpError(400, 'A state checkpoint requires a state name');
+      if (typeof item.state !== 'string' || !/^[a-z0-9-]{1,40}$/u.test(item.state))
+        throw new HttpError(400, 'State checkpoint names use lowercase letters, digits and dashes');
+      if (item.query !== undefined && (typeof item.query !== 'string' || item.query.length > 500))
+        throw new HttpError(400, 'State checkpoint queries are short URL query strings');
+    }
+    const identities = new Set(
+      (rawStateCaptures as Array<{ path: string; state: string; query?: string }>).map(
+        (item) => `${item.path}#${item.state}?${item.query ?? ''}`,
+      ),
+    );
+    if (identities.size !== rawStateCaptures.length)
+      throw new HttpError(400, 'State checkpoints must be unique path, state and query triples');
+  }
+  const stateCaptures = (rawStateCaptures as Project['stateCaptures'])?.map((item) => ({
+    path: item.path,
+    state: item.state,
+    ...(item.query ? { query: item.query } : {}),
+  }));
   const selection = (key: string, choices: readonly string[], fallback: string[]) => {
     const value = input[key] === undefined ? fallback : input[key];
     if (
@@ -278,6 +324,7 @@ export async function validateProject(
     folder,
     origin,
     paths,
+    ...(stateCaptures?.length ? { stateCaptures } : {}),
     viewports,
     browsers,
     colorSchemes,

@@ -1,0 +1,17 @@
+RED stage — recorded on origin/main (1d37a901) before implementation, worktree
+.worktrees/finding-evidence-402, 2026-09-09 local.
+
+apps/web/src/__tests__/finding-evidence.real-world.test.ts:
+
+ × stamps every finding with screenshot evidence, reproduction and acceptance status 4947ms
+TypeError: Cannot read properties of undefined (reading 'screenshot')
+ Tests  1 failed (1)
+
+(findings carried no evidence/acceptance bindings — review-level data only.)
+
+Two harness corrections during the run (recorded): the review input contract
+requires acceptanceCriterion to be a STRING (an omitted key is a 400), so the
+criterion-less and forged reviews pass '' — empty string is the existing
+"none supplied" shape, not a new encoding; and the UI journey's provider
+select needs a configured ARXIC_MODEL_CONNECTIONS entry (mirrored from the
+existing visual-review-ui harness).

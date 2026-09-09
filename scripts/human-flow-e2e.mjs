@@ -510,7 +510,7 @@ async function runInstalledDashboard(
                 }
               : {}),
           },
-          timeout: 900_000,
+          timeout: 2_100_000,
         },
       ),
     );
@@ -547,7 +547,7 @@ async function runInstalledDashboard(
           schemaVersion: 1,
           outcome: failure ? 'failed' : 'passed',
           elapsedMs: Date.now() - browserStarted,
-          timeoutMs: 900000,
+          timeoutMs: 2100000,
           shard: dashboardShard ?? 'all',
           files: dashboardCases.map((file) => basename(file)),
           ...(failure ? { failure } : {}),

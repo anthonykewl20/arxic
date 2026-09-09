@@ -1,0 +1,40 @@
+Red evidence #2 — remedy 3 phase b (release-test ubuntu cell browser matrix), issue #525
+
+Source: release-test run 34288844027 on PR branch release-cap-525 (after the 90-minute
+cap landed but before the ubuntu browser install was widened). Both ubuntu cells FAILED;
+windows/macos cells succeeded. Verbatim from job 102270595470 (Node 22) unless noted.
+
+== Cap raise held (the phase-a fix works) ==
+
+ubuntu Node 22 job started 23:03:05Z, suite summary reached 23:57:41Z (~54m of suite);
+no timeout/cancellation occurred — the 90-minute cap contained the full suite.
+
+== Root cause: the cell installs only Chromium; the suite's WebKit journeys need webkit ==
+
+2026-09-08T23:57:41.7562284Z ##[error]Error: browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/webkit-2336/pw_run.sh
+
+Node 24 cell (job 102270595297) shows the same error:
+
+2026-09-08T23:57:06.3… ##[error]Error: browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/webkit-2336/pw_run.sh (2 occurrences)
+
+== Cascade: WebKit workbench runs end blocked; assertions expecting observed checkpoints fail ==
+
+2026-09-08T23:57:41.6966522Z AssertionError: expected 'blocked' to be 'observed' // Object.is equality
+2026-09-08T23:57:41.6964936Z FAIL apps/web/src/__tests__/visual-density.real-world.test.ts > binds native density pixels to independent real browser baselines (at :53:30)
+
+== Suite outcome (vitest summary, both cells) ==
+
+Node 22: Test Files 11 failed | 321 passed (332)
+Node 24: Test Files 10 failed | 322 passed (332)
+
+== Required ci on the same head is GREEN (same suite, sharded, full browser matrix) ==
+
+run 34288844037: completed/success — the shards install `chromium firefox webkit`
+(ci.yml step "Install Playwright browser matrix"), while the release ubuntu cell
+installed only chromium (release-test.yml step "Install Playwright Chromium (Linux)").
+
+Fix: ubuntu cell now installs the same chromium firefox webkit matrix as ci
+(step renamed "Install Playwright browser matrix (Linux)"); windows/macos keep the
+chromium-only install — they do not run the core suite. The old 25-minute cap had been
+masking this failure class: the suite never survived long enough to reach the WebKit
+journeys (runs 34245658145 / 34276464363 died mid-suite at 25m16s).
