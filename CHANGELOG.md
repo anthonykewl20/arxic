@@ -242,6 +242,21 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### changed
 
+- CORPUS-SCALE-557-S6 13-family registry accounting (refs #557): `STATIC_FAMILY_CONFIG`
+  gains the AdminBSB - Material Design sign-in family (docroot `adminbsb`,
+  control `button.bg-pink` — the only bg-pink element in the page; no viewport
+  pin; MIT, a plain no-build template commit-pinned at e5d39b8). Real-world
+  proof: `cli.ts corpus` captured the family with real Chromium at the full
+  width grid × 14 variants — 112 planned → 4 reason-carrying skips → 52 scored
+  rows with sb-admin-2 scoring a perfect 56/56 in the same run. The family
+  probed clean at every width (unique hittable enabled control, no native
+  overflow, missing-element stable), so its only skips are the honest
+  `no-text-element` refusals of the text-truncate variant — the page carries
+  no h1/h2/p, its intro text living in a div.msg. Register C3 now records the
+  13-family totals (756 planned → 105 skips → 651 scored rows, 2,870 non-null
+  oracle labels across four labeled runs) and the honest residual (≥349 rows)
+  under the unchanged rows-unit reading. Evidence retained sanitized under
+  `docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s6/`.
 - CORPUS-SCALE-557-S5 12-family registry accounting (refs #557): `STATIC_FAMILY_CONFIG`
   gains the Creative Tim material-kit sign-in family (docroot `material-kit`,
   control `button.bg-gradient-dark` — the page's only such button, the navbar

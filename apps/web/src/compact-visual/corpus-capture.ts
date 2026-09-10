@@ -177,6 +177,22 @@ export const STATIC_FAMILY_CONFIG: Record<
     buttonExact: true,
     buttonSelector: 'button.bg-gradient-dark',
   },
+  adminbsb: {
+    // AdminBSB - Material Design (MIT, a plain no-build HTML template,
+    // commit-pinned at e5d39b8 — default-branch HEAD). Its sign-in page's
+    // submit is the only bg-pink element anywhere in the page, so the class
+    // selector alone stays unique page-wide. The login card keeps its
+    // position when the control is removed (no my-auto recentering), so the
+    // missing-element oracle is stable at every width probed (360–1280). The
+    // page carries no h1/h2/p — its intro text lives in a div.msg — so the
+    // text-truncate variant honestly refuses no-text-element; recorded per
+    // case, never fabricated.
+    docroot: 'adminbsb',
+    path: '/pages/examples/sign-in.html',
+    button: '',
+    buttonExact: true,
+    buttonSelector: 'button.bg-pink',
+  },
 };
 
 const CONTENT_TYPES: Record<string, string> = {
