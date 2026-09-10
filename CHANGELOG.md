@@ -242,6 +242,23 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### changed
 
+- CORPUS-SCALE-557-S5 12-family registry accounting (refs #557): `STATIC_FAMILY_CONFIG`
+  gains the Creative Tim material-kit sign-in family (docroot `material-kit`,
+  control `button.bg-gradient-dark` — the page's only such button, the navbar
+  CTA with the same class being an anchor; no viewport pin; commit-pinned at
+  54cdbf81). Real-world proof: `cli.ts corpus` captured the family with real
+  Chromium at the full width grid × 14 variants — 112 planned → 17
+  reason-carrying skips → 39 scored rows with sb-admin-2 scoring a perfect
+  56/56 in the same run. The family's genuine limitations are recorded as
+  reasons, not fabricated rows: native horizontal overflow at 1024 (that
+  width refused, `overflow-oracle-failed` ×12), the `my-auto` centered card's
+  missing-element instability (`unstable-case` ×3), and a first observation of
+  the screenshot privacy guard failing closed on an unparsable Chromium PNG
+  (`ARXIC-SCREENSHOT-PNG-INVALID`, 2 case-errors). Register C3 now records the
+  12-family totals (644 planned → 101 skips → 543 scored rows, 2,406 non-null
+  oracle labels across three labeled runs) and the honest residual (≥457 rows)
+  under the unchanged rows-unit reading. Evidence retained sanitized under
+  `docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s5/`.
 - CORPUS-SCALE-557-S4 11-family registry accounting (refs #557): the
   material-dashboard family was captured at the full width grid (360/640/1024/1280
   × 14 variants) through the real pipeline with real Chromium — 112 planned →
