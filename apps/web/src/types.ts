@@ -41,6 +41,12 @@ export type Project = {
    * copy of a site where a mistake is cheapest.
    */
   environment?: ProjectEnvironment;
+  /**
+   * `https://github.com/owner/repo`, detected from the folder's origin remote
+   * when it has a GitHub one. Absent otherwise, and a page then names its
+   * source files without linking them rather than guessing a URL.
+   */
+  repositoryUrl?: string;
   paths: string[];
   browsers?: VisualEnvironment['browser'][];
   colorSchemes?: VisualEnvironment['colorScheme'][];

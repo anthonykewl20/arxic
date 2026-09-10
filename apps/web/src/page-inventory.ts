@@ -69,6 +69,8 @@ export type PageEntry = {
   projectName: string;
   /** Which copy of the site this page lives on; absent means development. */
   environment: Project['environment'];
+  /** The project's GitHub origin, so a source file can link to itself. */
+  repositoryUrl?: string;
   path: string;
   /** The page's name in words: '/login' reads as 'Sign in'. */
   title: string;
@@ -244,6 +246,7 @@ export function buildPageInventory(input: {
         projectId: project.id,
         projectName: project.name,
         environment: project.environment,
+        ...(project.repositoryUrl ? { repositoryUrl: project.repositoryUrl } : {}),
         path,
         // Two pages called "Profile" in one project help nobody; the parent
         // segment disambiguates only where it has to.

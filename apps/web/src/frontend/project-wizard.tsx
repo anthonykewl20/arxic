@@ -360,6 +360,7 @@ function SettingsStep({
       { width: 390, height: 844 },
     ],
     environment: 'development' as const,
+    repositoryUrl: detection?.git.remote ?? '',
     captureConsent: false,
     pageMode: 'manual' as const,
     recordVideo: false,
@@ -384,6 +385,7 @@ function SettingsStep({
   const [environment, setEnvironment] = useState<Project['environment']>(
     seed.environment ?? 'development',
   );
+  const repositoryUrl = seed.repositoryUrl ?? '';
   // Suggested from the project name so a reference is placeable later, in the
   // vault list and in a server environment alike.
   const [emailRef, setEmailRef] = useState(seed.login?.emailRef ?? suggestRef(seed.name, 'email'));
@@ -512,6 +514,10 @@ function SettingsStep({
               Optional until you run visual or AI tests. No path, query string, or credentials.
             </small>
           </Label>
+          {/* Detected from the folder's git origin. Carried as a hidden field
+              so saving a project never drops a link the operator did not
+              choose to remove. */}
+          <input type="hidden" name="repositoryUrl" value={repositoryUrl} />
           <Label>
             Which copy of the site is this?
             <Select

@@ -309,6 +309,40 @@ function Filmstrip({ page }: { page: PageEntry }) {
  * the source inventory is megabytes and only matters once a person has opened
  * one page and asked where it comes from.
  */
+/**
+ * A file, linked to the exact commit it was read at when the project has a
+ * GitHub origin, and named plainly when it does not. The commit pin matters:
+ * a link to the default branch would show today's code beside a screenshot
+ * taken from last week's.
+ */
+function SourceFile({
+  file,
+  repositoryUrl,
+  commit,
+}: {
+  file: string;
+  repositoryUrl?: string;
+  commit: string;
+}) {
+  if (!repositoryUrl || !commit)
+    return (
+      <span className="folder truncate text-[12px]" title={file}>
+        {file}
+      </span>
+    );
+  return (
+    <a
+      className="folder truncate text-[12px]"
+      href={`${repositoryUrl}/blob/${commit}/${file}`}
+      target="_blank"
+      rel="noopener"
+      title={`${file} on GitHub, at the commit this page was read from`}
+    >
+      {file} <ExternalLink size={11} aria-hidden="true" className="inline align-[-1px]" />
+    </a>
+  );
+}
+
 function WhereItComesFrom({ page, runs }: { page: PageEntry; runs: Run[] }) {
   const discovery = runs.find(
     (run) =>
@@ -358,17 +392,19 @@ function WhereItComesFrom({ page, runs }: { page: PageEntry; runs: Run[] }) {
     );
   return (
     <>
-      <ul className="flex flex-col gap-1">
+      <ul className="flex min-w-0 flex-col gap-1">
         {files.paths.map((file) => (
-          <li key={file} className="folder truncate text-[12px]" title={file}>
-            {file}
+          <li key={file} className="min-w-0">
+            <SourceFile file={file} repositoryUrl={page.repositoryUrl} commit={files.commit} />
           </li>
         ))}
       </ul>
       {files.commit && (
         <p className="muted text-[12px]">
-          Read at commit <code>{files.commit.slice(0, 12)}</code>. Compare that commit in your
-          repository to see what changed since this page was last photographed.
+          Read at commit <code>{files.commit.slice(0, 12)}</code>.{' '}
+          {page.repositoryUrl
+            ? 'Each file opens on GitHub at that exact commit, so what you read is what was photographed.'
+            : 'Open these files at that commit to see the code this page was built from.'}
         </p>
       )}
     </>

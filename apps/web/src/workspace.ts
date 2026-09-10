@@ -22,7 +22,13 @@ export type Detection = {
   origin: string;
   paths: string[];
   configPath: string;
-  git: { repository: boolean; clean: boolean | null; branch: string | null };
+  git: {
+    repository: boolean;
+    clean: boolean | null;
+    branch: string | null;
+    /** `https://github.com/owner/repo`, or null when the folder has no GitHub origin. */
+    remote: string | null;
+  };
 };
 
 const frameworkPorts: Record<string, number> = {
@@ -176,7 +182,13 @@ export async function detectProject(folder: string, roots: readonly string[]): P
       configPath = candidate;
       break;
     }
-  const git = { repository: false, clean: null as boolean | null, branch: null as string | null };
+  const git = {
+    repository: false,
+    clean: null as boolean | null,
+    branch: null as string | null,
+    /** The folder's GitHub origin, when it has one, so a page can link to its own source. */
+    remote: null as string | null,
+  };
   try {
     const inside = await run('git', ['rev-parse', '--is-inside-work-tree'], {
       cwd: actual,
@@ -200,6 +212,17 @@ export async function detectProject(folder: string, roots: readonly string[]): P
     } catch {
       /* unreadable git state stays null */
     }
+  if (git.repository)
+    try {
+      const origin = await run('git', ['config', '--get', 'remote.origin.url'], {
+        cwd: actual,
+        timeout: 10_000,
+        env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+      });
+      git.remote = githubRepository(origin.stdout);
+    } catch {
+      /* no remote, or an unreadable config: the folder simply has no link */
+    }
   const rawName = typeof pkg?.name === 'string' ? pkg.name : basename(actual);
   return {
     folder: actual,
@@ -214,6 +237,22 @@ export async function detectProject(folder: string, roots: readonly string[]): P
 }
 
 const repository = /^https:\/\/github\.com\/([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/u;
+/**
+ * A GitHub origin in the one shape a browser can open.
+ *
+ * Remotes are written four ways — https, ssh, `git@` scp-style, with and
+ * without `.git` — and only the https form is a URL. Anything else (a GitLab
+ * host, a local path, a fork of the syntax we do not recognise) returns null
+ * rather than a guess, and the page falls back to naming the file.
+ */
+export function githubRepository(remote: string): string | null {
+  const value = remote.trim();
+  const match =
+    /^(?:https:\/\/(?:[^@/]+@)?github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/u.exec(
+      value,
+    );
+  return match ? `https://github.com/${match[1]}/${match[2]}` : null;
+}
 /** Clone a public GitHub repository into the first workspace root; the folder then follows normal rules. */
 export async function cloneRepository(
   input: unknown,

@@ -59,6 +59,7 @@ export async function validateProject(
     'folder',
     'origin',
     'environment',
+    'repositoryUrl',
     'paths',
     'stateCaptures',
     'componentCaptures',
@@ -95,6 +96,15 @@ export async function validateProject(
   const environment = text('environment', previous?.environment ?? 'development', 20);
   if (!['development', 'staging', 'production'].includes(environment))
     throw new HttpError(400, 'Environment must be development, staging, or production');
+  // Kept from the previous record when an edit does not mention it, the way
+  // every other detected field is; validated so it can only ever be a link a
+  // browser can follow to a repository.
+  const repositoryUrl = text('repositoryUrl', previous?.repositoryUrl ?? '', 200);
+  if (
+    repositoryUrl &&
+    !/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repositoryUrl)
+  )
+    throw new HttpError(400, 'Repository must be an https://github.com/owner/repository URL');
   const folder = await allowedFolder(text('folder'), roots);
   const origin = text('origin');
   if (origin) {
@@ -399,6 +409,7 @@ export async function validateProject(
     folder,
     origin,
     environment: environment as ProjectEnvironment,
+    ...(repositoryUrl ? { repositoryUrl } : {}),
     paths,
     ...(stateCaptures?.length ? { stateCaptures } : {}),
     ...(componentCaptures?.length ? { componentCaptures } : {}),
