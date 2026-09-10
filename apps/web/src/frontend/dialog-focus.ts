@@ -1,8 +1,18 @@
-/** Keep keyboard traversal inside the active modal, including browser-chrome wrap. */
-export function trapDialogTab(event: KeyboardEvent) {
+/**
+ * Keep keyboard traversal inside the active modal, including browser-chrome wrap.
+ *
+ * `element` is required when the handler runs from React: a synthetic event's
+ * `nativeEvent.currentTarget` is already null by the time React dispatches, so
+ * the dialog cannot be recovered from the event itself. Native
+ * `addEventListener` callers pass nothing and keep using `currentTarget`.
+ */
+export function trapDialogTab(
+  event: Pick<KeyboardEvent, 'key' | 'shiftKey' | 'preventDefault' | 'currentTarget'>,
+  element?: HTMLDialogElement | null,
+) {
   if (event.key !== 'Tab') return;
-  const dialog = event.currentTarget as HTMLDialogElement;
-  if (!dialog.open) return;
+  const dialog = element ?? (event.currentTarget as HTMLDialogElement | null);
+  if (!dialog?.open) return;
   const targets = [
     ...dialog.querySelectorAll<HTMLElement>('button,input,select,textarea,a[href],[tabindex]'),
   ].filter(

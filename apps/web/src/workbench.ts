@@ -97,6 +97,7 @@ export function visualRuntimeLimit(project: Project) {
 }
 import { compareCapture, digest } from './visual';
 import { explainFromAssessment } from './diff-explanation';
+import { classifyAgainstBaseline } from './structural-diff';
 import {
   executionEnvironment,
   secretEnvironment,
@@ -110,6 +111,7 @@ import {
   validateConnection,
 } from './model-connections';
 import { SecretStore } from './secret-store';
+import { BaselineStore } from './baseline-store';
 import { toProposalConsumerInventory, type DomainInventory } from '@arxic/domain-inventory';
 import { sourceRevision } from './source';
 import { campaignRows, campaignView, rowHistoryOf, type RowHistory } from './campaigns';
@@ -253,6 +255,7 @@ export class Workbench {
   private mutationTail: Promise<unknown> = Promise.resolve();
   private timer: ReturnType<typeof setInterval>;
   private readonly providerSecrets: SecretStore;
+  private readonly baselineStore: BaselineStore;
   private constructor(
     readonly store: Store,
     startupRoots: string[],
@@ -267,7 +270,8 @@ export class Workbench {
       ...startupRoots.filter((root) => !deltas.removed.includes(root)),
       ...deltas.added,
     ];
-    this.providerSecrets = new SecretStore(store.db);
+    this.providerSecrets = new SecretStore(store.db, directory);
+    this.baselineStore = new BaselineStore(directory);
     this.timer = setInterval(() => {
       void this.guardDueCampaigns()
         .then(() => this.tick())
@@ -442,12 +446,96 @@ export class Workbench {
   retentionState() {
     return this.retention.state();
   }
-  /** Runtime-entered credentials complete the environment; explicit operator env keeps precedence. */
+  /**
+   * Runtime-entered credentials complete the environment; an explicit operator
+   * variable keeps precedence.
+   *
+   * An EMPTY variable is not an override. A shell profile that exports
+   * `ARXIC_SECRET_X=` would otherwise shadow a credential stored in the vault
+   * with nothing at all, and the run would refuse with "set it in the server
+   * environment" — pointing the operator away from the value they had just
+   * entered in the dashboard.
+   */
   effectiveEnv(): NodeJS.ProcessEnv {
     const merged: NodeJS.ProcessEnv = this.providerSecrets.all();
-    for (const [key, value] of Object.entries(process.env))
-      if (value !== undefined) merged[key] = value;
+    for (const [key, value] of Object.entries(process.env)) {
+      if (value === undefined) continue;
+      if (value === '' && merged[key]) continue;
+      merged[key] = value;
+    }
     return merged;
+  }
+  /**
+   * Every ARXIC_SECRET_ reference the workspace actually uses, with where it is
+   * used and whether it currently resolves. Names and resolution status only —
+   * a credential VALUE never leaves the server, not even to the administrator
+   * who entered it.
+   *
+   * `environment` wins over `vault` because effectiveEnv() gives the operator's
+   * own process environment precedence; saying so stops an operator debugging a
+   * stored value that is being shadowed.
+   */
+  credentialInventory() {
+    const stored = new Set(this.providerSecrets.refs());
+    const uses = new Map<string, string[]>();
+    const add = (ref: string | undefined, where: string) => {
+      if (!ref) return;
+      uses.set(ref, [...(uses.get(ref) ?? []), where]);
+    };
+    for (const project of this.store.projects()) {
+      if (project.login) {
+        add(project.login.emailRef, `${project.name} · sign-in email`);
+        add(project.login.passwordRef, `${project.name} · sign-in password`);
+      }
+      add(project.execution?.modelSecretRef, `${project.name} · AI model key`);
+    }
+    for (const campaign of this.store.campaigns())
+      for (const variant of campaign.variants ?? [])
+        if (variant.kind === 'persona') {
+          add(variant.persona.emailRef, `${campaign.projectName} · ${variant.label} email`);
+          add(variant.persona.passwordRef, `${campaign.projectName} · ${variant.label} password`);
+        }
+    return {
+      keySource: this.providerSecrets.keySource,
+      keyPath: this.providerSecrets.keyPath,
+      credentials: [...uses.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([ref, where]) => ({
+          ref,
+          uses: [...new Set(where)],
+          status: process.env[ref]
+            ? ('environment' as const)
+            : stored.has(ref)
+              ? ('vault' as const)
+              : ('missing' as const),
+        })),
+      // Stored refs nothing references any more: dead credentials the operator
+      // can clear. Provider connection keys are managed on their own screen.
+      orphaned: [...stored].filter((ref) => !uses.has(ref)).sort(),
+    };
+  }
+  /** Store a sign-in credential under an ARXIC_SECRET_ reference. Write-only: never read back. */
+  async saveSecret(input: unknown) {
+    return this.mutate(async () => {
+      const record = input as { ref?: unknown; value?: unknown } | null;
+      const ref = secretRef(record?.ref);
+      if (!ref) throw new HttpError(400, 'Name the ARXIC_SECRET_ reference to store');
+      const value = typeof record?.value === 'string' ? record.value : '';
+      if (!value || value.length > 5000)
+        throw new HttpError(400, 'Provide the credential as text between 1 and 5000 characters');
+      this.providerSecrets.set(ref, value);
+      this.store.audit('secret.set', ref);
+      return this.credentialInventory();
+    });
+  }
+  async removeSecret(input: unknown) {
+    return this.mutate(async () => {
+      const ref = secretRef((input as { ref?: unknown } | null)?.ref);
+      if (!ref) throw new HttpError(400, 'Name the ARXIC_SECRET_ reference to remove');
+      this.providerSecrets.remove(ref);
+      this.store.audit('secret.removed', ref);
+      return this.credentialInventory();
+    });
   }
   async saveProviderSecret(input: unknown) {
     return this.mutate(async () => {
@@ -491,15 +579,36 @@ export class Workbench {
     })();
     return project;
   }
-  enqueue(projectId: string, mode: unknown): Run {
+  /**
+   * Queue a run, optionally narrowed to particular pages.
+   *
+   * `paths` exists so a person looking at one page can test that page: a
+   * whole-project run to re-check the sign-in screen is minutes of browsers
+   * for one screenshot. The narrowing is an intersection, never a
+   * substitution — only pages this project already covers can be named, so the
+   * parameter cannot be used to point the engine at a path it was never
+   * configured to visit.
+   */
+  enqueue(projectId: string, mode: unknown, paths?: unknown): Run {
     this.requireQueueCapacity(1);
     const project = this.store.project(projectId);
     if (!project) throw new HttpError(404, 'Project not found');
     const selected = runMode(mode);
-    const run = this.store.enqueue(
+    const covered =
       selected === 'visual' && project.pageMode === 'discover'
-        ? { ...project, paths: this.discoveredPaths(project) }
-        : project,
+        ? this.discoveredPaths(project)
+        : project.paths;
+    let scoped = covered;
+    if (paths !== undefined) {
+      if (!Array.isArray(paths) || paths.some((value) => typeof value !== 'string'))
+        throw new HttpError(400, 'Pages to test must be a list of paths');
+      const wanted = new Set(paths as string[]);
+      scoped = covered.filter((path) => wanted.has(path));
+      if (!scoped.length)
+        throw new HttpError(400, 'None of those pages belong to this project. Refresh and retry.');
+    }
+    const run = this.store.enqueue(
+      scoped === project.paths ? project : { ...project, paths: scoped },
       selected,
     )!;
     this.store.audit('run.queued', run.id);
@@ -1111,7 +1220,16 @@ export class Workbench {
               (item) => item.id === baseline.capture_id,
             );
             if (!previous) throw new Error('Baseline metadata unavailable');
-            const baselinePath = join(this.directory, 'runs', baseline.run_id, previous.file);
+            // The store first; the producing run second, for approvals recorded
+            // before baselines were promoted. Either way the bytes must hash to
+            // what the approval recorded.
+            // The store first; the producing run second, for approvals recorded
+            // before baselines were promoted. `read` already re-verified the
+            // digest, so only the fallback path needs checking here.
+            const promoted = await this.baselineStore.has(previous.sha256);
+            const baselinePath = promoted
+              ? this.baselineStore.pathFor(previous.sha256)
+              : join(this.directory, 'runs', baseline.run_id, previous.file);
             if (digest(await readFile(baselinePath)) !== previous.sha256)
               throw new Error('Baseline integrity failed');
             const diffFile = `${capture.id}.diff.png`;
@@ -1130,6 +1248,27 @@ export class Workbench {
               // assessment bytes; missing/unverifiable evidence leaves the
               // capture without an explanation rather than guessing.
               ...(await explainFromAssessment(directory, capture, compared.diffRegions)),
+              // Whether the change is a layout shift, new content or paint —
+              // from the two captures' own measured scenes, both hash-verified.
+              ...(await classifyAgainstBaseline(
+                (path) => readFile(path),
+                digest,
+                {
+                  path: join(directory, capture.assessmentFile ?? ''),
+                  sha256: capture.assessmentSha256,
+                },
+                {
+                  path: join(
+                    this.directory,
+                    'runs',
+                    baseline.run_id,
+                    previous.assessmentFile ?? '',
+                  ),
+                  sha256: previous.assessmentSha256,
+                },
+                compared.diffRegions,
+                capture.environment?.deviceScaleFactor ?? 1,
+              )),
             });
           }
       } catch (error) {
@@ -1179,10 +1318,12 @@ export class Workbench {
       const capture = run?.result?.captures?.find((item) => item.id === captureId);
       if (!run || run.state !== 'completed' || !capture || capture.status === 'unstable')
         throw new HttpError(409, 'Only a completed, stable capture can become a baseline');
-      if (
-        digest(await readFile(join(this.directory, 'runs', runId, capture.file))) !== capture.sha256
-      )
+      const bytes = await readFile(join(this.directory, 'runs', runId, capture.file));
+      if (digest(bytes) !== capture.sha256)
         throw new HttpError(409, 'Capture integrity check failed');
+      // Promote before recording: an approval must never name bytes the store
+      // does not hold.
+      await this.baselineStore.promote(bytes, capture.sha256);
       this.store.db.transaction(() => {
         this.store.approve(run.projectId, capture.specHash, runId, captureId, capture.sha256);
         this.store.audit('baseline.approved', `${runId}/${captureId}`);

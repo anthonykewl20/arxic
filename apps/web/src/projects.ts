@@ -3,8 +3,9 @@ import { realpath, stat } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { CronExpressionParser } from 'cron-parser';
 import { HttpError } from './errors';
-import type { Project, RunMode } from './types';
+import type { Project, RunMode, ProjectEnvironment } from './types';
 import { secretRef, validateExecution } from './execution';
+import { INDUCIBLE_STATUSES, isInducibleStatus } from './state-induction';
 
 export function nextSlot(cron: string, now = new Date()): string | null {
   if (!cron) return null;
@@ -30,7 +31,7 @@ export async function allowedFolder(folder: string, roots: readonly string[]): P
   if (!roots.some((root) => inside(root, actual)))
     throw new HttpError(
       400,
-      'Project folder is outside the configured workspace roots; add its folder under Administration → Workspace roots',
+      'Project folder is outside the configured workspace roots; add its folder under Settings → Project roots',
     );
   return actual;
 }
@@ -57,8 +58,11 @@ export async function validateProject(
     'name',
     'folder',
     'origin',
+    'environment',
+    'repositoryUrl',
     'paths',
     'stateCaptures',
+    'componentCaptures',
     'viewports',
     'browsers',
     'colorSchemes',
@@ -87,6 +91,20 @@ export async function validateProject(
   };
   const name = text('name', '', 100);
   if (!name) throw new HttpError(400, 'Project name is required');
+  // Unset means development: a project nobody has classified is treated as the
+  // one where a mistake is cheapest, never as production.
+  const environment = text('environment', previous?.environment ?? 'development', 20);
+  if (!['development', 'staging', 'production'].includes(environment))
+    throw new HttpError(400, 'Environment must be development, staging, or production');
+  // Kept from the previous record when an edit does not mention it, the way
+  // every other detected field is; validated so it can only ever be a link a
+  // browser can follow to a repository.
+  const repositoryUrl = text('repositoryUrl', previous?.repositoryUrl ?? '', 200);
+  if (
+    repositoryUrl &&
+    !/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repositoryUrl)
+  )
+    throw new HttpError(400, 'Repository must be an https://github.com/owner/repository URL');
   const folder = await allowedFolder(text('folder'), roots);
   const origin = text('origin');
   if (origin) {
@@ -136,7 +154,9 @@ export async function validateProject(
           !item ||
           typeof item !== 'object' ||
           Array.isArray(item) ||
-          Object.keys(item).some((name) => !['path', 'state', 'query'].includes(name)),
+          Object.keys(item).some(
+            (name) => !['path', 'state', 'query', 'fault', 'submitEmptyForms'].includes(name),
+          ),
       )
     )
       throw new HttpError(400, 'A project supports at most 20 state checkpoints');
@@ -157,10 +177,42 @@ export async function validateProject(
         throw new HttpError(400, 'State checkpoint names use lowercase letters, digits and dashes');
       if (item.query !== undefined && (typeof item.query !== 'string' || item.query.length > 500))
         throw new HttpError(400, 'State checkpoint queries are short URL query strings');
+      if (item.fault !== undefined) {
+        const fault = item.fault as Record<string, unknown> | null;
+        if (
+          !fault ||
+          typeof fault !== 'object' ||
+          Array.isArray(fault) ||
+          Object.keys(fault).some((name) => !['status', 'path'].includes(name)) ||
+          !isInducibleStatus(fault.status)
+        )
+          throw new HttpError(
+            400,
+            `An induced fault names one of these statuses: ${INDUCIBLE_STATUSES.join(', ')}`,
+          );
+        if (
+          fault.path !== undefined &&
+          (typeof fault.path !== 'string' || !fault.path.length || fault.path.length > 200)
+        )
+          throw new HttpError(400, 'An induced fault path is a short request-path fragment');
+      }
+      if (item.submitEmptyForms !== undefined && typeof item.submitEmptyForms !== 'boolean')
+        throw new HttpError(400, 'Invalid state checkpoint form submission flag');
     }
     const identities = new Set(
-      (rawStateCaptures as Array<{ path: string; state: string; query?: string }>).map(
-        (item) => `${item.path}#${item.state}?${item.query ?? ''}`,
+      (
+        rawStateCaptures as Array<{
+          path: string;
+          state: string;
+          query?: string;
+          fault?: { status: number; path?: string };
+          submitEmptyForms?: boolean;
+        }>
+      ).map(
+        (item) =>
+          `${item.path}#${item.state}?${item.query ?? ''}` +
+          `!${item.fault ? `${item.fault.status}:${item.fault.path ?? ''}` : ''}` +
+          `+${item.submitEmptyForms ? 'forms' : ''}`,
       ),
     );
     if (identities.size !== rawStateCaptures.length)
@@ -170,7 +222,30 @@ export async function validateProject(
     path: item.path,
     state: item.state,
     ...(item.query ? { query: item.query } : {}),
+    ...(item.fault
+      ? {
+          fault: {
+            status: item.fault.status,
+            ...(item.fault.path ? { path: item.fault.path } : {}),
+          },
+        }
+      : {}),
+    ...(item.submitEmptyForms ? { submitEmptyForms: true } : {}),
   }));
+  const rawComponentCaptures = input.componentCaptures;
+  if (
+    rawComponentCaptures !== undefined &&
+    (!Array.isArray(rawComponentCaptures) ||
+      rawComponentCaptures.length > 20 ||
+      rawComponentCaptures.some(
+        (item) => typeof item !== 'string' || !item.trim() || item.length > 200,
+      ))
+  )
+    throw new HttpError(400, 'A project isolates at most 20 component selectors');
+  const componentCaptures = (rawComponentCaptures as string[] | undefined)
+    ?.map((item) => item.trim())
+    .filter((item, index, all) => all.indexOf(item) === index);
+
   const selection = (key: string, choices: readonly string[], fallback: string[]) => {
     const value = input[key] === undefined ? fallback : input[key];
     if (
@@ -333,8 +408,11 @@ export async function validateProject(
     name,
     folder,
     origin,
+    environment: environment as ProjectEnvironment,
+    ...(repositoryUrl ? { repositoryUrl } : {}),
     paths,
     ...(stateCaptures?.length ? { stateCaptures } : {}),
+    ...(componentCaptures?.length ? { componentCaptures } : {}),
     viewports,
     browsers,
     colorSchemes,

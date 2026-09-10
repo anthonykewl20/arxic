@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { openInventoryTab } from './inventory-tabs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -93,7 +94,7 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
     await page.getByLabel('Running test app origin').fill(target.origin);
     await page.getByRole('button', { name: 'Save project', exact: true }).click();
     await page.getByRole('heading', { name: 'Express template discovery', exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Discover intents', exact: true }).click();
+    await page.getByRole('button', { name: 'Read the code', exact: true }).click();
     await expect
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 30000 })
       .toContain('source surfaces');
@@ -136,7 +137,8 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
           2,
         ),
       );
-    await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
+    await openInventoryTab(page, 'declarations');
     await page.getByLabel('Declaration kind').selectOption('control');
     await page.getByLabel('Search declarations').fill('src/views/index.ejs');
     await page
@@ -292,6 +294,7 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
       await page.goto(`${historicalApp.origin}?view=intents`);
       await page.getByLabel('Administrator token').fill('frontend-template-test-administrator');
       await page.getByRole('button', { name: 'Open workbench' }).click();
+      await openInventoryTab(page, 'declarations');
       await page.locator('[data-frontend-rows]').waitFor();
       await page.getByLabel('Declaration kind').selectOption('control');
       await page.getByLabel('Search declarations').fill('src/views/index.ejs');

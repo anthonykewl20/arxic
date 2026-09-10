@@ -34,33 +34,42 @@ export function CaptureGallery({
     heading.current?.scrollIntoView({ block: 'start' });
   }
   const choices = (values: string[]) => [...new Set(values)].sort();
+  /**
+   * A run with a single capture has nothing to filter, so it offers no filters
+   * — six selects and a search field over one screenshot was pure chrome. Any
+   * run with more than one capture keeps the full set, including a dimension
+   * this particular run happens not to vary: which controls exist must not
+   * depend on the data, or the operator cannot learn where they are.
+   */
+  const filterable = captures.length > 1;
   const select = (
     key: keyof CaptureFilters,
     label: string,
     values: string[],
     labels: Record<string, string> = {},
-  ) => (
-    <label className="grid min-w-0 gap-1" htmlFor={`${id}-${key}`}>
-      {label}
-      <select
-        className="min-h-11 w-full min-w-0"
-        id={`${id}-${key}`}
-        aria-label={label}
-        value={filters[key]}
-        onChange={(event) => {
-          event.stopPropagation();
-          change(key, event.currentTarget.value);
-        }}
-      >
-        <option value="">All</option>
-        {values.map((value) => (
-          <option key={value} value={value}>
-            {labels[value] ?? value}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
+  ) =>
+    !filterable ? null : (
+      <label className="grid min-w-0 gap-1" htmlFor={`${id}-${key}`}>
+        {label}
+        <select
+          className="min-h-11 w-full min-w-0"
+          id={`${id}-${key}`}
+          aria-label={label}
+          value={filters[key]}
+          onChange={(event) => {
+            event.stopPropagation();
+            change(key, event.currentTarget.value);
+          }}
+        >
+          <option value="">All</option>
+          {values.map((value) => (
+            <option key={value} value={value}>
+              {labels[value] ?? value}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
   if (!captures.length) return null;
   return (
     <section aria-label="Capture gallery" className="mt-6 space-y-4 border-t pt-4">
@@ -71,26 +80,30 @@ export function CaptureGallery({
       >
         Captured pages
       </h3>
-      <p className="muted">
-        Find a page or comparison within this run. Filters change this list only; execution coverage
-        above stays unchanged.
-      </p>
+      {filterable && (
+        <p className="muted">
+          Find a page or comparison within this run. Filters change this list only; execution
+          coverage above stays unchanged.
+        </p>
+      )}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <label className="grid min-w-0 gap-1" htmlFor={`${id}-path`}>
-          Search capture paths
-          <Input
-            className="min-h-11"
-            id={`${id}-path`}
-            type="search"
-            value={filters.path}
-            maxLength={200}
-            onChange={(event) => {
-              event.stopPropagation();
-              change('path', event.currentTarget.value);
-            }}
-            placeholder="/settings"
-          />
-        </label>
+        {filterable && (
+          <label className="grid min-w-0 gap-1" htmlFor={`${id}-path`}>
+            Search capture paths
+            <Input
+              className="min-h-11"
+              id={`${id}-path`}
+              type="search"
+              value={filters.path}
+              maxLength={200}
+              onChange={(event) => {
+                event.stopPropagation();
+                change('path', event.currentTarget.value);
+              }}
+              placeholder="/settings"
+            />
+          </label>
+        )}
         {select(
           'browser',
           'Capture browser',
@@ -116,10 +129,13 @@ export function CaptureGallery({
         })}
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <p role="status">
-          {selection.total} matching {selection.total === 1 ? 'capture' : 'captures'} of{' '}
-          {captures.length}
-        </p>
+        {/* A run with one capture has nothing to count; the capture is right there. */}
+        {filterable && (
+          <p role="status">
+            {selection.total} matching {selection.total === 1 ? 'capture' : 'captures'} of{' '}
+            {captures.length}
+          </p>
+        )}
         {filtered && (
           <Button
             className="min-h-11"

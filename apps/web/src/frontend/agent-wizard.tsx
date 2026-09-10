@@ -144,7 +144,7 @@ function AgentWizard({
                 {guide?.command
                   ? 'Run this on the Arxic server as the user that runs Arxic'
                   : active.secret !== 'none'
-                    ? 'Connect this provider’s key under Models & accounts, or set its ARXIC_SECRET_ variable in the server environment'
+                    ? 'Connect this provider’s key under AI models, or set its ARXIC_SECRET_ variable in the server environment'
                     : (guide?.method ?? 'Configure the account on the server')}
               </strong>
               {guide?.command && (

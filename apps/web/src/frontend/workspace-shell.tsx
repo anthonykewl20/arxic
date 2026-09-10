@@ -1,19 +1,24 @@
 import { useRef, useState } from 'react';
+import { actions } from './dashboard-actions';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import {
-  LayoutDashboard,
+  LayoutGrid,
+  GitCompare,
   ScanSearch,
   Play,
-  Layers,
+  Route,
   CalendarClock,
   Bot,
+  FolderGit2,
   Settings2,
   Menu,
   X,
   Plus,
+  Search,
 } from 'lucide-react';
-import { Button, Input, Label, ThemeSwitch } from './components';
+import { Button, Input, Label, ThemeSwitch, Toaster, ConfirmHost } from './components';
+import { CommandBar } from './command-registry';
 
 function Mark({ size = 14 }: { size?: number }) {
   return (
@@ -32,14 +37,30 @@ function Mark({ size = 14 }: { size?: number }) {
     </svg>
   );
 }
+/** Apple keyboards label the palette shortcut ⌘K; every other platform reads Ctrl K. */
+function shortcutHint() {
+  const apple = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/u.test(navigator.platform);
+  return apple ? '⌘K' : 'Ctrl K';
+}
+/**
+ * The sidebar, in two groups.
+ *
+ * Everything above the rule is work a person does day to day — look at pages,
+ * decide on changes, check a run. Everything below it is how the workspace is
+ * set up, which is read far less often and was crowding the list. Pages leads
+ * because pages are the subject; Changes carries the only count in the
+ * navigation, because it is the only entry that ever needs someone.
+ */
 export const sections = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'intents', label: 'Intent inventory', icon: ScanSearch },
-  { id: 'runs', label: 'Test runs', icon: Play },
-  { id: 'campaigns', label: 'Campaigns', icon: Layers },
-  { id: 'schedules', label: 'Schedules', icon: CalendarClock },
-  { id: 'providers', label: 'Models & accounts', icon: Bot },
-  { id: 'admin', label: 'Administration', icon: Settings2 },
+  { id: 'pages', label: 'Pages', icon: LayoutGrid, group: 'work' },
+  { id: 'changes', label: 'Changes', icon: GitCompare, group: 'work' },
+  { id: 'runs', label: 'Test runs', icon: Play, group: 'work' },
+  { id: 'campaigns', label: 'User journeys', icon: Route, group: 'work' },
+  { id: 'schedules', label: 'Schedules', icon: CalendarClock, group: 'work' },
+  { id: 'overview', label: 'Projects', icon: FolderGit2, group: 'setup' },
+  { id: 'intents', label: 'Code scan', icon: ScanSearch, group: 'setup' },
+  { id: 'providers', label: 'AI models', icon: Bot, group: 'setup' },
+  { id: 'admin', label: 'Settings', icon: Settings2, group: 'setup' },
 ] as const;
 
 /** Static React shell; the dashboard actions in app.ts drive navigation, data and dialogs. */
@@ -57,7 +78,7 @@ function WorkspaceShell() {
             Arxic
           </div>
           <div className="page-heading">
-            <h1>A clearer view of your frontend.</h1>
+            <h1>See every page. Catch every change.</h1>
             <p className="muted">Sign in with the administrator token configured on this server.</p>
           </div>
           <Label>
@@ -116,18 +137,59 @@ function WorkspaceShell() {
               {menuOpen ? <X /> : <Menu />}
             </Button>
           </div>
+          {/*
+            What you are looking at, before what you are looking for.
+            Every screen below obeys these two: the project list stopped
+            carrying an environment column the moment the environment became
+            something you choose here, and no screen carries its own project
+            filter any more.
+          */}
+          <div className="scope-bar">
+            <label htmlFor="project-scope">Project</label>
+            <select id="project-scope" defaultValue="">
+              <option value="">All projects</option>
+            </select>
+            <label htmlFor="environment-scope">Environment</label>
+            <select id="environment-scope" defaultValue="">
+              <option value="">All environments</option>
+              <option value="development">Development</option>
+              <option value="staging">Staging</option>
+              <option value="production">Production</option>
+            </select>
+          </div>
           <nav id="workspace-navigation" aria-label="Workspace">
-            {sections.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                type="button"
-                data-nav={id}
-                className={`nav-item${id === 'overview' ? ' active' : ''}`}
-              >
-                <Icon aria-hidden="true" />
-                {label}
-              </button>
-            ))}
+            {sections
+              .filter((item) => item.group === 'work')
+              .map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  data-nav={id}
+                  className={`nav-item${id === 'pages' ? ' active' : ''}`}
+                  onClick={() => actions().navigate(id)}
+                >
+                  <Icon aria-hidden="true" />
+                  {label}
+                  {id === 'changes' && (
+                    <span className="nav-badge" data-nav-badge="changes" hidden></span>
+                  )}
+                </button>
+              ))}
+            <p className="nav-group">Setup</p>
+            {sections
+              .filter((item) => item.group === 'setup')
+              .map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  data-nav={id}
+                  className="nav-item"
+                  onClick={() => actions().navigate(id)}
+                >
+                  <Icon aria-hidden="true" />
+                  {label}
+                </button>
+              ))}
           </nav>
           <div className="sidebar-bottom">
             <span className="instance">
@@ -145,19 +207,22 @@ function WorkspaceShell() {
             <span className="crumb">
               <span>Workspace</span>
               <span aria-hidden="true">/</span>
-              <span id="breadcrumb">Overview</span>
+              <span id="breadcrumb">Pages</span>
             </span>
             <div className="topbar-actions">
-              <Button
-                id="connect-agent"
-                aria-label="Connect agent"
-                title="Connect agent"
-                variant="outline"
-                size="sm"
+              {/* Named explicitly: the visible label is hidden on narrow
+                  viewports, and the icon and shortcut hint are decorative. */}
+              <button
+                type="button"
+                className="command-trigger"
+                id="open-command-palette"
+                aria-label="Search the workspace"
+                title={`Search the workspace (${shortcutHint()})`}
               >
-                <Bot />
-                <span>Connect agent</span>
-              </Button>
+                <Search aria-hidden="true" />
+                <span>Search</span>
+                <kbd aria-hidden="true">{shortcutHint()}</kbd>
+              </button>
               <Button
                 id="new-project"
                 aria-label="Connect project"
@@ -170,13 +235,12 @@ function WorkspaceShell() {
             </div>
           </header>
           <div className="page">
-            <div id="notice" role="status" hidden></div>
             <div className="page-heading">
               <h1 id="page-title" tabIndex={-1}>
-                Workspace overview
+                Pages
               </h1>
               <p id="page-description" className="muted">
-                Manage projects, uncover gaps, and review what changed.
+                Every page Arxic found, what is on it, and whether it still looks right.
               </p>
             </div>
             <div id="content"></div>
@@ -189,6 +253,9 @@ function WorkspaceShell() {
       <dialog id="agent-dialog">
         <div id="agent-wizard-root"></div>
       </dialog>
+      <CommandBar />
+      <ConfirmHost />
+      <Toaster />
     </>
   );
 }

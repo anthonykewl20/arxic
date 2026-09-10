@@ -162,6 +162,12 @@ export async function startWorkbench(options: WorkbenchOptions) {
       await refreshModelCatalog(catalogRoute?.[1] ?? '', workbench.effectiveEnv());
       return json(response, 200, { modelConnections: modelConnections(workbench.effectiveEnv()) });
     }
+    if (path === '/api/secrets' && request.method === 'GET')
+      return json(response, 200, workbench.credentialInventory());
+    if (path === '/api/secrets' && request.method === 'POST')
+      return json(response, 200, await workbench.saveSecret(await readJson(request)));
+    if (path === '/api/secrets' && request.method === 'DELETE')
+      return json(response, 200, await workbench.removeSecret(await readJson(request)));
     if (path === '/api/provider-secrets' && request.method === 'POST')
       return json(response, 201, await workbench.saveProviderSecret(await readJson(request)));
     if (path === '/api/provider-secrets' && request.method === 'DELETE')
@@ -195,8 +201,10 @@ export async function startWorkbench(options: WorkbenchOptions) {
         await workbench.saveProject(await readJson(request), projectRoute[1]),
       );
     const runRoute = /^\/api\/projects\/([a-f0-9-]+)\/runs$/u.exec(path);
-    if (runRoute && request.method === 'POST')
-      return json(response, 202, workbench.enqueue(runRoute[1], (await readJson(request)).mode));
+    if (runRoute && request.method === 'POST') {
+      const body = await readJson(request);
+      return json(response, 202, workbench.enqueue(runRoute[1], body.mode, body.paths));
+    }
     const campaignCreate = /^\/api\/projects\/([a-f0-9-]+)\/campaigns$/u.exec(path);
     if (campaignCreate && request.method === 'POST')
       return json(

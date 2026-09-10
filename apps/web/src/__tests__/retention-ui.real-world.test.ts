@@ -148,7 +148,7 @@ it.each(['light', 'dark'] as const)(
       expect((await response.body()).equals(expected)).toBe(true);
       await page.goto(`${app.origin}?view=runs&run=${baseline.id}`);
       await page.getByRole('heading', { name: 'Test runs', exact: true }).waitFor();
-      await page.getByText('current approved baseline', { exact: true }).waitFor();
+      await page.getByText('Current approved baseline', { exact: true }).waitFor();
       await page
         .locator('.compare img')
         .evaluateAll((images) =>

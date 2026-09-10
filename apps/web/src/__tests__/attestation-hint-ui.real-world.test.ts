@@ -1,4 +1,5 @@
 import { mkdtemp, rm } from 'node:fs/promises';
+import { openInventoryTab } from './inventory-tabs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
@@ -29,18 +30,19 @@ it('documents the target-attestation prerequisite next to the attestation path s
     await page.goto(app.origin);
     await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
     await page.getByRole('button', { name: 'Open workbench' }).click();
-    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+    await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
     await page.locator('#new-project').click();
     await page.getByLabel('Project folder', { exact: true }).fill(repo.root);
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await page.getByLabel('Project name', { exact: true }).fill('Attestation hint reference');
     await page.getByLabel('Running test app origin').fill('http://127.0.0.1:1');
     await page.getByRole('button', { name: 'Save project' }).click();
-    await page.getByRole('button', { name: 'Discover intents', exact: true }).click();
+    await page.getByRole('button', { name: 'Read the code', exact: true }).click();
     await expect
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
-    await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
+    await openInventoryTab(page, 'workflows');
     await expect
       .poll(() => page.locator('#content').textContent())
       .toContain('Save guided AI settings to start a campaign');

@@ -91,7 +91,7 @@ it('refreshes provider-owned models in a real browser and preserves search and s
         { timeout: 10_000 },
       )
       .toBe(true);
-    await page.getByRole('button', { name: 'Models & accounts', exact: true }).click();
+    await page.getByRole('button', { name: 'AI models', exact: true }).click();
     await expect
       .poll(
         async () =>
@@ -303,7 +303,7 @@ it('connects and removes a provider key in a real browser without displaying it'
         },
       )
       .toBe(true);
-    await page.getByRole('button', { name: 'Models & accounts', exact: true }).click();
+    await page.getByRole('button', { name: 'AI models', exact: true }).click();
     const row = page.locator('.provider-row').filter({ hasText: 'Browser keyed provider' });
     await expect.poll(() => row.count()).toBe(1);
     await row.click();

@@ -1,7 +1,17 @@
 import { useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { RefreshCw, Search, ArrowUpRight, Plug, Check, AlertCircle, Terminal } from 'lucide-react';
-import { Button, Badge, Input } from './components';
+import {
+  RefreshCw,
+  Search,
+  ArrowUpRight,
+  Plug,
+  Bot,
+  Check,
+  AlertCircle,
+  Terminal,
+} from 'lucide-react';
+import { Badge, Button, EmptyState, Input, Note } from './components';
+import { actions } from './dashboard-actions';
 
 type Connection = {
   id: string;
@@ -71,11 +81,26 @@ function ProviderPanel({
           <h2>Your models. Your accounts.</h2>
           <p>Connect the tools you already use. Model choices come from each provider.</p>
         </div>
-        <Badge variant="outline">{available.length} connections</Badge>
+        {/* Wraps: at 200% text on a phone the count and the button do not fit
+            on one line, and a row that refuses to wrap widens the document. */}
+        <span className="flex min-w-0 flex-wrap items-center gap-2">
+          <Badge variant="outline">{available.length} connections</Badge>
+          {/* Connecting an agent used to be a button in the top bar of every
+              screen. It is a once-per-workspace setup task, so it lives where
+              the models it configures do. */}
+          <Button
+            id="connect-agent"
+            variant="outline"
+            size="sm"
+            onClick={() => actions().connectAgent()}
+          >
+            <Bot /> Connect agent
+          </Button>
+        </span>
       </div>
       <div className="provider-layout">
         <nav className="provider-list" aria-label="Model providers">
-          <div className="provider-list-label">CONNECTIONS</div>
+          <div className="provider-list-label">Connections</div>
           {available.map((item) => (
             <button
               key={item.id}
@@ -113,7 +138,7 @@ function ProviderPanel({
           <div className="provider-detail">
             <div className="provider-detail-heading">
               <div>
-                <p className="provider-kicker">MODEL CONNECTION</p>
+                <p className="provider-kicker">Model connection</p>
                 <h2>{active.label}</h2>
               </div>
               <Badge variant="secondary">
@@ -277,27 +302,28 @@ function ProviderPanel({
                   </div>
                 ))}
               {active.models.length === 0 && (
-                <div className="provider-empty">
-                  <Plug size={24} />
-                  <h3>
-                    {active.catalog?.error
+                <EmptyState
+                  icon={Plug}
+                  title={
+                    active.catalog?.error
                       ? 'Connection needs attention'
-                      : 'Discover this provider’s models'}
-                  </h3>
-                  <p>
-                    Refresh the catalog after connecting your account on this server. Custom model
-                    IDs are available in project and review settings.
-                  </p>
-                </div>
+                      : 'Discover this provider’s models'
+                  }
+                >
+                  Refresh the catalog after connecting your account on this server. Custom model IDs
+                  are available in project and review settings.
+                </EmptyState>
               )}
             </div>
-            <p className="provider-footnote">
+            <Note>
               Catalogs refresh every five minutes while in use. Access and usage limits are
               controlled by your provider; a listed model does not guarantee account entitlement.
-            </p>
+            </Note>
           </div>
         ) : (
-          <div className="provider-empty">No provider connections configured.</div>
+          <EmptyState icon={Plug} title="No provider connections configured">
+            Connect a subscription or an API key to discover the models it offers.
+          </EmptyState>
         )}
       </div>
     </section>

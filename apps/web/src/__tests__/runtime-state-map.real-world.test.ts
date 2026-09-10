@@ -1,4 +1,5 @@
 import { once } from 'node:events';
+import { openInventoryTab } from './inventory-tabs';
 import { createServer, type RequestListener, type Server } from 'node:http';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -186,7 +187,7 @@ describe('runtime state mapping in the real dashboard', () => {
       await page.goto(app.origin);
       await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
       await page.getByRole('button', { name: 'Open workbench' }).click();
-      await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+      await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
       await page.locator('#new-project').click();
       await page.getByLabel('Project folder', { exact: true }).fill(repo.root);
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
@@ -195,11 +196,12 @@ describe('runtime state mapping in the real dashboard', () => {
         .fill('Runtime state mapping reference');
       await page.getByLabel('Running test app origin').fill(origin);
       await page.getByRole('button', { name: 'Save project' }).click();
-      await page.getByRole('button', { name: 'Discover intents', exact: true }).click();
+      await page.getByRole('button', { name: 'Read the code', exact: true }).click();
       await expect
         .poll(() => page.locator('.run-detail').textContent(), { timeout: 180_000 })
         .toContain('source surfaces');
-      await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+      await page.getByRole('button', { name: 'Code scan', exact: true }).click();
+      await openInventoryTab(page, 'declarations');
 
       const block = page.locator('[data-runtime-mapping]');
       const text = async () => (await block.textContent().catch(() => null)) ?? '';

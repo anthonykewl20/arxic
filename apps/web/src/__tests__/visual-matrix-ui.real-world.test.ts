@@ -86,7 +86,7 @@ it.each(['light', 'dark'] as const)(
       await page.getByLabel('I authorize screenshot capture', { exact: false }).check();
       await page.getByRole('button', { name: 'Save project' }).click();
       await page.getByRole('heading', { name: 'Environment matrix', exact: true }).waitFor();
-      await page.getByRole('button', { name: 'Visual test', exact: true }).click();
+      await page.getByRole('button', { name: 'Screenshot test', exact: true }).click();
       await expect
         .poll(() => page.locator('.run-detail').textContent(), { timeout: 90000 })
         .toContain('6 viewport checkpoints captured across 6 browser/theme environments');

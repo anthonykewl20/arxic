@@ -1,138 +1,253 @@
+import { actions } from './dashboard-actions';
 import { RetentionPanel } from './retention-panel';
+import { CredentialsPanel } from './credentials-panel';
 import { RunPanel, type RunPanelProps } from './run-panel';
 import { RunTable, Status } from './run-table';
 import { time } from './display';
 import { InventoryPanel, type InventoryPanelProps } from './inventory-panel';
+import { ChangesPanel, PagesPanel, type PagesPanelProps } from './pages-panel';
+import { buildPageInventory, pendingChanges } from '../page-inventory';
+import { evidenceWords } from '../plain-words';
 import { CampaignPanel, type CampaignPanelProps } from './campaign-panel';
 import { createRoot, type Root } from 'react-dom/client';
 import { useState } from 'react';
-import { FolderGit2, ArrowUpRight, Clock3, ShieldCheck, FolderLock, Plus } from 'lucide-react';
-import { Button, Card, CardContent, Input, StatusDot, toneOf } from './components';
+import {
+  FolderGit2,
+  ArrowUpRight,
+  AlertTriangle,
+  Clock3,
+  ShieldCheck,
+  FolderLock,
+  Plus,
+  Bot,
+  KeyRound,
+  Settings2,
+} from 'lucide-react';
+import {
+  Button,
+  Card,
+  CardContent,
+  DataTable,
+  EmptyState,
+  Input,
+  Menu,
+  Note,
+  Section,
+  Stat,
+  StatusDot,
+  toneOf,
+  type Column,
+} from './components';
 import type { Workbench } from '../workbench';
 
 type State = ReturnType<Workbench['state']>;
+/**
+ * What the last run leaves a project standing at, said the same way the rest of
+ * the dashboard says it: "Read from your code", not "Hypothesized".
+ */
 function projectHealth(state: State, id: string) {
   const runs = state.runs.filter((run) => run.projectId === id);
   const latest = runs[0];
-  if (!latest) return { tone: 'neutral' as const, label: 'No runs yet' };
+  if (!latest) return { tone: 'neutral' as const, label: 'Not tested yet', detail: '' };
   if (['queued', 'running'].includes(latest.state))
-    return { tone: 'info' as const, label: latest.state === 'queued' ? 'Queued' : 'Running' };
+    return {
+      tone: 'info' as const,
+      label: latest.state === 'queued' ? 'Waiting to start' : 'Running now',
+      detail: '',
+    };
   const outcome = latest.result?.outcome ?? latest.state;
   const changed = latest.result?.captures?.some((capture) => capture.status === 'changed');
-  if (changed) return { tone: 'warning' as const, label: 'Visual changes' };
-  return { tone: toneOf(outcome), label: outcome.charAt(0).toUpperCase() + outcome.slice(1) };
+  if (changed)
+    return {
+      tone: 'warning' as const,
+      label: 'Needs your decision',
+      detail: 'Screenshots differ from the pictures you approved.',
+    };
+  const words = evidenceWords(outcome);
+  return { tone: toneOf(outcome), label: words.label, detail: words.detail };
 }
 function Overview({ state }: { state: State }) {
-  const stats = [
-    { label: 'Projects', value: state.projects.length, caption: 'Connected on this instance' },
+  const active = state.runs.filter((run) => ['queued', 'running'].includes(run.state));
+  const waiting = pendingChanges(
+    buildPageInventory({
+      projects: state.projects,
+      runs: state.runs,
+      baselines: state.baselines,
+    }),
+  ).length;
+  const scheduled = state.projects.filter((item) => item.cron && !item.paused);
+  const columns: ReadonlyArray<Column<State['projects'][number]>> = [
     {
-      label: 'Active runs',
-      value: state.runs.filter((run) => ['queued', 'running'].includes(run.state)).length,
-      caption: 'Queued and running',
+      key: 'name',
+      header: 'Project',
+      width: '40%',
+      truncate: true,
+      // The name opens the project's settings, so the row needs no separate
+      // Settings control at all — one fewer button per row than either the
+      // buttons-for-everything layout or hiding it in the overflow menu, and
+      // the name is where people already aim. It stays a heading: that is how
+      // assistive technology and every journey identifies the row.
+      cell: (item) => (
+        <span className="flex flex-col items-start">
+          <h3 className="text-[13px] font-medium">
+            <button
+              type="button"
+              data-edit={item.id}
+              className="rounded-sm text-left text-[var(--foreground)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)]"
+              onClick={() => actions().editProject(item.id)}
+            >
+              {item.name}
+            </button>
+          </h3>
+          <span className="folder text-[11px]" title={item.folder}>
+            {item.folder}
+          </span>
+        </span>
+      ),
     },
     {
-      label: 'Visual changes',
-      value: state.runs.filter((run) =>
-        run.result?.captures?.some((capture) => capture.status === 'changed'),
-      ).length,
-      caption: 'In the latest 200 runs',
+      key: 'status',
+      header: 'Status',
+      cell: (item) => {
+        const health = projectHealth(state, item.id);
+        return (
+          <StatusDot tone={health.tone} title={health.detail || undefined}>
+            {health.label}
+          </StatusDot>
+        );
+      },
     },
     {
-      label: 'Active schedules',
-      value: state.projects.filter((item) => item.cron && !item.paused).length,
-      caption: 'UTC · server must be running',
+      key: 'schedule',
+      header: 'Schedule',
+      cell: (item) => (
+        <span className="tabular-nums text-[var(--foreground-muted)]">
+          {item.cron && !item.paused ? `${item.cron} UTC` : 'On demand'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      bare: true,
+      // The two everyday runs stay on the row, always, in the same order; only
+      // the rarer actions move into the menu. Choosing which button to show
+      // from the project's history would make the control set unlearnable —
+      // "Visual test" would be a button on one row and a menu entry on the next.
+      cell: (item) => (
+        <span className="flex items-center justify-end gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => actions().startRun(item.id, 'discovery')}
+          >
+            Read the code
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => actions().startRun(item.id, 'visual')}>
+            Screenshot test
+          </Button>
+          <Menu
+            label={`More actions for ${item.name}`}
+            items={[
+              {
+                label: 'AI walkthrough',
+                icon: Bot,
+                onSelect: () => actions().startRun(item.id, 'agent'),
+              },
+              {
+                label: 'Sign-in details',
+                icon: KeyRound,
+                onSelect: () => actions().projectCredentials(item.id),
+              },
+              {
+                label: 'Project settings',
+                icon: Settings2,
+                onSelect: () => actions().editProject(item.id),
+              },
+            ]}
+          />
+        </span>
+      ),
     },
   ];
-  const columns = 'minmax(0, 2fr) minmax(0, 2fr) 120px 110px 270px';
   return (
     <>
+      {waiting > 0 && (
+        <button type="button" className="attention" onClick={() => actions().navigate('changes')}>
+          <span className="attention-mark" aria-hidden="true">
+            <AlertTriangle size={14} />
+          </span>
+          <span>
+            <strong>
+              {waiting} {waiting === 1 ? 'screenshot needs' : 'screenshots need'} your decision
+            </strong>
+            <small>
+              Compare each one against the picture you approved, and say which is right.
+            </small>
+          </span>
+          <ArrowUpRight size={14} aria-hidden="true" />
+        </button>
+      )}
       <div className="stats">
-        {stats.map(({ label, value, caption }) => (
-          <Card className="stat" key={label}>
-            <span className="stat-label">{label}</span>
-            <strong>{value}</strong>
-            <small>{caption}</small>
-          </Card>
-        ))}
+        <Stat label="Projects" value={state.projects.length} caption="Watched by this server" />
+        <Stat label="Running now" value={active.length} caption="Queued and in progress" />
+        <Stat
+          label="Waiting on you"
+          value={waiting}
+          caption="Screenshots that changed"
+          tone={waiting ? 'attention' : 'default'}
+        />
+        <Stat
+          label="Schedules"
+          value={scheduled.length}
+          caption={scheduled.length ? 'Running on UTC slots' : 'None set'}
+        />
       </div>
-      <div className="section">
-        <div className="section-heading">
-          <h2>Projects</h2>
-          <small>{state.projects.length} connected</small>
-        </div>
-        {state.projects.length ? (
-          <div className="panel list project-grid" style={{ display: 'flex' }}>
-            <div className="list-row list-head" style={{ gridTemplateColumns: columns }}>
-              <span>Name</span>
-              <span>Source</span>
-              <span>Status</span>
-              <span>Schedule</span>
-              <span />
-            </div>
-            {state.projects.map((item) => {
-              const health = projectHealth(state, item.id);
-              return (
-                <div className="list-row" key={item.id} style={{ gridTemplateColumns: columns }}>
-                  <div className="list-name">
-                    <FolderGit2 size={16} aria-hidden="true" />
-                    <h3>{item.name}</h3>
-                    <Button variant="ghost" size="sm" className="text-button" data-edit={item.id}>
-                      Settings
-                    </Button>
-                  </div>
-                  <span className="folder">{item.folder}</span>
-                  <StatusDot tone={health.tone}>{health.label}</StatusDot>
-                  <span className="muted text-xs">
-                    {item.cron && !item.paused ? `${item.cron} UTC` : 'On demand'}
-                  </span>
-                  <div className="list-actions">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      data-start="discovery"
-                      data-project={item.id}
-                    >
-                      Discover intents
-                    </Button>
-                    <Button variant="outline" size="sm" data-start="visual" data-project={item.id}>
-                      Visual test
-                    </Button>
-                    <Button variant="outline" size="sm" data-start="agent" data-project={item.id}>
-                      AI E2E
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="empty">
-            <FolderGit2 size={24} aria-hidden="true" />
-            <h2>Connect your first project</h2>
-            <p className="muted">
-              Pick a folder on this server or paste a GitHub URL. Arxic inventories the source
-              first; add a running test app later for visual and AI runs.
-            </p>
-            <Button data-add>
-              <Plus /> Connect project
-            </Button>
-          </div>
-        )}
-      </div>
-      <div className="scope-note">
-        <strong>Coverage with context.</strong> Discovered surfaces are hypotheses until runtime
-        evidence supports them. A matching screenshot does not prove business correctness. Blocked
-        and unsupported areas stay visible.
-      </div>
-      <div className="section">
-        <div className="section-heading">
-          <h2>Recent runs</h2>
-          <Button variant="ghost" size="sm" className="text-button" data-go="runs">
-            All test runs <ArrowUpRight />
+      {/* No "Projects" heading here: the screen is already titled Projects, and
+          a second one under it is a label, not information. */}
+      <Section meta={`${state.projects.length} connected`}>
+        <DataTable
+          caption="Connected projects"
+          columns={columns}
+          rows={state.projects}
+          rowKey={(item) => item.id}
+          empty={
+            <EmptyState
+              icon={FolderGit2}
+              title="Connect your first project"
+              action={
+                <Button data-add onClick={() => actions().addProject()}>
+                  <Plus /> Connect project
+                </Button>
+              }
+            >
+              Pick a folder on this server or paste a GitHub URL. Arxic reads the code to find your
+              pages; point it at a running copy of the site and it will photograph them too.
+            </EmptyState>
+          }
+        />
+      </Section>
+      <Section
+        title="Recent tests"
+        actions={
+          <Button
+            variant="ghost"
+            size="sm"
+            data-go="runs"
+            onClick={() => actions().navigate('runs')}
+          >
+            All test runs
           </Button>
-        </div>
+        }
+      >
         <RunTable runs={state.runs.slice(0, 6)} />
-      </div>
+      </Section>
+      <Note>
+        <strong>What a passing test means.</strong> A page that matches its approved picture looks
+        the same as last time — that is all it proves. Pages found by reading code have not been
+        opened yet, and anything Arxic could not reach stays visible rather than being counted as
+        fine.
+      </Note>
     </>
   );
 }
@@ -157,7 +272,12 @@ function Schedules({ state }: { state: State }) {
                 </div>
                 <div>
                   <Status value={item.paused || !item.cron ? 'paused' : 'active'} />{' '}
-                  <Button variant="outline" size="sm" data-edit={item.id}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    data-edit={item.id}
+                    onClick={() => actions().editProject(item.id)}
+                  >
                     Configure
                   </Button>
                 </div>
@@ -166,10 +286,9 @@ function Schedules({ state }: { state: State }) {
           ))}
         </div>
       ) : (
-        <div className="empty">
-          <Clock3 size={25} />
-          <h2>Add a project to schedule tests</h2>
-        </div>
+        <EmptyState icon={Clock3} title="Add a project to schedule tests">
+          A connected project can run on a recurring UTC slot.
+        </EmptyState>
       )}
     </>
   );
@@ -206,8 +325,10 @@ function WorkspaceRoots({ state, onChanged }: { state: State; onChanged?: () => 
   return (
     <>
       {state.roots.map((root) => (
-        <p key={root} className="folder">
-          {root}
+        <p key={root} className="folder flex items-center justify-between gap-2">
+          <span className="min-w-0 truncate" title={root}>
+            {root}
+          </span>
           <Button
             variant="ghost"
             size="sm"
@@ -238,7 +359,13 @@ function WorkspaceRoots({ state, onChanged }: { state: State; onChanged?: () => 
           placeholder="/absolute/path/on/this/server"
           aria-label="Workspace root path"
         />
-        <Button type="submit" size="sm" disabled={busy || !path}>
+        <Button
+          type="submit"
+          size="sm"
+          variant="outline"
+          className="self-start"
+          disabled={busy || !path}
+        >
           <Plus size={14} /> Add root
         </Button>
       </form>
@@ -256,24 +383,27 @@ function Administration({ state, onChanged }: { state: State; onChanged?: () => 
     <>
       <div className="project-grid">
         <Card className="card">
-          <ShieldCheck size={20} />
-          <p className="eyebrow">ACCESS & EXECUTION</p>
-          <h2>Single administrator</h2>
+          <h2>
+            <ShieldCheck size={16} aria-hidden="true" /> Access and execution
+          </h2>
           <p className="muted">
-            Session-based access. Eight-hour sessions. Token rotation requires a server restart. Run
-            jobs execute on this host with the operator’s installed engines and agent credentials.
+            One administrator, session-based, eight hours per session. Rotating the token needs a
+            server restart. Runs execute on this host with the engines and agent credentials
+            installed for the operator.
           </p>
-          <div className="scope-note">
-            Only mount trusted project folders. This instance is not a multi-tenant sandbox.
-          </div>
+          <Note>
+            Only mount project folders you trust. This instance is not a multi-tenant sandbox.
+          </Note>
         </Card>
         <Card className="card">
-          <FolderLock size={20} />
-          <p className="eyebrow">ALLOWED PROJECT ROOTS</p>
-          <h2>Server workspace</h2>
+          <h2>
+            <FolderLock size={16} aria-hidden="true" /> Project roots
+          </h2>
+          <p className="muted">Folders on this server that projects may be connected from.</p>
           <WorkspaceRoots state={state} onChanged={onChanged} />
         </Card>
       </div>
+      <CredentialsPanel />
       <RetentionPanel />
       <div className="section-heading mt-6">
         <h2>Administrator activity</h2>
@@ -309,13 +439,16 @@ export function mountWorkspacePanel(
     state,
     campaign,
     inventory,
+    pages,
     runPanel,
     admin,
   }: {
-    section: 'overview' | 'schedules' | 'admin' | 'campaigns' | 'intents' | 'runs';
+    section:
+      'pages' | 'changes' | 'overview' | 'schedules' | 'admin' | 'campaigns' | 'intents' | 'runs';
     state: State;
     campaign: CampaignPanelProps;
     inventory: InventoryPanelProps;
+    pages: PagesPanelProps;
     runPanel: RunPanelProps;
     admin?: { onChanged?: () => Promise<void> };
   },
@@ -324,6 +457,14 @@ export function mountWorkspacePanel(
   if (!root) {
     root = createRoot(element);
     roots.set(element, root);
+  }
+  if (section === 'pages') {
+    root.render(<PagesPanel {...pages} />);
+    return;
+  }
+  if (section === 'changes') {
+    root.render(<ChangesPanel pages={pages.pages} />);
+    return;
   }
   if (section === 'runs') {
     root.render(<RunPanel {...runPanel} />);
@@ -337,8 +478,15 @@ export function mountWorkspacePanel(
     root.render(<CampaignPanel {...campaign} />);
     return;
   }
-  const Component = { overview: Overview, schedules: Schedules, admin: Administration }[section];
-  root.render(<Component state={state} onChanged={admin?.onChanged} />);
+  if (section === 'overview') {
+    root.render(<Overview state={state} />);
+    return;
+  }
+  if (section === 'schedules') {
+    root.render(<Schedules state={state} />);
+    return;
+  }
+  root.render(<Administration state={state} onChanged={admin?.onChanged} />);
 }
 export function unmountWorkspacePanel(element: Element) {
   roots.get(element)?.unmount();

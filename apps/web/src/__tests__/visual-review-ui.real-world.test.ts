@@ -161,7 +161,7 @@ it.each([1, 2] as const)(
       await page.goto(app.origin);
       await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
       await page.getByRole('button', { name: 'Open workbench' }).click();
-      await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+      await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
       await page.locator('#new-project').click();
       await page
         .getByLabel('Project folder', { exact: true })
@@ -176,7 +176,7 @@ it.each([1, 2] as const)(
       }
       await page.getByLabel('I authorize screenshot capture', { exact: false }).check();
       await page.getByRole('button', { name: 'Save project' }).click();
-      await page.getByRole('button', { name: 'Visual test', exact: true }).click();
+      await page.getByRole('button', { name: 'Screenshot test', exact: true }).click();
       await expect
         .poll(() => page.locator('.run-detail').textContent(), { timeout: 30_000 })
         .toContain('viewport checkpoints captured');
@@ -248,7 +248,7 @@ it.each([1, 2] as const)(
           'Review settings and submit stay disabled until the enqueue response completes',
         );
         const pendingSource = await page.locator('[data-review-form]').getAttribute('data-run');
-        await page.getByRole('button', { name: 'Overview', exact: false }).click();
+        await page.getByRole('button', { name: 'Projects', exact: true }).click();
         await page.locator(`[data-open-run="${pendingSource}"]`).click();
         expect(await page.getByLabel('Review model', { exact: true }).isDisabled()).toBe(true);
         expect(await page.getByRole('button', { name: 'Review these pixels' }).isDisabled()).toBe(
@@ -266,7 +266,7 @@ it.each([1, 2] as const)(
         .getByRole('heading', { name: 'AI visual hypotheses', exact: true })
         .waitFor({ timeout: 30_000 });
       expect(requests).toEqual([{ model: 'another/custom-vision:local', authorized: true }]);
-      expect(await page.locator('.visual-review-result').textContent()).toContain('hypothesized');
+      expect(await page.locator('.visual-review-result').textContent()).toContain('Hypothesized');
       expect(await page.getByRole('button', { name: 'Run again', exact: true }).count()).toBe(0);
       expect(await page.locator('.review-image svg rect').getAttribute('width')).toBe('700');
       expect(await page.locator('.review-image svg').getAttribute('viewBox')).toBe(
@@ -297,19 +297,24 @@ it.each([1, 2] as const)(
       });
       expect(otherProjectResponse.ok()).toBe(true);
       await expect
-        .poll(() => page.getByLabel('Filter by project').locator('option').allTextContents(), {
-          timeout: 10_000,
-        })
+        // The scope bar in the sidebar owns which project is in view; the run
+        // list no longer carries a filter of its own.
+        .poll(
+          () => page.getByLabel('Project', { exact: true }).locator('option').allTextContents(),
+          {
+            timeout: 10_000,
+          },
+        )
         .toContain('Separate project without runs');
       await page
-        .getByLabel('Filter by project')
+        .getByLabel('Project', { exact: true })
         .selectOption({ label: 'Separate project without runs' });
       expect(await page.locator('.run-detail').count()).toBe(0);
       await proof(
         '05-project-filter',
         'Selecting another project hides the previously selected run and its review',
       );
-      await page.getByLabel('Filter by project').selectOption('');
+      await page.getByLabel('Project', { exact: true }).selectOption('');
       await page.getByRole('button', { name: 'View source capture', exact: true }).click();
       await page.getByText('Ask AI to review this screenshot', { exact: true }).click();
       await page

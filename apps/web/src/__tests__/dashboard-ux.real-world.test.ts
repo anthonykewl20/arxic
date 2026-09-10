@@ -30,7 +30,7 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
     await page.goto(app.origin);
     await page.getByLabel('Administrator token').fill('dashboard-ux-test-token-32-characters');
     await page.getByRole('button', { name: 'Open workbench' }).click();
-    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+    await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
     const pixels = await sharp(
       await captureMaskedViewport(page, {
         automaticMasks: ['input[type="password"]'],
@@ -59,7 +59,7 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
     expect(new URL(page.url()).searchParams.get('view')).toBe('runs');
     await page.reload();
     await page.getByRole('heading', { name: 'Test runs', exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Administration', exact: true }).click();
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
     await page.goBack();
     await page.getByRole('heading', { name: 'Test runs', exact: true }).waitFor();
     await page.goto(app.origin + '?view=runs&run=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
@@ -75,11 +75,13 @@ it('keeps navigation reachable by URL, refresh, back and keyboard', async () => 
           .getByRole('radio', { name: theme === 'light' ? 'Light theme' : 'Dark theme' })
           .click();
         for (const view of [
-          'overview',
-          'intents',
+          'pages',
+          'changes',
           'runs',
           'campaigns',
           'schedules',
+          'overview',
+          'intents',
           'providers',
           'admin',
         ]) {

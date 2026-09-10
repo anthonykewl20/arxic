@@ -12,6 +12,7 @@ import {
 } from 'playwright';
 import sharp from 'sharp';
 import { comparePixels } from './visual-pixels';
+import { comparePerceptual, describeDifference } from './perceptual-diff';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
 import type {
   Capture,
@@ -22,6 +23,21 @@ import type {
   VisualEnvironment,
 } from './types';
 import { collectMaskedRects, collectVisualScene, assessVisualScene } from './visual-oracle';
+import { applyDeterminism, launchArgs, DECODE_IMAGES_SCRIPT } from './determinism';
+import {
+  cropCapture,
+  deviceBox,
+  componentTargetsScript,
+  OVERLAY_TARGETS_SCRIPT,
+  type IsolatedTarget,
+} from './element-capture';
+import {
+  installFault,
+  SUBMIT_FORMS_SCRIPT,
+  TRANSIENT_REGIONS_SCRIPT,
+  type Fault,
+  type TransientRegion,
+} from './state-induction';
 
 export { digest };
 
@@ -43,6 +59,7 @@ async function openContext(
     allowMutations?: boolean;
     colorScheme?: VisualEnvironment['colorScheme'];
     deviceScaleFactor?: VisualEnvironment['deviceScaleFactor'];
+    fault?: Fault;
   },
 ) {
   const context = await browser.newContext({
@@ -67,8 +84,12 @@ async function openContext(
       await route.abort();
     } else await route.continue();
   });
+  const faults = options.fault
+    ? await installFault(context, project.origin, options.fault)
+    : { answered: 0 };
   await context.routeWebSocket(/.*/, (socket) => socket.close());
-  return { context, counters };
+  await applyDeterminism(context);
+  return { context, counters, faults };
 }
 
 const excludedPath =
@@ -282,6 +303,7 @@ async function captureEnvironment(
     };
   const browser = await { chromium, firefox, webkit }[environment.browser].launch({
     headless: true,
+    args: launchArgs(environment.browser),
     ...(environment.renderer === 'chromium-full-headless' ? { channel: 'chromium' } : {}),
   });
   const captures: Capture[] = [];
@@ -378,12 +400,20 @@ async function captureEnvironment(
     }
     // State checkpoints (refs #402): operator-declared state provocations ride
     // the same matrix with their own navigation target and capture identity.
-    const targets: Array<{ path: string; url: string; stateVariant?: string }> = [
+    const targets: Array<{
+      path: string;
+      url: string;
+      stateVariant?: string;
+      fault?: Fault;
+      submitEmptyForms?: boolean;
+    }> = [
       ...paths.map((path) => ({ path, url: path })),
       ...(project.stateCaptures ?? []).map((capture) => ({
         path: capture.path,
         url: capture.query ? `${capture.path}?${capture.query}` : capture.path,
         stateVariant: capture.state,
+        ...(capture.fault ? { fault: capture.fault as Fault } : {}),
+        ...(capture.submitEmptyForms ? { submitEmptyForms: true } : {}),
       })),
     ];
     // Reserve identity per attempted checkpoint; a failed write must not poison the next page.
@@ -397,11 +427,17 @@ async function captureEnvironment(
         // the environment's already-completed captures (#448).
         let context: Awaited<ReturnType<typeof openContext>>['context'] | undefined;
         let failurePhase: CaptureFailurePhase = 'environment';
+        let transientRegions: TransientRegion[] = [];
         try {
-          const { context: opened, counters } = await openContext(browser, project, viewport, {
+          const {
+            context: opened,
+            counters,
+            faults,
+          } = await openContext(browser, project, viewport, {
             storageState,
             colorScheme: environment.colorScheme,
             deviceScaleFactor: environment.deviceScaleFactor,
+            ...(target.fault ? { fault: target.fault } : {}),
           });
           context = opened;
           let networkErrors = 0;
@@ -431,6 +467,44 @@ async function captureEnvironment(
           failurePhase = 'readiness';
           await page.locator('body').waitFor({ state: 'visible' });
           await page.evaluate(() => document.fonts.ready.then(() => undefined));
+          // `complete` only promises the bytes arrived; a paint can still land
+          // before the decode and capture a blank image.
+          const undecodedImages = (await page.evaluate(DECODE_IMAGES_SCRIPT)) as number;
+          if (undecodedImages)
+            findings.push({ path, kind: 'undecodable-images', count: undecodedImages });
+          // Induction runs after the page is ready and before anything is
+          // measured, so the stability loop below settles whatever it raised.
+          if (target.submitEmptyForms) {
+            const submitted = (await page.evaluate(SUBMIT_FORMS_SCRIPT)) as {
+              forms: number;
+              invalidFields: number;
+            };
+            if (!submitted.forms)
+              findings.push({ path, kind: 'state-induction-no-form', count: 1 });
+            else if (!submitted.invalidFields)
+              findings.push({ path, kind: 'state-induction-no-validation', count: 1 });
+            timeline.push({
+              action: 'submit-empty-forms',
+              checkpoint,
+              result: `${submitted.forms} forms, ${submitted.invalidFields} invalid fields`,
+            });
+          }
+          if (target.fault) {
+            timeline.push({
+              action: 'induce-fault',
+              checkpoint,
+              result: `${target.fault.status} answered ${faults.answered} requests`,
+            });
+            // A checkpoint that answered nothing did not reach the state it
+            // declares, and its capture must not be read as proof it did.
+            if (!faults.answered)
+              findings.push({ path, kind: 'state-induction-no-request', count: 1 });
+          }
+          if (target.fault || target.submitEmptyForms) {
+            transientRegions = (await page.evaluate(TRANSIENT_REGIONS_SCRIPT)) as TransientRegion[];
+            if (!transientRegions.length)
+              findings.push({ path, kind: 'state-induction-no-surface', count: 1 });
+          }
           // Privacy masks are declarations about the captured surface, not
           // optional hints. After a real sign-in, an SPA boots through its
           // session handshake before identity regions mount, so authenticated
@@ -596,7 +670,71 @@ async function captureEnvironment(
             environment,
             status: stable ? 'needs-baseline' : 'unstable',
             ...(storageState ? { authenticated: true } : {}),
+            ...(transientRegions.length ? { transientRegions } : {}),
           });
+          // Isolated regions: each becomes its own capture record, so the
+          // existing comparison, baseline and approval machinery applies to it
+          // unchanged and a component is compared only against itself.
+          failurePhase = 'measurement';
+          const isolated: IsolatedTarget[] = [
+            ...((await page.evaluate(OVERLAY_TARGETS_SCRIPT)) as IsolatedTarget[]),
+            ...(project.componentCaptures?.length
+              ? ((await page.evaluate(
+                  componentTargetsScript(project.componentCaptures),
+                )) as IsolatedTarget[])
+              : []),
+          ];
+          for (const [index, region] of isolated.entries()) {
+            const cropBox = deviceBox(region.box, viewport, environment.deviceScaleFactor ?? 1);
+            if (!cropBox) continue;
+            const regionId = `${id}-region-${index + 1}`;
+            const regionFile = `${regionId}.png`;
+            failurePhase = 'privacy-capture';
+            // A crop of already-masked pixels; no second screenshot is taken,
+            // so the region cannot disclose more than the page capture did.
+            const regionBytes = await cropCapture(bytes, cropBox);
+            failurePhase = 'evidence-write';
+            await writeFile(join(directory, regionFile), regionBytes, { mode: 0o600 });
+            await writeFile(
+              join(directory, `${regionFile}.privacy.json`),
+              JSON.stringify({
+                schemaVersion: 1,
+                screenshotSha256: digest(regionBytes),
+                captureMode: 'isolated-region-cropped-from-masked-viewport',
+                derivedFrom: digest(bytes),
+                region: { key: region.key, kind: region.kind, ...cropBox },
+                pngNormalization: 'cropped-from-normalized-viewport-capture',
+                authenticated: !!storageState,
+                automaticMasks: ['input', 'textarea', '[contenteditable="true"]'],
+                additionalMasks: project.masks,
+                humanInspection: 'required-before-external-sharing',
+                rawTraceRetained: false,
+              }),
+              { mode: 0o600 },
+            );
+            captures.push({
+              id: regionId,
+              path,
+              ...(target.stateVariant ? { stateVariant: target.stateVariant } : {}),
+              viewport: { width: cropBox.width, height: cropBox.height },
+              file: regionFile,
+              sha256: digest(regionBytes),
+              // Region identity joins the page's identity, so a component's
+              // baseline is never compared against another page's crop.
+              specHash: digest(JSON.stringify({ page: specHash, region: region.key })),
+              browserVersion: browser.version(),
+              environment,
+              status: stable ? 'needs-baseline' : 'unstable',
+              ...(storageState ? { authenticated: true } : {}),
+              isolatedRegion: { key: region.key, kind: region.kind },
+            });
+          }
+          if (isolated.length)
+            timeline.push({
+              action: 'capture-isolated-regions',
+              checkpoint,
+              result: `${isolated.length} regions`,
+            });
           timeline.push({
             action: 'capture-input-masked-viewport',
             checkpoint,
@@ -758,6 +896,10 @@ export async function compareCapture(
     throw new Error('Baseline dimensions changed');
   const { width, height } = current.info;
   const { diff, changedPixels } = comparePixels(baseline.data, current.data, width, height);
+  // Structural similarity alongside the pixel count: pixelmatch keeps the
+  // verdict, this says whether the difference is wide and shallow or narrow and
+  // deep. Evidence for the reviewer, never a gate.
+  const perceptual = comparePerceptual(baseline.data, current.data, width, height);
   await writeFile(
     outputPath,
     await sharp(diff, { raw: { width, height, channels: 4 } })
@@ -765,9 +907,13 @@ export async function compareCapture(
       .toBuffer(),
     { mode: 0o600 },
   );
+  const ratio = changedPixels / (width * height);
+  const shape = describeDifference(perceptual, ratio);
   return {
     changedPixels,
-    ratio: changedPixels / (width * height),
+    ratio,
+    ...perceptual,
+    ...(shape ? { differenceShape: shape } : {}),
     diffRegions: changedRegionBoxes(baseline.data, current.data, width, height),
   };
 }

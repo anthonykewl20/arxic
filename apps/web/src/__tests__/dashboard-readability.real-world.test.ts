@@ -138,10 +138,15 @@ it.each(
           },
         },
       ];
+      // `.sr-only` is excluded because this check is about visible text
+      // outgrowing its control. A screen-reader-only label is clipped to one
+      // pixel deliberately — it is how a search form offers an explicit submit
+      // to assistive technology without drawing a second button — and flagging
+      // it would report the accessibility affordance as the accessibility bug.
       for (const [index, button] of (
         await page
           .locator(
-            'button, label, h1, h2, h3, h4, summary, .sidebar-head .brand, .sidebar-bottom .instance',
+            'button:not(.sr-only), label:not(.sr-only), h1, h2, h3, h4, summary, .sidebar-head .brand, .sidebar-bottom .instance',
           )
           .all()
       ).entries()) {
@@ -173,7 +178,7 @@ it.each(
       }
       if (name === '04-desktop-overview' || name === '13-mobile-navigation') {
         const navigation = await measureControlText(
-          page.getByRole('button', { name: 'Administration', exact: true }),
+          page.getByRole('button', { name: 'Settings', exact: true }),
         );
         const lineCount = new Set(navigation.lines.map((line) => line.y)).size;
         checks.push({
@@ -226,7 +231,7 @@ it.each(
       await inspect('01-login');
       await page.getByLabel('Administrator token').fill('readability-test-administrator-token');
       await page.getByRole('button', { name: 'Open workbench' }).click();
-      await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+      await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
       await inspect('02-overview');
       await page.locator('#new-project').click();
       await page.getByRole('dialog').waitFor();
@@ -241,8 +246,8 @@ it.each(
       await page.keyboard.press('Escape');
       await resizeDashboard(page, { width: 1440, height: 1000 });
       await inspect('04-desktop-overview');
-      await page.getByRole('button', { name: 'Models & accounts', exact: true }).click();
-      await page.getByRole('heading', { name: 'Models & accounts', exact: true }).waitFor();
+      await page.getByRole('button', { name: 'AI models', exact: true }).click();
+      await page.getByRole('heading', { name: 'AI models', exact: true }).waitFor();
       await inspect('05-desktop-providers');
       for (const row of await page.locator('.provider-row').all()) {
         const name = (await row.locator('strong').textContent())!;
@@ -264,21 +269,26 @@ it.each(
       await page.getByLabel('I authorize screenshot capture', { exact: false }).check();
       await page.getByRole('button', { name: 'Save project' }).click();
       await page.getByRole('dialog').waitFor({ state: 'hidden' });
-      await page.getByRole('button', { name: 'Overview', exact: false }).click();
+      await page.getByRole('button', { name: 'Projects', exact: true }).click();
       await page
         .getByRole('heading', { name: 'Readable reference frontend', exact: true })
         .waitFor();
       await inspect('08-connected-project');
-      await page.getByRole('button', { name: 'Discover intents', exact: true }).click();
+      await page.getByRole('button', { name: 'Read the code', exact: true }).click();
       await expect
         .poll(() => page.locator('.run-detail').textContent(), { timeout: 30_000 })
         .toContain('source surfaces');
-      await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+      await page.getByRole('button', { name: 'Code scan', exact: true }).click();
       await expect.poll(() => page.locator('#content').textContent()).toContain('POST /login');
       await inspect('09-populated-inventory');
-      await page.getByRole('button', { name: 'Overview', exact: false }).click();
-      await page.getByRole('button', { name: 'Visual test', exact: true }).click();
-      await page.getByRole('button', { name: 'Approve as baseline' }).waitFor({ timeout: 30_000 });
+      await page.getByRole('button', { name: 'Projects', exact: true }).click();
+      await page.getByRole('button', { name: 'Screenshot test', exact: true }).click();
+      // 90s, matching restart.real-world.test.ts for the same wait: a real
+      // visual run reaching completion. Red on CI run 34459888250 (`test (2/4)`,
+      // 88 files on the shard) at the 30s bound while passing locally in ~40s
+      // for the whole case. No assertion changes — the button must still appear,
+      // so a run that never completes, or completes blocked, still fails here.
+      await page.getByRole('button', { name: 'Approve as baseline' }).waitFor({ timeout: 90_000 });
       await page.getByText('Measured checks and coverage', { exact: true }).click();
       await page.getByRole('button', { name: 'Inspect captured elements', exact: true }).waitFor();
       await inspect('10-populated-measurements');
@@ -288,10 +298,10 @@ it.each(
       await inspect('12-mobile-measurements');
       await page.locator('.mobile-nav-toggle').click();
       await inspect('13-mobile-navigation');
-      await page.getByRole('button', { name: 'Administration', exact: true }).click();
+      await page.getByRole('button', { name: 'Settings', exact: true }).click();
       await inspect('14-mobile-administration');
       await page.locator('.mobile-nav-toggle').click();
-      await page.getByRole('button', { name: 'Models & accounts', exact: true }).click();
+      await page.getByRole('button', { name: 'AI models', exact: true }).click();
       await inspect('15-mobile-providers');
       if (profile === 'text-200') {
         const models = page.getByRole('region', { name: 'Provider model catalog' });

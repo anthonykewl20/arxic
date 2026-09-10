@@ -1,7 +1,18 @@
-import { Button } from './components';
-import { Card } from './components';
-import { Badge } from './components';
+import { actions } from './dashboard-actions';
+import {
+  Badge,
+  Button,
+  Card,
+  DataTable,
+  EmptyState,
+  Note,
+  Section,
+  type Column,
+} from './components';
+import { Layers } from 'lucide-react';
 import type { Workbench } from '../workbench';
+
+const sentenceCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
 type CampaignView = ReturnType<Workbench['campaign']>;
 type CampaignSummary = Omit<CampaignView, 'rows'> & { rows?: CampaignView['rows'] };
@@ -43,38 +54,56 @@ export function CampaignPanel({
   const visible = campaigns.filter((campaign) => !projectId || campaign.projectId === projectId);
   return (
     <>
-      <p className="scope-note">
-        Start a campaign from Intent inventory after discovery and guided AI setup. Campaigns track
-        source surfaces; passing selected workflows does not prove all frontend behavior. Latest 100
-        campaigns shown; full records persist.
-      </p>
-      <div className="project-grid">
-        {visible.length ? (
-          visible.map((campaign) => (
+      {/* The heading already says what a journey is; this says only what a
+          passing one does and does not prove. */}
+      <Note>
+        A journey that passes proves that path worked when it ran. It does not prove the rest of
+        your app does. The latest 100 are listed here; every record is kept.
+      </Note>
+      {/* The empty state is not a grid item: inside the card grid it would be
+          boxed into one column and read as a missing card. */}
+      {visible.length ? (
+        <div className="project-grid">
+          {visible.map((campaign) => (
             <Card className="card" key={campaign.id}>
               <h2>{campaign.projectName}</h2>
               <Badge variant="outline" className={`pill ${campaign.state}`}>
-                {campaign.state}
+                {sentenceCase(campaign.state)}
               </Badge>
               <RebindingBadge campaign={campaign} runs={runs} />
               <p>
-                {campaign.counts.verified}/{campaign.counts.selected} selected workflows verified ·{' '}
-                {campaign.counts.pending} pending
+                {campaign.counts.verified} of {campaign.counts.selected} journeys walked
+                successfully · {campaign.counts.pending} still to go
               </p>
               <small>
                 {new Date(campaign.createdAt).toISOString().slice(0, 19).replace('T', ' ')} UTC
               </small>
               <p>
-                <Button variant="outline" className="secondary" data-open-campaign={campaign.id}>
-                  View campaign
+                <Button
+                  variant="outline"
+                  className="secondary"
+                  data-open-campaign={campaign.id}
+                  onClick={() => actions().openCampaign(campaign.id)}
+                >
+                  Open journeys
                 </Button>
               </p>
             </Card>
-          ))
-        ) : (
-          <p>No campaigns yet.</p>
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          icon={Layers}
+          title="No journeys running yet"
+          action={
+            <Button onClick={() => actions().navigate('intents')}>Pick journeys to test</Button>
+          }
+        >
+          Run <strong>Read the code</strong> on a project, then choose the journeys worth walking
+          under <strong>Code scan</strong>. Each one you pick is replayed here by an AI in a real
+          browser.
+        </EmptyState>
+      )}
       {selected?.rows && (
         <CampaignDetail campaign={selected as CampaignView} pages={pages} runs={runs} />
       )}
@@ -99,17 +128,24 @@ function CampaignDetail({
   );
   return (
     <section className="campaign-detail">
-      <div className="section-heading">
-        <h2>{campaign.projectName} / campaign</h2>
-        {counts.pending > 0 && (
-          <Button variant="destructive" className="danger" data-cancel-campaign={campaign.id}>
-            Cancel campaign
-          </Button>
-        )}
-      </div>
+      <Section
+        title={`${campaign.projectName} · journeys`}
+        actions={
+          counts.pending > 0 ? (
+            <Button
+              variant="destructive"
+              className="danger"
+              data-cancel-campaign={campaign.id}
+              onClick={() => actions().cancelCampaign(campaign.id)}
+            >
+              Cancel campaign
+            </Button>
+          ) : undefined
+        }
+      />
       <Card className="card">
         <Badge variant="outline" className={`pill ${campaign.state}`}>
-          {campaign.state}
+          {sentenceCase(campaign.state)}
         </Badge>
         <RebindingBadge campaign={campaign} runs={runs} />
         <p className="campaign-counts">
@@ -142,60 +178,7 @@ function CampaignDetail({
           Complete campaign JSON
         </a>
       </Card>
-      <ul className="campaign-rows">
-        {rows.slice(page * pageSize, (page + 1) * pageSize).map((row) => {
-          const run = campaign.workflows.find((item) => item.id === row.runId);
-          return (
-            <li key={row.key}>
-              <div>
-                <strong>
-                  {row.method} {row.path}
-                </strong>
-                <small>
-                  {run
-                    ? `${run.state} · ${run.outcome ?? 'awaiting execution'}${
-                        run.history
-                          ? ` · ${run.history.verified} verified of ${run.history.executions} executions on this surface`
-                          : ''
-                      }`
-                    : row.inventoryRowId
-                      ? 'unselected'
-                      : row.disposition}
-                </small>
-                {(() => {
-                  // Per-variant outcome attribution; optional fields narrowed
-                  // into locals before JSX (TS2322 lesson, #482/#489).
-                  const runIds = row.runIds;
-                  if (!runIds?.length) return null;
-                  const variants = campaign.variants;
-                  return runIds.map((id) => {
-                    const workflow = campaign.workflows.find((item) => item.id === id);
-                    const key = workflow?.variantKey ?? '';
-                    const label = variants?.find((item) => item.key === key)?.label ?? key;
-                    const state = workflow?.state ?? 'blocked';
-                    const outcome = workflow?.outcome;
-                    return (
-                      <small
-                        key={id}
-                        className="variant-outcome"
-                        data-variant-outcome={`${key}:${state}`}
-                      >
-                        {label}: {state} · {outcome ?? 'awaiting execution'}
-                      </small>
-                    );
-                  });
-                })()}
-                {row.reason && <small>{row.reason}</small>}
-              </div>
-              {run && (
-                <Button variant="outline" className="secondary" data-open-run={run.id}>
-                  Workflow result
-                </Button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <SurfaceRows campaign={campaign} rows={rows.slice(page * pageSize, (page + 1) * pageSize)} />
       <div className="toolbar">
         <Button
           variant="outline"
@@ -203,6 +186,7 @@ function CampaignDetail({
           data-campaign-page={campaign.id}
           data-direction="-1"
           disabled={page === 0}
+          onClick={() => actions().pageCampaign(campaign.id, -1)}
         >
           Previous surfaces
         </Button>
@@ -216,10 +200,122 @@ function CampaignDetail({
           data-campaign-page={campaign.id}
           data-direction="1"
           disabled={(page + 1) * pageSize >= rows.length}
+          onClick={() => actions().pageCampaign(campaign.id, 1)}
         >
           Next surfaces
         </Button>
       </div>
     </section>
+  );
+}
+
+/**
+ * One row per source surface the campaign selected.
+ *
+ * Deliberately carries no `.pill` badge: the campaign detail's single state
+ * badge is how journeys identify the campaign's own state, and a badge per row
+ * would make that selector ambiguous. Row state is stated in words instead,
+ * which reads better in a table anyway.
+ */
+function SurfaceRows({ campaign, rows }: { campaign: CampaignView; rows: CampaignView['rows'] }) {
+  type Row = CampaignView['rows'][number];
+  const runFor = (row: Row) => campaign.workflows.find((item) => item.id === row.runId);
+  const columns: ReadonlyArray<Column<Row>> = [
+    {
+      key: 'surface',
+      header: 'Surface',
+      width: '26%',
+      cell: (row) => (
+        <code className="text-[12px] text-[var(--foreground)]">
+          {row.method} {row.path}
+        </code>
+      ),
+    },
+    {
+      key: 'outcome',
+      header: 'Outcome',
+      width: '32%',
+      cell: (row) => {
+        const run = runFor(row);
+        return (
+          <span className="flex flex-col gap-0.5">
+            <span>
+              {run
+                ? `${run.state} · ${run.outcome ?? 'awaiting execution'}${
+                    run.history
+                      ? ` · ${run.history.verified} verified of ${run.history.executions} executions on this surface`
+                      : ''
+                  }`
+                : row.inventoryRowId
+                  ? 'unselected'
+                  : row.disposition}
+            </span>
+            {row.reason && (
+              <small className="text-[11px] text-[var(--foreground-muted)]">{row.reason}</small>
+            )}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'variants',
+      header: 'Variants',
+      cell: (row) => {
+        // Optional fields narrowed into locals before JSX (TS2322, #482/#489).
+        const runIds = row.runIds;
+        if (!runIds?.length) return null;
+        const variants = campaign.variants;
+        return (
+          <span className="flex flex-col gap-0.5">
+            {runIds.map((id) => {
+              const workflow = campaign.workflows.find((item) => item.id === id);
+              const key = workflow?.variantKey ?? '';
+              const label = variants?.find((item) => item.key === key)?.label ?? key;
+              const state = workflow?.state ?? 'blocked';
+              return (
+                <small
+                  key={id}
+                  className="variant-outcome text-[11px]"
+                  data-variant-outcome={`${key}:${state}`}
+                >
+                  {label}: {state} · {workflow?.outcome ?? 'awaiting execution'}
+                </small>
+              );
+            })}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      bare: true,
+      cell: (row) => {
+        const run = runFor(row);
+        if (!run) return null;
+        return (
+          <span className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              className="secondary"
+              data-open-run={run.id}
+              onClick={() => actions().openRun(run.id)}
+            >
+              Workflow result
+            </Button>
+          </span>
+        );
+      },
+    },
+  ];
+  return (
+    <DataTable
+      className="campaign-rows"
+      caption={`Source surfaces in the ${campaign.projectName} campaign`}
+      columns={columns}
+      rows={rows}
+      rowKey={(row) => row.key}
+    />
   );
 }

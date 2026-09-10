@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { actions } from './dashboard-actions';
 import { captureFailureMessage } from './capture-failure';
 import { CaptureGallery } from './capture-gallery';
 import { DiffViewer } from './diff-viewer';
+import { ActionTimeline } from './action-timeline';
 import { WorkflowCheckpoints } from './workflow-checkpoints';
 import { AssessmentPanel } from './assessment-panel';
 import type { RunHistoryPage } from '../run-history';
-import { Button, Input } from './components';
+import { Button, EmptyState, Input } from './components';
 import { RunTable, Status } from './run-table';
+import { runModeWords } from '../plain-words';
 import { ReviewForm, reviewDraftKey, type ReviewRequest } from './review-form';
 import { time } from './display';
 import type { RefreshModels } from './model-controls';
@@ -27,6 +30,25 @@ export type RunPanelProps = {
   onRefresh: RefreshModels;
   onReview: (request: ReviewRequest) => Promise<void>;
 };
+/**
+ * The shape of a pixel difference, said as a reviewer would want to hear it.
+ * A count of changed pixels alone cannot tell these apart.
+ */
+const differenceShapeLabels: Record<string, string> = {
+  uniform: 'Spread thinly across the page — a tint or token change, not a structural one',
+  localised: 'Concentrated in a small area — something specific changed',
+  substantial: 'Widespread and structural — much of the page is different',
+};
+/**
+ * What each classification means for the person deciding whether this is a
+ * defect. The wording is the conclusion, not the category name.
+ */
+const classificationLabels: Record<string, string> = {
+  'layout-shift': 'Layout moved: elements changed position or size',
+  'content-change': 'Content changed: elements appeared or disappeared',
+  'visual-change': 'Appearance only: every element kept its position and size',
+  unclassified: 'Unattributed: no measured element sits under the change',
+};
 export function RunPanel(props: RunPanelProps) {
   const { state, selectedId, projectId } = props;
   const history = props.history;
@@ -36,23 +58,13 @@ export function RunPanel(props: RunPanelProps) {
   );
   return (
     <>
+      {chosen && !props.loading && !props.error && (
+        <RunDetail {...props} key={chosen.id} run={chosen} />
+      )}
+      {/* No project select here: the sidebar's scope bar owns which project you
+          are looking at, and the run query already reads it. A second control
+          for the same thing was the confusion this screen was meant to lose. */}
       <div className="toolbar">
-        <select
-          id="project-filter"
-          aria-label="Filter by project"
-          value={projectId}
-          onChange={(event) => {
-            event.stopPropagation();
-            props.onFilter?.('project', event.currentTarget.value);
-          }}
-        >
-          <option value="">All projects</option>
-          {state.projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
         <form id="run-search" key={props.search} className="search-form">
           <Input
             aria-label="Search runs"
@@ -75,10 +87,12 @@ export function RunPanel(props: RunPanelProps) {
           }}
         >
           <option value="">All types</option>
-          <option value="discovery">Discovery</option>
-          <option value="visual">Visual</option>
-          <option value="agent">AI E2E</option>
-          <option value="review">AI visual review</option>
+          {/* The same names the buttons that start these runs carry. */}
+          {(['discovery', 'visual', 'agent', 'review'] as const).map((mode) => (
+            <option key={mode} value={mode}>
+              {runModeWords(mode).label}
+            </option>
+          ))}
         </select>
         <select
           id="run-status"
@@ -90,14 +104,28 @@ export function RunPanel(props: RunPanelProps) {
           }}
         >
           <option value="">All statuses</option>
-          {['queued', 'running', 'completed', 'blocked', 'cancelled'].map((value) => (
+          {/* The filter's VALUES stay the engine's states — they go to the
+              server — but nobody has to read them to use it. */}
+          {(
+            [
+              ['queued', 'Waiting to start'],
+              ['running', 'Running now'],
+              ['completed', 'Finished'],
+              ['blocked', 'Could not run'],
+              ['cancelled', 'Stopped'],
+            ] as const
+          ).map(([value, label]) => (
             <option key={value} value={value}>
-              {value}
+              {label}
             </option>
           ))}
         </select>
         {filtered && (
-          <Button variant="ghost" data-clear-run-filters>
+          <Button
+            variant="ghost"
+            data-clear-run-filters
+            onClick={() => actions().clearRunFilters()}
+          >
             Clear run filters
           </Button>
         )}
@@ -107,15 +135,18 @@ export function RunPanel(props: RunPanelProps) {
       ) : props.error ? (
         <div>
           <p role="alert">{props.error}</p>
-          <Button variant="outline" data-retry-run-history>
+          <Button
+            variant="outline"
+            data-retry-run-history
+            onClick={() => actions().retryRunHistory()}
+          >
             Retry run history
           </Button>
         </div>
       ) : history?.total === 0 && filtered ? (
-        <div className="empty" role="status">
-          <h2>No matching runs</h2>
-          <p>Try a project name, part of a run ID, or clear the filters.</p>
-        </div>
+        <EmptyState title="No matching runs" role="status">
+          Try a project name, part of a run ID, or clear the filters.
+        </EmptyState>
       ) : (
         <RunTable
           runs={
@@ -131,20 +162,23 @@ export function RunPanel(props: RunPanelProps) {
               : '0'}{' '}
             runs · All stored history
           </small>
-          <Button variant="outline" data-run-page="-1" disabled={!history.offset}>
+          <Button
+            variant="outline"
+            data-run-page="-1"
+            disabled={!history.offset}
+            onClick={() => actions().pageRuns(-1)}
+          >
             Previous runs
           </Button>
           <Button
             variant="outline"
             data-run-page="1"
             disabled={history.offset + history.limit >= history.total}
+            onClick={() => actions().pageRuns(1)}
           >
             Next runs
           </Button>
         </div>
-      )}
-      {chosen && !props.loading && !props.error && (
-        <RunDetail {...props} key={chosen.id} run={chosen} />
       )}
     </>
   );
@@ -223,7 +257,12 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
           <small>{run.id}</small>
         </div>
         {['running', 'queued'].includes(run.state) ? (
-          <Button variant="destructive" className="danger" data-cancel={run.id}>
+          <Button
+            variant="destructive"
+            className="danger"
+            data-cancel={run.id}
+            onClick={() => actions().cancelRun(run.id)}
+          >
             Cancel run
           </Button>
         ) : run.visualReview ? (
@@ -231,6 +270,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             variant="outline"
             className="secondary"
             data-open-run={run.visualReview.sourceRunId}
+            onClick={() => actions().openRun(run.visualReview!.sourceRunId)}
           >
             View source capture
           </Button>
@@ -239,8 +279,9 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             variant="outline"
             className="secondary"
             data-open-campaign={run.workflowScope.campaignId}
+            onClick={() => actions().openCampaign(run.workflowScope!.campaignId)}
           >
-            View campaign
+            Open journeys
           </Button>
         ) : (
           <Button
@@ -248,6 +289,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             className="secondary"
             data-start={run.mode}
             data-project={run.projectId}
+            onClick={() => actions().startRun(run.projectId, run.mode)}
           >
             Run again
           </Button>
@@ -263,7 +305,11 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             <div className="section-heading">
               <h3>Findings and capture diagnostics</h3>
               {canEditCapture && (
-                <Button variant="outline" data-edit={run.projectId}>
+                <Button
+                  variant="outline"
+                  data-edit={run.projectId}
+                  onClick={() => actions().editProject(run.projectId)}
+                >
                   Edit capture settings
                 </Button>
               )}
@@ -365,6 +411,20 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                       {capture.viewport.width} × {capture.viewport.height}
                     </span>
                   </h3>
+                  {/*
+                    An isolated region is a crop of the page capture above it,
+                    not another page. Without saying so it reads as a second
+                    screenshot of the same path at a strange size.
+                  */}
+                  {capture.isolatedRegion && (
+                    <p data-isolated-region={capture.isolatedRegion.key}>
+                      {capture.isolatedRegion.kind === 'overlay' ? 'Overlay' : 'Component'} isolated
+                      from this page ·{' '}
+                      <code>
+                        {capture.isolatedRegion.key.replace(/^(component|overlay):/u, '')}
+                      </code>
+                    </p>
+                  )}
                   <p>
                     {capture.environment?.browser ?? 'chromium'} ·{' '}
                     {capture.environment?.colorScheme ?? 'light'} ·{' '}
@@ -385,6 +445,25 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                       </>
                     )}
                   </small>
+                  {capture.differenceShape && (
+                    <small data-difference-shape={capture.differenceShape}>
+                      {differenceShapeLabels[capture.differenceShape]}
+                      {capture.ssim !== undefined && ` · structural similarity ${capture.ssim}`}
+                    </small>
+                  )}
+                  {capture.classification && (
+                    <small data-classification={capture.classification.summary}>
+                      {classificationLabels[capture.classification.summary]}
+                      {capture.classification.layoutShifts > 0 &&
+                        ` · ${capture.classification.layoutShifts} elements moved or resized`}
+                      {capture.classification.addedElements > 0 &&
+                        ` · ${capture.classification.addedElements} appeared`}
+                      {capture.classification.removedElements > 0 &&
+                        ` · ${capture.classification.removedElements} disappeared`}
+                      {capture.classification.truncated &&
+                        ' · scene truncated, so absent elements are not proof of removal'}
+                    </small>
+                  )}
                 </div>
                 {approved ? (
                   <Status value="current approved baseline" />
@@ -396,6 +475,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                       className="secondary"
                       data-approve={capture.id}
                       data-run={run.id}
+                      onClick={() => actions().approveBaseline(run.id, capture.id)}
                     >
                       Approve as baseline
                     </Button>
@@ -435,28 +515,31 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
       <VisualReviewPanel run={run} />
       {run.workflowScope ? (
         <p className="scope-note">
-          Kept as campaign evidence. Start another selected campaign from Intent inventory to test
-          again.
+          Kept as journey evidence. Pick more journeys under Code scan to test again.
         </p>
       ) : (
         !['queued', 'running'].includes(run.state) && (
           <p className="section-heading">
-            <Button variant="destructive" className="danger" data-delete-run={run.id}>
+            <Button
+              variant="destructive"
+              className="danger"
+              data-delete-run={run.id}
+              onClick={() => actions().deleteRun(run.id)}
+            >
               Delete run and artifacts
             </Button>
           </p>
         )
       )}
       {!!result?.captures?.length && (
-        <div className="scope-note">
-          Inputs are masked. Review all remaining pixels before sharing. Baseline approval records
-          your visual decision; it does not assign a verified business outcome. Captures cover
-          configured viewports and paths only.{' '}
-          <a href={`/api/runs/${run.id}/artifacts/timeline.json`}>Action timeline</a> ·{' '}
-          <a href={`/api/runs/${run.id}/artifacts/timeline.sanitization.json`}>
-            Sanitization provenance
-          </a>
-        </div>
+        <>
+          <ActionTimeline runId={run.id} captures={result?.captures ?? []} showPaths />
+          <div className="scope-note">
+            Inputs are masked. Review all remaining pixels before sharing. Baseline approval records
+            your visual decision; it does not assign a verified business outcome. Captures cover
+            configured viewports and paths only.
+          </div>
+        </>
       )}
     </section>
   );
@@ -470,7 +553,12 @@ function VisualReviewPanel({ run }: { run: Run }) {
     <section className="panel visual-review-result">
       <h3>AI visual hypotheses</h3>
       <p>{review.coverage}</p>
-      <Button variant="ghost" className="text-button" data-open-run={review.sourceRunId}>
+      <Button
+        variant="ghost"
+        className="text-button"
+        data-open-run={review.sourceRunId}
+        onClick={() => actions().openRun(review.sourceRunId)}
+      >
         View source capture and reproduction →
       </Button>
       <p>

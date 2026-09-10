@@ -93,7 +93,7 @@ async function login(page: Page, origin: string, token: string) {
   await page.goto(origin);
   await page.getByLabel('Administrator token').fill(token);
   await page.getByRole('button', { name: 'Open workbench' }).click();
-  await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+  await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
 }
 
 it('surfaces the rebinding state on the campaign panel and clears it when the rebind lands', async () => {
@@ -193,7 +193,7 @@ it('surfaces the rebinding state on the campaign panel and clears it when the re
   );
   expect(await page.locator('[data-rebinding="true"]').count()).toBe(0);
   expect(await detail.textContent()).toContain(`Source commit: ${newCommit}`);
-  expect(await page.locator('.campaign-detail .pill').textContent()).not.toBe('rebinding');
+  expect(await page.locator('.campaign-detail .pill').textContent()).not.toBe('Rebinding');
 
   // The rebind outcome is surfaced on the detail card: one survivor, zero dropped.
   const reboundLine = page.locator('.campaign-detail [data-rebound]');
@@ -256,7 +256,7 @@ it('presents an exhausted rebind as the stopped campaign it is, not a stuck rebi
 
   // No rebinding badge: the rebind is over and the campaign shows stopped.
   expect(await page.locator('[data-rebinding="true"]').count()).toBe(0);
-  await expect.poll(() => page.locator('.campaign-detail .pill').textContent()).toBe('blocked');
+  await expect.poll(() => page.locator('.campaign-detail .pill').textContent()).toBe('Blocked');
   expect(await detail.textContent()).not.toContain('Rebinding');
   expect(errors).toEqual([]);
 }, 300_000);

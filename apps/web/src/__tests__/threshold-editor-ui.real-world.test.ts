@@ -27,8 +27,12 @@ it('edits the per-project visual change ratio through the real project settings 
     await page.goto(app.origin);
     await page.getByLabel('Administrator token').fill('threshold-editor-administrator-token');
     await page.getByRole('button', { name: 'Open workbench' }).click();
-    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
-    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
+    // Projects is where a project's own controls live; Pages is the home view.
+    await page.goto(`${app.origin}?view=overview`);
+    // The project's name opens its settings; the row carries no separate
+    // Settings button.
+    await page.getByRole('button', { name: 'Threshold editor', exact: true }).click();
     const ratio = page.getByLabel('Visual change ratio');
     expect(await ratio.inputValue()).toBe('0');
     await ratio.fill('0.005');
@@ -37,7 +41,7 @@ it('edits the per-project visual change ratio through the real project settings 
       .poll(() => page.locator('#notice').textContent())
       .toContain('Project settings saved.');
     // The persisted value round-trips through the real PUT and back into the dialog.
-    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Threshold editor', exact: true }).click();
     expect(await page.getByLabel('Visual change ratio').inputValue()).toBe('0.005');
     // Sad path: an out-of-range ratio is rejected without replacing the stored value.
     await page.getByLabel('Visual change ratio').fill('7');
@@ -46,7 +50,7 @@ it('edits the per-project visual change ratio through the real project settings 
       .poll(() => page.locator('#project-error').textContent())
       .toContain('visualChangeRatio must be a number from 0 to 0.5');
     await page.locator('#close-dialog').click();
-    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await page.getByRole('button', { name: 'Threshold editor', exact: true }).click();
     expect(await page.getByLabel('Visual change ratio').inputValue()).toBe('0.005');
     expect(errors.hard()).toEqual([]);
   } finally {

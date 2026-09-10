@@ -32,7 +32,7 @@ it('collects native and declared kinds from real dashboard controls without reta
     await page.goto(app.origin);
     await page.getByLabel('Administrator token').fill(token);
     await page.getByRole('button', { name: 'Open workbench' }).click();
-    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+    await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
     const radio = await page
       .getByRole('radio', { name: 'Follow system theme' })
       .evaluate((element) => {
@@ -57,13 +57,7 @@ it('collects native and declared kinds from real dashboard controls without reta
     expect(kindsAt(radio)).toContain(3);
     expect(kindsAt(button)).toContain(1);
     expect(scene.nodes.length).toBeGreaterThan(50);
-    for (const forbidden of [
-      token,
-      'Follow system theme',
-      'Workspace overview',
-      'aria-label',
-      'radiogroup',
-    ])
+    for (const forbidden of [token, 'Follow system theme', 'Pages', 'aria-label', 'radiogroup'])
       expect(JSON.stringify(scene)).not.toContain(forbidden);
     const audit = await proof.audit(
       '01-native-and-declared-kinds',

@@ -48,7 +48,7 @@ it('shows a real low-contrast finding with its ratio, threshold and captured reg
       .getByLabel('Administrator token')
       .fill('contrast-inspector-test-token-32-characters');
     await page.getByRole('button', { name: 'Open workbench' }).click();
-    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+    await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
     // Setup uses the public authenticated API; the existing full journeys cover GUI onboarding.
     const saved = await page.request.post(`${workbenchOrigin}/api/projects`, {
       headers: { origin: app.origin },

@@ -21,11 +21,32 @@ export type VisualLogin = {
   emailPlaceholder?: string;
   passwordPlaceholder?: string;
 };
+/**
+ * Which copy of the site a project points at.
+ *
+ * Not decoration: a run opens pages in a real browser and, with state
+ * checkpoints or an AI walkthrough, submits real forms. Knowing that the
+ * target is production is what lets the dashboard say so before that happens,
+ * and lets a person tell two otherwise identical projects apart at a glance.
+ */
+export type ProjectEnvironment = 'development' | 'staging' | 'production';
 export type Project = {
   id: string;
   name: string;
   folder: string;
   origin: string;
+  /**
+   * Absent on projects connected before this field existed; read it through
+   * `projectEnvironment`, which treats "nobody has said" as development — the
+   * copy of a site where a mistake is cheapest.
+   */
+  environment?: ProjectEnvironment;
+  /**
+   * `https://github.com/owner/repo`, detected from the folder's origin remote
+   * when it has a GitHub one. Absent otherwise, and a page then names its
+   * source files without linking them rather than guessing a URL.
+   */
+  repositoryUrl?: string;
   paths: string[];
   browsers?: VisualEnvironment['browser'][];
   colorSchemes?: VisualEnvironment['colorScheme'][];
@@ -52,7 +73,25 @@ export type Project = {
    * loading/error/empty/authenticated state is provoked (query parameters),
    * captured as first-class checkpoints with independent baselines.
    */
-  stateCaptures?: Array<{ path: string; state: string; query?: string }>;
+  stateCaptures?: Array<{
+    path: string;
+    state: string;
+    query?: string;
+    /**
+     * Answer the page's own data requests with this status instead of letting
+     * them through, so error banners and boundary fallbacks render. Document
+     * navigation is untouched.
+     */
+    fault?: { status: number; path?: string };
+    /** Submit the page's forms with empty fields to provoke inline validation. */
+    submitEmptyForms?: boolean;
+  }>;
+  /**
+   * CSS selectors captured in isolation alongside each page, so a component is
+   * compared against its own baseline and a sibling's height change does not
+   * report it as altered.
+   */
+  componentCaptures?: string[];
   configPath: string;
   execution?: import('./execution').ExecutionSettings;
   cron: string;
@@ -73,16 +112,46 @@ export type Capture = {
   status: 'needs-baseline' | 'unchanged' | 'changed' | 'unstable';
   changedPixels?: number;
   ratio?: number;
+  /**
+   * Structural similarity against the baseline: 1 is identical. `minSsim` is
+   * the least similar window and `degradedWindows` the fraction scoring below
+   * 0.9, which together separate a page-wide tint from one changed component.
+   * Evidence only — the changed-pixel ratio still decides the status.
+   */
+  ssim?: number;
+  minSsim?: number;
+  degradedWindows?: number;
+  /** How the difference is shaped: wide and shallow, narrow and deep, or both. */
+  differenceShape?: import('./perceptual-diff').DifferenceShape;
   baselineRunId?: string;
   baselineFile?: string;
   diffFile?: string;
   diffRegions?: Array<{ x: number; y: number; width: number; height: number }>;
   /** Deterministic fusion of the diff regions with measured scene elements and check verdicts. */
   diffExplanation?: import('./diff-explanation').DiffExplanation;
+  /**
+   * Whether each changed region is a layout shift, new content or paint only,
+   * derived from the baseline's and this capture's own measured scenes.
+   */
+  classification?: import('./structural-diff').CaptureClassification;
   videoFile?: string;
   authenticated?: boolean;
   /** Which declared state this checkpoint captures (e.g. 'error'); absent = the plain path. */
   stateVariant?: string;
+  /**
+   * Alerts, live regions and dialogs visible when an induced checkpoint was
+   * captured. Geometry only — the text belongs to the target application.
+   * Absent on a checkpoint that induced nothing.
+   */
+  transientRegions?: Array<{
+    role: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }>;
+  /** Set on a capture cropped out of its page: which region, and why it was isolated. */
+  isolatedRegion?: { key: string; kind: 'component' | 'overlay' };
   assessmentFile?: string;
   assessmentSha256?: string;
 };

@@ -84,7 +84,7 @@ it('shows the cross-campaign execution ledger on inventory rows in the real dash
   await page.goto(app.origin);
   await page.getByLabel('Administrator token').fill('inventory-ledger-test-administrator-token');
   await page.getByRole('button', { name: 'Open workbench' }).click();
-  await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+  await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
   await page.goto(`${app.origin}?view=intents`);
   const surfaceTable = page.locator('.surface-inventory');
   await surfaceTable.waitFor();
@@ -99,6 +99,6 @@ it('shows the cross-campaign execution ledger on inventory rows in the real dash
   // A discovery row no campaign ever selected says so explicitly.
   await expect
     .poll(() => page.locator(`[data-row-ledger="${unselectedKey}"]`).textContent())
-    .toContain('Not selected for a campaign yet');
+    .toContain('Not chosen for a workflow run yet');
   expect(errors).toEqual([]);
 }, 240_000);

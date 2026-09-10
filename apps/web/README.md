@@ -105,7 +105,7 @@ or unavailable images disable inspection with recovery guidance. See the
 [element inspection guide](../../docs/web-workbench.md#inspect-captured-elements);
 capture-local numeric IDs do not establish semantic locators or full state coverage.
 
-Administration includes opt-in evidence retention with whole-history previews,
+Settings includes opt-in evidence retention with whole-history previews,
 explicit deletion consent, bounded idle cleanup and persisted recovery outcomes.
 Manual, automatic and restart deletion share reference protections. Policy/actions
 live in `retention.ts`; `retention-store.ts` supplies shared SQLite projections.
@@ -166,4 +166,4 @@ Capture filenames reserve one ordinal per attempted checkpoint. After an evidenc
 
 Literal HTML/HTM and EJS control discovery includes source lines and hashes, with explicit gaps for unevaluated template code. Repeated same-line declarations receive distinct identities so fresh scan results filter correctly. [Template discovery proof](../../docs/evidence/WEB-460-TEMPLATES/summary.md) records actual reference-page and dashboard checks. Historical inventories are immutable and render every persisted declaration without rediscovery; rows whose earlier identities duplicate are keyed by immutable inventory position, leaving saved evidence unchanged ([navigation proof](../../docs/evidence/WEB-462-NAVIGATION/summary.md)).
 
-The intent inventory includes a matching-declaration link for each discovered project. Activate it by pointer or keyboard to focus the declaration heading without scrolling past the route table. Zero matches lead to the explicit empty result; source revision hashes wrap at narrow widths. Navigation acceptance includes 1440- and 320-pixel views.
+Coverage includes a matching-declaration link for each discovered project. Activate it by pointer or keyboard to focus the declaration heading without scrolling past the route table. Zero matches lead to the explicit empty result; source revision hashes wrap at narrow widths. Navigation acceptance includes 1440- and 320-pixel views.

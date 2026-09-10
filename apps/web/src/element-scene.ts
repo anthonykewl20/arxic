@@ -1,6 +1,6 @@
 import type { Capture } from './types';
 import type { VisualScene } from './visual-oracle';
-import { validElementKind } from './element-kinds';
+import { validElementKind, type ElementKind } from './element-kinds';
 export type ElementScene = Pick<
   VisualScene,
   'viewport' | 'nodes' | 'truncated' | 'kindSchemaVersion'
@@ -92,4 +92,29 @@ export function elementsAtPoint(scene: ElementScene, x: number, y: number): Elem
   return scene.nodes
     .filter((n) => x >= n.x && x < n.x + n.width && y >= n.y && y < n.y + n.height)
     .sort((a, b) => a.width * a.height - b.width * b.height || b.id - a.id);
+}
+
+/**
+ * What is on a page, counted.
+ *
+ * The scene deliberately carries no text — no labels, no URLs, no values —
+ * because a screenshot pipeline that retained them would be exfiltrating the
+ * target application's content. So the honest answer to "what does this page
+ * have" is a census of element kinds: three form fields and a button, not
+ * "Email, Password, Sign in".
+ *
+ * Ordered by how a person reads a page's structure rather than by count, so
+ * the same page always describes itself in the same order.
+ */
+const censusOrder: ElementKind[] = [5, 3, 1, 2, 4, 9, 6, 8, 7];
+
+export function describeScene(scene: ElementScene): Array<{ kind: ElementKind; count: number }> {
+  const counts = new Map<ElementKind, number>();
+  for (const node of scene.nodes) {
+    if (node.kind === undefined || node.kind === 0) continue;
+    counts.set(node.kind, (counts.get(node.kind) ?? 0) + 1);
+  }
+  return censusOrder
+    .filter((kind) => counts.has(kind))
+    .map((kind) => ({ kind, count: counts.get(kind)! }));
 }

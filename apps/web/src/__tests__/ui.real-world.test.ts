@@ -1,4 +1,5 @@
 import { inspectCapturedElements } from './element-inspector-proof';
+import { openInventoryTab } from './inventory-tabs';
 import { inspectLegacyElementKinds } from './element-kind-legacy-proof';
 import sharp from 'sharp';
 import { captureMaskedViewport } from '@arxic/playwright-screenshot-privacy';
@@ -109,7 +110,7 @@ it.each(['light', 'dark'] as const)(
         .toBe('Invalid administrator token');
       await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
       await page.getByRole('button', { name: 'Open workbench' }).click();
-      await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+      await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
       expect(await page.getByLabel('Administrator token').inputValue()).toBe('');
       const initialResponse = page.waitForResponse(
         (response) => response.url().endsWith('/api/state') && response.status() === 401,
@@ -187,11 +188,12 @@ it.each(['light', 'dark'] as const)(
         '02-project-overview',
         'Outside-root folder refused; reference project saved with visual and schedule settings',
       );
-      await page.getByRole('button', { name: 'Discover intents', exact: true }).click();
+      await page.getByRole('button', { name: 'Read the code', exact: true }).click();
       await expect
         .poll(() => page.locator('.run-detail').textContent(), { timeout: 30_000 })
         .toContain('source surfaces');
-      await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+      await page.getByRole('button', { name: 'Code scan', exact: true }).click();
+      await openInventoryTab(page, 'declarations');
       await expect.poll(() => page.locator('#content').textContent()).toContain('POST /login');
       await page.getByRole('heading', { name: 'Frontend declarations' }).waitFor({ timeout: 5000 });
       await page.getByLabel('Declaration kind').selectOption('requirement');
@@ -211,8 +213,8 @@ it.each(['light', 'dark'] as const)(
         '09-frontend-declarations',
         'Real documentation declarations have source hashes; unsupported EJS stays in coverage gaps',
       );
-      await page.getByRole('button', { name: 'Overview', exact: false }).click();
-      await page.getByRole('button', { name: 'Visual test', exact: true }).click();
+      await page.getByRole('button', { name: 'Projects', exact: true }).click();
+      await page.getByRole('button', { name: 'Screenshot test', exact: true }).click();
       await page.getByRole('button', { name: 'Approve as baseline' }).waitFor({ timeout: 30_000 });
       await page.route('**/*.assessment.json', (route) =>
         route.fulfill({ status: 503, body: 'Unavailable' }),
@@ -404,7 +406,7 @@ it.each(['light', 'dark'] as const)(
       await page.getByRole('button', { name: 'Run again', exact: true }).click();
       await expect
         .poll(() => page.locator('.capture').textContent(), { timeout: 30_000 })
-        .toContain('unchanged');
+        .toContain('Unchanged');
       await page.locator('.run-detail').scrollIntoViewIfNeeded();
       await capture(
         '04-visual-comparison',
@@ -450,7 +452,7 @@ it.each(['light', 'dark'] as const)(
       );
       await page.getByLabel('Pause scheduled runs').uncheck();
       await page.getByRole('button', { name: 'Save project' }).click();
-      await expect.poll(() => page.locator('#content').textContent()).toContain('active');
+      await expect.poll(() => page.locator('#content').textContent()).toContain('Active');
       await page.getByRole('button', { name: 'Configure', exact: true }).click();
       expect(await page.getByLabel('Model provider', { exact: true }).inputValue()).toBe(
         'local-agent',
@@ -475,17 +477,17 @@ it.each(['light', 'dark'] as const)(
       await resizeDashboard(page, { width: 1440, height: 1000 });
       await expect.poll(() => page.locator('#content').textContent()).toContain('09:00:00 UTC');
       await capture('05-schedule', 'Administrator enabled the persisted UTC cron schedule');
-      await page.getByRole('button', { name: 'Administration', exact: true }).click();
+      await page.getByRole('button', { name: 'Settings', exact: true }).click();
       await expect
         .poll(() => page.locator('#content').textContent())
         .toContain('baseline.approved');
       await capture(
         '06-administration',
-        'Administration exposes root allow-list and immutable baseline approval audit event',
+        'Settings exposes root allow-list and immutable baseline approval audit event',
       );
       await resizeDashboard(page, { width: 390, height: 844 });
       await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
-      await page.getByRole('button', { name: 'Overview', exact: false }).focus();
+      await page.getByRole('button', { name: 'Projects', exact: true }).focus();
       await page.keyboard.press('Escape');
       expect(await page.getByRole('button', { name: 'Open navigation', exact: true }).count()).toBe(
         1,
@@ -500,19 +502,20 @@ it.each(['light', 'dark'] as const)(
         '13-mobile-navigation',
         'Mobile navigation exposes every workspace screen and Escape restores toggle focus',
       );
-      await page.getByRole('button', { name: 'Overview', exact: false }).click();
+      await page.getByRole('button', { name: 'Projects', exact: true }).click();
       expect(
         await page
           .getByRole('button', { name: 'Open navigation', exact: true })
           .getAttribute('aria-expanded'),
       ).toBe('false');
-      await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+      await page.getByRole('heading', { name: 'Projects', exact: true }).waitFor();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
       await capture('07-mobile-overview', 'Mobile dashboard fits its viewport');
       await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
-      await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+      await page.getByRole('button', { name: 'Code scan', exact: true }).click();
+      await openInventoryTab(page, 'declarations');
       await page.getByRole('heading', { name: 'Frontend declarations' }).waitFor();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
@@ -544,10 +547,10 @@ it.each(['light', 'dark'] as const)(
         await released;
         await route.fulfill({ response });
       });
-      await page.getByRole('button', { name: 'Overview', exact: false }).click();
+      await page.getByRole('button', { name: 'Projects', exact: true }).click();
       await held;
       await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-      await page.getByRole('heading', { name: 'A clearer view of your frontend.' }).waitFor();
+      await page.getByRole('heading', { name: 'See every page. Catch every change.' }).waitFor();
       const staleResponse = page.waitForResponse('**/api/state');
       releaseResponse();
       await staleResponse;

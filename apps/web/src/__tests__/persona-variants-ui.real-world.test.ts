@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { openInventoryTab } from './inventory-tabs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -63,18 +64,19 @@ it('creates a mixed persona/flag variant campaign through the real dialog and at
     await page.goto(app.origin);
     await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
     await page.getByRole('button', { name: 'Open workbench' }).click();
-    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+    await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
     await page.locator('#new-project').click();
     await page.getByLabel('Project folder', { exact: true }).fill(repo.root);
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await page.getByLabel('Project name', { exact: true }).fill('Persona variants reference');
     await page.getByLabel('Running test app origin').fill('http://127.0.0.1:1');
     await page.getByRole('button', { name: 'Save project' }).click();
-    await page.getByRole('button', { name: 'Discover intents', exact: true }).click();
+    await page.getByRole('button', { name: 'Read the code', exact: true }).click();
     await expect
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
-    await page.getByRole('button', { name: 'Intent inventory', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
+    await openInventoryTab(page, 'workflows');
     await expect
       .poll(() => page.locator('#content').textContent())
       .toContain('Save guided AI settings to start a campaign');
@@ -130,7 +132,7 @@ it('creates a mixed persona/flag variant campaign through the real dialog and at
     );
 
     await page.getByRole('button', { name: 'Start selected campaign', exact: true }).click();
-    await page.getByRole('button', { name: 'View campaign', exact: true }).click();
+    await page.getByRole('button', { name: 'Open journeys', exact: true }).click();
     await expect
       .poll(() => page.locator('.campaign-detail').textContent(), { timeout: 120_000 })
       .toContain('Persona A');
