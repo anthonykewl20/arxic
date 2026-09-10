@@ -1,8 +1,9 @@
 import { expect, it } from 'vitest';
 import { STATIC_FAMILY_CONFIG } from './corpus-capture';
 
-it('configures the seven static public families with read-only docroots and stable controls', () => {
+it('configures the eight static public families with read-only docroots and stable controls', () => {
   expect(Object.keys(STATIC_FAMILY_CONFIG).sort()).toEqual([
+    'adminbsb',
     'adminlte',
     'gentelella',
     'material-dashboard',
@@ -61,6 +62,17 @@ it('configures the seven static public families with read-only docroots and stab
   expect(STATIC_FAMILY_CONFIG['material-kit'].path).toBe('/pages/sign-in.html');
   expect(STATIC_FAMILY_CONFIG['material-kit'].buttonSelector).toBe('button.bg-gradient-dark');
   expect(STATIC_FAMILY_CONFIG['material-kit'].viewport).toBeUndefined();
+  // adminbsb (AdminBSB - Material Design, MIT, a plain no-build repo pinned at
+  // its default-branch HEAD): the sign-in submit is the page's only bg-pink
+  // element at all, so the class selector alone stays unique. The card does
+  // not re-center when the control is removed, so the missing-element oracle
+  // is stable at every probed width. The page carries no h1/h2/p (its intro
+  // text lives in a div.msg), so the text-truncate variant honestly refuses
+  // no-text-element — recorded per case, never fabricated.
+  expect(STATIC_FAMILY_CONFIG.adminbsb.docroot).toBe('adminbsb');
+  expect(STATIC_FAMILY_CONFIG.adminbsb.path).toBe('/pages/examples/sign-in.html');
+  expect(STATIC_FAMILY_CONFIG.adminbsb.buttonSelector).toBe('button.bg-pink');
+  expect(STATIC_FAMILY_CONFIG.adminbsb.viewport).toBeUndefined();
   expect(STATIC_FAMILY_CONFIG.gentelella.buttonSelector).toBe(
     'div.page-actions button.btn-outline',
   );
