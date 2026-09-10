@@ -737,7 +737,11 @@ document.addEventListener('change', (event) => {
     runOffset = 0;
     pageOffset = 0;
     selectedPage = '';
-    if (section === 'runs') void refresh().catch((error) => notice(error.message));
+    // Runs re-query the server, because their history is paged there rather
+    // than in the polled snapshot — through `refreshRunHistory`, which paints
+    // the new scope before the round-trip. Waiting for the response would
+    // leave the previous project's run on screen while it travels.
+    if (section === 'runs') void refreshRunHistory().catch((error) => notice(error.message));
     else render();
   }
   if (target.id === 'environment-scope') {
