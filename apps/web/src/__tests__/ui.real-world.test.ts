@@ -508,7 +508,7 @@ it.each(['light', 'dark'] as const)(
           .getByRole('button', { name: 'Open navigation', exact: true })
           .getAttribute('aria-expanded'),
       ).toBe('false');
-      await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
+      await page.getByRole('heading', { name: 'Projects', exact: true }).waitFor();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );

@@ -7,7 +7,7 @@ import { time } from './display';
 import { InventoryPanel, type InventoryPanelProps } from './inventory-panel';
 import { ChangesPanel, PagesPanel, type PagesPanelProps } from './pages-panel';
 import { buildPageInventory, pendingChanges } from '../page-inventory';
-import { environmentWords } from '../plain-words';
+import { environmentWords, evidenceWords } from '../plain-words';
 import { CampaignPanel, type CampaignPanelProps } from './campaign-panel';
 import { createRoot, type Root } from 'react-dom/client';
 import { useState } from 'react';
@@ -42,16 +42,30 @@ import {
 import type { Workbench } from '../workbench';
 
 type State = ReturnType<Workbench['state']>;
+/**
+ * What the last run leaves a project standing at, said the same way the rest of
+ * the dashboard says it: "Read from your code", not "Hypothesized".
+ */
 function projectHealth(state: State, id: string) {
   const runs = state.runs.filter((run) => run.projectId === id);
   const latest = runs[0];
-  if (!latest) return { tone: 'neutral' as const, label: 'No runs yet' };
+  if (!latest) return { tone: 'neutral' as const, label: 'Not tested yet', detail: '' };
   if (['queued', 'running'].includes(latest.state))
-    return { tone: 'info' as const, label: latest.state === 'queued' ? 'Queued' : 'Running' };
+    return {
+      tone: 'info' as const,
+      label: latest.state === 'queued' ? 'Waiting to start' : 'Running now',
+      detail: '',
+    };
   const outcome = latest.result?.outcome ?? latest.state;
   const changed = latest.result?.captures?.some((capture) => capture.status === 'changed');
-  if (changed) return { tone: 'warning' as const, label: 'Visual changes' };
-  return { tone: toneOf(outcome), label: outcome.charAt(0).toUpperCase() + outcome.slice(1) };
+  if (changed)
+    return {
+      tone: 'warning' as const,
+      label: 'Needs your decision',
+      detail: 'Screenshots differ from the pictures you approved.',
+    };
+  const words = evidenceWords(outcome);
+  return { tone: toneOf(outcome), label: words.label, detail: words.detail };
 }
 function Overview({ state }: { state: State }) {
   const active = state.runs.filter((run) => ['queued', 'running'].includes(run.state));
@@ -109,7 +123,11 @@ function Overview({ state }: { state: State }) {
       header: 'Status',
       cell: (item) => {
         const health = projectHealth(state, item.id);
-        return <StatusDot tone={health.tone}>{health.label}</StatusDot>;
+        return (
+          <StatusDot tone={health.tone} title={health.detail || undefined}>
+            {health.label}
+          </StatusDot>
+        );
       },
     },
     {
@@ -198,7 +216,9 @@ function Overview({ state }: { state: State }) {
           caption={scheduled.length ? 'Running on UTC slots' : 'None set'}
         />
       </div>
-      <Section title="Projects" meta={`${state.projects.length} connected`}>
+      {/* No "Projects" heading here: the screen is already titled Projects, and
+          a second one under it is a label, not information. */}
+      <Section meta={`${state.projects.length} connected`}>
         <DataTable
           caption="Connected projects"
           columns={columns}
