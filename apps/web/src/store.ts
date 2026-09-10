@@ -67,9 +67,15 @@ export class Store {
       `SELECT json_set(${summaryProjection}, '$.hasInventory', json_type(data, '$.result.inventory') IS NOT NULL, '$.hasLedger', json_type(data, '$.result.ledger') IS NOT NULL) AS data FROM runs ORDER BY rowid DESC LIMIT 200`,
     );
   }
+  /**
+   * `projects` is a set, not one id, because the dashboard's scope can name an
+   * environment — a copy of a site that several projects point at — and a
+   * history filtered to one of them would contradict the scope it was asked
+   * for. An empty set means no narrowing, the same as before it existed.
+   */
   searchRuns(input: {
     query: string;
-    project: string;
+    projects: readonly string[];
     mode: string;
     status: string;
     limit: number;
@@ -77,9 +83,9 @@ export class Store {
   }) {
     const clauses: string[] = [];
     const args: string[] = [];
-    if (input.project) {
-      clauses.push('project_id = ?');
-      args.push(input.project);
+    if (input.projects.length) {
+      clauses.push(`project_id IN (${input.projects.map(() => '?').join(', ')})`);
+      args.push(...input.projects);
     }
     if (input.mode) {
       clauses.push("json_extract(data, '$.mode') = ?");

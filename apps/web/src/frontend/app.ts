@@ -235,11 +235,18 @@ async function refresh() {
     const snapshot = await api('/state');
     if (epoch !== sessionEpoch || sequence !== refreshSequence) return;
     if (section === 'runs') {
+      // The scope, not just its project half: an environment names a set of
+      // projects, and a history filtered to none of them would contradict the
+      // scope bar it was chosen in.
       const params = new URLSearchParams({
         query: runSearch,
         mode: runModeFilter,
         status: runStatusFilter,
-        project: selectedProject,
+        project:
+          selectedProject ||
+          scopedProjects()
+            .map((item) => item.id)
+            .join(','),
         offset: String(runOffset),
         limit: '25',
       });
@@ -751,12 +758,14 @@ document.addEventListener('change', (event) => {
   if (target.id === 'environment-scope') {
     selectedEnvironment = target.value;
     pageOffset = 0;
+    runOffset = 0;
     selectedPage = '';
     // A project outside the chosen environment cannot stay selected, or the
     // two halves of the scope would contradict each other.
     if (selectedProject && !scopedProjects().some((item) => item.id === selectedProject))
       selectedProject = '';
-    render();
+    if (section === 'runs') void refreshRunHistory().catch((error) => notice(error.message));
+    else render();
   }
 });
 document.addEventListener('submit', (event) => {

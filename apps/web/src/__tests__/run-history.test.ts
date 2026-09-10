@@ -16,6 +16,8 @@ it('rejects invalid search bounds and searches persisted history beyond the rece
       'mode=unknown',
       'status=green',
       'query=' + 'x'.repeat(201),
+      'project=not-a-uuid',
+      'project=' + '00000000-0000-4000-8000-000000000000,nope',
     ])
       expect(() => searchRunHistory(store, new URLSearchParams(query))).toThrow();
     const project = await validateProject({ name: 'Archived reference', folder: dir }, [dir]);
@@ -38,6 +40,20 @@ it('rejects invalid search bounds and searches persisted history beyond the rece
     expect(first.runs).toHaveLength(25);
     expect(next.runs).toHaveLength(25);
     expect(new Set([...first.runs, ...next.runs].map((r) => r.id)).size).toBe(50);
+
+    // The dashboard's scope can name an environment, which is a SET of
+    // projects; a history narrowed to one of them would contradict the scope
+    // it was asked for.
+    const other = await validateProject({ name: 'Second reference', folder: dir }, [dir]);
+    const otherRun = store.enqueue(other, 'visual')!;
+    store.finish(otherRun, { outcome: 'blocked', summary: 'Second project, no execution.' });
+    expect(searchRunHistory(store, new URLSearchParams(`project=${project.id}`)).total).toBe(206);
+    expect(searchRunHistory(store, new URLSearchParams(`project=${other.id}`)).total).toBe(1);
+    expect(
+      searchRunHistory(store, new URLSearchParams(`project=${project.id},${other.id}`)).total,
+    ).toBe(207);
+    // An empty value narrows nothing, exactly as one absent id did.
+    expect(searchRunHistory(store, new URLSearchParams('project=')).total).toBe(207);
   } finally {
     store.db.close();
     await rm(dir, { recursive: true, force: true });
