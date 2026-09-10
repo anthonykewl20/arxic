@@ -550,7 +550,7 @@ it.each(['light', 'dark'] as const)(
       await page.getByRole('button', { name: 'Projects', exact: true }).click();
       await held;
       await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-      await page.getByRole('heading', { name: 'A clearer view of your frontend.' }).waitFor();
+      await page.getByRole('heading', { name: 'See every page. Catch every change.' }).waitFor();
       const staleResponse = page.waitForResponse('**/api/state');
       releaseResponse();
       await staleResponse;

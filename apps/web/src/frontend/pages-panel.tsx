@@ -839,7 +839,7 @@ export function ChangesPanel({
               key={page.key}
               title={page.title}
               meta={`${page.needsReview} ${page.needsReview === 1 ? 'change' : 'changes'}`}
-              description={page.path}
+              description={`${page.projectName} · ${page.path}`}
               actions={
                 <Button
                   variant="ghost"
