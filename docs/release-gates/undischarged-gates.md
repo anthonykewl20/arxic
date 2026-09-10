@@ -106,8 +106,9 @@ that state, and several of these exist precisely because a machine cannot.
   476 planned → 75 oracle-honest skips, each with a reason class
   (unstable-case 46, overflow-oracle-failed 17, no-text-element 8,
   text-truncation-oracle-failed 4) → 401 scored rows across all 10 families**
-  (was 178 rows across 9). This is the registry maximum: gentelella/adminlte
-  are pinned to 1280, so no plan extension remains inside the current config.
+  (was 178 rows across 9). This was the registry maximum at the 10-family
+  config: gentelella/adminlte are pinned to 1280, so no plan extension
+  remained inside that config.
   The ≥1,000 bar stays open under the rows unit this register uses (residual
   ≥599 scored rows); the 401 cases also carry **1,778 non-null oracle labels**,
   which would clear 1,000 under a region-level-label reading of the literal
@@ -115,6 +116,17 @@ that state, and several of these exist precisely because a machine cannot.
   honestly needs registry growth (~11+ more families, or new controlled
   variants — C5-adjacent), not width-grid padding.
   Evidence: [`docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10/`](../evidence/VISUAL-SLM/corpus-scale-2026-09-10/summary.md).
+  **Delivered 2026-09-10 (#557 slice 4, observed): the registry grew to 11
+  families — material-dashboard (slice 3) captured at the full width grid —
+  56 planned → 9 reason-carrying skips (missing-element `unstable-case` ×4:
+  the `my-auto`-centered card moves every input box when the control is
+  removed; remote-subresource `page.goto` timeouts ×5: the only registry
+  family with remote assets) → 47 scored rows carrying 210 non-null oracle
+  labels**, with sb-admin-2 56/56 in the same run. Registry totals across the
+  two labeled runs: **532 planned → 84 skips → 448 scored rows across 11
+  families, 1,988 non-null oracle labels** (additive observations, not one
+  plan); residual under the rows unit **≥552**.
+  Evidence: [`docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s4/`](../evidence/VISUAL-SLM/corpus-scale-2026-09-10-s4/summary.md).
 - Two heads qualify on untouched test families (overflow; occlusion at 4/4 recall,
   0 false positives). Clipping, text_truncation and layout_shift stay **disabled**:
   no candidate threshold meets the precision/recall gates on 178 rows, and

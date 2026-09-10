@@ -100,7 +100,7 @@ it('flushes case-start evidence before a real running test process is interrupte
     );
     await writeFile(
       join(directory, 'sample.test.mjs'),
-      `import {it} from ${JSON.stringify(pathToFileURL(resolve('node_modules/vitest/dist/index.js')).href)};it('private-running-name',()=>new Promise(()=>{}),120000);`,
+      `import {it} from ${JSON.stringify(pathToFileURL(resolve('node_modules/vitest/dist/index.js')).href)};it('private-running-name',()=>new Promise(()=>{}),360000);`,
     );
     child = spawn(
       process.execPath,
@@ -124,11 +124,17 @@ it('flushes case-start evidence before a real running test process is interrupte
     // runs, so a cold boot once converted the fixture's own 10s timeout into
     // exactly the pre-interrupt case-result this test refuses (boot 10.17s,
     // reportedTimeoutMs 10000 fired 2ms after case-start; CI run
-    // 34355455688). The fixture hang now outlives the 60s poll bound plus the
-    // observer delay, and the outer timeout below caps the whole test, so the
-    // SIGTERM interrupt always lands before any timeout result can exist.
+    // 34355455688). On 2026-09-10 two consecutive CI boots stalled past the
+    // then-60s poll bound outright — the child printed run-start at 9ms and
+    // then sat in worker/file-collection boot while the same shard ran
+    // concurrent real-browser suites (local boots: ~220ms, six of six) — so
+    // the bounds moved together: the fixture hang (360s) still outlives the
+    // poll bound (180s) plus the observer delay, and the outer timeout below
+    // (240s) still caps the whole test, so the SIGTERM interrupt always lands
+    // before any timeout result can exist. The tested property is unchanged:
+    // case-start evidence exists, and no case-result precedes the interrupt.
     await expect
-      .poll(async () => readFile(output, 'utf8').catch(() => ''), { timeout: 60000 })
+      .poll(async () => readFile(output, 'utf8').catch(() => ''), { timeout: 180000 })
       .toContain('case-start');
     // Exercise a delayed controller beyond the old child's five-second completion.
     await new Promise((resolveDelay) => setTimeout(resolveDelay, 5500));
@@ -143,7 +149,7 @@ it('flushes case-start evidence before a real running test process is interrupte
     if (child && child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
     await rm(directory, { recursive: true, force: true });
   }
-}, 90000);
+}, 240000);
 
 it('distinguishes a real output-bound failure from a signalled child', async () => {
   const { commandFailureFacts } = await import('./command-failure.mjs');
