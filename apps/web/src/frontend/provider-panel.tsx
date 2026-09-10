@@ -81,7 +81,9 @@ function ProviderPanel({
           <h2>Your models. Your accounts.</h2>
           <p>Connect the tools you already use. Model choices come from each provider.</p>
         </div>
-        <span className="flex items-center gap-2">
+        {/* Wraps: at 200% text on a phone the count and the button do not fit
+            on one line, and a row that refuses to wrap widens the document. */}
+        <span className="flex min-w-0 flex-wrap items-center gap-2">
           <Badge variant="outline">{available.length} connections</Badge>
           {/* Connecting an agent used to be a button in the top bar of every
               screen. It is a once-per-workspace setup task, so it lives where
