@@ -64,11 +64,14 @@ const describe = (entry: ActionStep) => {
 export function ActionTimeline({
   runId,
   captures,
+  showPaths = false,
   label = 'What Arxic did on this run',
 }: {
   runId: string;
   /** Given, the log is narrowed to the steps that produced these captures. */
   captures?: Capture[];
+  /** Name each step's page. On one page's own log that is already the heading. */
+  showPaths?: boolean;
   label?: string;
 }) {
   const [entries, setEntries] = useState<ActionStep[]>();
@@ -107,6 +110,9 @@ export function ActionTimeline({
                 {/* A run merges every browser's log, and photographs each path
                     once per screen size, so two lines can otherwise read
                     identically. Each says which one it belongs to. */}
+                {/* On a run this is the only thing separating ten identical
+                    "opened the page" lines from each other. */}
+                {shot && showPaths && <span className="folder"> {shot.path}</span>}
                 {entry.environment && (
                   <span className="text-[var(--foreground-muted)]">
                     {' '}

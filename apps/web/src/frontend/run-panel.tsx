@@ -534,7 +534,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
       )}
       {!!result?.captures?.length && (
         <>
-          <ActionTimeline runId={run.id} />
+          <ActionTimeline runId={run.id} captures={result?.captures ?? []} showPaths />
           <div className="scope-note">
             Inputs are masked. Review all remaining pixels before sharing. Baseline approval records
             your visual decision; it does not assign a verified business outcome. Captures cover
