@@ -1,0 +1,5439 @@
+{
+  "version": 1,
+  "rows": 49,
+  "families": [
+    "material-dashboard",
+    "sb-admin-2"
+  ],
+  "allocation": {
+    "train": [
+      "sb-admin-2"
+    ],
+    "calibration": [
+      "material-dashboard"
+    ],
+    "test": []
+  },
+  "frozenAllocationHash": "17ec561db4230f7a2a18d03a3ff099e225ec5bb1def4d03865833271b4697746",
+  "skipped": [
+    {
+      "family": "material-dashboard",
+      "viewport": 360,
+      "variant": "clip-right-50",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 360,
+      "variant": "clip-right-25",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 360,
+      "variant": "missing-element",
+      "reason": "unstable-case"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 1280,
+      "variant": "clip-right-25",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 1280,
+      "variant": "clip-bottom-50",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 1280,
+      "variant": "overlay-adjacent",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 1280,
+      "variant": "missing-element",
+      "reason": "unstable-case"
+    }
+  ],
+  "parityMaximumError": 2.620623903992758e-7,
+  "reviews": [
+    {
+      "caseId": "material-dashboard-360-clean",
+      "manifestSha256": "14ccd49442a079510d7c0c0af2b1a2104e5a4b899afed5d233fdac6cdbcd9dc8",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9404208064079285,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.7276059985160828,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-clip-full",
+      "manifestSha256": "4b7650ee48db1e4891824b1a49ffaa0f5484ddd9661cb27f500ed9b88c7aa28d",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 10521,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.4429708421230316,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-clip-right-75",
+      "manifestSha256": "730eeafbe8c70e8021170355e14ec12d3c8f7dc1a2db6e00140bb7ff69b5c9fe",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 5887,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.7054640650749207,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-clip-bottom-50",
+      "manifestSha256": "ab313caa7618c9edc334ac906c0f1d7ced075e2eb6852cfb6819355b5b01ac23",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 16003,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.6307114958763123,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-overflow-x",
+      "manifestSha256": "7d56b2d8d0c5976a305595598486b9693dfff48fce3520be6fd0dba868f8512d",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.8544988036155701,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.9097031354904175,
+          "decision": "hypothesis",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-content-change",
+      "manifestSha256": "13fb46348fec52afc3b530e1e1fdaf94ce639357034f1765edd159a0efed51a4",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 369,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9409127831459045,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.7268489003181458,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-overlay-adjacent",
+      "manifestSha256": "d5d49a3682d2d32bb2518af0c74df318096357237f9159a0ce61133b231208c9",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 1448,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9397249817848206,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.7281804084777832,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-style-tweak",
+      "manifestSha256": "2e815fd64593f123f4a9368a9c69888204532dafc36e0c9694350e6204543107",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.940827488899231,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.7280029654502869,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-occlusion-overlay",
+      "manifestSha256": "e11855bbfa0748c8fd3d41d1f000c5db1abccd5df632dc72ac7c2230c9fd0fb1",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 10212,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9594150185585022,
+          "decision": "hypothesis",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.7124794721603394,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-text-truncate",
+      "manifestSha256": "37e274ad6e38f06779c94bcb4e0b341c1b045c47f793f8b9af70982b4eefc495",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 487,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9409151673316956,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.7269543409347534,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-360-layout-shift",
+      "manifestSha256": "8a47eabbb4e5e1091f9ef4205bd1f78529400f292647f83f72229c5ef1cdab65",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 13205,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9471912384033203,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.7195972800254822,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-clean",
+      "manifestSha256": "43eb068c4b8820d25049fd731935ce769dd280ea9743c89f6d95e884f19da77f",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9490081667900085,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.6906644105911255,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-clip-full",
+      "manifestSha256": "fe3f6a11ba73753c26d31e71314bbf125a67223f38659d003cd01c61db9ea3c1",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 11381,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.44641223549842834,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-clip-right-75",
+      "manifestSha256": "cb47e14ce5e0fd0fb229b57d2aa59d506f175938c3091a223886a3ff3a5ee431",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 20555,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.6649214625358582,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-clip-right-50",
+      "manifestSha256": "62f076b501e60bd7af56493d7dcc6a6730bb551419403321f79cce8dc2b7d08f",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 17434,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.6203644275665283,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-overflow-x",
+      "manifestSha256": "36f2f7ed1dd7a6d4fbf91d553b0c9b181dcac397a326da4a2f498fd8808678ea",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.8969014286994934,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.8865970373153687,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-content-change",
+      "manifestSha256": "687d70042cf72bc23b12f614c442b4b8001d9c8fd94a77ffbe1f5c03fb07c6b4",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 371,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9491268396377563,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.6904555559158325,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-style-tweak",
+      "manifestSha256": "0ec70421ce89a9721492bcd54ee8fe7d601b2e65d369a34be05479e18756657b",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.949235200881958,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.6911864280700684,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-occlusion-overlay",
+      "manifestSha256": "a450132bd184355dfe9c8b6f11d5f5f00e5578431d72ee2a0ddb54a9ed375c48",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 10930,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9628543853759766,
+          "decision": "hypothesis",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.6303277611732483,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-text-truncate",
+      "manifestSha256": "9a8afcb02a7a288c7ab4b15061eed06b240688182262e126d5a620df0e6722b4",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 465,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9491360783576965,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.6904953122138977,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "material-dashboard-1280-layout-shift",
+      "manifestSha256": "17605213a44713745af7927f43eadd8bc2f2b639ce8f6935b33f29644bf9eee4",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 14224,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.9489632248878479,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.6821603775024414,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-clean",
+      "manifestSha256": "8c292880e4131f19e88f15efa6079e821db701f4ad20454caa6b65e590ae723f",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.3960590064525604,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.4703146815299988,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-clip-full",
+      "manifestSha256": "704a3c497da109676df9eddeb9de9d4866e061bb6274c147cbb9aea0c377b5e0",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 9039,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.06362659484148026,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-clip-right-75",
+      "manifestSha256": "27eec91b88a8893c41a1df72a91e260f586b022b2c7a39a8d4d573ce5a31eb61",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 7731,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.30858901143074036,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-clip-right-50",
+      "manifestSha256": "af52a8b07900020fbc0ed3a97dfc1286ea6a8d085b312235d2c555192e10add7",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 10253,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.22934797406196594,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-clip-right-25",
+      "manifestSha256": "b7df0225ce56212f9be22d43971aac2fc323d10b4914605ef1c6d175d9f202b4",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 10098,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.16903720796108246,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-clip-bottom-50",
+      "manifestSha256": "49c96a6b0ce0af986d5c35e41936bc6ae7c57de523596668b68c1af8a5113c5c",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 9039,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.1560811698436737,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-overflow-x",
+      "manifestSha256": "5221483e8f904d477613ae8f01e80ab93320603512bb990f78738ead81d43eb6",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.15968123078346252,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.8370850086212158,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-content-change",
+      "manifestSha256": "c5297f6ff0c0474655bb5abcd229163ba49b7c41bc46e45b3aaa1aa22ba3a906",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 890,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.40322044491767883,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.46525147557258606,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-overlay-adjacent",
+      "manifestSha256": "dfad104fd5d3e23162ad7e3c119b57952611907da2ae2e40f4054e89f411d396",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 3456,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.3935711979866028,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.46403950452804565,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-style-tweak",
+      "manifestSha256": "78378dde0a38e5e796f2abb9310ae84436fc7383685510bb939690a24184d679",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 748,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.3977263271808624,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.4682120680809021,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-occlusion-overlay",
+      "manifestSha256": "d8ab4d7dc5a92df03a0b0603dd67be8b92c4dda16bab809bfd5e6ebb8170db36",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 9454,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.7399308085441589,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.2608065605163574,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-missing-element",
+      "manifestSha256": "7d8fc5e182ee5709e2e7e54bdf0db12a0747ffcc09583e705531a15fef756ce9",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 47774,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.1437852680683136,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-text-truncate",
+      "manifestSha256": "9ba70f7258d41e152799b1436128cb95f3cccdcdbb51b97d75c429fc185f8c4b",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 919,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.4019826352596283,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.4656238853931427,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-360-layout-shift",
+      "manifestSha256": "6ea7d7100d93af1d5ed2041b80eb6b3a8d65e9448e466596b1e149408ac47b5f",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 10641,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.44772422313690186,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.4225957989692688,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-clean",
+      "manifestSha256": "6eb8e4b1b0615de2d2009c958b2d1b25000468876e0968528eff6e089dc28a16",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.4574805796146393,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.42818403244018555,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-clip-full",
+      "manifestSha256": "b64f62b0c15819d606966f98149d295b719d7f8197b6023884d202a396366af9",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 14844,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.0847884863615036,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-clip-right-75",
+      "manifestSha256": "03126b2d80415519c4c16e331a177e11e05b8b7a1d16cb9ee7375551f9a61acb",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 16517,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.19082792103290558,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-clip-right-50",
+      "manifestSha256": "4fee13abd60c657d0e7a4009165978162afd74fc4594e210095d7d2a32c86ea2",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 14844,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.14161260426044464,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-clip-right-25",
+      "manifestSha256": "e57057a1093f307f1a246a4a9e6d530fb2a2a3190dc44d453a10bc7c6377351c",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 14844,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.1189073845744133,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-clip-bottom-50",
+      "manifestSha256": "8c5799939a8de7b2ea78ff1de8c48d5254fc478d2b5954257d4cb33ba024379d",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 14844,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.11370443552732468,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-overflow-x",
+      "manifestSha256": "52293b24e811c76030c3d8c5ae4b79dbfdebaafd3c1c03b8437a6177d36e9dc9",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 0,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.17090167105197906,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.8423629403114319,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-content-change",
+      "manifestSha256": "fa3f33f5de75ff95357ad69e9ac69979894870586600cfc95e7fa60b0b345537",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 890,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.4577581286430359,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.42662474513053894,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-overlay-adjacent",
+      "manifestSha256": "29d26f7829069269f2dce538fb979ad34c4d6eef71328b6c606f189fbe8a365d",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 3456,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.45795559883117676,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.42551764845848083,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-style-tweak",
+      "manifestSha256": "b68befea26d984b99dd969af8ae017f17d77a9b099047143d1632caf40fc5a2a",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 820,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.45819759368896484,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.4271038770675659,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-occlusion-overlay",
+      "manifestSha256": "74fee194ba7a1dab591d5f514034958b527ddd5a4f5e98513162265c55cd2751",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 15249,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.8226252198219299,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.19552627205848694,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-missing-element",
+      "manifestSha256": "0a2113a12b393ec3eddf81d9e4b43f8e1bebe8e3ce59cf59f90812f718cb481c",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 101649,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.15351085364818573,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-text-truncate",
+      "manifestSha256": "1908f54f91772a3b07784a54c385e5b356dee96fb6763e4e7d14c66fa09511ba",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 1107,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "fail",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "pass",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.4581073522567749,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.42601436376571655,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    },
+    {
+      "caseId": "sb-admin-2-1280-layout-shift",
+      "manifestSha256": "7fd3bc184812153482f94528ee059e1dbff90b3de010832b65eaa50e8163989a",
+      "modelSha256": "14d63c026df280e1eeae330c13c211085985482732e4fdbaeadb37d00bc31f3e",
+      "modelStatus": "observed",
+      "diagnostic": null,
+      "changedPixels": 16833,
+      "coverage": "supplied-regions-only",
+      "hardChecks": [
+        {
+          "id": "clipping-oracle",
+          "head": "clipping",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "occlusion-oracle",
+          "head": "occlusion",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "missing_element-oracle",
+          "head": "missing_element",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "overflow-oracle",
+          "head": "overflow",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "text_truncation-oracle",
+          "head": "text_truncation",
+          "verdict": "pass",
+          "region": "viewport"
+        },
+        {
+          "id": "layout_shift-oracle",
+          "head": "layout_shift",
+          "verdict": "fail",
+          "region": "viewport"
+        }
+      ],
+      "predictions": [
+        {
+          "regionId": "viewport",
+          "head": "clipping",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        },
+        {
+          "regionId": "viewport",
+          "head": "occlusion",
+          "score": 0.4846780598163605,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "missing_element",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "overflow",
+          "score": 0.4006364345550537,
+          "decision": "abstain",
+          "reason": "experimental-score"
+        },
+        {
+          "regionId": "viewport",
+          "head": "text_truncation",
+          "score": null,
+          "decision": "abstain",
+          "reason": "missing-applicability"
+        },
+        {
+          "regionId": "viewport",
+          "head": "layout_shift",
+          "score": null,
+          "decision": "abstain",
+          "reason": "uncalibrated-head"
+        }
+      ],
+      "modelAuthority": "hypothesis-only",
+      "overallPass": false,
+      "promotion": "blocked-experimental-model"
+    }
+  ],
+  "training": {
+    "version": 1,
+    "seed": 423,
+    "arithmetic": "float64-training-float32-export",
+    "models": {
+      "logistic": {
+        "training": {
+          "history": [
+            2.2846917250897207,
+            2.2859097744960866,
+            2.2867844297688333,
+            2.2869793447026194,
+            2.2860901956597077,
+            2.283811528102011,
+            2.2800575432029677,
+            2.2749116226972763,
+            2.2685309905321076,
+            2.2611002680354106,
+            2.2528178930320233,
+            2.243890266000857,
+            2.2345258513502215,
+            2.2249273470651447,
+            2.2152805963638955,
+            2.205741335745767,
+            2.1964244838334226,
+            2.187400796602289,
+            2.1787011724604737,
+            2.1703245063013217,
+            2.16224479646965,
+            2.1544159618893155,
+            2.1467754224579876,
+            2.1392484373275362,
+            2.131754538326201,
+            2.1242158162121747,
+            2.1165652971928153,
+            2.1087531857891424,
+            2.1007496562042967,
+            2.0925443817184397
+          ],
+          "supported": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "classCounts": [
+            [
+              16,
+              10
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              26,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              14,
+              2
+            ]
+          ],
+          "classWeights": [
+            [
+              0.8125,
+              1.3
+            ],
+            [
+              0.5714285714285714,
+              4
+            ],
+            [
+              0.5625,
+              4.5
+            ],
+            [
+              0.5384615384615384,
+              7
+            ],
+            [
+              0.5625,
+              4.5
+            ],
+            [
+              0.5714285714285714,
+              4
+            ]
+          ],
+          "bestCalibrationLoss": 2.0925443817184397
+        },
+        "bytes": 2472,
+        "elapsedSeconds": 0.1223676010267809,
+        "scores": {
+          "material-dashboard-360-clean-viewport": [
+            0.9482813357963128,
+            0.9293649074394813,
+            0.09500202022495857,
+            0.009242924963314884,
+            0.9981867745607947,
+            0.8904354690574863
+          ],
+          "material-dashboard-360-clip-full-viewport": [
+            0.9295166572054774,
+            0.9809102470871505,
+            0.2505642533139221,
+            0.03615836574286963,
+            0.9976186281281442,
+            0.4855944187474147
+          ],
+          "material-dashboard-360-clip-right-75-viewport": [
+            0.943362924910106,
+            0.943887258067023,
+            0.11448698657127503,
+            0.010231186446472985,
+            0.9982244201548478,
+            0.8584438120690805
+          ],
+          "material-dashboard-360-clip-bottom-50-viewport": [
+            0.9009682715461805,
+            0.9229902245978993,
+            0.10397854337365077,
+            0.006198838246584983,
+            0.9987548919210678,
+            0.8504401653521506
+          ],
+          "material-dashboard-360-overflow-x-viewport": [
+            0.9067500566485162,
+            0.9812875590723417,
+            0.11285755027955043,
+            0.023601247343708172,
+            0.9989370880217481,
+            0.8378076990694626
+          ],
+          "material-dashboard-360-content-change-viewport": [
+            0.9483318844764341,
+            0.9291821597353837,
+            0.09546354964045714,
+            0.009203845142575969,
+            0.9981924612611286,
+            0.8904823909013162
+          ],
+          "material-dashboard-360-overlay-adjacent-viewport": [
+            0.9475135415453323,
+            0.9294907405947114,
+            0.09547703355866298,
+            0.009301312095499831,
+            0.9981786948401663,
+            0.8899870078133724
+          ],
+          "material-dashboard-360-style-tweak-viewport": [
+            0.9482615841063444,
+            0.9296583445393348,
+            0.09533028311678883,
+            0.009183787563124714,
+            0.9981825672522086,
+            0.8905880514979637
+          ],
+          "material-dashboard-360-occlusion-overlay-viewport": [
+            0.9664113348861779,
+            0.9372565636450969,
+            0.09051936409723824,
+            0.009408696490938718,
+            0.9982617178912527,
+            0.8347209478234882
+          ],
+          "material-dashboard-360-text-truncate-viewport": [
+            0.9481903464231634,
+            0.929159198652773,
+            0.09545276229244513,
+            0.009220562654376036,
+            0.9981874731903624,
+            0.8905173210295135
+          ],
+          "material-dashboard-360-layout-shift-viewport": [
+            0.9411271099838803,
+            0.9280745124300581,
+            0.09876412050066105,
+            0.00859960890483479,
+            0.9983568150103124,
+            0.8925796384694257
+          ],
+          "material-dashboard-1280-clean-viewport": [
+            0.9490517865372953,
+            0.9784418085608099,
+            0.07493767623701585,
+            0.006050144983044264,
+            0.9991652470785362,
+            0.8888731368776777
+          ],
+          "material-dashboard-1280-clip-full-viewport": [
+            0.9453576207753195,
+            0.9917798495518716,
+            0.15689119947036806,
+            0.0099109256711067,
+            0.9991846495937899,
+            0.6501504793302383
+          ],
+          "material-dashboard-1280-clip-right-75-viewport": [
+            0.945389503719,
+            0.9832637273566143,
+            0.09248272092365528,
+            0.006620564895435583,
+            0.9992026309324767,
+            0.8546759650379969
+          ],
+          "material-dashboard-1280-clip-right-50-viewport": [
+            0.9497843680016977,
+            0.9865545736326914,
+            0.10672515010562238,
+            0.006978198139204834,
+            0.999220638994934,
+            0.8007656416809333
+          ],
+          "material-dashboard-1280-overflow-x-viewport": [
+            0.9080792249743052,
+            0.9945022751054733,
+            0.08939463598120995,
+            0.015526403754550881,
+            0.9995108665999849,
+            0.8356334481459339
+          ],
+          "material-dashboard-1280-content-change-viewport": [
+            0.9490737512598174,
+            0.978421997164028,
+            0.07504955890165935,
+            0.006041627119108196,
+            0.9991660107986037,
+            0.8888736544095471
+          ],
+          "material-dashboard-1280-style-tweak-viewport": [
+            0.9490737438252457,
+            0.9785194819980647,
+            0.07513700779336634,
+            0.006012675818860392,
+            0.999164217361024,
+            0.889042848072001
+          ],
+          "material-dashboard-1280-occlusion-overlay-viewport": [
+            0.9681000284748018,
+            0.9804753034857229,
+            0.0697338687979293,
+            0.006151594963454081,
+            0.9991699253887493,
+            0.8310604342167236
+          ],
+          "material-dashboard-1280-text-truncate-viewport": [
+            0.9490248338639613,
+            0.9784109179300914,
+            0.07506568945658397,
+            0.006041837444528545,
+            0.9991654452998201,
+            0.8888596640691119
+          ],
+          "material-dashboard-1280-layout-shift-viewport": [
+            0.9456493146756811,
+            0.9767591233407338,
+            0.07562046455772453,
+            0.005592967231733885,
+            0.9992124330483148,
+            0.8894574766396376
+          ],
+          "sb-admin-2-360-clean-viewport": [
+            0.5362221684465972,
+            0.33471315494557347,
+            0.5445446818187805,
+            0.3671771456830472,
+            0.49725169804971414,
+            0.5301868447041215
+          ],
+          "sb-admin-2-360-clip-full-viewport": [
+            0.4598079780449264,
+            0.6775714810373501,
+            0.7780548888815942,
+            0.6943977136063137,
+            0.38730903173492814,
+            0.11399531239154971
+          ],
+          "sb-admin-2-360-clip-right-75-viewport": [
+            0.5471350375672764,
+            0.41266550786208933,
+            0.5934222730213575,
+            0.37434718796267413,
+            0.47964804054997184,
+            0.42801942914073454
+          ],
+          "sb-admin-2-360-clip-right-50-viewport": [
+            0.5387766669910024,
+            0.4679754923234225,
+            0.6326261869589267,
+            0.3922628592004399,
+            0.47444646656893413,
+            0.35859481964808393
+          ],
+          "sb-admin-2-360-clip-right-25-viewport": [
+            0.5322431590714126,
+            0.5216826230474142,
+            0.6704869756918556,
+            0.40751151805033353,
+            0.48043157806616016,
+            0.29429243610148725
+          ],
+          "sb-admin-2-360-clip-bottom-50-viewport": [
+            0.32642920406662146,
+            0.26751155830268025,
+            0.5010093872761159,
+            0.22212088759287402,
+            0.5825854927452566,
+            0.4224228322236622
+          ],
+          "sb-admin-2-360-overflow-x-viewport": [
+            0.38009221533854576,
+            0.6672511952171957,
+            0.5916796326392905,
+            0.6005317524138225,
+            0.628019176164526,
+            0.41770141183383885
+          ],
+          "sb-admin-2-360-content-change-viewport": [
+            0.5331859826142715,
+            0.33064182340211135,
+            0.5447856972965731,
+            0.3656941128195144,
+            0.5001673461131454,
+            0.5303876385099058
+          ],
+          "sb-admin-2-360-overlay-adjacent-viewport": [
+            0.5311422694574272,
+            0.3355888089408072,
+            0.5473057457169266,
+            0.37385650232495293,
+            0.4948874484981942,
+            0.5253237803352258
+          ],
+          "sb-admin-2-360-style-tweak-viewport": [
+            0.5353789811648916,
+            0.33344001230364595,
+            0.5453095376007692,
+            0.36626450226492413,
+            0.4982386997127787,
+            0.5300375710876524
+          ],
+          "sb-admin-2-360-occlusion-overlay-viewport": [
+            0.6476579718237726,
+            0.37845351412420225,
+            0.5189701088375539,
+            0.3580095691390029,
+            0.46784966329280975,
+            0.40353564962446664
+          ],
+          "sb-admin-2-360-missing-element-viewport": [
+            0.5770927424963548,
+            0.4206180081385472,
+            0.4578994219458974,
+            0.39395804157769165,
+            0.540824935057624,
+            0.2650796524651727
+          ],
+          "sb-admin-2-360-text-truncate-viewport": [
+            0.5319856531674891,
+            0.33110267981258057,
+            0.5442963982449746,
+            0.3651724167018323,
+            0.5002686723292893,
+            0.5300307352339775
+          ],
+          "sb-admin-2-360-layout-shift-viewport": [
+            0.5125040718373864,
+            0.3439903703882109,
+            0.5359657206544772,
+            0.3455533349695534,
+            0.46840996515700484,
+            0.5295739213671251
+          ],
+          "sb-admin-2-1280-clean-viewport": [
+            0.514367304121193,
+            0.576820102548951,
+            0.5437742630097977,
+            0.3663035613263903,
+            0.5985087447985054,
+            0.5175984237174525
+          ],
+          "sb-admin-2-1280-clip-full-viewport": [
+            0.495745244484871,
+            0.7905097189361908,
+            0.7258583247416349,
+            0.500584504723592,
+            0.5803933449211233,
+            0.2012830090189047
+          ],
+          "sb-admin-2-1280-clip-right-75-viewport": [
+            0.579751229950077,
+            0.6520847527774659,
+            0.5761016265728243,
+            0.3953531776083639,
+            0.5823325927963009,
+            0.3745429241026162
+          ],
+          "sb-admin-2-1280-clip-right-50-viewport": [
+            0.5744489438325577,
+            0.6981675000248246,
+            0.6175740677862934,
+            0.40719189579811726,
+            0.5909896114260936,
+            0.31149775052316203
+          ],
+          "sb-admin-2-1280-clip-right-25-viewport": [
+            0.5436394955286948,
+            0.7364093608020379,
+            0.6635425921407786,
+            0.41838533053834615,
+            0.5984509518089637,
+            0.27389612737250196
+          ],
+          "sb-admin-2-1280-clip-bottom-50-viewport": [
+            0.3116229019536874,
+            0.4830820923155537,
+            0.505873214618647,
+            0.23738112594434402,
+            0.6860952205120754,
+            0.41522762814539765
+          ],
+          "sb-admin-2-1280-overflow-x-viewport": [
+            0.35965934853123604,
+            0.8445489957834181,
+            0.5909604540341854,
+            0.5996677639856185,
+            0.7178734713290826,
+            0.4054724380896164
+          ],
+          "sb-admin-2-1280-content-change-viewport": [
+            0.5144861429507324,
+            0.5754566106828507,
+            0.5446072579650534,
+            0.3664632318250382,
+            0.5989623974112246,
+            0.5179877946793592
+          ],
+          "sb-admin-2-1280-overlay-adjacent-viewport": [
+            0.5133380111992575,
+            0.5773058543274572,
+            0.5446830456491668,
+            0.3682385840152269,
+            0.5976648853326123,
+            0.5163258865831655
+          ],
+          "sb-admin-2-1280-style-tweak-viewport": [
+            0.5148062167401265,
+            0.5766102980238559,
+            0.5442685034875129,
+            0.36606465017718537,
+            0.5990226505219718,
+            0.5175827674626118
+          ],
+          "sb-admin-2-1280-occlusion-overlay-viewport": [
+            0.6351481905347455,
+            0.6081925894830533,
+            0.5181449877959207,
+            0.3785137237064605,
+            0.5794517958128245,
+            0.40014877487067535
+          ],
+          "sb-admin-2-1280-missing-element-viewport": [
+            0.5571721923348611,
+            0.6442478405549014,
+            0.44338764683709375,
+            0.4713880494724458,
+            0.5309574687833474,
+            0.31487751556059074
+          ],
+          "sb-admin-2-1280-text-truncate-viewport": [
+            0.5143485831934393,
+            0.574994942775497,
+            0.5450179532194761,
+            0.36621798298506125,
+            0.5991216864819788,
+            0.5181453922380554
+          ],
+          "sb-admin-2-1280-layout-shift-viewport": [
+            0.49644341185512286,
+            0.5700877419306929,
+            0.5373865072987233,
+            0.363471440884766,
+            0.584055525151101,
+            0.522719553854952
+          ]
+        },
+        "positiveThresholds": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "testMetrics": [
+          {
+            "head": "clipping",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "occlusion",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "missing_element",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "overflow",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "text_truncation",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "layout_shift",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          }
+        ],
+        "promotion": "blocked",
+        "blockers": [
+          "experimental-model",
+          "independent-application-quality-gates-not-established",
+          "full-vps-not-measured"
+        ],
+        "coverage": "supplied-regions-only"
+      },
+      "mlp": {
+        "training": {
+          "history": [
+            1.8282365942389598,
+            1.7806722941036992,
+            1.7362768783239797,
+            1.6962658591131394,
+            1.6597998658240807,
+            1.6269474109816031,
+            1.5972458410847088,
+            1.5724356478103683,
+            1.5520700272044985,
+            1.5344531168868807,
+            1.5177031361401054,
+            1.501562712759201,
+            1.4862164734305616,
+            1.4716807923333712,
+            1.460393320236543,
+            1.451549165366162,
+            1.44556032545586,
+            1.4420965355019086,
+            1.440208362484374,
+            1.4383265445326732,
+            1.4356629952102937,
+            1.4316598685104316,
+            1.4257484739529784,
+            1.4183036966611673,
+            1.4107190382781079,
+            1.4035916079068742,
+            1.3960609224809866,
+            1.3880385696793605,
+            1.3797189145433872,
+            1.37181488099893
+          ],
+          "supported": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "classCounts": [
+            [
+              16,
+              10
+            ],
+            [
+              14,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              26,
+              2
+            ],
+            [
+              16,
+              2
+            ],
+            [
+              14,
+              2
+            ]
+          ],
+          "classWeights": [
+            [
+              0.8125,
+              1.3
+            ],
+            [
+              0.5714285714285714,
+              4
+            ],
+            [
+              0.5625,
+              4.5
+            ],
+            [
+              0.5384615384615384,
+              7
+            ],
+            [
+              0.5625,
+              4.5
+            ],
+            [
+              0.5714285714285714,
+              4
+            ]
+          ],
+          "bestCalibrationLoss": 1.37181488099893
+        },
+        "bytes": 34088,
+        "elapsedSeconds": 1.8956318789860234,
+        "scores": {
+          "material-dashboard-360-clean-viewport": [
+            0.23141312542965942,
+            0.9404207991284431,
+            0.9674402103800697,
+            0.7276059866660576,
+            0.2847903725835727,
+            0.07932359402548683
+          ],
+          "material-dashboard-360-clip-full-viewport": [
+            0.7945102251081848,
+            0.9634806851716335,
+            0.9951741871470887,
+            0.44297069755770707,
+            0.40672561481316744,
+            0.11729561250587714
+          ],
+          "material-dashboard-360-clip-right-75-viewport": [
+            0.3061082709924112,
+            0.9365838264676281,
+            0.9734518048572347,
+            0.7054641202463079,
+            0.29856867145796145,
+            0.1009380689395293
+          ],
+          "material-dashboard-360-clip-bottom-50-viewport": [
+            0.4104934720027536,
+            0.923802747176273,
+            0.9734011016554287,
+            0.6307115260090128,
+            0.26252138618817344,
+            0.1340248562391584
+          ],
+          "material-dashboard-360-overflow-x-viewport": [
+            0.2441219143532511,
+            0.8544988151416363,
+            0.9868306963002028,
+            0.9097030962618012,
+            0.21101780175664578,
+            0.035953689019991145
+          ],
+          "material-dashboard-360-content-change-viewport": [
+            0.23242600922573084,
+            0.9409127634781675,
+            0.9675357224168062,
+            0.7268488758173077,
+            0.2841495734802465,
+            0.07956342007182736
+          ],
+          "material-dashboard-360-overlay-adjacent-viewport": [
+            0.23063422739158962,
+            0.9397249560294725,
+            0.9675718188375335,
+            0.7281804301937626,
+            0.28604469229347207,
+            0.07888784127530184
+          ],
+          "material-dashboard-360-style-tweak-viewport": [
+            0.23162927747480302,
+            0.9408274587246693,
+            0.9675604952497664,
+            0.728002965829482,
+            0.28468321652744594,
+            0.0789887403694651
+          ],
+          "material-dashboard-360-occlusion-overlay-viewport": [
+            0.3119605899908696,
+            0.9594149868107164,
+            0.9760355641624562,
+            0.7124795199587156,
+            0.20312382748695287,
+            0.06410017124653497
+          ],
+          "material-dashboard-360-text-truncate-viewport": [
+            0.23250817261958662,
+            0.9409152257646555,
+            0.9675272609602269,
+            0.7269542891547502,
+            0.2839635741871307,
+            0.07965557418689692
+          ],
+          "material-dashboard-360-layout-shift-viewport": [
+            0.2723600805292856,
+            0.9471912886530099,
+            0.9717338472271154,
+            0.7195972671964465,
+            0.2698992747396367,
+            0.08775406052435573
+          ],
+          "material-dashboard-1280-clean-viewport": [
+            0.45989267540018236,
+            0.9490081542714419,
+            0.9838964987495664,
+            0.6906643535659115,
+            0.3720822655229673,
+            0.040049374861228657
+          ],
+          "material-dashboard-1280-clip-full-viewport": [
+            0.776951069492801,
+            0.9827884566559334,
+            0.9925865136192156,
+            0.44641197343603795,
+            0.5117600727553524,
+            0.05821384787338421
+          ],
+          "material-dashboard-1280-clip-right-75-viewport": [
+            0.5539605716404054,
+            0.9535153947127115,
+            0.9871207334662551,
+            0.6649216152034272,
+            0.3870964349335298,
+            0.0450532286563325
+          ],
+          "material-dashboard-1280-clip-right-50-viewport": [
+            0.6147096840003602,
+            0.9638434300229592,
+            0.9882871745126303,
+            0.6203643677746321,
+            0.38378499062175786,
+            0.04789780042073166
+          ],
+          "material-dashboard-1280-overflow-x-viewport": [
+            0.42414074743379715,
+            0.896901404188783,
+            0.9921678929530368,
+            0.8865971110954473,
+            0.30620828675402273,
+            0.01920104284131863
+          ],
+          "material-dashboard-1280-content-change-viewport": [
+            0.4602766487095106,
+            0.9491267615933077,
+            0.9839153849339848,
+            0.6904554778415363,
+            0.37183705931077143,
+            0.04005167748130665
+          ],
+          "material-dashboard-1280-style-tweak-viewport": [
+            0.46069050630490527,
+            0.9492351823483268,
+            0.9839535704272999,
+            0.6911863992083307,
+            0.3713915385862357,
+            0.03990988938603568
+          ],
+          "material-dashboard-1280-occlusion-overlay-viewport": [
+            0.5567554197961759,
+            0.9628543650807655,
+            0.9856629493139106,
+            0.6303277480179964,
+            0.27428354938886423,
+            0.03588679120029601
+          ],
+          "material-dashboard-1280-text-truncate-viewport": [
+            0.46032023793744226,
+            0.9491361032357045,
+            0.9839076668520649,
+            0.6904953546963263,
+            0.3717899822831619,
+            0.04005051609776475
+          ],
+          "material-dashboard-1280-layout-shift-viewport": [
+            0.4805546774773812,
+            0.9489631491564201,
+            0.9842246185732398,
+            0.6821603624095343,
+            0.3675759795849396,
+            0.04236527102545995
+          ],
+          "sb-admin-2-360-clean-viewport": [
+            0.21971946855329358,
+            0.3960590490525042,
+            0.414540245813568,
+            0.4703146489429426,
+            0.5463749633144036,
+            0.3726701421512355
+          ],
+          "sb-admin-2-360-clip-full-viewport": [
+            0.9404629818608726,
+            0.981892107868432,
+            0.9218421692026504,
+            0.06362660734875017,
+            0.6898793039611423,
+            0.5885777898081642
+          ],
+          "sb-admin-2-360-clip-right-75-viewport": [
+            0.44831648677347086,
+            0.6053255380584258,
+            0.5541391319885213,
+            0.3085890720449465,
+            0.5192842406398979,
+            0.3946804243962308
+          ],
+          "sb-admin-2-360-clip-right-50-viewport": [
+            0.5975446714510312,
+            0.7595120871365302,
+            0.639651338536467,
+            0.22934800843548364,
+            0.5302421300039545,
+            0.4042866039781827
+          ],
+          "sb-admin-2-360-clip-right-25-viewport": [
+            0.715105239539042,
+            0.8535407709791462,
+            0.690925604931556,
+            0.1690372099825348,
+            0.5360372193818549,
+            0.42713210322110845
+          ],
+          "sb-admin-2-360-clip-bottom-50-viewport": [
+            0.8254758076015314,
+            0.8196812180729599,
+            0.8675247242497692,
+            0.15608116255484591,
+            0.4269252143297556,
+            0.45871606550344673
+          ],
+          "sb-admin-2-360-overflow-x-viewport": [
+            0.1564257746460608,
+            0.15968128783065091,
+            0.5692801566047944,
+            0.8370850301259333,
+            0.3491211523386366,
+            0.2403307353512777
+          ],
+          "sb-admin-2-360-content-change-viewport": [
+            0.2194228168426573,
+            0.4032204245588402,
+            0.41265703935666165,
+            0.4652515162859116,
+            0.5530945261390692,
+            0.37152559693790965
+          ],
+          "sb-admin-2-360-overlay-adjacent-viewport": [
+            0.21432603894649474,
+            0.3935711972021137,
+            0.4115905267356328,
+            0.4640395405799278,
+            0.5453812641557262,
+            0.36837078338105234
+          ],
+          "sb-admin-2-360-style-tweak-viewport": [
+            0.22162447903246515,
+            0.39772635187389516,
+            0.41513667542024424,
+            0.46821207183964236,
+            0.5466552429522283,
+            0.3734601408644559
+          ],
+          "sb-admin-2-360-occlusion-overlay-viewport": [
+            0.5503331275010935,
+            0.7399307827207625,
+            0.6844488239797999,
+            0.2608065884126059,
+            0.4661592121857399,
+            0.34088913409218513
+          ],
+          "sb-admin-2-360-missing-element-viewport": [
+            0.8749127078065975,
+            0.9469506554273093,
+            0.9083906083976623,
+            0.1437852518802671,
+            0.3849662824032776,
+            0.3924772209704942
+          ],
+          "sb-admin-2-360-text-truncate-viewport": [
+            0.21973828082127006,
+            0.4019826177447462,
+            0.41346813137881006,
+            0.46562390336143344,
+            0.5526749736519783,
+            0.3718937406918609
+          ],
+          "sb-admin-2-360-layout-shift-viewport": [
+            0.2942644238651873,
+            0.4477241937934729,
+            0.4692398662562188,
+            0.42259583661316474,
+            0.5307287700272011,
+            0.39786582737873505
+          ],
+          "sb-admin-2-1280-clean-viewport": [
+            0.2859459677024902,
+            0.4574805579838094,
+            0.35683853667957194,
+            0.4281840772253677,
+            0.5803877621336397,
+            0.39161105795900014
+          ],
+          "sb-admin-2-1280-clip-full-viewport": [
+            0.899821815681412,
+            0.9620691476506951,
+            0.7734950544444323,
+            0.08478851952012244,
+            0.717179768930265,
+            0.5737295030529216
+          ],
+          "sb-admin-2-1280-clip-right-75-viewport": [
+            0.6522057711205832,
+            0.8308028226084966,
+            0.5532337911941931,
+            0.19082792626738762,
+            0.6003382178410194,
+            0.4215915495242522
+          ],
+          "sb-admin-2-1280-clip-right-50-viewport": [
+            0.7665992664678173,
+            0.9042589985162778,
+            0.6240274154791607,
+            0.14161261366273023,
+            0.6266986159110306,
+            0.46366365273635146
+          ],
+          "sb-admin-2-1280-clip-right-25-viewport": [
+            0.8172521083062035,
+            0.9307349809680421,
+            0.6586443246281113,
+            0.1189073380798465,
+            0.6611968094094525,
+            0.5143829229335396
+          ],
+          "sb-admin-2-1280-clip-bottom-50-viewport": [
+            0.8488630287436156,
+            0.8749086914174528,
+            0.7719836332072464,
+            0.1137043830288947,
+            0.5205634084439456,
+            0.5389212661615234
+          ],
+          "sb-admin-2-1280-overflow-x-viewport": [
+            0.2300051304566387,
+            0.17090164314926162,
+            0.613346410183137,
+            0.8423629874820239,
+            0.4090286119858224,
+            0.30047064296027437
+          ],
+          "sb-admin-2-1280-content-change-viewport": [
+            0.28509387443984274,
+            0.4577580889447307,
+            0.3550324396441286,
+            0.4266247779758592,
+            0.5818387127399103,
+            0.39089921403789446
+          ],
+          "sb-admin-2-1280-overlay-adjacent-viewport": [
+            0.2851649456136916,
+            0.45795557167772255,
+            0.3576002365128442,
+            0.42551764144542,
+            0.5818661857079066,
+            0.3905912945978889
+          ],
+          "sb-admin-2-1280-style-tweak-viewport": [
+            0.286348610897517,
+            0.4581976740383511,
+            0.35669180584530713,
+            0.4271038745047298,
+            0.580846671391291,
+            0.39162307769278554
+          ],
+          "sb-admin-2-1280-occlusion-overlay-viewport": [
+            0.6170512916378397,
+            0.822625237816876,
+            0.5444683451582961,
+            0.19552628822944992,
+            0.5612792392906513,
+            0.37833905763031034
+          ],
+          "sb-admin-2-1280-missing-element-viewport": [
+            0.8566116536602971,
+            0.9538623069361513,
+            0.8662625289059066,
+            0.15351085791325614,
+            0.5368490477933721,
+            0.46037454922782906
+          ],
+          "sb-admin-2-1280-text-truncate-viewport": [
+            0.2847428599905585,
+            0.458107281358472,
+            0.3542169377254225,
+            0.4260143892966648,
+            0.5826477225485529,
+            0.39055673695628784
+          ],
+          "sb-admin-2-1280-layout-shift-viewport": [
+            0.328118867773105,
+            0.4846779551417271,
+            0.38750111471420357,
+            0.40063646048748414,
+            0.5756870129935296,
+            0.4082000884449525
+          ]
+        },
+        "positiveThresholds": [
+          null,
+          0.9594149868107164,
+          null,
+          0.8865971110954473,
+          null,
+          null
+        ],
+        "testMetrics": [
+          {
+            "head": "clipping",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "occlusion",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "missing_element",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "overflow",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "text_truncation",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          },
+          {
+            "head": "layout_shift",
+            "positives": 0,
+            "negatives": 0,
+            "tp": 0,
+            "fp": 0,
+            "unresolvedPositive": 0,
+            "precision": null,
+            "recall": null,
+            "precision95": null,
+            "recall95": null,
+            "falsePositiveRate95": null
+          }
+        ],
+        "promotion": "blocked",
+        "blockers": [
+          "experimental-model",
+          "independent-application-quality-gates-not-established",
+          "full-vps-not-measured"
+        ],
+        "coverage": "supplied-regions-only"
+      }
+    },
+    "elapsedSeconds": 2.054432902019471,
+    "peakRssKiB": 155416
+  },
+  "promotion": "blocked-experimental-model",
+  "coverage": "six controlled heads (clipping, occlusion, missing_element, overflow, text_truncation, layout_shift); hypothesis-only model",
+  "noTeacherCalls": true
+}

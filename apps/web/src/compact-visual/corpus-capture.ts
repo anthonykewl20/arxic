@@ -149,6 +149,19 @@ export const STATIC_FAMILY_CONFIG: Record<
     buttonExact: true,
     buttonSelector: 'a.btn-primary.btn-user',
   },
+  'material-dashboard': {
+    // Creative Tim's template (MIT, tag v3.1.0, commit-pinned) is a vendor
+    // distinct from the StartBootstrap families: its static build ships the
+    // sign-in page with a plain enabled submit button — the page's only
+    // bg-gradient-primary button (the navbar CTA is bg-gradient-dark), so
+    // the selector stays unique. Remote fonts and the unsplash header image
+    // do not paint offline; nothing the oracles measure depends on them.
+    docroot: 'material-dashboard',
+    path: '/pages/sign-in.html',
+    button: '',
+    buttonExact: true,
+    buttonSelector: 'button.bg-gradient-primary',
+  },
 };
 
 const CONTENT_TYPES: Record<string, string> = {

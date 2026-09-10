@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "material-dashboard-1280-clean",
+  "group": "material-dashboard",
+  "revision": "2881b5d0e96f50a8b576f66b901fabe765fda616",
+  "consent": true,
+  "context": {
+    "width": 1280,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clean"
+  },
+  "before": {
+    "path": "material-dashboard-1280-clean-before.png",
+    "sha256": "9c9f0599aab40a0ebc37a82ddd3a0fd94abd55863b16355bbb941e400c2b7930"
+  },
+  "current": {
+    "path": "material-dashboard-1280-clean-current.png",
+    "sha256": "9c9f0599aab40a0ebc37a82ddd3a0fd94abd55863b16355bbb941e400c2b7930"
+  },
+  "beforePrivacy": {
+    "path": "material-dashboard-1280-clean-before.png.privacy.json",
+    "sha256": "600fa51939f1b9fad7b0c0418c5622ed58c815a2f71a90735a99b96b7b38e437"
+  },
+  "currentPrivacy": {
+    "path": "material-dashboard-1280-clean-current.png.privacy.json",
+    "sha256": "600fa51939f1b9fad7b0c0418c5622ed58c815a2f71a90735a99b96b7b38e437"
+  },
+  "scene": {
+    "path": "material-dashboard-1280-clean-scene.json",
+    "sha256": "3ccf234ee86641e77c5ccaf3d335154448d4d0d0a5e05b8a8b38f68c0d972d1a"
+  },
+  "timeline": {
+    "path": "material-dashboard-1280-clean-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "material-dashboard-1280-clean-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}
