@@ -112,7 +112,7 @@ it.each(['light', 'dark'] as const)(
       await page.goto(app.origin);
       await page.getByLabel('Administrator token').fill('capture-gallery-test-administrator-token');
       await page.getByRole('button', { name: 'Open workbench' }).click();
-      await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+      await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
       await page.goto(`${app.origin}?view=runs&run=${first.id}`);
       await page.getByLabel('Search capture paths').fill('/missing');
       await page.getByText('0 matching captures of 12', { exact: true }).waitFor();
@@ -241,7 +241,7 @@ it.each(['light', 'dark'] as const)(
       const approve = card.getByRole('button', { name: 'Approve as baseline', exact: true });
       await approve.focus();
       await page.keyboard.press('Enter');
-      await card.getByText('current approved baseline', { exact: true }).waitFor();
+      await card.getByText('Current approved baseline', { exact: true }).waitFor();
       expect((await readRun(first.id)).result).toEqual(first.result);
       expect(
         await page.getByLabel('Comparison at capture time', { exact: true }).inputValue(),

@@ -25,6 +25,7 @@ import {
   type RouteCoverageDimensionName,
   type SurfaceIntentSummary,
 } from '../route-coverage';
+import { evidenceWords } from '../plain-words';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { IntentLedger } from '../../../../packages/intent/src/ledger';
@@ -147,9 +148,11 @@ export function InventoryPanel(props: InventoryPanelProps) {
         )}
       </nav>
       <p className="scope-note">
-        Source discovery inventories routes and frontend declarations with explicit gaps; it does
-        not recover every business rule. AI E2E adds evidence-grounded proposals and replay
-        outcomes. Unseen personas, states, flags, and pages remain uncovered.
+        This is what reading your code found: the addresses it serves, the journeys it declares and
+        the components behind them. Pages you can look at live under Pages; API endpoints are here
+        because nobody can look at one. Reading code cannot recover every rule your application
+        follows, and personas, states and flags nothing has exercised stay uncovered rather than
+        counted as fine.
       </p>
       {latest.length ? (
         <>
@@ -160,13 +163,13 @@ export function InventoryPanel(props: InventoryPanelProps) {
             of it. The operator picks the dimension instead.
           */}
           <Tabs
-            label="Intent inventory sections"
+            label="Coverage sections"
             value={tab}
             onValueChange={setTab}
             items={[
-              { id: 'surfaces', label: 'Surfaces', count: surfaceCount },
-              { id: 'workflows', label: 'Workflows' },
-              { id: 'declarations', label: 'Declarations', count: declarationCount },
+              { id: 'surfaces', label: 'Pages and endpoints', count: surfaceCount },
+              { id: 'workflows', label: 'Workflows to test' },
+              { id: 'declarations', label: 'In the code', count: declarationCount },
             ]}
           />
           {latest.map(({ project, run, discovery }) =>
@@ -210,7 +213,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
                   data-project={project.id}
                   onClick={() => actions().startRun(project.id, 'discovery')}
                 >
-                  Discover intents
+                  Read the code
                 </Button>
               </EmptyState>
             ),
@@ -294,8 +297,12 @@ function SurfaceInventory({
         // Badge and disposition sit on one line: stacked, they set the row
         // height for every surface in the table.
         <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-          <Badge variant="outline" className={`pill ${row.truthState} shrink-0`}>
-            {row.truthState}
+          <Badge
+            variant="outline"
+            className={`pill ${row.truthState} shrink-0`}
+            title={evidenceWords(row.truthState).detail}
+          >
+            {evidenceWords(row.truthState).label}
           </Badge>
           <small className="text-[11px] text-[var(--foreground-muted)]">{row.disposition}</small>
         </span>

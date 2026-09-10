@@ -5,6 +5,9 @@ import { RunPanel, type RunPanelProps } from './run-panel';
 import { RunTable, Status } from './run-table';
 import { time } from './display';
 import { InventoryPanel, type InventoryPanelProps } from './inventory-panel';
+import { ChangesPanel, PagesPanel, type PagesPanelProps } from './pages-panel';
+import { buildPageInventory, pendingChanges } from '../page-inventory';
+import { environmentWords } from '../plain-words';
 import { CampaignPanel, type CampaignPanelProps } from './campaign-panel';
 import { createRoot, type Root } from 'react-dom/client';
 import { useState } from 'react';
@@ -17,9 +20,11 @@ import {
   FolderLock,
   Plus,
   Bot,
+  KeyRound,
   Settings2,
 } from 'lucide-react';
 import {
+  Badge,
   Button,
   Card,
   CardContent,
@@ -50,9 +55,13 @@ function projectHealth(state: State, id: string) {
 }
 function Overview({ state }: { state: State }) {
   const active = state.runs.filter((run) => ['queued', 'running'].includes(run.state));
-  const changed = state.runs.filter((run) =>
-    run.result?.captures?.some((capture) => capture.status === 'changed'),
-  );
+  const waiting = pendingChanges(
+    buildPageInventory({
+      projects: state.projects,
+      runs: state.runs,
+      baselines: state.baselines,
+    }),
+  ).length;
   const scheduled = state.projects.filter((item) => item.cron && !item.paused);
   const columns: ReadonlyArray<Column<State['projects'][number]>> = [
     {
@@ -82,6 +91,18 @@ function Overview({ state }: { state: State }) {
           </span>
         </span>
       ),
+    },
+    {
+      key: 'environment',
+      header: 'Environment',
+      cell: (item) => {
+        const words = environmentWords(item.environment);
+        return (
+          <Badge variant="outline" className={`pill env-${words.term}`} title={words.detail}>
+            {words.label}
+          </Badge>
+        );
+      },
     },
     {
       key: 'status',
@@ -115,15 +136,24 @@ function Overview({ state }: { state: State }) {
             size="sm"
             onClick={() => actions().startRun(item.id, 'discovery')}
           >
-            Discover intents
+            Read the code
           </Button>
           <Button variant="outline" size="sm" onClick={() => actions().startRun(item.id, 'visual')}>
-            Visual test
+            Screenshot test
           </Button>
           <Menu
             label={`More actions for ${item.name}`}
             items={[
-              { label: 'AI E2E', icon: Bot, onSelect: () => actions().startRun(item.id, 'agent') },
+              {
+                label: 'AI walkthrough',
+                icon: Bot,
+                onSelect: () => actions().startRun(item.id, 'agent'),
+              },
+              {
+                label: 'Sign-in details',
+                icon: KeyRound,
+                onSelect: () => actions().projectCredentials(item.id),
+              },
               {
                 label: 'Project settings',
                 icon: Settings2,
@@ -137,33 +167,35 @@ function Overview({ state }: { state: State }) {
   ];
   return (
     <>
-      {changed.length > 0 && (
-        <button type="button" className="attention" onClick={() => actions().navigate('runs')}>
+      {waiting > 0 && (
+        <button type="button" className="attention" onClick={() => actions().navigate('changes')}>
           <span className="attention-mark" aria-hidden="true">
             <AlertTriangle size={14} />
           </span>
           <span>
             <strong>
-              {changed.length} {changed.length === 1 ? 'run has' : 'runs have'} pixels that changed
+              {waiting} {waiting === 1 ? 'screenshot needs' : 'screenshots need'} your decision
             </strong>
-            <small>Compare them against their baselines and decide what is a defect.</small>
+            <small>
+              Compare each one against the picture you approved, and say which is right.
+            </small>
           </span>
           <ArrowUpRight size={14} aria-hidden="true" />
         </button>
       )}
       <div className="stats">
-        <Stat label="Projects" value={state.projects.length} caption="Connected on this instance" />
-        <Stat label="Active runs" value={active.length} caption="Queued and running" />
+        <Stat label="Projects" value={state.projects.length} caption="Watched by this server" />
+        <Stat label="Running now" value={active.length} caption="Queued and in progress" />
         <Stat
-          label="Changed captures"
-          value={changed.length}
-          caption="Awaiting your review"
-          tone={changed.length ? 'attention' : 'default'}
+          label="Waiting on you"
+          value={waiting}
+          caption="Screenshots that changed"
+          tone={waiting ? 'attention' : 'default'}
         />
         <Stat
           label="Schedules"
           value={scheduled.length}
-          caption={scheduled.length ? 'Running on UTC slots' : 'None armed'}
+          caption={scheduled.length ? 'Running on UTC slots' : 'None set'}
         />
       </div>
       <Section title="Projects" meta={`${state.projects.length} connected`}>
@@ -182,14 +214,14 @@ function Overview({ state }: { state: State }) {
                 </Button>
               }
             >
-              Pick a folder on this server or paste a GitHub URL. Arxic inventories the source
-              first; add a running test app later for visual and AI runs.
+              Pick a folder on this server or paste a GitHub URL. Arxic reads the code to find your
+              pages; point it at a running copy of the site and it will photograph them too.
             </EmptyState>
           }
         />
       </Section>
       <Section
-        title="Recent runs"
+        title="Recent tests"
         actions={
           <Button
             variant="ghost"
@@ -204,9 +236,10 @@ function Overview({ state }: { state: State }) {
         <RunTable runs={state.runs.slice(0, 6)} />
       </Section>
       <Note>
-        <strong>Coverage with context.</strong> Discovered surfaces are hypotheses until runtime
-        evidence supports them. A matching screenshot does not prove business correctness. Blocked
-        and unsupported areas stay visible.
+        <strong>What a passing test means.</strong> A page that matches its approved picture looks
+        the same as last time — that is all it proves. Pages found by reading code have not been
+        opened yet, and anything Arxic could not reach stays visible rather than being counted as
+        fine.
       </Note>
     </>
   );
@@ -399,13 +432,16 @@ export function mountWorkspacePanel(
     state,
     campaign,
     inventory,
+    pages,
     runPanel,
     admin,
   }: {
-    section: 'overview' | 'schedules' | 'admin' | 'campaigns' | 'intents' | 'runs';
+    section:
+      'pages' | 'changes' | 'overview' | 'schedules' | 'admin' | 'campaigns' | 'intents' | 'runs';
     state: State;
     campaign: CampaignPanelProps;
     inventory: InventoryPanelProps;
+    pages: PagesPanelProps;
     runPanel: RunPanelProps;
     admin?: { onChanged?: () => Promise<void> };
   },
@@ -414,6 +450,21 @@ export function mountWorkspacePanel(
   if (!root) {
     root = createRoot(element);
     roots.set(element, root);
+  }
+  if (section === 'pages') {
+    root.render(<PagesPanel {...pages} />);
+    return;
+  }
+  if (section === 'changes') {
+    root.render(
+      <ChangesPanel
+        pages={pages.pages}
+        projects={pages.projects}
+        projectId={pages.projectId}
+        onFilter={pages.onFilter}
+      />,
+    );
+    return;
   }
   if (section === 'runs') {
     root.render(<RunPanel {...runPanel} />);

@@ -166,7 +166,7 @@ it('classifies outgoing-document fetch diagnostics without waiving active failur
     // Active-page request refusal: same driver shape on WebKit, but no
     // outgoing document — must stay a hard error everywhere.
     await page.route('**/api/runs?**', (route) => route.abort('accessdenied'));
-    await page.getByRole('button', { name: 'Overview', exact: true }).click();
+    await page.getByRole('button', { name: 'Projects', exact: true }).click();
     await page.getByRole('button', { name: 'Test runs', exact: true }).click();
     await page
       .getByText('Run history could not be loaded. Retry or check your connection.', {
@@ -193,7 +193,7 @@ it('classifies outgoing-document fetch diagnostics without waiving active failur
     else expect(refusalEvents.length).toBe(0);
     const waivedAfterRefusal = errors.waived().length;
     expect(waivedAfterRefusal).toBe(waivedAfterDetail);
-    await page.getByRole('button', { name: 'Overview', exact: true }).click();
+    await page.getByRole('button', { name: 'Projects', exact: true }).click();
     await page.getByRole('button', { name: 'Test runs', exact: true }).click();
     await page.getByRole('heading', { name: 'No runs yet' }).waitFor();
     await page.waitForTimeout(2100);

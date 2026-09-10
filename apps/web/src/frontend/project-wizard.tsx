@@ -25,6 +25,9 @@ import {
   Textarea,
 } from './components';
 import { ModelControls, type ModelChoice, type RefreshModels } from './model-controls';
+import { ProjectCredentials } from './project-credentials';
+import { suggestRef } from './credentials';
+import { environmentWords, projectEnvironments } from '../plain-words';
 import type { Project } from '../types';
 import type { Detection, FolderCandidate } from '../workspace';
 
@@ -33,6 +36,8 @@ export type Api = (path: string, method?: string, body?: unknown) => Promise<any
 type Props = {
   project?: Project;
   api: Api;
+  /** Open with one section in view — the sign-in details, reached from a project's menu. */
+  focus?: 'login';
   onRefreshModels: RefreshModels;
   onSaved: () => Promise<void>;
   onClose: () => void;
@@ -69,11 +74,12 @@ const frameworkLabel: Record<string, string> = {
 /** Builds the project request body from the settings form; mirrors the server's accepted shape. */
 export function projectBody(values: FormData) {
   const body: Record<string, unknown> = Object.fromEntries(
-    ['name', 'folder', 'origin', 'configPath', 'cron', 'scheduleMode'].map((key) => [
+    ['name', 'folder', 'origin', 'environment', 'configPath', 'cron', 'scheduleMode'].map((key) => [
       key,
       values.get(key) ?? '',
     ]),
   );
+  if (!body.environment) body.environment = 'development';
   body.browsers = values.has('visualMatrixConfigured') ? values.getAll('browsers') : ['chromium'];
   body.colorSchemes = values.has('visualMatrixConfigured')
     ? values.getAll('colorSchemes')
@@ -334,6 +340,7 @@ function SettingsStep({
   project,
   detection,
   api,
+  focus,
   onRefreshModels,
   onSaved,
   onClose,
@@ -352,6 +359,7 @@ function SettingsStep({
       { width: 1440, height: 900 },
       { width: 390, height: 844 },
     ],
+    environment: 'development' as const,
     captureConsent: false,
     pageMode: 'manual' as const,
     recordVideo: false,
@@ -367,7 +375,21 @@ function SettingsStep({
   };
   const [guided, setGuided] = useState(!!seed.execution);
   const [pageMode, setPageMode] = useState<'manual' | 'discover'>(seed.pageMode);
-  const [loginEnabled, setLoginEnabled] = useState(!!seed.login);
+  // Arriving from a project's "Sign-in details" means the section is what was
+  // asked for; a collapsed, hidden fieldset cannot be scrolled to and would
+  // land the person at the top of a long form instead. Revealing it changes
+  // nothing until Save, and the fields are required, so an empty sign-in
+  // cannot be saved by accident.
+  const [loginEnabled, setLoginEnabled] = useState(!!seed.login || focus === 'login');
+  const [environment, setEnvironment] = useState<Project['environment']>(
+    seed.environment ?? 'development',
+  );
+  // Suggested from the project name so a reference is placeable later, in the
+  // vault list and in a server environment alike.
+  const [emailRef, setEmailRef] = useState(seed.login?.emailRef ?? suggestRef(seed.name, 'email'));
+  const [passwordRef, setPasswordRef] = useState(
+    seed.login?.passwordRef ?? suggestRef(seed.name, 'password'),
+  );
   const [viewports, setViewports] = useState(
     seed.viewports.map((view) => `${view.width}x${view.height}`).join(', '),
   );
@@ -384,6 +406,20 @@ function SettingsStep({
     errorMessage.current?.focus({ preventScroll: true });
     errorMessage.current?.scrollIntoView({ block: 'nearest' });
   }, [error]);
+  // Opened from a project's "Sign-in details": land on that section rather
+  // than at the top of a long settings form.
+  const loginSection = useRef<HTMLFieldSetElement>(null);
+  useEffect(() => {
+    if (focus !== 'login') return;
+    // The wizard is rendered with flushSync and the dialog is opened straight
+    // after, so at effect time this is still inside a closed <dialog> with no
+    // layout to scroll. One frame later it is on screen.
+    const frame = requestAnimationFrame(() => {
+      loginSection.current?.scrollIntoView({ block: 'start' });
+      loginSection.current?.querySelector('input')?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focus]);
   const initialConnection = seed.execution?.modelConnection;
   const hasExecution = !!seed.execution;
   useEffect(() => {
@@ -476,6 +512,23 @@ function SettingsStep({
               Optional until you run visual or AI tests. No path, query string, or credentials.
             </small>
           </Label>
+          <Label>
+            Which copy of the site is this?
+            <Select
+              name="environment"
+              value={environment}
+              onChange={(event) =>
+                setEnvironment(event.currentTarget.value as Project['environment'])
+              }
+            >
+              {projectEnvironments.map((option) => (
+                <option key={option.term} value={option.term}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+            <small>{environmentWords(environment).detail}</small>
+          </Label>
         </div>
         <div className="form-stack">
           <span className="text-xs font-medium text-secondary-foreground">Pages to screenshot</span>
@@ -545,7 +598,7 @@ function SettingsStep({
             />
             <small>
               {pageMode === 'discover'
-                ? 'Always included. Run Discover intents first; its pages are merged at capture time.'
+                ? 'Always included. Run "Read the code" first; the pages it finds are merged in at capture time.'
                 : 'One path per line, up to 200. Read-only checkpoints.'}
             </small>
           </Label>
@@ -697,18 +750,24 @@ function SettingsStep({
             name="loginEnabled"
             checked={loginEnabled}
             onChange={(event) => setLoginEnabled(event.target.checked)}
-            label="Sign in before capturing (pages behind login)"
+            label="This site has pages behind a sign-in"
           />
-          <fieldset id="login-fields" hidden={!loginEnabled} disabled={!loginEnabled}>
-            <legend>Test account sign-in</legend>
+          <fieldset
+            id="login-fields"
+            ref={loginSection}
+            hidden={!loginEnabled}
+            disabled={!loginEnabled}
+          >
+            <legend>Signing in</legend>
             <p className="muted">
-              One form sign-in per browser/theme environment with a test account. Secret references
-              name ARXIC_SECRET_ variables on the server; the session lives in memory for the run
-              only. Fields are found by label, then by input type.
+              Arxic fills in your sign-in form once per browser and theme, then photographs the
+              pages behind it. Use a test account, never a real person&rsquo;s. The signed-in
+              session is held in memory for the run and thrown away afterwards; the form&rsquo;s
+              fields are found by their labels, then by their type.
             </p>
             <div className="form-grid">
               <Label>
-                Login path
+                Address of the sign-in page
                 <Input
                   name="login_loginPath"
                   defaultValue={seed.login?.loginPath ?? '/login'}
@@ -716,42 +775,50 @@ function SettingsStep({
                 />
               </Label>
               <Label>
-                Submit button label
+                Text on the sign-in button
                 <Input
                   name="login_submitLabel"
                   defaultValue={seed.login?.submitLabel ?? 'Sign in'}
                 />
               </Label>
               <Label>
-                Visual sign-in email secret reference
+                Email reference name
                 <Input
                   name="login_emailRef"
-                  defaultValue={seed.login?.emailRef}
+                  value={emailRef}
+                  onChange={(event) => setEmailRef(event.currentTarget.value)}
                   placeholder="ARXIC_SECRET_TEST_EMAIL"
                   required
                 />
               </Label>
               <Label>
-                Visual sign-in password secret reference
+                Password reference name
                 <Input
                   name="login_passwordRef"
-                  defaultValue={seed.login?.passwordRef}
+                  value={passwordRef}
+                  onChange={(event) => setPasswordRef(event.currentTarget.value)}
                   placeholder="ARXIC_SECRET_TEST_PASSWORD"
                   required
                 />
               </Label>
               <Label>
-                Email field label
+                Label above the email field
                 <Input name="login_emailLabel" defaultValue={seed.login?.emailLabel ?? 'Email'} />
               </Label>
               <Label>
-                Password field label
+                Label above the password field
                 <Input
                   name="login_passwordLabel"
                   defaultValue={seed.login?.passwordLabel ?? 'Password'}
                 />
               </Label>
             </div>
+            <h3 className="mt-4 text-[13px] font-semibold">The account itself</h3>
+            <p className="muted">
+              The email and password Arxic signs in with. Set them here — they are stored encrypted
+              on this server and are never shown again.
+            </p>
+            <ProjectCredentials refs={[emailRef, passwordRef]} />
           </fieldset>
         </div>
         <details open={!!(seed.masks.length || seed.cron || seed.configPath || seed.recordVideo)}>

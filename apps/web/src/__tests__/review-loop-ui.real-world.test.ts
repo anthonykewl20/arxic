@@ -79,7 +79,7 @@ it('walks changed captures with j/k and approves the focused capture with a', as
     await page.goto(app.origin);
     await page.getByLabel('Administrator token').fill('review-loop-test-administrator-token');
     await page.getByRole('button', { name: 'Open workbench' }).click();
-    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+    await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
     await page.goto(`${app.origin}?view=runs&run=${secondRun.id}`);
     await page.locator('.capture').first().waitFor();
     const cards = page.locator('.capture');
@@ -128,7 +128,7 @@ it('walks changed captures with j/k and approves the focused capture with a', as
 
     // a approves ONLY the focused capture.
     await page.keyboard.press('a');
-    await expect.poll(() => desktop.getByText('current approved baseline').count()).toBe(1);
+    await expect.poll(() => desktop.getByText('Current approved baseline').count()).toBe(1);
     expect(await desktop.getByRole('button', { name: 'Approve as baseline' }).count()).toBe(0);
     expect(await mobile.getByRole('button', { name: 'Approve as baseline' }).isVisible()).toBe(
       true,

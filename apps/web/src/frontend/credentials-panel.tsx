@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { KeyRound, Trash2 } from 'lucide-react';
 import {
+  credentialRequest as request,
+  credentialStatus as statusLabels,
+  type Credential,
+  type CredentialInventory as Inventory,
+} from './credentials';
+import {
   Button,
   DataTable,
   EmptyState,
@@ -14,46 +20,14 @@ import {
   type Column,
 } from './components';
 
-type Credential = {
-  ref: string;
-  uses: string[];
-  status: 'vault' | 'environment' | 'missing';
-};
-type Inventory = {
-  keySource: 'environment' | 'file';
-  keyPath?: string;
-  credentials: Credential[];
-  orphaned: string[];
-};
-
-const statusLabels: Record<
-  Credential['status'],
-  { label: string; tone: 'success' | 'info' | 'warning' }
-> = {
-  vault: { label: 'Stored here', tone: 'success' },
-  environment: { label: 'From server environment', tone: 'info' },
-  missing: { label: 'Not set', tone: 'warning' },
-};
-
-async function request(method: 'GET' | 'POST' | 'DELETE', body?: unknown): Promise<Inventory> {
-  const response = await fetch('/api/secrets', {
-    method,
-    ...(body === undefined
-      ? {}
-      : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }),
-  });
-  const data = (await response.json().catch(() => ({}))) as Inventory & { error?: string };
-  if (!response.ok) throw new Error(data.error ?? 'Credential request failed');
-  return data;
-}
-
 /**
  * The sign-in identities visual runs use to reach authorized pages.
  *
  * Write-only by construction: a value can be replaced or removed but never read
  * back, and the server sends only reference names and whether each resolves. A
- * project declares WHICH reference it signs in with; this screen is where that
- * reference gets a value.
+ * project declares WHICH reference it signs in with, and can now set the value
+ * from its own settings dialog; this screen is the whole workspace at once —
+ * every reference anything uses, including ones no project claims any more.
  */
 export function CredentialsPanel() {
   const [inventory, setInventory] = useState<Inventory>();

@@ -97,7 +97,7 @@ it.each(['light', 'dark'] as const)(
       await expect
         .poll(async () => (await readRun(id)).state, { timeout: 30000 })
         .toBe('completed');
-      await page.getByText('unchanged', { exact: true }).waitFor();
+      await page.getByText('Unchanged', { exact: true }).waitFor();
       return await readRun(id);
     }
     try {
@@ -182,14 +182,14 @@ it.each(['light', 'dark'] as const)(
       await page
         .getByText('Comparison at capture time: no prior baseline', { exact: true })
         .waitFor();
-      expect(await page.getByText('current approved baseline', { exact: true }).count()).toBe(0);
+      expect(await page.getByText('Current approved baseline', { exact: true }).count()).toBe(0);
       await audit(
         '01-approval-unavailable',
         'Approval failure preserves historical no-baseline result and offers retry',
       );
       await page.unroute('**/baselines');
       await approve();
-      await page.getByText('current approved baseline', { exact: true }).waitFor();
+      await page.getByText('Current approved baseline', { exact: true }).waitFor();
       expect((await readRun(first.id)).result).toEqual(first.result);
       expect(await page.getByText('Awaiting a reviewed baseline', { exact: true }).count()).toBe(0);
       await audit(
@@ -207,12 +207,12 @@ it.each(['light', 'dark'] as const)(
       await page.getByRole('img', { name: 'Baseline used for this run', exact: true }).waitFor();
       await audit('04-compared', 'Subsequent capture compares against the approved first image');
       await approve();
-      await page.getByText('current approved baseline', { exact: true }).waitFor();
+      await page.getByText('Current approved baseline', { exact: true }).waitFor();
       const third = await nextRun(second.id);
       expect(third.result!.captures![0].baselineRunId).toBe(second.id);
       stage = 'navigate-second';
       await page.goto(`${app.origin}?view=runs&run=${second.id}`);
-      await page.getByText('current approved baseline', { exact: true }).waitFor();
+      await page.getByText('Current approved baseline', { exact: true }).waitFor();
       expect((await readRun(second.id)).result).toEqual(second.result);
       expect(
         await page
@@ -234,7 +234,7 @@ it.each(['light', 'dark'] as const)(
       await page
         .getByText('Comparison at capture time: no prior baseline', { exact: true })
         .waitFor();
-      expect(await page.getByText('current approved baseline', { exact: true }).count()).toBe(0);
+      expect(await page.getByText('Current approved baseline', { exact: true }).count()).toBe(0);
       expect((await readRun(first.id)).result).toEqual(first.result);
       const response = await page.request.get(
         `${app.origin}/api/runs/${first.id}/artifacts/${capture.file}`,

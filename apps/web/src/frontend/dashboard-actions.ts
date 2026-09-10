@@ -18,8 +18,15 @@
  */
 export type DashboardActions = {
   navigate(section: string): void;
+  /** Open one page's full record: screenshots, checks, source and history. */
+  openPage(projectId: string, path: string): void;
+  closePage(): void;
+  /** Photograph and check this page alone, rather than the whole project. */
+  runPageTest(projectId: string, path: string): void;
   addProject(): void;
   editProject(id: string): void;
+  /** Project settings, opened on the sign-in section. */
+  projectCredentials(id: string): void;
   startRun(projectId: string, mode: string): void;
   openRun(id: string): void;
   cancelRun(id: string): void;
@@ -42,8 +49,12 @@ export type DashboardActions = {
  */
 const inert: DashboardActions = {
   navigate: () => {},
+  openPage: () => {},
+  closePage: () => {},
+  runPageTest: () => {},
   addProject: () => {},
   editProject: () => {},
+  projectCredentials: () => {},
   startRun: () => {},
   openRun: () => {},
   cancelRun: () => {},

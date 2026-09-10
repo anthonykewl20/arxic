@@ -28,3 +28,29 @@ it('keeps the unknown-setting rejection for fields outside the whitelist', async
     validateProject({ name: 'Ratio', folder, pixelTolerance: 0.2 }, [folder]),
   ).rejects.toThrow('Unknown project setting');
 });
+
+it('treats a project nobody has classified as development', async () => {
+  // The safe assumption: never guess that an unlabelled target is production,
+  // and never guess that a production one is safe to submit forms on.
+  const project = await validateProject({ name: 'Unclassified', folder }, [folder]);
+  expect(project.environment).toBe('development');
+});
+
+it.each(['development', 'staging', 'production'])('admits the %s environment', async (value) => {
+  const project = await validateProject({ name: 'Env', folder, environment: value }, [folder]);
+  expect(project.environment).toBe(value);
+});
+
+it('refuses an environment it does not know', async () => {
+  await expect(
+    validateProject({ name: 'Env', folder, environment: 'prod' }, [folder]),
+  ).rejects.toThrow('Environment must be development, staging, or production');
+});
+
+it('keeps the environment when an edit does not mention it', async () => {
+  const previous = await validateProject({ name: 'Env', folder, environment: 'production' }, [
+    folder,
+  ]);
+  const edited = await validateProject({ name: 'Env renamed', folder }, [folder], previous);
+  expect(edited.environment).toBe('production');
+});

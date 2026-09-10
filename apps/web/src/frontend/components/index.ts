@@ -30,3 +30,4 @@ export { Toaster, toast, clearToasts, dismissToast, type Toast } from './ui/toas
 export { ConfirmHost, confirmAction } from './ui/confirm';
 export { CommandPalette, matchCommands, type Command } from './ui/command-palette';
 export { Tabs, TabPanel, type TabItem } from './ui/tabs';
+export { Thumbnail } from './ui/thumbnail';

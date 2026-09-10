@@ -21,11 +21,26 @@ export type VisualLogin = {
   emailPlaceholder?: string;
   passwordPlaceholder?: string;
 };
+/**
+ * Which copy of the site a project points at.
+ *
+ * Not decoration: a run opens pages in a real browser and, with state
+ * checkpoints or an AI walkthrough, submits real forms. Knowing that the
+ * target is production is what lets the dashboard say so before that happens,
+ * and lets a person tell two otherwise identical projects apart at a glance.
+ */
+export type ProjectEnvironment = 'development' | 'staging' | 'production';
 export type Project = {
   id: string;
   name: string;
   folder: string;
   origin: string;
+  /**
+   * Absent on projects connected before this field existed; read it through
+   * `projectEnvironment`, which treats "nobody has said" as development — the
+   * copy of a site where a mistake is cheapest.
+   */
+  environment?: ProjectEnvironment;
   paths: string[];
   browsers?: VisualEnvironment['browser'][];
   colorSchemes?: VisualEnvironment['colorScheme'][];

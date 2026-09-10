@@ -3,21 +3,31 @@ import { actions } from './dashboard-actions';
 import { Badge, Button, DataTable, EmptyState, StatusDot, toneOf, type Column } from './components';
 import type { Run } from '../types';
 import { time } from './display';
+import { runModeWords } from '../plain-words';
 
+/**
+ * A raw engine state as a pill.
+ *
+ * The pill stylesheet used to title-case everything, which was fine while
+ * pills only ever held engine words and wrong as soon as they held sentences
+ * ("2 to review" became "2 To Review"). The capitalisation belongs to the one
+ * caller that shows an engine word, not to every pill on the screen.
+ */
 export function Status({ value }: { value: string }) {
   return (
     <Badge variant="outline" className={`pill ${value}`}>
-      {value}
+      {value.charAt(0).toUpperCase() + value.slice(1)}
     </Badge>
   );
 }
 
-const modeLabels: Record<string, string> = {
-  discovery: 'Discovery',
-  visual: 'Visual',
-  agent: 'AI E2E',
-  review: 'AI review',
-};
+/**
+ * A run is named the same everywhere.
+ *
+ * The button on a project says "Screenshot test"; the run it produced must not
+ * be called "Visual" in the history. One vocabulary, from the control that
+ * starts the work to the record of it.
+ */
 
 /**
  * One line per run. A finished run reports its outcome, not both its process
@@ -51,7 +61,13 @@ export function RunTable({ runs }: { runs: Run[] }) {
         </span>
       ),
     },
-    { key: 'mode', header: 'Type', cell: (run) => modeLabels[run.mode] ?? run.mode },
+    {
+      key: 'mode',
+      header: 'Type',
+      cell: (run) => (
+        <span title={runModeWords(run.mode).detail}>{runModeWords(run.mode).label}</span>
+      ),
+    },
     {
       key: 'status',
       header: 'Status',

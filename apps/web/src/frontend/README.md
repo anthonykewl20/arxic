@@ -1,11 +1,46 @@
 # Frontend
 
-The workspace shell, overview, intent inventory, workflow selection, campaign
-history/details, schedules, administration, run/capture details, image review,
-model fields and Models & accounts use React, Tailwind CSS and shadcn/ui
+The workspace shell, Pages, Changes, projects, coverage, workflow selection,
+campaign history/details, schedules, settings, run/capture details, image
+review, model fields and AI models use React, Tailwind CSS and shadcn/ui
 components. Vite compiles the local assets once per server process; the server
 serves only the bundled JavaScript and CSS. No browser CDN or external script is
 required.
+
+## What the dashboard is about
+
+Pages. A person arrives asking whether their sign-in screen still looks right,
+not which HTTP methods a route table found, so `pages` is the home view and
+everything else is arranged around it:
+
+- **Pages** — every page Arxic can open, as a card: a real screenshot, a name in
+  words (`/login` reads as "Sign in"), what was checked, and one action, Run
+  test, which photographs that page alone rather than the whole project.
+- **Changes** — the review queue, and the only entry in the navigation that
+  carries a count. A change is pending until a person decides; approving is the
+  decision, which is why `pendingChanges` consults the baseline pointers rather
+  than a capture's status alone.
+- **Coverage** — the route table, the workflows and the source declarations.
+  Still the engine's own view of the world, and no longer the way in. API
+  endpoints live here because nobody can look at one.
+
+Two pure modules carry that:
+
+- `page-inventory.ts` builds the page list from the state snapshot the
+  dashboard already polls — configured paths, crawled paths and captured paths,
+  merged, with each page's screenshots, states, checks and pending decisions.
+  No extra request and no engine change; a page is a re-projection of evidence
+  that already existed.
+- `plain-words.ts` is the whole vocabulary: `needs-baseline` is "First look",
+  `unlabeled-inputs` is "N fields have no label", `hypothesized` is "Read from
+  your code". Every term keeps its engine word as `term`, so precision is one
+  disclosure away rather than lost — screens show the words and offer the
+  identifiers, never the other way round.
+
+Nothing claims more than it measured. A check is reported as passing only where
+the pipeline measures it unconditionally, which is why text contrast appears
+when it fails and never as a pass, and why an unstable capture withdraws the
+overflow claim rather than reporting it clean.
 
 ## Where things live
 
@@ -33,6 +68,9 @@ shadcn set it exports the composition primitives every screen builds from:
   projects, recent runs and actions. `app.ts` republishes the command list on
   every render, so the palette reaches whatever exists right now.
 - `Tabs` / `TabPanel` — sibling views of one subject.
+- `Thumbnail` — a screenshot shown small. `cover` crops to a recognisable slice
+  for a grid of pages; `contain` shows the whole frame for a before/after pair,
+  where a phone capture cropped to its navigation bar answers nothing.
 
 `app.ts` owns API requests, session-race protection and polling; the project and
 agent wizards (`project-wizard.tsx`, `agent-wizard.tsx`) own their forms. The
@@ -41,7 +79,7 @@ Review forms own draft state; shared pending-request tokens preserve submission
 state across navigation and reject duplicates. Session invalidation clears
 presentation state, while late responses cannot mutate a new session. Provider
 suggestions update independently from custom model inputs. Configured default
-HTTP connections share provider-driven catalogs with Models & accounts;
+HTTP connections share provider-driven catalogs with AI models;
 unavailable wrappers explain their discovery limitation. Dialogs are native
 `<dialog>` elements.
 

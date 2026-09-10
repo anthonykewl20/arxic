@@ -144,7 +144,7 @@ it.each(['light', 'dark'] as const)(
       await page.getByLabel('I authorize screenshot capture', { exact: false }).check();
       await page.getByRole('button', { name: 'Save project' }).click();
       await page.getByRole('heading', { name: 'Pixel density matrix', exact: true }).waitFor();
-      await page.getByRole('button', { name: 'Visual test', exact: true }).click();
+      await page.getByRole('button', { name: 'Screenshot test', exact: true }).click();
       // The enqueue POST round-trip can exceed vitest's 1 s poll default under
       // non-sharded load (observed in release-test ubuntu cells, #525).
       await expect

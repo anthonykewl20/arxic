@@ -3,7 +3,7 @@ import { realpath, stat } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 import { CronExpressionParser } from 'cron-parser';
 import { HttpError } from './errors';
-import type { Project, RunMode } from './types';
+import type { Project, RunMode, ProjectEnvironment } from './types';
 import { secretRef, validateExecution } from './execution';
 import { INDUCIBLE_STATUSES, isInducibleStatus } from './state-induction';
 
@@ -58,6 +58,7 @@ export async function validateProject(
     'name',
     'folder',
     'origin',
+    'environment',
     'paths',
     'stateCaptures',
     'componentCaptures',
@@ -89,6 +90,11 @@ export async function validateProject(
   };
   const name = text('name', '', 100);
   if (!name) throw new HttpError(400, 'Project name is required');
+  // Unset means development: a project nobody has classified is treated as the
+  // one where a mistake is cheapest, never as production.
+  const environment = text('environment', previous?.environment ?? 'development', 20);
+  if (!['development', 'staging', 'production'].includes(environment))
+    throw new HttpError(400, 'Environment must be development, staging, or production');
   const folder = await allowedFolder(text('folder'), roots);
   const origin = text('origin');
   if (origin) {
@@ -392,6 +398,7 @@ export async function validateProject(
     name,
     folder,
     origin,
+    environment: environment as ProjectEnvironment,
     paths,
     ...(stateCaptures?.length ? { stateCaptures } : {}),
     ...(componentCaptures?.length ? { componentCaptures } : {}),

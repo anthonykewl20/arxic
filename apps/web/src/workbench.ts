@@ -579,15 +579,36 @@ export class Workbench {
     })();
     return project;
   }
-  enqueue(projectId: string, mode: unknown): Run {
+  /**
+   * Queue a run, optionally narrowed to particular pages.
+   *
+   * `paths` exists so a person looking at one page can test that page: a
+   * whole-project run to re-check the sign-in screen is minutes of browsers
+   * for one screenshot. The narrowing is an intersection, never a
+   * substitution — only pages this project already covers can be named, so the
+   * parameter cannot be used to point the engine at a path it was never
+   * configured to visit.
+   */
+  enqueue(projectId: string, mode: unknown, paths?: unknown): Run {
     this.requireQueueCapacity(1);
     const project = this.store.project(projectId);
     if (!project) throw new HttpError(404, 'Project not found');
     const selected = runMode(mode);
-    const run = this.store.enqueue(
+    const covered =
       selected === 'visual' && project.pageMode === 'discover'
-        ? { ...project, paths: this.discoveredPaths(project) }
-        : project,
+        ? this.discoveredPaths(project)
+        : project.paths;
+    let scoped = covered;
+    if (paths !== undefined) {
+      if (!Array.isArray(paths) || paths.some((value) => typeof value !== 'string'))
+        throw new HttpError(400, 'Pages to test must be a list of paths');
+      const wanted = new Set(paths as string[]);
+      scoped = covered.filter((path) => wanted.has(path));
+      if (!scoped.length)
+        throw new HttpError(400, 'None of those pages belong to this project. Refresh and retry.');
+    }
+    const run = this.store.enqueue(
+      scoped === project.paths ? project : { ...project, paths: scoped },
       selected,
     )!;
     this.store.audit('run.queued', run.id);

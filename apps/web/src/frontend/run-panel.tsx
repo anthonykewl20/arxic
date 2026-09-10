@@ -3,6 +3,7 @@ import { actions } from './dashboard-actions';
 import { captureFailureMessage } from './capture-failure';
 import { CaptureGallery } from './capture-gallery';
 import { DiffViewer } from './diff-viewer';
+import { ActionTimeline } from './action-timeline';
 import { WorkflowCheckpoints } from './workflow-checkpoints';
 import { AssessmentPanel } from './assessment-panel';
 import type { RunHistoryPage } from '../run-history';
@@ -532,15 +533,14 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
         )
       )}
       {!!result?.captures?.length && (
-        <div className="scope-note">
-          Inputs are masked. Review all remaining pixels before sharing. Baseline approval records
-          your visual decision; it does not assign a verified business outcome. Captures cover
-          configured viewports and paths only.{' '}
-          <a href={`/api/runs/${run.id}/artifacts/timeline.json`}>Action timeline</a> ·{' '}
-          <a href={`/api/runs/${run.id}/artifacts/timeline.sanitization.json`}>
-            Sanitization provenance
-          </a>
-        </div>
+        <>
+          <ActionTimeline runId={run.id} />
+          <div className="scope-note">
+            Inputs are masked. Review all remaining pixels before sharing. Baseline approval records
+            your visual decision; it does not assign a verified business outcome. Captures cover
+            configured viewports and paths only.
+          </div>
+        </>
       )}
     </section>
   );

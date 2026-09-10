@@ -82,7 +82,7 @@ it('adds a workspace root at runtime, connects a project under it, and persists 
     body: JSON.stringify({ name: 'Mightybox', folder: outside }),
   });
   expect(refused.status).toBe(400);
-  expect(await refused.text()).toContain('Administration');
+  expect(await refused.text()).toContain('Settings');
 
   expect((await create('POST', { path: outside })).status).toBe(201);
   const state = (await (

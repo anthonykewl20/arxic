@@ -201,8 +201,10 @@ export async function startWorkbench(options: WorkbenchOptions) {
         await workbench.saveProject(await readJson(request), projectRoute[1]),
       );
     const runRoute = /^\/api\/projects\/([a-f0-9-]+)\/runs$/u.exec(path);
-    if (runRoute && request.method === 'POST')
-      return json(response, 202, workbench.enqueue(runRoute[1], (await readJson(request)).mode));
+    if (runRoute && request.method === 'POST') {
+      const body = await readJson(request);
+      return json(response, 202, workbench.enqueue(runRoute[1], body.mode, body.paths));
+    }
     const campaignCreate = /^\/api\/projects\/([a-f0-9-]+)\/campaigns$/u.exec(path);
     if (campaignCreate && request.method === 'POST')
       return json(

@@ -13,42 +13,59 @@ import { toast, clearToasts, confirmAction, type Command } from './components';
 import { updateCommands } from './command-registry';
 import { setDashboardActions } from './dashboard-actions';
 import {
-  LayoutDashboard,
+  LayoutGrid,
+  GitCompare,
   ScanSearch,
   Play,
-  Layers,
+  Route,
   CalendarClock,
   Bot,
   Settings2,
   Plus,
   FolderGit2,
 } from 'lucide-react';
+import { buildPageInventory, pendingChanges } from '../page-inventory';
+import { runModeWords, runNeedsConfirmation } from '../plain-words';
+import { PAGE_GRID_SIZE } from './pages-panel';
 
 initTheme();
 mountWorkspaceShell(document.querySelector('#workspace-root')!);
 const $ = <T extends Element = HTMLElement>(selector: string) =>
   document.querySelector(selector) as T;
+/**
+ * Section names in the words a person would use for them.
+ *
+ * These were the engine's nouns — "Intent inventory", "Workflow campaigns",
+ * "Models & accounts" — which are exact and unreadable. Pages leads because
+ * pages are what the product is about; the engine's own vocabulary stays
+ * available inside each screen rather than on the way in.
+ */
 const titles: Record<string, string> = {
-  overview: 'Workspace overview',
-  intents: 'Intent inventory',
+  pages: 'Pages',
+  changes: 'Changes',
   runs: 'Test runs',
-  campaigns: 'Workflow campaigns',
+  campaigns: 'Workflows',
   schedules: 'Schedules',
-  admin: 'Administration',
-  providers: 'Models & accounts',
+  overview: 'Projects',
+  intents: 'Coverage',
+  providers: 'AI models',
+  admin: 'Settings',
 };
 const descriptions: Record<string, string> = {
-  overview: 'Manage projects, uncover gaps, and review what changed.',
-  intents: 'Source evidence, AI proposals, and the coverage still missing.',
-  runs: 'Inspect outcomes, compare captures, and review evidence.',
-  campaigns: 'Follow selected workflows and keep uncovered surfaces visible.',
-  schedules: 'Keep testing with recurring, controlled runs.',
-  admin: 'Manage instance access, execution scope, and review activity.',
-  providers: 'Connect subscriptions and APIs. Discover models directly from your providers.',
+  pages: 'Every page Arxic found, what is on it, and whether it still looks right.',
+  changes: 'Screenshots that differ from the picture you approved. Approve the intended ones.',
+  runs: 'Every test that has run, and the evidence it produced.',
+  campaigns: 'Journeys through several pages, replayed by AI, and what each one did.',
+  schedules: 'Tests that run on their own, on a UTC timer.',
+  overview: 'The projects Arxic is watching. Connect one, or change how it is tested.',
+  intents:
+    'Everything found by reading your code: pages, API endpoints and the declarations behind them.',
+  providers: 'Connect a provider once; Arxic lists the models it offers.',
+  admin: 'Access, sign-in details, storage, and the activity log.',
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let state: any = { projects: [], runs: [], audit: [], baselines: [] };
-let section = 'overview';
+let section = 'pages';
 let selectedProject = '';
 let selectedRun = '';
 let selectedCampaign = '';
@@ -64,14 +81,18 @@ let refreshSequence = 0;
 let signingOut = false;
 let declarationKind = '';
 let declarationSearch = '';
+let pageSearch = '';
+let pageFilter = '';
+let pageOffset = 0;
+let selectedPage = '';
 const declarationPages = new Map<string, number>();
 const projectDialog = () => $<HTMLDialogElement>('#project-dialog');
 const agentDialog = () => $<HTMLDialogElement>('#agent-dialog');
 
 function readLocation() {
   const params = new URL(location.href).searchParams;
-  const view = params.get('view') ?? 'overview';
-  section = Object.hasOwn(titles, view) ? view : 'overview';
+  const view = params.get('view') ?? 'pages';
+  section = Object.hasOwn(titles, view) ? view : 'pages';
   const id = (name: string) => {
     const value = params.get(name) ?? '';
     return /^[a-f0-9-]{36}$/u.test(value) ? value : '';
@@ -89,14 +110,32 @@ function readLocation() {
     ? params.get('status')!
     : '';
   const offset = Number(params.get('offset') ?? 0);
-  runOffset = Number.isSafeInteger(offset) && offset >= 0 && offset <= 1_000_000 ? offset : 0;
+  const bounded = Number.isSafeInteger(offset) && offset >= 0 && offset <= 1_000_000 ? offset : 0;
+  runOffset = section === 'runs' ? bounded : 0;
+  pageOffset = section === 'pages' ? bounded : 0;
+  // A page is addressed by its own path, so a link to /login survives a reload
+  // and can be shared. Bounded and required to look like a path.
+  const page = params.get('page') ?? '';
+  selectedPage = section === 'pages' && page.startsWith('/') && page.length <= 512 ? page : '';
+  pageSearch = section === 'pages' ? (params.get('query') ?? '').slice(0, 200) : '';
+  pageFilter =
+    section === 'pages' &&
+    ['needs-review', 'problem', 'untested', 'ok'].includes(params.get('state') ?? '')
+      ? params.get('state')!
+      : '';
 }
 function writeLocation() {
   const url = new URL(location.href);
   url.search = '';
   url.hash = '';
-  if (section !== 'overview') url.searchParams.set('view', section);
+  if (section !== 'pages') url.searchParams.set('view', section);
   if (selectedProject) url.searchParams.set('project', selectedProject);
+  if (section === 'pages') {
+    if (selectedPage) url.searchParams.set('page', selectedPage);
+    if (pageSearch) url.searchParams.set('query', pageSearch);
+    if (pageFilter) url.searchParams.set('state', pageFilter);
+    if (pageOffset) url.searchParams.set('offset', String(pageOffset));
+  }
   if (section === 'runs') {
     if (selectedRun) url.searchParams.set('run', selectedRun);
     if (runSearch) url.searchParams.set('query', runSearch);
@@ -107,7 +146,7 @@ function writeLocation() {
   if (section === 'campaigns' && selectedCampaign)
     url.searchParams.set('campaign', selectedCampaign);
   if (url.href !== location.href) history.pushState(null, '', url);
-  document.title = `${titles[section]} · Arxic`;
+  document.title = `${selectedPage && section === 'pages' ? selectedPage : titles[section]} · Arxic`;
 }
 projectDialog().addEventListener('keydown', trapDialogTab);
 agentDialog().addEventListener('keydown', trapDialogTab);
@@ -282,9 +321,24 @@ function project(id: string) {
 function render() {
   writeLocation();
   publishCommands();
-  $('#page-title').textContent = titles[section];
-  $('#breadcrumb').textContent = titles[section];
-  $('#page-description').textContent = descriptions[section];
+  const pages = buildPageInventory({
+    projects: state.projects,
+    runs: state.runs,
+    baselines: state.baselines,
+  });
+  // An open page owns the heading: "Pages" above a screenshot of the sign-in
+  // screen tells a person nothing about where they are.
+  const open = selectedPage
+    ? pages.find(
+        (item) =>
+          item.path === selectedPage && (!selectedProject || item.projectId === selectedProject),
+      )
+    : undefined;
+  $('#page-title').textContent = open ? open.title : titles[section]!;
+  $('#breadcrumb').textContent = open ? open.title : titles[section]!;
+  $('#page-description').textContent = open
+    ? `${open.projectName} · ${open.path}`
+    : descriptions[section]!;
   document.querySelectorAll<HTMLElement>('[data-nav]').forEach((button) => {
     const active = button.dataset.nav === section;
     button.classList.toggle('active', active);
@@ -293,7 +347,20 @@ function render() {
   });
   const providerRoot = $('#provider-panel-root');
   const workspacePanel = $('#workspace-panel-root');
-  if (['overview', 'schedules', 'admin', 'campaigns', 'intents', 'runs'].includes(section)) {
+  // The badge is the product's standing question: how many pictures are
+  // waiting on a person. Written into the shell rather than passed through it,
+  // because the shell mounts once and the count changes on every poll.
+  const waiting = pendingChanges(pages).length;
+  const badge = $<HTMLElement>('[data-nav-badge="changes"]');
+  if (badge) {
+    badge.textContent = waiting ? String(waiting) : '';
+    badge.hidden = !waiting;
+  }
+  if (
+    ['pages', 'changes', 'overview', 'schedules', 'admin', 'campaigns', 'intents', 'runs'].includes(
+      section,
+    )
+  ) {
     if (providerRoot) unmountProviderPanel(providerRoot);
     if (!workspacePanel) $('#content').innerHTML = '<div id="workspace-panel-root"></div>';
     mountWorkspacePanel($('#workspace-panel-root'), {
@@ -318,6 +385,31 @@ function render() {
         status: runStatusFilter,
         onRefresh: refreshModels,
         onReview: requestVisualReview,
+      },
+      pages: {
+        pages,
+        projects: state.projects,
+        runs: state.runs,
+        projectId: selectedProject,
+        search: pageSearch,
+        filter: pageFilter,
+        offset: pageOffset,
+        selected: selectedPage,
+        onFilter: (kind: 'project' | 'status', value: string) => {
+          if (kind === 'project') selectedProject = value;
+          if (kind === 'status') pageFilter = value;
+          pageOffset = 0;
+          render();
+        },
+        onSearch: (value: string) => {
+          pageSearch = value;
+          pageOffset = 0;
+          render();
+        },
+        onPage: (direction: -1 | 1) => {
+          pageOffset = Math.max(0, pageOffset + direction * PAGE_GRID_SIZE);
+          render();
+        },
       },
       inventory: {
         projects: state.projects,
@@ -360,17 +452,22 @@ function render() {
 function goToSection(next: string) {
   if (!Object.hasOwn(titles, next)) return;
   section = next;
+  // Leaving Pages closes whatever page was open; otherwise the heading keeps
+  // announcing "Sign in" while the Changes queue is on screen.
+  if (next !== 'pages') selectedPage = '';
   writeLocation();
   void refresh()
     .then(() => $('#page-title').focus())
     .catch((error) => notice(error.message));
 }
 const sectionIcons: Record<string, Command['icon']> = {
-  overview: LayoutDashboard,
-  intents: ScanSearch,
+  pages: LayoutGrid,
+  changes: GitCompare,
   runs: Play,
-  campaigns: Layers,
+  campaigns: Route,
   schedules: CalendarClock,
+  overview: FolderGit2,
+  intents: ScanSearch,
   providers: Bot,
   admin: Settings2,
 };
@@ -419,7 +516,7 @@ function publishCommands() {
       },
       ...(['discovery', 'visual', 'agent'] as const).map((mode) => ({
         id: `project:${mode}:${item.id}`,
-        label: `${runModeLabels[mode]} — ${item.name}`,
+        label: `${runModeWords(mode).label} — ${item.name}`,
         group: 'Projects',
         icon: Play,
         keywords: `run start ${mode}`,
@@ -431,7 +528,7 @@ function publishCommands() {
     const owner = project(run.projectId!);
     commands.push({
       id: `run:${run.id}`,
-      label: `${owner?.name ?? 'Run'} — ${runModeLabels[run.mode!] ?? run.mode}`,
+      label: `${owner?.name ?? 'Run'} — ${runModeWords(String(run.mode)).label}`,
       group: 'Recent runs',
       icon: Play,
       hint: run.id!.slice(0, 8),
@@ -444,16 +541,36 @@ function publishCommands() {
   }
   updateCommands(commands);
 }
-const runModeLabels: Record<string, string> = {
-  discovery: 'Discover intents',
-  visual: 'Visual test',
-  agent: 'AI E2E',
-  review: 'AI visual review',
-};
 /** Queue a run and land on it, from a row button or the palette alike. */
-async function startRun(projectId: string, mode: string) {
+/**
+ * A run against production acts on the real site.
+ *
+ * A screenshot test only looks. An AI walkthrough clicks, types and submits,
+ * and a state checkpoint configured to submit empty forms does too. Against
+ * the copy customers use, that deserves one question first — and exactly one,
+ * because a confirmation people meet on every run is a confirmation they stop
+ * reading.
+ */
+async function confirmRisk(projectId: string, mode: string) {
+  const target = project(projectId);
+  if (!target || !runNeedsConfirmation(target, mode)) return true;
+  return confirmAction({
+    title: 'Run this against production?',
+    body:
+      mode === 'agent'
+        ? `${target.name} points at production. An AI walkthrough clicks, types and submits forms on the site your customers use.`
+        : `${target.name} points at production. This project has checkpoints that submit forms with empty fields, on the site your customers use.`,
+    confirmLabel: 'Run it anyway',
+    destructive: true,
+  });
+}
+async function startRun(projectId: string, mode: string, paths?: string[]) {
+  if (!(await confirmRisk(projectId, mode))) return;
   try {
-    const run = await api(`/projects/${projectId}/runs`, 'POST', { mode });
+    const run = await api(`/projects/${projectId}/runs`, 'POST', {
+      mode,
+      ...(paths ? { paths } : {}),
+    });
     selectedRun = run.id;
     section = 'runs';
     writeLocation();
@@ -462,16 +579,26 @@ async function startRun(projectId: string, mode: string) {
     notice((error as Error).message);
   }
 }
-function editProject(id = '') {
+function editProject(id = '', focus?: 'login') {
   mountProjectWizard($('#project-wizard-root'), {
     project: project(id),
+    ...(focus ? { focus } : {}),
     api,
     onRefreshModels: refreshModels,
     onClose: closeProjectDialog,
     onSaved: async () => {
       closeProjectDialog();
+      // A project that has just been connected has no pages yet, so landing
+      // back on Pages shows an empty screen and hides the next thing to do.
+      // The project itself, with its run controls, is where the person is
+      // going anyway.
+      if (!id) {
+        section = 'overview';
+        selectedPage = '';
+        writeLocation();
+      }
       await refresh();
-      notice('Project settings saved.');
+      notice(id ? 'Project settings saved.' : 'Project connected.');
     },
   });
   if (!projectDialog().open) projectDialog().showModal();
@@ -701,7 +828,33 @@ function guard<A extends unknown[]>(run: (...args: A) => Promise<unknown>) {
 setDashboardActions({
   navigate: goToSection,
   addProject: () => editProject(),
+  openPage: (projectId: string, path: string) => {
+    selectedProject = projectId;
+    selectedPage = path;
+    section = 'pages';
+    writeLocation();
+    void refresh()
+      .then(() => $('#page-title').focus())
+      .catch((error) => notice(error.message));
+  },
+  closePage: () => {
+    selectedPage = '';
+    writeLocation();
+    void refresh()
+      .then(() => $('#page-title').focus())
+      .catch((error) => notice(error.message));
+  },
+  /**
+   * One page, photographed on its own. A whole-project run to re-check the
+   * sign-in screen is minutes of browsers for one screenshot, so the button on
+   * a page tests that page — and says so before it starts.
+   */
+  runPageTest: guard(async (projectId: string, path: string) => {
+    await startRun(projectId, 'visual', [path]);
+    notice(`Testing ${path}. The result appears here when the browsers finish.`);
+  }),
   editProject: (id: string) => editProject(id),
+  projectCredentials: (id: string) => editProject(id, 'login'),
   startRun: guard(async (projectId: string, mode: string) => startRun(projectId, mode)),
   openRun: guard(async (id: string) => {
     selectedRun = id;

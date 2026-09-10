@@ -58,7 +58,7 @@ it('records the observed navigation error on a blocked zero-capture run', async 
     await page.goto(app.origin);
     await page.getByLabel('Administrator token').fill('capture-reason-test-administrator-token');
     await page.getByRole('button', { name: 'Open workbench' }).click();
-    await page.getByRole('heading', { name: 'Workspace overview' }).waitFor();
+    await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
     await page.goto(`${app.origin}?view=runs&run=${queued.id}`);
     await expect.poll(() => page.getByText(/net::ERR_/).count()).toBeGreaterThan(0);
   } finally {

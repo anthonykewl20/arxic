@@ -365,6 +365,29 @@
     color: var(--foreground);
     font-weight: 500;
   }
+  /* The one count in the navigation: how many pictures are waiting on a person. */
+  .nav-badge {
+    margin-left: auto;
+    min-width: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    line-height: 18px;
+  }
+  /* Separates the daily work from how the workspace is set up. */
+  .nav-group {
+    margin: var(--space-3) 0 var(--space-1);
+    padding: var(--space-2) 10px 0;
+    border-top: 1px solid var(--border);
+    color: var(--foreground-muted);
+    font-size: var(--text-xs);
+    font-weight: 500;
+  }
   .sidebar-bottom {
     margin-top: auto;
     display: flex;
@@ -601,7 +624,6 @@
     font-size: var(--text-xs);
     font-weight: 500;
     white-space: nowrap;
-    text-transform: capitalize;
   }
   .pill.verified,
   .pill.unchanged,
@@ -631,6 +653,18 @@
     background: var(--info-soft);
     border-color: transparent;
     color: var(--primary);
+  }
+  /* Which copy of a site a project points at. Production is the one that has
+     to be readable across a table at a glance. */
+  .pill.env-staging {
+    background: var(--warning-soft);
+    border-color: var(--warning-border);
+    color: var(--warning-foreground);
+  }
+  .pill.env-production {
+    background: var(--danger-soft);
+    border-color: var(--danger-border);
+    color: var(--danger);
   }
   .panel {
     overflow: auto;

@@ -12,6 +12,8 @@ import {
 import { Layers } from 'lucide-react';
 import type { Workbench } from '../workbench';
 
+const sentenceCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+
 type CampaignView = ReturnType<Workbench['campaign']>;
 type CampaignSummary = Omit<CampaignView, 'rows'> & { rows?: CampaignView['rows'] };
 export type CampaignPanelProps = {
@@ -65,7 +67,7 @@ export function CampaignPanel({
             <Card className="card" key={campaign.id}>
               <h2>{campaign.projectName}</h2>
               <Badge variant="outline" className={`pill ${campaign.state}`}>
-                {campaign.state}
+                {sentenceCase(campaign.state)}
               </Badge>
               <RebindingBadge campaign={campaign} runs={runs} />
               <p>
@@ -135,7 +137,7 @@ function CampaignDetail({
       />
       <Card className="card">
         <Badge variant="outline" className={`pill ${campaign.state}`}>
-          {campaign.state}
+          {sentenceCase(campaign.state)}
         </Badge>
         <RebindingBadge campaign={campaign} runs={runs} />
         <p className="campaign-counts">
