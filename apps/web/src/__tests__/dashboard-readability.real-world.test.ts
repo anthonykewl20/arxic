@@ -278,7 +278,7 @@ it.each(
       await expect
         .poll(() => page.locator('.run-detail').textContent(), { timeout: 30_000 })
         .toContain('source surfaces');
-      await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+      await page.getByRole('button', { name: 'Code scan', exact: true }).click();
       await expect.poll(() => page.locator('#content').textContent()).toContain('POST /login');
       await inspect('09-populated-inventory');
       await page.getByRole('button', { name: 'Projects', exact: true }).click();

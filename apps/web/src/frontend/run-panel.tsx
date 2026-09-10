@@ -60,23 +60,10 @@ export function RunPanel(props: RunPanelProps) {
       {chosen && !props.loading && !props.error && (
         <RunDetail {...props} key={chosen.id} run={chosen} />
       )}
+      {/* No project select here: the sidebar's scope bar owns which project you
+          are looking at, and the run query already reads it. A second control
+          for the same thing was the confusion this screen was meant to lose. */}
       <div className="toolbar">
-        <select
-          id="project-filter"
-          aria-label="Filter by project"
-          value={projectId}
-          onChange={(event) => {
-            event.stopPropagation();
-            props.onFilter?.('project', event.currentTarget.value);
-          }}
-        >
-          <option value="">All projects</option>
-          {state.projects.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
         <form id="run-search" key={props.search} className="search-form">
           <Input
             aria-label="Search runs"

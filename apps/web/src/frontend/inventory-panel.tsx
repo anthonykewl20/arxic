@@ -75,15 +75,8 @@ export function InventoryPanel(props: InventoryPanelProps) {
   );
   return (
     <>
+      {/* No project select: the sidebar's scope bar decides what is in view. */}
       <div className="toolbar">
-        <select id="project-filter" aria-label="Filter by project" defaultValue={projectId}>
-          <option value="">All projects</option>
-          {projects.map((project) => (
-            <option value={project.id} key={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
         <select id="declaration-kind" aria-label="Declaration kind" defaultValue={kind}>
           <option value="">All declarations</option>
           {[

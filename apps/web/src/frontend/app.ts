@@ -461,7 +461,8 @@ function render() {
         },
       },
       inventory: {
-        projects: state.projects,
+        // Scoped, like every other screen: the sidebar decides what is in view.
+        projects: scoped,
         runs: state.runs,
         projectId: selectedProject,
         kind: declarationKind,

@@ -60,7 +60,7 @@ it('renders configuration omissions beside the route coverage section', async ()
     await expect
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
-    await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
     await openInventoryTab(page, 'declarations');
 
     const block = page.locator('[data-config-omissions]');

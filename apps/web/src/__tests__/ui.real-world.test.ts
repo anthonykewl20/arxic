@@ -192,7 +192,7 @@ it.each(['light', 'dark'] as const)(
       await expect
         .poll(() => page.locator('.run-detail').textContent(), { timeout: 30_000 })
         .toContain('source surfaces');
-      await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+      await page.getByRole('button', { name: 'Code scan', exact: true }).click();
       await openInventoryTab(page, 'declarations');
       await expect.poll(() => page.locator('#content').textContent()).toContain('POST /login');
       await page.getByRole('heading', { name: 'Frontend declarations' }).waitFor({ timeout: 5000 });
@@ -514,7 +514,7 @@ it.each(['light', 'dark'] as const)(
       );
       await capture('07-mobile-overview', 'Mobile dashboard fits its viewport');
       await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
-      await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+      await page.getByRole('button', { name: 'Code scan', exact: true }).click();
       await openInventoryTab(page, 'declarations');
       await page.getByRole('heading', { name: 'Frontend declarations' }).waitFor();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(

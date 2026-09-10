@@ -297,19 +297,24 @@ it.each([1, 2] as const)(
       });
       expect(otherProjectResponse.ok()).toBe(true);
       await expect
-        .poll(() => page.getByLabel('Filter by project').locator('option').allTextContents(), {
-          timeout: 10_000,
-        })
+        // The scope bar in the sidebar owns which project is in view; the run
+        // list no longer carries a filter of its own.
+        .poll(
+          () => page.getByLabel('Project', { exact: true }).locator('option').allTextContents(),
+          {
+            timeout: 10_000,
+          },
+        )
         .toContain('Separate project without runs');
       await page
-        .getByLabel('Filter by project')
+        .getByLabel('Project', { exact: true })
         .selectOption({ label: 'Separate project without runs' });
       expect(await page.locator('.run-detail').count()).toBe(0);
       await proof(
         '05-project-filter',
         'Selecting another project hides the previously selected run and its review',
       );
-      await page.getByLabel('Filter by project').selectOption('');
+      await page.getByLabel('Project', { exact: true }).selectOption('');
       await page.getByRole('button', { name: 'View source capture', exact: true }).click();
       await page.getByText('Ask AI to review this screenshot', { exact: true }).click();
       await page

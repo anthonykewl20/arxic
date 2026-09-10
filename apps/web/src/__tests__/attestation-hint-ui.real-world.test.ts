@@ -41,7 +41,7 @@ it('documents the target-attestation prerequisite next to the attestation path s
     await expect
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
-    await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
     await openInventoryTab(page, 'workflows');
     await expect
       .poll(() => page.locator('#content').textContent())

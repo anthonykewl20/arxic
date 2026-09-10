@@ -367,7 +367,7 @@ it('saves a persona variant with its login override through the real dialog and 
     await expect
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
-    await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
     await openInventoryTab(page, 'workflows');
     await expect
       .poll(() => page.locator('#content').textContent())

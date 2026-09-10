@@ -137,7 +137,7 @@ it('shows source-bound EJS controls in the real dashboard and corroborates the r
           2,
         ),
       );
-    await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
     await openInventoryTab(page, 'declarations');
     await page.getByLabel('Declaration kind').selectOption('control');
     await page.getByLabel('Search declarations').fill('src/views/index.ejs');

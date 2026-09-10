@@ -140,7 +140,7 @@ it('lets an administrator select and verify two real workflows with honest campa
     await expect
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 30_000 })
       .toContain('source surfaces');
-    await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
     await openInventoryTab(page, 'workflows');
     await expect
       .poll(() => page.locator('#content').textContent())
@@ -210,7 +210,7 @@ it('lets an administrator select and verify two real workflows with honest campa
         await page.getByRole('checkbox', { name: 'Select GET /login', exact: true }).isDisabled(),
       ).toBe(true);
       await page.getByRole('button', { name: 'Projects', exact: true }).click();
-      await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+      await page.getByRole('button', { name: 'Code scan', exact: true }).click();
       await openInventoryTab(page, 'workflows');
       expect(await start.isDisabled()).toBe(true);
       expect(
@@ -224,18 +224,18 @@ it('lets an administrator select and verify two real workflows with honest campa
       await page.getByRole('button', { name: 'Sign out', exact: true }).click();
       await page.getByLabel('Administrator token').fill('test-administrator-token-32-characters');
       await page.getByRole('button', { name: 'Open workbench' }).click();
-      await page.getByRole('heading', { name: 'Coverage', exact: true }).waitFor();
+      await page.getByRole('heading', { name: 'Code scan', exact: true }).waitFor();
     } finally {
       releaseCampaign();
     }
     await lateCampaignResponse;
     await page.waitForTimeout(500);
-    expect(await page.locator('#page-title').textContent()).toBe('Coverage');
+    expect(await page.locator('#page-title').textContent()).toBe('Code scan');
     await capture(
       '08-late-campaign-session',
       'An earlier session campaign response cannot navigate the newly authenticated workspace',
     );
-    await page.getByRole('button', { name: 'Workflows', exact: true }).click();
+    await page.getByRole('button', { name: 'User journeys', exact: true }).click();
     await page.getByRole('button', { name: 'Open journeys', exact: true }).click();
     await expect
       .poll(() => page.locator('.campaign-detail').textContent(), { timeout: 120_000 })
@@ -295,7 +295,7 @@ it('lets an administrator select and verify two real workflows with honest campa
       'Campaign links to the selected child engine result and diagnostic evidence',
     );
     await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
-    await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
     // This step reads the per-surface execution ledger, which lives on Surfaces.
     await openInventoryTab(page, 'surfaces');
     const loginSurface = page

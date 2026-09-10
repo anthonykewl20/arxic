@@ -43,7 +43,7 @@ it('saves a state checkpoint through the wizard and renders the coverage matrix'
     await expect
       .poll(() => page.locator('.run-detail').textContent(), { timeout: 60_000 })
       .toContain('source surfaces');
-    await page.getByRole('button', { name: 'Coverage', exact: true }).click();
+    await page.getByRole('button', { name: 'Code scan', exact: true }).click();
     await openInventoryTab(page, 'declarations');
 
     const block = page.locator('[data-state-checkpoints]');
