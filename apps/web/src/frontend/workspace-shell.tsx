@@ -224,16 +224,6 @@ function WorkspaceShell() {
                 <kbd aria-hidden="true">{shortcutHint()}</kbd>
               </button>
               <Button
-                id="connect-agent"
-                aria-label="Connect agent"
-                title="Connect agent"
-                variant="outline"
-                size="sm"
-              >
-                <Bot />
-                <span>Connect agent</span>
-              </Button>
-              <Button
                 id="new-project"
                 aria-label="Connect project"
                 title="Connect project"

@@ -27,6 +27,7 @@ export type DashboardActions = {
   editProject(id: string): void;
   /** Project settings, opened on the sign-in section. */
   projectCredentials(id: string): void;
+  connectAgent(): void;
   startRun(projectId: string, mode: string): void;
   openRun(id: string): void;
   cancelRun(id: string): void;
@@ -55,6 +56,7 @@ const inert: DashboardActions = {
   addProject: () => {},
   editProject: () => {},
   projectCredentials: () => {},
+  connectAgent: () => {},
   startRun: () => {},
   openRun: () => {},
   cancelRun: () => {},

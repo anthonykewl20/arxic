@@ -31,7 +31,7 @@ export async function allowedFolder(folder: string, roots: readonly string[]): P
   if (!roots.some((root) => inside(root, actual)))
     throw new HttpError(
       400,
-      'Project folder is outside the configured workspace roots; add its folder under Administration → Workspace roots',
+      'Project folder is outside the configured workspace roots; add its folder under Settings → Project roots',
     );
   return actual;
 }

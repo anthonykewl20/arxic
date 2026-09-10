@@ -706,7 +706,6 @@ $('#logout').addEventListener('click', async () => {
   }
 });
 $('#new-project').addEventListener('click', () => editProject());
-$('#connect-agent').addEventListener('click', () => connectAgent());
 document.addEventListener('change', (event) => {
   const target = event.target as HTMLInputElement;
   if (target.dataset.workflowRow) {
@@ -919,6 +918,7 @@ setDashboardActions({
   }),
   editProject: (id: string) => editProject(id),
   projectCredentials: (id: string) => editProject(id, 'login'),
+  connectAgent: () => connectAgent(),
   startRun: guard(async (projectId: string, mode: string) => startRun(projectId, mode)),
   openRun: guard(async (id: string) => {
     selectedRun = id;

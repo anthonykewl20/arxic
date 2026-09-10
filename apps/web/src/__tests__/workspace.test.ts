@@ -98,7 +98,9 @@ it('refuses detection outside the allowed roots and reports git state inside the
   expect(detected.paths.some((path) => path.includes('('))).toBe(false);
   await run('git', ['init', '-q', '-b', 'main'], { cwd: app });
   const inRepo = await detectProject(app, [root]);
-  expect(inRepo.git).toEqual({ repository: true, clean: false, branch: 'main' });
+  // A freshly initialised repository has no origin, so there is no link to
+  // offer — null rather than a guess.
+  expect(inRepo.git).toEqual({ repository: true, clean: false, branch: 'main', remote: null });
   const folders = await listFolders([root]);
   expect(folders.map((item) => [item.name, item.framework, item.hasPackage, item.git])).toEqual([
     ['shop', 'next', true, true],

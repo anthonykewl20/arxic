@@ -196,7 +196,7 @@ export function CredentialsPanel() {
           {inventory.orphaned.map((ref) => (
             <code key={ref}>{ref} </code>
           ))}
-          Provider keys from Models &amp; accounts also appear here.
+          Keys for AI providers appear here too.
         </Note>
       )}
       <Note>

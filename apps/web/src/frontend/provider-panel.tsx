@@ -1,7 +1,17 @@
 import { useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { RefreshCw, Search, ArrowUpRight, Plug, Check, AlertCircle, Terminal } from 'lucide-react';
+import {
+  RefreshCw,
+  Search,
+  ArrowUpRight,
+  Plug,
+  Bot,
+  Check,
+  AlertCircle,
+  Terminal,
+} from 'lucide-react';
 import { Badge, Button, EmptyState, Input, Note } from './components';
+import { actions } from './dashboard-actions';
 
 type Connection = {
   id: string;
@@ -71,7 +81,20 @@ function ProviderPanel({
           <h2>Your models. Your accounts.</h2>
           <p>Connect the tools you already use. Model choices come from each provider.</p>
         </div>
-        <Badge variant="outline">{available.length} connections</Badge>
+        <span className="flex items-center gap-2">
+          <Badge variant="outline">{available.length} connections</Badge>
+          {/* Connecting an agent used to be a button in the top bar of every
+              screen. It is a once-per-workspace setup task, so it lives where
+              the models it configures do. */}
+          <Button
+            id="connect-agent"
+            variant="outline"
+            size="sm"
+            onClick={() => actions().connectAgent()}
+          >
+            <Bot /> Connect agent
+          </Button>
+        </span>
       </div>
       <div className="provider-layout">
         <nav className="provider-list" aria-label="Model providers">
