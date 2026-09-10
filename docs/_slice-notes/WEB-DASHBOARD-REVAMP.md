@@ -56,10 +56,25 @@ Six commits on `feat/dashboard-revamp`, rebased onto `58924ec9`:
 
 ## 4. `VERSION` bump required?
 
-yes → 0.0.402, because the change is user-observable per RELEASES.md (new
-Administration screen, new keyboard shortcut, tabbed intent inventory, changed
-run-detail order, new capture kinds and a new classification on every compared
-capture).
+Not on this branch — at fold time, and by the integrator.
+
+The change IS user-observable per RELEASES.md (new Administration screen, new
+keyboard shortcut, tabbed intent inventory, changed run-detail order, new
+capture kinds, a new classification on every compared capture), so it warrants
+a patch bump when folded. But `VERSION` moves in its own
+`docs(integrate): fold … + VERSION 0.0.40x` commit — five precedents in the
+history, and twenty-one commits have landed on main since 0.0.401 without one —
+and the bump is made with `pnpm version:patch`, which aligns `VERSION` and every
+workspace manifest together rather than by hand.
+
+Suggested: `0.0.402`, folded together with whatever other notes are outstanding.
+
+## 3b. CHANGELOG house style
+
+The entries in §3 are grouped under `### changed` / `### added` / `### fixed`,
+which this repository's `[Unreleased]` section does not use — it is a flat list
+of `- SLICE-ID summary (#N): …` bullets. Flatten them on fold; the grouping
+above is only there to show which is which.
 
 ## 5. Evidence pointers
 
