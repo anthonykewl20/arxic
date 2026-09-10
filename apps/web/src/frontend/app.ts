@@ -502,9 +502,11 @@ function render() {
 function goToSection(next: string) {
   if (!Object.hasOwn(titles, next)) return;
   section = next;
-  // Leaving Pages closes whatever page was open; otherwise the heading keeps
-  // announcing "Sign in" while the Changes queue is on screen.
-  if (next !== 'pages') selectedPage = '';
+  // A navigation click closes whatever page was open — including a click on
+  // Pages itself, which means "all pages" and did nothing at all while one was
+  // open. Leaving for another section matters too: the heading would otherwise
+  // keep announcing "Sign in" over the Changes queue.
+  selectedPage = '';
   writeLocation();
   void refresh()
     .then(() => $('#page-title').focus())
