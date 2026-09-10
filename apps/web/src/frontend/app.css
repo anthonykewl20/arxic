@@ -2183,3 +2183,17 @@ p a,
     color: var(--foreground-muted);
   }
 }
+
+@layer components {
+  /*
+   * An isolated region is a crop — often a control a few hundred pixels wide.
+   * The page-capture frame is sized for a full viewport, so without this each
+   * region card costs a screen of scroll to show a button.
+   */
+  .capture:has([data-isolated-region]) .compare img,
+  .capture:has([data-isolated-region]) .compare .placeholder {
+    max-height: 320px;
+    width: auto;
+    object-fit: contain;
+  }
+}

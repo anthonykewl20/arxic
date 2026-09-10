@@ -410,6 +410,20 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
                       {capture.viewport.width} × {capture.viewport.height}
                     </span>
                   </h3>
+                  {/*
+                    An isolated region is a crop of the page capture above it,
+                    not another page. Without saying so it reads as a second
+                    screenshot of the same path at a strange size.
+                  */}
+                  {capture.isolatedRegion && (
+                    <p data-isolated-region={capture.isolatedRegion.key}>
+                      {capture.isolatedRegion.kind === 'overlay' ? 'Overlay' : 'Component'} isolated
+                      from this page ·{' '}
+                      <code>
+                        {capture.isolatedRegion.key.replace(/^(component|overlay):/u, '')}
+                      </code>
+                    </p>
+                  )}
                   <p>
                     {capture.environment?.browser ?? 'chromium'} ·{' '}
                     {capture.environment?.colorScheme ?? 'light'} ·{' '}
