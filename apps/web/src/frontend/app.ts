@@ -242,11 +242,16 @@ async function refresh() {
         query: runSearch,
         mode: runModeFilter,
         status: runStatusFilter,
+        // Only when a scope is actually set: listing every project id would
+        // silently drop the runs of a project that has since been deleted,
+        // which the history is meant to outlive.
         project:
           selectedProject ||
-          scopedProjects()
-            .map((item) => item.id)
-            .join(','),
+          (selectedEnvironment
+            ? scopedProjects()
+                .map((item) => item.id)
+                .join(',')
+            : ''),
         offset: String(runOffset),
         limit: '25',
       });
