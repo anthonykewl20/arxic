@@ -170,6 +170,31 @@ it('reports images that cannot be decoded instead of capturing them blank', asyn
   expect(await page.evaluate(DECODE_IMAGES_SCRIPT)).toBe(1);
 }, 60_000);
 
+it('does not hang the capture on an image whose decode never settles', async () => {
+  // A source the server accepts and then never finishes: decode() neither
+  // resolves nor rejects. Unbounded, this would hang every capture of the page.
+  const server = createServer((request, response) => {
+    if (request.url?.startsWith('/never')) {
+      response.writeHead(200, { 'content-type': 'image/png' });
+      response.write(Buffer.from('89504e470d0a1a0a', 'hex'));
+      return; // deliberately never ended
+    }
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><meta charset="utf-8"><body><img src="/never.png"></body>');
+  });
+  await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
+  cleanup.push(() => new Promise<void>((done) => server.close(() => done())));
+  const origin = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+  const browser = await chromium.launch({ headless: true, args: launchArgs('chromium') });
+  cleanup.push(() => browser.close());
+  const page = await (await browser.newContext()).newPage();
+  await page.goto(origin, { waitUntil: 'domcontentloaded' });
+  const started = Date.now();
+  // Reported as undecodable rather than awaited forever, and bounded.
+  expect(await page.evaluate(DECODE_IMAGES_SCRIPT)).toBe(1);
+  expect(Date.now() - started).toBeLessThan(15_000);
+}, 60_000);
+
 it('builds Chromium-only raster flags', () => {
   expect(launchArgs('chromium')).toContain('--force-color-profile=srgb');
   expect(launchArgs('chromium')).toContain('--font-render-hinting=none');

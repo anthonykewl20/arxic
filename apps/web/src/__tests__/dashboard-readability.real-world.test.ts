@@ -278,7 +278,12 @@ it.each(
       await inspect('09-populated-inventory');
       await page.getByRole('button', { name: 'Overview', exact: false }).click();
       await page.getByRole('button', { name: 'Visual test', exact: true }).click();
-      await page.getByRole('button', { name: 'Approve as baseline' }).waitFor({ timeout: 30_000 });
+      // 90s, matching restart.real-world.test.ts for the same wait: a real
+      // visual run reaching completion. Red on CI run 34459888250 (`test (2/4)`,
+      // 88 files on the shard) at the 30s bound while passing locally in ~40s
+      // for the whole case. No assertion changes — the button must still appear,
+      // so a run that never completes, or completes blocked, still fails here.
+      await page.getByRole('button', { name: 'Approve as baseline' }).waitFor({ timeout: 90_000 });
       await page.getByText('Measured checks and coverage', { exact: true }).click();
       await page.getByRole('button', { name: 'Inspect captured elements', exact: true }).waitFor();
       await inspect('10-populated-measurements');

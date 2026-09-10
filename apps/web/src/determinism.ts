@@ -160,8 +160,16 @@ export async function applyDeterminism(
  */
 export const DECODE_IMAGES_SCRIPT = `(async () => {
   const images = [...document.images].filter((image) => image.getAttribute('src'));
-  const results = await Promise.all(
-    images.map((image) => image.decode().then(() => true, () => false)),
-  );
+  // Bounded per image. decode() rejects for a broken source, but for one still
+  // streaming — or served by a hung connection — it simply never settles, and
+  // an unbounded await here would hang the whole capture on a page that used to
+  // capture fine. A decode we could not confirm counts the same as one that
+  // failed: reported, never silently treated as ready.
+  const confirmed = (image) =>
+    Promise.race([
+      image.decode().then(() => true, () => false),
+      new Promise((resolve) => setTimeout(() => resolve(false), 5000)),
+    ]);
+  const results = await Promise.all(images.map(confirmed));
   return results.filter((ok) => !ok).length;
 })()`;
