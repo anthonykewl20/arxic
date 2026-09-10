@@ -127,6 +127,20 @@ that state, and several of these exist precisely because a machine cannot.
   families, 1,988 non-null oracle labels** (additive observations, not one
   plan); residual under the rows unit **≥552**.
   Evidence: [`docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s4/`](../evidence/VISUAL-SLM/corpus-scale-2026-09-10-s4/summary.md).
+  **Delivered 2026-09-10 (#557 slice 5, observed): the registry grew to 12
+  families — material-kit (same Creative Tim vendor, MIT, commit-pinned at
+  54cdbf81) captured at the full width grid — 112 planned → 17 reason-carrying
+  skips (native horizontal overflow at 1024 refuses that whole width
+  `overflow-oracle-failed` ×12; the `my-auto`-centered card's missing-element
+  `unstable-case` ×3; and a first observation of the screenshot privacy guard
+  failing two cases closed on `ARXIC-SCREENSHOT-PNG-INVALID` — a Chromium PNG
+  whose chunk inventory did not parse is rejected, never retained) → 39 scored
+  rows carrying 174 non-null oracle labels**, with sb-admin-2 56/56 in the
+  same run. Registry totals across the three labeled runs: **644 planned →
+  101 skips → 543 scored rows across 12 families, 2,406 non-null oracle
+  labels** (additive observations, not one plan); residual under the rows unit
+  **≥457**.
+  Evidence: [`docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s5/`](../evidence/VISUAL-SLM/corpus-scale-2026-09-10-s5/summary.md).
 - Two heads qualify on untouched test families (overflow; occlusion at 4/4 recall,
   0 false positives). Clipping, text_truncation and layout_shift stay **disabled**:
   no candidate threshold meets the precision/recall gates on 178 rows, and

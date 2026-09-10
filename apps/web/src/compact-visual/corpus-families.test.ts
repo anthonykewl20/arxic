@@ -1,11 +1,12 @@
 import { expect, it } from 'vitest';
 import { STATIC_FAMILY_CONFIG } from './corpus-capture';
 
-it('configures the six static public families with read-only docroots and stable controls', () => {
+it('configures the seven static public families with read-only docroots and stable controls', () => {
   expect(Object.keys(STATIC_FAMILY_CONFIG).sort()).toEqual([
     'adminlte',
     'gentelella',
     'material-dashboard',
+    'material-kit',
     'sb-admin',
     'sb-admin-2',
     'todomvc',
@@ -50,6 +51,16 @@ it('configures the six static public families with read-only docroots and stable
     'button.bg-gradient-primary',
   );
   expect(STATIC_FAMILY_CONFIG['material-dashboard'].viewport).toBeUndefined();
+  // material-kit (same Creative Tim vendor, MIT, commit-pinned): the sign-in
+  // page's submit is the page's only bg-gradient-dark BUTTON — the navbar CTA
+  // carrying the same class is an anchor, so the tag-qualified selector stays
+  // unique page-wide. Like material-dashboard it centers its card with
+  // my-auto, so removing the control re-centers the inputs (honest
+  // unstable-case skips, never fabricated rows).
+  expect(STATIC_FAMILY_CONFIG['material-kit'].docroot).toBe('material-kit');
+  expect(STATIC_FAMILY_CONFIG['material-kit'].path).toBe('/pages/sign-in.html');
+  expect(STATIC_FAMILY_CONFIG['material-kit'].buttonSelector).toBe('button.bg-gradient-dark');
+  expect(STATIC_FAMILY_CONFIG['material-kit'].viewport).toBeUndefined();
   expect(STATIC_FAMILY_CONFIG.gentelella.buttonSelector).toBe(
     'div.page-actions button.btn-outline',
   );
