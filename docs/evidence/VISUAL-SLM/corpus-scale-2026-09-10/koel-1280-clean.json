@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "koel-1280-clean",
+  "group": "koel",
+  "revision": "911aa9ca5ea88aa01e657364b06300ee3c64da8e",
+  "consent": true,
+  "context": {
+    "width": 1280,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clean"
+  },
+  "before": {
+    "path": "koel-1280-clean-before.png",
+    "sha256": "58cc7f41b505fec9504baf35c03b939fcb018c8ecdefce05a97a839c2faa2625"
+  },
+  "current": {
+    "path": "koel-1280-clean-current.png",
+    "sha256": "0f7f8fc22ebd75c1ce07d627083f3c4b00331ac11f729c16c3b4c0d36d2c0e48"
+  },
+  "beforePrivacy": {
+    "path": "koel-1280-clean-before.png.privacy.json",
+    "sha256": "2af652c6a235ddce1845efe62201b26b336ffbd3e54875eeb33d3a2caa4ed831"
+  },
+  "currentPrivacy": {
+    "path": "koel-1280-clean-current.png.privacy.json",
+    "sha256": "e094b0c1ed809d25f235b2b9091d9cc38c86499c50559a5913025d8af9b824eb"
+  },
+  "scene": {
+    "path": "koel-1280-clean-scene.json",
+    "sha256": "8d47a42df7129a48c035dff17d84f78d20ab2ae4cea4f072b598c78a889a0796"
+  },
+  "timeline": {
+    "path": "koel-1280-clean-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "koel-1280-clean-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}

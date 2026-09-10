@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "sb-admin-1280-missing-element",
+  "group": "sb-admin",
+  "revision": "911aa9ca5ea88aa01e657364b06300ee3c64da8e",
+  "consent": true,
+  "context": {
+    "width": 1280,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-missing-element"
+  },
+  "before": {
+    "path": "sb-admin-1280-missing-element-before.png",
+    "sha256": "dab16606e7f797da6c1b3205572927aef4928a41a38183e9aa705a5c4de0167f"
+  },
+  "current": {
+    "path": "sb-admin-1280-missing-element-current.png",
+    "sha256": "4007c4c43ee82d10fd70b058e7df525fc9faa3275bc01a2741864960b26816a5"
+  },
+  "beforePrivacy": {
+    "path": "sb-admin-1280-missing-element-before.png.privacy.json",
+    "sha256": "f899d27d75eef2607660e6234a17bf5dc2d3b794eaaa4958958e85ff32fbb4a4"
+  },
+  "currentPrivacy": {
+    "path": "sb-admin-1280-missing-element-current.png.privacy.json",
+    "sha256": "325755ea917af57fb8a3a39c4e63a2b3fdfc034a8d3dfdece29bcbe4be2a94fc"
+  },
+  "scene": {
+    "path": "sb-admin-1280-missing-element-scene.json",
+    "sha256": "37900c60203cc46b7c7a11a69f31c4e97d5329ffbd758d2c037a1583f9f57e61"
+  },
+  "timeline": {
+    "path": "sb-admin-1280-missing-element-timeline.json",
+    "sha256": "b3940328da992806be6401f8fa25680dd1f9c1bd10d4f44fa3e83955f27f78b4"
+  },
+  "timelineProvenance": {
+    "path": "sb-admin-1280-missing-element-timeline.sanitization.json",
+    "sha256": "2c4c33a5ca77e88efe634f6be2ae1030c9a31a9950000f2a3a8f844dfe7cdd59"
+  }
+}

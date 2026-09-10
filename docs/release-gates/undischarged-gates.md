@@ -98,8 +98,19 @@ that state, and several of these exist precisely because a machine cannot.
 ### C3. #423 — pilot-scale corpus
 
 - Spec bar: 1,000 adjudicated regions across >=10 families.
-  **Delivered: 178 rows across 9 families**, with 47 recorded skips each carrying
-  a reason. The number is reported, not padded.
+  **Delivered 2026-09-10 (#557 slice 2, observed): the full registry captured —
+  476 planned → 75 oracle-honest skips, each with a reason class
+  (unstable-case 46, overflow-oracle-failed 17, no-text-element 8,
+  text-truncation-oracle-failed 4) → 401 scored rows across all 10 families**
+  (was 178 rows across 9). This is the registry maximum: gentelella/adminlte
+  are pinned to 1280, so no plan extension remains inside the current config.
+  The ≥1,000 bar stays open under the rows unit this register uses (residual
+  ≥599 scored rows); the 401 cases also carry **1,778 non-null oracle labels**,
+  which would clear 1,000 under a region-level-label reading of the literal
+  wording — the unit choice is recorded, not decided, here. Reaching the bar
+  honestly needs registry growth (~11+ more families, or new controlled
+  variants — C5-adjacent), not width-grid padding.
+  Evidence: [`docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10/`](../evidence/VISUAL-SLM/corpus-scale-2026-09-10/summary.md).
 - Two heads qualify on untouched test families (overflow; occlusion at 4/4 recall,
   0 false positives). Clipping, text_truncation and layout_shift stay **disabled**:
   no candidate threshold meets the precision/recall gates on 178 rows, and
