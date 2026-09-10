@@ -1,13 +1,14 @@
 import { expect, it } from 'vitest';
 import { STATIC_FAMILY_CONFIG } from './corpus-capture';
 
-it('configures the eight static public families with read-only docroots and stable controls', () => {
+it('configures the nine static public families with read-only docroots and stable controls', () => {
   expect(Object.keys(STATIC_FAMILY_CONFIG).sort()).toEqual([
     'adminbsb',
     'adminlte',
     'gentelella',
     'material-dashboard',
     'material-kit',
+    'now-ui-kit',
     'sb-admin',
     'sb-admin-2',
     'todomvc',
@@ -73,6 +74,18 @@ it('configures the eight static public families with read-only docroots and stab
   expect(STATIC_FAMILY_CONFIG.adminbsb.path).toBe('/pages/examples/sign-in.html');
   expect(STATIC_FAMILY_CONFIG.adminbsb.buttonSelector).toBe('button.bg-pink');
   expect(STATIC_FAMILY_CONFIG.adminbsb.viewport).toBeUndefined();
+  // now-ui-kit (Creative Tim again, MIT, a static kit commit-pinned at its
+  // default-branch HEAD): the login card's "Get Started" control is an
+  // anchor styled as a button — the sb-admin precedent — and it is the
+  // page's only btn-primary anchor, so the class selector stays unique.
+  // The card keeps its position when the control is removed (missing-element
+  // stable at every probed width). The page's widest h1/h2/p text measures
+  // under the oracle's 80px floor (none at the wide widths), so the
+  // text-truncate variant honestly refuses no-text-element.
+  expect(STATIC_FAMILY_CONFIG['now-ui-kit'].docroot).toBe('now-ui-kit');
+  expect(STATIC_FAMILY_CONFIG['now-ui-kit'].path).toBe('/examples/login-page.html');
+  expect(STATIC_FAMILY_CONFIG['now-ui-kit'].buttonSelector).toBe('a.btn-primary');
+  expect(STATIC_FAMILY_CONFIG['now-ui-kit'].viewport).toBeUndefined();
   expect(STATIC_FAMILY_CONFIG.gentelella.buttonSelector).toBe(
     'div.page-actions button.btn-outline',
   );
