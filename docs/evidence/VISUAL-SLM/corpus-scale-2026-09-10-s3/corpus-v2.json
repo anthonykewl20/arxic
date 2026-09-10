@@ -1,0 +1,972 @@
+{
+  "version": 1,
+  "plan": {
+    "version": 1,
+    "families": [
+      "material-dashboard",
+      "sb-admin-2"
+    ],
+    "viewports": [
+      360,
+      1280
+    ],
+    "variants": [
+      "clean",
+      "clip-full",
+      "clip-right-75",
+      "clip-right-50",
+      "clip-right-25",
+      "clip-bottom-50",
+      "overflow-x",
+      "content-change",
+      "overlay-adjacent",
+      "style-tweak",
+      "occlusion-overlay",
+      "missing-element",
+      "text-truncate",
+      "layout-shift"
+    ],
+    "allocationSeed": 423,
+    "criterion": "required-submit-inside-viewport",
+    "allocation": {
+      "train": [
+        "sb-admin-2"
+      ],
+      "calibration": [
+        "material-dashboard"
+      ],
+      "test": []
+    },
+    "frozenAllocationHash": "17ec561db4230f7a2a18d03a3ff099e225ec5bb1def4d03865833271b4697746"
+  },
+  "revision": "2881b5d0e96f50a8b576f66b901fabe765fda616",
+  "skipped": [
+    {
+      "family": "material-dashboard",
+      "viewport": 360,
+      "variant": "clip-right-50",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 360,
+      "variant": "clip-right-25",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 360,
+      "variant": "missing-element",
+      "reason": "unstable-case"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 1280,
+      "variant": "clip-right-25",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 1280,
+      "variant": "clip-bottom-50",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 1280,
+      "variant": "overlay-adjacent",
+      "reason": "case-error: TimeoutError: page.goto: Timeout 30000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:26795/pages/sign-in.html\", waiting until \"load\"\n"
+    },
+    {
+      "family": "material-dashboard",
+      "viewport": 1280,
+      "variant": "missing-element",
+      "reason": "unstable-case"
+    }
+  ],
+  "cases": [
+    {
+      "manifest": "material-dashboard-360-clean.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "clean",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-360-clip-full.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "clip-full",
+      "viewport": 360,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-360-clip-right-75.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-360-clip-bottom-50.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-360-overflow-x.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "overflow-x",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 1
+    },
+    {
+      "manifest": "material-dashboard-360-content-change.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "content-change",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-360-overlay-adjacent.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-360-style-tweak.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-360-occlusion-overlay.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "occlusion-overlay",
+      "viewport": 360,
+      "labels": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-360-text-truncate.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "text-truncate",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-360-layout-shift.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "layout-shift",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-1280-clean.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "clean",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-1280-clip-full.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-1280-clip-right-75.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-1280-clip-right-50.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-1280-overflow-x.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "overflow-x",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 1
+    },
+    {
+      "manifest": "material-dashboard-1280-content-change.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "content-change",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-1280-style-tweak.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-1280-occlusion-overlay.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "occlusion-overlay",
+      "viewport": 1280,
+      "labels": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-1280-text-truncate.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "text-truncate",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "material-dashboard-1280-layout-shift.json",
+      "family": "material-dashboard",
+      "split": "calibration",
+      "variant": "layout-shift",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-clean.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-clip-full.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 360,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-clip-right-75.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 360,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-clip-right-50.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 360,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-clip-right-25.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 360,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-clip-bottom-50.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 360,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-overflow-x.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "overflow-x",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 1
+    },
+    {
+      "manifest": "sb-admin-2-360-content-change.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-overlay-adjacent.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-style-tweak.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-occlusion-overlay.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "occlusion-overlay",
+      "viewport": 360,
+      "labels": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-missing-element.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "missing-element",
+      "viewport": 360,
+      "labels": [
+        null,
+        null,
+        1,
+        0,
+        0,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": null,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-text-truncate.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "text-truncate",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-360-layout-shift.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "layout-shift",
+      "viewport": 360,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-clean.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clean",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-clip-full.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-full",
+      "viewport": 1280,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-clip-right-75.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-right-75",
+      "viewport": 1280,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.75,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-clip-right-50.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-right-50",
+      "viewport": 1280,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-clip-right-25.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-right-25",
+      "viewport": 1280,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.25,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-clip-bottom-50.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "clip-bottom-50",
+      "viewport": 1280,
+      "labels": [
+        1,
+        null,
+        null,
+        0,
+        null,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 0.5,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-overflow-x.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "overflow-x",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 1
+    },
+    {
+      "manifest": "sb-admin-2-1280-content-change.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "content-change",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-overlay-adjacent.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "overlay-adjacent",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-style-tweak.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "style-tweak",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-negative",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-occlusion-overlay.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "occlusion-overlay",
+      "viewport": 1280,
+      "labels": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-missing-element.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "missing-element",
+      "viewport": 1280,
+      "labels": [
+        null,
+        null,
+        1,
+        0,
+        0,
+        null
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": null,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-text-truncate.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "text-truncate",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    },
+    {
+      "manifest": "sb-admin-2-1280-layout-shift.json",
+      "family": "sb-admin-2",
+      "split": "train",
+      "variant": "layout-shift",
+      "viewport": 1280,
+      "labels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "labelOrigin": "controlled-regression",
+      "measuredClip": 1,
+      "measuredOverflowX": 0
+    }
+  ],
+  "provenance": "Controlled viewport-clipping regressions plus negative controls across application families; groups never split across train/calibration/test; allocation frozen before training with seed 423."
+}

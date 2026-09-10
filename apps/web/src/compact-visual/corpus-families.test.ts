@@ -1,10 +1,11 @@
 import { expect, it } from 'vitest';
 import { STATIC_FAMILY_CONFIG } from './corpus-capture';
 
-it('configures the five static public families with read-only docroots and stable controls', () => {
+it('configures the six static public families with read-only docroots and stable controls', () => {
   expect(Object.keys(STATIC_FAMILY_CONFIG).sort()).toEqual([
     'adminlte',
     'gentelella',
+    'material-dashboard',
     'sb-admin',
     'sb-admin-2',
     'todomvc',
@@ -37,6 +38,18 @@ it('configures the five static public families with read-only docroots and stabl
   expect(STATIC_FAMILY_CONFIG['sb-admin-2'].path).toBe('/login.html');
   expect(STATIC_FAMILY_CONFIG['sb-admin-2'].buttonSelector).toBe('a.btn-primary.btn-user');
   expect(STATIC_FAMILY_CONFIG['sb-admin-2'].viewport).toBeUndefined();
+  // material-dashboard (Creative Tim, MIT, a vendor distinct from the
+  // StartBootstrap families): the static v3.1.0 build ships the sign-in page
+  // with a plain enabled submit button — the page's only bg-gradient-primary
+  // button (the navbar CTA is bg-gradient-dark), so the selector stays
+  // unique. Remote fonts and the unsplash header image do not paint offline;
+  // nothing the oracles measure depends on them.
+  expect(STATIC_FAMILY_CONFIG['material-dashboard'].docroot).toBe('material-dashboard');
+  expect(STATIC_FAMILY_CONFIG['material-dashboard'].path).toBe('/pages/sign-in.html');
+  expect(STATIC_FAMILY_CONFIG['material-dashboard'].buttonSelector).toBe(
+    'button.bg-gradient-primary',
+  );
+  expect(STATIC_FAMILY_CONFIG['material-dashboard'].viewport).toBeUndefined();
   expect(STATIC_FAMILY_CONFIG.gentelella.buttonSelector).toBe(
     'div.page-actions button.btn-outline',
   );
