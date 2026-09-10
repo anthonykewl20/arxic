@@ -141,6 +141,20 @@ that state, and several of these exist precisely because a machine cannot.
   labels** (additive observations, not one plan); residual under the rows unit
   **≥457**.
   Evidence: [`docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s5/`](../evidence/VISUAL-SLM/corpus-scale-2026-09-10-s5/summary.md).
+  **Delivered 2026-09-10 (#557 slice 6, observed): the registry grew to 13
+  families — AdminBSB - Material Design (MIT, plain no-build template,
+  commit-pinned at e5d39b8) captured at the full width grid — 112 planned →
+  4 reason-carrying skips (the text-truncate variant refuses
+  `no-text-element` exactly once per width: the page carries no h1/h2/p, its
+  intro text lives in a div.msg) → 52 scored rows carrying 220 non-null
+  oracle labels**, with sb-admin-2 56/56 in the same run. The family probed
+  clean at every width — unique hittable enabled control, no native
+  overflow, missing-element stable (no centered-card recentering) — so it is
+  the first family with no instability skips at all. Registry totals across
+  the four labeled runs: **756 planned → 105 skips → 651 scored rows across
+  13 families, 2,870 non-null oracle labels** (additive observations, not
+  one plan); residual under the rows unit **≥349**.
+  Evidence: [`docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s6/`](../evidence/VISUAL-SLM/corpus-scale-2026-09-10-s6/summary.md).
 - Two heads qualify on untouched test families (overflow; occlusion at 4/4 recall,
   0 false positives). Clipping, text_truncation and layout_shift stay **disabled**:
   no candidate threshold meets the precision/recall gates on 178 rows, and
