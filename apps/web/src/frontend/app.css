@@ -1673,7 +1673,11 @@
     height: 36px;
     padding: 0;
   }
+  /* On a phone the sidebar collapses to a header strip. Everything inside it
+     travels with the drawer, the scope bar included — two selects left in the
+     strip would push the page down by their own height on every screen. */
   .sidebar nav,
+  .sidebar .scope-bar,
   .sidebar-bottom {
     display: none;
   }
@@ -1682,6 +1686,16 @@
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 11em), 1fr));
     gap: 4px;
     padding-top: var(--space-2);
+  }
+  .sidebar[data-mobile-open='true'] .scope-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11em), 1fr));
+    align-items: end;
+    padding: var(--space-3) 0 var(--space-2);
+    margin-bottom: 0;
+  }
+  .sidebar[data-mobile-open='true'] .scope-bar label + select {
+    margin-bottom: 0;
   }
   .sidebar[data-mobile-open='true'] .sidebar-bottom {
     display: grid;

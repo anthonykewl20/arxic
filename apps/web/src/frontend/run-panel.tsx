@@ -281,7 +281,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
             data-open-campaign={run.workflowScope.campaignId}
             onClick={() => actions().openCampaign(run.workflowScope!.campaignId)}
           >
-            View campaign
+            Open journeys
           </Button>
         ) : (
           <Button
