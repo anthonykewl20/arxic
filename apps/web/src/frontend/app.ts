@@ -333,10 +333,12 @@ function project(id: string) {
  * filter of its own.
  */
 function scopedProjects(): Project[] {
+  return projectsInEnvironment().filter((item) => !selectedProject || item.id === selectedProject);
+}
+/** The half of the scope the project switcher can offer, before a project is chosen. */
+function projectsInEnvironment(): Project[] {
   return (state.projects as Project[]).filter(
-    (item) =>
-      (!selectedProject || item.id === selectedProject) &&
-      (!selectedEnvironment || (item.environment ?? 'development') === selectedEnvironment),
+    (item) => !selectedEnvironment || (item.environment ?? 'development') === selectedEnvironment,
   );
 }
 /**
@@ -347,12 +349,14 @@ function scopedProjects(): Project[] {
 function renderScope() {
   const select = $<HTMLSelectElement>('#project-scope');
   if (!select) return;
-  const ids = (state.projects as Array<{ id: string; name: string }>).map((item) => item.id);
+  // Only the projects the chosen environment admits: offering one it would
+  // then hide is a dead end the operator has to undo.
+  const offered = projectsInEnvironment();
+  const ids = offered.map((item) => item.id);
   const rendered = [...select.options].slice(1).map((option) => option.value);
   if (rendered.join('\u0000') !== ids.join('\u0000')) {
     select.replaceChildren(new Option('All projects', ''));
-    for (const item of state.projects as Array<{ id: string; name: string }>)
-      select.append(new Option(item.name, item.id));
+    for (const item of offered) select.append(new Option(item.name, item.id));
   }
   select.value = selectedProject;
   const environment = $<HTMLSelectElement>('#environment-scope');
