@@ -155,6 +155,22 @@ that state, and several of these exist precisely because a machine cannot.
   13 families, 2,870 non-null oracle labels** (additive observations, not
   one plan); residual under the rows unit **≥349**.
   Evidence: [`docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s6/`](../evidence/VISUAL-SLM/corpus-scale-2026-09-10-s6/summary.md).
+  **Delivered 2026-09-10 (#557 slice 7, observed): the registry grew to 14
+  families — Creative Tim's now-ui-kit (MIT, static kit, commit-pinned at
+  80acd17) captured at the full width grid — 112 planned → 30 reason-carrying
+  skips (`unstable-case` ×24: every clipping mutation and layout-shift at all
+  four widths — the card sits over a full-screen header and those mutations
+  re-flow it, so the stability oracle fails after mutation even though the
+  clean page probed stable; style-tweak `overflow-oracle-failed` ×2 at 360/640;
+  text-truncate `no-text-element` ×4: widest h1/h2/p = 62px, under the 80px
+  floor) → 26 scored rows carrying 144 non-null oracle labels**, with
+  sb-admin-2 56/56 in the same run. First family where the clean-page probe
+  under-predicted mutation stability — mutation-variant stability is knowable
+  only from the full grid, recorded per case. Registry totals across the five
+  labeled runs: **868 planned → 135 skips → 733 scored rows across 14
+  families, 3,258 non-null oracle labels** (additive observations, not one
+  plan); residual under the rows unit **≥267**.
+  Evidence: [`docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s7/`](../evidence/VISUAL-SLM/corpus-scale-2026-09-10-s7/summary.md).
 - Two heads qualify on untouched test families (overflow; occlusion at 4/4 recall,
   0 false positives). Clipping, text_truncation and layout_shift stay **disabled**:
   no candidate threshold meets the precision/recall gates on 178 rows, and

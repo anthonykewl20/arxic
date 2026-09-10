@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "beforeSha256": "027d0227ee4cae9843f015dd4eda6d2258fcd8106352d29522806174a145117a",
+  "currentSha256": "2f0a87b8a850f1e9584b8568c4e8d8fd5a641853191f07c7b5034d78f0ef4b01",
+  "sanitized": true,
+  "stable": true,
+  "regions": [
+    {
+      "id": "viewport",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 800
+      },
+      "before": {
+        "box": {
+          "x": 161,
+          "y": 399.015625,
+          "width": 320,
+          "height": 48.90625
+        },
+        "clip": 1,
+        "hit": 1,
+        "overflowX": 0,
+        "overflowY": 0
+      },
+      "current": {
+        "box": null,
+        "clip": null,
+        "hit": 0,
+        "overflowX": 0,
+        "overflowY": 0
+      },
+      "eligible": [
+        false,
+        false,
+        true,
+        true,
+        true,
+        false
+      ],
+      "criterion": "required-submit-inside-viewport"
+    }
+  ],
+  "hardChecks": [
+    {
+      "id": "missing_element-oracle",
+      "head": "missing_element",
+      "verdict": "fail",
+      "region": "viewport"
+    },
+    {
+      "id": "overflow-oracle",
+      "head": "overflow",
+      "verdict": "pass",
+      "region": "viewport"
+    },
+    {
+      "id": "text_truncation-oracle",
+      "head": "text_truncation",
+      "verdict": "pass",
+      "region": "viewport"
+    }
+  ]
+}
