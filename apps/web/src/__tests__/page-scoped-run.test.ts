@@ -63,9 +63,7 @@ it('refuses to point a run at a path the project does not cover', async () => {
 it('refuses a scope that is not a list of paths', async () => {
   const wb = await workbench();
   const project = await wb.saveProject({ name: 'Scoped', folder: root, paths: ['/'] });
-  expect(() => wb.enqueue(project.id, 'visual', '/login')).toThrow(
-    /must be a list of paths/u,
-  );
+  expect(() => wb.enqueue(project.id, 'visual', '/login')).toThrow(/must be a list of paths/u);
   expect(() => wb.enqueue(project.id, 'visual', [1])).toThrow(/must be a list of paths/u);
 });
 

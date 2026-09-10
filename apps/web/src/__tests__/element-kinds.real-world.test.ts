@@ -57,13 +57,7 @@ it('collects native and declared kinds from real dashboard controls without reta
     expect(kindsAt(radio)).toContain(3);
     expect(kindsAt(button)).toContain(1);
     expect(scene.nodes.length).toBeGreaterThan(50);
-    for (const forbidden of [
-      token,
-      'Follow system theme',
-      'Pages',
-      'aria-label',
-      'radiogroup',
-    ])
+    for (const forbidden of [token, 'Follow system theme', 'Pages', 'aria-label', 'radiogroup'])
       expect(JSON.stringify(scene)).not.toContain(forbidden);
     const audit = await proof.audit(
       '01-native-and-declared-kinds',

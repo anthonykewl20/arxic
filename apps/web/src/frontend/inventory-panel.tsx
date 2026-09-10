@@ -25,7 +25,7 @@ import {
   type RouteCoverageDimensionName,
   type SurfaceIntentSummary,
 } from '../route-coverage';
-import { evidenceWords } from '../plain-words';
+import { evidenceWords, runModeWords } from '../plain-words';
 import type { FrontendInventory } from '@arxic/source-ua-adapter';
 import type { DomainInventory } from '@arxic/domain-inventory';
 import type { IntentLedger } from '../../../../packages/intent/src/ledger';
@@ -206,7 +206,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
               </section>
             ) : (
               <EmptyState key={project.id} icon={ScanSearch} title={project.name}>
-                <p>No inventory yet.</p>
+                <p>Nothing has been read from this project&rsquo;s code yet.</p>
                 <Button
                   className="primary mt-2"
                   data-start="discovery"
@@ -268,7 +268,7 @@ function SurfaceInventory({
   const columns: ReadonlyArray<Column<Row>> = [
     {
       key: 'surface',
-      header: 'Surface',
+      header: 'Address',
       width: '24%',
       cell: (row) => (
         <code className="text-[12px] text-[var(--foreground)]">
@@ -278,7 +278,7 @@ function SurfaceInventory({
     },
     {
       key: 'domain',
-      header: 'Domain',
+      header: 'Area',
       cell: (row) => (
         <span className="flex flex-col gap-0.5">
           <span>{row.domain}</span>
@@ -292,7 +292,7 @@ function SurfaceInventory({
     },
     {
       key: 'disposition',
-      header: 'Disposition',
+      header: 'How we know',
       cell: (row) => (
         // Badge and disposition sit on one line: stacked, they set the row
         // height for every surface in the table.
@@ -310,7 +310,7 @@ function SurfaceInventory({
     },
     {
       key: 'ledger',
-      header: 'Executions',
+      header: 'Tested',
       width: '18%',
       // The execution history is stated in the cell, not hidden behind a title:
       // a tooltip is not reachable by keyboard or reliably announced, and
@@ -327,7 +327,7 @@ function SurfaceInventory({
               </small>
             ) : (
               <small className="text-[var(--foreground-muted)]">
-                Not selected for a campaign yet.
+                Not chosen for a workflow run yet.
               </small>
             )}
           </span>
@@ -336,7 +336,7 @@ function SurfaceInventory({
     },
     {
       key: 'evidence',
-      header: 'Evidence',
+      header: 'Found in',
       width: '30%',
       truncate: true,
       cell: (row) => {
@@ -372,7 +372,7 @@ function SurfaceInventory({
   return (
     <Section
       title={project.name}
-      meta={`${rows.length} known surfaces · ${run.mode} · ${new Date(run.createdAt).toISOString().slice(0, 19).replace('T', ' ')} UTC`}
+      meta={`${rows.length} addresses · ${runModeWords(run.mode).label.toLowerCase()} · ${new Date(run.createdAt).toISOString().slice(0, 19).replace('T', ' ')} UTC`}
     >
       <DataTable
         className="surface-inventory"

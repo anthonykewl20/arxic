@@ -99,6 +99,6 @@ it('shows the cross-campaign execution ledger on inventory rows in the real dash
   // A discovery row no campaign ever selected says so explicitly.
   await expect
     .poll(() => page.locator(`[data-row-ledger="${unselectedKey}"]`).textContent())
-    .toContain('Not selected for a campaign yet');
+    .toContain('Not chosen for a workflow run yet');
   expect(errors).toEqual([]);
 }, 240_000);
