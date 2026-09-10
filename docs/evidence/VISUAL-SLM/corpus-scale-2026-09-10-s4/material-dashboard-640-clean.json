@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "material-dashboard-640-clean",
+  "group": "material-dashboard",
+  "revision": "ab71c03e5f7e4a212eddd477956bed212f554af0",
+  "consent": true,
+  "context": {
+    "width": 640,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clean"
+  },
+  "before": {
+    "path": "material-dashboard-640-clean-before.png",
+    "sha256": "60413acd2d8cdfb9dffe77863d99847e94ad9dd08ee337776143828caf58c3dd"
+  },
+  "current": {
+    "path": "material-dashboard-640-clean-current.png",
+    "sha256": "60413acd2d8cdfb9dffe77863d99847e94ad9dd08ee337776143828caf58c3dd"
+  },
+  "beforePrivacy": {
+    "path": "material-dashboard-640-clean-before.png.privacy.json",
+    "sha256": "e368348a6feef25e1598c7e95067a6a32e5f1ec3f001e9e7e2f8958056056651"
+  },
+  "currentPrivacy": {
+    "path": "material-dashboard-640-clean-current.png.privacy.json",
+    "sha256": "e368348a6feef25e1598c7e95067a6a32e5f1ec3f001e9e7e2f8958056056651"
+  },
+  "scene": {
+    "path": "material-dashboard-640-clean-scene.json",
+    "sha256": "1e18e115a9f224ad12c854e0e99508ef20ece213bd197f7dd562fc1145cd7ceb"
+  },
+  "timeline": {
+    "path": "material-dashboard-640-clean-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "material-dashboard-640-clean-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "beforeSha256": "60413acd2d8cdfb9dffe77863d99847e94ad9dd08ee337776143828caf58c3dd",
+  "currentSha256": "60413acd2d8cdfb9dffe77863d99847e94ad9dd08ee337776143828caf58c3dd",
+  "sanitized": true,
+  "stable": true,
+  "regions": [
+    {
+      "id": "viewport",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 640,
+        "height": 800
+      },
+      "before": {
+        "box": {
+          "x": 86,
+          "y": 491.375,
+          "width": 468,
+          "height": 40
+        },
+        "clip": 1,
+        "hit": 1,
+        "overflowX": 0,
+        "overflowY": 0
+      },
+      "current": {
+        "box": {
+          "x": 86,
+          "y": 491.375,
+          "width": 468,
+          "height": 40
+        },
+        "clip": 1,
+        "hit": 1,
+        "overflowX": 0,
+        "overflowY": 0
+      },
+      "eligible": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "criterion": "required-submit-inside-viewport"
+    }
+  ],
+  "hardChecks": [
+    {
+      "id": "clipping-oracle",
+      "head": "clipping",
+      "verdict": "pass",
+      "region": "viewport"
+    },
+    {
+      "id": "occlusion-oracle",
+      "head": "occlusion",
+      "verdict": "pass",
+      "region": "viewport"
+    },
+    {
+      "id": "missing_element-oracle",
+      "head": "missing_element",
+      "verdict": "pass",
+      "region": "viewport"
+    },
+    {
+      "id": "overflow-oracle",
+      "head": "overflow",
+      "verdict": "pass",
+      "region": "viewport"
+    },
+    {
+      "id": "text_truncation-oracle",
+      "head": "text_truncation",
+      "verdict": "pass",
+      "region": "viewport"
+    },
+    {
+      "id": "layout_shift-oracle",
+      "head": "layout_shift",
+      "verdict": "pass",
+      "region": "viewport"
+    }
+  ]
+}
