@@ -23,17 +23,20 @@ human".
 | `13fb7c00` | make the dashboard about pages, in words a person reads             |
 | `757b5c8a` | say what the coverage table holds in ordinary words                 |
 | `b88c85fc` | follow the re-cut through the journeys that assert on it            |
+| `1b41d040` | one place to choose what you are looking at                         |
+| `45e0dff8` | link a page's source files to the commit they were read at          |
+| `64f75fd6` | one project control, not four                                       |
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
 ```
-| — | [WEB-DASHBOARD-REVAMP] Pages as the dashboard's subject, the changes review queue, one plain vocabulary, project environments and per-project sign-in details — on the design system, regression determinism, induced states, isolated captures and the credential vault | ☑ done |
+| — | [WEB-DASHBOARD-REVAMP] Pages as the dashboard's subject, the changes review queue, one scope bar, one plain vocabulary, project environments, per-project sign-in details and source links to GitHub — on the design system, regression determinism, induced states, isolated captures and the credential vault | ☑ done |
 ```
 
 ## 2. `docs/SYNC.md` — session-log row (append to the table)
 
 ```
-| 2026-09-10 | **(WEB-DASHBOARD-REVAMP) Dashboard revamp + regression engine + the re-cut for people DONE.** The dashboard is now about PAGES. The inventory had been the source tier's route table — one row per HTTP method per path, `POST /api/albums` beside `/login`, every row stamped `Hypothesized extracted` — which the operator read and called "NOT for human". Pages is the home view: a card per page a browser can open, with a real screenshot, a name in words, the checks that ran, and a Run test that photographs THAT page (runs accept a `paths` scope, intersected with what the project covers). Changes is the review queue and the only navigation entry carrying a count; approving is the decision, so it reads the baseline pointers, not a capture's immutable `status`. `plain-words.ts` is one vocabulary with every engine term kept as `term` behind "Show technical names", and nothing claims more than was measured — text contrast reports only when it fails, an unstable capture withdraws its overflow claim. Projects record development/staging/production, which is what lets an AI walkthrough ask before acting on the real site and lets nothing else ask at all; sign-in details are set from the project that needs them. Video stays refused (frames cannot carry privacy masks); the sanitized action log is rendered readably instead. Six defects found on the way, including a screen reader announcing "2form fields" and a review queue 20,482px tall. |
+| 2026-09-10 | **(WEB-DASHBOARD-REVAMP) Dashboard revamp + regression engine + the re-cut for people DONE.** The dashboard is now about PAGES. The inventory had been the source tier's route table — one row per HTTP method per path, `POST /api/albums` beside `/login`, every row stamped `Hypothesized extracted` — which the operator read and called "NOT for human". Pages is the home view: a card per page a browser can open, with a real screenshot, a name in words, the checks that ran, and a Run test that photographs THAT page (runs accept a `paths` scope, intersected with what the project covers). Changes is the review queue and the only navigation entry carrying a count; approving is the decision, so it reads the baseline pointers, not a capture's immutable `status`. `plain-words.ts` is one vocabulary with every engine term kept as `term` behind "Show technical names", and nothing claims more than was measured — text contrast reports only when it fails, an unstable capture withdraws its overflow claim. Projects record development/staging/production, which is what lets an AI walkthrough ask before acting on the real site and lets nothing else ask at all; sign-in details are set from the project that needs them. Video stays refused (frames cannot carry privacy masks); the sanitized action log is rendered readably instead. Six defects found on the way, including a screen reader announcing "2form fields" and a review queue 20,482px tall. A second pass answered the operator's own reading of it: a scope bar in the sidebar (which project, which environment) that every screen obeys, replacing four per-screen project filters that disagreed; "Workflows" and "Coverage" renamed to User journeys and Code scan, which say what they are; run and project statuses stopped reporting Blocked/Hypothesized/Observed; and a page's source files now open on GitHub at the exact commit they were read from. |
 | 2026-09-10 | **(WEB-DASHBOARD-REVAMP) Dashboard revamp + regression engine DONE.** One token layer (`light-dark()`, palette declared once instead of three times), nine composition primitives behind `components/index.ts`, one `DataTable` replacing two table systems, ⌘K palette, toasts, real confirm dialogs. Intent inventory 16,416px → 2,452px on the same data via tabs. Encrypted credential vault, verified end to end by a browser journey that types a password into Administration and signs a real run in with it. Regression engine: Chromium raster flags, forced animation end-state, frozen wall clock, image-decode readiness, induced 4xx/5xx and empty-form states, automatic overlay/portal isolation, component isolation, and baseline-vs-current structural diffing that separates a layout shift from a repaint. Proved on real Chromium/Firefox/WebKit. Next: convert the remaining wizard and diff-viewer CSS; promote baselines to an external store. |
 ```
 
@@ -53,6 +56,8 @@ human".
 - WEB-DASHBOARD-REVAMP `plain-words.ts` holds one vocabulary for the whole dashboard: `needs-baseline` reads as "First look", `unlabeled-inputs` as "N fields have no label", `hypothesized` as "Read from your code". Every term keeps its engine word as `term`, so precision is one disclosure away rather than lost — "Show technical names" reveals the identifiers beside the sentences. A check is reported as passing only where the pipeline measures it unconditionally: text contrast appears when it fails and never as a pass, because it is measured only when the capture yielded text-paint evidence, and an unstable capture withdraws the overflow claim rather than reporting clean.
 - WEB-DASHBOARD-REVAMP A project records which copy of a site it points at — development, staging or production — surfaced on the projects table and on every page. It is what lets an AI walkthrough, or a state checkpoint that submits forms, ask before it acts on the site customers use, and lets nothing else ask at all. Unset reads as development: never guess that an unclassified project is production, nor that a production one is safe to submit forms on.
 - WEB-DASHBOARD-REVAMP A project's sign-in details can be set from the project's own menu, into the same write-only encrypted vault, with the reference name suggested from the project (`ARXIC_SECRET_AURORA_EMAIL`) so it stays placeable in a vault list or a server environment. Connecting a site behind a login no longer means leaving the dialog half-finished to visit another screen.
+- WEB-DASHBOARD-REVAMP A scope bar at the top of the sidebar — which project, which environment — that every screen obeys. `scopedProjects()` is the one definition of what is in view, so Pages, Changes, Test runs and Code scan cannot disagree about it, and the four per-screen project filters that used to say the same thing in four places are gone. A scope that hides everything says so and offers to clear itself, rather than telling someone with five projects to connect one. The scope travels in the URL, so a view can be shared.
+- WEB-DASHBOARD-REVAMP A page's source files link to GitHub at the exact commit discovery read them from. The folder's origin remote is detected when a project is connected — https, ssh and scp-style forms all normalise, anything else gets no link rather than a guessed one. The commit pin is the point: a link to the default branch would show today's code beside a screenshot taken from last week's.
 - WEB-DASHBOARD-REVAMP The sanitized action log is rendered readably instead of linked as raw JSON — "Opened the page in Chrome, light, phone" — on a run, and narrowed to one page's own steps on that page. This is what stands in for a recording: video frames cannot carry the privacy masks a screenshot gets, so `recordVideo` stays refused, and `action-log.ts` joins steps to captures by the checkpoint each capture's id encodes, returning nothing rather than attributing another page's work to this one.
 - WEB-DASHBOARD-REVAMP Rendering determinism (`determinism.ts`): Chromium font-hinting, subpixel, LCD-text, colour-profile and raster flags; an injected stylesheet forcing every CSS animation and transition to its END state, because the context can only ASK for reduced motion and pages ignore it; a frozen wall clock so rendered dates and relative times repeat. `performance.now`, rAF and the timers are deliberately left running — pinning them renders script animations at their first frame while CSS sits at its last, and stalls anything that waits on a timer. Readiness awaits image decoding; images that cannot decode are reported, not refused.
 - WEB-DASHBOARD-REVAMP Induced states (`state-induction.ts`): a state checkpoint may answer the page's own data requests with a status from a closed list, so error banners and boundary fallbacks render, or submit its forms empty to provoke inline validation. Document navigation is untouched, the fault route never forwards what it answers, and the capture context still aborts every non-GET, so both stay read-only against the target. Alerts, live regions and open dialogs are recorded on the capture as geometry only. A checkpoint that answered no request, found no form or raised no surface says so as a finding.
@@ -64,6 +69,11 @@ human".
 ### fixed
 
 ```
+- WEB-DASHBOARD-REVAMP There was nowhere to choose which project you were looking at. Every screen carried its own filter, none of them agreed, and the environment was a badge on a list rather than something you pick.
+- WEB-DASHBOARD-REVAMP "Workflows" and "Coverage" named nothing a person could act on. They are User journeys — a path through several pages that someone actually takes — and Code scan, which is what reading your code turned up; both screens now say so in their own headings rather than in a caveat underneath.
+- WEB-DASHBOARD-REVAMP The run list and the projects table still reported Blocked, Hypothesized and Observed. They say what those mean, with the engine's own sentence on hover.
+- WEB-DASHBOARD-REVAMP A rename sweep left the server telling operators to go to "Administration → Workspace roots" — a screen and a card that no longer exist under those names. Caught by CI, not by review.
+- WEB-DASHBOARD-REVAMP "Connect agent" sat in the top bar of every screen. It is a once-per-workspace setup task, so it moved onto AI models, beside the models it configures.
 - WEB-DASHBOARD-REVAMP A page photographed on desktop and on a phone reported the same defect twice, and two identical sentences read as two separate problems. Findings now collapse per kind, keeping the worst measurement.
 - WEB-DASHBOARD-REVAMP The element census used flex gap where a screen reader needs a space, so it announced "2form fields".
 - WEB-DASHBOARD-REVAMP Connecting a project landed on a screen with nothing on it — a new project has no pages yet — hiding the next thing to do. Saving a new project now lands on Projects, and Pages' empty state names the step.
@@ -204,10 +214,17 @@ Read this before trusting the summary.
   marked production, and asks nothing otherwise. It is not an access control and
   does not stop anything; a confirmation people meet on every run is one they
   stop reading.
-- **The GitHub deep link was not built.** "Where it comes from" names the source
-  files and the commit they were read at. Turning that into a repository URL
-  needs the project's git remote captured and stored, which is a schema change
-  this slice did not make.
+- **The environment is a label on a project, not a set of targets.** A project
+  points at one origin and says which copy of the site that is. Choosing
+  Production in the scope bar narrows to the projects that say so; it does not
+  re-point a project at a different URL. One project per environment is the
+  shape this supports, and baselines stay keyed to the project that produced
+  them — which is what stops two environments' pixels colliding.
+- **The GitHub link goes to a file at a commit, and no further.** It does not
+  diff two commits, and it does not know which lines rendered which pixels. The
+  line ranges discovery recorded are not carried into the link, because a range
+  read from a route row is not reliably the range that produced what is on
+  screen.
 
 - **No visual baseline exists for the redesign itself, and this slice must not
   create one.** Every dashboard screen changed, so the product's own baselines
