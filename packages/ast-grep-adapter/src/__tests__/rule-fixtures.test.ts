@@ -160,3 +160,25 @@ describe('real sg per-rule positive and negative fixtures', async () => {
     });
   }
 });
+
+describe('fastify-auth pack (register C1 framework breadth, #560)', () => {
+  it('ships the six auth categories with a normative fastify version range', async () => {
+    const loaded = await loadPacks(packDirs);
+    const pack = loaded.packs.find((candidate) => candidate.id === 'fastify-auth');
+    expect(pack).toBeDefined();
+    expect(pack?.framework).toEqual({ name: 'fastify', versions: '>=4 <6' });
+    expect(
+      loaded.rules
+        .filter((rule) => rule.packId === 'fastify-auth')
+        .map((rule) => rule.id)
+        .sort(),
+    ).toEqual([
+      'fastify-auth-guard',
+      'fastify-jwt-sign',
+      'fastify-jwt-verify',
+      'fastify-password-hash',
+      'fastify-route',
+      'fastify-session-cookie',
+    ]);
+  });
+});
