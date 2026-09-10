@@ -136,15 +136,25 @@ it('shows a person their pages, and lets them decide on what changed', async () 
       .getByText(/\d+ (?:form fields?|links?|buttons?)/u)
       .first()
       .waitFor();
-    // Checks read as sentences, and the engine's own names stay one click away.
     // The check reads as a sentence in the list, and again beside its engine
     // name in the disclosure — which is closed, so the name is not on screen.
     await page.getByText('No JavaScript errors', { exact: true }).first().waitFor();
     expect(await page.getByText('script-errors', { exact: true }).isVisible()).toBe(false);
     await page.getByRole('button', { name: 'Show technical names' }).click();
     await page.getByText('script-errors', { exact: true }).waitFor();
-    // The project's environment travels with the page.
-    await page.getByText('Staging', { exact: true }).first().waitFor();
+    // The environment is chosen in the sidebar, not worn as a badge on a row:
+    // narrowing to the copy of the site this project is NOT on empties the
+    // screen, and says why rather than offering to connect a project.
+    await page.locator('[data-nav="pages"]').click();
+    await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
+    await page.getByLabel('Environment', { exact: true }).selectOption('production');
+    await page.getByRole('heading', { name: 'Nothing in this scope', exact: true }).waitFor();
+    expect(await page.locator('.page-card').count()).toBe(0);
+    await page.getByLabel('Environment', { exact: true }).selectOption('staging');
+    await expect.poll(() => page.locator('.page-card').count()).toBe(3);
+    // The scope is in the address, so a narrowed view can be handed to someone.
+    expect(new URL(page.url()).searchParams.get('env')).toBe('staging');
+    await page.getByLabel('Environment', { exact: true }).selectOption('');
 
     await proof
       .audit('02-page', 'One page explains what it has, what was checked and what changed')
