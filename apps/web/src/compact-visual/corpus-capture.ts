@@ -138,6 +138,17 @@ export const STATIC_FAMILY_CONFIG: Record<
     buttonSelector: ':nth-match(a.btn.btn-primary, 1)',
     viewport: 1280,
   },
+  'sb-admin-2': {
+    // The successor template is a distinct DOM: its login submit is the only
+    // btn-primary anchor on the centered card, while the sibling Google and
+    // Facebook anchors carry different classes, so the selector stays unique
+    // without a viewport pin (the page is responsive at any width).
+    docroot: 'sb-admin-2',
+    path: '/login.html',
+    button: '',
+    buttonExact: true,
+    buttonSelector: 'a.btn-primary.btn-user',
+  },
 };
 
 const CONTENT_TYPES: Record<string, string> = {

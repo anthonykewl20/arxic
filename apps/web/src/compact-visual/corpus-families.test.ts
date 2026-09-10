@@ -1,11 +1,12 @@
 import { expect, it } from 'vitest';
 import { STATIC_FAMILY_CONFIG } from './corpus-capture';
 
-it('configures the four static public families with read-only docroots and stable controls', () => {
+it('configures the five static public families with read-only docroots and stable controls', () => {
   expect(Object.keys(STATIC_FAMILY_CONFIG).sort()).toEqual([
     'adminlte',
     'gentelella',
     'sb-admin',
+    'sb-admin-2',
     'todomvc',
   ]);
   for (const [family, config] of Object.entries(STATIC_FAMILY_CONFIG)) {
@@ -29,6 +30,13 @@ it('configures the four static public families with read-only docroots and stabl
   // pages, so its starter page card button is the control.
   expect(STATIC_FAMILY_CONFIG['sb-admin'].path).toBe('/login.html');
   expect(STATIC_FAMILY_CONFIG['sb-admin'].buttonSelector).toBe('a.btn.btn-primary');
+  // sb-admin-2 (the successor template, a distinct DOM): the login submit is
+  // the only btn-primary anchor on the centered card; the sibling Google and
+  // Facebook anchors carry different classes, so the selector stays unique.
+  expect(STATIC_FAMILY_CONFIG['sb-admin-2'].docroot).toBe('sb-admin-2');
+  expect(STATIC_FAMILY_CONFIG['sb-admin-2'].path).toBe('/login.html');
+  expect(STATIC_FAMILY_CONFIG['sb-admin-2'].buttonSelector).toBe('a.btn-primary.btn-user');
+  expect(STATIC_FAMILY_CONFIG['sb-admin-2'].viewport).toBeUndefined();
   expect(STATIC_FAMILY_CONFIG.gentelella.buttonSelector).toBe(
     'div.page-actions button.btn-outline',
   );
