@@ -7,7 +7,10 @@ Issue: none opened · PR: #<N> · Disposition: mixed
 > label were never applicable. The integrator should open one before merge, or
 > record the exception.
 
-Six commits on `feat/dashboard-revamp`, rebased onto `58924ec9`:
+Two waves on `feat/dashboard-revamp`. The first built the design system and the
+regression engine; the second re-conceived what the dashboard is _about_, after
+the operator read the result and said, of the intent inventory, "this is NOT for
+human".
 
 | Commit     | Subject                                                             |
 | ---------- | ------------------------------------------------------------------- |
@@ -17,16 +20,20 @@ Six commits on `feat/dashboard-revamp`, rebased onto `58924ec9`:
 | `ac244d26` | stop an empty environment variable shadowing a stored credential    |
 | `a92b8172` | tab the intent inventory, campaign surfaces in a table              |
 | `abff2e60` | Models & accounts on the shared empty-state and note primitives     |
+| `13fb7c00` | make the dashboard about pages, in words a person reads             |
+| `757b5c8a` | say what the coverage table holds in ordinary words                 |
+| `b88c85fc` | follow the re-cut through the journeys that assert on it            |
 
 ## 1. `docs/SYNC.md` — tracker row (replace the existing row verbatim)
 
 ```
-| — | [WEB-DASHBOARD-REVAMP] Dashboard design system, regression determinism, induced states, isolated captures and the credential vault | ☑ done |
+| — | [WEB-DASHBOARD-REVAMP] Pages as the dashboard's subject, the changes review queue, one plain vocabulary, project environments and per-project sign-in details — on the design system, regression determinism, induced states, isolated captures and the credential vault | ☑ done |
 ```
 
 ## 2. `docs/SYNC.md` — session-log row (append to the table)
 
 ```
+| 2026-09-10 | **(WEB-DASHBOARD-REVAMP) Dashboard revamp + regression engine + the re-cut for people DONE.** The dashboard is now about PAGES. The inventory had been the source tier's route table — one row per HTTP method per path, `POST /api/albums` beside `/login`, every row stamped `Hypothesized extracted` — which the operator read and called "NOT for human". Pages is the home view: a card per page a browser can open, with a real screenshot, a name in words, the checks that ran, and a Run test that photographs THAT page (runs accept a `paths` scope, intersected with what the project covers). Changes is the review queue and the only navigation entry carrying a count; approving is the decision, so it reads the baseline pointers, not a capture's immutable `status`. `plain-words.ts` is one vocabulary with every engine term kept as `term` behind "Show technical names", and nothing claims more than was measured — text contrast reports only when it fails, an unstable capture withdraws its overflow claim. Projects record development/staging/production, which is what lets an AI walkthrough ask before acting on the real site and lets nothing else ask at all; sign-in details are set from the project that needs them. Video stays refused (frames cannot carry privacy masks); the sanitized action log is rendered readably instead. Six defects found on the way, including a screen reader announcing "2form fields" and a review queue 20,482px tall. |
 | 2026-09-10 | **(WEB-DASHBOARD-REVAMP) Dashboard revamp + regression engine DONE.** One token layer (`light-dark()`, palette declared once instead of three times), nine composition primitives behind `components/index.ts`, one `DataTable` replacing two table systems, ⌘K palette, toasts, real confirm dialogs. Intent inventory 16,416px → 2,452px on the same data via tabs. Encrypted credential vault, verified end to end by a browser journey that types a password into Administration and signs a real run in with it. Regression engine: Chromium raster flags, forced animation end-state, frozen wall clock, image-decode readiness, induced 4xx/5xx and empty-form states, automatic overlay/portal isolation, component isolation, and baseline-vs-current structural diffing that separates a layout shift from a repaint. Proved on real Chromium/Firefox/WebKit. Next: convert the remaining wizard and diff-viewer CSS; promote baselines to an external store. |
 ```
 
@@ -41,6 +48,12 @@ Six commits on `feat/dashboard-revamp`, rebased onto `58924ec9`:
 ### added
 
 ```
+- WEB-DASHBOARD-REVAMP Pages is the dashboard's home view. One card per page a browser can open — a real screenshot, a name in words (`/login` reads as "Sign in"), the checks that ran, and one action, Run test, which photographs that page alone (`POST /api/projects/:id/runs` accepts `paths`, intersected with what the project already covers so it can never point the engine at a path nobody configured). Opening a page shows how it looks at each state and screen size, what it is made of (element counts — never the page's text, which the measurement pipeline deliberately never retains), every check as a sentence, what Arxic did to reach and photograph it, the source files it comes from, and the decisions still waiting. `page-inventory.ts` builds it from the state snapshot the dashboard already polls: no extra request, no engine change.
+- WEB-DASHBOARD-REVAMP Changes is the review queue, and the only navigation entry carrying a count. Each pending change shows the environment, the size of the difference, what changed by element kind, and the two pictures whole, with the full swipe/overlay viewer one disclosure below. A change stays pending until a person decides; approving IS the decision, so the queue reads the baseline pointers rather than a capture's `status`, which records what a run measured and never changes.
+- WEB-DASHBOARD-REVAMP `plain-words.ts` holds one vocabulary for the whole dashboard: `needs-baseline` reads as "First look", `unlabeled-inputs` as "N fields have no label", `hypothesized` as "Read from your code". Every term keeps its engine word as `term`, so precision is one disclosure away rather than lost — "Show technical names" reveals the identifiers beside the sentences. A check is reported as passing only where the pipeline measures it unconditionally: text contrast appears when it fails and never as a pass, because it is measured only when the capture yielded text-paint evidence, and an unstable capture withdraws the overflow claim rather than reporting clean.
+- WEB-DASHBOARD-REVAMP A project records which copy of a site it points at — development, staging or production — surfaced on the projects table and on every page. It is what lets an AI walkthrough, or a state checkpoint that submits forms, ask before it acts on the site customers use, and lets nothing else ask at all. Unset reads as development: never guess that an unclassified project is production, nor that a production one is safe to submit forms on.
+- WEB-DASHBOARD-REVAMP A project's sign-in details can be set from the project's own menu, into the same write-only encrypted vault, with the reference name suggested from the project (`ARXIC_SECRET_AURORA_EMAIL`) so it stays placeable in a vault list or a server environment. Connecting a site behind a login no longer means leaving the dialog half-finished to visit another screen.
+- WEB-DASHBOARD-REVAMP The sanitized action log is rendered readably instead of linked as raw JSON — "Opened the page in Chrome, light, phone" — on a run, and narrowed to one page's own steps on that page. This is what stands in for a recording: video frames cannot carry the privacy masks a screenshot gets, so `recordVideo` stays refused, and `action-log.ts` joins steps to captures by the checkpoint each capture's id encodes, returning nothing rather than attributing another page's work to this one.
 - WEB-DASHBOARD-REVAMP Rendering determinism (`determinism.ts`): Chromium font-hinting, subpixel, LCD-text, colour-profile and raster flags; an injected stylesheet forcing every CSS animation and transition to its END state, because the context can only ASK for reduced motion and pages ignore it; a frozen wall clock so rendered dates and relative times repeat. `performance.now`, rAF and the timers are deliberately left running — pinning them renders script animations at their first frame while CSS sits at its last, and stalls anything that waits on a timer. Readiness awaits image decoding; images that cannot decode are reported, not refused.
 - WEB-DASHBOARD-REVAMP Induced states (`state-induction.ts`): a state checkpoint may answer the page's own data requests with a status from a closed list, so error banners and boundary fallbacks render, or submit its forms empty to provoke inline validation. Document navigation is untouched, the fault route never forwards what it answers, and the capture context still aborts every non-GET, so both stay read-only against the target. Alerts, live regions and open dialogs are recorded on the capture as geometry only. A checkpoint that answered no request, found no form or raised no surface says so as a finding.
 - WEB-DASHBOARD-REVAMP Isolated captures (`element-capture.ts`): overlays and portals are captured in isolation automatically, and declared component selectors alongside them. Each region is its own capture record with its own spec hash, so a component is compared against its own baseline and a sibling's height change no longer reports it as altered. Regions are cropped from the already-masked viewport bytes, so an isolated capture is a strict subset of pixels that already passed the privacy pipeline.
@@ -51,6 +64,11 @@ Six commits on `feat/dashboard-revamp`, rebased onto `58924ec9`:
 ### fixed
 
 ```
+- WEB-DASHBOARD-REVAMP A page photographed on desktop and on a phone reported the same defect twice, and two identical sentences read as two separate problems. Findings now collapse per kind, keeping the worst measurement.
+- WEB-DASHBOARD-REVAMP The element census used flex gap where a screen reader needs a space, so it announced "2form fields".
+- WEB-DASHBOARD-REVAMP Connecting a project landed on a screen with nothing on it — a new project has no pages yet — hiding the next thing to do. Saving a new project now lands on Projects, and Pages' empty state names the step.
+- WEB-DASHBOARD-REVAMP Navigating away from an open page kept its name in the heading, so the Changes queue announced itself as "Sign in".
+- WEB-DASHBOARD-REVAMP `text-transform: capitalize` on every pill was right while pills held engine words and wrong the moment one held a sentence ("2 To Review"). The capitalisation moved to the one caller that shows an engine word.
 - WEB-DASHBOARD-REVAMP An empty environment variable no longer shadows a stored credential: a shell profile exporting `ARXIC_SECRET_X=` erased the vault entry and the run refused with "set it in the server environment", pointing the operator away from the value they had just entered. An empty variable carries no credential and is no longer an override; a real one still wins.
 ```
 
@@ -135,30 +153,61 @@ above is only there to show which is which.
 
 ## 6. Sad paths proved (each mapped to a truth state, charter §4)
 
-| Trigger                                            | Expected disposition                                                            | Test                                       |
-| -------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------ |
-| Vault record read under a rotated key              | credential reported missing; run blocks rather than signing in with garbage     | `secret-vault.test.ts`                     |
-| Vault record's ciphertext altered in the database  | GCM tag rejects it; credential reported missing                                 | `secret-vault.test.ts`                     |
-| Reference name that is not `ARXIC_SECRET_`         | 400 before anything is stored                                                   | `secret-vault.test.ts`                     |
-| Environment names a reference but leaves it empty  | the vault value survives and is used                                            | `secret-vault.test.ts`                     |
-| Stored credential removed                          | the run returns to refusing                                                     | `credential-vault-ui.real-world.test.ts`   |
-| Induced fault that matches no request              | `state-induction-no-request` finding; capture is not read as reaching the state | `state-induction.real-world.test.ts`       |
-| Empty submission on a page with no form            | `state-induction-no-form` finding                                               | `state-induction.real-world.test.ts`       |
-| Induction that raises no alert or dialog           | `state-induction-no-surface` finding                                            | `visual.ts`                                |
-| Image that cannot decode                           | `undecodable-images` finding; capture proceeds                                  | `determinism.real-world.test.ts`           |
-| Region off screen or smaller than four pixels      | no isolated capture rather than a meaningless crop                              | `element-capture.real-world.test.ts`       |
-| Assessment that no longer hashes to its record     | capture left unclassified rather than classified from altered evidence          | `structural-diff.test.ts`                  |
-| Either scene truncated                             | diff marked truncated, so absence is not read as removal                        | `structural-diff.test.ts`                  |
-| Every dashboard view at 200% text and wide spacing | no clipped control text, no horizontal document overflow                        | `dashboard-readability.real-world.test.ts` |
-| Unbreakable path in a one-column mobile grid       | wraps inside the viewport instead of scrolling the document                     | `dashboard-readability.real-world.test.ts` |
-| Discovery with thousands of surfaces               | paged, not rendered whole                                                       | `inventory-ledger-ui.real-world.test.ts`   |
-| Filter on a run whose captures share one value     | control still present and selectable                                            | `capture-gallery-ui.real-world.test.ts`    |
-| Visual run on a project with no discovery yet      | "Visual test" is on the row, not hidden behind a menu                           | `visual-review-ui.real-world.test.ts`      |
-| Opening a project's settings from the overview     | the project name is the control, and carries `data-edit`                        | `agent.real-world.test.ts` (guided)        |
+| Trigger                                            | Expected disposition                                                                                     | Test                                       |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Run scoped to a path the project does not cover    | 400 before anything is queued; the scope narrows and never substitutes                                   | `page-scoped-run.test.ts`                  |
+| Capture that would not settle                      | the overflow claim is withdrawn, not reported clean                                                      | `page-inventory.test.ts`                   |
+| Text contrast that was never measured              | absent from the page; never reported as a pass                                                           | `page-inventory.test.ts`                   |
+| Action log whose checkpoints belong to another run | nothing shown, rather than another page's work under this page's heading                                 | `action-log.test.ts`                       |
+| Project with no environment recorded               | read as development; an AI walkthrough on it does not ask, and does not pretend to be safe on production | `plain-words.test.ts`                      |
+| Vault record read under a rotated key              | credential reported missing; run blocks rather than signing in with garbage                              | `secret-vault.test.ts`                     |
+| Vault record's ciphertext altered in the database  | GCM tag rejects it; credential reported missing                                                          | `secret-vault.test.ts`                     |
+| Reference name that is not `ARXIC_SECRET_`         | 400 before anything is stored                                                                            | `secret-vault.test.ts`                     |
+| Environment names a reference but leaves it empty  | the vault value survives and is used                                                                     | `secret-vault.test.ts`                     |
+| Stored credential removed                          | the run returns to refusing                                                                              | `credential-vault-ui.real-world.test.ts`   |
+| Induced fault that matches no request              | `state-induction-no-request` finding; capture is not read as reaching the state                          | `state-induction.real-world.test.ts`       |
+| Empty submission on a page with no form            | `state-induction-no-form` finding                                                                        | `state-induction.real-world.test.ts`       |
+| Induction that raises no alert or dialog           | `state-induction-no-surface` finding                                                                     | `visual.ts`                                |
+| Image that cannot decode                           | `undecodable-images` finding; capture proceeds                                                           | `determinism.real-world.test.ts`           |
+| Region off screen or smaller than four pixels      | no isolated capture rather than a meaningless crop                                                       | `element-capture.real-world.test.ts`       |
+| Assessment that no longer hashes to its record     | capture left unclassified rather than classified from altered evidence                                   | `structural-diff.test.ts`                  |
+| Either scene truncated                             | diff marked truncated, so absence is not read as removal                                                 | `structural-diff.test.ts`                  |
+| Every dashboard view at 200% text and wide spacing | no clipped control text, no horizontal document overflow                                                 | `dashboard-readability.real-world.test.ts` |
+| Unbreakable path in a one-column mobile grid       | wraps inside the viewport instead of scrolling the document                                              | `dashboard-readability.real-world.test.ts` |
+| Discovery with thousands of surfaces               | paged, not rendered whole                                                                                | `inventory-ledger-ui.real-world.test.ts`   |
+| Filter on a run whose captures share one value     | control still present and selectable                                                                     | `capture-gallery-ui.real-world.test.ts`    |
+| Visual run on a project with no discovery yet      | "Visual test" is on the row, not hidden behind a menu                                                    | `visual-review-ui.real-world.test.ts`      |
+| Opening a project's settings from the overview     | the project name is the control, and carries `data-edit`                                                 | `agent.real-world.test.ts` (guided)        |
 
 ## 7. What this slice did NOT do
 
 Read this before trusting the summary.
+
+- **No video, and none is coming from this slice.** The operator asked for
+  "screenshots and/or video how it works". `recordVideo: true` still refuses,
+  because a video frame cannot carry the privacy masks a screenshot gets, so an
+  unmasked recording would leak whatever was on screen. What ships instead is
+  what can be shown honestly: the filmstrip of a page's captured states at each
+  screen size, and the sanitized action log rendered readably. Frame-level
+  masking is real engineering and is not in here.
+- **The Pages view invents nothing.** It is a re-projection of evidence the
+  dashboard already polls — configured paths, crawled paths, captured paths —
+  so a page nothing has reached is shown as untested rather than assumed to
+  exist. API endpoints are absent because nobody can look at one, not because
+  they were filtered out: they keep their place under Coverage.
+- **"What's on this page" is a census, not a reading.** The measurement pipeline
+  deliberately retains no text, labels, URLs or values from the target
+  application, so the honest answer to "what does this page have" is two form
+  fields and a button, never "Email, Password, Sign in". The screen says so.
+- **The production confirmation is one question, not a policy.** It asks before
+  an AI walkthrough or a form-submitting checkpoint runs against a project
+  marked production, and asks nothing otherwise. It is not an access control and
+  does not stop anything; a confirmation people meet on every run is one they
+  stop reading.
+- **The GitHub deep link was not built.** "Where it comes from" names the source
+  files and the commit they were read at. Turning that into a repository URL
+  needs the project's git remote captured and stored, which is a schema change
+  this slice did not make.
 
 - **No visual baseline exists for the redesign itself, and this slice must not
   create one.** Every dashboard screen changed, so the product's own baselines
