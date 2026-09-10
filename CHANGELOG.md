@@ -236,6 +236,42 @@ pre-1.0 release increments follow the owner-defined counter in `RELEASES.md`.
 
 ### changed
 
+- CORPUS-SCALE-557-S4 11-family registry accounting (refs #557): the
+  material-dashboard family was captured at the full width grid (360/640/1024/1280
+  × 14 variants) through the real pipeline with real Chromium — 112 planned →
+  9 reason-carrying skips → 103 scored rows with sb-admin-2 scoring a perfect
+  56/56 in the same run. Register C3 now records the 11-family totals (532
+  planned → 84 skips → 448 scored rows, 1,988 non-null oracle labels across two
+  labeled runs) and the honest residual (≥552 rows) under the unchanged rows-unit
+  reading; the family's two genuine limitations (centered-card missing-element
+  instability, remote-subresource navigation timeouts) are recorded as reasons,
+  not fabricated rows. Evidence retained sanitized under
+  `docs/evidence/VISUAL-SLM/corpus-scale-2026-09-10-s4/`.
+- CORPUS-SCALE-557-S4 CI boot tolerance for the dashboard-progress interruption
+  test (refs #557): two consecutive CI runs of the docs-only PR failed
+  `scripts/dashboard-progress.test.mjs > flushes case-start evidence before a
+real running test process is interrupted` — the nested vitest child printed
+  `run-start` at 9ms and then stalled in worker/file-collection boot past the
+  60s poll bound while the same CI shard ran concurrent real-browser suites
+  (local boots ~220ms, six of six; the test already documented a >10s CI boot,
+  run 34355455688). Investigation cleared the reporter (vitest-4-compatible)
+  and the fixture signature (positional timeout fires case-start when booted);
+  the bound was the defect. Poll 60s→180s, fixture hang 120s→360s, outer cap
+  90s→240s — moved together so the interrupt still always lands before any
+  timeout result can exist. The tested property is UNCHANGED (case-start
+  evidence exists and no case-result precedes the interrupt); only the
+  cold-start tolerance widened, disclosed here per the no-silent-loosening
+  rule. Test green locally after the change (4/4).
+- CORPUS-SCALE-557-S3 11th corpus family (refs #557): `STATIC_FAMILY_CONFIG` gains
+  Creative Tim's material-dashboard sign-in page (MIT, tag v3.1.0 pinned; control
+  `button.bg-gradient-primary`, no viewport pin). Real-Chromium proof grid over all
+  14 variants against material-dashboard + sb-admin-2: 56 planned → 7 reason-carrying
+  skips → 49 scored rows (21 from the new family). The family's missing-element cases
+  are honestly unstable (a centered card moves every input when the control is
+  removed), and its remote subresources intermittently exceed the navigation
+  deadline — both recorded as reasons in the corpus manifest. A first candidate
+  (StartBootstrap coming-soon) was rejected without patching: its `disabled` submit
+  button is not hittable, so the occlusion oracle fails every case honestly.
 - CORPUS-SCALE-557-S2 full-registry corpus (refs #557): the ten-family capture ran
   at the complete grid (360/640/1024/1280 × 14 variants; gentelella/adminlte pinned
   to 1280) — 476 planned, 75 skips each carrying its oracle reason, 401 scored rows
