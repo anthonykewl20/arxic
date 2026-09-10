@@ -1,0 +1,17 @@
+id: fastify-jwt-sign
+language: TypeScript
+message: Fastify JWT signing
+severity: info
+rule:
+  any:
+    - pattern: app.jwt.sign($$$ARGS)
+    - pattern: $REPLY.jwtSign($$$ARGS)
+metadata:
+  arxic:
+    category: token-create
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Captures @fastify/jwt sign decorators and the instance jwt namespace
+    fallback: Wrapped token issuers are not inferred
+    license: MIT
+    provenance: original-arxic

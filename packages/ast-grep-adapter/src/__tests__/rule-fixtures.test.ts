@@ -29,6 +29,12 @@ const expectedFields: Record<string, string> = {
   'express-session-cookie': 'NAME',
   'express-totp-verify': 'TOKEN',
   'laravel-route': 'PATH',
+  'fastify-route': 'PATH',
+  'fastify-jwt-sign': 'ARGS',
+  'fastify-jwt-verify': 'REQUEST',
+  'fastify-session-cookie': 'NAME',
+  'fastify-password-hash': 'PASSWORD',
+  'fastify-auth-guard': 'FIELD',
 };
 
 const realCases: Record<string, { positive: string; negative: string }> = {
@@ -120,6 +126,30 @@ const realCases: Record<string, { positive: string; negative: string }> = {
     positive: 'test-fixtures/vulnerable-auth-app/src/server.ts',
     negative: 'test-fixtures/vulnerable-auth-app/src/mail.ts',
   },
+  'fastify-route': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/db.ts',
+  },
+  'fastify-jwt-sign': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/mail.ts',
+  },
+  'fastify-jwt-verify': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/mail.ts',
+  },
+  'fastify-session-cookie': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/db.ts',
+  },
+  'fastify-password-hash': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/mail.ts',
+  },
+  'fastify-auth-guard': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/db.ts',
+  },
 };
 
 describe('real sg per-rule positive and negative fixtures', async () => {
@@ -159,4 +189,26 @@ describe('real sg per-rule positive and negative fixtures', async () => {
       }
     });
   }
+});
+
+describe('fastify-auth pack (register C1 framework breadth, #560)', () => {
+  it('ships the six auth categories with a normative fastify version range', async () => {
+    const loaded = await loadPacks(packDirs);
+    const pack = loaded.packs.find((candidate) => candidate.id === 'fastify-auth');
+    expect(pack).toBeDefined();
+    expect(pack?.framework).toEqual({ name: 'fastify', versions: '>=4 <6' });
+    expect(
+      loaded.rules
+        .filter((rule) => rule.packId === 'fastify-auth')
+        .map((rule) => rule.id)
+        .sort(),
+    ).toEqual([
+      'fastify-auth-guard',
+      'fastify-jwt-sign',
+      'fastify-jwt-verify',
+      'fastify-password-hash',
+      'fastify-route',
+      'fastify-session-cookie',
+    ]);
+  });
 });

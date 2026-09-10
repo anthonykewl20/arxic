@@ -82,11 +82,15 @@ that state, and several of these exist precisely because a machine cannot.
 
 - Delivered: persona variants (#491, #493), flag and state variants (#495),
   distinct-login-path persona variants (#500), per-route and configuration
-  omission coverage (#509/#516).
+  omission coverage (#509/#516), and a fourth discovery rulepack —
+  **fastify-auth** (#560, observed 2026-09-10: framework `fastify >=4 <6`, six
+  rules, range enforcement and real-fixture chain proof via the real sg engine;
+  `test-fixtures/reference-fastify-auth-app`).
 - Not delivered: semantic business-intent synthesis, source-to-runtime state
-  mapping, and framework breadth beyond the implemented rulepacks. Source
-  declarations do not reveal every hidden requirement, and the product must not
-  claim they do.
+  mapping, and framework breadth beyond the implemented rulepacks (five packs
+  shipped: nextjs, express, laravel, fastify — plus the react placeholder).
+  Source declarations do not reveal every hidden requirement, and the product
+  must not claim they do.
 
 ### C2. #402 — richer connection/account and runtime management
 

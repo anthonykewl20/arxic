@@ -1,0 +1,20 @@
+id: fastify-route
+language: TypeScript
+message: Fastify route registration
+severity: info
+rule:
+  pattern: app.$METHOD($PATH, $$$ARGS)
+constraints:
+  METHOD:
+    regex: ^(get|post|put|patch|delete)$
+  PATH:
+    regex: ^["']
+metadata:
+  arxic:
+    category: route
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Direct Fastify instance HTTP method with literal path and complete handler range
+    fallback: Decorated or prefixed registrations are labeled fallback only
+    license: MIT
+    provenance: original-arxic

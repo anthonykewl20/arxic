@@ -449,6 +449,7 @@ const FRAMEWORK_PACKAGES: Readonly<Record<string, string>> = Object.freeze({
   next: 'nextjs',
   express: 'express',
   react: 'react',
+  fastify: 'fastify',
   'laravel/framework': 'laravel',
 });
 

@@ -1,0 +1,17 @@
+id: fastify-session-cookie
+language: TypeScript
+message: Fastify session cookie mutation
+severity: info
+rule:
+  any:
+    - pattern: $REPLY.setCookie($NAME, $VALUE, $OPTIONS)
+    - pattern: $REPLY.clearCookie($NAME, $OPTIONS)
+metadata:
+  arxic:
+    category: session-cookie
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Captures @fastify/cookie reply set and clear calls
+    fallback: Cookie plugin wrappers require another rule
+    license: MIT
+    provenance: original-arxic

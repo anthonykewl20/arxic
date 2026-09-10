@@ -18,6 +18,11 @@ describe('real sg CLI proof against the auth fixture apps', () => {
       'express',
       ['session-cookie', 'mail-transport', 'token-create', 'token-persist'],
     ],
+    [
+      'reference-fastify-auth-app',
+      'fastify',
+      ['session-cookie', 'token-create', 'token-verify', 'password-hash', 'guard'],
+    ],
   ] as const)(
     'connects route to handler to guard for %s',
     async (fixture, framework, categories) => {
@@ -53,7 +58,9 @@ describe('real sg CLI proof against the auth fixture apps', () => {
       ).toEqual(
         framework === 'nextjs'
           ? new Set(['nextjs-page-route', 'nextjs-server-action', 'nextjs-auth-guard'])
-          : new Set(['express-route', 'express-inline-handler', 'express-auth-guard']),
+          : framework === 'fastify'
+            ? new Set(['fastify-route', 'fastify-auth-guard'])
+            : new Set(['express-route', 'express-inline-handler', 'express-auth-guard']),
       );
       if (framework === 'nextjs') {
         const loginGuards = first.matches.filter(
@@ -76,6 +83,25 @@ describe('real sg CLI proof against the auth fixture apps', () => {
           PASSWORD: 'password',
           HASH: 'user.passwordHash',
         });
+      } else if (framework === 'fastify') {
+        const loginRoute = first.matches.find(
+          (match) =>
+            match.packId === 'fastify-auth' &&
+            match.category === 'route' &&
+            match.fields.METHOD === 'post' &&
+            match.fields.PATH === "'/login'",
+        );
+        expect(loginRoute).toBeDefined();
+        const linkedGuard = first.matches.find(
+          (match) =>
+            match.packId === 'fastify-auth' &&
+            match.category === 'guard' &&
+            match.fields.FIELD === 'password' &&
+            match.file === loginRoute?.file &&
+            match.startLine >= loginRoute.startLine &&
+            match.endLine <= loginRoute.endLine,
+        );
+        expect(linkedGuard).toBeDefined();
       } else {
         const loginRoute = first.matches.find(
           (match) =>
