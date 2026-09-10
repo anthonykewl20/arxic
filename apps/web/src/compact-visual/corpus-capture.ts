@@ -193,6 +193,22 @@ export const STATIC_FAMILY_CONFIG: Record<
     buttonExact: true,
     buttonSelector: 'button.bg-pink',
   },
+  'now-ui-kit': {
+    // Creative Tim's now-ui-kit (MIT, a static kit, commit-pinned at
+    // 80acd17 — default-branch HEAD). Its login card's "Get Started"
+    // control is an anchor styled as a button (the sb-admin precedent),
+    // and the only btn-primary anchor on the page, so the class selector
+    // stays unique. The card keeps its position when the control is
+    // removed (missing-element stable at every width probed, 360–1280),
+    // and the page's widest h1/h2/p text stays under the oracle's 80px
+    // floor, so the text-truncate variant honestly refuses
+    // no-text-element — recorded per case, never fabricated.
+    docroot: 'now-ui-kit',
+    path: '/examples/login-page.html',
+    button: '',
+    buttonExact: true,
+    buttonSelector: 'a.btn-primary',
+  },
 };
 
 const CONTENT_TYPES: Record<string, string> = {
