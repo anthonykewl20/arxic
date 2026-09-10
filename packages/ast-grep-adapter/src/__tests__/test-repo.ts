@@ -12,6 +12,7 @@ export const packDirs = [
   join(workspaceRoot, 'rulepacks/nextjs'),
   join(workspaceRoot, 'rulepacks/express'),
   join(workspaceRoot, 'rulepacks/laravel'),
+  join(workspaceRoot, 'rulepacks/fastify-auth'),
 ];
 const env = {
   ...process.env,
@@ -28,7 +29,7 @@ async function git(cwd: string, ...args: string[]) {
 }
 
 export async function makeRepository(
-  fixture?: 'reference-auth-app' | 'vulnerable-auth-app',
+  fixture?: 'reference-auth-app' | 'vulnerable-auth-app' | 'reference-fastify-auth-app',
   files: Record<string, string> = {},
 ): Promise<{ root: string; revision: SourceRevision }> {
   const root = await mkdtemp(join(tmpdir(), 'arxic-rules-'));

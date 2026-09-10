@@ -1,0 +1,8 @@
+{
+  "id": "fastify-auth",
+  "version": "0.1.0",
+  "framework": { "name": "fastify", "versions": ">=4 <6" },
+  "license": "MIT",
+  "provenance": "original-arxic",
+  "ruleDir": "rules"
+}

@@ -54,6 +54,33 @@ export function interpretMatches(
       guards: guard ? [guard] : [],
     });
   }
+  const fastifyRoutes = matches.filter(
+    (match) => match.packId === 'fastify-auth' && match.category === 'route',
+  );
+  for (const route of fastifyRoutes) {
+    const routePath = unquote(String(route.fields.PATH ?? ''));
+    const feature = featureFromRoute(routePath);
+    if (features && !features.includes(feature)) continue;
+    // A Fastify registration is its own handler: the route rule's range is the
+    // containing route call, so the inline callback is the handler by
+    // construction, and the guards are the guard-category matches inside it.
+    const guards = matches.filter(
+      (match) =>
+        match.packId === route.packId &&
+        match.category === 'guard' &&
+        match.file === route.file &&
+        match.startLine >= route.startLine &&
+        match.endLine <= route.endLine,
+    );
+    addChain(chains, diagnostics, {
+      feature,
+      routePath,
+      framework: 'fastify',
+      route,
+      handler: route,
+      guards,
+    });
+  }
   const nextRoutes = matches.filter(
     (match) => match.packId === 'nextjs-auth' && match.category === 'route',
   );

@@ -1,0 +1,17 @@
+id: fastify-auth-guard
+language: TypeScript
+message: Fastify credential or token guard
+severity: info
+rule:
+  any:
+    - pattern: $REQUEST.body.$FIELD
+    - pattern: $REQUEST.jwtVerify()
+metadata:
+  arxic:
+    category: guard
+    semver: 1.0.0
+    frameworkVersions: '>=4 <6'
+    precision: Direct parsed-body credential reads and the jwt verify decorator
+    fallback: Custom preHandler abstractions require another rule
+    license: MIT
+    provenance: original-arxic

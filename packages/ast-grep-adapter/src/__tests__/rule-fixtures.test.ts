@@ -29,6 +29,12 @@ const expectedFields: Record<string, string> = {
   'express-session-cookie': 'NAME',
   'express-totp-verify': 'TOKEN',
   'laravel-route': 'PATH',
+  'fastify-route': 'PATH',
+  'fastify-jwt-sign': 'ARGS',
+  'fastify-jwt-verify': 'REQUEST',
+  'fastify-session-cookie': 'NAME',
+  'fastify-password-hash': 'PASSWORD',
+  'fastify-auth-guard': 'FIELD',
 };
 
 const realCases: Record<string, { positive: string; negative: string }> = {
@@ -119,6 +125,30 @@ const realCases: Record<string, { positive: string; negative: string }> = {
   'express-session-cookie': {
     positive: 'test-fixtures/vulnerable-auth-app/src/server.ts',
     negative: 'test-fixtures/vulnerable-auth-app/src/mail.ts',
+  },
+  'fastify-route': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/db.ts',
+  },
+  'fastify-jwt-sign': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/mail.ts',
+  },
+  'fastify-jwt-verify': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/mail.ts',
+  },
+  'fastify-session-cookie': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/db.ts',
+  },
+  'fastify-password-hash': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/mail.ts',
+  },
+  'fastify-auth-guard': {
+    positive: 'test-fixtures/reference-fastify-auth-app/src/server.ts',
+    negative: 'test-fixtures/reference-fastify-auth-app/src/db.ts',
   },
 };
 

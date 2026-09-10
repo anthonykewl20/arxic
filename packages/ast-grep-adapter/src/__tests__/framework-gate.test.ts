@@ -704,4 +704,47 @@ describe('real third-party evidence: koel (Laravel 13) at the DG-05-pinned commi
     ).toBe(true);
     expect(malformed.matches).toEqual([]);
   });
+
+  it('fastify-auth gate: a manifest range fully inside >=4 <6 is accepted and fastify 6 is rejected (refs #560)', async () => {
+    const fastifyFiles = (range: string): Record<string, string> => ({
+      'package.json': JSON.stringify({
+        name: 'fastify-gate-probe',
+        private: true,
+        dependencies: { fastify: range, '@fastify/jwt': '^9.0.0', '@fastify/cookie': '^11.0.0' },
+      }),
+      'src/server.ts':
+        "import Fastify from 'fastify';\nconst app = Fastify();\napp.post('/login', async (request, reply) => {\n  return { ok: true };\n});\n",
+    });
+    const accepted = await new AstGrepAdapter({
+      packs: [join(workspaceRoot, 'rulepacks/fastify-auth')],
+      now: () => '2026-09-10T12:00:00.000Z',
+    }).scan({
+      revision: (await makeRepository(undefined, fastifyFiles('^5.4.0'))).revision,
+      framework: 'fastify',
+    });
+    const acceptedDiagnostics = diagnosticsOf(accepted.events);
+    expect(acceptedDiagnostics).toContainEqual(
+      expect.objectContaining({
+        code: ARXIC_RULES_FRAMEWORK_ACCEPTED,
+        severity: 'observed',
+        subject: 'framework:fastify',
+      }),
+    );
+    expect(accepted.matches.length).toBeGreaterThan(0);
+
+    const rejected = await new AstGrepAdapter({
+      packs: [join(workspaceRoot, 'rulepacks/fastify-auth')],
+      now: () => '2026-09-10T12:00:00.000Z',
+    }).scan({
+      revision: (await makeRepository(undefined, fastifyFiles('^6.0.0'))).revision,
+      framework: 'fastify',
+    });
+    expect(
+      diagnosticsOf(rejected.events).some(
+        (diagnostic) =>
+          diagnostic.code === ARXIC_RULES_FRAMEWORK_REJECTED && diagnostic.severity === 'blocked',
+      ),
+    ).toBe(true);
+    expect(rejected.matches).toEqual([]);
+  });
 });
