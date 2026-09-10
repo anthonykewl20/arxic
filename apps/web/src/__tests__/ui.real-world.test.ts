@@ -452,7 +452,7 @@ it.each(['light', 'dark'] as const)(
       );
       await page.getByLabel('Pause scheduled runs').uncheck();
       await page.getByRole('button', { name: 'Save project' }).click();
-      await expect.poll(() => page.locator('#content').textContent()).toContain('active');
+      await expect.poll(() => page.locator('#content').textContent()).toContain('Active');
       await page.getByRole('button', { name: 'Configure', exact: true }).click();
       expect(await page.getByLabel('Model provider', { exact: true }).inputValue()).toBe(
         'local-agent',

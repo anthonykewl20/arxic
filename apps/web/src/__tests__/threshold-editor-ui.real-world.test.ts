@@ -28,6 +28,8 @@ it('edits the per-project visual change ratio through the real project settings 
     await page.getByLabel('Administrator token').fill('threshold-editor-administrator-token');
     await page.getByRole('button', { name: 'Open workbench' }).click();
     await page.getByRole('heading', { name: 'Pages', exact: true }).waitFor();
+    // Projects is where a project's own controls live; Pages is the home view.
+    await page.goto(`${app.origin}?view=overview`);
     // The project's name opens its settings; the row carries no separate
     // Settings button.
     await page.getByRole('button', { name: 'Threshold editor', exact: true }).click();
