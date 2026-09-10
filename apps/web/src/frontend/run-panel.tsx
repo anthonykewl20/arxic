@@ -9,6 +9,7 @@ import { AssessmentPanel } from './assessment-panel';
 import type { RunHistoryPage } from '../run-history';
 import { Button, EmptyState, Input } from './components';
 import { RunTable, Status } from './run-table';
+import { runModeWords } from '../plain-words';
 import { ReviewForm, reviewDraftKey, type ReviewRequest } from './review-form';
 import { time } from './display';
 import type { RefreshModels } from './model-controls';
@@ -86,10 +87,12 @@ export function RunPanel(props: RunPanelProps) {
           }}
         >
           <option value="">All types</option>
-          <option value="discovery">Discovery</option>
-          <option value="visual">Visual</option>
-          <option value="agent">AI E2E</option>
-          <option value="review">AI visual review</option>
+          {/* The same names the buttons that start these runs carry. */}
+          {(['discovery', 'visual', 'agent', 'review'] as const).map((mode) => (
+            <option key={mode} value={mode}>
+              {runModeWords(mode).label}
+            </option>
+          ))}
         </select>
         <select
           id="run-status"
@@ -101,9 +104,19 @@ export function RunPanel(props: RunPanelProps) {
           }}
         >
           <option value="">All statuses</option>
-          {['queued', 'running', 'completed', 'blocked', 'cancelled'].map((value) => (
+          {/* The filter's VALUES stay the engine's states — they go to the
+              server — but nobody has to read them to use it. */}
+          {(
+            [
+              ['queued', 'Waiting to start'],
+              ['running', 'Running now'],
+              ['completed', 'Finished'],
+              ['blocked', 'Could not run'],
+              ['cancelled', 'Stopped'],
+            ] as const
+          ).map(([value, label]) => (
             <option key={value} value={value}>
-              {value}
+              {label}
             </option>
           ))}
         </select>
