@@ -168,7 +168,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
             onValueChange={setTab}
             items={[
               { id: 'surfaces', label: 'Pages and endpoints', count: surfaceCount },
-              { id: 'workflows', label: 'Workflows to test' },
+              { id: 'workflows', label: 'Journeys to test' },
               { id: 'declarations', label: 'In the code', count: declarationCount },
             ]}
           />
@@ -221,7 +221,7 @@ export function InventoryPanel(props: InventoryPanelProps) {
         </>
       ) : (
         <EmptyState icon={ScanSearch} title="No connected projects">
-          Connect a project and run source discovery to build its intent inventory.
+          Connect a project and run <strong>Read the code</strong> to see what it holds.
         </EmptyState>
       )}
     </>

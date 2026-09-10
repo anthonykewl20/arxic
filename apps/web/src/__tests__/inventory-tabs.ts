@@ -11,7 +11,7 @@ import type { Page } from 'playwright';
  */
 const labels = {
   surfaces: 'Pages and endpoints',
-  workflows: 'Workflows to test',
+  workflows: 'Journeys to test',
   declarations: 'In the code',
 } as const;
 

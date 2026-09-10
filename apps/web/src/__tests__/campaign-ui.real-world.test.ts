@@ -236,7 +236,7 @@ it('lets an administrator select and verify two real workflows with honest campa
       'An earlier session campaign response cannot navigate the newly authenticated workspace',
     );
     await page.getByRole('button', { name: 'Workflows', exact: true }).click();
-    await page.getByRole('button', { name: 'View campaign', exact: true }).click();
+    await page.getByRole('button', { name: 'Open journeys', exact: true }).click();
     await expect
       .poll(() => page.locator('.campaign-detail').textContent(), { timeout: 120_000 })
       .toContain('2 verified');
@@ -272,7 +272,7 @@ it('lets an administrator select and verify two real workflows with honest campa
     expect(
       await page
         .locator('.run-detail')
-        .getByRole('button', { name: 'View campaign', exact: true })
+        .getByRole('button', { name: 'Open journeys', exact: true })
         .count(),
     ).toBe(1);
     expect(

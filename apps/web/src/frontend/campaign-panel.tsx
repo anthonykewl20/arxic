@@ -54,10 +54,11 @@ export function CampaignPanel({
   const visible = campaigns.filter((campaign) => !projectId || campaign.projectId === projectId);
   return (
     <>
+      {/* The heading already says what a journey is; this says only what a
+          passing one does and does not prove. */}
       <Note>
-        Start a campaign from Intent inventory after discovery and guided AI setup. Campaigns track
-        source surfaces; passing selected workflows does not prove all frontend behavior. Latest 100
-        campaigns shown; full records persist.
+        A journey that passes proves that path worked when it ran. It does not prove the rest of
+        your app does. The latest 100 are listed here; every record is kept.
       </Note>
       {/* The empty state is not a grid item: inside the card grid it would be
           boxed into one column and read as a missing card. */}
@@ -71,8 +72,8 @@ export function CampaignPanel({
               </Badge>
               <RebindingBadge campaign={campaign} runs={runs} />
               <p>
-                {campaign.counts.verified}/{campaign.counts.selected} selected workflows verified ·{' '}
-                {campaign.counts.pending} pending
+                {campaign.counts.verified} of {campaign.counts.selected} journeys walked
+                successfully · {campaign.counts.pending} still to go
               </p>
               <small>
                 {new Date(campaign.createdAt).toISOString().slice(0, 19).replace('T', ' ')} UTC
@@ -84,16 +85,23 @@ export function CampaignPanel({
                   data-open-campaign={campaign.id}
                   onClick={() => actions().openCampaign(campaign.id)}
                 >
-                  View campaign
+                  Open journeys
                 </Button>
               </p>
             </Card>
           ))}
         </div>
       ) : (
-        <EmptyState icon={Layers} title="No campaigns yet">
-          Discover a project&rsquo;s intents, select the workflows worth executing, and start a
-          campaign from Intent inventory.
+        <EmptyState
+          icon={Layers}
+          title="No journeys running yet"
+          action={
+            <Button onClick={() => actions().navigate('intents')}>Pick journeys to test</Button>
+          }
+        >
+          Run <strong>Read the code</strong> on a project, then choose the journeys worth walking
+          under <strong>Code scan</strong>. Each one you pick is replayed here by an AI in a real
+          browser.
         </EmptyState>
       )}
       {selected?.rows && (
@@ -121,7 +129,7 @@ function CampaignDetail({
   return (
     <section className="campaign-detail">
       <Section
-        title={`${campaign.projectName} / campaign`}
+        title={`${campaign.projectName} · journeys`}
         actions={
           counts.pending > 0 ? (
             <Button

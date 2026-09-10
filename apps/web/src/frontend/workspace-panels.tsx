@@ -7,7 +7,7 @@ import { time } from './display';
 import { InventoryPanel, type InventoryPanelProps } from './inventory-panel';
 import { ChangesPanel, PagesPanel, type PagesPanelProps } from './pages-panel';
 import { buildPageInventory, pendingChanges } from '../page-inventory';
-import { environmentWords, evidenceWords } from '../plain-words';
+import { evidenceWords } from '../plain-words';
 import { CampaignPanel, type CampaignPanelProps } from './campaign-panel';
 import { createRoot, type Root } from 'react-dom/client';
 import { useState } from 'react';
@@ -24,7 +24,6 @@ import {
   Settings2,
 } from 'lucide-react';
 import {
-  Badge,
   Button,
   Card,
   CardContent,
@@ -105,18 +104,6 @@ function Overview({ state }: { state: State }) {
           </span>
         </span>
       ),
-    },
-    {
-      key: 'environment',
-      header: 'Environment',
-      cell: (item) => {
-        const words = environmentWords(item.environment);
-        return (
-          <Badge variant="outline" className={`pill env-${words.term}`} title={words.detail}>
-            {words.label}
-          </Badge>
-        );
-      },
     },
     {
       key: 'status',
@@ -476,14 +463,7 @@ export function mountWorkspacePanel(
     return;
   }
   if (section === 'changes') {
-    root.render(
-      <ChangesPanel
-        pages={pages.pages}
-        projects={pages.projects}
-        projectId={pages.projectId}
-        onFilter={pages.onFilter}
-      />,
-    );
+    root.render(<ChangesPanel pages={pages.pages} />);
     return;
   }
   if (section === 'runs') {

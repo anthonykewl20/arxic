@@ -3,7 +3,7 @@ import { actions } from './dashboard-actions';
 import { Badge, Button, DataTable, EmptyState, StatusDot, toneOf, type Column } from './components';
 import type { Run } from '../types';
 import { time } from './display';
-import { runModeWords } from '../plain-words';
+import { evidenceWords, runModeWords } from '../plain-words';
 
 /**
  * A raw engine state as a pill.
@@ -34,16 +34,32 @@ export function Status({ value }: { value: string }) {
  * state and its outcome: "completed · observed" said the same thing twice and
  * gave the eye two chips to sort through on every row.
  */
-const sentence = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+/** Process states, said as what is happening rather than as a state name. */
+const processStates: Record<string, string> = {
+  queued: 'Waiting to start',
+  running: 'Running now',
+  blocked: 'Could not run',
+  cancelled: 'Stopped',
+};
 
 function runStatus(run: Run) {
-  if (run.state !== 'completed') return { tone: toneOf(run.state), label: sentence(run.state) };
+  if (run.state !== 'completed')
+    return {
+      tone: toneOf(run.state),
+      label: processStates[run.state] ?? run.state,
+      detail: '',
+    };
   const outcome = run.result?.outcome;
-  if (!outcome) return { tone: toneOf('completed'), label: 'Completed' };
+  if (!outcome) return { tone: toneOf('completed'), label: 'Finished', detail: '' };
   const changed = run.result?.captures?.some((capture) => capture.status === 'changed');
-  return changed
-    ? { tone: 'warning' as const, label: 'Changed' }
-    : { tone: toneOf(outcome), label: sentence(outcome) };
+  if (changed)
+    return {
+      tone: 'warning' as const,
+      label: 'Needs your decision',
+      detail: 'Screenshots differ from the pictures you approved.',
+    };
+  const words = evidenceWords(outcome);
+  return { tone: toneOf(outcome), label: words.label, detail: words.detail };
 }
 
 export function RunTable({ runs }: { runs: Run[] }) {
@@ -73,7 +89,11 @@ export function RunTable({ runs }: { runs: Run[] }) {
       header: 'Status',
       cell: (run) => {
         const status = runStatus(run);
-        return <StatusDot tone={status.tone}>{status.label}</StatusDot>;
+        return (
+          <StatusDot tone={status.tone} title={status.detail || undefined}>
+            {status.label}
+          </StatusDot>
+        );
       },
     },
     {

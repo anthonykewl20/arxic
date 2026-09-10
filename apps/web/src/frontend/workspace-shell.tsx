@@ -55,10 +55,10 @@ export const sections = [
   { id: 'pages', label: 'Pages', icon: LayoutGrid, group: 'work' },
   { id: 'changes', label: 'Changes', icon: GitCompare, group: 'work' },
   { id: 'runs', label: 'Test runs', icon: Play, group: 'work' },
-  { id: 'campaigns', label: 'Workflows', icon: Route, group: 'work' },
+  { id: 'campaigns', label: 'User journeys', icon: Route, group: 'work' },
   { id: 'schedules', label: 'Schedules', icon: CalendarClock, group: 'work' },
   { id: 'overview', label: 'Projects', icon: FolderGit2, group: 'setup' },
-  { id: 'intents', label: 'Coverage', icon: ScanSearch, group: 'setup' },
+  { id: 'intents', label: 'Code scan', icon: ScanSearch, group: 'setup' },
   { id: 'providers', label: 'AI models', icon: Bot, group: 'setup' },
   { id: 'admin', label: 'Settings', icon: Settings2, group: 'setup' },
 ] as const;
@@ -136,6 +136,26 @@ function WorkspaceShell() {
             >
               {menuOpen ? <X /> : <Menu />}
             </Button>
+          </div>
+          {/*
+            What you are looking at, before what you are looking for.
+            Every screen below obeys these two: the project list stopped
+            carrying an environment column the moment the environment became
+            something you choose here, and no screen carries its own project
+            filter any more.
+          */}
+          <div className="scope-bar">
+            <label htmlFor="project-scope">Project</label>
+            <select id="project-scope" defaultValue="">
+              <option value="">All projects</option>
+            </select>
+            <label htmlFor="environment-scope">Environment</label>
+            <select id="environment-scope" defaultValue="">
+              <option value="">All environments</option>
+              <option value="development">Development</option>
+              <option value="staging">Staging</option>
+              <option value="production">Production</option>
+            </select>
           </div>
           <nav id="workspace-navigation" aria-label="Workspace">
             {sections

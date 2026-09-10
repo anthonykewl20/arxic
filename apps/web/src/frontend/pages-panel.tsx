@@ -33,7 +33,6 @@ import { describeScene, parseElementScene } from '../element-scene';
 import {
   browserName,
   captureWords,
-  environmentWords,
   sizeName,
   stateName,
   themeName,
@@ -389,17 +388,8 @@ function PageDetail({ page, runs }: { page: PageEntry; runs: Run[] }) {
         <Button variant="ghost" size="sm" data-close-page onClick={() => actions().closePage()}>
           <ArrowLeft /> All pages
         </Button>
-        <span className="flex items-center gap-2">
-          <Badge
-            variant="outline"
-            className={`pill env-${environmentWords(page.environment).term}`}
-            title={environmentWords(page.environment).detail}
-          >
-            {environmentWords(page.environment).label}
-          </Badge>
-          <span className="folder text-[12px]">
-            {page.projectName} · {page.path}
-          </span>
+        <span className="folder text-[12px]">
+          {page.projectName} · {page.path}
         </span>
         <span className="ml-auto flex items-center gap-2">
           {page.url && (
@@ -674,13 +664,16 @@ export type PagesPanelProps = {
   offset: number;
   /** Empty shows the grid; a path shows that page in full. */
   selected: string;
+  /** Whether the sidebar's project/environment scope is narrowing the list. */
+  scoped: boolean;
+  onClearScope: () => void;
   onFilter: (kind: 'project' | 'status', value: string) => void;
   onSearch: (value: string) => void;
   onPage: (direction: -1 | 1) => void;
 };
 
 export function PagesPanel(props: PagesPanelProps) {
-  const { pages, projects, projectId, search, filter, offset, selected, runs } = props;
+  const { pages, projects, projectId, search, filter, offset, selected, runs, scoped } = props;
   const open = selected
     ? pages.find((page) => page.path === selected && (!projectId || page.projectId === projectId))
     : undefined;
@@ -694,19 +687,10 @@ export function PagesPanel(props: PagesPanelProps) {
   const untested = pages.filter((page) => page.status === 'untested').length;
   return (
     <>
+      {/* No project filter here: the scope bar in the sidebar owns which
+          project you are looking at, and two controls setting the same thing is
+          the confusion this screen was meant to remove. */}
       <Toolbar>
-        {projects.length > 1 && (
-          <FilterSelect
-            id="project-filter"
-            label="Filter by project"
-            value={projectId}
-            options={[
-              { value: '', label: 'All projects' },
-              ...projects.map((project) => ({ value: project.id, label: project.name })),
-            ]}
-            onChange={(value) => props.onFilter('project', value)}
-          />
-        )}
         <FilterSelect
           id="page-status"
           label="Filter pages"
@@ -746,6 +730,21 @@ export function PagesPanel(props: PagesPanelProps) {
         ) : pages.length ? (
           <EmptyState icon={FileSearch} title="No pages match">
             Nothing here matches that search or filter. Clear them to see all {pages.length} pages.
+          </EmptyState>
+        ) : scoped ? (
+          // An empty screen must say WHY it is empty. "Connect a project" is
+          // the wrong answer when there are projects and the scope is hiding
+          // them.
+          <EmptyState
+            icon={FileSearch}
+            title="Nothing in this scope"
+            action={
+              <Button variant="outline" onClick={props.onClearScope}>
+                Show everything
+              </Button>
+            }
+          >
+            No project matches the project and environment chosen in the sidebar.
           </EmptyState>
         ) : projects.length ? (
           <EmptyState
@@ -798,35 +797,11 @@ export function PagesPanel(props: PagesPanelProps) {
 }
 
 /** The review queue: every pending decision across every page, in one place. */
-export function ChangesPanel({
-  pages,
-  projects,
-  projectId,
-  onFilter,
-}: {
-  pages: PageEntry[];
-  projects: Project[];
-  projectId: string;
-  onFilter: (kind: 'project', value: string) => void;
-}) {
+export function ChangesPanel({ pages }: { pages: PageEntry[] }) {
   const waiting = pages.filter((page) => page.needsReview > 0);
   const total = waiting.reduce((sum, page) => sum + page.needsReview, 0);
   return (
     <>
-      {projects.length > 1 && (
-        <Toolbar>
-          <FilterSelect
-            id="project-filter"
-            label="Filter by project"
-            value={projectId}
-            options={[
-              { value: '', label: 'All projects' },
-              ...projects.map((project) => ({ value: project.id, label: project.name })),
-            ]}
-            onChange={(value) => onFilter('project', value)}
-          />
-        </Toolbar>
-      )}
       {waiting.length ? (
         <>
           <Note>
@@ -858,8 +833,8 @@ export function ChangesPanel({
         </>
       ) : (
         <EmptyState icon={Code2} title="Nothing to review">
-          Every screenshot matches the picture you approved. When a page changes, it lands here for
-          a decision.
+          Every screenshot in view matches the picture you approved. When a page changes, it lands
+          here for a decision.
         </EmptyState>
       )}
     </>

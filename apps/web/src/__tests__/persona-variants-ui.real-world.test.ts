@@ -132,7 +132,7 @@ it('creates a mixed persona/flag variant campaign through the real dialog and at
     );
 
     await page.getByRole('button', { name: 'Start selected campaign', exact: true }).click();
-    await page.getByRole('button', { name: 'View campaign', exact: true }).click();
+    await page.getByRole('button', { name: 'Open journeys', exact: true }).click();
     await expect
       .poll(() => page.locator('.campaign-detail').textContent(), { timeout: 120_000 })
       .toContain('Persona A');

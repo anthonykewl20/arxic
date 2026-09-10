@@ -515,8 +515,7 @@ function RunDetail({ run, state, onRefresh, onReview }: RunPanelProps & { run: R
       <VisualReviewPanel run={run} />
       {run.workflowScope ? (
         <p className="scope-note">
-          Kept as campaign evidence. Start another selected campaign from Intent inventory to test
-          again.
+          Kept as journey evidence. Pick more journeys under Code scan to test again.
         </p>
       ) : (
         !['queued', 'running'].includes(run.state) && (

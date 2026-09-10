@@ -25,6 +25,7 @@ import {
   FolderGit2,
 } from 'lucide-react';
 import { buildPageInventory, pendingChanges } from '../page-inventory';
+import type { Project } from '../types';
 import { runModeWords, runNeedsConfirmation } from '../plain-words';
 import { PAGE_GRID_SIZE } from './pages-panel';
 
@@ -44,10 +45,10 @@ const titles: Record<string, string> = {
   pages: 'Pages',
   changes: 'Changes',
   runs: 'Test runs',
-  campaigns: 'Workflows',
+  campaigns: 'User journeys',
   schedules: 'Schedules',
   overview: 'Projects',
-  intents: 'Coverage',
+  intents: 'Code scan',
   providers: 'AI models',
   admin: 'Settings',
 };
@@ -55,11 +56,12 @@ const descriptions: Record<string, string> = {
   pages: 'Every page Arxic found, what is on it, and whether it still looks right.',
   changes: 'Screenshots that differ from the picture you approved. Approve the intended ones.',
   runs: 'Every test that has run, and the evidence it produced.',
-  campaigns: 'Journeys through several pages, replayed by AI, and what each one did.',
+  campaigns:
+    'A journey is a path through several pages — sign in, add to basket, check out. Pick the ones that matter and an AI walks each of them in a real browser.',
   schedules: 'Tests that run on their own, on a UTC timer.',
   overview: 'The projects Arxic is watching. Connect one, or change how it is tested.',
   intents:
-    'Everything found by reading your code: pages, API endpoints and the declarations behind them.',
+    'What reading your code turned up: the addresses it serves, the journeys it declares, and the components behind them.',
   providers: 'Connect a provider once; Arxic lists the models it offers.',
   admin: 'Access, sign-in details, storage, and the activity log.',
 };
@@ -81,6 +83,7 @@ let refreshSequence = 0;
 let signingOut = false;
 let declarationKind = '';
 let declarationSearch = '';
+let selectedEnvironment = '';
 let pageSearch = '';
 let pageFilter = '';
 let pageOffset = 0;
@@ -98,6 +101,9 @@ function readLocation() {
     return /^[a-f0-9-]{36}$/u.test(value) ? value : '';
   };
   selectedProject = id('project');
+  selectedEnvironment = ['development', 'staging', 'production'].includes(params.get('env') ?? '')
+    ? params.get('env')!
+    : '';
   selectedRun = section === 'runs' ? id('run') : '';
   selectedCampaign = section === 'campaigns' ? id('campaign') : '';
   runSearch = (params.get('query') ?? '').slice(0, 200);
@@ -130,6 +136,7 @@ function writeLocation() {
   url.hash = '';
   if (section !== 'pages') url.searchParams.set('view', section);
   if (selectedProject) url.searchParams.set('project', selectedProject);
+  if (selectedEnvironment) url.searchParams.set('env', selectedEnvironment);
   if (section === 'pages') {
     if (selectedPage) url.searchParams.set('page', selectedPage);
     if (pageSearch) url.searchParams.set('query', pageSearch);
@@ -318,11 +325,46 @@ async function refreshRunHistory() {
 function project(id: string) {
   return state.projects.find((item: { id: string }) => item.id === id);
 }
+/**
+ * The projects the scope bar admits.
+ *
+ * One definition, so Pages, Changes and the projects table cannot disagree
+ * about what the operator is looking at — and so no screen needs a project
+ * filter of its own.
+ */
+function scopedProjects(): Project[] {
+  return (state.projects as Project[]).filter(
+    (item) =>
+      (!selectedProject || item.id === selectedProject) &&
+      (!selectedEnvironment || (item.environment ?? 'development') === selectedEnvironment),
+  );
+}
+/**
+ * The scope bar's project list is data, so it is filled here rather than in the
+ * shell. Rebuilt only when the set of projects changes: replacing the options
+ * on every 2.5s poll would close the menu under the operator's cursor.
+ */
+function renderScope() {
+  const select = $<HTMLSelectElement>('#project-scope');
+  if (!select) return;
+  const ids = (state.projects as Array<{ id: string; name: string }>).map((item) => item.id);
+  const rendered = [...select.options].slice(1).map((option) => option.value);
+  if (rendered.join('\u0000') !== ids.join('\u0000')) {
+    select.replaceChildren(new Option('All projects', ''));
+    for (const item of state.projects as Array<{ id: string; name: string }>)
+      select.append(new Option(item.name, item.id));
+  }
+  select.value = selectedProject;
+  const environment = $<HTMLSelectElement>('#environment-scope');
+  if (environment) environment.value = selectedEnvironment;
+}
 function render() {
   writeLocation();
   publishCommands();
+  renderScope();
+  const scoped = scopedProjects();
   const pages = buildPageInventory({
-    projects: state.projects,
+    projects: scoped,
     runs: state.runs,
     baselines: state.baselines,
   });
@@ -395,6 +437,13 @@ function render() {
         filter: pageFilter,
         offset: pageOffset,
         selected: selectedPage,
+        scoped: !!(selectedProject || selectedEnvironment),
+        onClearScope: () => {
+          selectedProject = '';
+          selectedEnvironment = '';
+          pageOffset = 0;
+          render();
+        },
         onFilter: (kind: 'project' | 'status', value: string) => {
           if (kind === 'project') selectedProject = value;
           if (kind === 'status') pageFilter = value;
@@ -678,11 +727,26 @@ document.addEventListener('change', (event) => {
     declarationPages.clear();
     render();
   }
-  if (target.id === 'project-filter') {
+  // The scope bar and the run-history project filter set the same thing; the
+  // bar is the one that survives, and runs re-query the server because their
+  // history is paged there rather than in the polled snapshot.
+  if (target.id === 'project-scope' || target.id === 'project-filter') {
     selectedProject = target.value;
     runOffset = 0;
+    pageOffset = 0;
+    selectedPage = '';
     if (section === 'runs') void refresh().catch((error) => notice(error.message));
     else render();
+  }
+  if (target.id === 'environment-scope') {
+    selectedEnvironment = target.value;
+    pageOffset = 0;
+    selectedPage = '';
+    // A project outside the chosen environment cannot stay selected, or the
+    // two halves of the scope would contradict each other.
+    if (selectedProject && !scopedProjects().some((item) => item.id === selectedProject))
+      selectedProject = '';
+    render();
   }
 });
 document.addEventListener('submit', (event) => {
