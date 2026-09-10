@@ -225,6 +225,30 @@ Read this before trusting the summary.
   re-point a project at a different URL. One project per environment is the
   shape this supports, and baselines stay keyed to the project that produced
   them — which is what stops two environments' pixels colliding.
+- **The dashboard bundle was not made smaller, and it grew.** `app.js` goes
+  from 660 KB to 772 KB (+17%) and `app.css` from 52 KB to 62 KB for the new
+  screens and primitives. While measuring that, the served bundle turned out to
+  contain `tailwind-merge`'s JSDoc comments and ordinary formatting despite
+  `minify: true` in `frontend-assets-build.ts` — so the dashboard appears to
+  ship unminified, on main as well as here. That is a pre-existing build
+  finding, NOT a regression from this slice, and it is deliberately left alone:
+  changing how the frontend is built changes the packaged artifact every
+  consumer installs, and belongs in its own slice with its own verification.
+  Worth taking: the saving looks like roughly half the bundle.
+- **`navigation-errors.real-world.test.ts` is fragile on WebKit CI, and this
+  slice did not establish why.** It probes for a browser teardown diagnostic in
+  12 rounds and reds when it cannot reproduce one ("non-reproducing WebKit run
+  is inconclusive, not a pass") — a deliberate choice, with two prior fix
+  commits (#465, #544) on the same mechanism. On this branch it failed 3 of 4
+  CI runs, at line 89 and at line 153 interchangeably, while three
+  frontend-untouched PRs passed 3 of 3. That difference is not significant at
+  those sample sizes, and ~35 local runs across four setups — unloaded, CPU
+  loaded, instrumented, and pinned to two cores — put this branch and main at
+  indistinguishable rates (0/6 vs 0/6 pinned; 0/8 vs 1/8 interleaved). The
+  bigger bundle is a plausible but UNPROVEN lever on a probe that needs a 4 ms
+  timer to fire inside a reload's teardown window. Recorded rather than
+  papered over: the test was not loosened, and no build change was smuggled in
+  to make it pass.
 - **The GitHub link goes to a file at a commit, and no further.** It does not
   diff two commits, and it does not know which lines rendered which pixels. The
   line ranges discovery recorded are not carried into the link, because a range
