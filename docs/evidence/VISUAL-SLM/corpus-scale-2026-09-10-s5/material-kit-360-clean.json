@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "material-kit-360-clean",
+  "group": "material-kit",
+  "revision": "b03c3db0fd31d4cdcf9f535e5e6cff9068f17e2f",
+  "consent": true,
+  "context": {
+    "width": 360,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clean"
+  },
+  "before": {
+    "path": "material-kit-360-clean-before.png",
+    "sha256": "c274ef0975bbcb27c9891ff8bb4bb2548aaa6bde24b18a9b99ff6764b9848b63"
+  },
+  "current": {
+    "path": "material-kit-360-clean-current.png",
+    "sha256": "c274ef0975bbcb27c9891ff8bb4bb2548aaa6bde24b18a9b99ff6764b9848b63"
+  },
+  "beforePrivacy": {
+    "path": "material-kit-360-clean-before.png.privacy.json",
+    "sha256": "33fb670f3bf789a52d27eec507a921d2f524ffafeac81f37aa6ff2fe95a05a0f"
+  },
+  "currentPrivacy": {
+    "path": "material-kit-360-clean-current.png.privacy.json",
+    "sha256": "33fb670f3bf789a52d27eec507a921d2f524ffafeac81f37aa6ff2fe95a05a0f"
+  },
+  "scene": {
+    "path": "material-kit-360-clean-scene.json",
+    "sha256": "cec6553398cff08484cb4b83ad31711006a8074aec172fd750ea8e91ec6e482c"
+  },
+  "timeline": {
+    "path": "material-kit-360-clean-timeline.json",
+    "sha256": "628290163e776633cc0ea5e2169e83faf38872646a02df8578d40f1e37f75e4f"
+  },
+  "timelineProvenance": {
+    "path": "material-kit-360-clean-timeline.sanitization.json",
+    "sha256": "e43a3fc370195259f59e4cee876f56981b943123b683fd60edf1932895e36e5d"
+  }
+}

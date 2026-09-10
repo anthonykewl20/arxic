@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "material-kit-640-clip-full",
+  "group": "material-kit",
+  "revision": "b03c3db0fd31d4cdcf9f535e5e6cff9068f17e2f",
+  "consent": true,
+  "context": {
+    "width": 640,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clip-full"
+  },
+  "before": {
+    "path": "material-kit-640-clip-full-before.png",
+    "sha256": "ce6eef4c484a7a24e0aeac05929411de8094207b0a8b3fd86c5e671ed8958f8c"
+  },
+  "current": {
+    "path": "material-kit-640-clip-full-current.png",
+    "sha256": "0453d0d202f222bae451a575203b7ef35fe2c03d99c5120465730db2b47f531f"
+  },
+  "beforePrivacy": {
+    "path": "material-kit-640-clip-full-before.png.privacy.json",
+    "sha256": "f17e904613eb3b719d9bb8ceb17fb966f2351129c6925fc57de3d668a2b01298"
+  },
+  "currentPrivacy": {
+    "path": "material-kit-640-clip-full-current.png.privacy.json",
+    "sha256": "c3de6da68717ecc4cef669bdb4976eb64e81c6827bcb2925d64ebc6001b2f6f5"
+  },
+  "scene": {
+    "path": "material-kit-640-clip-full-scene.json",
+    "sha256": "31beda06a17d6632520234889d1895e63d19e0935a8be300db67b9b7a30de8a0"
+  },
+  "timeline": {
+    "path": "material-kit-640-clip-full-timeline.json",
+    "sha256": "b3940328da992806be6401f8fa25680dd1f9c1bd10d4f44fa3e83955f27f78b4"
+  },
+  "timelineProvenance": {
+    "path": "material-kit-640-clip-full-timeline.sanitization.json",
+    "sha256": "2c4c33a5ca77e88efe634f6be2ae1030c9a31a9950000f2a3a8f844dfe7cdd59"
+  }
+}

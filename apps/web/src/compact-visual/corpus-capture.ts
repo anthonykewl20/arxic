@@ -162,6 +162,21 @@ export const STATIC_FAMILY_CONFIG: Record<
     buttonExact: true,
     buttonSelector: 'button.bg-gradient-primary',
   },
+  'material-kit': {
+    // Same vendor and license as material-dashboard (MIT, commit-pinned at
+    // 54cdbf81, default-branch HEAD — no release tag). The sign-in page's
+    // submit is the page's only bg-gradient-dark BUTTON: the navbar CTA
+    // carrying the same class is an anchor, and the dark card header and
+    // image mask are not buttons, so the tag-qualified selector stays unique.
+    // Like material-dashboard the card is centered with my-auto, so removing
+    // the control re-centers the inputs — the capture records honest
+    // unstable-case skips for those cases rather than fabricated rows.
+    docroot: 'material-kit',
+    path: '/pages/sign-in.html',
+    button: '',
+    buttonExact: true,
+    buttonSelector: 'button.bg-gradient-dark',
+  },
 };
 
 const CONTENT_TYPES: Record<string, string> = {
