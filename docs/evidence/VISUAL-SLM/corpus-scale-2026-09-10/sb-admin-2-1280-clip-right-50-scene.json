@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "beforeSha256": "f4478ada4f2b8966c577d592263a3bf978ecf23fb20b78a64f59b45c11111fbb",
+  "currentSha256": "11d76674ab268b2c35f1824471f83c3e086392532f5f4e18a9fdd6eba9b5b958",
+  "sanitized": true,
+  "stable": true,
+  "regions": [
+    {
+      "id": "viewport",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 800
+      },
+      "before": {
+        "box": {
+          "x": 699.984375,
+          "y": 320.796875,
+          "width": 344.984375,
+          "height": 45.1875
+        },
+        "clip": 1,
+        "hit": 1,
+        "overflowX": 0,
+        "overflowY": 0
+      },
+      "current": {
+        "box": {
+          "x": 1107.5078125,
+          "y": 320.796875,
+          "width": 344.984375,
+          "height": 45.1875
+        },
+        "clip": 0.5,
+        "hit": 0,
+        "overflowX": 0,
+        "overflowY": 0
+      },
+      "eligible": [
+        true,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "criterion": "required-submit-inside-viewport"
+    }
+  ],
+  "hardChecks": [
+    {
+      "id": "clipping-oracle",
+      "head": "clipping",
+      "verdict": "fail",
+      "region": "viewport"
+    },
+    {
+      "id": "overflow-oracle",
+      "head": "overflow",
+      "verdict": "pass",
+      "region": "viewport"
+    }
+  ]
+}

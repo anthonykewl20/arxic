@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "actions": [
+    "capture-before",
+    "capture-current",
+    "measure",
+    "assert-pass"
+  ]
+}

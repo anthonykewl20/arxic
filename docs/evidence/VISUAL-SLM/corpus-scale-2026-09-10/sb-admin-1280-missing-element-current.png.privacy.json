@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "screenshotSha256": "4007c4c43ee82d10fd70b058e7df525fc9faa3275bc01a2741864960b26816a5",
+  "mode": "input-masked",
+  "masks": [
+    {
+      "x": 430.5,
+      "y": 162.59375,
+      "width": 419,
+      "height": 58
+    },
+    {
+      "x": 430.5,
+      "y": 236.59375,
+      "width": 419,
+      "height": 58
+    },
+    {
+      "x": 430.5,
+      "y": 314.59375,
+      "width": 16,
+      "height": 16
+    }
+  ],
+  "rawTraceRetained": false
+}

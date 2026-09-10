@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "id": "sb-admin-2-1280-clip-right-50",
+  "group": "sb-admin-2",
+  "revision": "911aa9ca5ea88aa01e657364b06300ee3c64da8e",
+  "consent": true,
+  "context": {
+    "width": 1280,
+    "height": 800,
+    "dpr": 1,
+    "profile": "chromium-anonymous-light",
+    "state": "required-submit-clip-right-50"
+  },
+  "before": {
+    "path": "sb-admin-2-1280-clip-right-50-before.png",
+    "sha256": "f4478ada4f2b8966c577d592263a3bf978ecf23fb20b78a64f59b45c11111fbb"
+  },
+  "current": {
+    "path": "sb-admin-2-1280-clip-right-50-current.png",
+    "sha256": "11d76674ab268b2c35f1824471f83c3e086392532f5f4e18a9fdd6eba9b5b958"
+  },
+  "beforePrivacy": {
+    "path": "sb-admin-2-1280-clip-right-50-before.png.privacy.json",
+    "sha256": "5d865c0caa22a06e8fe729d241e206d969c78edc44974d022fae577d8b2ce875"
+  },
+  "currentPrivacy": {
+    "path": "sb-admin-2-1280-clip-right-50-current.png.privacy.json",
+    "sha256": "447ff9dc45472dd42a84001e6112b9ce958564886199cc98b9d8ac5f0d87ea04"
+  },
+  "scene": {
+    "path": "sb-admin-2-1280-clip-right-50-scene.json",
+    "sha256": "7576311cb120ee5ce9d755e678a9d8cc44c0808ff348adef7acc2114d438f6d2"
+  },
+  "timeline": {
+    "path": "sb-admin-2-1280-clip-right-50-timeline.json",
+    "sha256": "b3940328da992806be6401f8fa25680dd1f9c1bd10d4f44fa3e83955f27f78b4"
+  },
+  "timelineProvenance": {
+    "path": "sb-admin-2-1280-clip-right-50-timeline.sanitization.json",
+    "sha256": "2c4c33a5ca77e88efe634f6be2ae1030c9a31a9950000f2a3a8f844dfe7cdd59"
+  }
+}
