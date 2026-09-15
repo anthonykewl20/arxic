@@ -23,8 +23,8 @@
     "@arxic/policy-engine": "workspace:*",
     "@arxic/source-ua-adapter": "workspace:*",
     "@arxic/verifier": "workspace:*",
-    "@langchain/core": "1.2.9",
-    "@langchain/langgraph": "1.4.13"
+    "@langchain/core": "1.2.11",
+    "@langchain/langgraph": "1.4.15"
   },
   "devDependencies": {
     "@arxic/auth-domain-pack": "workspace:*",
