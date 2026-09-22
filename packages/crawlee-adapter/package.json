@@ -11,6 +11,6 @@
     "@arxic/contracts": "workspace:*",
     "@arxic/verifier": "workspace:*",
     "crawlee": "3.18.1",
-    "playwright": "1.62.1"
+    "playwright": "1.63.0"
   }
 }
