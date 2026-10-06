@@ -14,12 +14,12 @@
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
-    "@fastify/jwt": "^9.1.0",
-    "fastify": "^5.4.0"
+    "@fastify/jwt": "^10.2.2",
+    "fastify": "^5.12.5"
   },
   "devDependencies": {
-    "@types/node": "^26.4.0",
-    "tsx": "^4.23.12",
-    "typescript": "^5.6.0"
+    "@types/node": "^26.6.4",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   }
 }
