@@ -15,7 +15,7 @@
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
     "@fastify/jwt": "^9.1.0",
-    "fastify": "^5.4.0"
+    "fastify": "^5.12.5"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
