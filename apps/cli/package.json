@@ -34,19 +34,19 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ast-grep/cli": "^0.45.2",
-    "@playwright/test": "1.62.1",
+    "@ast-grep/cli": "^0.50.0",
+    "@playwright/test": "1.64.0",
     "crawlee": "3.18.1",
-    "playwright": "1.62.1",
-    "testcontainers": "^12.1.0",
+    "playwright": "1.64.0",
+    "testcontainers": "^12.2.0",
     "tree-sitter": "^0.25.1",
     "tree-sitter-javascript": "^0.25.0",
     "tree-sitter-php": "^0.24.2",
     "tree-sitter-typescript": "^0.23.2",
     "better-sqlite3": "13.0.3",
-    "sharp": "0.35.4",
-    "cron-parser": "5.10.0",
-    "pixelmatch": "7.2.0"
+    "sharp": "0.35.5",
+    "cron-parser": "5.10.2",
+    "pixelmatch": "8.0.0"
   },
   "devDependencies": {
     "@arxic/ast-grep-adapter": "workspace:*",
@@ -60,6 +60,6 @@
     "@arxic/verifier": "workspace:*",
     "@arxic/worker": "workspace:*",
     "tsup": "^8.5.0",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.1"
   }
 }
